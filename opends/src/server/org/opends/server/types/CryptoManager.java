@@ -59,7 +59,6 @@ import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -96,12 +95,12 @@ public class CryptoManager
           = new Random(secureRandom.nextLong());
 
   // The map from encryption key ID to cipher algorithm name.
-  private final HashMap<ByteString, String> cipherTransformationMap
-          = new HashMap<ByteString, String>();
+  private final HashMap<ByteArray, String> cipherTransformationMap
+          = new HashMap<ByteArray, String>();
 
   // The map from encryption key ID to cipher key.
-  private final HashMap<ByteString, byte[]> secretKeyMap
-          = new HashMap<ByteString, byte[]>();
+  private final HashMap<ByteArray, byte[]> secretKeyMap
+          = new HashMap<ByteArray, byte[]>();
 
   // The preferred cipher for the Directory Server.
   private final String preferredCipherTransformation;
@@ -684,37 +683,44 @@ public class CryptoManager
                 InvalidAlgorithmParameterException,
                 CryptoManagerException
   {
-    Validator.ensureNotNull(cipherTransformation);
+    Validator.ensureNotNull(cipherTransformation, keyIdentifier);
 
-    byte[] secretKey;
     byte[] keyID = null;
-    for (Map.Entry<ByteString, String> cipherEntry
+    for (Map.Entry<ByteArray, String> cipherEntry
             : cipherTransformationMap.entrySet()) {
       if (cipherEntry.getValue().equals(cipherTransformation)) {
-        keyID = cipherEntry.getKey().value();
+        keyID = cipherEntry.getKey().array();
         break;
       }
     }
-    if (null == keyID) {
+
+    byte[] secretKey;
+    if (null != keyID) {
+      secretKey = secretKeyMap.get(new ByteArray(keyID));
+    } else {
+      // generate a new key
       secretKey = new byte[16]; // FIXME: not all keys are 128-bits
       secureRandom.nextBytes(secretKey);
       keyID = uuidToBytes(UUID.randomUUID());
-      final ByteString keyString = new ASN1OctetString(keyID);
-      secretKeyMap.put(keyString, secretKey);
-      cipherTransformationMap.put(keyString, cipherTransformation);
-    }
-    else {
-      secretKey = secretKeyMap.get(new ASN1OctetString(keyID));
+      final ByteArray mapKey = new ByteArray(keyID);
+      secretKeyMap.put(mapKey, secretKey);
+      cipherTransformationMap.put(mapKey, cipherTransformation);
     }
 
+    // E.g., AES/CBC/PKCS5Padding -> AES
+    final int separatorIndex = cipherTransformation.indexOf('/');
+    final String cipherAlgorithm = (0 < separatorIndex)
+            ? cipherTransformation.substring(0, separatorIndex)
+            : cipherTransformation;
+
+    // TODO: initialization vector length: key length?
+    final byte[] initializationVector = new byte[16];
+    pseudoRandom.nextBytes(initializationVector);
+
     final Cipher cipher = Cipher.getInstance(cipherTransformation);
-    final String cipherAlgorithm = cipherTransformation.substring(0,
-                        cipherTransformation.indexOf('/'));
-    final byte[] iv = new byte[16];// FIXME: always keylength?
-    pseudoRandom.nextBytes(iv);
     cipher.init(Cipher.ENCRYPT_MODE,
                 new SecretKeySpec(secretKey, cipherAlgorithm),
-                new IvParameterSpec(iv));
+                new IvParameterSpec(initializationVector));
 
     try {
       System.arraycopy(keyID, 0, keyIdentifier, 0, keyID.length);
@@ -722,9 +728,10 @@ public class CryptoManager
     catch (Exception ex) {
       throw new CryptoManagerException(
                     // TODO: i18n
-                    Message.raw("Error copying key identifier."),
+                    Message.raw("Error copying out key identifier."),
                     ex);
     }
+
     return cipher;
   }
 
@@ -768,20 +775,24 @@ public class CryptoManager
   {
     Validator.ensureNotNull(keyID, initializationVector);
 
-    final ByteString keyString = new ASN1OctetString(keyID);
+    final ByteArray mapKey = new ByteArray(keyID);
     final String cipherTransformation
-            = cipherTransformationMap.get(keyString);
-    final byte[] secretKey = secretKeyMap.get(keyString);
+            = cipherTransformationMap.get(mapKey);
+    final byte[] secretKey = secretKeyMap.get(mapKey);
     if (null == cipherTransformation || null == secretKey) {
       throw new CryptoManagerException(
               // TODO: i18n
               Message.raw("Invalid encryption key identifier %s.",
-                          keyString));
+                          mapKey));
     }
 
+    // E.g., AES/CBC/PKCS5Padding -> AES
+    final int separatorIndex = cipherTransformation.indexOf('/');
+    final String cipherAlgorithm = (0 < separatorIndex)
+            ? cipherTransformation.substring(0, separatorIndex)
+            : cipherTransformation;
+
     final Cipher cipher = Cipher.getInstance(cipherTransformation);
-    final String cipherAlgorithm = cipherTransformation.substring(0,
-                        cipherTransformation.indexOf('/'));
     cipher.init(Cipher.DECRYPT_MODE,
                 new SecretKeySpec(secretKey, cipherAlgorithm),
                 new IvParameterSpec(initializationVector));
