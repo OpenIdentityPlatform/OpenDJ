@@ -42,7 +42,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.plugins.DisconnectClientPlugin;
-import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -196,8 +195,6 @@ public class AbandonOperationTestCase
   @Test()
   public void testAbandonInternal()
   {
-    InvocationCounterPlugin.resetAllCounters();
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
@@ -208,9 +205,6 @@ public class AbandonOperationTestCase
     assertEquals(abandonOperation.getResultCode(),
                  ResultCode.NO_SUCH_OPERATION);
     examineCompletedOperation(abandonOperation);
-
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPostOperationCount() > 0);
   }
 
 
@@ -225,8 +219,6 @@ public class AbandonOperationTestCase
   public void testDisconnectInPreParse()
          throws Exception
   {
-    InvocationCounterPlugin.resetAllCounters();
-
     // Establish a connection to the server.  It can be unauthenticated for the
     // purpose of this test.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -247,9 +239,6 @@ public class AbandonOperationTestCase
       s.close();
     } catch (Exception e) {}
 
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPostDisconnectCount() > 0);
-
     // NOTE:  We can't check to see if pre-parse plugins were called yet
     //        because there's no plugin ordering.  It's possible that the
     //        disconnect plugin was called before the invocation counter plugin,
@@ -268,8 +257,6 @@ public class AbandonOperationTestCase
   public void testNoSuchOperation()
          throws Exception
   {
-    InvocationCounterPlugin.resetAllCounters();
-
     // Establish a connection to the server.  It can be unauthenticated for the
     // purpose of this test.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -284,10 +271,6 @@ public class AbandonOperationTestCase
     Thread.sleep(3000);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPostOperationCount() > 0);
   }
 
 
@@ -302,7 +285,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Establish a connection to the server and bind as a root user.
@@ -365,9 +347,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
@@ -382,7 +361,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Establish a connection to the server and bind as a root user.
@@ -436,9 +414,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
@@ -453,7 +428,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Add an entry to the server that we can delete.
@@ -520,9 +494,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
@@ -537,7 +508,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Establish a connection to the server and bind as a root user.
@@ -590,9 +560,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
@@ -607,7 +574,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Establish a connection to the server and bind as a root user.
@@ -667,9 +633,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
@@ -684,7 +647,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Add an entry to the server that we can rename.
@@ -752,9 +714,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
@@ -769,7 +728,6 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    InvocationCounterPlugin.resetAllCounters();
 
 
     // Establish a connection to the server and bind as a root user.
@@ -827,9 +785,6 @@ public class AbandonOperationTestCase
     waitForAbandon(abandonsCompleted+1);
 
     s.close();
-
-    assertTrue(InvocationCounterPlugin.getPostConnectCount() > 0);
-    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
   }
 
 
