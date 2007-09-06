@@ -60,7 +60,7 @@
           </message>
           
           <!-- DESACTRIVATED : bug 2107]-->
-          <!--<call function="'testFailed'"/>-->
+          <call function="'testFailed'"/>
           <script>
             knownIssue(2107)
             bug=2107
@@ -457,6 +457,9 @@
             
             <!--  override-severity -->
             <message>'------  set override-severity    --' </message>
+          <script>
+            knownIssue(2066)
+          </script>          
             <call function="'dsconfig'">
               { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                 'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -509,7 +512,11 @@
             '----  Check the Debug loggers properties  -----'
           </message>
           
-          <!--    default-debug-category  -->         
+          <!--    default-debug-category  -->     
+          <script>
+            knownIssue(2053)
+          </script>                  
+          
           <message>'------  set default-debug-category  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
