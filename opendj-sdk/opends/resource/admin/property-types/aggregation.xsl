@@ -29,7 +29,8 @@
   <!-- 
     Templates for processing aggregation properties.
   -->
-  <xsl:template match="adm:aggregation" mode="java-definition-imports">
+  <xsl:template match="adm:aggregation"
+    mode="java-definition-imports">
     <xsl:element name="import">
       <xsl:call-template name="get-definition-package" />
       <xsl:value-of select="'.client.'" />
@@ -98,6 +99,14 @@
         select="concat('      builder.setTargetEnabledPropertyName(&quot;',
                        normalize-space(@target-enabled-property-name), '&quot;);&#xa;')" />
     </xsl:if>
+  </xsl:template>
+  <xsl:template match="adm:aggregation"
+    mode="java-definition-post-ctor">
+    <xsl:value-of select="'      INSTANCE.registerConstraint(PD_'" />
+    <xsl:call-template name="name-to-java-constant">
+      <xsl:with-param name="value" select="../../@name" />
+    </xsl:call-template>
+    <xsl:value-of select="');&#xa;'" />
   </xsl:template>
   <!--
     Gets the Java client configuration interface for the referenced type.

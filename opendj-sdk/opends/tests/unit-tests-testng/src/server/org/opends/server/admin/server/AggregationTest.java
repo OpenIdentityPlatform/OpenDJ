@@ -34,6 +34,7 @@ import java.util.TreeSet;
 
 import javax.naming.ldap.LdapName;
 
+import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.IllegalPropertyValueStringException;
@@ -150,6 +151,23 @@ public final class AggregationTest extends AdminTestCase {
     assertSetEquals(child.getAggregationProperty(), "LDAPS Connection Handler",
         "LDAP Connection Handler");
   }
+  
+  
+
+  // Test child 5 LDIF.
+  private static final String[] TEST_CHILD_5 = new String[] {
+      "dn: cn=test child 5,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+      "objectclass: top",
+      "objectclass: ds-cfg-test-child-dummy",
+      "cn: test child 5",
+      "ds-cfg-virtual-attribute-enabled: true",
+      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-virtual-attribute-type: description",
+      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-backend-base-dn: cn=BAD Connection Handler 1, cn=connection handlers, cn=config",
+      "ds-cfg-backend-base-dn: cn=BAD Connection Handler 2, cn=connection handlers, cn=config",
+      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
+  };
 
   // Test LDIF.
   private static final String[] TEST_LDIF = new String[] {
@@ -327,6 +345,41 @@ public final class AggregationTest extends AdminTestCase {
       assertChild4(parent.getTestChild("test child 4"));
     } finally {
       deleteSubtree("cn=test child 4,cn=test children,cn=test parent 1,cn=test parents,cn=config");
+    }
+  }
+
+
+
+  /**
+   * Tests that aggregation is rejected by a constraint violation when
+   * the DN values are dangling.
+   *
+   * @throws Exception
+   *           If the test unexpectedly fails.
+   */
+  @Test
+  public void testAggregationDanglingReference() throws Exception {
+    // Add the entry.
+    TestCaseUtils.addEntry(TEST_CHILD_5);
+
+    try {
+      TestParentCfg parent = getParent("test parent 1");
+      parent.getTestChild("test child 5");
+      Assert
+          .fail("Unexpectedly added test child 5 when it had a dangling reference");
+    } catch (ConfigException e) {
+      // Check that we have a constraint violation as the cause.
+      Throwable cause = e.getCause();
+      if (cause instanceof ConstraintViolationException) {
+        ConstraintViolationException cve = (ConstraintViolationException) cause;
+        Collection<Message> causes = cve.getMessages();
+        Assert.assertEquals(causes.size(), 2);
+      } else {
+        // Got an unexpected cause.
+        throw e;
+      }
+    } finally {
+      deleteSubtree("cn=test child 5,cn=test children,cn=test parent 1,cn=test parents,cn=config");
     }
   }
 

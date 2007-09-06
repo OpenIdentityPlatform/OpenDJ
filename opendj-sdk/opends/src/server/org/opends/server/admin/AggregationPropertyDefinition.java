@@ -28,10 +28,20 @@ package org.opends.server.admin;
 
 
 
+import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.util.Validator.*;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.SortedSet;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.client.ClientConstraintHandler;
+import org.opends.server.admin.server.ServerConstraintHandler;
+import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.config.ConfigException;
 import org.opends.server.types.DN;
 
 
@@ -78,7 +88,7 @@ import org.opends.server.types.DN;
  */
 public final class AggregationPropertyDefinition
     <C extends ConfigurationClient, S extends Configuration>
-    extends PropertyDefinition<String> {
+    extends PropertyDefinition<String> implements Constraint {
 
   /**
    * An interface for incrementally constructing aggregation property
@@ -95,6 +105,9 @@ public final class AggregationPropertyDefinition
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<String, AggregationPropertyDefinition<C, S>> {
 
+    // The type of referenced managed objects.
+    private AbstractManagedObjectDefinition<?, ?> cd = null;
+
     // The name of the managed object which is the parent of the
     // aggregated managed objects.
     private ManagedObjectPath<?, ?> p = null;
@@ -102,9 +115,6 @@ public final class AggregationPropertyDefinition
     // The name of a relation in the parent managed object which
     // contains the aggregated managed objects.
     private String rdName = null;
-
-    // The type of referenced managed objects.
-    private AbstractManagedObjectDefinition<?, ?> cd = null;
 
     // The optional name of a boolean "enabled" property in this
     // managed object. When this property is true, the enabled
@@ -122,6 +132,23 @@ public final class AggregationPropertyDefinition
     private Builder(AbstractManagedObjectDefinition<?, ?> d,
         String propertyName) {
       super(d, propertyName);
+    }
+
+
+
+    /**
+     * Sets the definition of the type of referenced managed objects.
+     * <p>
+     * This must be defined before the property definition can be
+     * built.
+     *
+     * @param d
+     *          The definition of the type of referenced managed
+     *          objects.
+     */
+    public final void setManagedObjectDefinition(
+        AbstractManagedObjectDefinition<C, S> d) {
+      this.cd = d;
     }
 
 
@@ -156,23 +183,6 @@ public final class AggregationPropertyDefinition
      */
     public final void setRelationDefinition(String rdName) {
       this.rdName = rdName;
-    }
-
-
-
-    /**
-     * Sets the definition of the type of referenced managed objects.
-     * <p>
-     * This must be defined before the property definition can be
-     * built.
-     *
-     * @param d
-     *          The definition of the type of referenced managed
-     *          objects.
-     */
-    public final void setManagedObjectDefinition(
-        AbstractManagedObjectDefinition<C, S> d) {
-      this.cd = d;
     }
 
 
@@ -270,6 +280,54 @@ public final class AggregationPropertyDefinition
           targetEnabledPropertyName);
     }
 
+  }
+
+
+
+  /**
+   * The server-side constraint handler implementation.
+   */
+  private static class ServerHandler
+      <C extends ConfigurationClient, S extends Configuration>
+      extends ServerConstraintHandler {
+
+    // The associated property definition.
+    private final AggregationPropertyDefinition<C, S> pd;
+
+
+
+    // Creates a new server-side constraint handler.
+    private ServerHandler(AggregationPropertyDefinition<C, S> pd) {
+      this.pd = pd;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isUsable(ServerManagedObject<?> managedObject,
+        Collection<Message> unacceptableReasons) throws ConfigException {
+      SortedSet<String> names = managedObject.getPropertyValues(pd);
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      boolean isUsable = true;
+
+      for (String name : names) {
+        ManagedObjectPath<C, S> path = pd.getChildPath(name);
+        if (!context.managedObjectExists(path)) {
+          Message msg = ERR_SERVER_REFINT_DANGLING_REFERENCE.get(name, pd
+              .getName(), managedObject.getManagedObjectDefinition()
+              .getUserFriendlyName(), managedObject.getDN().toString(), pd
+              .getRelationDefinition().getUserFriendlyName(), path.toDN()
+              .toString());
+          unacceptableReasons.add(msg);
+          isUsable = false;
+        }
+      }
+
+      return isUsable;
+    }
   }
 
 
@@ -405,6 +463,16 @@ public final class AggregationPropertyDefinition
 
 
   /**
+   * {@inheritDoc}
+   */
+  public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
+    // TODO: not yet implemented.
+    return Collections.emptyList();
+  }
+
+
+
+  /**
    * Gets the name of the managed object which is the parent of the
    * aggregated managed objects.
    *
@@ -426,6 +494,16 @@ public final class AggregationPropertyDefinition
    */
   public final InstantiableRelationDefinition<C, S> getRelationDefinition() {
     return relationDefinition;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
+    ServerConstraintHandler handler = new ServerHandler<C, S>(this);
+    return Collections.singleton(handler);
   }
 
 

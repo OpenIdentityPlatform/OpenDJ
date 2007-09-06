@@ -48,15 +48,15 @@ import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
+import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.TestChildCfgClient;
 import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -119,6 +119,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
       builder.setManagedObjectDefinition(ConnectionHandlerCfgDefn.getInstance());
       PD_AGGREGATION_PROPERTY = builder.getInstance();
       INSTANCE.registerPropertyDefinition(PD_AGGREGATION_PROPERTY);
+      INSTANCE.registerConstraint(PD_AGGREGATION_PROPERTY);
   }
 
 
