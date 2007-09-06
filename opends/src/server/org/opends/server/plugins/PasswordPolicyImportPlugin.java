@@ -164,9 +164,9 @@ public final class PasswordPolicyImportPlugin
     // Get the set of default password storage schemes for auth password
     // attributes.
     PasswordPolicy defaultPolicy = DirectoryServer.getDefaultPasswordPolicy();
-    Set<String> authSchemesSet =
-         configuration.getDefaultAuthPasswordStorageScheme();
-    if ((authSchemesSet == null) || authSchemesSet.isEmpty())
+    Set<DN> authSchemeDNs =
+         configuration.getDefaultAuthPasswordStorageSchemeDN();
+    if ((authSchemeDNs == null) || authSchemeDNs.isEmpty())
     {
       if (defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -193,16 +193,24 @@ public final class PasswordPolicyImportPlugin
     else
     {
       defaultAuthPasswordSchemes =
-           new PasswordStorageScheme[authSchemesSet.size()];
+           new PasswordStorageScheme[authSchemeDNs.size()];
       int i=0;
-      for (String schemeName : authSchemesSet)
+      for (DN schemeDN : authSchemeDNs)
       {
         defaultAuthPasswordSchemes[i] =
-             DirectoryServer.getAuthPasswordStorageScheme(schemeName);
+             DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthPasswordSchemes[i] == null)
         {
           Message message =
-              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeName);
+              ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
+                   String.valueOf(schemeDN));
+          throw new ConfigException(message);
+        }
+        else if (! defaultAuthPasswordSchemes[i].supportsAuthPasswordSyntax())
+        {
+          Message message =
+              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
+                   String.valueOf(schemeDN));
           throw new ConfigException(message);
         }
         i++;
@@ -212,9 +220,9 @@ public final class PasswordPolicyImportPlugin
 
     // Get the set of default password storage schemes for user password
     // attributes.
-    Set<String> userSchemeSet =
-         configuration.getDefaultUserPasswordStorageScheme();
-    if ((userSchemeSet == null) || userSchemeSet.isEmpty())
+    Set<DN> userSchemeDNs =
+         configuration.getDefaultUserPasswordStorageSchemeDN();
+    if ((userSchemeDNs == null) || userSchemeDNs.isEmpty())
     {
       if (! defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -241,16 +249,17 @@ public final class PasswordPolicyImportPlugin
     else
     {
       defaultUserPasswordSchemes =
-           new PasswordStorageScheme[userSchemeSet.size()];
+           new PasswordStorageScheme[userSchemeDNs.size()];
       int i=0;
-      for (String schemeName : userSchemeSet)
+      for (DN schemeDN : userSchemeDNs)
       {
         defaultUserPasswordSchemes[i] =
-             DirectoryServer.getPasswordStorageScheme(toLowerCase(schemeName));
+             DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserPasswordSchemes[i] == null)
         {
           Message message =
-              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeName);
+              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
+                   String.valueOf(schemeDN));
           throw new ConfigException(message);
         }
         i++;
@@ -632,9 +641,9 @@ policyLoop:
 
     // Get the set of default password storage schemes for auth password
     // attributes.
-    Set<String> authSchemesSet =
-         configuration.getDefaultAuthPasswordStorageScheme();
-    if ((authSchemesSet == null) || authSchemesSet.isEmpty())
+    Set<DN> authSchemeDNs =
+         configuration.getDefaultAuthPasswordStorageSchemeDN();
+    if ((authSchemeDNs == null) || authSchemeDNs.isEmpty())
     {
       PasswordStorageScheme[] defaultAuthSchemes = new PasswordStorageScheme[1];
       defaultAuthSchemes[0] =
@@ -651,16 +660,25 @@ policyLoop:
     else
     {
       PasswordStorageScheme[] defaultAuthSchemes =
-           new PasswordStorageScheme[authSchemesSet.size()];
+           new PasswordStorageScheme[authSchemeDNs.size()];
       int i=0;
-      for (String schemeName : authSchemesSet)
+      for (DN schemeDN : authSchemeDNs)
       {
         defaultAuthSchemes[i] =
-             DirectoryServer.getAuthPasswordStorageScheme(schemeName);
+             DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthSchemes[i] == null)
         {
-          Message message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
-                  schemeName);
+          Message message =
+              ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
+                   String.valueOf(schemeDN));
+          unacceptableReasons.add(message);
+          configAcceptable = false;
+        }
+        else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
+        {
+          Message message =
+              ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
+                   String.valueOf(schemeDN));
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -671,9 +689,9 @@ policyLoop:
 
     // Get the set of default password storage schemes for user password
     // attributes.
-    Set<String> userSchemeSet =
-         configuration.getDefaultUserPasswordStorageScheme();
-    if ((userSchemeSet == null) || userSchemeSet.isEmpty())
+    Set<DN> userSchemeDNs =
+         configuration.getDefaultUserPasswordStorageSchemeDN();
+    if ((userSchemeDNs == null) || userSchemeDNs.isEmpty())
     {
       PasswordStorageScheme[] defaultUserSchemes = new PasswordStorageScheme[1];
       defaultUserSchemes[0] =
@@ -690,16 +708,16 @@ policyLoop:
     else
     {
       PasswordStorageScheme[] defaultUserSchemes =
-           new PasswordStorageScheme[userSchemeSet.size()];
+           new PasswordStorageScheme[userSchemeDNs.size()];
       int i=0;
-      for (String schemeName : userSchemeSet)
+      for (DN schemeDN : userSchemeDNs)
       {
         defaultUserSchemes[i] =
-             DirectoryServer.getPasswordStorageScheme(toLowerCase(schemeName));
+             DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserSchemes[i] == null)
         {
           Message message = ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
-                  schemeName);
+                                 String.valueOf(schemeDN));
           unacceptableReasons.add(message);
           configAcceptable = false;
         }
@@ -728,9 +746,9 @@ policyLoop:
     // attributes.
     PasswordPolicy defaultPolicy = DirectoryServer.getDefaultPasswordPolicy();
     PasswordStorageScheme[] defaultAuthSchemes;
-    Set<String> authSchemesSet =
-         configuration.getDefaultAuthPasswordStorageScheme();
-    if ((authSchemesSet == null) || authSchemesSet.isEmpty())
+    Set<DN> authSchemeDNs =
+         configuration.getDefaultAuthPasswordStorageSchemeDN();
+    if ((authSchemeDNs == null) || authSchemeDNs.isEmpty())
     {
       if (defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -757,18 +775,27 @@ policyLoop:
     }
     else
     {
-      defaultAuthSchemes = new PasswordStorageScheme[authSchemesSet.size()];
+      defaultAuthSchemes = new PasswordStorageScheme[authSchemeDNs.size()];
       int i=0;
-      for (String schemeName : authSchemesSet)
+      for (DN schemeDN : authSchemeDNs)
       {
         defaultAuthSchemes[i] =
-             DirectoryServer.getAuthPasswordStorageScheme(schemeName);
+             DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthSchemes[i] == null)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
-          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
-                  schemeName));
+          messages.add(
+               ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(
+                    String.valueOf(schemeDN)));
+        }
+        else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
+        {
+          resultCode = DirectoryServer.getServerErrorResultCode();
+
+          messages.add(
+               ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(
+                    String.valueOf(schemeDN)));
         }
         i++;
       }
@@ -778,9 +805,9 @@ policyLoop:
     // Get the set of default password storage schemes for user password
     // attributes.
     PasswordStorageScheme[] defaultUserSchemes;
-    Set<String> userSchemeSet =
-         configuration.getDefaultUserPasswordStorageScheme();
-    if ((userSchemeSet == null) || userSchemeSet.isEmpty())
+    Set<DN> userSchemeDNs =
+         configuration.getDefaultUserPasswordStorageSchemeDN();
+    if ((userSchemeDNs == null) || userSchemeDNs.isEmpty())
     {
       if (! defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -806,18 +833,18 @@ policyLoop:
     }
     else
     {
-      defaultUserSchemes = new PasswordStorageScheme[userSchemeSet.size()];
+      defaultUserSchemes = new PasswordStorageScheme[userSchemeDNs.size()];
       int i=0;
-      for (String schemeName : userSchemeSet)
+      for (DN schemeDN : userSchemeDNs)
       {
         defaultUserSchemes[i] =
-             DirectoryServer.getPasswordStorageScheme(toLowerCase(schemeName));
+             DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserSchemes[i] == null)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();
 
           messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(
-                  schemeName));
+                            String.valueOf(schemeDN)));
         }
         i++;
       }

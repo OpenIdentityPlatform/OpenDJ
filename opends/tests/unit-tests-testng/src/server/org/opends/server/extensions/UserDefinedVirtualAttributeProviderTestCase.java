@@ -141,7 +141,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
         Object providerAsObject = rule.getProvider();
         UserDefinedVirtualAttributeProvider provider =
              (UserDefinedVirtualAttributeProvider)providerAsObject;
-        
+
         assertFalse(provider.isMultiValued());
         assertFalse(provider.isSearchable(rule, searchOperation));
 
@@ -569,7 +569,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-password-policy",
       "cn: Test Policy",
       "ds-cfg-password-attribute: userPassword",
-      "ds-cfg-default-password-storage-scheme: SSHA",
+      "ds-cfg-default-password-storage-scheme-dn: " +
+           "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
       "ds-cfg-allow-expired-password-changes: false",
       "ds-cfg-allow-multiple-password-values: false",
       "ds-cfg-allow-pre-encoded-passwords: false",
