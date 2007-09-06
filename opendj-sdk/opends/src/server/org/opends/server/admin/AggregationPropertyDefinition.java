@@ -434,7 +434,7 @@ public final class AggregationPropertyDefinition
    * Constructs a DN for a referenced managed object having the
    * provided name. This method is implemented by first calling
    * {@link #getChildPath(String)} and then invoking
-   * {@link ManagedObjectPath#toDN()} on the returned path.
+   * {@code ManagedObjectPath.toDN()} on the returned path.
    *
    * @param name
    *          The name of the child managed object.
