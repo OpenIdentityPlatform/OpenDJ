@@ -28,6 +28,7 @@
 <stax>
   <defaultcall function="logging_writer"/>
   <function name="logging_writer" scope="local">
+   <block name="STAXCurrentFunction">  
     <sequence>
       <script>
         CurrentTestPath['suite']=STAXCurrentFunction
@@ -49,7 +50,8 @@
         #@TestResult      The recors must be written to disk after each operation
             -->
       <!-- #################################### -->
-      <testcase name="getTestCaseName('Synchronous mode- auto-flush=true - Access logger')">
+      
+      <testcase name="getTestCaseName('Synchronous mode Access logger')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
@@ -291,5 +293,6 @@
         </sequence>
       </testcase>
     </sequence>
+    </block>     
   </function>
 </stax>
