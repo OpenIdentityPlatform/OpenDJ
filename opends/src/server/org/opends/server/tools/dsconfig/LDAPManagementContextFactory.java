@@ -90,22 +90,70 @@ public final class LDAPManagementContextFactory implements
   private ConsoleApplication app;
 
   /**
+   * Enumeration description protocols for interactive CLI choices.
+   */
+  private enum Protocols
+  {
+    LDAP(1, INFO_DSCFG_PROMPT_SECURITY_LDAP.get()), SSL(2,
+        INFO_DSCFG_PROMPT_SECURITY_USE_SSL.get()), START_TSL(3,
+        INFO_DSCFG_PROMPT_SECURITY_USE_START_TSL.get());
+
+    private Integer choice;
+
+    private Message msg;
+
+    /**
+     * Private constructor.
+     *
+     * @param i
+     *          the menu return value.
+     * @param s
+     *          the message message.
+     */
+    private Protocols(int i, Message msg)
+    {
+      choice = new Integer(i);
+      this.msg = msg;
+    }
+
+    /**
+     * Returns the choice number.
+     *
+     * @return the attribute name.
+     */
+    public Integer getChoice()
+    {
+      return choice;
+    }
+
+    /**
+     * Return the menu message.
+     *
+     * @return the menu message.
+     */
+    public Message getMenuMessage()
+    {
+      return msg;
+    }
+  };
+
+  /**
    * Creates a new LDAP management context factory.
    */
   public LDAPManagementContextFactory() {
     // No implementation required.
   }
 
-
-
   /**
    * {@inheritDoc}
    */
   public ManagementContext getManagementContext(ConsoleApplication app)
-      throws ArgumentException, ClientException {
+      throws ArgumentException, ClientException
+  {
     // Lazily create the LDAP management context.
-    if (context == null) {
-      this.app = app ;
+    if (context == null)
+    {
+      this.app = app;
       isHeadingDisplayed = false;
 
       boolean secureConnection =
@@ -129,7 +177,10 @@ public final class LDAPManagementContextFactory implements
             secureArgsList.keyStorePasswordFileArg.isPresent()
         );
 
-      if (app.isInteractive() && !secureConnection )
+      // Get the LDAP host.
+      String hostName = secureArgsList.hostNameArg.getValue();
+      final String tmpHostName = hostName;
+      if (app.isInteractive() && !secureArgsList.hostNameArg.isPresent())
       {
         if (!isHeadingDisplayed)
         {
@@ -139,29 +190,60 @@ public final class LDAPManagementContextFactory implements
           isHeadingDisplayed = true;
         }
 
+        ValidationCallback<String> callback = new ValidationCallback<String>()
+        {
+
+          public String validate(ConsoleApplication app, String input)
+              throws CLIException
+          {
+            String ninput = input.trim();
+            if (ninput.length() == 0)
+            {
+              return tmpHostName;
+            }
+            else
+            {
+              try
+              {
+                InetAddress.getByName(ninput);
+                return ninput;
+              }
+              catch (UnknownHostException e)
+              {
+                // Try again...
+                app.println();
+                app.println(ERR_DSCFG_BAD_HOST_NAME.get(ninput));
+                app.println();
+                return null;
+              }
+            }
+          }
+
+        };
+
         try
         {
           app.println();
-          secureConnection = app.confirmAction(
-              INFO_DSCFG_PROMPT_SECURITY_USE_SECURE_CTX.get(),
-              secureConnection);
+          hostName = app.readValidatedInput(INFO_DSCFG_PROMPT_HOST_NAME
+              .get(hostName), callback);
         }
         catch (CLIException e)
         {
-          // Should never happen.
-          throw new RuntimeException(e);
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
         }
       }
 
       boolean useSSL = secureArgsList.useSSL();
-      boolean useStartTSL = secureArgsList.useStartTLS();
-      KeyManager keyManager = null ;
+      boolean useStartTLS = secureArgsList.useStartTLS();
+      KeyManager keyManager = null;
       TrustManager trustManager = null;
       boolean connectionTypeIsSet =
-        (secureArgsList.useSSLArg.isPresent()
-            ||
-         secureArgsList.useStartTLSArg.isPresent() );
-      if (app.isInteractive() && secureConnection && ! connectionTypeIsSet)
+        (
+          secureArgsList.useSSLArg.isPresent()
+          ||
+          secureArgsList.useStartTLSArg.isPresent()
+        );
+      if (app.isInteractive() && !connectionTypeIsSet)
       {
         if (!isHeadingDisplayed)
         {
@@ -171,28 +253,48 @@ public final class LDAPManagementContextFactory implements
           isHeadingDisplayed = true;
         }
 
-        // Construct the SSL/StartTLS menu.
-        MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
-        builder.addNumberedOption(INFO_DSCFG_PROMPT_SECURITY_USE_SSL.get(),
-            MenuResult.success(true));
-        builder.addNumberedOption(INFO_DSCFG_PROMPT_SECURITY_USE_START_TSL
-            .get(), MenuResult.success(false));
-        builder.setDefault(INFO_DSCFG_PROMPT_SECURITY_USE_SSL.get(),
-            MenuResult.success(true));
+        MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+        builder.setPrompt(INFO_DSCFG_PROMPT_SECURITY_USE_SECURE_CTX.get());
 
-        Menu<Boolean> menu = builder.toMenu();
+        Protocols defaultProtocol ;
+        if (secureConnection)
+        {
+          defaultProtocol = Protocols.SSL;
+        }
+        else
+        {
+          defaultProtocol = Protocols.LDAP;
+        }
+        for (Protocols p : Protocols.values())
+        {
+          if (secureConnection && p.equals(Protocols.LDAP))
+          {
+            continue ;
+          }
+          int i = builder.addNumberedOption(p.getMenuMessage(), MenuResult
+              .success(p.getChoice()));
+          if (p.equals(defaultProtocol))
+          {
+            builder.setDefault(
+                INFO_DSCFG_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
+                    .get(new Integer(i)), MenuResult.success(p.getChoice()));
+          }
+        }
+
+        Menu<Integer> menu = builder.toMenu();
         try
         {
-          MenuResult<Boolean> result = menu.run();
+          MenuResult<Integer> result = menu.run();
           if (result.isSuccess())
           {
-            if (result.getValue())
+            if (result.getValue().equals(Protocols.SSL.getChoice()))
             {
               useSSL = true;
             }
-            else
+            else if (result.getValue()
+                .equals(Protocols.START_TSL.getChoice()))
             {
-              useStartTSL = true;
+              useStartTLS = true;
             }
           }
           else
@@ -207,7 +309,7 @@ public final class LDAPManagementContextFactory implements
         }
       }
 
-      if (useSSL || useStartTSL)
+      if (useSSL || useStartTLS)
       {
         // Get truststore info
         trustManager = getTrustManager();
@@ -216,51 +318,8 @@ public final class LDAPManagementContextFactory implements
         keyManager = getKeyManager();
       }
 
-      // Get the LDAP host.
-      String hostName = secureArgsList.hostNameArg.getValue();
-      final String tmpHostName = hostName;
-      if (app.isInteractive() && !secureArgsList.hostNameArg.isPresent()) {
-        if (!isHeadingDisplayed) {
-          app.println();
-          app.println();
-          app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
-          isHeadingDisplayed = true;
-        }
-
-        ValidationCallback<String> callback = new ValidationCallback<String>() {
-
-          public String validate(ConsoleApplication app, String input)
-              throws CLIException {
-            String ninput = input.trim();
-            if (ninput.length() == 0) {
-              return tmpHostName;
-            } else {
-              try {
-                InetAddress.getByName(ninput);
-                return ninput;
-              } catch (UnknownHostException e) {
-                // Try again...
-                app.println();
-                app.println(ERR_DSCFG_BAD_HOST_NAME.get(ninput));
-                app.println();
-                return null;
-              }
-            }
-          }
-
-        };
-
-        try {
-          app.println();
-          hostName = app.readValidatedInput(INFO_DSCFG_PROMPT_HOST_NAME
-              .get(hostName), callback);
-        } catch (CLIException e) {
-          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
-        }
-      }
-
       // Get the LDAP port.
-      int portNumber ;
+      int portNumber;
       if (!useSSL)
       {
         portNumber = secureArgsList.portArg.getIntValue();
@@ -273,34 +332,44 @@ public final class LDAPManagementContextFactory implements
         }
         else
         {
-        portNumber = 636;
+          portNumber = 636;
         }
       }
       final int tmpPortNumber = portNumber;
-      if (app.isInteractive() && !secureArgsList.portArg.isPresent()) {
-        if (!isHeadingDisplayed) {
+      if (app.isInteractive() && !secureArgsList.portArg.isPresent())
+      {
+        if (!isHeadingDisplayed)
+        {
           app.println();
           app.println();
           app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
           isHeadingDisplayed = true;
         }
 
-        ValidationCallback<Integer> callback =
-          new ValidationCallback<Integer>() {
+        ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
+        {
 
           public Integer validate(ConsoleApplication app, String input)
-              throws CLIException {
+              throws CLIException
+          {
             String ninput = input.trim();
-            if (ninput.length() == 0) {
+            if (ninput.length() == 0)
+            {
               return tmpPortNumber;
-            } else {
-              try {
+            }
+            else
+            {
+              try
+              {
                 int i = Integer.parseInt(ninput);
-                if (i < 1 || i > 65535) {
+                if (i < 1 || i > 65535)
+                {
                   throw new NumberFormatException();
                 }
                 return i;
-              } catch (NumberFormatException e) {
+              }
+              catch (NumberFormatException e)
+              {
                 // Try again...
                 app.println();
                 app.println(ERR_DSCFG_BAD_PORT_NUMBER.get(ninput));
@@ -312,11 +381,14 @@ public final class LDAPManagementContextFactory implements
 
         };
 
-        try {
+        try
+        {
           app.println();
           portNumber = app.readValidatedInput(INFO_DSCFG_PROMPT_PORT_NUMBER
               .get(portNumber), callback);
-        } catch (CLIException e) {
+        }
+        catch (CLIException e)
+        {
           throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
         }
       }
@@ -438,7 +510,7 @@ public final class LDAPManagementContextFactory implements
               message) ;
         }
       }
-      else if (useStartTSL)
+      else if (useStartTLS)
       {
         InitialLdapContext ctx = null;
         String ldapUrl = "ldap://" + hostName + ":" + portNumber;
@@ -532,7 +604,6 @@ public final class LDAPManagementContextFactory implements
    * Get the trust manager.
    *
    * @return The trust manager based on CLI args on interactive prompt.
-   *
    * @throws ArgumentException If an error occurs when getting args values.
    */
   private ApplicationTrustManager getTrustManager()
@@ -598,6 +669,10 @@ public final class LDAPManagementContextFactory implements
           }
           else
           {
+            app.println();
+            app.println(ERR_DSCFG_PROMPT_SECURITY_INVALID_FILE_PATH
+                .get());
+            app.println();
             return null;
           }
         }
@@ -616,21 +691,22 @@ public final class LDAPManagementContextFactory implements
     }
 
     // Then the truststore password.
-    String truststorePassword = secureArgsList.trustStorePasswordArg.getValue();
+    //  As the most common case is to have no password for truststore,
+    // we don't ask it in the interactive mode.
+    String truststorePassword = secureArgsList.trustStorePasswordArg
+        .getValue();
 
     if (secureArgsList.trustStorePasswordFileArg.isPresent())
     {
       // Read from file if it exists.
-      truststorePassword = secureArgsList.trustStorePasswordFileArg.getValue();
-
-      if (app.isInteractive() && (truststorePassword == null))
-      {
-          throw ArgumentExceptionFactory
-            .missingValueInPropertyArgument(secureArgsList.
-                trustStorePasswordArg.getName());
-      }
+      truststorePassword = secureArgsList.trustStorePasswordFileArg
+          .getValue();
     }
-    else if (truststorePassword == null || truststorePassword.equals("-"))
+    if (truststorePassword ==  null)
+    {
+      return null;
+    }
+    else if (truststorePassword.equals("-"))
     {
       // Read the password from the stdin.
       if (!app.isInteractive())
@@ -639,7 +715,7 @@ public final class LDAPManagementContextFactory implements
       }
       else
       {
-      if (!isHeadingDisplayed)
+        if (!isHeadingDisplayed)
         {
           app.println();
           app.println();
@@ -660,7 +736,7 @@ public final class LDAPManagementContextFactory implements
         }
       }
     }
-    // We'we got all the information to get the trustore manager
+    // We'we got all the information to get the truststore manager
     try
     {
       FileInputStream fos = new FileInputStream(truststorePath);
@@ -686,58 +762,30 @@ public final class LDAPManagementContextFactory implements
    * Get the key manager.
    *
    * @return The key manager based on CLI args on interactive prompt.
-   *
    * @throws ArgumentException If an error occurs when getting args values.
    */
   private KeyManager getKeyManager()
   throws ArgumentException
   {
     // Do we need client side authentication ?
-    // If one of the client side authentication args is set, we assume that we
+    // If one of the client side authentication args is set, we assume
+    // that we
     // need client side authentication.
-    boolean weDontKnowThatWeNeedKeystore =
-      ! ( secureArgsList.keyStorePathArg.isPresent()
-          ||
-          secureArgsList.keyStorePasswordArg.isPresent()
-          ||
-          secureArgsList.keyStorePasswordFileArg.isPresent()
-          ||
-          secureArgsList.certNicknameArg.isPresent()
-          );
+    boolean weDontKnowIfWeNeedKeystore = !(secureArgsList.keyStorePathArg
+        .isPresent()
+        || secureArgsList.keyStorePasswordArg.isPresent()
+        || secureArgsList.keyStorePasswordFileArg.isPresent()
+        || secureArgsList.certNicknameArg
+        .isPresent());
 
-    // We don't have specific key manager parameter set and
-    // we are not in interactive mode ; just return null
-    if (weDontKnowThatWeNeedKeystore && !app.isInteractive())
+    // We don't have specific key manager parameter.
+    // We assume that no client side authentication is required
+    // Client side authentication is not the common use case. As a
+    // consequence, interactive mode doesn't add an extra question
+    // which will be in most cases useless.
+    if (weDontKnowIfWeNeedKeystore)
     {
       return null;
-    }
-
-    if (app.isInteractive() && weDontKnowThatWeNeedKeystore)
-    {
-      boolean needKeystore = false ;
-      if (!isHeadingDisplayed)
-      {
-        app.println();
-        app.println();
-        app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
-        isHeadingDisplayed = true;
-      }
-
-      try
-      {
-        app.println();
-        needKeystore = app.confirmAction(
-            INFO_DSCFG_PROMPT_SECURITY_KEYSTORE_NEEDED.get(), needKeystore);
-        if (! needKeystore )
-        {
-          return null;
-        }
-      }
-      catch (CLIException e)
-      {
-        // Should never happen.
-        throw new RuntimeException(e);
-      }
     }
 
     // Get info about keystore. First get the keystore path.
@@ -769,6 +817,10 @@ public final class LDAPManagementContextFactory implements
           }
           else
           {
+            app.println();
+            app.println(ERR_DSCFG_PROMPT_SECURITY_INVALID_FILE_PATH
+                .get());
+            app.println();
             return null;
           }
         }
@@ -840,19 +892,24 @@ public final class LDAPManagementContextFactory implements
         app.println(INFO_DSCFG_HEADING_CONNECTION_PARAMETERS.get());
         isHeadingDisplayed = true;
       }
-      ValidationCallback<String> callback = new ValidationCallback<String>() {
+      ValidationCallback<String> callback = new ValidationCallback<String>()
+      {
 
         public String validate(ConsoleApplication app, String input)
-            throws CLIException {
-          return  input.trim();
+            throws CLIException
+        {
+          return input.trim();
         }
       };
 
-      try {
+      try
+      {
         app.println();
         certifNickname = app.readValidatedInput(
             INFO_DSCFG_PROMPT_SECURITY_CERTIFICATE_NAME.get(), callback);
-      } catch (CLIException e) {
+      }
+      catch (CLIException e)
+      {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
     }
