@@ -716,6 +716,7 @@
       select="concat('      PD_', $java-prop-name, ' = builder.getInstance();&#xa;')" />
     <xsl:value-of
       select="concat('      INSTANCE.registerPropertyDefinition(PD_', $java-prop-name, ');&#xa;')" />
+    <xsl:call-template name="get-property-definition-post-ctor"/>
     <xsl:value-of select="'  }&#xa;'" />
   </xsl:template>
   <!--

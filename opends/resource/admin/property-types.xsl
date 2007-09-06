@@ -129,6 +129,12 @@
   -->
   <xsl:template match="*" mode="java-definition-ctor" />
   <!--
+    Generate property definition specific post-construction code.
+    
+    By default, do nothing.
+  -->
+  <xsl:template match="*" mode="java-definition-post-ctor" />
+  <!--
     
     
     Wrapper templates which can be called directly instead of
@@ -187,6 +193,13 @@
   <xsl:template name="get-property-definition-ctor">
     <xsl:apply-templates select="adm:syntax/*"
       mode="java-definition-ctor" />
+  </xsl:template>
+  <!-- 
+    Generate property definition specific post-construction code.
+  -->
+  <xsl:template name="get-property-definition-post-ctor">
+    <xsl:apply-templates select="adm:syntax/*"
+      mode="java-definition-post-ctor" />
   </xsl:template>
   <!--
     Generate the property getter declarations.
