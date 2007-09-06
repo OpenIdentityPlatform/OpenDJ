@@ -660,7 +660,11 @@ public final class LDAPManagementContextFactory implements
           String ninput = input.trim();
           if (ninput.length() == 0)
           {
-            return ninput;
+            app.println();
+            app.println(ERR_DSCFG_PROMPT_SECURITY_INVALID_FILE_PATH
+                .get());
+            app.println();
+            return null;
           }
           File f = new File(ninput);
           if (f.exists() && f.canRead() && !f.isDirectory())
@@ -702,11 +706,7 @@ public final class LDAPManagementContextFactory implements
       truststorePassword = secureArgsList.trustStorePasswordFileArg
           .getValue();
     }
-    if (truststorePassword ==  null)
-    {
-      return null;
-    }
-    else if (truststorePassword.equals("-"))
+    if ((truststorePassword !=  null) && (truststorePassword.equals("-")))
     {
       // Read the password from the stdin.
       if (!app.isInteractive())
