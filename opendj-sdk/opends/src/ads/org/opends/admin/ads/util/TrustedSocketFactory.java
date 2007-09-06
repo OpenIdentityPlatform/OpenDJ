@@ -32,8 +32,6 @@ import java.net.Socket;
 import java.net.InetAddress;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import java.security.GeneralSecurityException;
 
@@ -49,8 +47,6 @@ import javax.net.ssl.TrustManager;
  */
 public class TrustedSocketFactory extends SSLSocketFactory
 {
-  static private final Logger LOG =
-    Logger.getLogger(TrustedSocketFactory.class.getName());
   private static Map<Thread, TrustManager> hmTrustManager =
     new HashMap<Thread, TrustManager>();
   private static Map<Thread, KeyManager> hmKeyManager =
@@ -150,12 +146,8 @@ public class TrustedSocketFactory extends SSLSocketFactory
 
     if (trustManager == null)
     {
-      LOG.log(Level.SEVERE, "Can't find a trust manager associated to thread " +
-          currentThread);
       if (keyManager == null)
       {
-        LOG.log(Level.SEVERE, "Can't find a key manager associated to thread " +
-            currentThread);
         result = new TrustedSocketFactory(null,null);
       }
       else
@@ -172,8 +164,6 @@ public class TrustedSocketFactory extends SSLSocketFactory
     {
       if (keyManager == null)
       {
-        LOG.log(Level.SEVERE,
-            "Can't find a key manager associated to thread " + currentThread);
         result = hmDefaultFactoryTm.get(trustManager);
         if (result == null)
         {
@@ -296,19 +286,11 @@ public class TrustedSocketFactory extends SSLSocketFactory
 
       try {
         SSLContext sslCtx = SSLContext.getInstance(algorithm);
-        if (trustManager == null)
-        {
-          LOG.log(Level.SEVERE, "Warning : no trust for this factory");
-        }
-        else
+        if (trustManager != null)
         {
           tm = new TrustManager[] { trustManager };
         }
-        if (keyManager == null)
-        {
-          LOG.log(Level.SEVERE, "Warning : no key for this factory");
-        }
-        else
+        if (keyManager != null)
         {
           km = new KeyManager[] { keyManager };
         }
