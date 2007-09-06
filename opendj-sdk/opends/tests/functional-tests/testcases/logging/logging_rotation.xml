@@ -28,6 +28,7 @@
 <stax>
   <defaultcall function="logging_rotation"/>
   <function name="logging_rotation" scope="local">
+    <block name="STAXCurrentFunction"> 
     <sequence>
       <script>
         CurrentTestPath['suite']=STAXCurrentFunction
@@ -285,6 +286,7 @@
       </testcase>
       <call function="'testSuite_Postamble'" />
     </sequence>
-  </function>
+   </block>
+  </function>      
 </stax>
   
