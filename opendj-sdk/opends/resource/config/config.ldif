@@ -1205,7 +1205,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: Default Password Policy
 ds-cfg-password-attribute: userPassword
-ds-cfg-default-password-storage-scheme: SSHA
+ds-cfg-default-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false
@@ -1236,7 +1236,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: Root Password Policy
 ds-cfg-password-attribute: userPassword
-ds-cfg-default-password-storage-scheme: SSHA512
+ds-cfg-default-password-storage-scheme-dn: cn=Salted SHA-512,cn=Password Storage Schemes,cn=config
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false
@@ -1482,6 +1482,8 @@ cn: Password Policy Import
 ds-cfg-plugin-class: org.opends.server.plugins.PasswordPolicyImportPlugin
 ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: ldifImport
+ds-cfg-default-user-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
+ds-cfg-default-auth-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 
 dn: cn=Profiler,cn=Plugins,cn=config
 objectClass: top

@@ -102,7 +102,8 @@ public class PasswordPolicyImportPluginTestCase
               "PasswordPolicyImportPlugin",
          "ds-cfg-plugin-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-user-password-storage-scheme: SSHA",
+         "ds-cfg-default-user-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
          "objectClass: top",
@@ -113,8 +114,10 @@ public class PasswordPolicyImportPluginTestCase
               "PasswordPolicyImportPlugin",
          "ds-cfg-plugin-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-user-password-storage-scheme: CRYPT",
-         "ds-cfg-default-user-password-storage-scheme: SSHA",
+         "ds-cfg-default-user-password-storage-scheme-dn: " +
+              "cn=CRYPT,cn=Password Storage Schemes,cn=config",
+         "ds-cfg-default-user-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
          "objectClass: top",
@@ -125,7 +128,8 @@ public class PasswordPolicyImportPluginTestCase
               "PasswordPolicyImportPlugin",
          "ds-cfg-plugin-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-auth-password-storage-scheme: SHA1",
+         "ds-cfg-default-auth-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
          "objectClass: top",
@@ -136,8 +140,10 @@ public class PasswordPolicyImportPluginTestCase
               "PasswordPolicyImportPlugin",
          "ds-cfg-plugin-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-user-password-storage-scheme: SSHA",
-         "ds-cfg-default-auth-password-storage-scheme: SHA1"
+         "ds-cfg-default-user-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
+         "ds-cfg-default-auth-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config"
     );
 
     Object[][] array = new Object[entries.size()][1];

@@ -98,7 +98,8 @@ public class PasswordPolicyTestCase
          "objectClass: top",
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -127,7 +128,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: invalid",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -156,7 +158,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: cn",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -186,7 +189,8 @@ public class PasswordPolicyTestCase
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
          "ds-cfg-last-login-time-attribute: invalid",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -215,7 +219,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: invalid",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -244,7 +249,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: invalid",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -273,7 +279,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: invalid",
@@ -302,7 +309,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -331,7 +339,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -360,7 +369,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -389,7 +399,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -418,7 +429,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -447,7 +459,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -476,7 +489,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -505,7 +519,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -534,7 +549,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -563,7 +579,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -592,7 +609,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -621,7 +639,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -650,7 +669,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -679,7 +699,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -708,7 +729,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -737,7 +759,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -766,7 +789,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -795,7 +819,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -824,7 +849,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -853,7 +879,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -882,7 +909,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -911,7 +939,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -940,7 +969,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -969,7 +999,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -998,7 +1029,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1027,7 +1059,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1056,7 +1089,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1085,7 +1119,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1114,7 +1149,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1143,7 +1179,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1172,7 +1209,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1201,7 +1239,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1230,7 +1269,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1259,7 +1299,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1288,7 +1329,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1317,7 +1359,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1346,7 +1389,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1375,7 +1419,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1404,7 +1449,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1433,7 +1479,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1462,7 +1509,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1491,7 +1539,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1520,7 +1569,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1549,7 +1599,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1578,7 +1629,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1607,7 +1659,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1636,7 +1689,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1665,7 +1719,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1694,7 +1749,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1724,7 +1780,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1754,7 +1811,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1782,7 +1840,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1811,7 +1870,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1841,7 +1901,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1900,7 +1961,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: invalid",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Undefined,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1929,8 +1991,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
-         "ds-cfg-default-password-storage-scheme: invalid",
+         "ds-cfg-default-password-storage-scheme-dn: invalid",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1959,7 +2020,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -1989,7 +2051,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -2020,7 +2083,8 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -2054,8 +2118,10 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme: SSHA",
-         "ds-cfg-deprecated-password-storage-scheme: BASE64",
+         "ds-cfg-default-password-storage-scheme-dn: " +
+              "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
+         "ds-cfg-deprecated-password-storage-scheme: " +
+              "cn=BASE64,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -2208,7 +2274,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme:BASE64");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Base64,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     defaultSchemes = p.getDefaultStorageSchemes();
@@ -2219,7 +2286,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme:SSHA");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2245,7 +2313,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme:MD5");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     defaultSchemes = p.getDefaultStorageSchemes();
@@ -2256,7 +2325,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme:SHA1");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2278,7 +2348,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme:BASE64");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=BASE64,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDefaultStorageScheme("BASE64"));
@@ -2288,7 +2359,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme:SSHA");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2312,7 +2384,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme:MD5");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDefaultStorageScheme("MD5"));
@@ -2322,7 +2395,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme:SHA1");
+      "--set", "default-password-storage-scheme-dn:" +
+                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2346,7 +2420,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "deprecated-password-storage-scheme:BASE64");
+      "--set", "deprecated-password-storage-scheme-dn:" +
+                    "cn=BASE64,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
@@ -2357,7 +2432,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "deprecated-password-storage-scheme:BASE64");
+      "--remove", "deprecated-password-storage-scheme-dn:" +
+                       "cn=BASE64,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2383,7 +2459,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "deprecated-password-storage-scheme:MD5");
+      "--set", "deprecated-password-storage-scheme-dn:" +
+                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
@@ -2394,7 +2471,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "deprecated-password-storage-scheme:MD5");
+      "--remove", "deprecated-password-storage-scheme-dn:" +
+                       "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2415,7 +2493,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "deprecated-password-storage-scheme:BASE64");
+      "--set", "deprecated-password-storage-scheme-dn:" +
+                    "cn=BASE64,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDeprecatedStorageScheme("BASE64"));
@@ -2424,7 +2503,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "deprecated-password-storage-scheme:BASE64");
+      "--remove", "deprecated-password-storage-scheme-dn:" +
+                       "cn=BASE64,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -2447,7 +2527,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "deprecated-password-storage-scheme:MD5");
+      "--set", "deprecated-password-storage-scheme-dn:" +
+                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDeprecatedStorageScheme("MD5"));
@@ -2456,7 +2537,8 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "deprecated-password-storage-scheme:MD5");
+      "--remove", "deprecated-password-storage-scheme-dn:" +
+                       "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
   }
 
 
@@ -3913,7 +3995,7 @@ public class PasswordPolicyTestCase
 
   /**
    * Tests the <CODE>getRequireChangeByTime</CODE> method for the default
-   * password storage scheme.
+   * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -3975,7 +4057,7 @@ public class PasswordPolicyTestCase
 
   /**
    * Tests the <CODE>getLastLoginTimeAttribute</CODE> method for the default
-   * password storage scheme.
+   * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -4037,7 +4119,7 @@ public class PasswordPolicyTestCase
 
   /**
    * Tests the <CODE>getLastLoginTimeFormat</CODE> method for the default
-   * password storage scheme.
+   * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -4099,7 +4181,7 @@ public class PasswordPolicyTestCase
 
   /**
    * Tests the <CODE>getPreviousLastLoginTimeFormats</CODE> method for the
-   * default password storage scheme.
+   * default password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */

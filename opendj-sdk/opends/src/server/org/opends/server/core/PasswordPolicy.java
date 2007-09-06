@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 
 
 
@@ -33,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TimeZone;
@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
@@ -48,18 +49,18 @@ import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -294,11 +295,11 @@ public class PasswordPolicy
 
     // Get the default storage schemes.  They must all reference valid storage
     // schemes that support the syntax for the specified password attribute.
-    SortedSet<String> storageSchemes =
-      configuration.getDefaultPasswordStorageScheme();
+    SortedSet<DN> storageSchemeDNs =
+      configuration.getDefaultPasswordStorageSchemeDN();
     try
     {
-      if (storageSchemes == null)
+      if (storageSchemeDNs == null)
       {
         Message message = ERR_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES.get(
             String.valueOf(configEntryDN));
@@ -308,27 +309,28 @@ public class PasswordPolicy
       {
         LinkedList<PasswordStorageScheme> schemes =
              new LinkedList<PasswordStorageScheme>();
-        for (String schemeName : storageSchemes)
+        for (DN configEntryDN : storageSchemeDNs)
         {
-          PasswordStorageScheme scheme;
-          if (this.authPasswordSyntax)
-          {
-            scheme = DirectoryServer.getAuthPasswordStorageScheme(schemeName);
-          }
-          else
-          {
-            scheme = DirectoryServer.getPasswordStorageScheme(
-                                          toLowerCase(schemeName));
-          }
+          PasswordStorageScheme scheme =
+               DirectoryServer.getPasswordStorageScheme(configEntryDN);
 
           if (scheme == null)
           {
             Message message = ERR_PWPOLICY_NO_SUCH_DEFAULT_SCHEME.get(
-                String.valueOf(configEntryDN), String.valueOf(schemeName));
+                String.valueOf(configEntryDN), String.valueOf(configEntryDN));
             throw new ConfigException(message);
           }
           else
           {
+            if (this.authPasswordSyntax &&
+                (! scheme.supportsAuthPasswordSyntax()))
+            {
+              Message message = ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
+                                     String.valueOf(configEntryDN),
+                                     this.passwordAttribute.getNameOrOID());
+              throw new ConfigException(message);
+            }
+
             schemes.add(scheme);
           }
         }
@@ -355,14 +357,49 @@ public class PasswordPolicy
 
 
     // Get the names of the deprecated storage schemes.
-    SortedSet<String> deprecatedStorageSchemes =
-      configuration.getDeprecatedPasswordStorageScheme();
+    SortedSet<DN> deprecatedStorageSchemeDNs =
+      configuration.getDeprecatedPasswordStorageSchemeDN();
     try
     {
-      if (deprecatedStorageSchemes != null)
+      if (deprecatedStorageSchemeDNs != null)
       {
+        LinkedHashSet<String> newDeprecatedStorageSchemes =
+             new LinkedHashSet<String>();
+        for (DN schemeDN : deprecatedStorageSchemeDNs)
+        {
+          PasswordStorageScheme scheme =
+               DirectoryServer.getPasswordStorageScheme(schemeDN);
+          if (scheme == null)
+          {
+            Message message = ERR_PWPOLICY_NO_SUCH_DEPRECATED_SCHEME.get(
+                                   String.valueOf(configEntryDN),
+                                   String.valueOf(schemeDN));
+            throw new ConfigException(message);
+          }
+          else if (this.authPasswordSyntax)
+          {
+            if (scheme.supportsAuthPasswordSyntax())
+            {
+              newDeprecatedStorageSchemes.add(
+                   scheme.getAuthPasswordSchemeName());
+            }
+            else
+            {
+              Message message = ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
+                                     String.valueOf(configEntryDN),
+                                     String.valueOf(schemeDN));
+              throw new ConfigException(message);
+            }
+          }
+          else
+          {
+            newDeprecatedStorageSchemes.add(
+                 toLowerCase(scheme.getStorageSchemeName()));
+          }
+        }
+
         this.deprecatedStorageSchemes =
-             new CopyOnWriteArraySet<String>(deprecatedStorageSchemes);
+             new CopyOnWriteArraySet<String>(newDeprecatedStorageSchemes);
       }
     }
     catch (Exception e)

@@ -67,7 +67,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: SSHA512 UserPassword Policy
 ds-cfg-password-attribute: userPassword
-ds-cfg-default-password-storage-scheme: SSHA512
+ds-cfg-default-password-storage-scheme-dn: cn=Salted SHA-512,cn=Password Storage Schemes,cn=config
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false
@@ -97,7 +97,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: SHA1 AuthPassword Policy
 ds-cfg-password-attribute: authPassword
-ds-cfg-default-password-storage-scheme: SHA1
+ds-cfg-default-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false
@@ -127,7 +127,7 @@ objectClass: top
 objectClass: ds-cfg-password-policy
 cn: Test AuthPassword Policy
 ds-cfg-password-attribute: userPassword
-ds-cfg-default-password-storage-scheme: CLEAR
+ds-cfg-default-password-storage-scheme-dn: cn=CLEAR,cn=Password Storage Schemes,cn=config
 ds-cfg-allow-expired-password-changes: false
 ds-cfg-allow-multiple-password-values: false
 ds-cfg-allow-pre-encoded-passwords: false

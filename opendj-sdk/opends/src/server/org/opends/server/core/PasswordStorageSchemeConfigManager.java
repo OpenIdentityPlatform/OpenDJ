@@ -374,7 +374,7 @@ public class PasswordStorageSchemeConfigManager
     // ... and install the password storage scheme in the server.
     DN configEntryDN = configuration.dn();
     storageSchemes.put (configEntryDN, schemeClass);
-    DirectoryServer.registerPasswordStorageScheme (schemeClass);
+    DirectoryServer.registerPasswordStorageScheme (configEntryDN, schemeClass);
   }
 
 
@@ -484,9 +484,7 @@ public class PasswordStorageSchemeConfigManager
         storageSchemes.remove (configEntryDN);
     if (scheme != null)
     {
-      DirectoryServer.deregisterPasswordStorageScheme (
-          scheme.getStorageSchemeName().toLowerCase()
-          );
+      DirectoryServer.deregisterPasswordStorageScheme(configEntryDN);
       scheme.finalizePasswordStorageScheme();
     }
   }

@@ -457,6 +457,11 @@ public class DirectoryServer
   private ConcurrentHashMap<String,PasswordStorageScheme>
                passwordStorageSchemes;
 
+  // The set of password storage schemes defined in the server (mapped between
+  // the DN of the configuration entry and the storage scheme).
+  private ConcurrentHashMap<DN,PasswordStorageScheme>
+               passwordStorageSchemesByDN;
+
   // The set of SASL mechanism handlers registered with the server (mapped
   // between the mechanism name and the handler).
   private ConcurrentHashMap<String,SASLMechanismHandler> saslMechanismHandlers;
@@ -863,6 +868,8 @@ public class DirectoryServer
       directoryServer.alertHandlers = new CopyOnWriteArrayList<AlertHandler>();
       directoryServer.passwordStorageSchemes =
            new ConcurrentHashMap<String,PasswordStorageScheme>();
+      directoryServer.passwordStorageSchemesByDN =
+           new ConcurrentHashMap<DN,PasswordStorageScheme>();
       directoryServer.passwordGenerators =
            new ConcurrentHashMap<DN,PasswordGenerator>();
       directoryServer.authPasswordStorageSchemes =
@@ -4812,6 +4819,23 @@ public class DirectoryServer
 
 
   /**
+   * Retrieves the password storage scheme defined in the specified
+   * configuration entry.
+   *
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        password storage scheme to retrieve.
+   *
+   * @return  The requested password storage scheme, or {@code null} if no such
+   *          scheme is defined.
+   */
+  public static PasswordStorageScheme getPasswordStorageScheme(DN configEntryDN)
+  {
+    return directoryServer.passwordStorageSchemesByDN.get(configEntryDN);
+  }
+
+
+
+  /**
    * Retrieves the set of password storage schemes defined in the Directory
    * Server, as a mapping between the all-lowercase scheme name and the
    * corresponding implementation.
@@ -4880,11 +4904,16 @@ public class DirectoryServer
    * If an existing password storage scheme is registered with the same name,
    * then it will be replaced with the provided scheme.
    *
-   * @param  scheme  The password storage scheme to register with the Directory
-   *                 Server.
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        password storage scheme.
+   * @param  scheme         The password storage scheme to register with the
+   *                        Directory Server.
    */
-  public static void registerPasswordStorageScheme(PasswordStorageScheme scheme)
+  public static void registerPasswordStorageScheme(DN configEntryDN,
+                                                   PasswordStorageScheme scheme)
   {
+    directoryServer.passwordStorageSchemesByDN.put(configEntryDN, scheme);
+
     String name = toLowerCase(scheme.getStorageSchemeName());
     directoryServer.passwordStorageSchemes.put(name, scheme);
 
@@ -4902,18 +4931,24 @@ public class DirectoryServer
    * Server.  If no scheme is registered with the specified name, then no action
    * will be taken.
    *
-   * @param  lowerName  The name of the password storage scheme to deregister,
-   *                    formatted in all lowercache characters.
+   * @param  configEntryDN  The DN of the configuration entry that defines the
+   *                        password storage scheme.
    */
-  public static void deregisterPasswordStorageScheme(String lowerName)
+  public static void deregisterPasswordStorageScheme(DN configEntryDN)
   {
     PasswordStorageScheme scheme =
-         directoryServer.passwordStorageSchemes.remove(lowerName);
+         directoryServer.passwordStorageSchemesByDN.remove(configEntryDN);
 
-    if ((scheme != null) && scheme.supportsAuthPasswordSyntax())
+    if (scheme != null)
     {
-      directoryServer.authPasswordStorageSchemes.remove(
-           scheme.getAuthPasswordSchemeName());
+      directoryServer.passwordStorageSchemes.remove(
+           toLowerCase(scheme.getStorageSchemeName()));
+
+      if (scheme.supportsAuthPasswordSyntax())
+      {
+        directoryServer.authPasswordStorageSchemes.remove(
+             scheme.getAuthPasswordSchemeName());
+      }
     }
   }
 
