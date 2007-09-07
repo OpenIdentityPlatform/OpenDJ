@@ -534,7 +534,9 @@ public final class AggregationPropertyDefinition
     PropertyDefinition<?> pd;
     pd = d.getPropertyDefinition(sourceEnabledPropertyName);
 
-    return (BooleanPropertyDefinition) pd;
+    // Runtime cast is required to workaround a
+    // bug in JDK versions prior to 1.5.0_08.
+    return BooleanPropertyDefinition.class.cast(pd);
   }
 
 
@@ -566,7 +568,9 @@ public final class AggregationPropertyDefinition
     d = relationDefinition.getChildDefinition();
     pd = d.getPropertyDefinition(targetEnabledPropertyName);
 
-    return (BooleanPropertyDefinition) pd;
+    // Runtime cast is required to workaround a
+    // bug in JDK versions prior to 1.5.0_08.
+    return BooleanPropertyDefinition.class.cast(pd);
   }
 
 
