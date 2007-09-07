@@ -441,6 +441,7 @@
               'dsScope'        : 'base' ,
               'dsBaseDN'       : 'cn=config' ,
               'dsFilter'       : 'objectclass=*' ,
+              'attributes'    : 'dn',
               'expectedRC'     : 'noCheck'
             }
           </call>
