@@ -67,8 +67,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'CLEAR' }
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Clear,cn=Password Storage Schemes,cn=config' }
             </call>
             
             <message>
@@ -324,8 +324,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SSHA' }
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Salted SHA-1,cn=Password Storage Schemes,cn=config' }
             </call>
             
             <message>
@@ -350,7 +350,7 @@
            <call function="'AnonSearchObject'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                'dsBaseDN'   : 'dc=example,dc=com' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-o mech=CRAM-MD5 -o "authid=dn:uid=jrunner,ou=People,o=SASL Tests,dc=example,dc=com" -w catleg' ,
                 'expectedRC'       : 49 }
