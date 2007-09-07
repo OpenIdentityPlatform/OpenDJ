@@ -45,6 +45,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import javax.crypto.Cipher;
+
 /**
  This class tests the CryptoManager.
  */
@@ -105,6 +107,8 @@ public class CryptoManagerTestCase extends TypesTestCase
     os.write(secretMessage.getBytes());
     os.close();
 
+    // TODO: check tempfile for plaintext.
+
     InputStream is = new FileInputStream(tempFile);
     is = cm.getCipherInputStream(is);
     byte[] plainText = new byte[secretMessage.getBytes().length];
@@ -115,4 +119,147 @@ public class CryptoManagerTestCase extends TypesTestCase
   }
 
   // TODO: other-than-preferred cipher algorithms, failure cases...
+  /**
+   Tests a simple encryption-decryption cycle.
+
+   @throws Exception If an exceptional condition arises.
+   */
+  @Test
+  public void testEncryptDecryptSuccessX() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "1234";
+
+    final byte[] cipherText = cm.encrypt("Blowfish/CFB/NoPadding", 64,
+            secretMessage.getBytes());
+    assertEquals(-1, (new String(cipherText)).indexOf(secretMessage));
+
+    final byte[] plainText = cm.decrypt(cipherText);
+    assertEquals((new String(plainText)), secretMessage);
+  }
+
+  /**
+   Tests a simple cipher stream encryption-decryption cycle.
+
+   @throws Exception If an exceptional condition arises.
+   */
+  @Test
+  public void testCipherEncryptDecryptSuccessX() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "56789";
+
+    final File tempFile
+            = File.createTempFile(cm.getClass().getName(), null);
+    tempFile.deleteOnExit();
+
+    OutputStream os = new FileOutputStream(tempFile);
+    os = cm.getCipherOutputStream("Blowfish/CFB/NoPadding", 64, os);
+    os.write(secretMessage.getBytes());
+    os.close();
+
+    // TODO: check tempfile for plaintext.
+
+    InputStream is = new FileInputStream(tempFile);
+    is = cm.getCipherInputStream(is);
+    byte[] plainText = new byte[secretMessage.getBytes().length];
+    assertEquals(is.read(plainText), secretMessage.getBytes().length);
+    assertEquals(is.read(), -1);
+    is.close();
+    assertEquals(new String(plainText), secretMessage);
+  }
+
+  /**
+   Tests a simple encryption-decryption cycle.
+
+   @throws Exception If an exceptional condition arises.
+   */
+  @Test
+  public void testEncryptDecryptSuccessY() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "1234";
+
+    final byte[] cipherText = cm.encrypt("RC4", 104,
+            secretMessage.getBytes());
+    assertEquals(-1, (new String(cipherText)).indexOf(secretMessage));
+
+    final byte[] plainText = cm.decrypt(cipherText);
+    assertEquals((new String(plainText)), secretMessage);
+  }
+
+  /**
+   Tests a simple cipher stream encryption-decryption cycle.
+
+   @throws Exception If an exceptional condition arises.
+   */
+  @Test
+  public void testCipherEncryptDecryptSuccessY() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "56789";
+
+    final File tempFile
+            = File.createTempFile(cm.getClass().getName(), null);
+    tempFile.deleteOnExit();
+
+    OutputStream os = new FileOutputStream(tempFile);
+    os = cm.getCipherOutputStream("RC4", 104, os);
+    os.write(secretMessage.getBytes());
+    os.close();
+
+    // TODO: check tempfile for plaintext.
+
+    InputStream is = new FileInputStream(tempFile);
+    is = cm.getCipherInputStream(is);
+    byte[] plainText = new byte[secretMessage.getBytes().length];
+    assertEquals(is.read(plainText), secretMessage.getBytes().length);
+    assertEquals(is.read(), -1);
+    is.close();
+    assertEquals(new String(plainText), secretMessage);
+  }
+
+  /**
+   Tests a simple encryption-decryption cycle.
+
+   @throws Exception If an exceptional condition arises.
+   */
+  @Test
+  public void testEncryptDecryptSuccessZ() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "1234";
+
+    final byte[] cipherText = cm.encrypt("DES/CFB/NoPadding", 64,
+            secretMessage.getBytes());
+    assertEquals(-1, (new String(cipherText)).indexOf(secretMessage));
+
+    final byte[] plainText = cm.decrypt(cipherText);
+    assertEquals((new String(plainText)), secretMessage);
+  }
+
+  /**
+   Tests a simple cipher stream encryption-decryption cycle.
+
+   @throws Exception If an exceptional condition arises.
+   */
+  @Test
+  public void testCipherEncryptDecryptSuccessZ() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "56789";
+
+    final File tempFile
+            = File.createTempFile(cm.getClass().getName(), null);
+    tempFile.deleteOnExit();
+
+    OutputStream os = new FileOutputStream(tempFile);
+    os = cm.getCipherOutputStream("DES/CFB/NoPadding", 64, os);
+    os.write(secretMessage.getBytes());
+    os.close();
+
+    // TODO: check tempfile for plaintext.
+
+    InputStream is = new FileInputStream(tempFile);
+    is = cm.getCipherInputStream(is);
+    byte[] plainText = new byte[secretMessage.getBytes().length];
+    assertEquals(is.read(plainText), secretMessage.getBytes().length);
+    assertEquals(is.read(), -1);
+    is.close();
+    assertEquals(new String(plainText), secretMessage);
+  }
 }
