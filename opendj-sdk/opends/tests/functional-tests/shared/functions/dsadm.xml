@@ -776,7 +776,11 @@
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
-            
+          
+      <message>'******************************'</message>
+      <message>'*** Restarting the Server ***'</message> 
+      <message>'******************************'</message>
+      
       <process name="'restart DS'">
         <location>'%s' % (location)</location>
         <command>'%s' % (STAFCmd)</command>
@@ -798,15 +802,11 @@
               'dsInstanceDn'     : dsBindDN ,
               'dsInstancePswd'   : dsBindPwd ,
               'noOfLoops'        : 5 ,
-              'noOfMilliSeconds' : 2000 }
+              'noOfMilliSeconds' : 6000 }
        </call>
-          <!--    
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
-      </call>
-        -->
-   
+ 
+      <message>'*** Restarting the Server is completed ***'</message>              
+      <message>'***************************************'</message>      
     </sequence>
   </function>
 
