@@ -319,6 +319,9 @@ public class TrustStoreBackend
                                 trustStoreType,
                                 new String(trustStorePIN));
 
+    // Generate a self-signed certificate, if there is none.
+    generateInstanceCertificateIfAbsent();
+
     // Construct the trust store base entry.
     LinkedHashMap<ObjectClass,String> objectClasses =
          new LinkedHashMap<ObjectClass,String>(2);
@@ -353,7 +356,7 @@ public class TrustStoreBackend
                                 opAttrs);
 
 
-    // Define an empty sets for the supported controls and features.
+    // Define empty sets for the supported controls and features.
     supportedControls = new HashSet<String>(0);
     supportedFeatures = new HashSet<String>(0);
 
@@ -1711,5 +1714,44 @@ public class TrustStoreBackend
     }
   }
 
+  /**
+   * Generates a self-signed certificate with well-known alias if there is none.
+   * @throws InitializationException If an error occurs while interacting with
+   *                                 the key store.
+   */
+  private void generateInstanceCertificateIfAbsent()
+       throws InitializationException
+  {
+    String certAlias = ADS_CERTIFICATE_ALIAS;
+
+    try
+    {
+      if (certificateManager.aliasInUse(certAlias))
+      {
+        return;
+      }
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_TRUSTSTORE_CANNOT_ADD_CERT.get(
+           certAlias, trustStoreFile, getExceptionMessage(e));
+      throw new InitializationException(message, e);
+    }
+
+    try
+    {
+      certificateManager.generateSelfSignedCertificate(
+           certAlias,
+           getADSCertificateSubjectDN(),
+           getADSCertificateValidity());
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_TRUSTSTORE_CANNOT_GENERATE_CERT.get(
+           certAlias, trustStoreFile, getExceptionMessage(e));
+      throw new InitializationException(message, e);
+    }
+
+  }
 }
 
