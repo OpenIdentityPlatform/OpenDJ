@@ -49,7 +49,7 @@
               'subcommand'           : 'create-password-policy' ,    
               'objectType'           : 'policy-name' ,
               'objectName'           : 'Sales Password Policy',
-              'optionsString'        : '--set default-password-storage-scheme:SSHA --set password-attribute:userPassword',
+              'optionsString'        : '--set "default-password-storage-scheme-dn:cn=Salted SHA-1,cn=Password Storage Schemes,cn=config" --set password-attribute:userPassword',
               'expectedRC'           : 0 } 
             </call>          
             
