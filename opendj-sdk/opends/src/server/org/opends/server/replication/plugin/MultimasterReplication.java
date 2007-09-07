@@ -26,10 +26,14 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.replication.plugin.
+ReplicationRepairRequestControl.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.MultimasterDomainCfg;
@@ -42,7 +46,6 @@ import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
@@ -66,10 +69,6 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.messages.Message;
-
-import static org.opends.server.replication.plugin.
-              ReplicationRepairRequestControl.*;
 
 /**
  * This class is used to load the Replication code inside the JVM
@@ -86,7 +85,7 @@ public class MultimasterReplication
                   BackupTaskListener, RestoreTaskListener, ImportTaskListener,
                   ExportTaskListener
 {
-  private ReplicationServerListener replicationServer = null;
+  private ReplicationServerListener replicationServerListener = null;
   private static Map<DN, ReplicationDomain> domains =
     new HashMap<DN, ReplicationDomain>() ;
 
@@ -193,7 +192,7 @@ public class MultimasterReplication
       MultimasterSynchronizationProviderCfg configuration)
   throws ConfigException
   {
-    replicationServer = new ReplicationServerListener(configuration);
+    replicationServerListener = new ReplicationServerListener(configuration);
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if Multimaster domain entries are added or removed.
@@ -438,8 +437,8 @@ public class MultimasterReplication
     }
 
     // shutdown the ReplicationServer Service if necessary
-    if (replicationServer != null)
-      replicationServer.shutdown();
+    if (replicationServerListener != null)
+      replicationServerListener.shutdown();
 
     DirectoryServer.deregisterBackupTaskListener(this);
     DirectoryServer.deregisterRestoreTaskListener(this);

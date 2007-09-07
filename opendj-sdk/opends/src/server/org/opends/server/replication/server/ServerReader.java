@@ -100,7 +100,7 @@ public class ServerReader extends DirectoryThread
     if (debugEnabled())
     {
       TRACER.debugInfo(
-          "In RS <" + replicationCache.getReplicationServer().
+          "In RS " + replicationCache.getReplicationServer().
           getMonitorInstanceName() +
           (handler.isReplicationServer()?" RS ":" LS")+
           " reader starting for serverId=" + serverId);
@@ -117,22 +117,11 @@ public class ServerReader extends DirectoryThread
 
         if (debugEnabled())
         {
-          if (handler.isReplicationServer())
-          {
-            TRACER.debugInfo(
-                "In RS <" + replicationCache.getReplicationServer().
-                getMonitorInstanceName() +
-                "> from RS server with serverId=" + serverId +
-                " receives " + msg);
-          }
-          else
-          {
-            TRACER.debugInfo(
-                "In RS <" + replicationCache.getReplicationServer().
-                getMonitorInstanceName() +
-                "> from LDAP server with serverId=" + serverId +
-                " receives " + msg);
-          }
+          TRACER.debugInfo(
+              "In RS " + replicationCache.getReplicationServer().
+              getMonitorInstanceName() +
+              (handler.isReplicationServer()?" From RS ":" From LS")+
+              " with serverId=" + serverId + " receives " + msg);
         }
         if (msg instanceof AckMessage)
         {
@@ -271,11 +260,10 @@ public class ServerReader extends DirectoryThread
        */
       if (debugEnabled())
         TRACER.debugInfo(
-          "In RS <" + replicationCache.getReplicationServer().
+          "In RS " + replicationCache.getReplicationServer().
           getMonitorInstanceName() +
-          " reader IO EXCEPTION serverID=" + serverId
-          + stackTraceToSingleLineString(e) + e.getLocalizedMessage() +
-          e.getCause());
+          " reader IO EXCEPTION for serverID=" + serverId
+          + stackTraceToSingleLineString(e) + " " + e.getLocalizedMessage());
       Message message = NOTE_SERVER_DISCONNECT.get(handler.toString());
       logError(message);
     } catch (ClassNotFoundException e)
@@ -316,10 +304,10 @@ public class ServerReader extends DirectoryThread
        */
       if (debugEnabled())
         TRACER.debugInfo(
-          "In RS <" + replicationCache.getReplicationServer().
+          "In RS " + replicationCache.getReplicationServer().
           getMonitorInstanceName() +
-          " reader CLOSE serverID=" + serverId
-          + stackTraceToSingleLineString(new Exception()));
+          " server reader for serverID=" + serverId +
+          " is closing the session");
       try
       {
         session.close();
@@ -331,10 +319,9 @@ public class ServerReader extends DirectoryThread
     }
     if (debugEnabled())
       TRACER.debugInfo(
-          "In RS <" + replicationCache.getReplicationServer().
+          "In RS " + replicationCache.getReplicationServer().
           getMonitorInstanceName() +
-          (handler.isReplicationServer()?"RS":"LDAP") +
-          " server reader stopped for serverID=" + serverId
-          + stackTraceToSingleLineString(new Exception()));
+          (handler.isReplicationServer()?" RS":" LDAP") +
+          " server reader stopped for serverID=" + serverId);
   }
 }

@@ -26,9 +26,10 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -51,8 +52,10 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -89,6 +92,9 @@ import org.testng.annotations.Test;
 @Test(groups = { "precommit", "replication" }, sequential = true)
 public abstract class ReplicationTestCase extends DirectoryServerTestCase
 {
+
+  // The tracer object for the debug logger
+  private static final DebugTracer TRACER = getTracer();
 
   /**
   * The internal connection used for operation
@@ -726,4 +732,187 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return new ReplSessionSecurity(null, null, null, true);
   }
 
+  /**
+   * Add a task to the configuration of the current running DS.
+   * @param taskEntry The task to add.
+   * @param expectedResult The expected result code for the ADD.
+   * @param errorMessageID The expected error messageID when the expected
+   * result code is not SUCCESS
+   */
+  protected void addTask(Entry taskEntry, ResultCode expectedResult,
+      Message errorMessage)
+  {
+    try
+    {
+      TRACER.debugInfo("AddTask/" + taskEntry);
+
+      // Change config of DS to launch the total update task
+      InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
+
+      // Add the task.
+
+      AddOperation addOperation =
+        connection.processAdd(taskEntry.getDN(),
+            taskEntry.getObjectClasses(),
+            taskEntry.getUserAttributes(),
+            taskEntry.getOperationalAttributes());
+
+      assertEquals(addOperation.getResultCode(), expectedResult,
+          "Result of ADD operation of the task is: "
+          + addOperation.getResultCode()
+          + " Expected:"
+          + expectedResult + " Details:" + addOperation.getErrorMessage()
+          + addOperation.getAdditionalLogMessage());
+
+      if (expectedResult != ResultCode.SUCCESS)
+      {
+        assertTrue(addOperation.getErrorMessage().toString().
+            startsWith(errorMessage.toString()),
+            "Error MsgID of the task <"
+            + addOperation.getErrorMessage()
+            + "> equals <"
+            + errorMessage + ">");
+        TRACER.debugInfo("Create config task: <"+ errorMessage.getDescriptor().getId()
+                + addOperation.getErrorMessage() + ">");
+
+      }
+      else
+      {
+        waitTaskState(taskEntry, TaskState.RUNNING, null);
+      }
+
+      // Entry will be removed at the end of the test
+      entryList.addLast(taskEntry.getDN());
+
+      TRACER.debugInfo("AddedTask/" + taskEntry.getDN());
+    }
+    catch(Exception e)
+    {
+      fail("Exception when adding task:"+ e.getMessage());
+    }
+  }
+
+  protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
+      Message expectedMessage)
+  {
+    TaskState taskState = null;
+    int cpt=10;
+    try
+    {
+      SearchFilter filter =
+        SearchFilter.createFilterFromString("(objectclass=*)");
+      Entry resultEntry = null;
+      do
+      {
+        InternalSearchOperation searchOperation =
+          connection.processSearch(taskEntry.getDN(),
+              SearchScope.BASE_OBJECT,
+              filter);
+        try
+        {
+          resultEntry = searchOperation.getSearchEntries().getFirst();
+        } catch (Exception e)
+        {
+          fail("Task entry was not returned from the search.");
+          continue;
+        }
+
+        try
+        {
+          // Check that the task state is as expected.
+          AttributeType taskStateType =
+            DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
+          String stateString =
+            resultEntry.getAttributeValue(taskStateType,
+                DirectoryStringSyntax.DECODER);
+          taskState = TaskState.fromString(stateString);
+        }
+        catch(Exception e)
+        {
+          fail("Exception"+ e.getMessage()+e.getStackTrace());
+        }
+        Thread.sleep(500);
+        cpt--;
+      }
+      while ((taskState != expectedTaskState) &&
+             (taskState != TaskState.STOPPED_BY_ERROR) &&
+             (taskState != TaskState.COMPLETED_SUCCESSFULLY) &&
+             (cpt > 0));
+
+      // Check that the task contains some log messages.
+      AttributeType logMessagesType = DirectoryServer.getAttributeType(
+          ATTR_TASK_LOG_MESSAGES.toLowerCase());
+      ArrayList<String> logMessages = new ArrayList<String>();
+      resultEntry.getAttributeValues(logMessagesType,
+          DirectoryStringSyntax.DECODER,
+          logMessages);
+
+      if ((taskState != TaskState.COMPLETED_SUCCESSFULLY)
+          && (taskState != TaskState.RUNNING))
+      {
+        if (logMessages.size() == 0)
+        {
+          fail("No log messages were written to the task entry on a failed task");
+        }
+        else
+        {
+          TRACER.debugInfo(logMessages.get(0));
+          if (expectedMessage != null)
+          {
+            TRACER.debugInfo(expectedMessage.toString());
+            assertTrue(logMessages.get(0).indexOf(
+                expectedMessage.toString())>0);
+          }
+        }
+      }
+
+      assertEquals(taskState, expectedTaskState, "Task State:" + taskState +
+          " Expected task state:" + expectedTaskState);
+    }
+    catch(Exception e)
+    {
+      fail("waitTaskState Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
+    }
+  }
+  
+  /**
+   * Add to the current DB the entries necessary to the test
+   */
+  protected void addTestEntriesToDB(String[] ldifEntries)
+  {
+    try
+    {
+      // Change config of DS to launch the total update task
+      InternalClientConnection connection =
+        InternalClientConnection.getRootConnection();
+
+      for (String ldifEntry : ldifEntries)
+      {
+        Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
+        AddOperationBasis addOp = new AddOperationBasis(
+            connection,
+            InternalClientConnection.nextOperationID(), 
+            InternalClientConnection.nextMessageID(), 
+            null, 
+            entry.getDN(), 
+            entry.getObjectClasses(),
+            entry.getUserAttributes(), 
+            entry.getOperationalAttributes());
+        addOp.setInternalOperation(true);
+        addOp.run();
+        if (addOp.getResultCode() != ResultCode.SUCCESS)
+        {
+          TRACER.debugInfo("Failed to add entry " + entry.getDN() +
+              "Result code = : " + addOp.getResultCode());
+        }
+        // They will be removed at the end of the test
+        entryList.addLast(entry.getDN());
+      }
+    }
+    catch(Exception e)
+    {
+      fail("addEntries Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
+    }
+  }
 }
