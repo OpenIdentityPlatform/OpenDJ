@@ -25,8 +25,8 @@
 
 dn: cn=Default Password Policy,cn=Password Policies,cn=config
 changetype: modify
-replace: ds-cfg-default-password-storage-scheme
-ds-cfg-default-password-storage-scheme: MD5
+replace: ds-cfg-default-password-storage-scheme-dn
+ds-cfg-default-password-storage-scheme-dn: cn=Salted MD5,cn=Password Storage Schemes,cn=config
 -
 replace: ds-cfg-password-attribute
 ds-cfg-password-attribute: authPassword

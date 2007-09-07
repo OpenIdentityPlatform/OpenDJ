@@ -28,7 +28,7 @@ objectClass: ds-cfg-password-policy
 objectClass: top
 ds-cfg-skip-validation-for-administrators: false
 ds-cfg-password-expiration-warning-interval: 5 days
-ds-cfg-default-password-storage-scheme: SHA1
+ds-cfg-default-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 ds-cfg-grace-login-count: 0
 ds-cfg-lockout-duration: 0 seconds
 ds-cfg-maximum-password-age: 6 weeks
