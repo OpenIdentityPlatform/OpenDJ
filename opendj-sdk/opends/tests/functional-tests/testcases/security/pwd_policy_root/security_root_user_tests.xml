@@ -48,7 +48,7 @@
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'attributes'       : 'ds-cfg-default-password-storage-scheme' }
+              'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
           </call>
 
           <script> 
@@ -57,7 +57,7 @@
 
           <call function="'checktestString'">
               { 'returnString'       : returnString ,
-                'expectedString'     : 'SSHA' }
+                'expectedString'     : 'cn=Salted SHA-512' }
           </call>
           
           <call function="'testCase_Postamble'"/>

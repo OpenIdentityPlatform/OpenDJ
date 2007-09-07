@@ -82,11 +82,11 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Root Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'CLEAR' }
-                </call>
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Clear,cn=Password Storage Schemes,cn=config' }
+            </call>
             
-                <message>
+            <message>
                    'Security: Pwd Policy Root: Root Auth, Preamble Step 2 - Admin adding new root user'
                 </message>
     
@@ -471,9 +471,9 @@
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme' ,
-                    'attributeValue'         : 'SSHA' }
+                    'propertyName'           : 'Root Password Policy' ,
+                    'attributeName'          : 'default-password-storage-scheme-dn' ,
+                    'attributeValue'         : 'cn=Salted SHA-512,cn=Password Storage Schemes,cn=config' }
             </call>
             
             <call function="'testCase_Postamble'"/>
