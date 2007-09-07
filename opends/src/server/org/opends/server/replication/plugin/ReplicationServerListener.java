@@ -25,6 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
+
 import org.opends.messages.Message;
 
 import java.util.List;
@@ -105,7 +106,7 @@ public class ReplicationServerListener
   }
 
   /**
-   * Shutdown the Replication servers.
+   * Shutdown the replication server.
    */
   public void shutdown()
   {
@@ -123,7 +124,7 @@ public class ReplicationServerListener
     // replicationServer currently configured.
     if (replicationServer != null)
     {
-      replicationServer.shutdown();
+      replicationServer.remove();
     }
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }

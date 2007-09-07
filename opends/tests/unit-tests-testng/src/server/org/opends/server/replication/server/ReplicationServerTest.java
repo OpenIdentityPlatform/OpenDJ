@@ -34,6 +34,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.*;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -42,11 +43,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -62,6 +62,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
@@ -413,7 +414,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void stopChangelog() throws Exception
   {
-    replicationServer.shutdown();
+    replicationServer.remove();
     configure();
     newClient();
     newClientWithFirstChanges();
@@ -628,7 +629,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         ReplServerFakeConfiguration conf =
           new ReplServerFakeConfiguration(changelogPorts[i], "changelogDb"+i, 0,
                                          changelogIds[i], 0, 100, servers);
-        replicationServer = new ReplicationServer(conf);
+        changelogs[i] = new ReplicationServer(conf);
       }
 
       ReplicationBroker broker1 = null;
@@ -763,9 +764,9 @@ public class ReplicationServerTest extends ReplicationTestCase
       finally
       {
         if (changelogs[0] != null)
-          changelogs[0].shutdown();
+          changelogs[0].remove();
         if (changelogs[1] != null)
-          changelogs[1].shutdown();
+          changelogs[1].remove();
         if (broker1 != null)
           broker1.stop();
         if (broker2 != null)
@@ -972,4 +973,53 @@ public class ReplicationServerTest extends ReplicationTestCase
       }
     }
   }
+
+
+  /* 
+   * Test backup and restore of the Replication server backend
+   */
+   @Test(enabled=true)
+   public void backupRestore() throws Exception
+   {
+     debugInfo("Starting backupRestore");
+     
+     Entry backupTask = createBackupTask();
+     Entry restoreTask = createRestoreTask();
+
+     addTask(backupTask, ResultCode.SUCCESS, null);
+     waitTaskState(backupTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+
+     addTask(restoreTask, ResultCode.SUCCESS, null);
+     waitTaskState(restoreTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+     
+     debugInfo("Ending   backupRestore");
+   }
+
+   private Entry createBackupTask()
+   throws Exception
+   {
+     return TestCaseUtils.makeEntry(
+     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+     "objectclass: top",
+     "objectclass: ds-task",
+     "objectclass: ds-task-backup",
+     "ds-task-class-name: org.opends.server.tasks.BackupTask",
+     "ds-backup-directory-path: bak" + File.separator +
+                        "replicationChanges",
+     "ds-task-backup-backend-id: replicationChanges");
+
+   }
+
+   private Entry createRestoreTask()
+   throws Exception
+   {
+     return TestCaseUtils.makeEntry(
+     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+     "objectclass: top",
+     "objectclass: ds-task",
+     "objectclass: ds-task-restore",
+     "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+     "ds-backup-directory-path: bak" + File.separator +
+                        "replicationChanges");
+   }
 }

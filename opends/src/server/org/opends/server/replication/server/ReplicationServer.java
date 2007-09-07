@@ -25,16 +25,16 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
-import org.opends.messages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ReplicationMessages.*;
-
-import org.opends.messages.MessageBuilder;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.util.StaticUtils.getFileForPath;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -47,22 +47,35 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.api.BackupTaskListener;
+import org.opends.server.api.ExportTaskListener;
+import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.loggers.LogLevel;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.BackupConfig;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.util.LDIFReader;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -77,7 +90,9 @@ import com.sleepycat.je.DatabaseException;
  * It is responsible for creating the replication server cache and managing it
  */
 public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
-  implements Runnable, ConfigurationChangeListener<ReplicationServerCfg>
+  implements Runnable, ConfigurationChangeListener<ReplicationServerCfg>,
+             BackupTaskListener, RestoreTaskListener, ImportTaskListener,
+             ExportTaskListener
 {
   private short serverId;
   private String serverURL;
@@ -108,6 +123,12 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   private boolean stopListen = false;
   private ReplSessionSecurity replSessionSecurity;
 
+  // For the backend associated to this replication server,
+  // DN of the config entry of the backend
+  private DN backendConfigEntryDN;
+  // ID of the backend
+  private static final String backendId = "replicationChanges";
+
   /**
    * The tracer object for the debug logger.
    */
@@ -120,11 +141,10 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    * @throws ConfigException When Configuration is invalid.
    */
   public ReplicationServer(ReplicationServerCfg configuration)
-         throws ConfigException
+    throws ConfigException
   {
     super("Replication Server" + configuration.getReplicationPort());
 
-    shutdown = false;
     replicationPort = configuration.getReplicationPort();
     replicationServerId = (short) configuration.getReplicationServerId();
     replicationServers = configuration.getReplicationServer();
@@ -162,6 +182,21 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     initialize(replicationServerId, replicationPort);
     configuration.addChangeListener(this);
     DirectoryServer.registerMonitorProvider(this);
+
+    try
+    {
+      backendConfigEntryDN = DN.decode(
+      "ds-cfg-backend-id=" + backendId + ",cn=Backends,cn=config");
+    } catch (Exception e) {}
+
+    // Creates the backend associated to this ReplicationServer
+    // if it does not exist.
+    createBackend();
+
+    DirectoryServer.registerBackupTaskListener(this);
+    DirectoryServer.registerRestoreTaskListener(this);
+    DirectoryServer.registerExportTaskListener(this);
+    DirectoryServer.registerImportTaskListener(this);
   }
 
 
@@ -315,6 +350,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    */
   private void initialize(short changelogId, int changelogPort)
   {
+    shutdown = false;
+
     try
     {
       /*
@@ -458,7 +495,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       dbEnv.shutdown();
     }
     DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
-  }
+}
 
 
   /**
@@ -492,10 +529,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     }
     catch(Exception e)
     {
-      TRACER.debugInfo(
-          "In RS <" + getMonitorInstanceName() +
-          " Exception in clearGenerationId" +
-          stackTraceToSingleLineString(e) + e.getLocalizedMessage());
+      TRACER.debugCaught(LogLevel.ALL, e);
     }
   }
 
@@ -729,5 +763,181 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   public short getServerId()
   {
     return serverId;
+  }
+
+  /**
+   * Creates the backend associated to this replication server.
+   * @throws ConfigException
+   */
+  private void createBackend()
+  throws ConfigException
+  {
+    try
+    {
+      String ldif = makeLdif(
+          "dn: ds-cfg-backend-id="+backendId+",cn=Backends,cn=config",
+          "objectClass: top",
+          "objectClass: ds-cfg-backend",
+          "objectClass: ds-cfg-je-backend",
+          "ds-cfg-backend-base-dn: dc="+backendId,
+          "ds-cfg-backend-enabled: true",
+          "ds-cfg-backend-writability-mode: enabled",
+          "ds-cfg-backend-class: " +
+            "org.opends.server.replication.server.ReplicationBackend",
+          "ds-cfg-backend-id: " + backendId,
+          "ds-cfg-backend-import-temp-directory: importTmp",
+          "ds-cfg-backend-directory: " + getFileForPath(dbDirname));
+
+      LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
+          new StringReader(ldif));
+      LDIFReader reader = new LDIFReader(ldifImportConfig);
+      Entry backendConfigEntry = reader.readEntry();
+      if (!DirectoryServer.getConfigHandler().entryExists(backendConfigEntryDN))
+      {
+        // Add the replication backend
+        DirectoryServer.getConfigHandler().addEntry(backendConfigEntry, null);
+      }
+    }
+    catch(Exception e)
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(e.getLocalizedMessage());
+      Message msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
+      throw new ConfigException(msg, e);
+
+    }
+  }
+
+  private static String makeLdif(String... lines)
+  {
+    StringBuilder buffer = new StringBuilder();
+    for (String line : lines) {
+      buffer.append(line).append(EOL);
+    }
+    // Append an extra line so we can append LDIF Strings.
+    buffer.append(EOL);
+    return buffer.toString();
+  }
+
+  /**
+   * Do what needed when the config object related to this replication server
+   * is deleted from the server configuration.
+   */
+  public void remove()
+  {
+    if (debugEnabled())
+      TRACER.debugInfo("RS " +getMonitorInstanceName()+
+          " starts removing");
+
+    shutdown();
+    removeBackend();
+
+    DirectoryServer.deregisterBackupTaskListener(this);
+    DirectoryServer.deregisterRestoreTaskListener(this);
+    DirectoryServer.deregisterExportTaskListener(this);
+    DirectoryServer.deregisterImportTaskListener(this);
+  }
+
+  /**
+   * Removes the backend associated to this Replication Server that has been
+   * created when this replication server was created.
+   */
+  protected void removeBackend()
+  {
+    try
+    {
+      if (!DirectoryServer.getConfigHandler().entryExists(backendConfigEntryDN))
+      {
+        // Delete the replication backend
+        DirectoryServer.getConfigHandler().deleteEntry(backendConfigEntryDN,
+            null);
+      }
+    }
+    catch(Exception e)
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(e.getLocalizedMessage());
+      Message msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
+      logError(msg);
+    }
+  }
+  /**
+   * {@inheritDoc}
+   */
+  public void processBackupBegin(Backend backend, BackupConfig config)
+  {
+    // Nothing is needed at the moment
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processBackupEnd(Backend backend, BackupConfig config,
+                               boolean successful)
+  {
+    // Nothing is needed at the moment
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processRestoreBegin(Backend backend, RestoreConfig config)
+  {
+    if (backend.getBackendID().equals(backendId))
+      shutdown();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processRestoreEnd(Backend backend, RestoreConfig config,
+                                boolean successful)
+  {
+    if (backend.getBackendID().equals(backendId))
+      initialize(this.replicationServerId, this.replicationPort);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processImportBegin(Backend backend, LDIFImportConfig config)
+  {
+    // Nothing is needed at the moment
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processImportEnd(Backend backend, LDIFImportConfig config,
+                               boolean successful)
+  {
+    // Nothing is needed at the moment
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processExportBegin(Backend backend, LDIFExportConfig config)
+  {
+    if (debugEnabled())
+      TRACER.debugInfo("RS " +getMonitorInstanceName()+
+          " Export starts");
+    if (backend.getBackendID().equals(backendId))
+    {
+      // Retrieves the backend related to this domain
+      // backend =
+      ReplicationBackend b =
+      (ReplicationBackend)DirectoryServer.getBackend(backendId);
+      b.setServer(this);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void processExportEnd(Backend backend, LDIFExportConfig config,
+                               boolean successful)
+  {
+    // Nothing is needed at the moment
   }
 }

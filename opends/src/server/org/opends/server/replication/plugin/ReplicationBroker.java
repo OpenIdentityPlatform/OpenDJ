@@ -392,7 +392,7 @@ public class ReplicationBroker implements InternalSearchListener
           }
           catch (Exception e)
           {
-            Message message = NOTE_EXCEPTION_STARTING_SESSION.get(
+            Message message = ERR_EXCEPTION_STARTING_SESSION.get(
                 baseDn.toNormalizedString(), server, e.getLocalizedMessage() +
                 stackTraceToSingleLineString(e));
             logError(message);
@@ -733,7 +733,7 @@ public class ReplicationBroker implements InternalSearchListener
       if (debugEnabled())
       {
         debugInfo("ReplicationBroker is stopping. and will" +
-          "close the connection");
+          " close the connection");
       }
 
       if (session != null)

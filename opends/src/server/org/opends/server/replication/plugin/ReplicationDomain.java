@@ -212,9 +212,6 @@ public class ReplicationDomain extends DirectoryThread
   // Null when none is being processed.
   private IEContext ieContext = null;
 
-  // The backend information necessary to make an import or export.
-  private Backend backend;
-
   private int listenerThreadNumber = 10;
 
   private Collection<String> replicationServers;
@@ -383,7 +380,7 @@ public class ReplicationDomain extends DirectoryThread
     monitor = new ReplicationMonitor(this);
     DirectoryServer.registerMonitorProvider(monitor);
 
-    backend = retrievesBackend(baseDN);
+    Backend backend = retrievesBackend(baseDN);
     if (backend == null)
     {
       throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(
@@ -855,8 +852,6 @@ public class ReplicationDomain extends DirectoryThread
                                    de.getMessageObject());
                 MessageBuilder mb = new MessageBuilder();
                 mb.append(de.getMessageObject());
-                mb.append("Backend ID: ");
-                mb.append(backend.getBackendID());
                 TRACER.debugInfo(Message.toString(mb.toMessage()));
                 broker.publish(errorMsg);
               }
@@ -2224,10 +2219,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public long computeGenerationId() throws DirectoryException
   {
+    Backend backend = this.retrievesBackend(baseDN);
     long bec = backend.getEntryCount();
-    if (bec<0)
-      backend = this.retrievesBackend(baseDN);
-    bec = backend.getEntryCount();
     this.acquireIEContext();
     ieContext.checksumOutput = true;
     ieContext.entryCount = (bec<1000?bec:1000);
@@ -2598,9 +2591,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   protected void exportBackend()
   throws DirectoryException
   {
-    // FIXME Temporary workaround - will probably be fixed when implementing
-    // dynamic config
-    backend = retrievesBackend(this.baseDN);
+    Backend backend = retrievesBackend(this.baseDN);
 
     //  Acquire a shared lock for the backend.
     try
@@ -2938,9 +2929,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     try
     {
-      // FIXME Temporary workaround - will probably be fixed when implementing
-      // dynamic config
-      backend = retrievesBackend(this.baseDN);
+      Backend backend = retrievesBackend(this.baseDN);
 
       if (!backend.supportsLDIFExport())
       {
@@ -3027,6 +3016,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     LDIFImportConfig importConfig = null;
     DirectoryException de = null;
 
+    Backend backend = this.retrievesBackend(baseDN);
+
     if (!backend.supportsLDIFImport())
     {
       Message message = ERR_INIT_IMPORT_NOT_SUPPORTED.get(
@@ -3051,7 +3042,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       ieContext.entryLeftCount = initializeMessage.getEntryCount();
       ieContext.initImportExportCounters(initializeMessage.getEntryCount());
 
-      preBackendImport(this.backend);
+      preBackendImport(backend);
 
       ieContext.ldifImportInputStream = new ReplLDIFInputStream(this);
       importConfig =
@@ -3066,7 +3057,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // ExistingFileBehavior.OVERWRITE);
 
       // Process import
-      this.backend.importLDIF(importConfig);
+      backend.importLDIF(importConfig);
 
       TRACER.debugInfo("The import has ended successfully.");
       stateSavingDisabled = false;
@@ -3083,7 +3074,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       importConfig.close();
 
       // Re-enable backend
-      closeBackendImport(this.backend);
+      closeBackendImport(backend);
 
       // Update the task that initiated the import
       if ((ieContext != null ) && (ieContext.initializeTask != null))
@@ -3202,7 +3193,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public Backend getBackend()
   {
-    return backend;
+    return retrievesBackend(baseDN);
   }
 
   /**
