@@ -323,7 +323,7 @@ ds-cfg-backend-id: ads-truststore
 ds-cfg-backend-enabled: true
 ds-cfg-backend-class: org.opends.server.backends.TrustStoreBackend
 ds-cfg-backend-writability-mode: enabled
-ds-cfg-backend-base-dn: cn=trust-store
+ds-cfg-backend-base-dn: cn=ads-truststore
 ds-cfg-trust-store-type: JKS
 ds-cfg-trust-store-file: config/ads-truststore
 ds-cfg-trust-store-pin-file: config/ads-truststore.pin

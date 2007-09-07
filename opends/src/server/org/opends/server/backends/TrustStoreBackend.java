@@ -150,29 +150,19 @@ public class TrustStoreBackend
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
+    DN configEntryDN = configuration.dn();
+
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the DN of the base trust store entry.
-    try
+    SortedSet<DN> baseDNSet = configuration.getBackendBaseDN();
+    if (baseDNSet.size() != 1)
     {
-      // FIXME -- Deal with this more correctly.
-      baseDN = DN.decode(DN_TRUST_STORE_ROOT);
-      this.baseDNs = new DN[] {baseDN};
+      Message message = ERR_TRUSTSTORE_REQUIRES_ONE_BASE_DN.get(
+           String.valueOf(configEntryDN));
+      throw new InitializationException(message);
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-          ERR_TRUSTSTORE_CANNOT_DECODE_TRUSTSTORE_ROOT_DN.get(
-               getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
-
-
-    DN configEntryDN = configuration.dn();
+    baseDN = baseDNSet.first();
+    baseDNs = new DN[] {baseDN};
 
     // Get the path to the trust store file.
     trustStoreFile = configuration.getTrustStoreFile();
