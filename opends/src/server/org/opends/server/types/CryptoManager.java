@@ -87,11 +87,11 @@ public class CryptoManager
 
   // The secure random number generator used for key generation,
   // initialization vector PRNG seed...
-  private final SecureRandom secureRandom = new SecureRandom();
+  private static final SecureRandom secureRandom = new SecureRandom();
 
   // The random number generator used for initialization vector
   // production.
-  private final Random pseudoRandom
+  private static final Random pseudoRandom
           = new Random(secureRandom.nextLong());
 
   // The map from encryption key ID to KeyEntry (cache).
@@ -644,294 +644,358 @@ public class CryptoManager
   }
 
 
-
   /**
    * This class corresponds to the encryption key entry in ADS. It is
-   * used for the local cache of key entries requested by
-   * CryptoManager users.
+   * used in the local cache of key entries that have been requested
+   * by CryptoManager clients.
    */
   private static class KeyEntry
   {
     /**
-     * Construct an instance of KeyEntry using the specified
-     * parameters.
+     * Retrieve a KeyEntry from the KeyEntry Map based on cipher
+     * transformation name and key length. If the parameters are valid
+     * but a corresponding entry does not exist in the supplied map,
+     * create the entry and add it to the map.
      *
-     * @param keyID The unique identifier of this cipher
-     *  transformation/key pair.
-     * @param transformation The cipher transformation name.
-     * @param encryptionKey The cipher key.
-     * @param initializationVectorLength The length of the required
-     * initialization vector or 0 if none is required.
+     * @param map The KeyEntry Map containing the key.
+     *
+     * @param transformation The cipher transformation.
+     *
+     * @param keyLengthBits The cipher key length in bits.
+     *
+     * @return The key entry corresponding to the parameters.
+     *
+     * @throws CryptoManagerException If there is a problem
+     * instantiating a Cipher object in order to validate the supplied
+     * parameters when creating a new entry.
      */
-    public KeyEntry( byte[] keyID,
-                     String transformation,
-                     byte[] encryptionKey,
-                     int initializationVectorLength){
-      this.keyID = new byte[keyID.length];
-      System.arraycopy(keyID, 0, this.keyID, 0, keyID.length);
-      this.transformation = new String(transformation);
-      this.encryptionKey = new byte[encryptionKey.length];
-      System.arraycopy(encryptionKey, 0,
-                       this.encryptionKey, 0, encryptionKey.length);
-      this.initializationVectorLength = initializationVectorLength;
+    public static KeyEntry getKeyEntry(
+            final Map<ByteArray,KeyEntry> map,
+            final String transformation,
+            final int keyLengthBits)
+            throws CryptoManagerException {
+      KeyEntry keyEntry = null;
+
+      // search for existing key satisfying request
+      for (Map.Entry<ByteArray, KeyEntry> i: map.entrySet()) {
+        KeyEntry entry = i.getValue();
+        if (! entry.fIsCompromised
+                && entry.fTransformation.equals(transformation)
+                && entry.fKey.length * Byte.SIZE == keyLengthBits) {
+          assert Arrays.equals(i.getKey().array(), entry.fKeyID);
+          keyEntry = entry;
+          break;
+        }
+      }
+
+      if (null == keyEntry) {
+        if (0 != keyLengthBits % Byte.SIZE) {
+          throw new CryptoManagerException(
+                  // TODO: i18n
+                  Message.raw("keyLength parameter must be evenly " +
+                          "divisible by %d.", Byte.SIZE));
+        }
+
+        // TODO: Does ADS monitoring thread keep map updated with keys
+        // produced at other sites? Otherwise, search ADS for suitable
+        // key.
+
+        // generate a new key
+        final byte[] keyID = uuidToBytes(UUID.randomUUID());
+        final byte[] key = new byte[keyLengthBits / Byte.SIZE];
+        secureRandom.nextBytes(key);
+        keyEntry = new KeyEntry(keyID, transformation, key,
+                                /* compute IV length */ -1);
+
+        map.put(new ByteArray(keyID), keyEntry);
+
+        // TODO: publish key to ADS. (mark key "blocked" in map until
+        // registered?)
+      }
+
+      return keyEntry;
     }
+
+
+    /**
+     * Given a key identifier, return the associated key entry.
+     *
+     * @param map  The local cache of key entries.
+     *
+     * @param keyID  The key identifier.
+     *
+     * @return  The key entry associated with the key identifier.
+     */
+    public static KeyEntry getKeyEntry(Map<ByteArray,KeyEntry> map,
+                                       byte[] keyID) {
+      return map.get(new ByteArray(keyID));
+      /* TODO: Does ADS monitorying thread keep map updated with keys
+         produced at other sites? If not, fetch from ADS and update
+         map (assuming a legitimate key ID, the key should exist in
+         ADS because this routine is called for decryption). */
+    }
+
+
+    /**
+     * Construct an instance of KeyEntry using the specified
+     * parameters. This constructor may be used for both locally
+     * generated (new) keys and keys imported from ADS. The parameters
+     * are validated by using them to create and initialize a Cipher
+     * object.
+     *
+     * @param keyID  The unique identifier of this cipher
+     *  transformation/key pair.
+     *
+     * @param transformation  The cipher transformation name.
+     *
+     * @param key  The cipher key.
+     *
+     * @param ivLengthBits  The length in bits of a mandatory
+     * initialization vector or 0 if none is required. Set this
+     * parameter to -1 when generating a new encryption key and this
+     * method will attempt to compute the proper value by first using
+     * the cipher block size and then, if the cipher block size is
+     * non-zero, using 0 (i.e., no initialization vector).
+     *
+     * @throws  CryptoManagerException If there is a problem
+     * instantiating a Cipher object in order to validate the supplied
+     * parameters when creating a new entry.
+     */
+    public KeyEntry( final byte[] keyID, final String transformation,
+                     final byte[] key, final int ivLengthBits)
+            throws CryptoManagerException {
+      // copy arguments
+      this.fKeyID = new byte[keyID.length];
+      System.arraycopy(keyID, 0, this.fKeyID, 0, keyID.length);
+      this.fTransformation = new String(transformation);
+      this.fKey = new byte[key.length];
+      System.arraycopy(key, 0,
+                       this.fKey, 0, key.length);
+      this.fIVLengthBits = ivLengthBits;
+
+      // validate the entry.
+      getCipher(Cipher.ENCRYPT_MODE, null);
+    }
+
 
     /**
      * The unique identifier of this cipher transformation/key pair.
+     *
+     * @return The unique identifier of this cipher transformation/key
+     * pair.
      */
-    public final byte[] keyID;
+    public byte[] getKeyID() {
+      return fKeyID;
+    }
+
 
     /**
      * The cipher transformation name.
+     *
+     * @return The cipher transformation name.
      */
-    public final String transformation;
+    public String getTransformation() {
+      return fTransformation;
+    }
+
 
     /**
      * The cipher key.
+     *
+     * @return The cipher key.
      */
-    public final byte[] encryptionKey;
+    public byte[] getKey() {
+      return fKey;
+    }
+
 
     /**
-     * The initializationVectorLength (may be 0).
+     * The initialization vector length in bits: 0 is a stream cipher
+     * or a block cipher that does not use an IV (e.g., ECB); or a
+     * positive integer, typically the block size of the cipher.
+     *
+     * @return The initialization vector length.
      */
-    public final int initializationVectorLength;
-  }
-
-
-
-  /**
-   * Retrieves an encryption mode cipher using the specified
-   * algorithm.
-   *
-   * @param  cipherTransformation  The algorithm/mode/padding to use
-   *         for the cipher.
-   *
-   * @param  keyLength  The length in bits of the encryption key this
-   *         method will generate. Note the specified key length must
-   *         be compatible with the transformation.
-   *
-   * @param  keyIdentifier  The key identifier this method assigns to
-   *         the cipher transformation/key/initializationVectorLength.
-   *
-   * @return  An encryption mode cipher using the preferred algorithm.
-   *
-   * @throws  NoSuchAlgorithmException  If the requested algorithm is
-   *                                    not supported or is
-   *                                    unavailable.
-   *
-   * @throws  NoSuchPaddingException  If the requested padding
-   *                                  mechanism is not supported or is
-   *                                  unavailable.
-   *
-   * @throws  InvalidKeyException  If the provided key is not
-   *                               appropriate for use with the
-   *                               requested cipher algorithm.
-   *
-   * @throws  InvalidAlgorithmParameterException
-   *               If an internal problem occurs as a result of the
-   *               initialization vector used.
-   *
-   * @throws  CryptoManagerException If there is a problem managing
-   *          or generating an encryption key.
-   */
-  private Cipher getEncryptionCipher(String cipherTransformation,
-                                     int keyLength,
-                                     byte[] keyIdentifier)
-         throws NoSuchAlgorithmException, NoSuchPaddingException,
-                InvalidKeyException,
-                InvalidAlgorithmParameterException,
-                CryptoManagerException
-  {
-    Validator.ensureNotNull(cipherTransformation, keyIdentifier);
-
-    KeyEntry keyEntry = null;
-    for (Map.Entry<ByteArray, KeyEntry> keyEntryRow
-            : keyEntryMap.entrySet()) {
-      KeyEntry keyEntryIterator = keyEntryRow.getValue();
-      if (keyEntryIterator.transformation.equals(cipherTransformation)
-              && keyEntryIterator.encryptionKey.length == keyLength) {
-        assert Arrays.equals(keyEntryRow.getKey().array(),
-                keyEntryIterator.keyID);
-        keyEntry = keyEntryIterator;
-        break;
-      }
+    public int getIVLength() {
+      assert 0 <= fIVLengthBits : "The field was not initialized.";
+      return fIVLengthBits;
     }
 
-    final Cipher cipher = Cipher.getInstance(cipherTransformation);
-    if (null == keyEntry) {
-      // generate a new key
-      if (0 != keyLength % Byte.SIZE) {
+
+    /**
+     * This method produces and initialized Cipher based on this
+     * KeyEntry's state and the method parameters.
+     *
+     * @param mode  Either Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE.
+     *
+     * @param initializationVector  For Cipher.DECRYPT_MODE, supply
+     * any initialzation vector used in the corresponding encryption
+     * cipher. May be null.
+     *
+     * @return  The initialized cipher object.
+     *
+     * @throws  CryptoManagerException In case of a problem creating
+     * or initializing the requested cipher object. Possible causes
+     * include NoSuchAlgorithmException, NoSuchPaddingException,
+     * InvalidKeyException, and InvalidAlgorithmParameterException.
+     */
+    public Cipher getCipher(final int mode,
+                            final byte[] initializationVector)
+            throws CryptoManagerException {
+      Validator.ensureTrue(Cipher.ENCRYPT_MODE == mode
+              || Cipher.DECRYPT_MODE == mode);
+      Validator.ensureTrue(Cipher.ENCRYPT_MODE != mode
+              || null == initializationVector);
+      Validator.ensureTrue(-1 != fIVLengthBits
+              || Cipher.ENCRYPT_MODE == mode);
+      Validator.ensureTrue(null == initializationVector
+              || initializationVector.length * Byte.SIZE
+                                                    == fIVLengthBits);
+
+      Cipher cipher;
+      try {
+        cipher = Cipher.getInstance(fTransformation);
+      }
+      catch (GeneralSecurityException ex) {
+        // NoSuchAlgorithmException, NoSuchPaddingException
         throw new CryptoManagerException(
                 // TODO: i18n
-                Message.raw("keyLength parameter must be evenly " +
-                        "divisible by %d.", Byte.SIZE));
+                Message.raw("Invalid cipher transformation %s.",
+                        fTransformation), ex);
       }
-      final byte[] keyID = uuidToBytes(UUID.randomUUID());
-      byte[] secretKey = new byte[keyLength/Byte.SIZE];
-      secureRandom.nextBytes(secretKey);
-      final int ivLength = (0 == cipher.getBlockSize())
-                           ? 0 : keyLength;
-      keyEntry = new KeyEntry(keyID, cipherTransformation,
-                              secretKey, ivLength);
+
+      try {
+        if (-1 == fIVLengthBits) {
+          /* Unknown initialization vector length on encryption. This
+             method will first try the cipher block size, then, if
+             that is non-zero and rejected, retry without an
+             initialization vector. */
+          fIVLengthBits = cipher.getBlockSize() * Byte.SIZE;
+        }
+
+        // E.g., AES/CBC/PKCS5Padding -> AES
+        final int separatorIndex = fTransformation.indexOf('/');
+        final String cipherAlgorithm = (0 < separatorIndex)
+                ? fTransformation.substring(0, separatorIndex)
+                : fTransformation;
+
+        if (0 < fIVLengthBits) {
+          try {
+            byte[] iv;
+            if (Cipher.ENCRYPT_MODE == mode
+                    && null == initializationVector) {
+              iv = new byte[fIVLengthBits / Byte.SIZE];
+              pseudoRandom.nextBytes(iv);
+            }
+            else {
+              iv = initializationVector;
+            }
+            cipher.init(mode,
+                   new SecretKeySpec(fKey, cipherAlgorithm),
+                   new IvParameterSpec(iv));
+          }
+          catch (InvalidAlgorithmParameterException ex) {
+            if (Cipher.ENCRYPT_MODE == mode) {
+              /* Some block cipher modes (e.g., ECB) and all stream
+                 ciphers do not use an initialization vector. Set
+                 length to 0 and retry below */
+              fIVLengthBits = 0;
+            }
+            else {
+              throw ex;
+            }
+          }
+        }
+
+        if (0 == fIVLengthBits) {
+          cipher.init(mode, new SecretKeySpec(fKey, cipherAlgorithm));
+        }
+      }
+      catch (GeneralSecurityException ex) {
+        // InvalidKeyException, InvalidAlgorithmParameterException
+        throw new CryptoManagerException(
+                // TODO: i18n
+                Message.raw("Error initializing cipher."), ex);
+      }
+
+      return cipher;
     }
 
-    // E.g., AES/CBC/PKCS5Padding -> AES
-    final int separatorIndex = cipherTransformation.indexOf('/');
-    final String cipherAlgorithm = (0 < separatorIndex)
-            ? cipherTransformation.substring(0, separatorIndex)
-            : cipherTransformation;
 
-    if (0 < keyEntry.initializationVectorLength) {
-      final byte[] initializationVector
-            = new byte[keyEntry.initializationVectorLength/Byte.SIZE];
-      pseudoRandom.nextBytes(initializationVector);
-      cipher.init(Cipher.ENCRYPT_MODE,
-           new SecretKeySpec(keyEntry.encryptionKey, cipherAlgorithm),
-           new IvParameterSpec(initializationVector));
-    }
-    else {
-      cipher.init(Cipher.ENCRYPT_MODE,
-          new SecretKeySpec(keyEntry.encryptionKey, cipherAlgorithm));
+    /**
+     * Mark a key entry as compromised. The entry will no longer be
+     * eligible for use as an encryption key.
+     */
+    public void setIsCompromised() {
+      // TODO: called from ADS monitoring thread. Lock entry?
+      fIsCompromised = true;
     }
 
-    try {
-      System.arraycopy(keyEntry.keyID, 0, keyIdentifier, 0,
-                                               keyIdentifier.length);
-    }
-    catch (Exception ex) {
-      throw new CryptoManagerException(
-                    // TODO: i18n
-                    Message.raw("Error copying out key identifier."),
-                    ex);
-    }
-
-    keyEntryMap.put(new ByteArray(keyEntry.keyID), keyEntry);
-
-    return cipher;
+    // state
+    private final byte[] fKeyID;
+    private final String fTransformation;
+    private final byte[] fKey;
+    private int fIVLengthBits;
+    private boolean fIsCompromised = false;
   }
-
-
-
-  /**
-   * Retrieves a decryption mode cipher using the algorithm and
-   * encryption key specified by the key identifier and the supplied
-   * initialization vector.
-   *
-   * @param  keyEntry The keyEntry containing the key to be used for
-   *         decryption.
-   *
-   * @param  initializationVector The initialization vector to be used
-   *         for decryption.
-   *
-   * @return  A decryption mode cipher using the specified parameters.
-   *
-   * @throws  NoSuchAlgorithmException  If the requested algorithm is
-   *                                    not supported or is
-   *                                    unavailable.
-   *
-   * @throws  NoSuchPaddingException  If the requested padding
-   *                                  mechanism is not supported or is
-   *                                  unavailable.
-   *
-   * @throws  InvalidKeyException  If the provided key is not
-   *                               appropriate for use with the
-   *                               requested cipher algorithm.
-   *
-   * @throws  InvalidAlgorithmParameterException
-   *               If an internal problem occurs as a result of the
-   *               initialization vector used.
-   *
-   * @throws  CryptoManagerException If an invalid keyID is supplied.
-   */
-  private Cipher getDecryptionCipher(KeyEntry keyEntry,
-                                     byte[] initializationVector)
-         throws NoSuchAlgorithmException, NoSuchPaddingException,
-                InvalidKeyException,
-                InvalidAlgorithmParameterException,
-                CryptoManagerException
-  {
-    Validator.ensureNotNull(keyEntry);
-    Validator.ensureTrue(0 == keyEntry.initializationVectorLength
-                            || null != initializationVector);
-    final Cipher cipher = Cipher.getInstance(keyEntry.transformation);
-
-    // E.g., AES/CBC/PKCS5Padding -> AES
-    final int separatorIndex = keyEntry.transformation.indexOf('/');
-    final String cipherAlgorithm = (0 < separatorIndex)
-            ? keyEntry.transformation.substring(0, separatorIndex)
-            : keyEntry.transformation;
-
-    if (0 < keyEntry.initializationVectorLength) {
-      cipher.init(Cipher.DECRYPT_MODE,
-           new SecretKeySpec(keyEntry.encryptionKey, cipherAlgorithm),
-           new IvParameterSpec(initializationVector));
-    }
-    else {
-      cipher.init(Cipher.DECRYPT_MODE,
-          new SecretKeySpec(keyEntry.encryptionKey, cipherAlgorithm));
-    }
-
-    return cipher;
-  }
-
 
 
   /**
    * Encrypts the data in the provided byte array using the preferred
    * cipher transformation.
    *
-   * @param  data  The data to be encrypted.
+   * @param  data  The plain-text data to be encrypted.
    *
    * @return  A byte array containing the encrypted representation of
    *          the provided data.
    *
    * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to encrypt the
-   *                                    data.
+   *          encrypting the data.
    *
    * @throws  CryptoManagerException  If a problem occurs managing the
-   *          encryption key.
+   *          encryption key or producing the cipher.
    */
   public byte[] encrypt(byte[] data)
-         throws GeneralSecurityException,
-                CryptoManagerException
+         throws GeneralSecurityException, CryptoManagerException
   {
     return encrypt(preferredCipherTransformation,
                    preferredCipherTransformationKeyLength, data);
   }
 
 
-
   /**
    * Encrypts the data in the provided byte array using the requested
    * cipher algorithm.
    *
-   * @param  cipherTransformation  The algorithm to use to encrypt the
-   *                          data.
+   * @param  cipherTransformation  The algorithm/mode/padding to use
+   *         for the cipher.
    *
-   * @param  keyLength  The length of the encrytion key to use.
+   * @param  keyLength  The length in bits of the encryption key this
+   *         method is to use. Note the specified key length and
+   *         transformation must be compatible.
    *
-   * @param  data  The data to be encrypted.
+   * @param  data  The plain-text data to be encrypted.
    *
    * @return  A byte array containing the encrypted representation of
    *          the provided data.
    *
    * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to encrypt the
-   *                                    data.
+   *          encrypting the data.
    *
    * @throws  CryptoManagerException  If a problem occurs managing the
-   *          encryption key.
+   *          encryption key or producing the cipher.
    */
   public byte[] encrypt(String cipherTransformation, int keyLength,
                         byte[] data)
          throws GeneralSecurityException, CryptoManagerException
   {
-    Validator.ensureNotNull(cipherTransformation, data);
+    Validator.ensureNotNull(cipherTransformation, keyLength, data);
 
-    final byte[] keyID = new byte[16];// FIXME: key id length constant
-    final Cipher cipher = getEncryptionCipher(cipherTransformation,
-                                              keyLength, keyID);
+    final KeyEntry keyEntry = KeyEntry.getKeyEntry(keyEntryMap,
+          cipherTransformation, keyLength);
+    final Cipher cipher
+            = keyEntry.getCipher(Cipher.ENCRYPT_MODE, null);
+    final byte[] keyID = keyEntry.getKeyID();
     final byte[] iv = cipher.getIV();
     final int prologueLength
             = keyID.length + ((null == iv) ? 0 : iv.length);
@@ -947,64 +1011,58 @@ public class CryptoManager
   }
 
 
-
   /**
-   * Encrypts the data in the provided byte array using the preferred
-   * cipher algorithm.
+   * Writes encrypted data to the provided output stream using the
+   * preferred cipher transformation.
    *
    * @param  outputStream The output stream to be wrapped by the
-   *         returned output stream.
+   *         returned cipher output stream.
    *
-   * @return  A byte array containing the encrypted representation of
-   *          the provided data.
-   *
-   * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to encrypt the
-   *                                    data.
+   * @return  The output stream wrapped with a CipherOutputStream.
    *
    * @throws  CryptoManagerException  If a problem occurs managing the
-   *          encryption key.
+   *          encryption key or producing the cipher.
    */
   public CipherOutputStream getCipherOutputStream(
-          OutputStream outputStream)
-          throws GeneralSecurityException, CryptoManagerException
+          OutputStream outputStream) throws CryptoManagerException
   {
     return getCipherOutputStream(preferredCipherTransformation,
-            preferredCipherTransformationKeyLength, outputStream);
+                preferredCipherTransformationKeyLength, outputStream);
   }
 
 
-
   /**
-   * Encrypts the data in the provided output stream using the
+   * Writes encrypted data to the provided output stream using the
    * requested cipher transformation.
    *
-   * @param  cipherTransformation  The algorithm to use to encrypt the
-   *                          data.
+   * @param  cipherTransformation  The algorithm/mode/padding to use
+   *         for the cipher.
    *
-   * @param  keyLength  The length of the encrytion key to use.
+   * @param  keyLength  The length in bits of the encryption key this
+   *         method will generate. Note the specified key length must
+   *         be compatible with the transformation.
    *
    * @param  outputStream The output stream to be wrapped by the
-   *         returned output stream.
+   *         returned cipher output stream.
    *
-   * @return  A byte array containing the encrypted representation of
-   *          the provided data.
-   *
-   * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to encrypt the
-   *                                    data.
+   * @return  The output stream wrapped with a CipherOutputStream.
    *
    * @throws  CryptoManagerException  If a problem occurs managing the
-   *          encryption key.
+   *          encryption key or producing the cipher.
    */
   public CipherOutputStream getCipherOutputStream(
           String cipherTransformation, int keyLength,
           OutputStream outputStream)
-         throws GeneralSecurityException, CryptoManagerException
+         throws CryptoManagerException
   {
-    final byte[] keyID = new byte[16];// FIXME: key id length constant
-    final Cipher cipher = getEncryptionCipher(cipherTransformation,
-                                              keyLength, keyID);
+    Validator.ensureNotNull(cipherTransformation, keyLength,
+            outputStream);
+
+    final KeyEntry keyEntry = KeyEntry.getKeyEntry(keyEntryMap,
+          cipherTransformation, keyLength);
+    final Cipher cipher
+            = keyEntry.getCipher(Cipher.ENCRYPT_MODE, null);
+    final byte[] keyID = keyEntry.getKeyID();
     try {
       outputStream.write(keyID);
       if (null != cipher.getIV()) {
@@ -1013,13 +1071,13 @@ public class CryptoManager
     }
     catch (IOException ioe) {
       throw new CryptoManagerException(
-        // TODO: i18n
-        Message.raw("Exception when writing CryptoManager prologue."),
-        ioe);
+              // TODO: i18n
+              Message.raw("Exception when writing CryptoManager" +
+                      " prologue."), ioe);
     }
+
     return new CipherOutputStream(outputStream, cipher);
   }
-
 
 
   /**
@@ -1027,18 +1085,17 @@ public class CryptoManager
    * specified by the key identifier prologue to the data.
    * cipher.
    *
-   * @param  data  The data to be decrypted.
+   * @param  data  The cipher-text data to be decrypted.
    *
-   * @return  A byte array containing the cleartext representation of
+   * @return  A byte array containing the clear-text representation of
    *          the provided data.
    *
    * @throws  GeneralSecurityException  If a problem occurs while
-   *                                    attempting to decrypt the
-   *                                    data.
+   *          encrypting the data.
    *
    * @throws  CryptoManagerException  If a problem occurs reading the
    *          key identifier or initialization vector from the data
-   *          prologue.
+   *          prologue, or using these values to initialize a Cipher.
    */
   public byte[] decrypt(byte[] data)
          throws GeneralSecurityException,
@@ -1052,19 +1109,21 @@ public class CryptoManager
       throw new CryptoManagerException(
               // TODO: i18n
               Message.raw(
-         "Exception when reading key identifier from data prologue."),
-              ex);
+                      "Exception when reading key identifier from" +
+                              " data prologue."), ex);
     }
-    KeyEntry keyEntry = keyEntryMap.get(new ByteArray(keyID));
+
+    KeyEntry keyEntry = KeyEntry.getKeyEntry(keyEntryMap, keyID);
     if (null == keyEntry) {
       throw new CryptoManagerException(
               // TODO: i18N
-             Message.raw("Invalid key identifier in data prologue."));
+              Message.raw("Invalid key identifier in data" +
+                      " prologue."));
     }
 
     byte[] iv = null;
-    if (0 < keyEntry.initializationVectorLength) {
-      iv = new byte[keyEntry.initializationVectorLength/Byte.SIZE];
+    if (0 < keyEntry.getIVLength()) {
+      iv = new byte[keyEntry.getIVLength()/Byte.SIZE];
       try {
         System.arraycopy(data, keyID.length, iv, 0, iv.length);
       }
@@ -1076,7 +1135,7 @@ public class CryptoManager
       }
     }
 
-    final Cipher cipher = getDecryptionCipher(keyEntry, iv);
+    final Cipher cipher = keyEntry.getCipher(Cipher.DECRYPT_MODE, iv);
     final int prologueLength
             = keyID.length + ((null == iv) ? 0 : iv.length);
     return cipher.doFinal(data, prologueLength,
@@ -1094,31 +1153,12 @@ public class CryptoManager
    *
    * @return The CiperInputStream instantiated as specified.
    *
-   * @throws  NoSuchAlgorithmException  If the requested algorithm is
-   *                                    not supported or is
-   *                                    unavailable.
-   *
-   * @throws  NoSuchPaddingException  If the requested padding
-   *                                  mechanism is not supported or is
-   *                                  unavailable.
-   *
-   * @throws  InvalidKeyException  If the provided key is not
-   *                               appropriate for use with the
-   *                               requested cipher algorithm.
-   *
-   * @throws  InvalidAlgorithmParameterException
-   *               If an internal problem occurs as a result of the
-   *               initialization vector used.
-   *
    * @throws  CryptoManagerException If there is a problem reading the
-   *          key ID or initialization vector from the input stream.
+   *          key ID or initialization vector from the input stream,
+   *          or using these values to inititalize a Cipher.
    */
   public CipherInputStream getCipherInputStream(
-                                            InputStream inputStream)
-          throws NoSuchAlgorithmException, NoSuchPaddingException,
-                 InvalidKeyException,
-                 InvalidAlgorithmParameterException,
-                 CryptoManagerException
+          InputStream inputStream) throws CryptoManagerException
   {
     KeyEntry keyEntry;
     byte[] iv = null;
@@ -1131,22 +1171,21 @@ public class CryptoManager
                         " identifier from data prologue."));
       }
 
-      keyEntry = keyEntryMap.get(new ByteArray(keyID));
+      keyEntry = KeyEntry.getKeyEntry(keyEntryMap, keyID);
       if (null == keyEntry) {
         throw new CryptoManagerException(
                 // TODO: i18N
              Message.raw("Invalid key identifier in data prologue."));
       }
 
-      if (0 < keyEntry.initializationVectorLength) {
-        iv = new byte[keyEntry.initializationVectorLength/Byte.SIZE];
+      if (0 < keyEntry.getIVLength()) {
+        iv = new byte[keyEntry.getIVLength() / Byte.SIZE];
         if (iv.length != inputStream.read(iv)) {
           throw new CryptoManagerException(
                   // TODO: i18n
                   Message.raw("Stream underflow when reading" +
                       " initialization vector from data prologue."));
         }
-
       }
     }
     catch (IOException ioe) {
@@ -1158,7 +1197,7 @@ public class CryptoManager
     }
 
     return new CipherInputStream(inputStream,
-                          getDecryptionCipher(keyEntry, iv));
+                         keyEntry.getCipher(Cipher.DECRYPT_MODE, iv));
   }
 
 
