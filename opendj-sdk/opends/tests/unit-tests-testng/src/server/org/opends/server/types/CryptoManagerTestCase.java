@@ -150,7 +150,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     tempFile.deleteOnExit();
 
     OutputStream os = new FileOutputStream(tempFile);
-    os = cm.getCipherOutputStream("Blowfish/CFB/NoPadding", 64, os);
+    os = cm.getCipherOutputStream("Blowfish/CFB/NoPadding", 128, os);
     os.write(secretMessage.getBytes());
     os.close();
 
@@ -223,7 +223,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     final CryptoManager cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "1234";
 
-    final byte[] cipherText = cm.encrypt("DES/CFB/NoPadding", 64,
+    final byte[] cipherText = cm.encrypt("DES/CFB/NoPadding", 56,
             secretMessage.getBytes());
     assertEquals(-1, (new String(cipherText)).indexOf(secretMessage));
 
@@ -246,7 +246,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     tempFile.deleteOnExit();
 
     OutputStream os = new FileOutputStream(tempFile);
-    os = cm.getCipherOutputStream("DES/CFB/NoPadding", 64, os);
+    os = cm.getCipherOutputStream("DES/CFB/NoPadding", 56, os);
     os.write(secretMessage.getBytes());
     os.close();
 
@@ -271,7 +271,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     final CryptoManager cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "1234";
 
-    final byte[] cipherText = cm.encrypt("DES/ECB/PKCS5Padding", 64,
+    final byte[] cipherText = cm.encrypt("DESede/ECB/PKCS5Padding", 168,
             secretMessage.getBytes());
     assertEquals(-1, (new String(cipherText)).indexOf(secretMessage));
 
@@ -294,7 +294,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     tempFile.deleteOnExit();
 
     OutputStream os = new FileOutputStream(tempFile);
-    os = cm.getCipherOutputStream("DES/ECB/PKCS5Padding", 64, os);
+    os = cm.getCipherOutputStream("DESede/ECB/PKCS5Padding", 168, os);
     os.write(secretMessage.getBytes());
     os.close();
 
