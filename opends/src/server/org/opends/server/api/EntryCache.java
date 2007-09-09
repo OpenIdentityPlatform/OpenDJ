@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
@@ -43,6 +45,7 @@ import org.opends.server.types.LockType;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.Attribute;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -104,6 +107,16 @@ public abstract class EntryCache
   // The maximum length of time to try to obtain a lock before giving
   // up.
   private long lockTimeout = LockManager.DEFAULT_TIMEOUT;
+
+  /**
+   * Arbitrary number of cache hits for monitoring.
+   */
+  protected AtomicLong cacheHits = new AtomicLong(0);
+
+  /**
+   * Arbitrary number of cache misses for monitoring.
+   */
+  protected AtomicLong cacheMisses = new AtomicLong(0);
 
 
 
@@ -239,6 +252,9 @@ public abstract class EntryCache
                         List<Lock> lockList) {
 
     if (!containsEntry(entryDN)) {
+      // Indicate cache miss.
+      cacheMisses.set(cacheMisses.incrementAndGet());
+
       return null;
     }
 
@@ -391,6 +407,9 @@ public abstract class EntryCache
     // Translate given backend/entryID pair to entryDN.
     DN entryDN = getEntryDN(backend, entryID);
     if (entryDN == null) {
+      // Indicate cache miss.
+      cacheMisses.set(cacheMisses.incrementAndGet());
+
       return null;
     }
 
@@ -522,6 +541,19 @@ public abstract class EntryCache
    * to avoid out of memory errors.
    */
   public abstract void handleLowMemory();
+
+
+
+  /**
+   * Retrieves a set of attributes containing monitor data that should
+   * be returned to the client if the corresponding monitor entry is
+   * requested.
+   *
+   * @return  A set of attributes containing monitor data that should
+   *          be returned to the client if the corresponding monitor
+   *          entry is requested.
+   */
+  public abstract ArrayList<Attribute> getMonitorData();
 
 
 

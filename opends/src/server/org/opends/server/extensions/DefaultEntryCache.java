@@ -37,6 +37,7 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -235,6 +236,18 @@ public class DefaultEntryCache
         );
 
     return changeResult;
-    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ArrayList<Attribute> getMonitorData()
+  {
+    // This implementation does not store entries,
+    // so there is no monitoring data to provide.
+    return new ArrayList<Attribute>();
+  }
 }
 

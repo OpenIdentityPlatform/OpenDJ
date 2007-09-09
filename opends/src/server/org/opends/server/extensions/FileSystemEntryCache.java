@@ -78,6 +78,7 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.Attribute;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.ServerConstants;
 
@@ -626,6 +627,11 @@ public class FileSystemEntryCache
       // Use get to generate entry access.
       if (dnMap.get(entryDN) != null) {
         entry = getEntryFromDB(entryDN);
+        // Indicate cache hit.
+        cacheHits.set(cacheHits.incrementAndGet());
+      } else {
+        // Indicate cache miss.
+        cacheMisses.set(cacheMisses.incrementAndGet());
       }
     } finally {
       cacheReadLock.unlock();
@@ -1326,6 +1332,34 @@ public class FileSystemEntryCache
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public ArrayList<Attribute> getMonitorData()
+  {
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+    try {
+      attrs = EntryCacheCommon.getGenericMonitorData(
+        new Long(cacheHits.longValue()),
+        new Long(cacheMisses.longValue()),
+        new Long(entryCacheEnv.getStats(
+          entryCacheEnvStatsConfig).getTotalLogSize()),
+        new Long(maxAllowedMemory),
+        new Long(dnMap.size()),
+        (((maxEntries.longValue() != Integer.MAX_VALUE) &&
+          (maxEntries.longValue() != Long.MAX_VALUE)) ?
+           new Long(maxEntries.longValue()) : new Long(0))
+        );
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    return attrs;
+  }
+
+  /**
    * Retrieves and decodes the entry with the specified DN from JE backend db.
    *
    * @param  entryDN   The DN of the entry to retrieve.
@@ -1451,15 +1485,15 @@ public class FileSystemEntryCache
     }
   }
 
- /**
-  * Checks if the cache home exist and if not tries to recursively create it.
-  * If either is successful adjusts cache home access permissions accordingly
-  * to allow only process owner or the superuser to access JE environment.
-  *
-  * @param  cacheHome  String representation of complete file system path.
-  *
-  * @throws Exception  If failed to establish cache home.
-  */
+  /**
+   * Checks if the cache home exist and if not tries to recursively create it.
+   * If either is successful adjusts cache home access permissions accordingly
+   * to allow only process owner or the superuser to access JE environment.
+   *
+   * @param  cacheHome  String representation of complete file system path.
+   *
+   * @throws Exception  If failed to establish cache home.
+   */
   private void checkAndSetupCacheHome(String cacheHome) throws Exception {
 
     boolean cacheHasHome = false;
@@ -1575,12 +1609,12 @@ public class FileSystemEntryCache
     return (verboseString.length() > 0 ? verboseString : null);
   }
 
- /**
-  * This inner class exist solely to override <CODE>removeEldestEntry()</CODE>
-  * method of the LinkedHashMap.
-  *
-  * @see  java.util.LinkedHashMap
-  */
+  /**
+   * This inner class exist solely to override <CODE>removeEldestEntry()</CODE>
+   * method of the LinkedHashMap.
+   *
+   * @see  java.util.LinkedHashMap
+   */
   private class LinkedHashMapRotator<K,V> extends LinkedHashMap<K,V> {
 
     static final long serialVersionUID = 5271482121415968435L;

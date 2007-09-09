@@ -27,21 +27,24 @@
 package org.opends.server.extensions;
 import org.opends.messages.Message;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import org.opends.messages.MessageDescriptor;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SortedSet;
 
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
+import org.opends.messages.MessageDescriptor;
 
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 /**
  * This class provides some common tools to all entry cache implementations.
@@ -349,6 +352,114 @@ public class EntryCacheCommon
         configPhase, unacceptableReasons, errorMessages
         );
     return errorHandler;
+  }
+
+
+  /**
+   * Constructs a set of generic attributes containing entry cache
+   * monitor data. Note that <code>null</code> can be passed in
+   * place of any argument to denote the argument is omitted, such
+   * is when no state data of a given kind is available or can be
+   * provided.
+   *
+   * @param cacheHits      number of cache hits.
+   * @param cacheMisses    number of cache misses.
+   * @param cacheSize      size of the current cache, in bytes.
+   * @param maxCacheSize   maximum allowed cache size, in bytes.
+   * @param cacheCount     number of entries stored in the cache.
+   * @param maxCacheCount  maximum number of cache entries allowed.
+   *
+   * @return  A set of generic attributes containing monitor data.
+   */
+  public static ArrayList<Attribute> getGenericMonitorData(
+    Long cacheHits,
+    Long cacheMisses,
+    Long cacheSize,
+    Long maxCacheSize,
+    Long cacheCount,
+    Long maxCacheCount)
+  {
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+    if ((cacheHits != null) && (cacheMisses != null)) {
+      AttributeType hitsAttrType =
+        DirectoryServer.getDefaultAttributeType("entryCacheHits");
+      LinkedHashSet<AttributeValue> hitsValues =
+        new LinkedHashSet<AttributeValue>();
+      hitsValues.add(new AttributeValue(hitsAttrType,
+        cacheHits.toString()));
+      attrs.add(new Attribute(hitsAttrType, "entryCacheHits",
+        hitsValues));
+
+      AttributeType triesAttrType =
+        DirectoryServer.getDefaultAttributeType("entryCacheTries");
+      LinkedHashSet<AttributeValue> triesValues =
+        new LinkedHashSet<AttributeValue>();
+      Long cacheTries = cacheHits + cacheMisses;
+      triesValues.add(new AttributeValue(triesAttrType,
+        cacheTries.toString()));
+      attrs.add(new Attribute(triesAttrType, "entryCacheTries",
+        triesValues));
+
+      AttributeType hitRatioAttrType =
+        DirectoryServer.getDefaultAttributeType("entryCacheHitRatio");
+      LinkedHashSet<AttributeValue> hitRatioValues =
+        new LinkedHashSet<AttributeValue>();
+      Double hitRatioRaw = cacheTries > 0 ?
+        cacheHits.doubleValue() / cacheTries.doubleValue() :
+        cacheHits.doubleValue() / 1;
+      Double hitRatio = hitRatioRaw * 100D;
+      hitRatioValues.add(new AttributeValue(hitRatioAttrType,
+        Long.toString(hitRatio.longValue())));
+      attrs.add(new Attribute(hitRatioAttrType, "entryCacheHitRatio",
+        hitRatioValues));
+    }
+
+    if (cacheSize != null) {
+      AttributeType memoryAttrType =
+        DirectoryServer.getDefaultAttributeType("currentEntryCacheSize");
+      LinkedHashSet<AttributeValue> memoryValues =
+        new LinkedHashSet<AttributeValue>();
+      memoryValues.add(new AttributeValue(memoryAttrType,
+        cacheSize.toString()));
+      attrs.add(new Attribute(memoryAttrType, "currentEntryCacheSize",
+        memoryValues));
+    }
+
+    if (maxCacheSize != null) {
+      AttributeType maxMemoryAttrType =
+        DirectoryServer.getDefaultAttributeType("maxEntryCacheSize");
+      LinkedHashSet<AttributeValue> maxMemoryValues =
+        new LinkedHashSet<AttributeValue>();
+      maxMemoryValues.add(new AttributeValue(maxMemoryAttrType,
+        maxCacheSize.toString()));
+      attrs.add(new Attribute(maxMemoryAttrType, "maxEntryCacheSize",
+        maxMemoryValues));
+    }
+
+    if (cacheCount != null) {
+      AttributeType entriesAttrType =
+        DirectoryServer.getDefaultAttributeType("currentEntryCacheCount");
+      LinkedHashSet<AttributeValue> entriesValues =
+        new LinkedHashSet<AttributeValue>();
+      entriesValues.add(new AttributeValue(entriesAttrType,
+        cacheCount.toString()));
+      attrs.add(new Attribute(entriesAttrType, "currentEntryCacheCount",
+        entriesValues));
+    }
+
+    if (maxCacheCount != null) {
+      AttributeType maxEntriesAttrType =
+        DirectoryServer.getDefaultAttributeType("maxEntryCacheCount");
+      LinkedHashSet<AttributeValue> maxEntriesValues =
+        new LinkedHashSet<AttributeValue>();
+      maxEntriesValues.add(new AttributeValue(maxEntriesAttrType,
+        maxCacheCount.toString()));
+      attrs.add(new Attribute(maxEntriesAttrType, "maxEntryCacheCount",
+        maxEntriesValues));
+    }
+
+    return attrs;
   }
 
 }
