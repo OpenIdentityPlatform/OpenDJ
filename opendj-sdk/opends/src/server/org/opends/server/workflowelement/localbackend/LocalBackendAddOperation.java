@@ -63,6 +63,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -72,7 +73,8 @@ import org.opends.server.util.TimeThread;
 public class LocalBackendAddOperation extends AddOperationWrapper
   implements PreOperationAddOperation,
              PostOperationAddOperation,
-             PostResponseAddOperation
+             PostResponseAddOperation,
+             PostSynchronizationAddOperation
 {
 
   // The entry being added to the server.

@@ -67,6 +67,10 @@ import static org.opends.messages.PluginMessages.*;
 public abstract class DirectoryServerPlugin
        <T extends PluginCfg>
 {
+  // Indicates whether this plugin should be invoked for internal
+  // operations.
+  private boolean invokeForInternalOps;
+
   // The DN of the configuration entry for this plugin.
   private DN pluginDN;
 
@@ -119,20 +123,23 @@ public abstract class DirectoryServerPlugin
    * plugins regardless of type.  This should only be called by the
    * core Directory Server code during the course of loading a plugin.
    *
-   * @param  pluginDN     The DN of the plugin configuration entry.
-   * @param  pluginTypes  The set of plugin types for which this
-   *                      plugin is registered.
+   * @param  configuration  The configuration for this plugin.
+   * @param  pluginTypes    The set of plugin types for which this
+   *                        plugin is registered.
    */
- @org.opends.server.types.PublicAPI(
-      stability=org.opends.server.types.StabilityLevel.PRIVATE,
-      mayInstantiate=false,
-      mayExtend=false,
-      mayInvoke=false)
-  public final void initializeInternal(DN pluginDN,
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  public final void initializeInternal(PluginCfg configuration,
                                        Set<PluginType> pluginTypes)
   {
-    this.pluginDN    = pluginDN;
     this.pluginTypes = pluginTypes;
+
+    pluginDN = configuration.dn();
+    invokeForInternalOps =
+         configuration.isInvokeForInternalOperations();
   }
 
 
@@ -193,6 +200,41 @@ public abstract class DirectoryServerPlugin
   public final Set<PluginType> getPluginTypes()
   {
     return pluginTypes;
+  }
+
+
+
+  /**
+   * Indicates whether this plugin should be invoked for internal
+   * operations.
+   *
+   * @return  {@code true} if this plugin should be invoked for
+   *          internal operations, or {@code false} if not.
+   */
+  public final boolean invokeForInternalOperations()
+  {
+    return invokeForInternalOps;
+  }
+
+
+
+  /**
+   * Specifies whether this plugin should be invoked for internal
+   * operations.
+   *
+   * @param  invokeForInternalOps  Indicates whether this plugin
+   *                               should be invoked for internal
+   *                               operations.
+   */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=false)
+  public final void setInvokeForInternalOperations(
+                         boolean invokeForInternalOps)
+  {
+    this.invokeForInternalOps = invokeForInternalOps;
   }
 
 
@@ -442,6 +484,25 @@ public abstract class DirectoryServerPlugin
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.POST_RESPONSE_ADD.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
+
+
+
+  /**
+   * Performs any necessary processing that should be done after the
+   * Directory Server has completed processing for an add operation
+   * performed via synchronization.
+   *
+   * @param  addOperation  The synchronized add operation for which
+   *                       processing has been completed.
+   */
+  public void doPostSynchronization(
+                   PostSynchronizationAddOperation addOperation)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_SYNCHRONIZATION_ADD.getName());
     throw new UnsupportedOperationException(message.toString());
   }
 
@@ -702,6 +763,25 @@ public abstract class DirectoryServerPlugin
 
 
   /**
+   * Performs any necessary processing that should be done after the
+   * Directory Server has completed processing for a delete operation
+   * performed via synchronization.
+   *
+   * @param  deleteOperation  The synchronized delete operation for
+   *                          which processing has been completed.
+   */
+  public void doPostSynchronization(
+                   PostSynchronizationDeleteOperation deleteOperation)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_SYNCHRONIZATION_DELETE.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
+
+
+
+  /**
    * Performs any necessary processing that should be done before the
    * Directory Server parses the elements of an extended request.
    *
@@ -875,6 +955,25 @@ public abstract class DirectoryServerPlugin
 
 
   /**
+   * Performs any necessary processing that should be done after the
+   * Directory Server has completed processing for a modify operation
+   * performed via synchronization.
+   *
+   * @param  modifyOperation  The synchronized modify operation for
+   *                          which processing has been completed.
+   */
+  public void doPostSynchronization(
+                   PostSynchronizationModifyOperation modifyOperation)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_SYNCHRONIZATION_MODIFY.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
+
+
+
+  /**
    * Performs any necessary processing that should be done before the
    * Directory Server parses the elements of a modify DN request.
    *
@@ -997,6 +1096,26 @@ public abstract class DirectoryServerPlugin
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.POST_RESPONSE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
+
+
+
+  /**
+   * Performs any necessary processing that should be done after the
+   * Directory Server has completed processing for a modify DN
+   * operation performed via synchronization.
+   *
+   * @param  modifyDNOperation  The synchronized modify DN operation
+   *                            for which processing has been
+   *                            completed.
+   */
+  public void doPostSynchronization(
+              PostSynchronizationModifyDNOperation modifyDNOperation)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
+        get(String.valueOf(pluginDN),
+            PluginType.POST_SYNCHRONIZATION_MODIFY_DN.getName());
     throw new UnsupportedOperationException(message.toString());
   }
 

@@ -465,6 +465,10 @@ public class TextAuditLogPublisher
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
+      buffer.append("; conn=");
+      buffer.append(addOperation.getConnectionID());
+      buffer.append("; op=");
+      buffer.append(addOperation.getOperationID());
       buffer.append(EOL);
 
       buffer.append("dn:");
@@ -598,6 +602,10 @@ public class TextAuditLogPublisher
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
+      buffer.append("; conn=");
+      buffer.append(deleteOperation.getConnectionID());
+      buffer.append("; op=");
+      buffer.append(deleteOperation.getOperationID());
       buffer.append(EOL);
 
       buffer.append("dn:");
@@ -676,6 +684,10 @@ public class TextAuditLogPublisher
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
+      buffer.append("; conn=");
+      buffer.append(modifyOperation.getConnectionID());
+      buffer.append("; op=");
+      buffer.append(modifyOperation.getOperationID());
       buffer.append(EOL);
 
       buffer.append("dn:");
@@ -777,6 +789,10 @@ public class TextAuditLogPublisher
       StringBuilder buffer = new StringBuilder(50);
       buffer.append("# ");
       buffer.append(TimeThread.getLocalTime());
+      buffer.append("; conn=");
+      buffer.append(modifyDNOperation.getConnectionID());
+      buffer.append("; op=");
+      buffer.append(modifyDNOperation.getOperationID());
       buffer.append(EOL);
 
       buffer.append("dn:");

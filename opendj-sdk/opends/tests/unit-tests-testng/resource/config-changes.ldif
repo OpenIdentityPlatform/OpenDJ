@@ -48,6 +48,14 @@ changetype: modify
 replace: ds-cfg-suppress-internal-operations
 ds-cfg-suppress-internal-operations: false
 
+dn: cn=File-Based Audit Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-logger-enabled
+ds-cfg-logger-enabled: true
+-
+replace: ds-cfg-suppress-internal-operations
+ds-cfg-suppress-internal-operations: false
+
 dn: cn=Test Password Validator,cn=Password Validators,cn=config
 changetype: add
 objectClass: top
@@ -166,6 +174,7 @@ ds-cfg-plugin-type: preOperationExtended
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
 ds-cfg-plugin-type: preOperationSearch
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Disconnect Client Plugin,cn=Plugins,cn=config
 changetype: add
@@ -210,6 +219,7 @@ ds-cfg-plugin-type: postResponseExtended
 ds-cfg-plugin-type: postResponseModify
 ds-cfg-plugin-type: postResponseModifyDN
 ds-cfg-plugin-type: postResponseSearch
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Invocation Counter Plugin,cn=Plugins,cn=config
 changetype: add
@@ -254,6 +264,9 @@ ds-cfg-plugin-type: postResponseExtended
 ds-cfg-plugin-type: postResponseModify
 ds-cfg-plugin-type: postResponseModifyDN
 ds-cfg-plugin-type: postResponseSearch
+ds-cfg-plugin-type: postSynchronizationAdd
+ds-cfg-plugin-type: postSynchronizationModify
+ds-cfg-plugin-type: postSynchronizationModifyDN
 ds-cfg-plugin-type: searchResultEntry
 ds-cfg-plugin-type: searchResultReference
 ds-cfg-plugin-type: subordinateModifyDN
@@ -264,6 +277,7 @@ ds-cfg-plugin-type: ldifImport
 ds-cfg-plugin-type: ldifExport
 ds-cfg-plugin-type: startup
 ds-cfg-plugin-type: shutdown
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Short Circuit Plugin,cn=Plugins,cn=config
 changetype: add
@@ -290,6 +304,7 @@ ds-cfg-plugin-type: preOperationExtended
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
 ds-cfg-plugin-type: preOperationSearch
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Update PreOperation Plugin,cn=Plugins,cn=config
 changetype: add
@@ -300,6 +315,7 @@ ds-cfg-plugin-class: org.opends.server.plugins.UpdatePreOpPlugin
 ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=UID Unique Attribute ,cn=Plugins,cn=config
 changeType: modify
@@ -328,7 +344,11 @@ ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: postSynchronizationAdd
+ds-cfg-plugin-type: postSynchronizationModify
+ds-cfg-plugin-type: postSynchronizationModifyDN
 ds-cfg-unique-attribute-type: bootParameter
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=JKS,cn=Key Manager Providers,cn=config
 changetype: modify

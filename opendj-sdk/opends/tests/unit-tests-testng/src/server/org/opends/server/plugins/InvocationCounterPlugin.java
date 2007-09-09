@@ -89,6 +89,8 @@ public class InvocationCounterPlugin
   private static AtomicInteger preOperationCounter    = new AtomicInteger(0);
   private static AtomicInteger postOperationCounter   = new AtomicInteger(0);
   private static AtomicInteger postResponseCounter    = new AtomicInteger(0);
+  private static AtomicInteger postSynchronizationCounter =
+                                    new AtomicInteger(0);
   private static AtomicInteger searchEntryCounter     = new AtomicInteger(0);
   private static AtomicInteger searchReferenceCounter = new AtomicInteger(0);
   private static AtomicInteger subordinateModifyDNCounter =
@@ -704,6 +706,69 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
+  public void doPostSynchronization(PostSynchronizationAddOperation
+                                         addOperation)
+  {
+    postSynchronizationCounter.incrementAndGet();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void doPostSynchronization(PostSynchronizationModifyOperation
+                                         modifyOperation)
+  {
+    postSynchronizationCounter.incrementAndGet();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public void doPostSynchronization(PostSynchronizationModifyDNOperation
+                                         modifyDNOperation)
+  {
+    postSynchronizationCounter.incrementAndGet();
+  }
+
+
+
+  /**
+   * Retrieves the number of times that the post-synchronization plugins have
+   * been called since the last reset.
+   *
+   * @return  The number of times that the post-synchronization plugins have
+   *          been called since the last reset.
+   */
+  public static int getPostSynchronizationCount()
+  {
+    return postSynchronizationCounter.get();
+  }
+
+
+
+  /**
+   * Resets the post-synchronization plugin invocation count to zero.
+   *
+   * @return  The post-synchronization plugin invocation count before it was
+   *          reset.
+   */
+  public static int resetPostSynchronizationCount()
+  {
+    return postSynchronizationCounter.getAndSet(0);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public SearchEntryPluginResult
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
@@ -1031,6 +1096,7 @@ public class InvocationCounterPlugin
     resetPreOperationCount();
     resetPostOperationCount();
     resetPostResponseCount();
+    resetPostSynchronizationCount();
     resetSearchEntryCount();
     resetSearchReferenceCount();
     resetSubordinateModifyDNCount();

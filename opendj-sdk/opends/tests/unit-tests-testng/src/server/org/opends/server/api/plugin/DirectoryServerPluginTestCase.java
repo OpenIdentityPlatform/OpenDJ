@@ -37,9 +37,13 @@ import java.util.Iterator;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PluginCfgDefn;
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.plugins.NullPlugin;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.operation.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
@@ -464,6 +468,34 @@ import static org.testng.Assert.*;
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
+    sigList.add("doPostSynchronization");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.operation." +
+                "PostSynchronizationAddOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostSynchronization");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.operation." +
+                "PostSynchronizationDeleteOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostSynchronization");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.operation." +
+                "PostSynchronizationModifyOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("doPostSynchronization");
+    sigList.add("void");
+    sigList.add("org.opends.server.types.operation." +
+                "PostSynchronizationModifyDNOperation");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
     sigList.add("processSearchEntry");
     sigList.add("org.opends.server.api.plugin.SearchEntryPluginResult");
     sigList.add("org.opends.server.types.operation.SearchEntrySearchOperation");
@@ -498,7 +530,7 @@ import static org.testng.Assert.*;
     sigList = new LinkedList<String>();
     sigList.add("initializeInternal");
     sigList.add("void");
-    sigList.add("org.opends.server.types.DN");
+    sigList.add("org.opends.server.admin.std.server.PluginCfg");
     sigList.add("java.util.Set");
     expectedPublicMethods.add(sigList);
 
@@ -510,6 +542,17 @@ import static org.testng.Assert.*;
     sigList = new LinkedList<String>();
     sigList.add("getPluginTypes");
     sigList.add("java.util.Set");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("invokeForInternalOperations");
+    sigList.add("boolean");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("setInvokeForInternalOperations");
+    sigList.add("void");
+    sigList.add("boolean");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();
@@ -676,6 +719,69 @@ import static org.testng.Assert.*;
   public void testGetPluginEntryDN()
          throws Exception
   {
+    Entry pluginEntry = TestCaseUtils.makeEntry(
+      "dn: cn=Null Plugin,cn=Plugins,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-plugin",
+      "cn: Null Plugin",
+      "ds-cfg-plugin-class: org.opends.server.plugins.NullPlugin",
+      "ds-cfg-plugin-enabled: true",
+      "ds-cfg-plugin-type: startup",
+      "ds-cfg-plugin-type: shutdown",
+      "ds-cfg-plugin-type: postConnect",
+      "ds-cfg-plugin-type: postDisconnect",
+      "ds-cfg-plugin-type: ldifImport",
+      "ds-cfg-plugin-type: ldifExport",
+      "ds-cfg-plugin-type: preParseAbandon",
+      "ds-cfg-plugin-type: preParseAdd",
+      "ds-cfg-plugin-type: preParsebind",
+      "ds-cfg-plugin-type: preParseCompare",
+      "ds-cfg-plugin-type: preParseDelete",
+      "ds-cfg-plugin-type: preParseExtended",
+      "ds-cfg-plugin-type: preParseModify",
+      "ds-cfg-plugin-type: preParseModifyDN",
+      "ds-cfg-plugin-type: preParseSearch",
+      "ds-cfg-plugin-type: preParseUnbind",
+      "ds-cfg-plugin-type: preOperationAdd",
+      "ds-cfg-plugin-type: preOperationbind",
+      "ds-cfg-plugin-type: preOperationCompare",
+      "ds-cfg-plugin-type: preOperationDelete",
+      "ds-cfg-plugin-type: preOperationExtended",
+      "ds-cfg-plugin-type: preOperationModify",
+      "ds-cfg-plugin-type: preOperationModifyDN",
+      "ds-cfg-plugin-type: preOperationSearch",
+      "ds-cfg-plugin-type: postOperationAbandon",
+      "ds-cfg-plugin-type: postOperationAdd",
+      "ds-cfg-plugin-type: postOperationbind",
+      "ds-cfg-plugin-type: postOperationCompare",
+      "ds-cfg-plugin-type: postOperationDelete",
+      "ds-cfg-plugin-type: postOperationExtended",
+      "ds-cfg-plugin-type: postOperationModify",
+      "ds-cfg-plugin-type: postOperationModifyDN",
+      "ds-cfg-plugin-type: postOperationSearch",
+      "ds-cfg-plugin-type: postOperationUnbind",
+      "ds-cfg-plugin-type: postResponseAdd",
+      "ds-cfg-plugin-type: postResponsebind",
+      "ds-cfg-plugin-type: postResponseCompare",
+      "ds-cfg-plugin-type: postResponseDelete",
+      "ds-cfg-plugin-type: postResponseExtended",
+      "ds-cfg-plugin-type: postResponseModify",
+      "ds-cfg-plugin-type: postResponseModifyDN",
+      "ds-cfg-plugin-type: postResponseSearch",
+      "ds-cfg-plugin-type: postsynchronizationAdd",
+      "ds-cfg-plugin-type: postsynchronizationDelete",
+      "ds-cfg-plugin-type: postsynchronizationModify",
+      "ds-cfg-plugin-type: postsynchronizationModifyDN",
+      "ds-cfg-plugin-type: searchResultEntry",
+      "ds-cfg-plugin-type: searchResultReference",
+      "ds-cfg-plugin-type: subordinateModifyDN",
+      "ds-cfg-plugin-type: intermediateResponse");
+
+    PluginCfg configuration =
+         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(),
+                                             pluginEntry);
+
+
     NullPlugin nullPlugin = new NullPlugin();
     DN pluginEntryDN = DN.decode("cn=Null Plugin,cn=Plugins,cn=config");
 
@@ -685,7 +791,7 @@ import static org.testng.Assert.*;
       pluginTypes.add(t);
     }
 
-    nullPlugin.initializeInternal(pluginEntryDN, pluginTypes);
+    nullPlugin.initializeInternal(configuration, pluginTypes);
     assertEquals(nullPlugin.getPluginEntryDN(), pluginEntryDN);
   }
 
@@ -700,8 +806,70 @@ import static org.testng.Assert.*;
   public void testGetPluginTypes()
          throws Exception
   {
+    Entry pluginEntry = TestCaseUtils.makeEntry(
+      "dn: cn=Null Plugin,cn=Plugins,cn=config",
+      "objectClass: top",
+      "objectClass: ds-cfg-plugin",
+      "cn: Null Plugin",
+      "ds-cfg-plugin-class: org.opends.server.plugins.NullPlugin",
+      "ds-cfg-plugin-enabled: true",
+      "ds-cfg-plugin-type: startup",
+      "ds-cfg-plugin-type: shutdown",
+      "ds-cfg-plugin-type: postConnect",
+      "ds-cfg-plugin-type: postDisconnect",
+      "ds-cfg-plugin-type: ldifImport",
+      "ds-cfg-plugin-type: ldifExport",
+      "ds-cfg-plugin-type: preParseAbandon",
+      "ds-cfg-plugin-type: preParseAdd",
+      "ds-cfg-plugin-type: preParsebind",
+      "ds-cfg-plugin-type: preParseCompare",
+      "ds-cfg-plugin-type: preParseDelete",
+      "ds-cfg-plugin-type: preParseExtended",
+      "ds-cfg-plugin-type: preParseModify",
+      "ds-cfg-plugin-type: preParseModifyDN",
+      "ds-cfg-plugin-type: preParseSearch",
+      "ds-cfg-plugin-type: preParseUnbind",
+      "ds-cfg-plugin-type: preOperationAdd",
+      "ds-cfg-plugin-type: preOperationbind",
+      "ds-cfg-plugin-type: preOperationCompare",
+      "ds-cfg-plugin-type: preOperationDelete",
+      "ds-cfg-plugin-type: preOperationExtended",
+      "ds-cfg-plugin-type: preOperationModify",
+      "ds-cfg-plugin-type: preOperationModifyDN",
+      "ds-cfg-plugin-type: preOperationSearch",
+      "ds-cfg-plugin-type: postOperationAbandon",
+      "ds-cfg-plugin-type: postOperationAdd",
+      "ds-cfg-plugin-type: postOperationbind",
+      "ds-cfg-plugin-type: postOperationCompare",
+      "ds-cfg-plugin-type: postOperationDelete",
+      "ds-cfg-plugin-type: postOperationExtended",
+      "ds-cfg-plugin-type: postOperationModify",
+      "ds-cfg-plugin-type: postOperationModifyDN",
+      "ds-cfg-plugin-type: postOperationSearch",
+      "ds-cfg-plugin-type: postOperationUnbind",
+      "ds-cfg-plugin-type: postResponseAdd",
+      "ds-cfg-plugin-type: postResponsebind",
+      "ds-cfg-plugin-type: postResponseCompare",
+      "ds-cfg-plugin-type: postResponseDelete",
+      "ds-cfg-plugin-type: postResponseExtended",
+      "ds-cfg-plugin-type: postResponseModify",
+      "ds-cfg-plugin-type: postResponseModifyDN",
+      "ds-cfg-plugin-type: postResponseSearch",
+      "ds-cfg-plugin-type: postsynchronizationAdd",
+      "ds-cfg-plugin-type: postsynchronizationDelete",
+      "ds-cfg-plugin-type: postsynchronizationModify",
+      "ds-cfg-plugin-type: postsynchronizationModifyDN",
+      "ds-cfg-plugin-type: searchResultEntry",
+      "ds-cfg-plugin-type: searchResultReference",
+      "ds-cfg-plugin-type: subordinateModifyDN",
+      "ds-cfg-plugin-type: intermediateResponse");
+
+    PluginCfg configuration =
+         AdminTestCaseUtils.getConfiguration(PluginCfgDefn.getInstance(),
+                                             pluginEntry);
+
+
     NullPlugin nullPlugin = new NullPlugin();
-    DN pluginEntryDN = DN.decode("cn=Null Plugin,cn=Plugins,cn=config");
 
     HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
     for (PluginType t : PluginType.values())
@@ -709,7 +877,7 @@ import static org.testng.Assert.*;
       pluginTypes.add(t);
     }
 
-    nullPlugin.initializeInternal(pluginEntryDN, pluginTypes);
+    nullPlugin.initializeInternal(configuration, pluginTypes);
     assertEquals(nullPlugin.getPluginTypes(), pluginTypes);
   }
 

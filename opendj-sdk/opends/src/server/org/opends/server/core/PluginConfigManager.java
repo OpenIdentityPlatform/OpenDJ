@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 
 
 
@@ -41,6 +40,8 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -66,12 +67,11 @@ import org.opends.server.api.plugin.SearchReferencePluginResult;
 import org.opends.server.api.plugin.StartupPluginResult;
 import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.LDIFExportConfig;
@@ -80,7 +80,6 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
@@ -101,6 +100,10 @@ import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseSearchOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationBindOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
@@ -124,13 +127,10 @@ import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.types.operation.SubordinateModifyDNOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
-
-import org.opends.messages.MessageBuilder;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -195,6 +195,10 @@ public class PluginConfigManager
   private DirectoryServerPlugin[] postResponseModifyPlugins;
   private DirectoryServerPlugin[] postResponseModifyDNPlugins;
   private DirectoryServerPlugin[] postResponseSearchPlugins;
+  private DirectoryServerPlugin[] postSynchronizationAddPlugins;
+  private DirectoryServerPlugin[] postSynchronizationDeletePlugins;
+  private DirectoryServerPlugin[] postSynchronizationModifyPlugins;
+  private DirectoryServerPlugin[] postSynchronizationModifyDNPlugins;
   private DirectoryServerPlugin[] searchResultEntryPlugins;
   private DirectoryServerPlugin[] searchResultReferencePlugins;
   private DirectoryServerPlugin[] subordinateModifyDNPlugins;
@@ -223,53 +227,57 @@ public class PluginConfigManager
   {
     pluginLock = new ReentrantLock();
 
-    startupPlugins               = new DirectoryServerPlugin[0];
-    shutdownPlugins              = new DirectoryServerPlugin[0];
-    postConnectPlugins           = new DirectoryServerPlugin[0];
-    postDisconnectPlugins        = new DirectoryServerPlugin[0];
-    ldifImportPlugins            = new DirectoryServerPlugin[0];
-    ldifExportPlugins            = new DirectoryServerPlugin[0];
-    preParseAbandonPlugins       = new DirectoryServerPlugin[0];
-    preParseAddPlugins           = new DirectoryServerPlugin[0];
-    preParseBindPlugins          = new DirectoryServerPlugin[0];
-    preParseComparePlugins       = new DirectoryServerPlugin[0];
-    preParseDeletePlugins        = new DirectoryServerPlugin[0];
-    preParseExtendedPlugins      = new DirectoryServerPlugin[0];
-    preParseModifyPlugins        = new DirectoryServerPlugin[0];
-    preParseModifyDNPlugins      = new DirectoryServerPlugin[0];
-    preParseSearchPlugins        = new DirectoryServerPlugin[0];
-    preParseUnbindPlugins        = new DirectoryServerPlugin[0];
-    preOperationAddPlugins       = new DirectoryServerPlugin[0];
-    preOperationBindPlugins      = new DirectoryServerPlugin[0];
-    preOperationComparePlugins   = new DirectoryServerPlugin[0];
-    preOperationDeletePlugins    = new DirectoryServerPlugin[0];
-    preOperationExtendedPlugins  = new DirectoryServerPlugin[0];
-    preOperationModifyPlugins    = new DirectoryServerPlugin[0];
-    preOperationModifyDNPlugins  = new DirectoryServerPlugin[0];
-    preOperationSearchPlugins    = new DirectoryServerPlugin[0];
-    postOperationAbandonPlugins  = new DirectoryServerPlugin[0];
-    postOperationAddPlugins      = new DirectoryServerPlugin[0];
-    postOperationBindPlugins     = new DirectoryServerPlugin[0];
-    postOperationComparePlugins  = new DirectoryServerPlugin[0];
-    postOperationDeletePlugins   = new DirectoryServerPlugin[0];
-    postOperationExtendedPlugins = new DirectoryServerPlugin[0];
-    postOperationModifyPlugins   = new DirectoryServerPlugin[0];
-    postOperationModifyDNPlugins = new DirectoryServerPlugin[0];
-    postOperationSearchPlugins   = new DirectoryServerPlugin[0];
-    postOperationUnbindPlugins   = new DirectoryServerPlugin[0];
-    postResponseAddPlugins       = new DirectoryServerPlugin[0];
-    postResponseBindPlugins      = new DirectoryServerPlugin[0];
-    postResponseComparePlugins   = new DirectoryServerPlugin[0];
-    postResponseDeletePlugins    = new DirectoryServerPlugin[0];
-    postResponseExtendedPlugins  = new DirectoryServerPlugin[0];
-    postResponseModifyPlugins    = new DirectoryServerPlugin[0];
-    postResponseModifyDNPlugins  = new DirectoryServerPlugin[0];
-    postResponseSearchPlugins    = new DirectoryServerPlugin[0];
-    searchResultEntryPlugins     = new DirectoryServerPlugin[0];
-    searchResultReferencePlugins = new DirectoryServerPlugin[0];
-    subordinateModifyDNPlugins   = new DirectoryServerPlugin[0];
-    intermediateResponsePlugins  = new DirectoryServerPlugin[0];
-    registeredPlugins            =
+    startupPlugins                     = new DirectoryServerPlugin[0];
+    shutdownPlugins                    = new DirectoryServerPlugin[0];
+    postConnectPlugins                 = new DirectoryServerPlugin[0];
+    postDisconnectPlugins              = new DirectoryServerPlugin[0];
+    ldifImportPlugins                  = new DirectoryServerPlugin[0];
+    ldifExportPlugins                  = new DirectoryServerPlugin[0];
+    preParseAbandonPlugins             = new DirectoryServerPlugin[0];
+    preParseAddPlugins                 = new DirectoryServerPlugin[0];
+    preParseBindPlugins                = new DirectoryServerPlugin[0];
+    preParseComparePlugins             = new DirectoryServerPlugin[0];
+    preParseDeletePlugins              = new DirectoryServerPlugin[0];
+    preParseExtendedPlugins            = new DirectoryServerPlugin[0];
+    preParseModifyPlugins              = new DirectoryServerPlugin[0];
+    preParseModifyDNPlugins            = new DirectoryServerPlugin[0];
+    preParseSearchPlugins              = new DirectoryServerPlugin[0];
+    preParseUnbindPlugins              = new DirectoryServerPlugin[0];
+    preOperationAddPlugins             = new DirectoryServerPlugin[0];
+    preOperationBindPlugins            = new DirectoryServerPlugin[0];
+    preOperationComparePlugins         = new DirectoryServerPlugin[0];
+    preOperationDeletePlugins          = new DirectoryServerPlugin[0];
+    preOperationExtendedPlugins        = new DirectoryServerPlugin[0];
+    preOperationModifyPlugins          = new DirectoryServerPlugin[0];
+    preOperationModifyDNPlugins        = new DirectoryServerPlugin[0];
+    preOperationSearchPlugins          = new DirectoryServerPlugin[0];
+    postOperationAbandonPlugins        = new DirectoryServerPlugin[0];
+    postOperationAddPlugins            = new DirectoryServerPlugin[0];
+    postOperationBindPlugins           = new DirectoryServerPlugin[0];
+    postOperationComparePlugins        = new DirectoryServerPlugin[0];
+    postOperationDeletePlugins         = new DirectoryServerPlugin[0];
+    postOperationExtendedPlugins       = new DirectoryServerPlugin[0];
+    postOperationModifyPlugins         = new DirectoryServerPlugin[0];
+    postOperationModifyDNPlugins       = new DirectoryServerPlugin[0];
+    postOperationSearchPlugins         = new DirectoryServerPlugin[0];
+    postOperationUnbindPlugins         = new DirectoryServerPlugin[0];
+    postResponseAddPlugins             = new DirectoryServerPlugin[0];
+    postResponseBindPlugins            = new DirectoryServerPlugin[0];
+    postResponseComparePlugins         = new DirectoryServerPlugin[0];
+    postResponseDeletePlugins          = new DirectoryServerPlugin[0];
+    postResponseExtendedPlugins        = new DirectoryServerPlugin[0];
+    postResponseModifyPlugins          = new DirectoryServerPlugin[0];
+    postResponseModifyDNPlugins        = new DirectoryServerPlugin[0];
+    postResponseSearchPlugins          = new DirectoryServerPlugin[0];
+    postSynchronizationAddPlugins      = new DirectoryServerPlugin[0];
+    postSynchronizationDeletePlugins   = new DirectoryServerPlugin[0];
+    postSynchronizationModifyPlugins   = new DirectoryServerPlugin[0];
+    postSynchronizationModifyDNPlugins = new DirectoryServerPlugin[0];
+    searchResultEntryPlugins           = new DirectoryServerPlugin[0];
+    searchResultReferencePlugins       = new DirectoryServerPlugin[0];
+    subordinateModifyDNPlugins         = new DirectoryServerPlugin[0];
+    intermediateResponsePlugins        = new DirectoryServerPlugin[0];
+    registeredPlugins                  =
          new ConcurrentHashMap<DN,
                   DirectoryServerPlugin<? extends PluginCfg>>();
   }
@@ -404,8 +412,8 @@ public class PluginConfigManager
       if (initialize)
       {
         Method method = plugin.getClass().getMethod("initializeInternal",
-                                                    DN.class, Set.class);
-        method.invoke(plugin, configuration.dn(), pluginTypes);
+                                                    PluginCfg.class, Set.class);
+        method.invoke(plugin, configuration, pluginTypes);
 
         method = plugin.getClass().getMethod("initializePlugin", Set.class,
                       configuration.definition().getServerConfigurationClass());
@@ -511,6 +519,14 @@ public class PluginConfigManager
       case SEARCHRESULTREFERENCE:  return PluginType.SEARCH_RESULT_REFERENCE;
       case SUBORDINATEMODIFYDN:    return PluginType.SUBORDINATE_MODIFY_DN;
       case INTERMEDIATERESPONSE:   return PluginType.INTERMEDIATE_RESPONSE;
+      case POSTSYNCHRONIZATIONADD:
+                return PluginType.POST_SYNCHRONIZATION_ADD;
+      case POSTSYNCHRONIZATIONDELETE:
+                return PluginType.POST_SYNCHRONIZATION_DELETE;
+      case POSTSYNCHRONIZATIONMODIFY:
+                return PluginType.POST_SYNCHRONIZATION_MODIFY;
+      case POSTSYNCHRONIZATIONMODIFYDN:
+                return PluginType.POST_SYNCHRONIZATION_MODIFY_DN;
       default:                     return null;
     }
   }
@@ -818,6 +834,30 @@ public class PluginConfigManager
             postResponseSearchPlugins =
                  addPlugin(postResponseSearchPlugins, plugin, t,
                            pluginRootConfig.getPluginOrderPostResponseSearch());
+            break;
+          case POST_SYNCHRONIZATION_ADD:
+            postSynchronizationAddPlugins =
+                 addPlugin(postSynchronizationAddPlugins, plugin, t,
+                           pluginRootConfig.
+                                getPluginOrderPostSynchronizationAdd());
+            break;
+          case POST_SYNCHRONIZATION_DELETE:
+            postSynchronizationDeletePlugins =
+                 addPlugin(postSynchronizationDeletePlugins, plugin, t,
+                           pluginRootConfig.
+                                getPluginOrderPostSynchronizationDelete());
+            break;
+          case POST_SYNCHRONIZATION_MODIFY:
+            postSynchronizationModifyPlugins =
+                 addPlugin(postSynchronizationModifyPlugins, plugin, t,
+                           pluginRootConfig.
+                                getPluginOrderPostSynchronizationModify());
+            break;
+          case POST_SYNCHRONIZATION_MODIFY_DN:
+            postSynchronizationModifyDNPlugins =
+                 addPlugin(postSynchronizationModifyDNPlugins, plugin, t,
+                           pluginRootConfig.
+                                getPluginOrderPostSynchronizationModifyDN());
             break;
           case SEARCH_RESULT_ENTRY:
             searchResultEntryPlugins =
@@ -1243,6 +1283,22 @@ public class PluginConfigManager
           case POST_RESPONSE_SEARCH:
             postResponseSearchPlugins = removePlugin(postResponseSearchPlugins,
                                                      plugin);
+            break;
+          case POST_SYNCHRONIZATION_ADD:
+            postSynchronizationAddPlugins =
+                 removePlugin(postSynchronizationAddPlugins, plugin);
+            break;
+          case POST_SYNCHRONIZATION_DELETE:
+            postSynchronizationDeletePlugins =
+                 removePlugin(postSynchronizationDeletePlugins, plugin);
+            break;
+          case POST_SYNCHRONIZATION_MODIFY:
+            postSynchronizationModifyPlugins =
+                 removePlugin(postSynchronizationModifyPlugins, plugin);
+            break;
+          case POST_SYNCHRONIZATION_MODIFY_DN:
+            postSynchronizationModifyDNPlugins =
+                 removePlugin(postSynchronizationModifyDNPlugins, plugin);
             break;
           case SEARCH_RESULT_ENTRY:
             searchResultEntryPlugins = removePlugin(searchResultEntryPlugins,
@@ -1740,6 +1796,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseAbandonPlugins)
     {
+      if (abandonOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(abandonOperation);
@@ -1816,6 +1878,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseAddPlugins)
     {
+      if (addOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(addOperation);
@@ -1889,6 +1957,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseBindPlugins)
     {
+      if (bindOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(bindOperation);
@@ -1962,6 +2036,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseComparePlugins)
     {
+      if (compareOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(compareOperation);
@@ -2038,6 +2118,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseDeletePlugins)
     {
+      if (deleteOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(deleteOperation);
@@ -2114,6 +2200,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseExtendedPlugins)
     {
+      if (extendedOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(extendedOperation);
@@ -2178,21 +2270,27 @@ public class PluginConfigManager
    * Invokes the set of pre-parse modify plugins that have been configured in
    * the Directory Server.
    *
-   * @param  operation  The modify operation for which to invoke the
+   * @param  modifyOperation  The modify operation for which to invoke the
    *                          pre-parse plugins.
    *
    * @return  The result of processing the pre-parse modify plugins.
    */
   public PreParsePluginResult invokePreParseModifyPlugins(
-                                   PreParseModifyOperation operation)
+                                   PreParseModifyOperation modifyOperation)
   {
     PreParsePluginResult result = null;
 
     for (DirectoryServerPlugin p : preParseModifyPlugins)
     {
+      if (modifyOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
-        result = p.doPreParse(operation);
+        result = p.doPreParse(modifyOperation);
       }
       catch (Exception e)
       {
@@ -2202,15 +2300,16 @@ public class PluginConfigManager
         }
 
         Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(operation.getOperationType().getOperationName(),
+            get(modifyOperation.getOperationType().getOperationName(),
                 String.valueOf(p.getPluginEntryDN()),
-                operation.getConnectionID(), operation.getOperationID(),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        operation.setResultCode(
+        modifyOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
-        operation.appendErrorMessage(message);
+        modifyOperation.appendErrorMessage(message);
 
         return new PreParsePluginResult(false, false, true);
       }
@@ -2218,15 +2317,15 @@ public class PluginConfigManager
       if (result == null)
       {
         Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(operation.getOperationType().getOperationName(),
+            get(modifyOperation.getOperationType().getOperationName(),
                 String.valueOf(p.getPluginEntryDN()),
-                operation.getConnectionID(),
-                String.valueOf(operation.getOperationID()));
+                modifyOperation.getConnectionID(),
+                String.valueOf(modifyOperation.getOperationID()));
         logError(message);
 
-        operation.setResultCode(
+        modifyOperation.setResultCode(
                              DirectoryServer.getServerErrorResultCode());
-        operation.appendErrorMessage(message);
+        modifyOperation.appendErrorMessage(message);
 
         return new PreParsePluginResult(false, false, true);
       }
@@ -2265,6 +2364,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseModifyDNPlugins)
     {
+      if (modifyDNOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(modifyDNOperation);
@@ -2341,6 +2446,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseSearchPlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(searchOperation);
@@ -2417,6 +2528,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preParseUnbindPlugins)
     {
+      if (unbindOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreParse(unbindOperation);
@@ -2493,6 +2610,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationAddPlugins)
     {
+      if (addOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(addOperation);
@@ -2565,6 +2688,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationBindPlugins)
     {
+      if (bindOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(bindOperation);
@@ -2638,6 +2767,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationComparePlugins)
     {
+      if (compareOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(compareOperation);
@@ -2714,6 +2849,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationDeletePlugins)
     {
+      if (deleteOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(deleteOperation);
@@ -2790,6 +2931,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationExtendedPlugins)
     {
+      if (extendedOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(extendedOperation);
@@ -2866,6 +3013,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationModifyPlugins)
     {
+      if (modifyOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(modifyOperation);
@@ -2942,6 +3095,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationModifyDNPlugins)
     {
+      if (modifyDNOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(modifyDNOperation);
@@ -3018,6 +3177,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : preOperationSearchPlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPreOperation(searchOperation);
@@ -3094,6 +3259,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationAbandonPlugins)
     {
+      if (abandonOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(abandonOperation);
@@ -3170,6 +3341,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationAddPlugins)
     {
+      if (addOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(addOperation);
@@ -3242,6 +3419,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationBindPlugins)
     {
+      if (bindOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(bindOperation);
@@ -3315,6 +3498,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationComparePlugins)
     {
+      if (compareOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(compareOperation);
@@ -3391,6 +3580,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationDeletePlugins)
     {
+      if (deleteOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(deleteOperation);
@@ -3467,6 +3662,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationExtendedPlugins)
     {
+      if (extendedOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(extendedOperation);
@@ -3543,6 +3744,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationModifyPlugins)
     {
+      if (modifyOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(modifyOperation);
@@ -3619,6 +3826,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationModifyDNPlugins)
     {
+      if (modifyDNOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(modifyDNOperation);
@@ -3695,6 +3908,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationSearchPlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(searchOperation);
@@ -3771,6 +3990,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postOperationUnbindPlugins)
     {
+      if (unbindOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostOperation(unbindOperation);
@@ -3847,6 +4072,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseAddPlugins)
     {
+      if (addOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(addOperation);
@@ -3913,6 +4144,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseBindPlugins)
     {
+      if (bindOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(bindOperation);
@@ -3980,6 +4217,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseComparePlugins)
     {
+      if (compareOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(compareOperation);
@@ -4048,6 +4291,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseDeletePlugins)
     {
+      if (deleteOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(deleteOperation);
@@ -4116,6 +4365,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseExtendedPlugins)
     {
+      if (extendedOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(extendedOperation);
@@ -4184,6 +4439,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseModifyPlugins)
     {
+      if (modifyOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(modifyOperation);
@@ -4252,6 +4513,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseModifyDNPlugins)
     {
+      if (modifyDNOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(modifyDNOperation);
@@ -4320,6 +4587,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : postResponseSearchPlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.doPostResponse(searchOperation);
@@ -4370,6 +4643,151 @@ public class PluginConfigManager
     return result;
   }
 
+
+
+  /**
+   * Invokes the set of post-synchronization add plugins that have been
+   * configured in the Directory Server.
+   *
+   * @param  addOperation  The add operation for which to invoke the
+   *                       post-synchronization plugins.
+   */
+  public void invokePostSynchronizationAddPlugins(
+                   PostSynchronizationAddOperation addOperation)
+  {
+    for (DirectoryServerPlugin p : postSynchronizationAddPlugins)
+    {
+      try
+      {
+        p.doPostSynchronization(addOperation);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
+            get(addOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                addOperation.getConnectionID(), addOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
+      }
+    }
+  }
+
+
+
+  /**
+   * Invokes the set of post-synchronization delete plugins that have been
+   * configured in the Directory Server.
+   *
+   * @param  deleteOperation  The delete operation for which to invoke the
+   *                          post-synchronization plugins.
+   */
+  public void invokePostSynchronizationDeletePlugins(
+                   PostSynchronizationDeleteOperation deleteOperation)
+  {
+    for (DirectoryServerPlugin p : postSynchronizationDeletePlugins)
+    {
+      try
+      {
+        p.doPostSynchronization(deleteOperation);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
+            get(deleteOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
+      }
+    }
+  }
+
+
+
+  /**
+   * Invokes the set of post-synchronization modify plugins that have been
+   * configured in the Directory Server.
+   *
+   * @param  modifyOperation  The modify operation for which to invoke the
+   *                          post-synchronization plugins.
+   */
+  public void invokePostSynchronizationModifyPlugins(
+                   PostSynchronizationModifyOperation modifyOperation)
+  {
+    for (DirectoryServerPlugin p : postSynchronizationModifyPlugins)
+    {
+      try
+      {
+        p.doPostSynchronization(modifyOperation);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
+            get(modifyOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyOperation.getConnectionID(),
+                modifyOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
+      }
+    }
+  }
+
+
+
+  /**
+   * Invokes the set of post-synchronization modify DN plugins that have been
+   * configured in the Directory Server.
+   *
+   * @param  modifyDNOperation  The modify DN operation for which to invoke the
+   *                            post-synchronization plugins.
+   */
+  public void invokePostSynchronizationModifyDNPlugins(
+                   PostSynchronizationModifyDNOperation modifyDNOperation)
+  {
+    for (DirectoryServerPlugin p : postSynchronizationModifyDNPlugins)
+    {
+      try
+      {
+        p.doPostSynchronization(modifyDNOperation);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
+            get(modifyDNOperation.getOperationType().getOperationName(),
+                String.valueOf(p.getPluginEntryDN()),
+                modifyDNOperation.getConnectionID(),
+                modifyDNOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
+      }
+    }
+  }
+
+
+
   /**
    * Invokes the set of search result entry plugins that have been configured
    * in the Directory Server.
@@ -4388,6 +4806,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : searchResultEntryPlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.processSearchEntry(searchOperation, searchEntry);
@@ -4437,6 +4861,8 @@ public class PluginConfigManager
 
     return result;
   }
+
+
 
   /**
    * Invokes the set of search result entry plugins that have been configured
@@ -4456,6 +4882,18 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : searchResultEntryPlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.processSearchEntry(searchOperation, searchEntry);
@@ -4506,6 +4944,8 @@ public class PluginConfigManager
     return result;
   }
 
+
+
   /**
    * Invokes the set of search result reference plugins that have been
    * configured in the Directory Server.
@@ -4524,6 +4964,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : searchResultReferencePlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.processSearchReference(searchOperation, searchReference);
@@ -4574,6 +5020,8 @@ public class PluginConfigManager
     return result;
   }
 
+
+
   /**
    * Invokes the set of search result reference plugins that have been
    * configured in the Directory Server.
@@ -4592,6 +5040,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : searchResultReferencePlugins)
     {
+      if (searchOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         result = p.processSearchReference(searchOperation, searchReference);
@@ -4667,6 +5121,12 @@ public class PluginConfigManager
 
     for (DirectoryServerPlugin p : subordinateModifyDNPlugins)
     {
+      if (modifyDNOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
       try
       {
         DirectoryServerPlugin<? extends PluginCfg> gp =
@@ -4972,7 +5432,8 @@ public class PluginConfigManager
     // then we shouldn't do anything with it although if the class has changed
     // then we'll at least need to indicate that administrative action is
     // required.  If the mapper is disabled, then instantiate the class and
-    // initialize and register it as an identity mapper.
+    // initialize and register it as an identity mapper.  Also, update the
+    // plugin to indicate whether it should be invoked for internal operations.
     String className = configuration.getPluginClass();
     if (existingPlugin != null)
     {
@@ -4980,6 +5441,9 @@ public class PluginConfigManager
       {
         adminActionRequired = true;
       }
+
+      existingPlugin.setInvokeForInternalOperations(
+                          configuration.isInvokeForInternalOperations());
 
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }

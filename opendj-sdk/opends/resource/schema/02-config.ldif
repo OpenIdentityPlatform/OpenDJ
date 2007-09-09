@@ -1658,6 +1658,26 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.489 NAME 'ds-cfg-ldif-directory'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.490 NAME 'ds-cfg-poll-interval'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.491
+  NAME 'ds-cfg-plugin-order-synchronization-add'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.492
+  NAME 'ds-cfg-plugin-order-synchronization-delete'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.493
+  NAME 'ds-cfg-plugin-order-synchronization-modify'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.494
+  NAME 'ds-cfg-plugin-order-synchronization-modify-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.495
+  NAME 'ds-cfg-invoke-for-internal-operations'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler' SUP top STRUCTURAL
   MUST ( cn $ ds-cfg-acl-handler-class $ ds-cfg-acl-handler-enabled )
@@ -1847,7 +1867,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.36
   ds-cfg-password-validator-enabled ) X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.37 NAME 'ds-cfg-plugin' SUP top
   STRUCTURAL MUST ( cn $ ds-cfg-plugin-class $ ds-cfg-plugin-enabled $
-  ds-cfg-plugin-type ) X-ORIGIN 'OpenDS Directory Server' )
+  ds-cfg-plugin-type ) MAY ds-cfg-invoke-for-internal-operations
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.38 NAME 'ds-cfg-profiler-plugin'
   SUP ds-cfg-plugin STRUCTURAL MAY ( ds-cfg-enable-profiling-on-startup $
   ds-cfg-profile-directory $ ds-cfg-profile-sample-interval $
@@ -2254,6 +2275,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.114 NAME 'ds-cfg-plugin-root'
   ds-cfg-plugin-order-post-response-modify $
   ds-cfg-plugin-order-post-response-modify-dn $
   ds-cfg-plugin-order-post-response-search $
+  ds-cfg-plugin-order-synchronization-add $
+  ds-cfg-plugin-order-synchronization-delete $
+  ds-cfg-plugin-order-synchronization-modify $
+  ds-cfg-plugin-order-synchronization-modify-dn $
   ds-cfg-plugin-order-search-result-entry $
   ds-cfg-plugin-order-search-result-reference $
   ds-cfg-plugin-order-subordinate-modify-dn $
