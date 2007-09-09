@@ -1212,6 +1212,123 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:profile>
   </adm:property>
 
+  <adm:property name="plugin-order-post-synchronization-add" mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization add plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization add plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.491</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-synchronization-add</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-synchronization-delete"
+    mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization delete plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization delete plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.492</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-synchronization-delete</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-synchronization-modify"
+    mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization modify plugins should be
+      loaded and invoked.  The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization modify plugins are loaded and
+          invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.493</ldap:oid>
+        <ldap:name>ds-cfg-plugin-order-post-synchronization-modify</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="plugin-order-post-synchronization-modify-dn"
+    mandatory="false">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization modify DN plugins should
+      be loaded and invoked.  The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the plugin
+      configuration entry DN).  The list may include at most one asterisk to
+      indicate the position of any unspecified plugin (and the relative order of
+      those unspecified plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization modify DN plugins are loaded
+          and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.494</ldap:oid>
+        <ldap:name>
+          ds-cfg-plugin-order-post-synchronization-modify-dn
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
   <adm:property name="plugin-order-post-response-search" mandatory="false">
     <adm:synopsis>
       Specifies the order in which post-response search plugins should be

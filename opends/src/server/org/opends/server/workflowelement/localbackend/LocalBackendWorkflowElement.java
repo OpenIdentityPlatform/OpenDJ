@@ -2416,8 +2416,15 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
     // Indicate that it is now too late to attempt to cancel the operation.
     localOp.setCancelResult(CancelResult.TOO_LATE);
 
-    // Invoke the post-operation modify plugins.
-    if (! skipPostOperation)
+    // Invoke the post-operation or post-synchronization modify plugins.
+    if (localOp.isSynchronizationOperation())
+    {
+      if (localOp.getResultCode() == ResultCode.SUCCESS)
+      {
+        pluginConfigManager.invokePostSynchronizationModifyPlugins(localOp);
+      }
+    }
+    else if (! skipPostOperation)
     {
       // FIXME -- Should this also be done while holding the locks?
       PostOperationPluginResult postOpResult =
@@ -5893,8 +5900,15 @@ addProcessing:
     localOp.setCancelResult(CancelResult.TOO_LATE);
 
 
-    // Invoke the post-operation add plugins.
-    if (! skipPostOperation)
+    // Invoke the post-operation or post-synchronization add plugins.
+    if (localOp.isSynchronizationOperation())
+    {
+      if (localOp.getResultCode() == ResultCode.SUCCESS)
+      {
+        pluginConfigManager.invokePostSynchronizationAddPlugins(localOp);
+      }
+    }
+    else if (! skipPostOperation)
     {
       // FIXME -- Should this also be done while holding the locks?
       PostOperationPluginResult postOpResult =
@@ -6672,8 +6686,15 @@ deleteProcessing:
     localOp.setCancelResult(CancelResult.TOO_LATE);
 
 
-    // Invoke the post-operation delete plugins.
-    if (! skipPostOperation)
+    // Invoke the post-operation or post-synchronization delete plugins.
+    if (localOp.isSynchronizationOperation())
+    {
+      if (localOp.getResultCode() == ResultCode.SUCCESS)
+      {
+        pluginConfigManager.invokePostSynchronizationDeletePlugins(localOp);
+      }
+    }
+    else if (! skipPostOperation)
     {
       PostOperationPluginResult postOperationResult =
            pluginConfigManager.invokePostOperationDeletePlugins(localOp);
@@ -8498,8 +8519,15 @@ modifyDNProcessing:
     op.setCancelResult(CancelResult.TOO_LATE);
 
 
-    // Invoke the post-operation modify DN plugins.
-    if (! skipPostOperation)
+    // Invoke the post-operation or post-synchronization modify DN plugins.
+    if (op.isSynchronizationOperation())
+    {
+      if (op.getResultCode() == ResultCode.SUCCESS)
+      {
+        pluginConfigManager.invokePostSynchronizationModifyDNPlugins(op);
+      }
+    }
+    else if (! skipPostOperation)
     {
       PostOperationPluginResult postOperationResult =
            pluginConfigManager.invokePostOperationModifyDNPlugins(op);

@@ -32,6 +32,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
 
 /**
  * This class defines an operation used to move an entry in a local backend
@@ -41,7 +42,8 @@ public class LocalBackendModifyDNOperation
   extends ModifyDNOperationWrapper
   implements PreOperationModifyDNOperation,
              PostOperationModifyDNOperation,
-             PostResponseModifyDNOperation
+             PostResponseModifyDNOperation,
+             PostSynchronizationModifyDNOperation
 {
   // The current entry, before it is renamed.
   private Entry currentEntry;

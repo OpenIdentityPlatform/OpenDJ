@@ -383,6 +383,41 @@ public enum PluginType
 
 
   /**
+   * The plugin type for plugins that are to be invoked just after an
+   * add operation has been completed via synchronization.
+   */
+  POST_SYNCHRONIZATION_ADD(PluginType.NAME_POST_SYNCHRONIZATION_ADD),
+
+
+
+  /**
+   * The plugin type for plugins that are to be invoked just after a
+   * delete operation has been completed via synchronization.
+   */
+  POST_SYNCHRONIZATION_DELETE(
+       PluginType.NAME_POST_SYNCHRONIZATION_DELETE),
+
+
+
+  /**
+   * The plugin type for plugins that are to be invoked just after a
+   * modify operation has been completed via synchronization.
+   */
+  POST_SYNCHRONIZATION_MODIFY(
+       PluginType.NAME_POST_SYNCHRONIZATION_MODIFY),
+
+
+
+  /**
+   * The plugin type for plugins that are to be invoked just after a
+   * modify DN operation has been completed via synchronization.
+   */
+  POST_SYNCHRONIZATION_MODIFY_DN(
+       PluginType.NAME_POST_SYNCHRONIZATION_MODIFY_DN),
+
+
+
+  /**
    * The plugin type for plugins that are to be invoked before each
    * search result entry is sent to a client.
    */
@@ -744,6 +779,41 @@ public enum PluginType
 
 
   /**
+   * The name that will be used for post-synchronization add plugins.
+   */
+  private static final String NAME_POST_SYNCHRONIZATION_ADD =
+       "postsynchronizationadd";
+
+
+
+  /**
+   * The name that will be used for post-synchronization delete
+   * plugins.
+   */
+  private static final String NAME_POST_SYNCHRONIZATION_DELETE =
+       "postsynchronizationdelete";
+
+
+
+  /**
+   * The name that will be used for post-synchronization modify
+   * plugins.
+   */
+  private static final String NAME_POST_SYNCHRONIZATION_MODIFY =
+       "postsynchronizationmodify";
+
+
+
+  /**
+   * The name that will be used for post-synchronization modify DN
+   * plugins.
+   */
+  private static final String NAME_POST_SYNCHRONIZATION_MODIFY_DN =
+       "postsynchronizationmodifydn";
+
+
+
+  /**
    * The name that will be used for search result entry plugins.
    */
   private static final String NAME_SEARCH_ENTRY = "searchresultentry";
@@ -779,7 +849,7 @@ public enum PluginType
    * types.
    */
   private static final Set<String> PLUGIN_TYPE_NAMES =
-       new HashSet<String>(46);
+       new HashSet<String>(50);
 
 
 
@@ -788,7 +858,7 @@ public enum PluginType
    * corresponding plugin type.
    */
   private static final Map<String,PluginType> PLUGIN_TYPE_MAP =
-       new HashMap<String,PluginType>(46);
+       new HashMap<String,PluginType>(50);
 
 
 
@@ -836,6 +906,13 @@ public enum PluginType
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_MODIFY);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_MODIFY_DN);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_RESPONSE_SEARCH);
+    PLUGIN_TYPE_NAMES.add(PluginType.NAME_POST_SYNCHRONIZATION_ADD);
+    PLUGIN_TYPE_NAMES.add(
+         PluginType.NAME_POST_SYNCHRONIZATION_DELETE);
+    PLUGIN_TYPE_NAMES.add(
+         PluginType.NAME_POST_SYNCHRONIZATION_MODIFY);
+    PLUGIN_TYPE_NAMES.add(
+         PluginType.NAME_POST_SYNCHRONIZATION_MODIFY_DN);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_SEARCH_ENTRY);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_SEARCH_REFERENCE);
     PLUGIN_TYPE_NAMES.add(PluginType.NAME_SUBORDINATE_MODIFY_DN);
@@ -924,6 +1001,15 @@ public enum PluginType
                         PluginType.POST_RESPONSE_MODIFY_DN);
     PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_RESPONSE_SEARCH,
                         PluginType.POST_RESPONSE_SEARCH);
+    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_SYNCHRONIZATION_ADD,
+                        PluginType.POST_SYNCHRONIZATION_ADD);
+    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_SYNCHRONIZATION_DELETE,
+                        PluginType.POST_SYNCHRONIZATION_DELETE);
+    PLUGIN_TYPE_MAP.put(PluginType.NAME_POST_SYNCHRONIZATION_MODIFY,
+                        PluginType.POST_SYNCHRONIZATION_MODIFY);
+    PLUGIN_TYPE_MAP.put(
+         PluginType.NAME_POST_SYNCHRONIZATION_MODIFY_DN,
+         PluginType.POST_SYNCHRONIZATION_MODIFY_DN);
     PLUGIN_TYPE_MAP.put(PluginType.NAME_SEARCH_ENTRY,
                         PluginType.SEARCH_RESULT_ENTRY);
     PLUGIN_TYPE_MAP.put(PluginType.NAME_SEARCH_REFERENCE,

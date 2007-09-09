@@ -1451,6 +1451,7 @@ ds-cfg-plugin-type: preParseModifyDN
 ds-cfg-7-bit-clean-attribute-type: uid
 ds-cfg-7-bit-clean-attribute-type: mail
 ds-cfg-7-bit-clean-attribute-type: userPassword
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Entry UUID,cn=Plugins,cn=config
 objectClass: top
@@ -1461,6 +1462,7 @@ ds-cfg-plugin-class: org.opends.server.plugins.EntryUUIDPlugin
 ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: ldifImport
 ds-cfg-plugin-type: preOperationAdd
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=LastMod,cn=Plugins,cn=config
 objectClass: top
@@ -1472,6 +1474,7 @@ ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config
 objectClass: top
@@ -1481,6 +1484,7 @@ cn: LDAP Attribute Description List
 ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin
 ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: preParseSearch
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Password Policy Import,cn=Plugins,cn=config
 objectClass: top
@@ -1492,6 +1496,7 @@ ds-cfg-plugin-enabled: true
 ds-cfg-plugin-type: ldifImport
 ds-cfg-default-user-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 ds-cfg-default-auth-password-storage-scheme-dn: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
+ds-cfg-invoke-for-internal-operations: false
 
 dn: cn=Profiler,cn=Plugins,cn=config
 objectClass: top
@@ -1504,6 +1509,7 @@ ds-cfg-plugin-type: startup
 ds-cfg-enable-profiling-on-startup: false
 ds-cfg-profile-directory: logs
 ds-cfg-profile-sample-interval: 10 milliseconds
+ds-cfg-invoke-for-internal-operations: false
 
 dn: cn=Referential Integrity,cn=Plugins,cn=config
 objectClass: top
@@ -1517,6 +1523,7 @@ ds-cfg-plugin-type: postOperationModifyDN
 ds-cfg-plugin-type: subordinateModifyDN
 ds-cfg-referential-integrity-attribute-type: member
 ds-cfg-referential-integrity-attribute-type: uniqueMember
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=UID Unique Attribute,cn=Plugins,cn=config
 objectClass: top
@@ -1528,7 +1535,11 @@ ds-cfg-plugin-enabled: false
 ds-cfg-plugin-type: preOperationAdd
 ds-cfg-plugin-type: preOperationModify
 ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: postSynchronizationAdd
+ds-cfg-plugin-type: postSynchronizationModify
+ds-cfg-plugin-type: postSynchronizationModifyDN
 ds-cfg-unique-attribute-type: uid
+ds-cfg-invoke-for-internal-operations: true
 
 dn: cn=Root DNs,cn=config
 objectClass: top

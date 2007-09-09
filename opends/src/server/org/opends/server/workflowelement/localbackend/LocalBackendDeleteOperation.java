@@ -33,6 +33,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
 
 /**
  * This class defines an operation used to delete an entry in a local backend
@@ -41,7 +42,8 @@ import org.opends.server.types.operation.PreOperationDeleteOperation;
 public class LocalBackendDeleteOperation extends DeleteOperationWrapper
   implements PreOperationDeleteOperation,
              PostOperationDeleteOperation,
-             PostResponseDeleteOperation
+             PostResponseDeleteOperation,
+             PostSynchronizationDeleteOperation
 {
   // The entry to be deleted.
   private Entry entry;

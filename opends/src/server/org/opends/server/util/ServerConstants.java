@@ -1703,6 +1703,50 @@ public final class ServerConstants
 
 
   /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if a unique attribute conflict is detected during
+   * synchronization processing.
+   */
+  public static final String ALERT_DESCRIPTION_UNIQUE_ATTR_SYNC_CONFLICT =
+       "This alert type will be used to provide notification that a unique " +
+       "attribute conflict has been detected during synchronization " +
+       "processing.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if a unique attribute conflict is detected during synchronization
+   * processing.
+   */
+  public static final String ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT =
+       "org.opends.server.UniqueAttributeSynchronizationConflict";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated if an error occurs while attempting to perform
+   * unique attribute conflict detection during synchronization processing.
+   */
+  public static final String ALERT_DESCRIPTION_UNIQUE_ATTR_SYNC_ERROR =
+       "This alert type will be used to provide notification that an error " +
+       "occurred while attempting to perform unique attribute conflict " +
+       "detection during synchronization processing.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated if an error occurs while attempting to perform unique attribute
+   * conflict detection during synchronization processing.
+   */
+  public static final String ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR =
+       "org.opends.server.UniqueAttributeSynchronizationError";
+
+
+
+  /**
    * The name of the default password storage scheme that will be used for new
    * passwords.
    */

@@ -63,6 +63,9 @@
         <adm:value>preoperationadd</adm:value>
         <adm:value>preoperationmodify</adm:value>
         <adm:value>preoperationmodifydn</adm:value>
+        <adm:value>postsynchronizationadd</adm:value>
+        <adm:value>postsynchronizationmodify</adm:value>
+        <adm:value>postsynchronizationmodifydn</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>

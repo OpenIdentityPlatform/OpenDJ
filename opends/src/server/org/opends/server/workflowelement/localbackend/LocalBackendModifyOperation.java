@@ -37,6 +37,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 
 /**
  * This class defines an operation used to modify an entry in a local backend
@@ -45,7 +46,8 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 public class LocalBackendModifyOperation extends ModifyOperationWrapper
   implements PreOperationModifyOperation,
              PostOperationModifyOperation,
-             PostResponseModifyOperation
+             PostResponseModifyOperation,
+             PostSynchronizationModifyOperation
 {
   // The current entry, before any changes are applied.
   private Entry currentEntry = null;
