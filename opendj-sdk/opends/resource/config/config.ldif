@@ -1179,6 +1179,14 @@ cn: Version
 ds-cfg-monitor-provider-class: org.opends.server.monitors.VersionMonitorProvider
 ds-cfg-monitor-provider-enabled: true
 
+dn: cn=Entry Cache,cn=Monitor Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-entry-cache-monitor-provider
+cn: Entry Cache
+ds-cfg-monitor-provider-class: org.opends.server.monitors.EntryCacheMonitorProvider
+ds-cfg-monitor-provider-enabled: true
+
 dn: cn=Password Generators,cn=config
 objectClass: top
 objectClass: ds-cfg-branch

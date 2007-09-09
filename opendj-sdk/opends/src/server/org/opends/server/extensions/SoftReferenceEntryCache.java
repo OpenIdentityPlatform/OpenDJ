@@ -46,6 +46,7 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
@@ -209,6 +210,8 @@ public class SoftReferenceEntryCache
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
     if (ref == null)
     {
+      // Indicate cache miss.
+      cacheMisses.set(cacheMisses.incrementAndGet());
       return null;
     }
     else
@@ -216,10 +219,14 @@ public class SoftReferenceEntryCache
       CacheEntry cacheEntry = ref.get();
       if (cacheEntry == null)
       {
+        // Indicate cache miss.
+        cacheMisses.set(cacheMisses.incrementAndGet());
         return null;
       }
       else
       {
+        // Indicate cache hit.
+        cacheHits.set(cacheHits.incrementAndGet());
         return cacheEntry.getEntry();
       }
     }
@@ -647,6 +654,33 @@ public class SoftReferenceEntryCache
         }
       }
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ArrayList<Attribute> getMonitorData()
+  {
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+    try {
+      attrs = EntryCacheCommon.getGenericMonitorData(
+        new Long(cacheHits.longValue()),
+        new Long(cacheMisses.longValue()),
+        null,
+        null,
+        new Long(dnMap.size()),
+        null
+        );
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    return attrs;
   }
 
 

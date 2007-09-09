@@ -2467,4 +2467,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.168
   NAME 'ds-cfg-ldif-connection-handler' SUP ds-cfg-connection-handler
   MUST ( ds-cfg-ldif-directory $ ds-cfg-poll-interval )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.173
+  NAME 'ds-cfg-entry-cache-monitor-provider' SUP ds-cfg-monitor-provider
+  STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
 

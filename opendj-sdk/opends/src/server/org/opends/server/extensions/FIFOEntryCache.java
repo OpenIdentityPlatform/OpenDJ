@@ -55,6 +55,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchFilter;
+import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
 import org.opends.messages.MessageBuilder;
 
@@ -231,10 +232,14 @@ public class FIFOEntryCache
     CacheEntry e = dnMap.get(entryDN);
     if (e == null)
     {
+      // Indicate cache miss.
+      cacheMisses.set(cacheMisses.incrementAndGet());
       return null;
     }
     else
     {
+      // Indicate cache hit.
+      cacheHits.set(cacheHits.incrementAndGet());
       return e.getEntry();
     }
   }
@@ -985,6 +990,35 @@ public class FIFOEntryCache
     }
 
     return errorHandler.getIsAcceptable();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ArrayList<Attribute> getMonitorData()
+  {
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+    try {
+      attrs = EntryCacheCommon.getGenericMonitorData(
+        new Long(cacheHits.longValue()),
+        new Long(cacheMisses.longValue()),
+        null,
+        new Long(maxAllowedMemory),
+        new Long(dnMap.size()),
+        (((maxEntries != Integer.MAX_VALUE) &&
+          (maxEntries != Long.MAX_VALUE)) ?
+           new Long(maxEntries) : new Long(0))
+        );
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    return attrs;
   }
 
 
