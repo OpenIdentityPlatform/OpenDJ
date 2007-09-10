@@ -2492,6 +2492,20 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.168
   NAME 'ds-cfg-ldif-connection-handler' SUP ds-cfg-connection-handler
   MUST ( ds-cfg-ldif-directory $ ds-cfg-poll-interval )
   X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.169
+  NAME 'ds-cfg-triple-des-password-storage-scheme'
+  SUP ds-cfg-password-storage-scheme STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.170
+  NAME 'ds-cfg-aes-password-storage-scheme' SUP ds-cfg-password-storage-scheme
+  STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.171
+  NAME 'ds-cfg-rc4-password-storage-scheme' SUP ds-cfg-password-storage-scheme
+  STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.172
+  NAME 'ds-cfg-blowfish-password-storage-scheme'
+  SUP ds-cfg-password-storage-scheme STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.173
   NAME 'ds-cfg-entry-cache-monitor-provider' SUP ds-cfg-monitor-provider
   STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )

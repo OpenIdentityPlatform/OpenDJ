@@ -118,11 +118,101 @@ public class ExtensionsConstants
 
 
   /**
+   * The cipher transformation that should be used when performing 3DES
+   * encryption/decription.
+   */
+  public static final String CIPHER_TRANSFORMATION_3DES =
+       "DESede/CFB/NoPadding";
+
+
+
+  /**
+   * The cipher transformation that should be used when performing AES
+   * encryption/decription.
+   */
+  public static final String CIPHER_TRANSFORMATION_AES = "AES/CFB/NoPadding";
+
+
+
+  /**
+   * The cipher transformation that should be used when performing blowfish
+   * encryption/decription.
+   */
+  public static final String CIPHER_TRANSFORMATION_BLOWFISH =
+       "Blowfish/CFB/NoPadding";
+
+
+
+  /**
+   * The cipher transformation that should be used when performing RC4
+   * encryption/decription.
+   */
+  public static final String CIPHER_TRANSFORMATION_RC4 = "RC4";
+
+
+
+  /**
+   * The key size (in bits) that should be used for the encryption key when
+   * using the 3DES cipher.
+   */
+  public static final int KEY_SIZE_3DES = 168;
+
+
+
+  /**
+   * The key size (in bits) that should be used for the encryption key when
+   * using the AES cipher.
+   */
+  public static final int KEY_SIZE_AES = 128;
+
+
+
+  /**
+   * The key size (in bits) that should be used for the encryption key when
+   * using the Blowfish cipher.
+   */
+  public static final int KEY_SIZE_BLOWFISH = 128;
+
+
+
+  /**
+   * The key size (in bits) that should be used for the encryption key when
+   * using the RC4 cipher.
+   */
+  public static final int KEY_SIZE_RC4 = 128;
+
+
+
+  /**
+   * The password storage scheme name that will be used for passwords that are
+   * stored in 3DES-encrypted form.
+   */
+  public static final String STORAGE_SCHEME_NAME_3DES = "3DES";
+
+
+
+  /**
+   * The password storage scheme name that will be used for passwords that are
+   * stored in AES-encrypted form.
+   */
+  public static final String STORAGE_SCHEME_NAME_AES = "AES";
+
+
+
+  /**
    * The password storage scheme name that will be used for passwords that are
    * stored in base64-encoded form (virtually no protection, but the value is
    * reversible).
    */
   public static final String STORAGE_SCHEME_NAME_BASE64 = "BASE64";
+
+
+
+  /**
+   * The password storage scheme name that will be used for passwords that are
+   * stored in Blowfish-encrypted form.
+   */
+  public static final String STORAGE_SCHEME_NAME_BLOWFISH = "BLOWFISH";
 
 
 
@@ -139,6 +229,14 @@ public class ExtensionsConstants
    * an MD5 representation.
    */
   public static final String STORAGE_SCHEME_NAME_MD5 = "MD5";
+
+
+
+  /**
+   * The password storage scheme name that will be used for passwords that are
+   * stored in RC4-encrypted form.
+   */
+  public static final String STORAGE_SCHEME_NAME_RC4 = "RC4";
 
 
 
