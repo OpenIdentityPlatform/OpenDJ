@@ -1572,7 +1572,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         argParser.getHostNameDestination(),
         argParser.getDefaultHostNameDestination());
     uData.setHostNameDestination(hostNameDestination);
-    int portDestination = getValue(argParser.getPortSource(),
+    int portDestination = getValue(argParser.getPortDestination(),
         argParser.getDefaultPortDestination());
     uData.setPortDestination(portDestination);
     uData.setUseSSLDestination(argParser.useSSLDestination());
