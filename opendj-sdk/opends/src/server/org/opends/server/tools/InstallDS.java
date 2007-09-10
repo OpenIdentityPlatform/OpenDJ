@@ -564,7 +564,7 @@ public class InstallDS  extends CliApplicationHelper
       if (argParser.jmxPortArg.isPresent())
       {
         int jmxPort = argParser.jmxPortArg.getIntValue();
-        uData.setServerPort(jmxPort);
+        uData.setServerJMXPort(jmxPort);
         //   Check if the port can be used.
         if (!argParser.skipPortCheckArg.isPresent())
         {

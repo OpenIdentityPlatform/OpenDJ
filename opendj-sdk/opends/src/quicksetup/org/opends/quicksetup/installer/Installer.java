@@ -855,6 +855,16 @@ public abstract class Installer extends GuiApplication {
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
+    StringBuffer cmd = new StringBuffer();
+    for (String s : argList)
+    {
+      if (cmd.length() > 0)
+      {
+        cmd.append(" ");
+      }
+      cmd.append(s);
+    }
+    LOG.log(Level.INFO, "configure DS cmd: "+cmd);
     try
     {
       InstallerHelper helper = new InstallerHelper();
