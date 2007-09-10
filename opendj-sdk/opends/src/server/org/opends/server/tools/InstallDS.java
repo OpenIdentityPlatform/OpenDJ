@@ -282,7 +282,15 @@ public class InstallDS  extends CliApplicationHelper
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-    //  If either the showUsage or testOnly or version arguments were provided,
+    // If we are on test only mode, delete the log file that does not contain
+    // any information.  The test only mode is called several times by the setup
+    // script and if we do not remove it we have a lot of empty log files.
+    if (argParser.testOnlyArg.isPresent())
+    {
+      QuickSetupLog.getLogFile().deleteOnExit();
+    }
+
+    // If either the showUsage or testOnly or version arguments were provided,
     // then we're done.
     if (argParser.usageOrVersionDisplayed() ||
         argParser.testOnlyArg.isPresent())
