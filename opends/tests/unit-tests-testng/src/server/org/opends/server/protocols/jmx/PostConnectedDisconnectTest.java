@@ -44,12 +44,12 @@ import static org.testng.Assert.*;
  * This class check is the pos-connected and post-disconnected plugin are
  * called (see issue #728).
  */
-public class postConnectedDisconnectTest extends JmxTestCase
+public class PostConnectedDisconnectTest extends JmxTestCase
 {
-  
+
   /**
    * Set up the environment for performing the tests in this suite.
-   * 
+   *
    * @throws Exception
    *           If the environment could not be set up.
    */
@@ -57,7 +57,7 @@ public class postConnectedDisconnectTest extends JmxTestCase
   public void setUp() throws Exception
   {
     super.setUp();
-    
+
     TestCaseUtils.addEntries(
         "dn: cn=Privileged User,o=test",
         "objectClass: top",
@@ -85,10 +85,10 @@ public class postConnectedDisconnectTest extends JmxTestCase
         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
              "cn=Password Policies,cn=config");
   }
-  
+
   /**
    * Clean up the environment after performing the tests in this suite.
-   * 
+   *
    * @throws Exception
    *           If the environment could not be set up.
    */
@@ -102,13 +102,13 @@ public class postConnectedDisconnectTest extends JmxTestCase
         .decode("cn=Privileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
-  
+
   /**
    * Perform a simple connect.
    * @throws Exception If something wrong occurs.
    */
-  @Test(enabled = true, groups = {"slow"})
-  public void checkPostconnectDisconnectPlugin() throws Exception
+  @Test(enabled = false, groups = {"slow"})
+  public void checkPostConnectDisconnectPlugin() throws Exception
   {
     // Before the test, how many time postconnect and postdisconnect
     // have been called.
