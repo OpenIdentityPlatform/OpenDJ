@@ -228,6 +228,20 @@ public final class TestCfg {
 
 
   /**
+   * Adds a property definition temporarily with test child
+   * definition, replacing any existing property definition with the
+   * same name.
+   *
+   * @param pd
+   *          The property definition.
+   */
+  public static void addPropertyDefinition(PropertyDefinition<?> pd) {
+    TestChildCfgDefn.getInstance().registerPropertyDefinition(pd);
+  }
+
+
+
+  /**
    * Removes a constraint from the test child definition.
    *
    * @param constraint
