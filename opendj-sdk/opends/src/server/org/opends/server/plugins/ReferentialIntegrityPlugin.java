@@ -27,6 +27,7 @@
 package org.opends.server.plugins;
 
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
+import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.plugin.*;
@@ -198,13 +199,27 @@ public class ReferentialIntegrityPlugin
     baseDNs = newConfiguredBaseDNs;
     attributeTypes = newAttributeTypes;
     long newInterval=newConfiguration.getReferentialIntegrityUpdateInterval();
-    //If the interval has changed, process that change. The change might start
-    //or stop the background processing thread.
-    if(newInterval != interval)
+    //If the plugin is enabled and the interval has changed, process that
+    //change. The change might start or stop the background processing thread.
+    if(newConfiguration.isEnabled() && newInterval != interval)
       processIntervalChange(newInterval, messages);
     currentConfiguration = newConfiguration;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(PluginCfg configuration,
+                                           List<Message> unacceptableReasons)
+  {
+    ReferentialIntegrityPluginCfg cfg =
+                       (ReferentialIntegrityPluginCfg) configuration;
+    return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
+  }
+
 
   /**
    * {@inheritDoc}
@@ -729,6 +744,17 @@ public class ReferentialIntegrityPlugin
    */
   public String getShutdownListenerName() {
     return name;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public final void finalizePlugin() {
+    currentConfiguration.removeReferentialIntegrityChangeListener(this);
+    if(interval > 0)
+      processServerShutdown(null);
   }
 
   /**
