@@ -138,7 +138,7 @@ public class DebugStackTraceFormatter
   public static String formatStackTrace(Throwable t, int maxDepth,
                                         boolean includeCause)
   {
-    StringBuffer buffer= new StringBuffer();
+    StringBuilder buffer= new StringBuilder();
 
     while(t != null)
     {
@@ -191,7 +191,7 @@ public class DebugStackTraceFormatter
   public static String formatStackTrace(StackTraceElement[] stackTrace,
                                         int maxDepth)
   {
-    StringBuffer buffer= new StringBuffer();
+    StringBuilder buffer= new StringBuilder();
 
     if (stackTrace != null) {
       int frameLimit=  Math.min(maxDepth, stackTrace.length);

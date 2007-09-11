@@ -121,7 +121,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
   /**
    * Provides a single DN to search a workflow in a network group.
-   * 
+   *
    * Each set of DNs is composed of:
    * - one baseDN
    * - one subordinateDN
@@ -273,10 +273,10 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   //
   //===========================================================================
 
-  
+
   /**
    * Tests the network group registration.
-   * 
+   *
    * @param networkGroupID   the ID of the network group to register
    * @param workflowBaseDN1  the base DN of the first workflow node to register
    *                         in the network group
@@ -291,7 +291,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
     networkGroup.register();
-    
+
     // Register again the network group with the server and catch the
     // expected DirectoryServer exception.
     boolean exceptionRaised = false;
@@ -312,10 +312,10 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     WorkflowElement nullWE = null;
     WorkflowImpl workflow = new WorkflowImpl(
         workflowBaseDN.toString(), workflowBaseDN, nullWE);
-    
+
     // Register the workflow with the network group.
     networkGroup.registerWorkflow(workflow);
-    
+
     // Register again the workflow with the network group and catch the
     // expected DirectoryServer exception.
     exceptionRaised = false;
@@ -331,7 +331,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
               ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS);
     }
     assertEquals(exceptionRaised, true);
-    
+
     // Clean the network group
     networkGroup.deregisterWorkflow(workflow.getWorkflowId());
     networkGroup.deregister();
@@ -450,7 +450,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
       doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
     }
-    
+
     if (w2 != null)
     {
       networkGroup.deregisterWorkflow(w2.getWorkflowId());
@@ -458,7 +458,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
       doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
     }
-    
+
     if (w3 != null)
     {
       networkGroup.deregisterWorkflow(w3.getWorkflowId());
@@ -466,7 +466,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
       doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, false);
     }
-    
+
     // Deregister the network group
     networkGroup.deregister();
   }
@@ -515,7 +515,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
        Workflow workflow2 = networkGroup.getWorkflowCandidate(dnSubordinate);
        assertEquals(workflow2, workflow);
     }
-    
+
     // Check that the unrelatedDN is not handled by any workflow
     if (unrelatedDN != null)
     {
@@ -561,8 +561,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     return workflow;
   }
-  
-  
+
+
   /**
    * Prints a text to System.out.
    */
@@ -570,8 +570,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     System.out.print(msg);
   }
-  
-  
+
+
   /**
    * Prints a text to System.out.
    */
@@ -580,8 +580,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     write(msg + "\n");
   }
 
-  
-  
+
+
   /**
    * Dump the network group info to the console.
    */
@@ -591,8 +591,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     if (doDump)
     {
-      StringBuffer sb = networkGroup.toString(prompt);
-      writeln(sb.toString());      
+      StringBuilder sb = networkGroup.toString(prompt);
+      writeln(sb.toString());
     }
   }
 

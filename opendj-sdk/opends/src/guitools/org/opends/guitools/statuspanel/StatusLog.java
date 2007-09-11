@@ -77,7 +77,7 @@ public class StatusLog {
   }
 
   static private String getInitialLogRecord() {
-    StringBuffer sb = new StringBuffer()
+    StringBuilder sb = new StringBuilder()
             .append("Status application launched " +
                     DateFormat.getDateTimeInstance(DateFormat.LONG,
                                                    DateFormat.LONG).

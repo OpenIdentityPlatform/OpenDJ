@@ -549,7 +549,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
         Set<Map<ServerGroupProperty, Object>> result = adsCtx
             .readServerGroupRegistry();
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         // if not verbose mode, print group name (1 per line)
         if (! verboseArg.isPresent())
@@ -797,7 +797,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         {
           returnCode = SUCCESSFUL;
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         for (String member : memberList)
         {
           // We shouldn't print out the "cn="
@@ -831,7 +831,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
             .readServerGroupRegistry();
         String MemberId = listMembershipMemberNameArg.getValue();
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         for (Map<ServerGroupProperty, Object> groupProps : result)
         {
           // Get the group name;

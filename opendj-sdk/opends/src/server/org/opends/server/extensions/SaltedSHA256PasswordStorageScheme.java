@@ -29,8 +29,8 @@ package org.opends.server.extensions;
 
 
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.Message;
@@ -98,7 +98,7 @@ public class SaltedSHA256PasswordStorageScheme
   private ReentrantLock digestLock;
 
   // The secure random number generator to use to generate the salt values.
-  private SecureRandom random;
+  private Random random;
 
 
 
@@ -141,7 +141,7 @@ public class SaltedSHA256PasswordStorageScheme
 
 
     digestLock = new ReentrantLock();
-    random     = new SecureRandom();
+    random     = new Random();
   }
 
 

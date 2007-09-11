@@ -325,7 +325,7 @@ public class RemoteBuildManager {
                 Build build = parseBuildLine(line);
                 builds.add(build);
               } catch (IllegalArgumentException iae) {
-                StringBuffer msg = new StringBuffer()
+                StringBuilder msg = new StringBuilder()
                         .append("Error parsing line '")
                         .append(line)
                         .append("': ")
@@ -367,7 +367,7 @@ public class RemoteBuildManager {
       if (displayName == null ||
               downloadUrlString == null ||
               categoryString == null) {
-        StringBuffer msg = new StringBuffer()
+        StringBuilder msg = new StringBuilder()
                 .append("Line '")
                 .append(line)
                 .append("' is incomplete or is not correctly delimited")
@@ -378,7 +378,7 @@ public class RemoteBuildManager {
         try {
           downloadUrl = new URL(downloadUrlString);
         } catch (MalformedURLException e) {
-          StringBuffer msg = new StringBuffer()
+          StringBuilder msg = new StringBuilder()
                   .append("URL '")
                   .append(downloadUrlString)
                   .append("' is invalid");
@@ -386,7 +386,7 @@ public class RemoteBuildManager {
         }
         category = Build.Category.fromString(categoryString);
         if (category == null) {
-          StringBuffer msg = new StringBuffer()
+          StringBuilder msg = new StringBuilder()
                   .append("Category '")
                   .append(categoryString)
                   .append("' is invalid; must be one of ");

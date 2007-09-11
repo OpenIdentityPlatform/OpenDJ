@@ -25,17 +25,20 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
 
 
 import com.sleepycat.je.*;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -55,8 +58,6 @@ import java.util.Set;
 
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.JebMessages.
      INFO_JEB_REFERRAL_RESULT_MESSAGE;
 /**
@@ -84,8 +85,17 @@ public class DN2URI extends DatabaseContainer
    * The standard attribute type that is used to specify the set of referral
    * URLs in a referral entry.
    */
-  public AttributeType referralType =
+  private final AttributeType referralType =
        DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
+
+  /**
+   * A flag that indicates whether there are any referrals contained in this
+   * database.  It should only be set to {@code false} when it is known that
+   * there are no referrals.
+   */
+  private volatile ConditionResult containsReferrals =
+       ConditionResult.UNDEFINED;
+
 
   /**
    * Create a new object representing a referral database in a given
@@ -155,6 +165,7 @@ public class DN2URI extends DatabaseContainer
     {
       return false;
     }
+    containsReferrals = ConditionResult.TRUE;
     return true;
   }
 
@@ -180,6 +191,7 @@ public class DN2URI extends DatabaseContainer
     {
       return false;
     }
+    containsReferrals = containsReferrals(txn);
     return true;
   }
 
@@ -220,7 +232,52 @@ public class DN2URI extends DatabaseContainer
     {
       return false;
     }
+    containsReferrals = containsReferrals(txn);
     return true;
+  }
+
+  /**
+   * Indicates whether the underlying database contains any referrals.
+   *
+   * @param  txn  The transaction to use when making the determination.
+   *
+   * @return  {@code true} if it is believed that the underlying database may
+   *          contain at least one referral, or {@code false} if it is certain
+   *          that it doesn't.
+   */
+  private ConditionResult containsReferrals(Transaction txn)
+  {
+    try
+    {
+      Cursor cursor = openCursor(txn, null);
+      DatabaseEntry key  = new DatabaseEntry();
+      DatabaseEntry data = new DatabaseEntry();
+
+      OperationStatus status = cursor.getFirst(key, data, null);
+      cursor.close();
+
+      if (status == OperationStatus.SUCCESS)
+      {
+        return ConditionResult.TRUE;
+      }
+      else if (status == OperationStatus.NOTFOUND)
+      {
+        return ConditionResult.FALSE;
+      }
+      else
+      {
+        return ConditionResult.UNDEFINED;
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      return ConditionResult.UNDEFINED;
+    }
   }
 
   /**
@@ -478,6 +535,16 @@ public class DN2URI extends DatabaseContainer
   public void targetEntryReferrals(DN targetDN, SearchScope searchScope)
        throws DirectoryException
   {
+    if (containsReferrals == ConditionResult.UNDEFINED)
+    {
+      containsReferrals = containsReferrals(null);
+    }
+
+    if (containsReferrals == ConditionResult.FALSE)
+    {
+      return;
+    }
+
     Transaction txn = null;
     CursorConfig cursorConfig = null;
 
@@ -549,6 +616,16 @@ public class DN2URI extends DatabaseContainer
   public boolean returnSearchReferences(SearchOperation searchOp)
        throws DirectoryException
   {
+    if (containsReferrals == ConditionResult.UNDEFINED)
+    {
+      containsReferrals = containsReferrals(null);
+    }
+
+    if (containsReferrals == ConditionResult.FALSE)
+    {
+      return true;
+    }
+
     Transaction txn = null;
     CursorConfig cursorConfig = null;
 

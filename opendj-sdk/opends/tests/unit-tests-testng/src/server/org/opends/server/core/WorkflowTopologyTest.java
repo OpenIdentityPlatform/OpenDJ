@@ -741,7 +741,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     assertEquals (readDN1, null);
     assertEquals (readDN2, null);
     assertEquals (readDN3, null);
-    
+
     // ======================================================
     // Remove a workflow in the chain and check that
     // the route algorithm is still working
@@ -764,7 +764,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     assertEquals (readDN1, baseDN1);
     assertEquals (readDN2, baseDN1); // was baseDN2 before the removal...
     assertEquals (readDN3, baseDN3);
-    
+
     // sanity check1
     // subordinate3 should be handled by w3 only
     readDN1 = w3.getParentBaseDN (subordinateDN1);
@@ -773,7 +773,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     assertEquals (readDN1, null);
     assertEquals (readDN2, null);
     assertEquals (readDN3, baseDN3);
-    
+
     // sanity check2
     // unrelatedDN should be handled by none of the workflows
     readDN1 = w1.getParentBaseDN (unrelatedDN);
@@ -782,7 +782,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     assertEquals (readDN1, null);
     assertEquals (readDN2, null);
     assertEquals (readDN3, null);
-    
+
   } // createWorkflow_simpleTopology2
 
 
@@ -914,7 +914,7 @@ public class WorkflowTopologyTest extends UtilTestCase
     }
 
     // dump the topology
-    StringBuffer sb = w1.toString ("");
+    StringBuilder sb = w1.toString ("");
     System.out.println (sb);
 
   } // createWorkflow_complexTopology1
@@ -958,11 +958,11 @@ public class WorkflowTopologyTest extends UtilTestCase
     // Create a workflow to handle the baseDN with no workflow element
     WorkflowImpl workflow = new WorkflowImpl(
         baseDN.toString(), baseDN, nullWE);
-    
+
     // Register the workflow with the server. Don't catch the
     // DirectoryException that could be thrown by the register() method.
     workflow.register();
-    
+
     // Register the same workflow twice and catch the expected
     // DirectoryException.
     boolean exceptionRaised = false;

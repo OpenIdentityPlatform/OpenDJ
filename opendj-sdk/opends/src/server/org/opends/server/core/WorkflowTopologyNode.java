@@ -494,9 +494,9 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @param leftMargin  white spaces used to indent the traces
    * @return a string buffer that contains trace information
    */
-  public StringBuffer toString(String leftMargin)
+  public StringBuilder toString(String leftMargin)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     // display the baseDN
     DN baseDN = getBaseDN();

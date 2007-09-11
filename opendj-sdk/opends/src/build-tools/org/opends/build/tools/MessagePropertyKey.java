@@ -213,7 +213,7 @@ public class MessagePropertyKey
    * @return name of message descriptor
    */
   public String getMessageDescriptorName() {
-    return new StringBuffer()
+    return new StringBuilder()
             .append(this.severity.messageDesciptorName())
             .append("_")
             .append(this.description).toString();
