@@ -309,6 +309,7 @@
               <call function="'CheckMatches'">
                 { 'string2find' : 'uniquemember',
                   'mainString'  : STAXReason,
+                  'caseSensitive' : 'false',
                   'nbExpected'  : 10
                 }
               </call>
@@ -466,6 +467,7 @@
               <call function="'CheckMatches'">
                 { 'string2find' : 'uniquemember',
                   'mainString'  : ldapSearchResult,
+                  'caseSensitive' : 'false',
                   'nbExpected'  : 11
                 }
               </call>
@@ -670,6 +672,7 @@
               <call function="'CheckMatches'">
                 { 'string2find' : 'uniquemember',
                   'mainString'  : ldapSearchResult,
+                  'caseSensitive' : 'false',
                   'nbExpected'  : 0
                 }
               </call>
