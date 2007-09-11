@@ -94,8 +94,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   /**
    * Map of base DNs to their import context.
    */
-  private HashMap<DN,ImportContext> importMap =
-      new HashMap<DN, ImportContext>();
+  private LinkedHashMap<DN,ImportContext> importMap =
+      new LinkedHashMap<DN, ImportContext>();
 
   /**
    * The maximum number of parent ID values that we will remember.
