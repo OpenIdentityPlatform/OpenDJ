@@ -1738,7 +1738,7 @@ public class ConfigFileHandler
       LinkedList<Message> messages   = new LinkedList<Message>();
       for (ConfigChangeListener l : changeListeners)
       {
-        ConfigChangeResult result = l.applyConfigurationChange(newEntry);
+        ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
         if (result.getResultCode() != ResultCode.SUCCESS)
         {
           if (resultCode == ResultCode.SUCCESS)
@@ -1749,7 +1749,7 @@ public class ConfigFileHandler
           messages.addAll(result.getMessages());
         }
 
-        handleConfigChangeResult(result, newEntry.getDN(),
+        handleConfigChangeResult(result, currentEntry.getDN(),
                                  l.getClass().getName(),
                                  "applyConfigurationChange");
       }
