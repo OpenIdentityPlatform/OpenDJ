@@ -26,71 +26,83 @@
  */
 package org.opends.server;
 
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.util.LDIFReader;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
-import java.io.*;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.StringReader;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.TreeMap;
-import java.util.LinkedHashSet;
 import java.util.Collections;
-import java.util.logging.Logger;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
-import java.util.logging.ConsoleHandler;
-import java.net.ServerSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.Socket;
+import java.util.logging.Logger;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.client.ManagementContext;
+import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
+import org.opends.server.admin.client.ldap.LDAPConnection;
+import org.opends.server.admin.client.ldap.LDAPManagementContext;
+import org.opends.server.admin.std.client.RootCfgClient;
+import org.opends.server.api.Backend;
+import org.opends.server.api.WorkQueue;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.EntryContainer;
-import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.backends.jeb.DatabaseContainer;
+import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.backends.jeb.Index;
+import org.opends.server.backends.jeb.RootContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextAccessLogPublisher;
+import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.util.EmbeddedUtils;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.api.WorkQueue;
-import org.opends.server.api.Backend;
-import org.opends.messages.Message;
+import org.opends.server.util.LDIFReader;
 
 /**
  * This class defines some utility functions which can be used by test
@@ -408,7 +420,7 @@ public final class TestCaseUtils {
     long startMs = System.currentTimeMillis();
 
     clearLoggersContents();
-    
+
     clearJEBackends();
     restoreServerConfigLdif();
     memoryBackend = null;  // We need it to be recreated and reregistered
@@ -1492,6 +1504,38 @@ public final class TestCaseUtils {
 
     assertEquals(DSConfig.main(fullArgs, false, System.out, System.err), 0);
   }
+
+
+
+  /**
+   * Gets the root configuration associated with the active server
+   * instance. This root configuration can then be used to access and
+   * modify the server's configuration using that administration
+   * framework's strongly typed API.
+   * <p>
+   * Note: were possible the {@link #dsconfig(String...)} method
+   * should be used in preference to this method in order to perform
+   * end-to-end testing.
+   *
+   * @return Returns the root configuration associated with the active
+   *         server instance.
+   * @throws Exception
+   *           If the management context could not be initialized
+   *           against the active server instance.
+   */
+  public static RootCfgClient getRootConfiguration() throws Exception
+  {
+    LDAPConnection connection = JNDIDirContextAdaptor.simpleBind(
+        "127.0.0.1",
+        serverLdapPort,
+        "cn=Directory Manager",
+        "password");
+
+    ManagementContext context = LDAPManagementContext
+        .createFromContext(connection);
+    return context.getRootConfiguration();
+  }
+
 
 
   /**
