@@ -390,7 +390,9 @@ public abstract class Driver {
 
 
   /**
-   * Gets the named managed object.
+   * Gets the named managed object. The path is guaranteed to be
+   * non-empty, so implementations do not need to worry about handling
+   * this special case.
    *
    * @param <C>
    *          The type of client managed object configuration that the
@@ -399,7 +401,7 @@ public abstract class Driver {
    *          The type of server managed object configuration that the
    *          path definition refers to.
    * @param path
-   *          The path of the managed object.
+   *          The non-empty path of the managed object.
    * @return Returns the named managed object.
    * @throws DefinitionDecodingException
    *           If the managed object was found but its type could not

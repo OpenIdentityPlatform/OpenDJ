@@ -449,9 +449,15 @@ public final class ServerManagementContext {
    *           If the named managed object could not be found or if it
    *           could not be decoded.
    */
+  @SuppressWarnings("unchecked")
   public <C extends ConfigurationClient, S extends Configuration>
   ServerManagedObject<? extends S> getManagedObject(
       ManagedObjectPath<C, S> path) throws ConfigException {
+    // Be careful to handle the root configuration.
+    if (path.isEmpty()) {
+      return (ServerManagedObject<S>) getRootConfigurationManagedObject();
+    }
+
     // Get the configuration entry.
     DN targetDN = DNBuilder.create(path);
     ConfigEntry configEntry = getManagedObjectConfigEntry(targetDN);

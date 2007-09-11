@@ -183,11 +183,17 @@ public abstract class ManagementContext {
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
    */
+  @SuppressWarnings("unchecked")
   public final <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getManagedObject(
       ManagedObjectPath<C, S> path) throws DefinitionDecodingException,
       ManagedObjectDecodingException, ManagedObjectNotFoundException,
       AuthorizationException, CommunicationException {
+    // Be careful to handle the root configuration.
+    if (path.isEmpty()) {
+      return (ManagedObject<C>) getRootConfigurationManagedObject();
+    }
+
     return getDriver().getManagedObject(path);
   }
 
