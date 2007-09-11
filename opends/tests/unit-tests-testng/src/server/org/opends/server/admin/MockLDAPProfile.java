@@ -81,7 +81,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         return "ds-cfg-virtual-attribute-base-dn";
       } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
         return "ds-cfg-virtual-attribute-group-dn";
-      } else if (pd == (PropertyDefinition<?>)td.getAggregationPropertyPropertyDefinition()) {
+      } else if (pd.getName().equals("aggregation-property")) {
         return "ds-cfg-backend-base-dn";
       } else {
         throw new RuntimeException("Unexpected test-child property"

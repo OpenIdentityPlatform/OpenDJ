@@ -34,14 +34,21 @@ import static org.opends.server.util.Validator.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.client.ClientConstraintHandler;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.config.ConfigException;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 
 
@@ -285,11 +292,124 @@ public final class AggregationPropertyDefinition
 
 
   /**
+   * A change listener which prevents the named component from being
+   * disabled.
+   */
+  private class ReferentialIntegrityChangeListener implements
+      ConfigurationChangeListener<S> {
+
+    // The error message which should be returned if an attempt is
+    // made to disable the referenced component.
+    private final Message message;
+
+    // The path of the referenced component.
+    private final ManagedObjectPath<C, S> path;
+
+
+
+    // Creates a new referential integrity delete listener.
+    private ReferentialIntegrityChangeListener(ManagedObjectPath<C, S> path,
+        Message message) {
+      this.path = path;
+      this.message = message;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationChange(S configuration) {
+      throw new IllegalStateException("Attempting to disable a referenced "
+          + configuration.definition().getUserFriendlyName());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationChangeAcceptable(S configuration,
+        List<Message> unacceptableReasons) {
+      // Always prevent the referenced component from being
+      // disabled.
+      PropertyProvider provider = configuration.properties();
+      Collection<Boolean> values = provider
+          .getPropertyValues(getTargetEnabledPropertyDefinition());
+      if (values.iterator().next() == false) {
+        unacceptableReasons.add(message);
+        return false;
+      }
+      return true;
+    }
+
+
+
+    // Gets the path associated with this listener.
+    private ManagedObjectPath<C, S> getManagedObjectPath() {
+      return path;
+    }
+
+  }
+
+
+
+  /**
+   * A delete listener which prevents the named component from being
+   * deleted.
+   */
+  private class ReferentialIntegrityDeleteListener implements
+      ConfigurationDeleteListener<S> {
+
+    // The DN of the referenced configuration entry.
+    private final DN dn;
+
+    // The error message which should be returned if an attempt is
+    // made to delete the referenced component.
+    private final Message message;
+
+
+
+    // Creates a new referential integrity delete listener.
+    private ReferentialIntegrityDeleteListener(DN dn, Message message) {
+      this.dn = dn;
+      this.message = message;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationDelete(S configuration) {
+      throw new IllegalStateException("Attempting to delete a referenced "
+          + configuration.definition().getUserFriendlyName());
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationDeleteAcceptable(S configuration,
+        List<Message> unacceptableReasons) {
+      if (configuration.dn().equals(dn)) {
+        // Always prevent deletion of the referenced component.
+        unacceptableReasons.add(message);
+        return false;
+      }
+
+      return true;
+    }
+
+  }
+
+
+
+  /**
    * The server-side constraint handler implementation.
    */
-  private static class ServerHandler
-      <C extends ConfigurationClient, S extends Configuration>
-      extends ServerConstraintHandler {
+  private class ServerHandler extends ServerConstraintHandler {
 
     // The associated property definition.
     private final AggregationPropertyDefinition<C, S> pd;
@@ -311,22 +431,177 @@ public final class AggregationPropertyDefinition
         Collection<Message> unacceptableReasons) throws ConfigException {
       SortedSet<String> names = managedObject.getPropertyValues(pd);
       ServerManagementContext context = ServerManagementContext.getInstance();
-      boolean isUsable = true;
+      BooleanPropertyDefinition tpd = pd.getTargetEnabledPropertyDefinition();
+      BooleanPropertyDefinition spd = pd.getSourceEnabledPropertyDefinition();
+      Message thisUFN = managedObject.getManagedObjectDefinition()
+          .getUserFriendlyName();
+      String thisDN = managedObject.getDN().toString();
+      Message thatUFN = pd.getRelationDefinition().getUserFriendlyName();
 
+      boolean isUsable = true;
       for (String name : names) {
         ManagedObjectPath<C, S> path = pd.getChildPath(name);
+        String thatDN = path.toDN().toString();
+
         if (!context.managedObjectExists(path)) {
           Message msg = ERR_SERVER_REFINT_DANGLING_REFERENCE.get(name, pd
-              .getName(), managedObject.getManagedObjectDefinition()
-              .getUserFriendlyName(), managedObject.getDN().toString(), pd
-              .getRelationDefinition().getUserFriendlyName(), path.toDN()
-              .toString());
+              .getName(), thisUFN, thisDN, thatUFN, thatDN);
           unacceptableReasons.add(msg);
           isUsable = false;
+        } else if (tpd != null) {
+          // Check that the referenced component is enabled.
+          ServerManagedObject<? extends S> ref = context.getManagedObject(path);
+
+          if (spd != null) {
+            // Target must be enabled but only if the source is
+            // enabled.
+            if (managedObject.getPropertyValue(spd)
+                && !ref.getPropertyValue(tpd)) {
+              Message msg = ERR_SERVER_REFINT_SOURCE_ENABLED_TARGET_DISABLED
+                  .get(name, pd.getName(), thisUFN, thisDN, thatUFN, thatDN);
+              unacceptableReasons.add(msg);
+              isUsable = false;
+            }
+          } else {
+            // Target must always be enabled.
+            if (!ref.getPropertyValue(tpd)) {
+              Message msg = ERR_SERVER_REFINT_TARGET_DISABLED.get(name, pd
+                  .getName(), thisUFN, thisDN, thatUFN, thatDN);
+              unacceptableReasons.add(msg);
+              isUsable = false;
+            }
+          }
         }
       }
 
       return isUsable;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void performPostAdd(ServerManagedObject<?> managedObject)
+        throws ConfigException {
+      // First make sure existing listeners associated with this
+      // managed object are removed. This is required in order to
+      // prevent multiple change listener registrations from
+      // occurring, for example if this call-back is invoked multiple
+      // times after the same add event.
+      performPostDelete(managedObject);
+
+      // Add change and delete listeners against all referenced
+      // components.
+      BooleanPropertyDefinition tpd = pd.getTargetEnabledPropertyDefinition();
+      BooleanPropertyDefinition spd = pd.getSourceEnabledPropertyDefinition();
+      Message thisUFN = managedObject.getManagedObjectDefinition()
+          .getUserFriendlyName();
+      String thisDN = managedObject.getDN().toString();
+      Message thatUFN = pd.getRelationDefinition().getUserFriendlyName();
+
+      // Referenced managed objects will only need a change listener
+      // if they have can be disabled.
+      boolean needsChangeListeners;
+      if (tpd != null) {
+        if (spd == null) {
+          needsChangeListeners = true;
+        } else {
+          needsChangeListeners = managedObject.getPropertyValue(spd);
+        }
+      } else {
+        needsChangeListeners = false;
+      }
+
+      // Delete listeners need to be registered against the parent
+      // entry of the referenced components.
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      ManagedObjectPath<?, ?> parentPath = pd.getParentPath();
+      ServerManagedObject<?> parent = context.getManagedObject(parentPath);
+
+      // Create entries in the listener tables.
+      List<ReferentialIntegrityDeleteListener> dlist =
+        new LinkedList<ReferentialIntegrityDeleteListener>();
+      deleteListeners.put(managedObject.getDN(), dlist);
+
+      List<ReferentialIntegrityChangeListener> clist =
+        new LinkedList<ReferentialIntegrityChangeListener>();
+      changeListeners.put(managedObject.getDN(), clist);
+
+      for (String name : managedObject.getPropertyValues(pd)) {
+        ManagedObjectPath<C, S> path = pd.getChildPath(name);
+        DN dn = path.toDN();
+        String thatDN = dn.toString();
+
+        // Register the delete listener.
+        Message msg = ERR_SERVER_REFINT_CANNOT_DELETE.get(thatUFN, thatDN, pd
+            .getName(), thisUFN, thisDN);
+        ReferentialIntegrityDeleteListener dl =
+          new ReferentialIntegrityDeleteListener(dn, msg);
+        parent.registerDeleteListener(pd.getRelationDefinition(), dl);
+        dlist.add(dl);
+
+        // Register the change listener if required.
+        if (needsChangeListeners) {
+          ServerManagedObject<? extends S> ref = context.getManagedObject(path);
+          msg = ERR_SERVER_REFINT_CANNOT_DISABLE.get(thatUFN, thatDN, pd
+              .getName(), thisUFN, thisDN);
+          ReferentialIntegrityChangeListener cl =
+            new ReferentialIntegrityChangeListener(path, msg);
+          ref.registerChangeListener(cl);
+          clist.add(cl);
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void performPostDelete(ServerManagedObject<?> managedObject)
+        throws ConfigException {
+      // Remove any registered delete and change listeners.
+      ServerManagementContext context = ServerManagementContext.getInstance();
+      DN dn = managedObject.getDN();
+
+      // Delete listeners need to be deregistered against the parent
+      // entry of the referenced components.
+      ManagedObjectPath<?, ?> parentPath = pd.getParentPath();
+      ServerManagedObject<?> parent = context.getManagedObject(parentPath);
+      if (deleteListeners.containsKey(dn)) {
+        for (ReferentialIntegrityDeleteListener dl : deleteListeners.get(dn)) {
+          parent.deregisterDeleteListener(pd.getRelationDefinition(), dl);
+        }
+        deleteListeners.remove(dn);
+      }
+
+      // Change listeners need to be deregistered from their
+      // associated referenced component.
+      if (changeListeners.containsKey(dn)) {
+        for (ReferentialIntegrityChangeListener cl : changeListeners.get(dn)) {
+          ManagedObjectPath<C, S> path = cl.getManagedObjectPath();
+          ServerManagedObject<? extends S> ref = context.getManagedObject(path);
+          ref.deregisterChangeListener(cl);
+        }
+        changeListeners.remove(dn);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void performPostModify(ServerManagedObject<?> managedObject)
+        throws ConfigException {
+      // Remove all the constraints associated with this managed
+      // object and then re-register them.
+      performPostDelete(managedObject);
+      performPostAdd(managedObject);
     }
   }
 
@@ -349,10 +624,22 @@ public final class AggregationPropertyDefinition
    * @return Returns the new aggregation property definition builder.
    */
   public static <C extends ConfigurationClient, S extends Configuration>
-  Builder<C, S> createBuilder(
+      Builder<C, S> createBuilder(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
     return new Builder<C, S>(d, propertyName);
   }
+
+  // The active server-side referential integrity change listeners
+  // associated with this property.
+  private final Map<DN, List<ReferentialIntegrityChangeListener>>
+      changeListeners =
+        new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
+
+  // The active server-side referential integrity delete listeners
+  // associated with this property.
+  private final Map<DN, List<ReferentialIntegrityDeleteListener>>
+      deleteListeners =
+        new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
 
   // The name of the managed object which is the parent of the
   // aggregated managed objects.
@@ -502,7 +789,7 @@ public final class AggregationPropertyDefinition
    * {@inheritDoc}
    */
   public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
-    ServerConstraintHandler handler = new ServerHandler<C, S>(this);
+    ServerConstraintHandler handler = new ServerHandler(this);
     return Collections.singleton(handler);
   }
 
