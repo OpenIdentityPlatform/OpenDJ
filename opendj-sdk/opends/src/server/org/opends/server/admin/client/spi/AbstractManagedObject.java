@@ -516,6 +516,31 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
 
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+
+    builder.append("{ TYPE=");
+    builder.append(definition.getName());
+    builder.append(", PATH=\"");
+    builder.append(path);
+    builder.append('\"');
+    for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
+      builder.append(", ");
+      builder.append(pd.getName());
+      builder.append('=');
+      builder.append(getPropertyValues(pd));
+    }
+    builder.append(" }");
+
+    return builder.toString();
+  }
+
+
+
+  /**
    * Adds this new managed object.
    *
    * @throws ManagedObjectAlreadyExistsException

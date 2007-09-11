@@ -543,7 +543,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
     // Change listener registration usually signifies that a managed
     // object has been accepted and added to the server configuration
-    // either during initialization post-add.
+    // during initialization post-add.
 
     // FIXME: we should prevent multiple invocations in the case where
     // multiple change listeners are registered for the same object.
@@ -619,6 +619,32 @@ public final class ServerManagedObject<S extends Configuration> implements
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
         listener);
     registerDeleteListener(baseDN, adaptor);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+
+    builder.append("{ TYPE=");
+    builder.append(definition.getName());
+    builder.append(", DN=\"");
+    builder.append(getDN());
+    builder.append('\"');
+    for (Map.Entry<PropertyDefinition<?>, SortedSet<?>> value : properties
+        .entrySet()) {
+      builder.append(", ");
+      builder.append(value.getKey().getName());
+      builder.append('=');
+      builder.append(value.getValue());
+    }
+    builder.append(" }");
+
+    return builder.toString();
   }
 
 
