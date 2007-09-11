@@ -85,8 +85,8 @@ public class LDAPConnectionConsoleInteraction {
   private enum Protocols
   {
     LDAP(1, INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()), SSL(2,
-        INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()), START_TSL(3,
-        INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TSL.get());
+        INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()), START_TLS(3,
+        INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
 
     private Integer choice;
 
@@ -383,7 +383,7 @@ public class LDAPConnectionConsoleInteraction {
             useSSL = true;
           }
           else if (result.getValue()
-              .equals(Protocols.START_TSL.getChoice()))
+              .equals(Protocols.START_TLS.getChoice()))
           {
             useStartTLS = true;
           }
