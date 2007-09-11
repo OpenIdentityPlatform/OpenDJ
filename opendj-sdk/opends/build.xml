@@ -134,6 +134,7 @@
   <property name="admin.defn.dir"  location="src/admin/defn" />
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
+  <property name="admin.gen.marker" location="${admin.src.dir}/.generated-successfully-marker" />
 
   <!-- Properties for generating messages. -->
   <property name="msg.prop.dir"    location="src/messages/messages" />
@@ -1722,7 +1723,9 @@
 
 
   <!-- Code generation for core administration components. -->
-  <target name="compileadmin" depends="validateadmin" description="Code generation for configuration Object.">
+  <target name="compileadmin" depends="checkadminuptodate,validateadmin" 
+       description="Code generation for configuration Object." 
+       unless="generatedAdmin.upToDate">
     <!-- The XSLT task creates a lot of noise.
          I can't find any other way to shut it up. -->
 
@@ -1742,6 +1745,11 @@
       <arg value="-quiet" />
       <arg value="compileadminsubtask" />
     </exec>
+   
+    <!-- Keeps track of the last time that we successfully generated 
+         the admin files so we only have to do it again if any of the
+         source files are out of date. -->
+    <touch file="${admin.gen.marker}" />
   </target>
 
 
@@ -1818,8 +1826,21 @@
     </delete>
   </target>
 
+  
+  <!-- Keeps track of the last time that we successfully generated 
+       the admin files so we only have to do it again if any of the
+       source files are out of date. -->
+  <target name="checkadminuptodate">
+    <uptodate property="generatedAdmin.upToDate">
+      <srcfiles dir="${admin.defn.dir}" includes="**/*.xml" />
+      <mapper type="merge" to="${admin.gen.marker}"/>
+    </uptodate>     
+  </target>
+
   <!-- Validate core administration component XML definition files. -->
-  <target name="validateadmin" description="Validate core administration component XML definition files.">
+  <target name="validateadmin" depends="checkadminuptodate" 
+    description="Validate core administration component XML definition files."
+    unless="generatedAdmin.upToDate">
     <schemavalidate>
       <fileset dir="${admin.defn.dir}" includes="**/*.xml" />
       <schema namespace="http://www.opends.org/admin" file="${admin.rules.dir}/admin.xsd"/>
