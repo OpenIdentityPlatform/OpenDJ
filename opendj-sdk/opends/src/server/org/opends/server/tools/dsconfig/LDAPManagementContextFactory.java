@@ -26,8 +26,9 @@
  */
 package org.opends.server.tools.dsconfig;
 
-
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.OpendsCertificationException;
+
 import static org.opends.messages.DSConfigMessages.*;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -101,38 +102,96 @@ public final class LDAPManagementContextFactory implements
       {
         InitialLdapContext ctx;
         String ldapsUrl = "ldaps://" + hostName + ":" + portNumber;
-        try
+        while (true)
         {
-          ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
-              bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
-              trustManager, keyManager);
-          conn = JNDIDirContextAdaptor.adapt(ctx);
-        }
-        catch (NamingException e)
-        {
-          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-              hostName, String.valueOf(portNumber));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
-              message) ;
+          try
+          {
+            ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
+                bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+                trustManager, keyManager);
+            conn = JNDIDirContextAdaptor.adapt(ctx);
+            break;
+          }
+          catch (NamingException e)
+          {
+            if ( app.isInteractive() && ci.isTrustStoreInMemory())
+            {
+              if ((e.getRootCause() != null)
+                  && (e.getRootCause().getCause()
+                      instanceof OpendsCertificationException))
+              {
+                OpendsCertificationException oce =
+                  (OpendsCertificationException) e.getRootCause().getCause();
+                  if (ci.checkServerCertificate(oce.getChain()))
+                  {
+                    // If the certificate is trusted, update the trust manager.
+                    trustManager = ci.getTrustManager();
+
+                    // Try to connect again.
+                    continue ;
+                  }
+              }
+              else
+              {
+                Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                    hostName, String.valueOf(portNumber));
+                throw new ClientException(
+                    LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+              }
+            }
+            Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                hostName, String.valueOf(portNumber));
+            throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+          }
         }
       }
       else if (ci.useStartTLS())
       {
         InitialLdapContext ctx;
         String ldapUrl = "ldap://" + hostName + ":" + portNumber;
-        try
+        while (true)
         {
-          ctx = ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
-              bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
-              trustManager, keyManager, null);
-          conn = JNDIDirContextAdaptor.adapt(ctx);
-        }
-        catch (NamingException e)
-        {
-          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-              hostName, String.valueOf(portNumber));
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
-              message) ;
+          try
+          {
+            ctx = ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
+                bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+                trustManager, keyManager, null);
+            conn = JNDIDirContextAdaptor.adapt(ctx);
+            break;
+          }
+          catch (NamingException e)
+          {
+            if ( app.isInteractive() && ci.isTrustStoreInMemory())
+            {
+              if ((e.getRootCause() != null)
+                  && (e.getRootCause().getCause()
+                      instanceof OpendsCertificationException))
+              {
+                OpendsCertificationException oce =
+                  (OpendsCertificationException) e.getRootCause().getCause();
+                  if (ci.checkServerCertificate(oce.getChain()))
+                  {
+                    // If the certificate is trusted, update the trust manager.
+                    trustManager = ci.getTrustManager();
+
+                    // Try to connect again.
+                    continue ;
+                  }
+              }
+              else
+              {
+                Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                    hostName, String.valueOf(portNumber));
+                throw new ClientException(
+                    LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+              }
+            }
+            Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                hostName, String.valueOf(portNumber));
+            throw new ClientException(
+                LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+          }
         }
       }
       else
