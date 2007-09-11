@@ -921,7 +921,7 @@ public class TextDebugLogPublisher
 
   private String buildDefaultEntryMessage(Object[] args)
   {
-    StringBuffer format = new StringBuffer();
+    StringBuilder format = new StringBuilder();
     for (int i = 0; i < args.length; i++)
     {
       if (i != 0) format.append(", ");

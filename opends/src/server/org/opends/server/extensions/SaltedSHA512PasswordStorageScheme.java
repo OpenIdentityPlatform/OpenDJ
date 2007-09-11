@@ -29,8 +29,8 @@ package org.opends.server.extensions;
 
 
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.Message;
@@ -98,7 +98,7 @@ public class SaltedSHA512PasswordStorageScheme
   private ReentrantLock digestLock;
 
   // The secure random number generator to use to generate the salt values.
-  private SecureRandom random;
+  private Random random;
 
 
 
@@ -140,7 +140,7 @@ public class SaltedSHA512PasswordStorageScheme
     }
 
     digestLock = new ReentrantLock();
-    random     = new SecureRandom();
+    random     = new Random();
   }
 
 
@@ -538,7 +538,7 @@ public class SaltedSHA512PasswordStorageScheme
          throws DirectoryException
   {
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
-    new SecureRandom().nextBytes(saltBytes);
+    new Random().nextBytes(saltBytes);
 
     byte[] passwordPlusSalt = new byte[passwordBytes.length + NUM_SALT_BYTES];
     System.arraycopy(passwordBytes, 0, passwordPlusSalt, 0,

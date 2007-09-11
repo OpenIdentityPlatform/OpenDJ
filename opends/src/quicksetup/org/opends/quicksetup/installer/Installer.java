@@ -855,7 +855,7 @@ public abstract class Installer extends GuiApplication {
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
-    StringBuffer cmd = new StringBuffer();
+    StringBuilder cmd = new StringBuilder();
     for (String s : argList)
     {
       if (cmd.length() > 0)

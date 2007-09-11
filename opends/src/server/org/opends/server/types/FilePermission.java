@@ -539,6 +539,17 @@ public class FilePermission
     }
 
 
+    // If we're running Java 6, then we'll use the methods that Java
+    // provides.  Even though it's potentially less fine-grained on a
+    // UNIX-based system, it is more efficient and doesn't require an
+    // external process.
+    if ((setReadableMethod != null) && (setWritableMethod != null) &&
+        (setExecutableMethod != null))
+    {
+      return setUsingJava(f, p);
+    }
+
+
     // If it's a UNIX-based system, then try using the chmod command
     // to set the permissions.  Otherwise (or if that fails), then try
     // to use the Java 6 API.
@@ -549,12 +560,6 @@ public class FilePermission
     }
 
     // FIXME -- Consider using cacls on Windows.
-
-    if ((setReadableMethod != null) && (setWritableMethod != null) &&
-        (setExecutableMethod != null))
-    {
-      return setUsingJava(f, p);
-    }
 
 
     // We have no way to set file permissions on this system.

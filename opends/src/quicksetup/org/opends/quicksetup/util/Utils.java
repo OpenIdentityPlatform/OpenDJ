@@ -517,7 +517,7 @@ public class Utils
   public static String getStringFromCollection(Collection<String> col,
       String separator)
   {
-    StringBuffer msg = new StringBuffer();
+    StringBuilder msg = new StringBuilder();
     for (String m : col)
     {
 
@@ -1139,7 +1139,7 @@ public class Utils
    */
   static public String listToString(List<?> list, String separator,
                                     String prefix, String suffix) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < list.size(); i++) {
       if (prefix != null) {
         sb.append(prefix);
@@ -1163,7 +1163,7 @@ public class Utils
    * @return String representing the list
    */
   static public String stringArrayToString(String[] array, String separator) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < array.length; i++) {
       sb.append(array[i]);
       if (i < array.length - 1) {

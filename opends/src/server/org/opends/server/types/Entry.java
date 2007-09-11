@@ -5447,9 +5447,10 @@ public class Entry
 
 
     // Next, the set of objectclasses.
+    final boolean typesOnly = exportConfig.typesOnly();
     if (exportConfig.includeObjectClasses())
     {
-      if (exportConfig.typesOnly())
+      if (typesOnly)
       {
         StringBuilder ocLine = new StringBuilder("objectClass:");
         writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
@@ -5490,7 +5491,7 @@ public class Entry
             continue;
           }
 
-          if (exportConfig.typesOnly())
+          if (typesOnly)
           {
             StringBuilder attrName = new StringBuilder(a.getName());
             for (String o : a.getOptions())
@@ -5552,7 +5553,7 @@ public class Entry
               continue;
             }
 
-            if (exportConfig.typesOnly())
+            if (typesOnly)
             {
               StringBuilder attrName = new StringBuilder(a.getName());
               for (String o : a.getOptions())
@@ -5620,7 +5621,7 @@ public class Entry
         {
           for (Attribute a : suppressedAttributes.get(t))
           {
-            if (exportConfig.typesOnly())
+            if (typesOnly)
             {
               StringBuilder attrName = new StringBuilder(a.getName());
               for (String o : a.getOptions())

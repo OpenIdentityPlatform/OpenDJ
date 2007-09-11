@@ -98,6 +98,17 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       new HashMap<DN, ImportContext>();
 
   /**
+   * The maximum number of parent ID values that we will remember.
+   */
+  private static final int PARENT_ID_MAP_SIZE = 50;
+
+  /**
+   * Map of likely parent entry DNs to their entry IDs.
+   */
+  private HashMap<DN,EntryID> parentIDMap =
+       new HashMap<DN,EntryID>(PARENT_ID_MAP_SIZE);
+
+  /**
    * The number of entries imported.
    */
   private int importedCount;
@@ -867,7 +878,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
             getParentWithinBase(entryDN);
         if (parentDN != null)
         {
-          parentID = dn2id.get(txn, parentDN);
+          parentID = getParentID(parentDN, dn2id, txn);
           if (parentID == null)
           {
             // Reject the entry.
@@ -949,6 +960,46 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         importContext.getEntryContainer().transactionAbort(txn);
       }
     }
+  }
+
+  /**
+   * Retrieves the entry ID for the entry with the given DN.  This will use an
+   * in-memory hash if possible, or will go to the database if it's not in
+   * cache.  This should only be used for cacheable operations (like getting the
+   * entry ID for the parent entry) where the same parent ID is likely to be
+   * used multiple times.
+   *
+   * @param  parentDN  The DN of the parent entry for which to retrieve the
+   *                   corresponding entry ID.
+   * @param  dn2id     The handle to the dn2id database to use if the parent DN
+   *                   isn't found in the local cache.
+   * @param  txn       The transaction to use when interacting with the dn2id
+   *                   database.
+   *
+   * @return  The entry ID for the entry with the given DN, or {@code null} if
+   *          no such entry exists.
+   */
+  private EntryID getParentID(DN parentDN, DN2ID dn2id, Transaction txn)
+          throws DatabaseException
+  {
+    EntryID parentID = parentIDMap.get(parentDN);
+    if (parentID != null)
+    {
+      return parentID;
+    }
+
+    parentID = dn2id.get(txn, parentDN);
+    if (parentID != null)
+    {
+      if (parentIDMap.size() >= PARENT_ID_MAP_SIZE)
+      {
+        parentIDMap.keySet().iterator().remove();
+      }
+
+      parentIDMap.put(parentDN, parentID);
+    }
+
+    return parentID;
   }
 
   /**

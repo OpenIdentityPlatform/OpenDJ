@@ -29,17 +29,17 @@ package org.opends.server.types;
 
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.Message;
-
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -148,7 +148,7 @@ public class DN
    * @param  rdnComponents  The set of RDN components that make up
    *                        this DN.
    */
-  public DN(ArrayList<RDN> rdnComponents)
+  public DN(List<RDN> rdnComponents)
   {
     if ((rdnComponents == null) || rdnComponents.isEmpty())
     {
@@ -491,14 +491,14 @@ public class DN
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
-      return new DN(new ArrayList<RDN>(0));
+      return NULL_DN;
     }
 
     byte[] dnBytes = dnString.value();
     int    length  = dnBytes.length;
     if (length == 0)
     {
-      return new DN(new ArrayList<RDN>(0));
+      return NULL_DN;
     }
 
 
@@ -527,7 +527,7 @@ public class DN
         // This means that the DN was completely comprised of spaces
         // and therefore should be considered the same as a null or
         // empty DN.
-        return new DN(new ArrayList<RDN>(0));
+        return NULL_DN;
       }
       else
       {
@@ -541,7 +541,7 @@ public class DN
     // components.
     boolean allowExceptions =
          DirectoryServer.allowAttributeNameExceptions();
-    ArrayList<RDN> rdnComponents = new ArrayList<RDN>();
+    LinkedList<RDN> rdnComponents = new LinkedList<RDN>();
     while (true)
     {
       StringBuilder attributeName = new StringBuilder();
@@ -885,13 +885,13 @@ public class DN
     // A null or empty DN is acceptable.
     if (dnString == null)
     {
-      return new DN(new ArrayList<RDN>(0));
+      return NULL_DN;
     }
 
     int length = dnString.length();
     if (length == 0)
     {
-      return new DN(new ArrayList<RDN>(0));
+      return NULL_DN;
     }
 
 
@@ -907,7 +907,7 @@ public class DN
         // This means that the DN was completely comprised of spaces
         // and therefore should be considered the same as a null or
         // empty DN.
-        return new DN(new ArrayList<RDN>(0));
+        return NULL_DN;
       }
       else
       {
@@ -921,7 +921,7 @@ public class DN
     // components.
     boolean allowExceptions =
          DirectoryServer.allowAttributeNameExceptions();
-    ArrayList<RDN> rdnComponents = new ArrayList<RDN>();
+    LinkedList<RDN> rdnComponents = new LinkedList<RDN>();
     while (true)
     {
       StringBuilder attributeName = new StringBuilder();
@@ -2675,6 +2675,11 @@ public class DN
                                      StringBuilder hexChars)
           throws DirectoryException
   {
+    if (hexChars.length() == 0)
+    {
+      return;
+    }
+
     try
     {
       byte[] hexBytes = hexStringToByteArray(hexChars.toString());

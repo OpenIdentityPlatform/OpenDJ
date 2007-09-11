@@ -553,9 +553,9 @@ public class NetworkGroup
    * @param  leftMargin  white spaces used to indent traces
    * @return a string buffer that contains trace information
    */
-  public StringBuffer toString(String leftMargin)
+  public StringBuilder toString(String leftMargin)
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     String newMargin = leftMargin + "   ";
 
     sb.append (leftMargin + "Networkgroup (" + networkGroupID+ "\n");
