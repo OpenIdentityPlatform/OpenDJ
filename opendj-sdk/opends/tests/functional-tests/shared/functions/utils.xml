@@ -1126,6 +1126,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="caseSensitive" type="optional" default="'true'">
+        <function-arg-description>
+          comparison using case sensitive, or not value is : true/false
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="nbExpected" type="optional" default="1">
         <function-arg-description>
           number of expected sub-string that must be in the main string
@@ -1136,12 +1142,19 @@
       
     <sequence>
       <script>
+        caseSensitiveInfo = '[case sensitive mode]'
+        
+        if caseSensitive == 'false':
+          string2find = string2find.lower()
+          mainString = mainString.lower()
+          caseSensitiveInfo = '[case insensitive mode]'
+      
         nbFound = mainString.count(string2find)
         if nbFound == nbExpected:
-            myMessage = 'SUCCESS : %s matches %s time(s) (expected %s)' % (string2find,nbFound,nbExpected)
+            myMessage = 'SUCCESS : %s matches %s time(s) (expected %s) %s' % (string2find,nbFound,nbExpected,caseSensitiveInfo)
             myRC=0
         else:
-            myMessage = 'ERROR : %s matches %s time(s) (expected %s) in "%s"' % (string2find,nbFound,nbExpected,mainString)
+            myMessage = 'ERROR : %s matches %s time(s) (expected %s) in "%s" %s' % (string2find,nbFound,nbExpected,mainString,caseSensitiveInfo)
             myRC=1
       </script>
       <if expr="myRC == 0">
