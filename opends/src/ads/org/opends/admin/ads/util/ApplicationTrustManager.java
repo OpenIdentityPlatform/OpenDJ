@@ -163,7 +163,10 @@ public class ApplicationTrustManager implements X509TrustManager
       lastRefusedChain = chain;
       lastRefusedAuthType = authType;
       lastRefusedCause = Cause.NOT_TRUSTED;
-      throw ce;
+      OpendsCertificationException e = new OpendsCertificationException(
+          chain);
+      e.initCause(ce);
+      throw e;
     }
 
     if (!explicitlyAccepted)
@@ -177,7 +180,10 @@ public class ApplicationTrustManager implements X509TrustManager
         lastRefusedChain = chain;
         lastRefusedAuthType = authType;
         lastRefusedCause = Cause.HOST_NAME_MISMATCH;
-        throw ce;
+        OpendsCertificationException e = new OpendsCertificationException(
+            chain);
+        e.initCause(ce);
+        throw e;
       }
     }
   }
@@ -214,7 +220,9 @@ public class ApplicationTrustManager implements X509TrustManager
       lastRefusedChain = chain;
       lastRefusedAuthType = authType;
       lastRefusedCause = Cause.NOT_TRUSTED;
-      throw ce;
+      OpendsCertificationException e = new OpendsCertificationException(chain);
+      e.initCause(ce);
+      throw e;
     }
 
     if (!explicitlyAccepted)
@@ -228,7 +236,10 @@ public class ApplicationTrustManager implements X509TrustManager
         lastRefusedChain = chain;
         lastRefusedAuthType = authType;
         lastRefusedCause = Cause.HOST_NAME_MISMATCH;
-        throw ce;
+        OpendsCertificationException e = new OpendsCertificationException(
+            chain);
+        e.initCause(ce);
+        throw e;
       }
     }
   }
@@ -334,8 +345,8 @@ public class ApplicationTrustManager implements X509TrustManager
     }
     if (!found)
     {
-      throw new CertificateException(
-          "Certificate not in list of accepted certificates");
+      throw new OpendsCertificationException(
+          "Certificate not in list of accepted certificates", chain);
     }
   }
 
@@ -368,8 +379,10 @@ public class ApplicationTrustManager implements X509TrustManager
 
       if (!matches)
       {
-        throw new CertificateException("Hostname mismatch between host name "+
-            host+" and subject DN: "+chain[0].getSubjectX500Principal());
+        throw new OpendsCertificationException(
+            "Hostname mismatch between host name " + host
+                + " and subject DN: " + chain[0].getSubjectX500Principal(),
+            chain);
       }
     }
   }

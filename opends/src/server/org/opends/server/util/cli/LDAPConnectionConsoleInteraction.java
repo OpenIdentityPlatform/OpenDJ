@@ -43,7 +43,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.cert.X509Certificate;
 
 /**
  * Supports interacting with a user through the command line to
@@ -68,6 +72,12 @@ public class LDAPConnectionConsoleInteraction {
 
   // the Console application
   private ConsoleApplication app;
+
+  // Indicate if the truststore in in memory
+  private boolean trustStoreInMemory = false;
+
+  // The truststore to use for the SSL or STARTTLS connection
+  private KeyStore truststore;
 
   /**
    * Enumeration description protocols for interactive CLI choices.
@@ -117,6 +127,105 @@ public class LDAPConnectionConsoleInteraction {
     }
   }
 
+  /**
+   * Enumeration description protocols for interactive CLI choices.
+   */
+  private enum TrustMethod
+  {
+    TRUSTALL(1, INFO_LDAP_CONN_PROMPT_SECURITY_USE_TRUST_ALL.get()),
+
+    TRUSTSTORE(2,INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE.get()),
+
+    DISPLAY_CERTIFICATE(3,INFO_LDAP_CONN_PROMPT_SECURITY_MANUAL_CHECK.get());
+
+    private Integer choice;
+
+    private Message msg;
+
+    /**
+     * Private constructor.
+     *
+     * @param i
+     *          the menu return value.
+     * @param s
+     *          the message message.
+     */
+    private TrustMethod(int i, Message msg)
+    {
+      choice = new Integer(i);
+      this.msg = msg;
+    }
+
+    /**
+     * Returns the choice number.
+     *
+     * @return the attribute name.
+     */
+    public Integer getChoice()
+    {
+      return choice;
+    }
+
+    /**
+     * Return the menu message.
+     *
+     * @return the menu message.
+     */
+    public Message getMenuMessage()
+    {
+      return msg;
+    }
+  }
+
+  /**
+   * Enumeration description server certificate trust option.
+   */
+  private enum TrustOption
+  {
+    UNTRUSTED(1, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()),
+    SESSION(2,INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
+    PERMAMENT(3,INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()),
+    CERTIFICATE_DETAILS(4,
+        INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
+
+    private Integer choice;
+
+    private Message msg;
+
+    /**
+     * Private constructor.
+     *
+     * @param i
+     *          the menu return value.
+     * @param s
+     *          the message message.
+     */
+    private TrustOption(int i, Message msg)
+    {
+      choice = new Integer(i);
+      this.msg = msg;
+    }
+
+    /**
+     * Returns the choice number.
+     *
+     * @return the attribute name.
+     */
+    public Integer getChoice()
+    {
+      return choice;
+    }
+
+    /**
+     * Return the menu message.
+     *
+     * @return the menu message.
+     */
+    public Message getMenuMessage()
+    {
+      return msg;
+    }
+  }
   /**
    * Constructs a parameterized instance.
    *
@@ -480,8 +589,25 @@ public class LDAPConnectionConsoleInteraction {
   private ApplicationTrustManager getTrustManagerInternal()
   throws ArgumentException
   {
-    boolean trustAll = secureArgsList.trustAllArg.isPresent();
-    if (app.isInteractive() && !secureArgsList.trustAllArg.isPresent())
+    // If we have the trustALL flag, don't do anything
+    // just return null
+    if (secureArgsList.trustAllArg.isPresent())
+    {
+      return null;
+    }
+
+      // Check if some trust manager info are set
+    boolean weDontKnowTheTrustMethod =
+      !(  secureArgsList.trustAllArg.isPresent()
+          ||
+          secureArgsList.trustStorePathArg.isPresent()
+          ||
+          secureArgsList.trustStorePasswordArg.isPresent()
+          ||
+          secureArgsList.trustStorePasswordFileArg.isPresent()
+        );
+    boolean askForTrustStore = false;
+    if (app.isInteractive() && weDontKnowTheTrustMethod)
     {
       if (!isHeadingDisplayed)
       {
@@ -491,29 +617,73 @@ public class LDAPConnectionConsoleInteraction {
         isHeadingDisplayed = true;
       }
 
+      app.println();
+      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+      builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_METHOD.get());
+
+      TrustMethod defaultTrustMethod = TrustMethod.DISPLAY_CERTIFICATE;
+      for (TrustMethod t : TrustMethod.values())
+      {
+        int i = builder.addNumberedOption(t.getMenuMessage(), MenuResult
+            .success(t.getChoice()));
+        if (t.equals(defaultTrustMethod))
+        {
+          builder.setDefault(
+              INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
+                  .get(new Integer(i)), MenuResult.success(t.getChoice()));
+        }
+      }
+
+      Menu<Integer> menu = builder.toMenu();
+      trustStoreInMemory = false;
       try
       {
-        app.println();
-        trustAll = app.confirmAction(
-                INFO_LDAP_CONN_PROMPT_SECURITY_USE_TRUST_ALL.get(), false);
+        MenuResult<Integer> result = menu.run();
+        if (result.isSuccess())
+        {
+          if (result.getValue().equals(TrustMethod.TRUSTALL.getChoice()))
+          {
+            // If we have the trustALL flag, don't do anything
+            // just return null
+            return null;
+          }
+          else if (result.getValue().equals(
+              TrustMethod.TRUSTSTORE.getChoice()))
+          {
+            // We have to ask for truststore info
+            askForTrustStore = true;
+          }
+          else if (result.getValue().equals(
+              TrustMethod.DISPLAY_CERTIFICATE.getChoice()))
+          {
+            // The certificate will be displayed to the user
+            askForTrustStore = false;
+            trustStoreInMemory = true;
+          }
+          else
+          {
+            // Should never happen.
+            throw new RuntimeException();
+          }
+        }
+        else
+        {
+          // Should never happen.
+          throw new RuntimeException();
+        }
       }
       catch (CLIException e)
       {
-        // Should never happen.
         throw new RuntimeException(e);
-      }
-    }
 
-    // Trust everything, so no trust manager
-    if (trustAll)
-    {
-      return null;
+      }
     }
 
     // If we not trust all server certificates, we have to get info
     // about truststore. First get the truststore path.
     String truststorePath = secureArgsList.trustStorePathArg.getValue();
-    if (app.isInteractive() && !secureArgsList.trustStorePathArg.isPresent())
+    if (app.isInteractive() && !secureArgsList.trustStorePathArg.isPresent()
+        && askForTrustStore)
     {
       if (!isHeadingDisplayed)
       {
@@ -610,17 +780,24 @@ public class LDAPConnectionConsoleInteraction {
     // We'we got all the information to get the truststore manager
     try
     {
-      FileInputStream fos = new FileInputStream(truststorePath);
-      KeyStore truststore = KeyStore.getInstance(KeyStore.getDefaultType());
-      if (truststorePassword != null)
+      truststore = KeyStore.getInstance(KeyStore.getDefaultType());
+      if (truststorePath != null)
       {
-        truststore.load(fos, truststorePassword.toCharArray());
+        FileInputStream fos = new FileInputStream(truststorePath);
+        if (truststorePassword != null)
+        {
+          truststore.load(fos, truststorePassword.toCharArray());
+        }
+        else
+        {
+          truststore.load(fos, null);
+        }
+        fos.close();
       }
       else
       {
-        truststore.load(fos, null);
+        truststore.load(null, null);
       }
-      fos.close();
       return new ApplicationTrustManager(truststore);
     }
     catch (Exception e)
@@ -890,6 +1067,217 @@ public class LDAPConnectionConsoleInteraction {
     return this.keyManager;
   }
 
+  /**
+   * Indicate if the truststore is in memory.
+   *
+   * @return true if the truststore is in memory.
+   */
+  public boolean isTrustStoreInMemory() {
+    return this.trustStoreInMemory;
+  }
 
+  /**
+   * Indicate if the certificate chain can be trusted.
+   *
+   * @param chain The certificate chain to validate
+   * @return true if the server certificate is trusted.
+   */
+  public boolean checkServerCertificate(X509Certificate[] chain)
+  {
+    app.println();
+    app.println(INFO_LDAP_CONN_PROMPT_SECURITY_SERVER_CERTIFICATE.get());
+    app.println();
+    for (int i = 0; i < chain.length; i++)
+    {
+      // Certificate DN
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(
+          chain[i].getSubjectDN().toString()));
+
+      // certificate validity
+      app.println(
+          INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
+              chain[i].getNotBefore().toString(),
+              chain[i].getNotAfter().toString()));
+
+      // certificate Issuer
+      app.println(
+          INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(
+              chain[i].getIssuerDN().toString()));
+
+      if (i+1 <chain.length)
+      {
+        app.println();
+        app.println();
+      }
+    }
+    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+    builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION.get());
+
+    TrustOption defaultTrustMethod = TrustOption.SESSION ;
+    for (TrustOption t : TrustOption.values())
+    {
+      int i = builder.addNumberedOption(t.getMenuMessage(), MenuResult
+          .success(t.getChoice()));
+      if (t.equals(defaultTrustMethod))
+      {
+        builder.setDefault(
+            INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
+                .get(new Integer(i)), MenuResult.success(t.getChoice()));
+      }
+    }
+
+    app.println();
+    app.println();
+
+    Menu<Integer> menu = builder.toMenu();
+    while (true)
+    {
+      try
+      {
+        MenuResult<Integer> result = menu.run();
+        if (result.isSuccess())
+        {
+          if (result.getValue().equals(TrustOption.UNTRUSTED.getChoice()))
+          {
+            return false;
+          }
+
+          if ((result.getValue().equals(TrustOption.CERTIFICATE_DETAILS
+              .getChoice())))
+          {
+            for (int i = 0; i < chain.length; i++)
+            {
+              app.println();
+              app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE
+                  .get(chain[i].toString()));
+            }
+            continue;
+          }
+
+          // We should add it in the memory truststore
+          for (int i = 0; i < chain.length; i++)
+          {
+            String alias = chain[i].getSubjectDN().getName();
+            try
+            {
+              truststore.setCertificateEntry(alias, chain[i]);
+            }
+            catch (KeyStoreException e1)
+            {
+              // What should we do else?
+              return false;
+            }
+          }
+
+          // Update the trust manager
+          trustManager = new ApplicationTrustManager(truststore);
+
+          if (result.getValue().equals(TrustOption.PERMAMENT.getChoice()))
+          {
+            ValidationCallback<String> callback =
+              new ValidationCallback<String>()
+            {
+              public String validate(ConsoleApplication app, String input)
+                  throws CLIException
+              {
+                String ninput = input.trim();
+                if (ninput.length() == 0)
+                {
+                  app.println();
+                  app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
+                      .get());
+                  app.println();
+                  return null;
+                }
+                File f = new File(ninput);
+                if (!f.isDirectory())
+                {
+                  return ninput;
+                }
+                else
+                {
+                  app.println();
+                  app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
+                      .get());
+                  app.println();
+                  return null;
+                }
+              }
+            };
+
+            String truststorePath;
+            try
+            {
+              app.println();
+              truststorePath = app.readValidatedInput(
+                  INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
+                  callback);
+            }
+            catch (CLIException e)
+            {
+              return true;
+            }
+
+            // Read the password from the stdin.
+            String truststorePassword;
+            try
+            {
+              app.println();
+              Message prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
+                  .get(truststorePath);
+              truststorePassword = app.readPassword(prompt);
+            }
+            catch (Exception e)
+            {
+              return true;
+            }
+            try
+            {
+              KeyStore ts = KeyStore.getInstance("JKS");
+              FileInputStream fis;
+              try
+              {
+                fis = new FileInputStream(truststorePath);
+              }
+              catch (FileNotFoundException e)
+              {
+                fis = null;
+              }
+              ts.load(fis, truststorePassword.toCharArray());
+              if (fis != null)
+              {
+                fis.close();
+              }
+              for (int i = 0; i < chain.length; i++)
+              {
+                String alias = chain[i].getSubjectDN().getName();
+                ts.setCertificateEntry(alias, chain[i]);
+              }
+              FileOutputStream fos = new FileOutputStream(truststorePath);
+              ts.store(fos, truststorePassword.toCharArray());
+              if (fos != null)
+              {
+                fos.close();
+              }
+            }
+            catch (Exception e)
+            {
+              return true;
+            }
+          }
+          return true;
+        }
+        else
+        {
+          // Should never happen.
+          throw new RuntimeException();
+        }
+      }
+      catch (CLIException cliE)
+      {
+        throw new RuntimeException(cliE);
+      }
+    }
+  }
 
 }
