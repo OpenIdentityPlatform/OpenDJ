@@ -737,6 +737,7 @@
           #@TestPostamble
           #@TestResult
           -->
+          <!--
           <testcase name="getTestCaseName('member: enable referential integrity plugin')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -746,7 +747,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
-          
+          -->
           
           
           

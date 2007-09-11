@@ -716,6 +716,7 @@
           #@TestPostamble
           #@TestResult
           -->
+          <!--
           <testcase name="getTestCaseName('uniquemember: enable referential integrity plugin')">
             <sequence>
               <call function="'testCase_Preamble'"/>
@@ -725,6 +726,7 @@
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
+          -->
           
           <!-- *********************************************** -->
           <import machine="STAF_LOCAL_HOSTNAME"
