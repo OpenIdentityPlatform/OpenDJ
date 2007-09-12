@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import java.security.MessageDigest;
 import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SHA1PasswordStorageSchemeCfg;
@@ -83,7 +82,7 @@ public class SHA1PasswordStorageScheme
   private MessageDigest messageDigest;
 
   // The lock used to provide threadsafe access to the message digest.
-  private ReentrantLock digestLock;
+  private Object digestLock;
 
 
 
@@ -123,7 +122,7 @@ public class SHA1PasswordStorageScheme
       throw new InitializationException(message, e);
     }
 
-    digestLock = new ReentrantLock();
+    digestLock = new Object();
   }
 
 
@@ -148,27 +147,24 @@ public class SHA1PasswordStorageScheme
   {
     byte[] digestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      digestBytes = messageDigest.digest(plaintext.value());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        digestBytes = messageDigest.digest(plaintext.value());
       }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      digestLock.unlock();
+        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+            CLASS_NAME, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, e);
+      }
     }
 
     return ByteStringFactory.create(Base64.encode(digestBytes));
@@ -190,27 +186,24 @@ public class SHA1PasswordStorageScheme
 
     byte[] digestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      digestBytes = messageDigest.digest(plaintext.value());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        digestBytes = messageDigest.digest(plaintext.value());
       }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      digestLock.unlock();
+        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+            CLASS_NAME, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, e);
+      }
     }
 
     buffer.append(Base64.encode(digestBytes));
@@ -229,24 +222,21 @@ public class SHA1PasswordStorageScheme
   {
     byte[] userPWDigestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      userPWDigestBytes = messageDigest.digest(plaintextPassword.value());
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        userPWDigestBytes = messageDigest.digest(plaintextPassword.value());
       }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
 
-      return false;
-    }
-    finally
-    {
-      digestLock.unlock();
+        return false;
+      }
     }
 
     byte[] storedPWDigestBytes;

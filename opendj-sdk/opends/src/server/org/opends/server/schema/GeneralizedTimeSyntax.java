@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
-import org.opends.messages.Message;
 
 
 
@@ -34,8 +33,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -44,20 +44,17 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-
-
 import org.opends.server.types.ResultCode;
 
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.SchemaMessages.*;
-import org.opends.messages.MessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -82,7 +79,7 @@ public class GeneralizedTimeSyntax
    * The lock that will be used to provide threadsafe access to the date
    * formatter.
    */
-  private static ReentrantLock dateFormatLock;
+  private static Object dateFormatLock;
 
 
 
@@ -115,7 +112,7 @@ public class GeneralizedTimeSyntax
     dateFormat.setLenient(false);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-    dateFormatLock = new ReentrantLock();
+    dateFormatLock = new Object();
   }
 
 
@@ -301,15 +298,9 @@ public class GeneralizedTimeSyntax
    */
   public static String format(Date d)
   {
-    dateFormatLock.lock();
-
-    try
+    synchronized (dateFormatLock)
     {
       return dateFormat.format(d);
-    }
-    finally
-    {
-      dateFormatLock.unlock();
     }
   }
 
@@ -324,15 +315,9 @@ public class GeneralizedTimeSyntax
    */
   public static String format(long t)
   {
-    dateFormatLock.lock();
-
-    try
+    synchronized (dateFormatLock)
     {
       return dateFormat.format(new Date(t));
-    }
-    finally
-    {
-      dateFormatLock.unlock();
     }
   }
 
@@ -351,25 +336,9 @@ public class GeneralizedTimeSyntax
   {
     String valueString;
 
-    dateFormatLock.lock();
-
-    try
+    synchronized (dateFormatLock)
     {
       valueString = dateFormat.format(new Date(time));
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // This should never happen.
-      valueString = null;
-    }
-    finally
-    {
-      dateFormatLock.unlock();
     }
 
     return new AttributeValue(new ASN1OctetString(valueString),

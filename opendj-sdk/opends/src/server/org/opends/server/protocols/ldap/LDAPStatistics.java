@@ -25,27 +25,26 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
-import org.opends.messages.Message;
 
 
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 
@@ -120,11 +119,11 @@ public class LDAPStatistics
   // The locks used to provide threadsafe access to this class.  In this case,
   // read and write refer to the type of LDAP communication, not access to the
   // protected data.
-  private ReentrantLock abandonLock;
-  private ReentrantLock connectLock;
-  private ReentrantLock disconnectLock;
-  private ReentrantLock readLock;
-  private ReentrantLock writeLock;
+  private Object abandonLock;
+  private Object connectLock;
+  private Object disconnectLock;
+  private Object readLock;
+  private Object writeLock;
 
   // The instance name for this monitor provider instance.
   private String instanceName;
@@ -162,11 +161,11 @@ public class LDAPStatistics
     this.instanceName = instanceName;
     this.parent       = parent;
 
-    abandonLock    = new ReentrantLock();
-    connectLock    = new ReentrantLock();
-    disconnectLock = new ReentrantLock();
-    readLock       = new ReentrantLock();
-    writeLock      = new ReentrantLock();
+    abandonLock    = new Object();
+    connectLock    = new Object();
+    disconnectLock = new Object();
+    readLock       = new Object();
+    writeLock      = new Object();
 
     abandonRequests        = 0;
     addRequests            = 0;
@@ -307,25 +306,15 @@ public class LDAPStatistics
     // Quickly grab the locks and store consistent copies of the information.
     // Note that when grabbing multiple locks, it is essential that they are all
     // acquired in the same order to prevent deadlocks.
-    abandonLock.lock();
-
-    try
+    synchronized (abandonLock)
     {
-      connectLock.lock();
-
-      try
+      synchronized (connectLock)
       {
-        disconnectLock.lock();
-
-        try
+        synchronized (disconnectLock)
         {
-          writeLock.lock();
-
-          try
+          synchronized (writeLock)
           {
-            readLock.lock();
-
-            try
+            synchronized (readLock)
             {
               tmpAbandonRequests        = abandonRequests;
               tmpAddRequests            = addRequests;
@@ -357,74 +346,9 @@ public class LDAPStatistics
               tmpSearchResultsDone      = searchResultsDone;
               tmpUnbindRequests         = unbindRequests;
             }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              return attrs;
-            }
-            finally
-            {
-              readLock.unlock();
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            return attrs;
-          }
-          finally
-          {
-            writeLock.unlock();
           }
         }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          return attrs;
-        }
-        finally
-        {
-          disconnectLock.unlock();
-        }
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        return attrs;
-      }
-      finally
-      {
-        connectLock.unlock();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      return attrs;
-    }
-    finally
-    {
-      abandonLock.unlock();
     }
 
 
@@ -496,25 +420,15 @@ public class LDAPStatistics
     // Quickly grab the locks and store consistent copies of the information.
     // Note that when grabbing multiple locks, it is essential that they are all
     // acquired in the same order to prevent deadlocks.
-    abandonLock.lock();
-
-    try
+    synchronized (abandonLock)
     {
-      connectLock.lock();
-
-      try
+      synchronized (connectLock)
       {
-        disconnectLock.lock();
-
-        try
+        synchronized (disconnectLock)
         {
-          writeLock.lock();
-
-          try
+          synchronized (writeLock)
           {
-            readLock.lock();
-
-            try
+            synchronized (readLock)
             {
               abandonRequests        = 0;
               addRequests            = 0;
@@ -546,64 +460,9 @@ public class LDAPStatistics
               searchResultsDone      = 0;
               unbindRequests         = 0;
             }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-            }
-            finally
-            {
-              readLock.unlock();
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-          }
-          finally
-          {
-            writeLock.unlock();
           }
         }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-        finally
-        {
-          disconnectLock.unlock();
-        }
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-      finally
-      {
-        connectLock.unlock();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      abandonLock.unlock();
     }
   }
 
@@ -615,22 +474,9 @@ public class LDAPStatistics
    */
   public void updateConnect()
   {
-    connectLock.lock();
-
-    try
+    synchronized (connectLock)
     {
       connectionsEstablished++;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      connectLock.unlock();
     }
 
     // Update the parent if there is one.
@@ -648,22 +494,9 @@ public class LDAPStatistics
    */
   public void updateDisconnect()
   {
-    disconnectLock.lock();
-
-    try
+    synchronized (disconnectLock)
     {
       connectionsClosed++;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      disconnectLock.unlock();
     }
 
     // Update the parent if there is one.
@@ -683,22 +516,9 @@ public class LDAPStatistics
    */
   public void updateBytesRead(int bytesRead)
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       this.bytesRead += bytesRead;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      readLock.unlock();
     }
 
     // Update the parent if there is one.
@@ -718,9 +538,7 @@ public class LDAPStatistics
    */
   public void updateMessageRead(LDAPMessage message)
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       messagesRead++;
       operationsInitiated++;
@@ -759,17 +577,6 @@ public class LDAPStatistics
           break;
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      readLock.unlock();
-    }
 
     // Update the parent if there is one.
     if (parent != null)
@@ -789,9 +596,7 @@ public class LDAPStatistics
    */
   public void updateMessageWritten(LDAPMessage message, int bytesWritten)
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       this.bytesWritten += bytesWritten;
       messagesWritten++;
@@ -844,17 +649,6 @@ public class LDAPStatistics
           break;
       }
     }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      writeLock.unlock();
-    }
 
     // Update the parent if there is one.
     if (parent != null)
@@ -871,22 +665,9 @@ public class LDAPStatistics
    */
   public void updateAbandonedOperation()
   {
-    abandonLock.lock();
-
-    try
+    synchronized (abandonLock)
     {
       operationsAbandoned++;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-    finally
-    {
-      abandonLock.unlock();
     }
 
     // Update the parent if there is one.
@@ -941,15 +722,9 @@ public class LDAPStatistics
    */
   public long getConnectionsEstablished()
   {
-    connectLock.lock();
-
-    try
+    synchronized (connectLock)
     {
       return connectionsEstablished;
-    }
-    finally
-    {
-      connectLock.unlock();
     }
   }
 
@@ -962,15 +737,9 @@ public class LDAPStatistics
    */
   public long getConnectionsClosed()
   {
-    disconnectLock.lock();
-
-    try
+    synchronized (disconnectLock)
     {
       return connectionsClosed;
-    }
-    finally
-    {
-      disconnectLock.unlock();
     }
   }
 
@@ -983,15 +752,9 @@ public class LDAPStatistics
    */
   public long getBytesRead()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return bytesRead;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1004,15 +767,9 @@ public class LDAPStatistics
    */
   public long getBytesWritten()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return bytesWritten;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1025,15 +782,9 @@ public class LDAPStatistics
    */
   public long getMessagesRead()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return messagesRead;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1046,15 +797,9 @@ public class LDAPStatistics
    */
   public long getMessagesWritten()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return messagesWritten;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1067,15 +812,9 @@ public class LDAPStatistics
    */
   public long getOperationsInitiated()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return operationsInitiated;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1090,15 +829,9 @@ public class LDAPStatistics
    */
   public long getOperationsCompleted()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return operationsCompleted;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1111,15 +844,9 @@ public class LDAPStatistics
    */
   public long getOperationsAbandoned()
   {
-    abandonLock.lock();
-
-    try
+    synchronized (abandonLock)
     {
       return operationsAbandoned;
-    }
-    finally
-    {
-      abandonLock.unlock();
     }
   }
 
@@ -1132,15 +859,9 @@ public class LDAPStatistics
    */
   public long getAbandonRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return abandonRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1153,15 +874,9 @@ public class LDAPStatistics
    */
   public long getAddRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return addRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1174,15 +889,9 @@ public class LDAPStatistics
    */
   public long getAddResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return addResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1195,15 +904,9 @@ public class LDAPStatistics
    */
   public long getBindRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return bindRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1216,15 +919,9 @@ public class LDAPStatistics
    */
   public long getBindResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return bindResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1237,15 +934,9 @@ public class LDAPStatistics
    */
   public long getCompareRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return compareRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1258,15 +949,9 @@ public class LDAPStatistics
    */
   public long getCompareResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return compareResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1279,15 +964,9 @@ public class LDAPStatistics
    */
   public long getDeleteRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return deleteRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1300,15 +979,9 @@ public class LDAPStatistics
    */
   public long getDeleteResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return deleteResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1321,15 +994,9 @@ public class LDAPStatistics
    */
   public long getExtendedRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return extendedRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1342,15 +1009,9 @@ public class LDAPStatistics
    */
   public long getExtendedResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return extendedResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1363,15 +1024,9 @@ public class LDAPStatistics
    */
   public long getModifyRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return modifyRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1384,15 +1039,9 @@ public class LDAPStatistics
    */
   public long getModifyResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return modifyResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1405,15 +1054,9 @@ public class LDAPStatistics
    */
   public long getModifyDNRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return modifyDNRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1426,15 +1069,9 @@ public class LDAPStatistics
    */
   public long getModifyDNResponses()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return modifyDNResponses;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1447,15 +1084,9 @@ public class LDAPStatistics
    */
   public long getSearchRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return searchRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 
@@ -1468,15 +1099,9 @@ public class LDAPStatistics
    */
   public long getSearchResultEntries()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return searchResultEntries;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1489,15 +1114,9 @@ public class LDAPStatistics
    */
   public long getSearchResultReferences()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return searchResultReferences;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1510,15 +1129,9 @@ public class LDAPStatistics
    */
   public long getSearchResultsDone()
   {
-    writeLock.lock();
-
-    try
+    synchronized (writeLock)
     {
       return searchResultsDone;
-    }
-    finally
-    {
-      writeLock.unlock();
     }
   }
 
@@ -1531,15 +1144,9 @@ public class LDAPStatistics
    */
   public long getUnbindRequests()
   {
-    readLock.lock();
-
-    try
+    synchronized (readLock)
     {
       return unbindRequests;
-    }
-    finally
-    {
-      readLock.unlock();
     }
   }
 

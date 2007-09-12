@@ -33,14 +33,13 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.HashMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.api.Backend;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
+
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -74,7 +73,7 @@ public class LockFileManager
        new HashMap<String,Integer>();
 
   // The lock providing threadsafe access to the lock map data.
-  private static ReentrantLock mapLock = new ReentrantLock();
+  private static Object mapLock = new Object();
 
 
 
@@ -91,9 +90,7 @@ public class LockFileManager
   public static boolean acquireSharedLock(String lockFile,
                                           StringBuilder failureReason)
   {
-    mapLock.lock();
-
-    try
+    synchronized (mapLock)
     {
       // Check to see if there's already an exclusive lock on the file.  If so,
       // then we can't get a shared lock on it.
@@ -249,10 +246,6 @@ public class LockFileManager
         return true;
       }
     }
-    finally
-    {
-      mapLock.unlock();
-    }
   }
 
 
@@ -270,9 +263,7 @@ public class LockFileManager
   public static boolean acquireExclusiveLock(String lockFile,
                                              StringBuilder failureReason)
   {
-    mapLock.lock();
-
-    try
+    synchronized (mapLock)
     {
       // Check to see if there's already an exclusive lock on the file.  If so,
       // then we can't get another exclusive lock on it.
@@ -424,10 +415,6 @@ public class LockFileManager
         return true;
       }
     }
-    finally
-    {
-      mapLock.unlock();
-    }
   }
 
 
@@ -451,9 +438,7 @@ public class LockFileManager
   public static boolean releaseLock(String lockFile,
                                     StringBuilder failureReason)
   {
-    mapLock.lock();
-
-    try
+    synchronized (mapLock)
     {
       // See if we hold an exclusive lock on the file.  If so, then release it
       // and get remove it from the lock table.
@@ -553,10 +538,6 @@ public class LockFileManager
       // we never had.  Both of them are bad.
       failureReason.append(ERR_FILELOCKER_UNLOCK_UNKNOWN_FILE.get(lockFile));
       return false;
-    }
-    finally
-    {
-      mapLock.unlock();
     }
   }
 

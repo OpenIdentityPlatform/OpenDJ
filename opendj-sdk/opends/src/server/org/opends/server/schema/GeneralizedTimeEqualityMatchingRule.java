@@ -28,23 +28,19 @@ package org.opends.server.schema;
 
 
 
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.opends.server.admin.std.server.EqualityMatchingRuleCfg;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -60,44 +56,6 @@ public class GeneralizedTimeEqualityMatchingRule
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  /**
-   * The lock that will be used to provide threadsafe access to the date
-   * formatter.
-   */
-  private static ReentrantLock dateFormatLock;
-
-
-
-  /**
-   * The date formatter that will be used to convert dates into generalized time
-   * values.  Note that all interaction with it must be synchronized.
-   */
-  private static SimpleDateFormat dateFormat;
-
-
-
-  /**
-   * The time zone used for UTC time.
-   */
-  private static TimeZone utcTimeZone;
-
-
-
-  /*
-   * Create the date formatter that will be used to construct and parse
-   * normalized generalized time values.
-   */
-  static
-  {
-    utcTimeZone = TimeZone.getTimeZone("UTC");
-
-    dateFormat = new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
-    dateFormat.setLenient(false);
-    dateFormat.setTimeZone(utcTimeZone);
-
-    dateFormatLock = new ReentrantLock();
-  }
 
 
 

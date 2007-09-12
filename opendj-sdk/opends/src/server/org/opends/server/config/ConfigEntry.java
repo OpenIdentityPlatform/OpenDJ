@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
 
 
 
@@ -34,12 +33,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -47,10 +47,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.DebugLogLevel;
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -94,7 +93,7 @@ public final class ConfigEntry
   private Entry entry;
 
   // The lock used to provide threadsafe access to this configuration entry.
-  private ReentrantLock entryLock;
+  private Object entryLock;
 
 
 
@@ -115,7 +114,7 @@ public final class ConfigEntry
     addListeners    = new CopyOnWriteArrayList<ConfigAddListener>();
     changeListeners = new CopyOnWriteArrayList<ConfigChangeListener>();
     deleteListeners = new CopyOnWriteArrayList<ConfigDeleteListener>();
-    entryLock       = new ReentrantLock();
+    entryLock       = new Object();
   }
 
 
@@ -144,15 +143,9 @@ public final class ConfigEntry
    */
   public void setEntry(Entry entry)
   {
-    entryLock.lock();
-
-    try
+    synchronized (entryLock)
     {
       this.entry = entry;
-    }
-    finally
-    {
-      entryLock.unlock();
     }
   }
 
@@ -358,24 +351,9 @@ public final class ConfigEntry
   {
     ConfigEntry conflictingChild;
 
-    entryLock.lock();
-
-    try
+    synchronized (entryLock)
     {
       conflictingChild = children.putIfAbsent(childEntry.getDN(), childEntry);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      conflictingChild = null;
-    }
-    finally
-    {
-      entryLock.unlock();
     }
 
     if (conflictingChild != null)
@@ -405,47 +383,44 @@ public final class ConfigEntry
   public ConfigEntry removeChild(DN childDN)
          throws ConfigException
   {
-    entryLock.lock();
-
-    try
+    synchronized (entryLock)
     {
-      ConfigEntry childEntry = children.get(childDN);
-      if (childEntry == null)
+      try
       {
-        Message message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
-            childDN.toString(), entry.getDN().toString());
-        throw new ConfigException(message);
-      }
+        ConfigEntry childEntry = children.get(childDN);
+        if (childEntry == null)
+        {
+          Message message = ERR_CONFIG_ENTRY_NO_SUCH_CHILD.get(
+              childDN.toString(), entry.getDN().toString());
+          throw new ConfigException(message);
+        }
 
-      if (childEntry.hasChildren())
+        if (childEntry.hasChildren())
+        {
+          Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
+              childDN.toString(), entry.getDN().toString());
+          throw new ConfigException(message);
+        }
+
+        children.remove(childDN);
+        return childEntry;
+      }
+      catch (ConfigException ce)
       {
-        Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_NONLEAF.get(
-            childDN.toString(), entry.getDN().toString());
-        throw new ConfigException(message);
+        throw ce;
       }
-
-      children.remove(childDN);
-      return childEntry;
-    }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      catch (Exception e)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
 
-      Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
-          get(String.valueOf(childDN), String.valueOf(entry.getDN()),
-              stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
-    }
-    finally
-    {
-      entryLock.unlock();
+        Message message = ERR_CONFIG_ENTRY_CANNOT_REMOVE_CHILD.
+            get(String.valueOf(childDN), String.valueOf(entry.getDN()),
+                stackTraceToSingleLineString(e));
+        throw new ConfigException(message, e);
+      }
     }
   }
 

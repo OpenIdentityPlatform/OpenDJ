@@ -53,7 +53,6 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.crypto.Mac;
 
 import org.opends.messages.Message;
@@ -155,7 +154,7 @@ public class ConfigFileHandler
 
   // The write lock used to ensure that only one thread can apply a
   // configuration update at any given time.
-  private ReentrantLock configLock;
+  private Object configLock;
 
   // The path to the configuration file.
   private String configFile;
@@ -196,7 +195,7 @@ public class ConfigFileHandler
          throws InitializationException
   {
     // Initialize the config lock.
-    configLock = new ReentrantLock();
+    configLock = new Object();
 
 
     // Determine whether we should try to start using the last known good
@@ -1276,9 +1275,7 @@ public class ConfigFileHandler
 
     // Grab the config lock to ensure that only one config update may be in
     // progress at any given time.
-    configLock.lock();
-
-    try
+    synchronized (configLock)
     {
       // Make sure that the target DN does not already exist.  If it does, then
       // fail.
@@ -1414,10 +1411,6 @@ public class ConfigFileHandler
         throw new DirectoryException(resultCode, message);
       }
     }
-    finally
-    {
-      configLock.unlock();
-    }
   }
 
 
@@ -1456,9 +1449,7 @@ public class ConfigFileHandler
 
     // Grab the config lock to ensure that only one config update may be in
     // progress at any given time.
-    configLock.lock();
-
-    try
+    synchronized (configLock)
     {
       // Get the target entry.  If it does not exist, then fail.
       ConfigEntry entry = configEntries.get(entryDN);
@@ -1590,10 +1581,6 @@ public class ConfigFileHandler
         throw new DirectoryException(resultCode, message);
       }
     }
-    finally
-    {
-      configLock.unlock();
-    }
   }
 
 
@@ -1656,10 +1643,7 @@ public class ConfigFileHandler
 
     // Grab the config lock to ensure that only one config update may be in
     // progress at any given time.
-    configLock.lock();
-
-
-    try
+    synchronized (configLock)
     {
       // Get the DN of the target entry for future reference.
       DN entryDN = e.getDN();
@@ -1772,10 +1756,6 @@ public class ConfigFileHandler
             ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(String.valueOf(buffer));
         throw new DirectoryException(resultCode, message);
       }
-    }
-    finally
-    {
-      configLock.unlock();
     }
   }
 

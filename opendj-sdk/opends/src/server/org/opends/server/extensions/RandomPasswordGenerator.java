@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -34,17 +33,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
-import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringFactory;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -52,11 +53,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.NamedCharacterSet;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -97,7 +95,7 @@ public class RandomPasswordGenerator
 
   // The lock to use to ensure that the character sets and counts are not
   // altered while a password is being generated.
-  private ReentrantLock generatorLock;
+  private Object generatorLock;
 
   // The character set format string for this password generator.
   private String formatString;
@@ -113,8 +111,7 @@ public class RandomPasswordGenerator
          throws ConfigException, InitializationException
   {
     this.configEntryDN = configuration.dn();
-    generatorLock = new ReentrantLock();
-    int msgID ;
+    generatorLock = new Object();
 
     // Get the character sets for use in generating the password.  At least one
     // must have been provided.
@@ -275,18 +272,12 @@ public class RandomPasswordGenerator
   {
     StringBuilder buffer = new StringBuilder(totalLength);
 
-    generatorLock.lock();
-
-    try
+    synchronized (generatorLock)
     {
       for (int i=0; i < characterSets.length; i++)
       {
         characterSets[i].getRandomCharacters(buffer, characterCounts[i]);
       }
-    }
-    finally
-    {
-      generatorLock.unlock();
     }
 
     return ByteStringFactory.create(buffer.toString());
@@ -315,8 +306,6 @@ public class RandomPasswordGenerator
       RandomPasswordGeneratorCfg configuration,
       List<Message> unacceptableReasons)
   {
-    int msgID;
-
     DN cfgEntryDN = configuration.dn();
 
     // Get the character sets for use in generating the password. At
@@ -438,7 +427,6 @@ public class RandomPasswordGenerator
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<Message> messages            = new ArrayList<Message>();
-    int msgID;
 
 
     // Get the character sets for use in generating the password.  At least one
@@ -585,9 +573,7 @@ public class RandomPasswordGenerator
     // If everything looks OK, then apply the changes.
     if (resultCode == ResultCode.SUCCESS)
     {
-      generatorLock.lock();
-
-      try
+      synchronized (generatorLock)
       {
         encodedCharacterSets = newEncodedCharacterSets;
         formatString         = newFormatString;
@@ -602,10 +588,6 @@ public class RandomPasswordGenerator
           characterCounts[i]  = newCountList.get(i);
           totalLength        += characterCounts[i];
         }
-      }
-      finally
-      {
-        generatorLock.unlock();
       }
     }
 
