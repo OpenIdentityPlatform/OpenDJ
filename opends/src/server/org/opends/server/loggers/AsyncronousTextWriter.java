@@ -25,16 +25,20 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
 
+
+
+import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A Text Writer which writes log records asynchronously to
@@ -50,6 +54,9 @@ public class AsyncronousTextWriter
 
   /** Queue to store unpublished records. */
   private final LinkedBlockingQueue<String> queue;
+
+  /** The capacity for the queue. */
+  private final int capacity;
 
   private String name;
   private AtomicBoolean stopRequested;
@@ -74,6 +81,7 @@ public class AsyncronousTextWriter
     this.writer = writer;
 
     this.queue = new LinkedBlockingQueue<String>(capacity);
+    this.capacity = capacity;
     this.writerThread = null;
     this.stopRequested = new AtomicBoolean(false);
 
@@ -99,21 +107,40 @@ public class AsyncronousTextWriter
      */
     public void run()
     {
+      ArrayList<String> drainList = new ArrayList<String>(capacity);
+
       String message = null;
       while (!stopRequested.get() || !queue.isEmpty()) {
         try
         {
-          message = queue.poll(10, TimeUnit.SECONDS);
-          if(message != null)
+          queue.drainTo(drainList, capacity);
+          if (drainList.isEmpty())
           {
-            do
+            message = queue.poll(10, TimeUnit.SECONDS);
+            if(message != null)
             {
-              writer.writeRecord(message);
-              message = queue.poll();
-            }
-            while(message != null);
+              do
+              {
+                writer.writeRecord(message);
+                message = queue.poll();
+              }
+              while(message != null);
 
-            if(autoFlush)
+              if(autoFlush)
+              {
+                flush();
+              }
+            }
+          }
+          else
+          {
+            for (String record : drainList)
+            {
+              writer.writeRecord(record);
+            }
+            drainList.clear();
+
+            if (autoFlush)
             {
               flush();
             }

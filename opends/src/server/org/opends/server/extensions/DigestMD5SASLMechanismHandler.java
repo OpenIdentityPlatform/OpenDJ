@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -39,8 +38,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -52,29 +51,26 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.Base64;
 
-import org.opends.server.types.DebugLogLevel;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -117,7 +113,7 @@ public class DigestMD5SASLMechanismHandler
 
   // The lock that will be used to provide threadsafe access to the message
   // digest.
-  private ReentrantLock digestLock;
+  private Object digestLock;
 
   // The random number generator that we will use to create the nonce.
   private SecureRandom randomGenerator;
@@ -151,7 +147,7 @@ public class DigestMD5SASLMechanismHandler
 
 
     // Initialize the variables needed for the MD5 digest creation.
-    digestLock      = new ReentrantLock();
+    digestLock      = new Object();
     randomGenerator = new SecureRandom();
 
     try
@@ -1163,18 +1159,7 @@ public class DigestMD5SASLMechanismHandler
   private String generateNonce()
   {
     byte[] nonceBytes = new byte[16];
-
-    digestLock.lock();
-
-    try
-    {
-      randomGenerator.nextBytes(nonceBytes);
-    }
-    finally
-    {
-      digestLock.unlock();
-    }
-
+    randomGenerator.nextBytes(nonceBytes);
     return Base64.encode(nonceBytes);
   }
 
@@ -1359,9 +1344,7 @@ public class DigestMD5SASLMechanismHandler
                                        String qop, String charset)
          throws UnsupportedEncodingException
   {
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
       // First, get a hash of "username:realm:password".
       StringBuilder a1String1 = new StringBuilder();
@@ -1423,10 +1406,6 @@ public class DigestMD5SASLMechanismHandler
       kdString.append(a2HashHex);
       return md5Digest.digest(kdString.toString().getBytes(charset));
     }
-    finally
-    {
-      digestLock.unlock();
-    }
   }
 
 
@@ -1465,9 +1444,7 @@ public class DigestMD5SASLMechanismHandler
                                            String qop, String charset)
          throws UnsupportedEncodingException
   {
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
       // First, get a hash of "username:realm:password".
       StringBuilder a1String1 = new StringBuilder();
@@ -1533,10 +1510,6 @@ public class DigestMD5SASLMechanismHandler
       kdString.append(':');
       kdString.append(a2HashHex);
       return md5Digest.digest(kdString.toString().getBytes(charset));
-    }
-    finally
-    {
-      digestLock.unlock();
     }
   }
 

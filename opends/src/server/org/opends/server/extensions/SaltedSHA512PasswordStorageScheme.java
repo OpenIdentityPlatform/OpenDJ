@@ -31,7 +31,6 @@ package org.opends.server.extensions;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SaltedSHA512PasswordStorageSchemeCfg;
@@ -95,7 +94,7 @@ public class SaltedSHA512PasswordStorageScheme
   private MessageDigest messageDigest;
 
   // The lock used to provide threadsafe access to the message digest.
-  private ReentrantLock digestLock;
+  private Object digestLock;
 
   // The secure random number generator to use to generate the salt values.
   private Random random;
@@ -139,7 +138,7 @@ public class SaltedSHA512PasswordStorageScheme
       throw new InitializationException(message, e);
     }
 
-    digestLock = new ReentrantLock();
+    digestLock = new Object();
     random     = new Random();
   }
 
@@ -171,33 +170,30 @@ public class SaltedSHA512PasswordStorageScheme
 
     byte[] digestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      // Generate the salt and put in the plain+salt array.
-      random.nextBytes(saltBytes);
-      System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
-                       NUM_SALT_BYTES);
-
-      // Create the hash from the concatenated value.
-      digestBytes = messageDigest.digest(plainPlusSalt);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+        // Generate the salt and put in the plain+salt array.
+        random.nextBytes(saltBytes);
+        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
+                         NUM_SALT_BYTES);
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      digestLock.unlock();
+        // Create the hash from the concatenated value.
+        digestBytes = messageDigest.digest(plainPlusSalt);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+            CLASS_NAME, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, e);
+      }
     }
 
     // Append the salt to the hashed value and base64-the whole thing.
@@ -232,33 +228,30 @@ public class SaltedSHA512PasswordStorageScheme
 
     byte[] digestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      // Generate the salt and put in the plain+salt array.
-      random.nextBytes(saltBytes);
-      System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
-                       NUM_SALT_BYTES);
-
-      // Create the hash from the concatenated value.
-      digestBytes = messageDigest.digest(plainPlusSalt);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+        // Generate the salt and put in the plain+salt array.
+        random.nextBytes(saltBytes);
+        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
+                         NUM_SALT_BYTES);
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      digestLock.unlock();
+        // Create the hash from the concatenated value.
+        digestBytes = messageDigest.digest(plainPlusSalt);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+            CLASS_NAME, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, e);
+      }
     }
 
     // Append the salt to the hashed value and base64-the whole thing.
@@ -317,24 +310,21 @@ public class SaltedSHA512PasswordStorageScheme
 
     byte[] userDigestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      userDigestBytes = messageDigest.digest(plainPlusSalt);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        userDigestBytes = messageDigest.digest(plainPlusSalt);
       }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
 
-      return false;
-    }
-    finally
-    {
-      digestLock.unlock();
+        return false;
+      }
     }
 
     return Arrays.equals(digestBytes, userDigestBytes);
@@ -380,33 +370,30 @@ public class SaltedSHA512PasswordStorageScheme
 
     byte[] digestBytes;
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
-      // Generate the salt and put in the plain+salt array.
-      random.nextBytes(saltBytes);
-      System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
-                       NUM_SALT_BYTES);
-
-      // Create the hash from the concatenated value.
-      digestBytes = messageDigest.digest(plainPlusSalt);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      try
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+        // Generate the salt and put in the plain+salt array.
+        random.nextBytes(saltBytes);
+        System.arraycopy(saltBytes,0, plainPlusSalt, plainBytes.length,
+                         NUM_SALT_BYTES);
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
-    }
-    finally
-    {
-      digestLock.unlock();
+        // Create the hash from the concatenated value.
+        digestBytes = messageDigest.digest(plainPlusSalt);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+            CLASS_NAME, getExceptionMessage(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                     message, e);
+      }
     }
 
 
@@ -454,16 +441,10 @@ public class SaltedSHA512PasswordStorageScheme
     System.arraycopy(saltBytes, 0, plainPlusSaltBytes, plainBytes.length,
                      saltBytes.length);
 
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
       return Arrays.equals(digestBytes,
                                 messageDigest.digest(plainPlusSaltBytes));
-    }
-    finally
-    {
-      digestLock.unlock();
     }
   }
 

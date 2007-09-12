@@ -33,7 +33,7 @@
 /*        All Rights Reserved   */
 package org.opends.server.util;
 
-import java.util.concurrent.locks.ReentrantLock;
+
 
 /**
  * UNIX Crypt cipher, ported from the Sun OpenSolaris project.
@@ -373,7 +373,7 @@ public final class Crypt
     }
   }
 
-  private ReentrantLock digestLock = new ReentrantLock();
+  private Object digestLock = new Object();
 
   /**
    * Encode the supplied password in unix crypt form with the provided
@@ -387,15 +387,10 @@ public final class Crypt
    * */
   public byte[] crypt(byte[] pw, byte[] salt)
   {
-    digestLock.lock();
     int[] r;
-    try
+    synchronized (digestLock)
     {
       r = _crypt(pw, salt);
-    }
-    finally
-    {
-      digestLock.unlock();
     }
 
     //TODO: crypt always returns same size array?  So don't mess

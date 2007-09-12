@@ -30,7 +30,6 @@ package org.opends.server.extensions;
 
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
@@ -76,7 +75,7 @@ public class CryptPasswordStorageScheme
     +"ABCDEFGHIJKLMNOPQRSTUVWXYZ").getBytes();
 
   private final Random randomSaltIndex = new Random();
-  private final ReentrantLock saltLock = new ReentrantLock();
+  private final Object saltLock = new Object();
   private final Crypt crypt = new Crypt();
 
 
@@ -144,9 +143,8 @@ public class CryptPasswordStorageScheme
    * @return a random 2-byte salt
    */
   private byte[] randomSalt() {
-    saltLock.lock();
-
-    try {
+    synchronized (saltLock)
+    {
       byte[] salt = new byte[2];
       int sb1 = randomSaltIndex.nextInt(SALT_CHARS.length);
       int sb2 = randomSaltIndex.nextInt(SALT_CHARS.length);
@@ -154,8 +152,6 @@ public class CryptPasswordStorageScheme
       salt[1] = SALT_CHARS[sb2];
 
       return salt;
-    } finally {
-      saltLock.unlock();
     }
   }
 

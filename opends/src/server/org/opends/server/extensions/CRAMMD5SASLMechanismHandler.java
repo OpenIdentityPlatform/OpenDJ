@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -36,8 +35,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -48,10 +47,12 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -59,11 +60,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import static org.opends.messages.ExtensionMessages.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -112,7 +110,7 @@ public class CRAMMD5SASLMechanismHandler
 
   // The lock that will be used to provide threadsafe access to the message
   // digest.
-  private ReentrantLock digestLock;
+  private Object digestLock;
 
   // The random number generator that we will use to create the server
   // challenge.
@@ -147,7 +145,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
     // Initialize the variables needed for the MD5 digest creation.
-    digestLock      = new ReentrantLock();
+    digestLock      = new Object();
     randomGenerator = new SecureRandom();
 
     try
@@ -536,9 +534,7 @@ public class CRAMMD5SASLMechanismHandler
 
 
     // Grab a lock to protect the MD5 digest generation.
-    digestLock.lock();
-
-    try
+    synchronized (digestLock)
     {
       // If the password is longer than the HMAC-MD5 block length, then use an
       // MD5 digest of the password rather than the password itself.
@@ -574,10 +570,6 @@ public class CRAMMD5SASLMechanismHandler
 
       // Return an MD5 digest of the resulting array.
       return md5Digest.digest(oPadAndHash);
-    }
-    finally
-    {
-      digestLock.unlock();
     }
   }
 
