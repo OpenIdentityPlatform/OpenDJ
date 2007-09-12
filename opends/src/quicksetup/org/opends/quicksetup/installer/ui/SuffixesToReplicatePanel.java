@@ -57,6 +57,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 
 import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.AuthenticationData;
@@ -281,7 +282,10 @@ implements Comparator<SuffixDescriptor>
       for (SuffixDescriptor suffix : array)
       {
         if (!Utils.areDnsEqual(suffix.getDN(),
-            ADSContext.getAdministrationSuffixDN()))
+            ADSContext.getAdministrationSuffixDN()) &&
+            !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN) &&
+            !Utils.areDnsEqual(suffix.getDN(),
+                Constants.REPLICATION_CHANGES_DN))
         {
           orderedSuffixes.add(suffix);
         }

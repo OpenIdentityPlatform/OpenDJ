@@ -651,7 +651,7 @@ public class ServerDescriptor
 
       String id = getFirstValue(sr, "ds-cfg-backend-id");
 
-      if (!isConfigBackend(id))
+      if (!isConfigBackend(id) || isSchemaBackend(id))
       {
         Set<String> baseDns = getValues(sr, "ds-cfg-backend-base-dn");
 
@@ -1001,6 +1001,17 @@ public class ServerDescriptor
     "ads-truststore".equalsIgnoreCase(id);
   }
 
+  /**
+   * An convenience method to know if the provided ID corresponds to the schema
+   * backend or not.
+   * @param id the backend ID to analyze
+   * @return <CODE>true</CODE> if the the id corresponds to the schema backend
+   * and <CODE>false</CODE> otherwise.
+   */
+  private static boolean isSchemaBackend(String id)
+  {
+    return "schema".equalsIgnoreCase(id);
+  }
   /**
    * Returns <CODE>true</CODE> if the the provided strings represent the same
    * DN and <CODE>false</CODE> otherwise.

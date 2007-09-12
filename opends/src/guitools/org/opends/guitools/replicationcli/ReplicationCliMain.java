@@ -913,6 +913,9 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
       }
     }
+
+    uData.setReplicateSchema(!argParser.noSchemaReplication());
+
     return !cancelled;
   }
 
@@ -1078,12 +1081,16 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       // Ask for confirmation to disable.
       boolean disableADS = false;
+      boolean disableSchema = false;
       for (String dn : uData.getBaseDNs())
       {
         if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
         {
           disableADS = true;
-          break;
+        }
+        else if (Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+        {
+          disableSchema = true;
         }
       }
       if (disableADS)
@@ -1092,7 +1099,12 @@ public class ReplicationCliMain extends CliApplicationHelper
         cancelled = !confirm(INFO_REPLICATION_CONFIRM_DISABLE_ADS.get(
             ADSContext.getAdministrationSuffixDN()));
       }
-      else
+      if (disableSchema)
+      {
+        printLineBreak();
+        cancelled = !confirm(INFO_REPLICATION_CONFIRM_DISABLE_SCHEMA.get());
+      }
+      if (!disableSchema && !disableADS)
       {
         printLineBreak();
         cancelled = !confirm(INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get());
@@ -1541,7 +1553,10 @@ public class ReplicationCliMain extends CliApplicationHelper
       uData.setBindDn2(bindDn);
       uData.setPwd2(pwd2);
     }
-    uData.setReplicationPort1(replicationPort1);
+    int replicationPort2 = getValue(argParser.getReplicationPort2(),
+        argParser.getDefaultReplicationPort2());
+    uData.setReplicationPort2(replicationPort2);
+    uData.setReplicateSchema(!argParser.noSchemaReplication());
   }
 
   /**
@@ -1717,17 +1732,23 @@ public class ReplicationCliMain extends CliApplicationHelper
             }
           }
           /* Check the exceptions and see if we throw them or not. */
+          boolean notGlobalAdministratorError = false;
           for (TopologyCacheException e : exceptions)
           {
+            if (notGlobalAdministratorError)
+            {
+              break;
+            }
             switch (e.getType())
             {
               case NOT_GLOBAL_ADMINISTRATOR:
-                printLineBreak();
-                printErrorMessage(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
+                notGlobalAdministratorError = true;
                 boolean connected = false;
 
                 String adminUid = uData.getAdminUid();
                 String adminPwd = uData.getAdminPwd();
+                
+                boolean errorDisplayed = false;
                 while (!connected)
                 {
                   if ((!triedWithUserProvidedAdmin) && (adminPwd == null))
@@ -1739,6 +1760,13 @@ public class ReplicationCliMain extends CliApplicationHelper
                   }
                   if (adminPwd == null)
                   {
+                    if (!errorDisplayed)
+                    {
+                      printLineBreak();
+                      printErrorMessage(
+                          INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
+                      errorDisplayed = true;
+                    }
                     adminUid = askForAdministratorUID(
                         argParser.getDefaultAdministratorUID());
                     adminPwd = askForAdministratorPwd();
@@ -2496,9 +2524,17 @@ public class ReplicationCliMain extends CliApplicationHelper
 
         while (suffixes.isEmpty())
         {
-          if ((availableSuffixes.size() == 1) &&
-              Utils.areDnsEqual(availableSuffixes.first(),
-                  ADSContext.getAdministrationSuffixDN()))
+          boolean noSchemaOrAds = false;
+          for (String s: availableSuffixes)
+          {
+            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            {
+              noSchemaOrAds = true;
+            }
+          }
+          if (!noSchemaOrAds)
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
@@ -2514,7 +2550,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-                  dn))
+                  dn) && !Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
               {
                 if (confirm(INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn)))
                 {
@@ -2643,9 +2679,17 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         while (suffixes.isEmpty())
         {
-          if ((availableSuffixes.size() == 1) &&
-              Utils.areDnsEqual(availableSuffixes.first(),
-                  ADSContext.getAdministrationSuffixDN()))
+          boolean noSchemaOrAds = false;
+          for (String s: availableSuffixes)
+          {
+            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            {
+              noSchemaOrAds = true;
+            }
+          }
+          if (!noSchemaOrAds)
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
@@ -2661,7 +2705,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-                  dn))
+                  dn) && !Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
               {
                 if (confirm(INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn)))
                 {
@@ -2731,9 +2775,17 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         while (suffixes.isEmpty())
         {
-          if ((availableSuffixes.size() == 1) &&
-              Utils.areDnsEqual(availableSuffixes.first(),
-                  ADSContext.getAdministrationSuffixDN()))
+          boolean noSchemaOrAds = false;
+          for (String s: availableSuffixes)
+          {
+            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            {
+              noSchemaOrAds = true;
+            }
+          }
+          if (!noSchemaOrAds)
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
@@ -2750,7 +2802,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-                  dn))
+                  dn) && !Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
               {
                 if (confirm(INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn)))
                 {
@@ -2959,6 +3011,12 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
     }
 
+    if (uData.replicateSchema())
+    {
+      baseDNs = uData.getBaseDNs();
+      baseDNs.add("cn=schema");
+      uData.setBaseDNs(baseDNs);
+    }
     TopologyCache cache1 = null;
     TopologyCache cache2 = null;
     try
