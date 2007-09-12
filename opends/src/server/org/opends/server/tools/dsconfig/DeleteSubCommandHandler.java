@@ -56,6 +56,8 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 
 
@@ -204,33 +206,31 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     // Delete the child managed object.
     ManagementContext context = factory.getManagementContext(app);
     MenuResult<ManagedObject<?>> result;
+    Message ufn = relation.getUserFriendlyName();
     try {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation
-          .getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
+      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
+      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(relation
-          .getUserFriendlyName(), e.getMessage());
+      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_CME.get(relation
-          .getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_DELETE_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
-        Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-        Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
+        Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+        Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
         throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
       } else {
         return MenuResult.success(0);
@@ -240,8 +240,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     if (result.isQuit()) {
       if (!app.isMenuDrivenMode()) {
         // User chose to cancel deletion.
-        Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
-            .getUserFriendlyName());
+        Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(ufn);
         app.printVerboseMessage(msg);
       }
       return MenuResult.quit();
@@ -264,8 +263,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           if (sresult.isQuit()) {
             if (!app.isMenuDrivenMode()) {
               // User chose to cancel deletion.
-              Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
-                  .getUserFriendlyName());
+              Message msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(ufn);
               app.printVerboseMessage(msg);
             }
             return MenuResult.quit();
@@ -293,39 +291,53 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         }
       }
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(relation
-          .getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (OperationRejectedException e) {
       Message msg;
       if (e.getMessages().size() == 1) {
-        msg = ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(relation
-            .getUserFriendlyName(), e.getMessagesAsSingleMessage());
+        msg = ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(ufn);
       } else {
-        msg = ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(relation
-            .getUserFriendlyName(), e.getMessagesAsSingleMessage());
+        msg = ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(ufn);
       }
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+
+      if (app.isInteractive()) {
+        // If interactive, let the user go back to the main menu.
+        app.println();
+        app.println(msg);
+        app.println();
+        TableBuilder builder = new TableBuilder();
+        for (Message reason : e.getMessages()) {
+          builder.startRow();
+          builder.appendCell("*");
+          builder.appendCell(reason);
+        }
+        TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+        printer.setDisplayHeadings(false);
+        printer.setColumnWidth(1, 0);
+        printer.setIndentWidth(4);
+        builder.print(printer);
+        return MenuResult.cancel();
+      } else {
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+            msg, e);
+      }
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
-        Message msg = ERR_DSCFG_ERROR_DELETE_MONFE.get(relation
-            .getUserFriendlyName());
+        Message msg = ERR_DSCFG_ERROR_DELETE_MONFE.get(ufn);
         throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
       }
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_CME.get(relation
-          .getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_DELETE_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(relation
-          .getUserFriendlyName(), e.getMessage());
+      Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     }
 
     // Output success message.
-    Message msg = INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(relation
-        .getUserFriendlyName());
+    Message msg = INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(ufn);
     app.printVerboseMessage(msg);
 
     return MenuResult.success(0);

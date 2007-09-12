@@ -551,6 +551,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       throw ArgumentExceptionFactory.unknownSubType(relation, typeName,
           typeUsage);
     }
+    Message ufn = d.getUserFriendlyName();
 
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
@@ -566,34 +567,33 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     try {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(ufn, ufn, ufn);
+      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
     } catch (ManagedObjectDecodingException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
+      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
       throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
     } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(d.getUserFriendlyName(), e
+      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
           .getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(d.getUserFriendlyName());
+      Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
-      Message ufn = path.getManagedObjectDefinition().getUserFriendlyName();
-      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
+      Message pufn = path.getManagedObjectDefinition().getUserFriendlyName();
+      Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
       throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
     }
 
     if (result.isQuit()) {
       if (!app.isMenuDrivenMode()) {
         // User chose to cancel creation.
-        Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(d
-            .getUserFriendlyName());
+        Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
         app.printVerboseMessage(msg);
       }
       return MenuResult.quit();
@@ -603,46 +603,46 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     }
 
     ManagedObject<?> parent = result.getValue();
-    try {
-      ManagedObject<? extends C> child;
-      List<DefaultBehaviorException> exceptions =
-        new LinkedList<DefaultBehaviorException>();
-      if (relation instanceof InstantiableRelationDefinition) {
-        InstantiableRelationDefinition<C, S> irelation =
-          (InstantiableRelationDefinition<C, S>) relation;
-        String name = names.get(names.size() - 1);
-        if (name == null) {
-          if (app.isInteractive()) {
-            child = createChildInteractively(app, parent, irelation,
-                d, exceptions);
-          } else {
-            throw ArgumentExceptionFactory
-                .missingMandatoryNonInteractiveArgument(namingArgs.get(names
-                    .size() - 1));
-          }
+    ManagedObject<? extends C> child;
+    List<DefaultBehaviorException> exceptions =
+      new LinkedList<DefaultBehaviorException>();
+    if (relation instanceof InstantiableRelationDefinition) {
+      InstantiableRelationDefinition<C, S> irelation =
+        (InstantiableRelationDefinition<C, S>) relation;
+      String name = names.get(names.size() - 1);
+      if (name == null) {
+        if (app.isInteractive()) {
+          child = createChildInteractively(app, parent, irelation,
+              d, exceptions);
         } else {
-          try {
-            child = parent.createChild(irelation, d, name,
-                exceptions);
-          } catch (IllegalManagedObjectNameException e) {
-            throw ArgumentExceptionFactory
-                .adaptIllegalManagedObjectNameException(e, d);
-          }
+          throw ArgumentExceptionFactory
+              .missingMandatoryNonInteractiveArgument(namingArgs.get(names
+                  .size() - 1));
         }
       } else {
-        OptionalRelationDefinition<C, S> orelation =
-          (OptionalRelationDefinition<C, S>) relation;
-        child = parent.createChild(orelation, d, exceptions);
+        try {
+          child = parent.createChild(irelation, d, name,
+              exceptions);
+        } catch (IllegalManagedObjectNameException e) {
+          throw ArgumentExceptionFactory
+              .adaptIllegalManagedObjectNameException(e, d);
+        }
       }
+    } else {
+      OptionalRelationDefinition<C, S> orelation =
+        (OptionalRelationDefinition<C, S>) relation;
+      child = parent.createChild(orelation, d, exceptions);
+    }
 
-      // FIXME: display any default behavior exceptions in verbose
-      // mode.
+    // FIXME: display any default behavior exceptions in verbose
+    // mode.
 
-      // Set any properties specified on the command line.
-      for (PropertyDefinition<?> pd : provider.getProperties()) {
-        setProperty(child, provider, pd);
-      }
+    // Set any properties specified on the command line.
+    for (PropertyDefinition<?> pd : provider.getProperties()) {
+      setProperty(child, provider, pd);
+    }
 
+    while (true) {
       // Interactively set properties if applicable.
       if (app.isInteractive()) {
         SortedSet<PropertyDefinition<?>> properties =
@@ -664,8 +664,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         MenuResult<Void> result2 = editor.edit(child, properties, true);
         if (result2.isQuit()) {
           if (!app.isMenuDrivenMode()) {
-            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(d
-                .getUserFriendlyName());
+            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
             app.printVerboseMessage(msg);
           }
           return MenuResult.quit();
@@ -674,42 +673,64 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
       }
 
-      // Add the managed object.
-      child.commit();
+      try {
+        // Create the managed object.
+        child.commit();
 
-      // Output success message.
-      Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(d
-          .getUserFriendlyName());
-      app.printVerboseMessage(msg);
-    } catch (MissingMandatoryPropertiesException e) {
-      throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
-          e, d);
-    } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
-    } catch (ManagedObjectAlreadyExistsException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
-    } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(d.getUserFriendlyName());
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-    } catch (OperationRejectedException e) {
-      Message msg;
-      if (e.getMessages().size() == 1) {
-        msg = ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(d.getUserFriendlyName(), e
-            .getMessagesAsSingleMessage());
-      } else {
-        msg = ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(d.getUserFriendlyName(), e
-            .getMessagesAsSingleMessage());
+        // Output success message.
+        Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
+        app.printVerboseMessage(msg);
+        return MenuResult.success(0);
+      } catch (MissingMandatoryPropertiesException e) {
+        throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
+            e, d);
+      } catch (AuthorizationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msg);
+      } catch (ManagedObjectAlreadyExistsException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
+        throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      } catch (OperationRejectedException e) {
+        Message msg;
+        if (e.getMessages().size() == 1) {
+          msg = ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(ufn);
+        } else {
+          msg = ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(ufn);
+        }
+
+        if (app.isInteractive()) {
+          // If interactive, give the user the chance to fix the problems.
+          app.println();
+          app.println(msg);
+          app.println();
+          TableBuilder builder = new TableBuilder();
+          for (Message reason : e.getMessages()) {
+            builder.startRow();
+            builder.appendCell("*");
+            builder.appendCell(reason);
+          }
+          TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+          printer.setDisplayHeadings(false);
+          printer.setColumnWidth(1, 0);
+          printer.setIndentWidth(4);
+          builder.print(printer);
+          app.println();
+          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+            return MenuResult.cancel();
+          }
+        } else {
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+              msg, e);
+        }
+      } catch (CommunicationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
       }
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-    } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(d.getUserFriendlyName(), e
-          .getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
     }
-
-    return MenuResult.success(0);
   }
 
 

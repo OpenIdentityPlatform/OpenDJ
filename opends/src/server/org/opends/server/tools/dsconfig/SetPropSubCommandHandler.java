@@ -69,6 +69,8 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 
 
@@ -498,7 +500,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
     }
 
-    // Commit the changes.
+    // Apply the command line changes.
     for (PropertyDefinition<?> pd : changes.keySet()) {
       try {
         child.setPropertyValues(pd, changes.get(pd));
@@ -507,71 +509,97 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
     }
 
-    // Interactively set properties if applicable.
-    if (app.isInteractive()) {
-      SortedSet<PropertyDefinition<?>> properties =
-        new TreeSet<PropertyDefinition<?>>();
+    while (true) {
+      // Interactively set properties if applicable.
+      if (app.isInteractive()) {
+        SortedSet<PropertyDefinition<?>> properties =
+          new TreeSet<PropertyDefinition<?>>();
 
-      for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-        if (pd.hasOption(PropertyOption.HIDDEN)) {
-          continue;
+        for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+          if (pd.hasOption(PropertyOption.HIDDEN)) {
+            continue;
+          }
+
+          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+            continue;
+          }
+
+          properties.add(pd);
         }
 
-        if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
-          continue;
+        PropertyValueEditor editor = new PropertyValueEditor(app);
+        MenuResult<Void> result2 = editor.edit(child, properties, false);
+        if (result2.isQuit()) {
+          if (!app.isMenuDrivenMode()) {
+            // User chose to cancel any changes.
+            Message msg = INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn);
+            app.printVerboseMessage(msg);
+          }
+          return MenuResult.quit();
+        } else if (result2.isCancel()) {
+          return MenuResult.cancel();
         }
-
-        properties.add(pd);
       }
 
-      PropertyValueEditor editor = new PropertyValueEditor(app);
-      MenuResult<Void> result2 = editor.edit(child, properties, false);
-      if (result2.isQuit()) {
-        if (!app.isMenuDrivenMode()) {
-          // User chose to cancel any changes.
-          Message msg = INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn);
-          app.printVerboseMessage(msg);
+      try {
+        // Commit the changes.
+        child.commit();
+
+        // Output success message.
+        Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
+        app.printVerboseMessage(msg);
+
+        return MenuResult.success(0);
+      } catch (MissingMandatoryPropertiesException e) {
+        throw ArgumentExceptionFactory
+            .adaptMissingMandatoryPropertiesException(e, d);
+      } catch (AuthorizationException e) {
+        Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      } catch (OperationRejectedException e) {
+        Message msg;
+        if (e.getMessages().size() == 1) {
+          msg = ERR_DSCFG_ERROR_MODIFY_ORE_SINGLE.get(ufn);
+        } else {
+          msg = ERR_DSCFG_ERROR_MODIFY_ORE_PLURAL.get(ufn);
         }
-        return MenuResult.quit();
-      } else if (result2.isCancel()) {
-        return MenuResult.cancel();
+
+        if (app.isInteractive()) {
+          // If interactive, give the user the chance to fix the problems.
+          app.println();
+          app.println(msg);
+          app.println();
+          TableBuilder builder = new TableBuilder();
+          for (Message reason : e.getMessages()) {
+            builder.startRow();
+            builder.appendCell("*");
+            builder.appendCell(reason);
+          }
+          TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+          printer.setDisplayHeadings(false);
+          printer.setColumnWidth(1, 0);
+          printer.setIndentWidth(4);
+          builder.print(printer);
+          app.println();
+          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+            return MenuResult.cancel();
+          }
+        } else {
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+              msg, e);
+        }
+      } catch (CommunicationException e) {
+        Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      } catch (ManagedObjectAlreadyExistsException e) {
+        // Should never happen.
+        throw new IllegalStateException(e);
       }
     }
-
-    try {
-      child.commit();
-
-      // Output success message.
-      Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
-      app.printVerboseMessage(msg);
-    } catch (MissingMandatoryPropertiesException e) {
-      throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
-          e, d);
-    } catch (AuthorizationException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
-    } catch (ConcurrentModificationException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-    } catch (OperationRejectedException e) {
-      Message msg;
-      if (e.getMessages().size() == 1) {
-        msg = ERR_DSCFG_ERROR_MODIFY_ORE_SINGLE.get(ufn, e
-            .getMessagesAsSingleMessage());
-      } else {
-        msg = ERR_DSCFG_ERROR_MODIFY_ORE_PLURAL.get(ufn, e
-            .getMessagesAsSingleMessage());
-      }
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-    } catch (CommunicationException e) {
-      Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
-    } catch (ManagedObjectAlreadyExistsException e) {
-      // Should never happen.
-      throw new IllegalStateException(e);
-    }
-
-    return MenuResult.success(0);
   }
 
 
