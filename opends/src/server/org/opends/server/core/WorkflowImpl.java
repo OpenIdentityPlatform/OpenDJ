@@ -239,7 +239,7 @@ public class WorkflowImpl implements Workflow
     synchronized (registeredWorkflowsLock)
     {
       registeredWorkflows =
-        new TreeMap<String, Workflow>(registeredWorkflows);
+        new TreeMap<String, Workflow>();
     }
   }
 }
