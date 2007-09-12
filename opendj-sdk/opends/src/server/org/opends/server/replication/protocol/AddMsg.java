@@ -288,4 +288,13 @@ public class AddMsg extends UpdateMessage
   {
     parentUniqueId = uid;
   }
+
+  /**
+   * Get the parent unique id of this add msg.
+   * @return the parent unique id.
+   */
+  public String getParentUid()
+  {
+    return parentUniqueId;
+  }
 }

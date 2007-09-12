@@ -122,7 +122,7 @@ public class ServerWriter extends DirectoryThread
             "In " + replicationCache.getReplicationServer().
               getMonitorInstanceName() +
             ", writer to " + this.handler.getMonitorInstanceName() +
-            " publishes" + update.toString() +
+            " publishes msg=" + update.toString() +
             " refgenId=" + referenceGenerationId +
             " server=" + handler.getServerId() +
             " generationId=" + handler.getGenerationId());

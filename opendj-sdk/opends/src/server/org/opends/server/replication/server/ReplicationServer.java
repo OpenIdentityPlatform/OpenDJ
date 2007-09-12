@@ -43,6 +43,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -939,5 +940,18 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
                                boolean successful)
   {
     // Nothing is needed at the moment
+  }
+
+  /**
+   * Returns an iterator on the list of replicationCache.
+   * Returns null if none.
+   * @return the iterator.
+   */
+  public Iterator<ReplicationCache> getCacheIterator()
+  {
+    if (!baseDNs.isEmpty())
+      return baseDNs.values().iterator();
+    else
+      return null;
   }
 }
