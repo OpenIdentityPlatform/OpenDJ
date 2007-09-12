@@ -1411,6 +1411,8 @@ public abstract class Installer extends GuiApplication {
     }
     dns.add(ADSContext.getAdministrationSuffixDN());
     replicationServers.put(ADSContext.getAdministrationSuffixDN(), adsServers);
+    dns.add(Constants.SCHEMA_DN);
+    replicationServers.put(Constants.SCHEMA_DN, adsServers);
 
     InitialLdapContext ctx = null;
     try
@@ -1491,7 +1493,7 @@ public abstract class Installer extends GuiApplication {
           dns.add(replica.getSuffix().getDN());
         }
         dns.add(ADSContext.getAdministrationSuffixDN());
-
+        dns.add(Constants.SCHEMA_DN);
         ctx = getRemoteConnection(server, getTrustManager());
         ConfiguredReplication repl =
           helper.configureReplication(ctx, dns, replicationServers,

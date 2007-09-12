@@ -148,6 +148,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private BooleanArgument skipPortCheckArg;
 
   /**
+   * The 'noSchemaReplication' argument to not replicate schema.
+   */
+  private BooleanArgument noSchemaReplicationArg;
+
+  /**
    * The 'hostName' argument for the source server.
    */
   private StringArgument hostNameSourceArg = null;
@@ -489,6 +494,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "skipportcheck", 'S', "skipPortCheck",
         INFO_DESCRIPTION_ENABLE_REPLICATION_SKIPPORT.get());
 
+    noSchemaReplicationArg = new BooleanArgument(
+        "noschemareplication", null, "noSchemaReplication",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_NO_SCHEMA_REPLICATION.get());
+
     enableReplicationSubCmd = new SubCommand(this,
         ENABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_ENABLE_REPLICATION.get());
@@ -498,7 +507,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         bindPasswordFile1Arg, useStartTLS1Arg, useSSL1Arg, replicationPort1Arg,
         hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
         bindPasswordFile2Arg, useStartTLS2Arg, useSSL2Arg, replicationPort2Arg,
-        skipPortCheckArg
+        skipPortCheckArg, noSchemaReplicationArg
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
@@ -1043,6 +1052,16 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean skipReplicationPortCheck()
   {
     return skipPortCheckArg.isPresent();
+  }
+
+  /**
+   * Returns whether the user asked to not replicate the schema between servers.
+   * @return <CODE>true</CODE> the user asked to not replicate schema and <CODE>
+   * false</CODE> otherwise.
+   */
+  public boolean noSchemaReplication()
+  {
+    return noSchemaReplicationArg.isPresent();
   }
 
   /**

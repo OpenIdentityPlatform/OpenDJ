@@ -49,6 +49,7 @@ class EnableReplicationUserData extends ReplicationUserData
   private boolean useStartTLS2;
   private boolean useSSL2;
   private int replicationPort2;
+  private boolean replicateSchema = true;
 
   /**
    * Returns the host name of the first server.
@@ -321,5 +322,25 @@ class EnableReplicationUserData extends ReplicationUserData
   void setReplicationPort2(int replicationPort2)
   {
     this.replicationPort2 = replicationPort2;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the user asked to replicate schema and <CODE>
+   * false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the user asked to replicate schema and <CODE>
+   * false</CODE> otherwise.
+   */
+  public boolean replicateSchema()
+  {
+    return replicateSchema;
+  }
+
+  /**
+   * Sets whether to replicate schema or not.
+   * @param replicateSchema whether to replicate schema or not.
+   */
+  public void setReplicateSchema(boolean replicateSchema)
+  {
+    this.replicateSchema = replicateSchema;
   }
 }

@@ -320,7 +320,7 @@ public class Utils
   {
     boolean isConfigurationDn = false;
     String[] configDns =
-      { "cn=config", "cn=schema" };
+      { "cn=config", Constants.SCHEMA_DN };
     for (int i = 0; i < configDns.length && !isConfigurationDn; i++)
     {
       isConfigurationDn = areDnsEqual(dn, configDns[i]);
