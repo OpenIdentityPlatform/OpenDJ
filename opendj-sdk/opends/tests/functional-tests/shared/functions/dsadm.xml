@@ -33,7 +33,7 @@
       This function sets up a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -166,7 +166,7 @@
       This function configures a Directory Server using a script
     </function-prolog>    
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -344,7 +344,7 @@
       This function starts a Directory Server
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -449,7 +449,7 @@
       This function starts a Directory Server using the script
     </function-prolog>    
     <function-map-args>    
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -685,7 +685,7 @@
       This function restarts a Directory Server
     </function-prolog>    
     <function-map-args>    
-      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -883,7 +883,7 @@
       This function performs an offline import of an ldif file using the script
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
