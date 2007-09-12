@@ -235,7 +235,7 @@ public class ModifyDNMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return ("Modify DN " + getDn() + " " + newRDN + " " + newSuperior + " " +
+    return ("MODDN " + getDn() + " " + newRDN + " " + newSuperior + " " +
             getChangeNumber());
   }
 

@@ -855,8 +855,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         {
           fail("No log messages were written to the task entry on a failed task");
         }
-        else
-        {
+      }
+      if (logMessages.size() != 0)
+      {
           TRACER.debugInfo(logMessages.get(0));
           if (expectedMessage != null)
           {
@@ -864,7 +865,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
             assertTrue(logMessages.get(0).indexOf(
                 expectedMessage.toString())>0);
           }
-        }
       }
 
       assertEquals(taskState, expectedTaskState, "Task State:" + taskState +

@@ -26,13 +26,12 @@
  */
 package org.opends.server.replication.server;
 
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
-
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -54,14 +53,27 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.ReplicationBroker;
-import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.protocol.AddMsg;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.ModifyDnContext;
+import org.opends.server.replication.protocol.ModifyMsg;
+import org.opends.server.replication.protocol.ProtocolSession;
+import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.ReplServerStartMessage;
+import org.opends.server.replication.protocol.ReplSessionSecurity;
+import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ServerStartMessage;
+import org.opends.server.replication.protocol.UpdateMessage;
+import org.opends.server.replication.protocol.WindowMessage;
+import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
@@ -995,6 +1007,56 @@ public class ReplicationServerTest extends ReplicationTestCase
      debugInfo("Ending   backupRestore");
    }
 
+   /* 
+    * Test export of the Replication server backend
+    * - Creates 2 brokers connecting to the replication for 2 differents baseDN
+    * - Make these brokers publish changes to the replication server
+    * - Launch a full export
+    * - Launch a partial export on one of the 2 domains
+    */
+    @Test(enabled=true)
+    public void exportBackend() throws Exception
+    {
+      debugInfo("Starting exportBackend");
+      
+      ReplicationBroker server1 = null;
+      ReplicationBroker server2 = null;
+
+      try {
+        server1 = openReplicationSession(
+            DN.decode("dc=example,dc=com"), (short) 1, 100, replicationServerPort,
+            1000, true);
+        server2 = openReplicationSession(
+            DN.decode("dc=example2,dc=com"), (short) 2, 100, replicationServerPort,
+            1000, true);
+      }
+      catch(Exception e) {}
+      
+      debugInfo("Publish changes");
+      List<UpdateMessage> msgs = createChanges("dc=example,dc=com", (short)1);
+      for(UpdateMessage msg : msgs )
+      {
+        server1.publish(msg);
+      }
+      List<UpdateMessage> msgs2 = createChanges("dc=example2,dc=com", (short)2);
+      for(UpdateMessage msg : msgs2 )
+      {
+        server2.publish(msg);
+      }
+
+      debugInfo("Export all");
+      Entry exportTask = createExportAllTask();
+      addTask(exportTask, ResultCode.SUCCESS, null);
+      waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+
+      debugInfo("Export domain");
+      exportTask = createExportDomainTask("dc=example2,dc=com");
+      addTask(exportTask, ResultCode.SUCCESS, null);
+      waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+
+      debugInfo("Ending export");
+    }
+
    private Entry createBackupTask()
    throws Exception
    {
@@ -1021,5 +1083,119 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-task-class-name: org.opends.server.tasks.RestoreTask",
      "ds-backup-directory-path: bak" + File.separator +
                         "replicationChanges");
+   }
+   
+   private Entry createExportAllTask()
+   throws Exception
+   {
+     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+     String path = buildRoot + File.separator + "build" +
+                   File.separator + "unit-tests" + File.separator +
+                   "package"+ File.separator + "exportLDIF.ldif";
+     return TestCaseUtils.makeEntry(
+     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+     "objectclass: top",
+     "objectclass: ds-task",
+     "objectclass: ds-task-export",
+     "ds-task-class-name: org.opends.server.tasks.ExportTask",
+     "ds-task-export-ldif-file: " + path,
+     "ds-task-export-backend-id: replicationChanges",
+     "ds-task-export-include-branch: dc=replicationChanges");
+   }
+
+   private Entry createExportDomainTask(String suffix)
+   throws Exception
+   {
+     String root = suffix.substring(suffix.indexOf('=')+1, suffix.indexOf(','));
+     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+     String path = buildRoot + File.separator + "build" +
+                   File.separator + "unit-tests" + File.separator +
+                   "package"+ File.separator + "exportLDIF" + root +".ldif";
+     return TestCaseUtils.makeEntry(
+     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+     "objectclass: top",
+     "objectclass: ds-task",
+     "objectclass: ds-task-export",
+     "ds-task-class-name: org.opends.server.tasks.ExportTask",
+     "ds-task-export-ldif-file: " + path,
+     "ds-task-export-backend-id: replicationChanges",
+     "ds-task-export-include-branch: "+suffix+",dc=replicationChanges");
+   }
+
+   private List<UpdateMessage> createChanges(String suffix, short serverId)
+   {
+     List<UpdateMessage> l = new ArrayList<UpdateMessage>();
+     long time = TimeThread.getTime();
+     int ts = 1;
+     ChangeNumber cn;
+
+     try
+     {
+       String user1entryUUID = "33333333-3333-3333-3333-333333333333";
+       String baseUUID       = "22222222-2222-2222-2222-222222222222";
+
+       // - Add
+       String lentry = new String("dn: "+suffix+"\n"
+           + "objectClass: top\n" 
+           + "objectClass: domain\n"
+           + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
+       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
+       cn = new ChangeNumber(time, ts++, serverId);
+       AddMsg addMsg = new AddMsg(cn, "o=test,"+suffix,
+           user1entryUUID, baseUUID, entry.getObjectClassAttribute(), entry
+           .getAttributes(), new ArrayList<Attribute>());
+       l.add(addMsg);
+
+       // - Add
+       String luentry = new String(
+             "dn: uid=new person,ou=People,"+suffix+"\n"
+           + "objectClass: top\n" 
+           + "objectclass: person\n"
+           + "objectclass: organizationalPerson\n"
+           + "objectclass: inetOrgPerson\n"
+           + "cn: Fiona Jensen\n"
+           + "sn: Jensen\n"
+           + "uid: new person\n"
+           + "telephonenumber: +1 408 555 1212\n"
+           + "entryUUID: " + user1entryUUID +"\n");
+       Entry uentry = TestCaseUtils.entryFromLdifString(luentry);
+       cn = new ChangeNumber(time, ts++, serverId);
+       AddMsg addMsg2 = new AddMsg(
+           cn, 
+           "uid=new person,ou=People,"+suffix,
+           user1entryUUID, 
+           baseUUID, 
+           uentry.getObjectClassAttribute(), 
+           uentry.getAttributes(), 
+           new ArrayList<Attribute>());
+       l.add(addMsg2);
+
+       // - Modify
+       Attribute attr1 = new Attribute("description", "new value");
+       Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+       List<Modification> mods = new ArrayList<Modification>();
+       mods.add(mod1);
+       cn = new ChangeNumber(time, ts++, serverId);
+       DN dn = DN.decode("o=test,"+suffix);
+       ModifyMsg modMsg = new ModifyMsg(cn, dn, 
+           mods, "fakeuniqueid");
+       l.add(modMsg);
+
+       // Modify DN
+       cn = new ChangeNumber(time, ts++, serverId);
+       ModifyDNMsg  modDnMsg = new ModifyDNMsg(
+           "uid=new person,ou=People,"+suffix, cn,
+           user1entryUUID, baseUUID, false,
+           "uid=wrong, ou=people,"+suffix,
+       "uid=newrdn");
+       l.add(modDnMsg);
+
+       // Del
+       cn = new ChangeNumber(time, ts++, serverId);
+       DeleteMsg delMsg = new DeleteMsg("o=test,"+suffix, cn, "uid");
+       l.add(delMsg);
+     }
+     catch(Exception e) {};
+     return l;
    }
 }

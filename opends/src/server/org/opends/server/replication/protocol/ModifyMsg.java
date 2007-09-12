@@ -232,6 +232,6 @@ public class ModifyMsg extends UpdateMessage
   @Override
   public String toString()
   {
-    return("Modify " + getDn() + " " + getChangeNumber());
+    return("MOD " + getDn() + " " + getChangeNumber());
   }
 }
