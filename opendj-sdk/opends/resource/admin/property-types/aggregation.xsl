@@ -47,6 +47,7 @@
       <xsl:call-template name="get-definition-type" />
     </xsl:element>
     <import>org.opends.server.admin.ManagedObjectPath</import>
+    <import>org.opends.server.admin.AggregationPropertyDefinition</import>
   </xsl:template>
   <xsl:template match="adm:aggregation" mode="java-value-type">
     <xsl:value-of select="'String'" />
