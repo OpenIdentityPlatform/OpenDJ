@@ -54,6 +54,7 @@ import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
@@ -849,6 +850,24 @@ public final class DSConfig extends ConsoleApplication {
         TextTablePrinter printer = new TextTablePrinter(getErrorStream());
         printer.setDisplayHeadings(false);
         printer.setColumnWidth(1, 0);
+        printer.setIndentWidth(4);
+        builder.print(printer);
+        println();
+      } else if (cause instanceof OperationRejectedException) {
+        OperationRejectedException ore = (OperationRejectedException) cause;
+
+        println();
+        TableBuilder builder = new TableBuilder();
+        for (Message reason : ore.getMessages()) {
+          builder.startRow();
+          builder.appendCell("*");
+          builder.appendCell(reason);
+        }
+
+        TextTablePrinter printer = new TextTablePrinter(getErrorStream());
+        printer.setDisplayHeadings(false);
+        printer.setColumnWidth(1, 0);
+        printer.setIndentWidth(4);
         builder.print(printer);
         println();
       }
