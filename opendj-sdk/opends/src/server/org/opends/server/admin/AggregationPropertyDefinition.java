@@ -50,6 +50,7 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.ResultCode;
 
 
 
@@ -382,8 +383,12 @@ public final class AggregationPropertyDefinition
      * {@inheritDoc}
      */
     public ConfigChangeResult applyConfigurationDelete(S configuration) {
-      throw new IllegalStateException("Attempting to delete a referenced "
-          + configuration.definition().getUserFriendlyName());
+      if (configuration.dn().equals(dn)) {
+        throw new IllegalStateException("Attempting to delete a referenced "
+            + configuration.definition().getUserFriendlyName());
+      } else {
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      }
     }
 
 
