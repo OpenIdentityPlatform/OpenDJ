@@ -112,7 +112,7 @@
                 'subcommand'     : 'create-log-rotation-policy',
                 'objectType'     : 'policy-name',
                 'objectName'     : 'my size Limit Rotation Policy',
-                'optionsString'  : '--type size-limit --set file-size-limit:4kb',
+                'optionsString'  : '--type size-limit --set file-size-limit:2kb',
                 'expectedRC'     : 0
               } 
             </call>
@@ -144,7 +144,48 @@
                 'expectedRC'     : 0
               }
             </call>
+
             
+            <!-- Get configuration -->
+            
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'get-log-publisher-prop',
+                'objectType'     : 'publisher-name',
+                'objectName'     :  'File-Based Access Logger',
+                'expectedRC'     : 0
+              }
+            </call>            
+            
+            <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'get-log-rotation-policy-prop',
+                'objectType'     : 'policy-name',
+                'objectName'     :  'my size Limit Rotation Policy',              
+                'expectedRC'     : 0
+              } 
+            </call>                      
+            
+           <call function="'dsconfig'">
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'get-log-retention-policy-prop',
+                'objectType'     : 'policy-name',
+                'objectName'     :  'my file count retention policy',              
+                'expectedRC'     : 0
+              } 
+            </call>                      
+            
+                                
             <!--  Starting loop -->
             
             <!--  Execute ldapsearch until we detect a log rotation -->
@@ -186,7 +227,7 @@
                       error=1
                     </script>
                     <message>
-                      'Error, the number of logs files exceed the retention policy'
+                      'Error, the number of logs files is %s and exceed the retention policy' % int(len(cmdResult))
                     </message>
                     <call function="'testFailed'" />
                   </sequence>
