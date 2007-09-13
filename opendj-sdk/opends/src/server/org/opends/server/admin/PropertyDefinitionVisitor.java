@@ -223,6 +223,19 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   }
 
 
+  /**
+   * Visit a dseecompat Global ACI property definition.
+   *
+   * @param d
+   *          The Global ACI property definition to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public R visitACI(ACIPropertyDefinition d, P p) {
+    return visitUnknown(d, p);
+  }
+
 
   /**
    * Visit a size property definition.

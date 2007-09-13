@@ -88,7 +88,14 @@ public final class PropertyDefinitionUsageBuilder {
       return Message.raw("OID");
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Message visitACI(ACIPropertyDefinition d,
+        Void p) {
+      return Message.raw("ACI");
+    }
 
     /**
      * {@inheritDoc}

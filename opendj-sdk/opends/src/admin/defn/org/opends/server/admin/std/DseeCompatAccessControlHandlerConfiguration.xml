@@ -75,7 +75,7 @@
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:aci />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

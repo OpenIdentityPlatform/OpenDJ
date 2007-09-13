@@ -1144,6 +1144,14 @@
         </xsd:annotation>
         <xsd:complexType />
       </xsd:element>
+      <xsd:element name="aci">
+        <xsd:annotation>
+          <xsd:documentation>
+            Used for properties which contain dseecompat ACIs.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType />
+      </xsd:element>
       <xsd:element name="java-class">
         <xsd:annotation>
           <xsd:documentation>

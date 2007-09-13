@@ -34,7 +34,7 @@ import java.net.InetAddress;
 import org.opends.server.types.AddressMask;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-
+import org.opends.server.authorization.dseecompat.Aci;
 
 
 /**
@@ -250,6 +250,23 @@ public abstract class PropertyValueVisitor<R, P> {
    * @return Returns a visitor specified result.
    */
   public R visitIPAddressMask(IPAddressMaskPropertyDefinition d, AddressMask v,
+      P p) {
+    return visitUnknown(d, v, p);
+  }
+
+
+  /**
+   * Visit a dseecompat ACI.
+   *
+   * @param d
+   *          The dseecompat ACI property definition.
+   * @param v
+   *          The property value to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public R visitACI(ACIPropertyDefinition d, Aci v,
       P p) {
     return visitUnknown(d, v, p);
   }

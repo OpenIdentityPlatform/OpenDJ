@@ -387,7 +387,7 @@ public class Aci  {
      * @return A string representation of the ACI.
      */
     public String toString() {
-        return aciString;
+        return new String(aciString);
     }
 
     /**

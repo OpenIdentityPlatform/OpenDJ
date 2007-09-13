@@ -159,6 +159,19 @@ public class AciList {
   }
 
   /**
+   * Add a set of ACIs to the ACI list. This is usually used a startup, when
+   * global ACIs are processed.
+   *
+   * @param dn The DN to add the ACIs under.
+   *
+   * @param acis A set of ACIs to add to the ACI list.
+   *
+   */
+  public synchronized void addAci(DN dn, SortedSet<Aci> acis) {
+    aciList.put(dn, new LinkedList<Aci>(acis));
+  }
+
+  /**
    * Add all of an entry's ACI (global or regular) attribute values to the
    * ACI list.
    * @param entry The entry containing the ACI attributes.
