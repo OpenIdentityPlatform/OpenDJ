@@ -218,6 +218,17 @@ public final class VersionCompatibilityIssue {
   public enum Cause {
 
     /**
+     * Incompatible property name change committed on 09/05/2007
+     * and described in the SVN log for rev 2974.
+     */
+    PROPERTY_CHANGE_1(
+            4, // Unique ID.  See javadoc for more information.
+            INFO_2974_UPGRADE.get(),
+            INFO_2974_REVERSION.get(),
+            Effect.REVERSION_NOT_POSSIBLE,
+            Effect.UPGRADE_NOT_POSSIBLE),
+
+    /**
      * Database format change committed on 6/7/2007
      * and described in the SVN log for rev 2049.
      */
