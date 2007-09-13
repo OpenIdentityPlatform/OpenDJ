@@ -48,6 +48,7 @@ import java.io.FileOutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 
 /**
  * Supports interacting with a user through the command line to
@@ -930,8 +931,24 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // finally the certificate name, if needed.
+    KeyStore keystore = null;
+    Enumeration<String> aliasesEnum = null;
+    try
+    {
+      FileInputStream fos = new FileInputStream(keystorePath);
+      keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+      keystore.load(fos, keystorePassword.toCharArray());
+      fos.close();
+      aliasesEnum = keystore.aliases();
+    }
+    catch (Exception e)
+    {
+      throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+    }
+
     String certifNickname = secureArgsList.certNicknameArg.getValue();
-    if (app.isInteractive() && !secureArgsList.certNicknameArg.isPresent())
+    if (app.isInteractive() && !secureArgsList.certNicknameArg.isPresent()
+        && aliasesEnum.hasMoreElements())
     {
       if (!isHeadingDisplayed)
       {
@@ -940,21 +957,51 @@ public class LDAPConnectionConsoleInteraction {
         app.println(INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get());
         isHeadingDisplayed = true;
       }
-      ValidationCallback<String> callback = new ValidationCallback<String>()
-      {
-
-        public String validate(ConsoleApplication app, String input)
-            throws CLIException
-        {
-          return input.trim();
-        }
-      };
 
       try
       {
-        app.println();
-        certifNickname = app.readValidatedInput(
-            INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_NAME.get(), callback);
+        MenuBuilder<String> builder = new MenuBuilder<String>(app);
+        builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIASES
+            .get());
+        int certificateNumber = 0;
+        for (; aliasesEnum.hasMoreElements();)
+        {
+          String alias = aliasesEnum.nextElement();
+          if (keystore.isKeyEntry(alias))
+          {
+            X509Certificate certif = (X509Certificate) keystore
+                .getCertificate(alias);
+            certificateNumber++;
+            builder.addNumberedOption(
+                INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIAS.get(alias,
+                    certif.getSubjectDN().getName()), MenuResult
+                    .success(alias));
+          }
+        }
+
+        if (certificateNumber > 1)
+        {
+          app.println();
+          Menu<String> menu = builder.toMenu();
+          MenuResult<String> result = menu.run();
+          if (result.isSuccess())
+          {
+            certifNickname = result.getValue();
+          }
+          else
+          {
+            // Should never happen.
+            throw new RuntimeException();
+          }
+        }
+        else
+        {
+          certifNickname = null;
+        }
+      }
+      catch (KeyStoreException e)
+      {
+        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
       catch (CLIException e)
       {
@@ -962,28 +1009,17 @@ public class LDAPConnectionConsoleInteraction {
       }
     }
 
-    // We'we got all the information to get the keystore manager
-    try
-    {
-      FileInputStream fos = new FileInputStream(keystorePath);
-      KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keystore.load(fos, keystorePassword.toCharArray());
-      fos.close();
-      ApplicationKeyManager akm = new ApplicationKeyManager(keystore,
-          keystorePassword.toCharArray());
+    // We'we got all the information to get the keys manager
+    ApplicationKeyManager akm = new ApplicationKeyManager(keystore,
+        keystorePassword.toCharArray());
 
-      if (certifNickname.length() != 0)
-      {
-        return new SelectableCertificateKeyManager(akm, certifNickname);
-      }
-      else
-      {
-        return akm ;
-      }
-    }
-    catch (Exception e)
+    if (certifNickname != null)
     {
-      throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+      return new SelectableCertificateKeyManager(akm, certifNickname);
+    }
+    else
+    {
+      return akm;
     }
   }
 
