@@ -36,6 +36,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.util.Date;
@@ -385,10 +388,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
           INFO_CERTIFICATE_EXPIRES_ON_LABEL.get(),
           INFO_CERTIFICATE_TYPE_LABEL.get(),
           INFO_CERTIFICATE_SERIAL_NUMBER_LABEL.get(),
-          INFO_CERTIFICATE_SIGNATURE_LABEL.get(),
-          INFO_CERTIFICATE_SIGNATURE_ALGORITHM_LABEL.get(),
-          INFO_CERTIFICATE_VERSION_LABEL.get(),
-          INFO_CERTIFICATE_PUBLIC_KEY_LABEL.get()
+          INFO_CERTIFICATE_MD5_FINGERPRINT_LABEL.get(),
+          INFO_CERTIFICATE_SHA1_FINGERPRINT_LABEL.get()
       };
 
       for (int i=0; i<ce.getChain().length; i++)
@@ -402,10 +403,8 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
             createExpiresOnComponent(cert),
             createTypeComponent(cert),
             createSerialNumberComponent(cert),
-            createSignatureComponent(cert),
-            createSignatureAlgorithmComponent(cert),
-            createVersionComponent(cert),
-            createPublicKeyComponent(cert)
+            createMD5FingerprintComponent(cert),
+            createSHA1FingerprintComponent(cert)
         };
         JPanel certPanel = UIFactory.makeJPanel();
         certPanel.setLayout(new GridBagLayout());
@@ -634,48 +633,78 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
 
   /**
-   * Returns the string representation using hexadecimal addresses of the
-   * signature of a given certificate.
+   * Returns the Message representation of the SHA1 fingerprint.
    * @param cert the certificate object.
-   * @return the string representation using hexadecimal addresses of the
-   * signature of a given certificate.
+   * @return the Message representation of the SHA1 fingerprint.
    */
-  public static Message getSignature(X509Certificate cert)
+  public static Message getSHA1FingerPrint(X509Certificate cert)
   {
-    byte[] sig = cert.getSignature();
-    MessageBuilder sb = new MessageBuilder();
-    for (int i = 0; i < sig.length; i++)
-    {
-      if (i > 0)
+    Message msg = null;
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA1");
+
+      byte[] b = md.digest(cert.getEncoded());
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < b.length; i++)
       {
-        sb.append(":");
+        if (i > 0)
+        {
+          sb.append(":");
+        }
+        sb.append(Integer.toHexString(((int) b[i]) & 0xFF));
       }
-      sb.append(Integer.toHexString(((int) sig[i]) & 0xFF));
+      msg = Message.raw(sb);
     }
-    return sb.toMessage();
+    catch (NoSuchAlgorithmException nsae) {
+      LOG.log(Level.WARNING, "SHA1 algorithm not supported: "+nsae, nsae);
+    }
+    catch (CertificateEncodingException cee) {
+      LOG.log(Level.WARNING, "Certificate encoding exception: "+cee, cee);
+    }
+    return msg;
   }
 
-  private JComponent createSignatureComponent(X509Certificate cert)
+  /**
+   * Returns the Message representation of the MD5 fingerprint.
+   * @param cert the certificate object.
+   * @return the Message representation of the MD5 fingerprint.
+   */
+  public static Message getMD5FingerPrint(X509Certificate cert)
   {
-    return UIFactory.makeTextPane(getSignature(cert),
+    Message msg = null;
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+
+      byte[] b = md.digest(cert.getEncoded());
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < b.length; i++)
+      {
+        if (i > 0)
+        {
+          sb.append(":");
+        }
+        sb.append(Integer.toHexString(((int) b[i]) & 0xFF));
+      }
+      msg = Message.raw(sb);
+    }
+    catch (NoSuchAlgorithmException nsae) {
+      LOG.log(Level.WARNING, "MD5 algorithm not supported: "+nsae, nsae);
+    }
+    catch (CertificateEncodingException cee) {
+      LOG.log(Level.WARNING, "Certificate encoding exception: "+cee, cee);
+    }
+    return msg;
+  }
+
+  private JComponent createSHA1FingerprintComponent(X509Certificate cert)
+  {
+    return UIFactory.makeTextPane(getSHA1FingerPrint(cert),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 
-  private JComponent createSignatureAlgorithmComponent(X509Certificate cert)
+  private JComponent createMD5FingerprintComponent(X509Certificate cert)
   {
-    Message signature = Message.raw(String.valueOf(cert.getSigAlgName()));
-    return makeValueLabel(signature);
-  }
-
-  private JComponent createVersionComponent(X509Certificate cert)
-  {
-    Message version = Message.raw(String.valueOf(cert.getVersion()));
-    return makeValueLabel(version);
-  }
-
-  private JComponent createPublicKeyComponent(X509Certificate cert)
-  {
-    return UIFactory.makeTextPane(Message.raw(cert.getPublicKey().toString()),
+    return UIFactory.makeTextPane(getMD5FingerPrint(cert),
         UIFactory.TextStyle.SECONDARY_FIELD_VALID);
   }
 

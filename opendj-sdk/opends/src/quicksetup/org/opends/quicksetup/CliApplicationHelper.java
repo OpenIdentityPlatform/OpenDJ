@@ -956,11 +956,9 @@ public abstract class CliApplicationHelper {
         INFO_CERTIFICATE_VALID_FROM_LABEL.get(),
         INFO_CERTIFICATE_EXPIRES_ON_LABEL.get(),
         INFO_CERTIFICATE_TYPE_LABEL.get(),
-        INFO_CERTIFICATE_SERIAL_NUMBER_LABEL.get(),
-        INFO_CERTIFICATE_SIGNATURE_LABEL.get(),
-        INFO_CERTIFICATE_SIGNATURE_ALGORITHM_LABEL.get(),
-        INFO_CERTIFICATE_VERSION_LABEL.get(),
-        INFO_CERTIFICATE_PUBLIC_KEY_LABEL.get()
+        INFO_CERTIFICATE_SERIAL_NUMBER_LABEL.get()
+        INFO_CERTIFICATE_MD5_FINGERPRINT_LABEL.get(),
+        INFO_CERTIFICATE_SHA1_FINGERPRINT_LABEL.get()
     };
     for (int i=0; i<udce.getChain().length; i++)
     {
@@ -973,10 +971,8 @@ public abstract class CliApplicationHelper {
           CertificateDialog.getExpiresOn(cert),
           cert.getType(),
           String.valueOf(cert.getSerialNumber()),
-          CertificateDialog.getSignature(cert).toString(),
-          String.valueOf(cert.getSigAlgName()),
-          String.valueOf(cert.getVersion()),
-          cert.getPublicKey().toString()
+          CertificateDialog.getMD5FingerPrint(cert).toString(),
+          CertificateDialog.getSHA1FingerPrint(cert).toString()
       };
       for (int j=0; j<labels.length; j++)
       {
