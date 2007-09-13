@@ -1201,7 +1201,6 @@ public class DirectoryServer
       throw new InitializationException(message);
     }
 
-    compressedSchema = new DefaultCompressedSchema();
   }
 
 
@@ -2327,6 +2326,8 @@ public class DirectoryServer
     schemaConfigManager.initializeAttributeSyntaxes();
     schemaConfigManager.initializeSchemaFromFiles();
 
+    // With server schema in place set compressed schema.
+    compressedSchema = new DefaultCompressedSchema();
 
     // At this point we have a problem, because none of the configuration is
     // usable because it was all read before we had a schema (and therefore all
