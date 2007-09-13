@@ -1065,6 +1065,8 @@
         
         if aciValue:
             aciValue=aciValue.replace('"','\\"')
+            if isWindows:
+                aciValue=aciValue.replace(r'||',r'"||"')
         
         STAFCmdParamsList=[]
         STAFCmdParamsList.append('set-access-control-handler-prop ')
