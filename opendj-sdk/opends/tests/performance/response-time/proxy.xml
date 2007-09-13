@@ -1,0 +1,24 @@
+<project name="opends-test-proxy" basedir="." default="usage">
+  <target name="check-proxy" unless="proxy.disabled">
+    <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
+    <echo>Note: If these values do not match your environment, </echo>
+    <echo>      please use the 'configure' target</echo>
+    <condition property="proxy.enabled">
+      <and>
+        <not>
+          <http url="${deps.propono.url}"/>
+        </not>
+        <isreachable host="${proxy.host}" timeout="5"/>
+      </and>
+    </condition>
+  </target>
+  <target name="set-proxy" depends="check-proxy" if="proxy.enabled">
+    <echo>Proxy detected. Configuring.</echo>
+    <setproxy 
+      proxyhost="${proxy.host}" 
+      proxyport="${proxy.port}"
+      proxyuser="${proxy.user}" 
+      proxypassword="${proxy.password}"/>
+  </target>
+</project>
+
