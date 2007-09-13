@@ -32,11 +32,10 @@
       <block name="'logging'">
          <sequence>
            <script>
-             CurrentTestPath['group']=STAXCurrentBlock
+             CurrentTestPath['group']='logging'
            </script>
-          
-          <call function="'testGroup_Preamble'" />
-          <iterate var="_test" in="['setup','rotation','properties','writer','retention','cleanup']" >
+          <call function="'testGroup_Preamble'" />     
+          <iterate var="_test" in="['setup','rotation','retention','writer','properties','cleanup']" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/logging/logging_%s.xml' % (TESTS_DIR,_test)"/>
