@@ -3249,5 +3249,171 @@ public final class Schema
                                       values)));
     }
   }
+
+
+
+  /**
+   * Destroys the structures maintained by the schema so that they are
+   * no longer usable.  This should only be called at the end of the
+   * server shutdown process, and it can help detect inappropriate
+   * cached references.
+   */
+  @org.opends.server.types.PublicAPI(
+       stability=org.opends.server.types.StabilityLevel.PRIVATE,
+       mayInstantiate=false,
+       mayExtend=false,
+       mayInvoke=true)
+  public synchronized void destroy()
+  {
+    if (approximateMatchingRules != null)
+    {
+      approximateMatchingRules.clear();
+      approximateMatchingRules = null;
+    }
+
+    if (attributeTypes != null)
+    {
+      attributeTypes.clear();
+      attributeTypes = null;
+    }
+
+    if (attributeTypeSet != null)
+    {
+      attributeTypeSet.clear();
+      attributeTypeSet = null;
+    }
+
+    if (ditContentRules != null)
+    {
+      ditContentRules.clear();
+      ditContentRules = null;
+    }
+
+    if (ditContentRuleSet != null)
+    {
+      ditContentRuleSet.clear();
+      ditContentRuleSet = null;
+    }
+
+    if (ditStructureRulesByID != null)
+    {
+      ditStructureRulesByID.clear();
+      ditStructureRulesByID = null;
+    }
+
+    if (ditStructureRulesByNameForm != null)
+    {
+      ditStructureRulesByNameForm.clear();
+      ditStructureRulesByNameForm = null;
+    }
+
+    if (ditStructureRuleSet != null)
+    {
+      ditStructureRuleSet.clear();
+      ditStructureRuleSet = null;
+    }
+
+    if (equalityMatchingRules != null)
+    {
+      equalityMatchingRules.clear();
+      equalityMatchingRules = null;
+    }
+
+    if (matchingRules != null)
+    {
+      matchingRules.clear();
+      matchingRules = null;
+    }
+
+    if (matchingRuleSet != null)
+    {
+      matchingRuleSet.clear();
+      matchingRuleSet = null;
+    }
+
+    if (matchingRuleUses != null)
+    {
+      matchingRuleUses.clear();
+      matchingRuleUses = null;
+    }
+
+    if (matchingRuleUseSet != null)
+    {
+      matchingRuleUseSet.clear();
+      matchingRuleUseSet = null;
+    }
+
+    if (nameFormsByName != null)
+    {
+      nameFormsByName.clear();
+      nameFormsByName = null;
+    }
+
+    if (nameFormsByOC != null)
+    {
+      nameFormsByOC.clear();
+      nameFormsByOC = null;
+    }
+
+    if (nameFormSet != null)
+    {
+      nameFormSet.clear();
+      nameFormSet = null;
+    }
+
+    if (objectClasses != null)
+    {
+      objectClasses.clear();
+      objectClasses = null;
+    }
+
+    if (objectClassSet != null)
+    {
+      objectClassSet.clear();
+      objectClassSet = null;
+    }
+
+    if (orderingMatchingRules != null)
+    {
+      orderingMatchingRules.clear();
+      orderingMatchingRules = null;
+    }
+
+    if (subordinateTypes != null)
+    {
+      subordinateTypes.clear();
+      subordinateTypes = null;
+    }
+
+    if (substringMatchingRules != null)
+    {
+      substringMatchingRules.clear();
+      substringMatchingRules = null;
+    }
+
+    if (synchronizationGenerationId != null)
+    {
+      synchronizationGenerationId.clear();
+      synchronizationGenerationId = null;
+    }
+
+    if (synchronizationState != null)
+    {
+      synchronizationState.clear();
+      synchronizationState = null;
+    }
+
+    if (syntaxes != null)
+    {
+      syntaxes.clear();
+      syntaxes = null;
+    }
+
+    if (syntaxSet != null)
+    {
+      syntaxSet.clear();
+      syntaxSet = null;
+    }
+  }
 }
 
