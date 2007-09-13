@@ -223,7 +223,15 @@
           <message>
             '----  Basic tests on Debug loggers -----'
           </message>
-          
+
+  <!-- DESACTRIVATED : bug 2259]-->
+          <script>
+            knownIssue(2259)
+            bug=2259
+          </script>
+          <if expr="bug == 0">
+            <sequence>                                  
+                  
           <message>'------  Enabled Debug logger --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -233,7 +241,7 @@
               'subcommand'     : 'set-log-publisher-prop',
               'objectType'     : 'publisher-name',
               'objectName'     :  'File-Based Debug Logger',
-              'optionsString'  : '--set enabled:true --set default-debug-level:all --set log-file:logs/mydebug',
+              'optionsString'  : '--set enabled:true --set default-debug-level:warning --set log-file:logs/mydebug',
               'expectedRC'     : 0
             }
           </call>
@@ -290,6 +298,22 @@
               <call function="'testFailed'"/>
             </else>
           </if>
+                   
+          <message>'------  Disable Debug logger --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'subcommand'     : 'set-log-publisher-prop',
+              'objectType'     : 'publisher-name',
+              'objectName'     :  'File-Based Debug Logger',
+              'optionsString'  : '--set enabled:false',
+              'expectedRC'     : 0
+            }
+          </call>          
+         </sequence>
+         </if>          
         </sequence>
       </testcase>
     </sequence>
