@@ -74,6 +74,9 @@ public abstract class CommonSchemaElements {
   // Indicates whether this definition is declared "obsolete".
   private final boolean isObsolete;
 
+  // The hash code for this definition.
+  private final int hashCode;
+
   // The set of additional name-value pairs associated with this
   // definition.
   private final Map<String, List<String>> extraProperties;
@@ -140,6 +143,8 @@ public abstract class CommonSchemaElements {
     this.oid = oid;
     this.description = description;
     this.isObsolete = isObsolete;
+
+    hashCode = oid.hashCode();
 
     // Make sure we have a primary name if possible.
     if (primaryName == null) {
@@ -497,7 +502,7 @@ public abstract class CommonSchemaElements {
    */
   public final int hashCode() {
 
-    return oid.hashCode();
+    return hashCode;
   }
 
 

@@ -89,6 +89,10 @@ public final class ObjectClass
   // superclasses.
   private final Set<AttributeType> requiredAttributesChain;
 
+  // The set of required and optional attributes for this objectclass
+  // and its superclasses.
+  private final Set<AttributeType> requiredAndOptionalChain;
+
   // The reference to the superior objectclass.
   private final ObjectClass superiorClass;
 
@@ -237,6 +241,16 @@ public final class ObjectClass
       tmp.addAll(this.superiorClass.getOptionalAttributeChain());
       this.optionalAttributesChain = Collections.unmodifiableSet(tmp);
     }
+
+    // Construct unmodifiable views of the required and optional
+    // attribute chains.
+    HashSet<AttributeType> reqAndOptSet =
+         new HashSet<AttributeType>(requiredAttributesChain.size() +
+                                    optionalAttributesChain.size());
+    reqAndOptSet.addAll(requiredAttributesChain);
+    reqAndOptSet.addAll(optionalAttributesChain);
+    requiredAndOptionalChain =
+         Collections.<AttributeType>unmodifiableSet(reqAndOptSet);
 
     // Object class type defaults to structural.
     if (objectClassType != null) {
@@ -447,7 +461,10 @@ public final class ObjectClass
    */
   public boolean isRequiredOrOptional(AttributeType attributeType) {
 
-    return (isRequired(attributeType) || isOptional(attributeType));
+    // FIXME -- Do we need to do any other checks here, like whether
+    // the attribute type is actually defined in the schema?
+    return (isExtensibleObject ||
+            requiredAndOptionalChain.contains(attributeType));
   }
 
 
