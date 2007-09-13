@@ -1004,22 +1004,22 @@ public class ArgumentParser
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
     if ((scriptName == null) || (scriptName.length() == 0))
     {
-      buffer.append("Usage:  java ");
+      buffer.append("Usage:  java "); // TODO: i18n
       buffer.append(mainClassName);
     }
     else
     {
-      buffer.append("Usage:  ");
+      buffer.append("Usage:  "); // TODO: i18n
       buffer.append(scriptName);
     }
 
-    buffer.append(" {options}");
+    buffer.append(" {options}"); // TODO: i18n
 
     if (allowsTrailingArguments)
     {
       if (trailingArgsDisplayName == null)
       {
-        buffer.append(" {trailing-arguments}");
+        buffer.append(" {trailing-arguments}"); // TODO: i18n
       }
       else
       {
@@ -1073,6 +1073,22 @@ public class ArgumentParser
   }
 
 
+
+  /**
+   * Retrieves a message containing usage information based on the defined
+   * arguments.
+   *
+   * @return  A string containing usage information based on the defined
+   *          arguments.
+   */
+  public Message getUsageMessage()
+  {
+    StringBuilder buffer = new StringBuilder();
+    getUsage(buffer);
+
+    // TODO: rework getUsage(OutputStream) to work with messages framework
+    return Message.raw(buffer.toString());
+  }
 
   /**
    * Retrieves a string containing usage information based on the defined

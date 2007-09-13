@@ -59,6 +59,8 @@ import org.opends.server.types.SearchFilter;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -72,6 +74,81 @@ public class ImportTask extends Task
   private static final DebugTracer TRACER = getTracer();
 
 
+  /**
+   * Stores mapping between configuration attribute name and its label.
+   */
+  static private Map<String,Message> argDisplayMap =
+          new HashMap<String,Message>();
+
+  static {
+    argDisplayMap.put(
+            ATTR_IMPORT_LDIF_FILE,
+            INFO_IMPORT_ARG_LDIF_FILE.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_APPEND,
+            INFO_IMPORT_ARG_APPEND.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_REPLACE_EXISTING,
+            INFO_IMPORT_ARG_REPLACE_EXISTING.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_BACKEND_ID,
+            INFO_IMPORT_ARG_BACKEND_ID.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_INCLUDE_BRANCH,
+            INFO_IMPORT_ARG_INCL_BRANCH.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_EXCLUDE_BRANCH,
+            INFO_IMPORT_ARG_EXCL_BRANCH.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_INCLUDE_ATTRIBUTE,
+            INFO_IMPORT_ARG_INCL_ATTR.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_EXCLUDE_ATTRIBUTE,
+            INFO_IMPORT_ARG_EXCL_ATTR.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_INCLUDE_FILTER,
+            INFO_IMPORT_ARG_INCL_FILTER.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_EXCLUDE_FILTER,
+            INFO_IMPORT_ARG_EXCL_FILTER.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_REJECT_FILE,
+            INFO_IMPORT_ARG_REJECT_FILE.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_SKIP_FILE,
+            INFO_IMPORT_ARG_SKIP_FILE.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_OVERWRITE,
+            INFO_IMPORT_ARG_OVERWRITE.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_SKIP_SCHEMA_VALIDATION,
+            INFO_IMPORT_ARG_SKIP_SCHEMA_VALIDATION.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_IS_COMPRESSED,
+            INFO_IMPORT_ARG_IS_COMPRESSED.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_IS_ENCRYPTED,
+            INFO_IMPORT_ARG_IS_ENCRYPTED.get());
+
+    argDisplayMap.put(
+            ATTR_IMPORT_CLEAR_BACKEND,
+            INFO_IMPORT_ARG_CLEAR_BACKEND.get());
+  }
 
 
   boolean append                  = false;
@@ -93,6 +170,19 @@ public class ImportTask extends Task
   ArrayList<String>  ldifFiles               = null;
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_IMPORT_NAME.get();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getAttributeDisplayName(String name) {
+    return argDisplayMap.get(name);
+  }
 
   /**
    * {@inheritDoc}

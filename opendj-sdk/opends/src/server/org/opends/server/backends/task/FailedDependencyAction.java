@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.task;
 
+import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
 
 
 /**
@@ -39,14 +41,14 @@ public enum FailedDependencyAction
    * The action that indicates that the dependent task should be processed
    * anyway.
    */
-  PROCESS,
+  PROCESS(TaskMessages.INFO_FAILED_DEPENDENCY_ACTION_PROCESS.get()),
 
 
 
   /**
    * The action that indicates that the dependent task should be canceled.
    */
-  CANCEL,
+  CANCEL(TaskMessages.INFO_FAILED_DEPENDENCY_ACTION_CANCEL.get()),
 
 
 
@@ -54,7 +56,7 @@ public enum FailedDependencyAction
    * The action that indicates that the dependent task should be disabled so
    * that an administrator will have to re-enable it before it can start.
    */
-  DISABLE;
+  DISABLE(TaskMessages.INFO_FAILED_DEPENDENCY_ACTION_DISABLE.get());
 
 
 
@@ -87,6 +89,21 @@ public enum FailedDependencyAction
     {
       return null;
     }
+  }
+
+  private Message name;
+
+  /**
+   * Gets the display name of this action.
+   *
+   * @return Message representing the name of this action
+   */
+  public Message getDisplayName() {
+    return name;
+  }
+
+  private FailedDependencyAction(Message name) {
+    this.name = name;
   }
 }
 

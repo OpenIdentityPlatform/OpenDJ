@@ -149,6 +149,12 @@ public final class SecureConnectionCliArgs
    */
   public BooleanArgument useStartTLSArg = null;
 
+  /**
+   * Argument indicating a SASL option.
+   */
+  public StringArgument  saslOptionArg = null;
+
+
   // the trust manager.
   private ApplicationTrustManager trustManager;
 
@@ -390,6 +396,14 @@ public final class SecureConnectionCliArgs
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_BINDPASSWORDFILE.get());
     set.add(bindPasswordFileArg);
+
+    saslOptionArg = new StringArgument(
+            "sasloption", OPTION_SHORT_SASLOPTION,
+            OPTION_LONG_SASLOPTION, false,
+            true, true,
+            OPTION_VALUE_SASLOPTION, null, null,
+            INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
+    set.add(saslOptionArg);
 
     trustAllArg = new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL,
         OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());

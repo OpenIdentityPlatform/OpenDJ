@@ -39,6 +39,7 @@ import java.util.List;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.messages.TaskMessages;
+import org.opends.messages.Message;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
@@ -74,6 +75,13 @@ public class InitializeTargetTask extends Task
   short target;
   long total;
   long left;
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
+  }
 
   /**
    * {@inheritDoc}

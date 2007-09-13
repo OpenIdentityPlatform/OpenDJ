@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.TaskMessages;
+import org.opends.messages.Message;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -70,6 +71,13 @@ public class SetGenerationIdTask extends Task
       // System.out.println(Message.raw(Category.SYNC, Severity.NOTICE, s));
       TRACER.debugInfo(s);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return TaskMessages.INFO_TASK_SET_GENERATION_ID_NAME.get();
   }
 
   /**

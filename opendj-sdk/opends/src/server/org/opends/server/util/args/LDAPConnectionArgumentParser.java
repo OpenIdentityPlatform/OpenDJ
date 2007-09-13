@@ -34,11 +34,13 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.LDAPConnectionException;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 
 import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.io.PrintStream;
 
@@ -48,53 +50,7 @@ import java.io.PrintStream;
  */
 public class LDAPConnectionArgumentParser extends ArgumentParser {
 
-  /** Argument indicating whether all SSL certs will be trusted. */
-  protected BooleanArgument   trustAll;
-
-  /** Argument indicating whether or not to use SSL. */
-  protected BooleanArgument   useSSL;
-
-  /** Argument indicating whether or not to use StartTLS. */
-  protected BooleanArgument   useStartTLS;
-
-  /** Argument indicating location of a bind password file. */
-  protected FileBasedArgument bindPWFile;
-
-  /** Argument indicating the location of the keystore password file. */
-  protected FileBasedArgument keyStorePWFile;
-
-  /** Argument indicating the location of the trust store password file. */
-  protected FileBasedArgument trustStorePWFile;
-
-  /** Argument indicating the port of the directory server. */
-  protected IntegerArgument   port;
-
-  /** Argument indicating the DN of the user with which to bind. */
-  protected StringArgument    bindDN;
-
-  /** Argument indicating the password of the user with which to bind. */
-  protected StringArgument    bindPW;
-
-  /** Argument indicating the nickname of the certificate to use. */
-  protected StringArgument    certNickname;
-
-  /** Argument indicating the hostname of the directory server. */
-  protected StringArgument    host;
-
-  /** Argument indicating the location of the keystore file. */
-  protected StringArgument    keyStoreFile;
-
-  /** Argument indicating the password fo the keystore. */
-  protected StringArgument    keyStorePW;
-
-  /** Argument indicating a SASL option. */
-  protected StringArgument    saslOption;
-
-  /** Argument indicating the location of the trust store file. */
-  protected StringArgument    trustStoreFile;
-
-  /** Argument indicating the password of the trust store. */
-  protected StringArgument    trustStorePW;
+  private SecureConnectionCliArgs args;
 
   /**
    * Creates a new instance of this argument parser with no arguments.
@@ -169,7 +125,9 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *         false otherwise
    */
   public boolean isLdapOperation() {
-    return host.isPresent() || port.isPresent() || bindDN.isPresent();
+    return args.hostNameArg.isPresent() ||
+            args.portArg.isPresent() ||
+            args.bindDnArg.isPresent();
   }
 
   /**
@@ -188,13 +146,36 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
   public LDAPConnection connect(PrintStream out, PrintStream err)
           throws LDAPConnectionException, ArgumentException
   {
+    return connect(this.args, out, err);
+  }
+
+
+  /**
+   * Creates a new LDAPConnection and invokes a connect operation using
+   * information provided in the parsed set of arguments that were provided
+   * by the user.
+   *
+   * @param args with which to connect
+   * @param out stream to write messages
+   * @param err stream to write messages
+   * @return LDAPConnection created by this class from parsed arguments
+   * @throws LDAPConnectionException if there was a problem connecting
+   *         to the server indicated by the input arguments
+   * @throws ArgumentException if there was a problem processing the input
+   *         arguments
+   */
+  private LDAPConnection connect(SecureConnectionCliArgs args,
+                                PrintStream out, PrintStream err)
+          throws LDAPConnectionException, ArgumentException
+  {
     // If both a bind password and bind password file were provided, then return
     // an error.
-    if (bindPW.isPresent() && bindPWFile.isPresent())
+    if (args.bindPasswordArg.isPresent() &&
+            args.bindPasswordFileArg.isPresent())
     {
       Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              bindPW.getLongIdentifier(),
-              bindPWFile.getLongIdentifier());
+              args.bindPasswordArg.getLongIdentifier(),
+              args.bindPasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       throw new ArgumentException(message);
     }
@@ -202,22 +183,24 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
     // If both a key store password and key store password file were provided,
     // then return an error.
-    if (keyStorePW.isPresent() && keyStorePWFile.isPresent())
+    if (args.keyStorePasswordArg.isPresent() &&
+            args.keyStorePasswordFileArg.isPresent())
     {
       Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              keyStorePW.getLongIdentifier(),
-              keyStorePWFile.getLongIdentifier());
+              args.keyStorePasswordArg.getLongIdentifier(),
+              args.keyStorePasswordFileArg.getLongIdentifier());
       throw new ArgumentException(message);
     }
 
 
     // If both a trust store password and trust store password file were
     // provided, then return an error.
-    if (trustStorePW.isPresent() && trustStorePWFile.isPresent())
+    if (args.trustStorePasswordArg.isPresent() &&
+            args.trustStorePasswordFileArg.isPresent())
     {
       Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-              trustStorePW.getLongIdentifier(),
-              trustStorePWFile.getLongIdentifier());
+              args.trustStorePasswordArg.getLongIdentifier(),
+              args.trustStorePasswordFileArg.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       throw new ArgumentException(message);
     }
@@ -231,13 +214,13 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
     // See if we should use SSL or StartTLS when establishing the connection.
     // If so, then make sure only one of them was specified.
-    if (useSSL.isPresent())
+    if (args.useSSLArg.isPresent())
     {
-      if (useStartTLS.isPresent())
+      if (args.useStartTLSArg.isPresent())
       {
         Message message = ERR_LDAP_CONN_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
-                useSSL.getLongIdentifier(),
-                useStartTLS.getLongIdentifier());
+                args.useSSLArg.getLongIdentifier(),
+                args.useSSLArg.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
         throw new ArgumentException(message);
       }
@@ -246,7 +229,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
         connectionOptions.setUseSSL(true);
       }
     }
-    else if (useStartTLS.isPresent())
+    else if (args.useStartTLSArg.isPresent())
     {
       connectionOptions.setStartTLS(true);
     }
@@ -254,14 +237,14 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
     // If we should blindly trust any certificate, then install the appropriate
     // SSL connection factory.
-    if (useSSL.isPresent() || useStartTLS.isPresent())
+    if (args.useSSLArg.isPresent() || args.useStartTLSArg.isPresent())
     {
       try
       {
         String clientAlias;
-        if (certNickname.isPresent())
+        if (args.certNicknameArg.isPresent())
         {
-          clientAlias = certNickname.getValue();
+          clientAlias = args.certNicknameArg.getValue();
         }
         else
         {
@@ -269,10 +252,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
         }
 
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-        sslConnectionFactory.init(trustAll.isPresent(), keyStoreFile.getValue(),
-                                  keyStorePW.getValue(), clientAlias,
-                                  trustStoreFile.getValue(),
-                                  trustStorePW.getValue());
+        sslConnectionFactory.init(args.trustAllArg.isPresent(),
+                args.keyStorePathArg.getValue(),
+                args.keyStorePasswordArg.getValue(),
+                clientAlias,
+                args.trustStorePathArg.getValue(),
+                args.trustStorePasswordArg.getValue());
 
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
@@ -287,12 +272,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
     // If one or more SASL options were provided, then make sure that one of
     // them was "mech" and specified a valid SASL mechanism.
-    if (saslOption.isPresent())
+    if (args.saslOptionArg.isPresent())
     {
       String             mechanism = null;
       LinkedList<String> options   = new LinkedList<String>();
 
-      for (String s : saslOption.getValues())
+      for (String s : args.saslOptionArg.getValues())
       {
         int equalPos = s.indexOf('=');
         if (equalPos <= 0)
@@ -330,155 +315,100 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
         connectionOptions.addSASLProperty(option);
       }
     }
+    return connect(
+            args.hostNameArg.getValue(),
+            args.portArg.getIntValue(),
+            args.bindDnArg.getValue(),
+            args.bindPasswordArg.getValue(),
+            connectionOptions, out, err);
+  }
 
+  /**
+   * Creates a connection using a console interaction that will be used
+   * to potientially interact with the user to prompt for necessary
+   * information for establishing the connection.
+   *
+   * @param ui user interaction for prompting the user
+   * @param out stream to write messages
+   * @param err stream to write messages
+   * @return LDAPConnection created by this class from parsed arguments
+   * @throws LDAPConnectionException if there was a problem connecting
+   *         to the server indicated by the input arguments
+   */
+  public LDAPConnection connect(LDAPConnectionConsoleInteraction ui,
+                                PrintStream out, PrintStream err)
+          throws LDAPConnectionException
+  {
+    LDAPConnection connection = null;
+    try {
+      ui.run();
+      LDAPConnectionOptions options = new LDAPConnectionOptions();
+      options.setVersionNumber(3);
+      connection = connect(
+              ui.getHostName(),
+              ui.getPortNumber(),
+              ui.getBindDN(),
+              ui.getBindPassword(),
+              ui.populateLDAPOptions(options), out, err);
+    } catch (ArgumentException ae) {
+      err.println(ae.getMessageObject());
+    }
+    return connection;
+  }
+
+
+  /**
+   * Creates a connection from information provided.
+   *
+   * @param host of the server
+   * @param port of the server
+   * @param bindDN with which to connect
+   * @param bindPw with which to connect
+   * @param options with which to connect
+   * @param out stream to write messages
+   * @param err stream to write messages
+   * @return LDAPConnection created by this class from parsed arguments
+   * @throws LDAPConnectionException if there was a problem connecting
+   *         to the server indicated by the input arguments
+   */
+  public LDAPConnection connect(String host, int port,
+                                String bindDN, String bindPw,
+                                LDAPConnectionOptions options,
+                                PrintStream out,
+                                PrintStream err)
+          throws LDAPConnectionException
+  {
 
     // Attempt to connect and authenticate to the Directory Server.
     AtomicInteger nextMessageID = new AtomicInteger(1);
 
     LDAPConnection connection = new LDAPConnection(
-            host.getValue(), port.getIntValue(),
-            connectionOptions, out, err);
+            host, port, options, out, err);
 
-    connection.connectToHost(bindDN.getValue(), bindPW.getValue(),
-                             nextMessageID);
+    connection.connectToHost(bindDN, bindPw, nextMessageID);
 
     return connection;
   }
 
+  /**
+   * Gets the arguments associated with this parser.
+   *
+   * @return arguments for this parser.
+   */
+  public SecureConnectionCliArgs getArguments() {
+    return args;
+  }
+
   private void addLdapConnectionArguments() {
-
-    try
-    {
-      host = new StringArgument(
-              "host", OPTION_SHORT_HOST,
-              OPTION_LONG_HOST, false, false, true,
-              OPTION_VALUE_HOST, "127.0.0.1", null,
-              INFO_LDAP_CONN_DESCRIPTION_HOST.get());
-      addArgument(host);
-
-      port = new IntegerArgument(
-              "port", OPTION_SHORT_PORT,
-              OPTION_LONG_PORT, false, false, true,
-              OPTION_VALUE_PORT, 389, null, true, 1,
-              true, 65535, INFO_LDAP_CONN_DESCRIPTION_PORT.get());
-      addArgument(port);
-
-      useSSL = new BooleanArgument(
-              "usessl", OPTION_SHORT_USE_SSL,
-              OPTION_LONG_USE_SSL,
-              INFO_LDAP_CONN_DESCRIPTION_USESSL.get());
-      addArgument(useSSL);
-
-      useStartTLS = new BooleanArgument(
-              "usestarttls", OPTION_SHORT_START_TLS,
-              OPTION_LONG_START_TLS,
-              INFO_LDAP_CONN_DESCRIPTION_USESTARTTLS.get());
-      addArgument(useStartTLS);
-
-      bindDN = new StringArgument(
-              "binddn", OPTION_SHORT_BINDDN,
-              OPTION_LONG_BINDDN, false, false, true,
-              OPTION_VALUE_BINDDN, null, null,
-              INFO_LDAP_CONN_DESCRIPTION_BINDDN.get());
-      addArgument(bindDN);
-
-      bindPW = new StringArgument(
-              "bindpw", OPTION_SHORT_BINDPWD,
-              OPTION_LONG_BINDPWD, false, false,
-              true,
-              OPTION_VALUE_BINDPWD, null, null,
-              INFO_LDAP_CONN_DESCRIPTION_BINDPW.get());
-      addArgument(bindPW);
-
-      bindPWFile = new FileBasedArgument(
-              "bindpwfile",
-              OPTION_SHORT_BINDPWD_FILE,
-              OPTION_LONG_BINDPWD_FILE,
-              false, false,
-              OPTION_VALUE_BINDPWD_FILE,
-              null, null,
-              INFO_LDAP_CONN_DESCRIPTION_BINDPWFILE.get());
-      addArgument(bindPWFile);
-
-      saslOption = new StringArgument(
-              "sasloption", OPTION_SHORT_SASLOPTION,
-              OPTION_LONG_SASLOPTION, false,
-              true, true,
-              OPTION_VALUE_SASLOPTION, null, null,
-              INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
-      addArgument(saslOption);
-
-      trustAll = new BooleanArgument(
-              "trustall", 'X', "trustAll",
-              INFO_LDAP_CONN_DESCRIPTION_TRUST_ALL.get());
-      addArgument(trustAll);
-
-      keyStoreFile = new StringArgument(
-              "keystorefile",
-              OPTION_SHORT_KEYSTOREPATH,
-              OPTION_LONG_KEYSTOREPATH,
-              false, false, true,
-              OPTION_VALUE_KEYSTOREPATH,
-              null, null,
-              INFO_LDAP_CONN_DESCRIPTION_KSFILE.get());
-      addArgument(keyStoreFile);
-
-      keyStorePW = new StringArgument(
-              "keystorepw", OPTION_SHORT_KEYSTORE_PWD,
-              OPTION_LONG_KEYSTORE_PWD,
-              false, false, true,
-              OPTION_VALUE_KEYSTORE_PWD,
-              null, null,
-              INFO_LDAP_CONN_DESCRIPTION_KSPW.get());
-      addArgument(keyStorePW);
-
-      keyStorePWFile = new FileBasedArgument(
-              "keystorepwfile",
-              OPTION_SHORT_KEYSTORE_PWD_FILE,
-              OPTION_LONG_KEYSTORE_PWD_FILE,
-              false, false,
-              OPTION_VALUE_KEYSTORE_PWD_FILE,
-              null, null,
-              INFO_LDAP_CONN_DESCRIPTION_KSPWFILE.get());
-      addArgument(keyStorePWFile);
-
-      certNickname = new StringArgument(
-              "certnickname", 'N', "certNickname",
-              false, false, true, "{nickname}", null,
-              null, INFO_DESCRIPTION_CERT_NICKNAME.get());
-      addArgument(certNickname);
-
-      trustStoreFile = new StringArgument(
-              "truststorefile",
-              OPTION_SHORT_TRUSTSTOREPATH,
-              OPTION_LONG_TRUSTSTOREPATH,
-              false, false, true,
-              OPTION_VALUE_TRUSTSTOREPATH,
-              null, null,
-              INFO_LDAP_CONN_DESCRIPTION_TSFILE.get());
-      addArgument(trustStoreFile);
-
-      trustStorePW = new StringArgument(
-              "truststorepw", 'T',
-              OPTION_LONG_TRUSTSTORE_PWD,
-              false, false,
-              true, OPTION_VALUE_TRUSTSTORE_PWD, null,
-              null, INFO_LDAP_CONN_DESCRIPTION_TSPW.get());
-      addArgument(trustStorePW);
-
-      trustStorePWFile = new FileBasedArgument(
-              "truststorepwfile",
-              OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-              OPTION_LONG_TRUSTSTORE_PWD_FILE,
-              false, false,
-              OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
-              INFO_LDAP_CONN_DESCRIPTION_TSPWFILE.get());
-      addArgument(trustStorePWFile);
-
+    args = new SecureConnectionCliArgs();
+    try {
+      LinkedHashSet<Argument> argSet = args.createGlobalArguments();
+      for (Argument arg : argSet) {
+        addArgument(arg);
+      }
     }
-    catch (ArgumentException ae)
-    {
-      // Should never happen
+    catch (ArgumentException ae) {
+      ae.printStackTrace(); // Should never happen
     }
 
   }

@@ -54,7 +54,12 @@ public class DummyTask
   // the task gets interrupted.
   private volatile TaskState interruptedState;
 
-
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return Message.raw("Dummy");
+  }
 
   /**
    * {@inheritDoc}

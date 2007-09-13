@@ -29,6 +29,8 @@ package org.opends.server.util;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.Argument;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,6 +52,7 @@ import java.util.StringTokenizer;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
+import org.opends.messages.ToolMessages;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
@@ -3771,79 +3774,65 @@ public final class StaticUtils
     String padding = pb.toString();
 
     StringBuilder   buffer        = new StringBuilder();
-    StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n", true);
-    while (lineTokenizer.hasMoreTokens())
-    {
-      String line = lineTokenizer.nextToken();
-      if (line.equals("\r") || line.equals("\n"))
+    if (text != null) {
+      StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n", true);
+      while (lineTokenizer.hasMoreTokens())
       {
-        // It's an end-of-line character, so append it as-is.
-        buffer.append(line);
-      }
-      else if (line.length() < width)
-      {
-        // The line fits in the specified width, so append it as-is.
-        buffer.append(padding);
-        buffer.append(line);
-      }
-      else
-      {
-        // The line doesn't fit in the specified width, so it needs to be
-        // wrapped.  Do so at space boundaries.
-        StringBuilder   lineBuffer    = new StringBuilder();
-        StringBuilder   delimBuffer   = new StringBuilder();
-        StringTokenizer wordTokenizer = new StringTokenizer(line, " ", true);
-        while (wordTokenizer.hasMoreTokens())
+        String line = lineTokenizer.nextToken();
+        if (line.equals("\r") || line.equals("\n"))
         {
-          String word = wordTokenizer.nextToken();
-          if (word.equals(" "))
+          // It's an end-of-line character, so append it as-is.
+          buffer.append(line);
+        }
+        else if (line.length() < width)
+        {
+          // The line fits in the specified width, so append it as-is.
+          buffer.append(padding);
+          buffer.append(line);
+        }
+        else
+        {
+          // The line doesn't fit in the specified width, so it needs to be
+          // wrapped.  Do so at space boundaries.
+          StringBuilder   lineBuffer    = new StringBuilder();
+          StringBuilder   delimBuffer   = new StringBuilder();
+          StringTokenizer wordTokenizer = new StringTokenizer(line, " ", true);
+          while (wordTokenizer.hasMoreTokens())
           {
-            // It's a space, so add it to the delim buffer only if the line
-            // buffer is not empty.
-            if (lineBuffer.length() > 0)
+            String word = wordTokenizer.nextToken();
+            if (word.equals(" "))
             {
-              delimBuffer.append(word);
-            }
-          }
-          else if (word.length() > width)
-          {
-            // This is a long word that can't be wrapped, so we'll just have to
-            // make do.
-            if (lineBuffer.length() > 0)
-            {
-              buffer.append(padding);
-              buffer.append(lineBuffer);
-              buffer.append(EOL);
-              lineBuffer = new StringBuilder();
-            }
-            buffer.append(padding);
-            buffer.append(word);
-
-            if (wordTokenizer.hasMoreTokens())
-            {
-              // The next token must be a space, so remove it.  If there are
-              // still more tokens after that, then append an EOL.
-              wordTokenizer.nextToken();
-              if (wordTokenizer.hasMoreTokens())
+              // It's a space, so add it to the delim buffer only if the line
+              // buffer is not empty.
+              if (lineBuffer.length() > 0)
               {
-                buffer.append(EOL);
+                delimBuffer.append(word);
               }
             }
+            else if (word.length() > width)
+            {
+              // This is a long word that can't be wrapped, so we'll just have
+              // to make do.
+              if (lineBuffer.length() > 0)
+              {
+                buffer.append(padding);
+                buffer.append(lineBuffer);
+                buffer.append(EOL);
+                lineBuffer = new StringBuilder();
+              }
+              buffer.append(padding);
+              buffer.append(word);
 
-            if (delimBuffer.length() > 0)
-            {
-              delimBuffer = new StringBuilder();
-            }
-          }
-          else
-          {
-            // It's not a space, so see if we can fit it on the curent line.
-            int newLineLength = lineBuffer.length() + delimBuffer.length() +
-                                word.length();
-            if (newLineLength < width)
-            {
-              // It does fit on the line, so add it.
-              lineBuffer.append(delimBuffer).append(word);
+              if (wordTokenizer.hasMoreTokens())
+              {
+                // The next token must be a space, so remove it.  If there are
+                // still more tokens after that, then append an EOL.
+                wordTokenizer.nextToken();
+                if (wordTokenizer.hasMoreTokens())
+                {
+                  buffer.append(EOL);
+                }
+              }
 
               if (delimBuffer.length() > 0)
               {
@@ -3852,30 +3841,45 @@ public final class StaticUtils
             }
             else
             {
-              // It doesn't fit on the line, so end the current line and start
-              // a new one.
-              buffer.append(padding);
-              buffer.append(lineBuffer);
-              buffer.append(EOL);
-
-              lineBuffer = new StringBuilder();
-              lineBuffer.append(word);
-
-              if (delimBuffer.length() > 0)
+              // It's not a space, so see if we can fit it on the curent line.
+              int newLineLength = lineBuffer.length() + delimBuffer.length() +
+                                  word.length();
+              if (newLineLength < width)
               {
-                delimBuffer = new StringBuilder();
+                // It does fit on the line, so add it.
+                lineBuffer.append(delimBuffer).append(word);
+
+                if (delimBuffer.length() > 0)
+                {
+                  delimBuffer = new StringBuilder();
+                }
+              }
+              else
+              {
+                // It doesn't fit on the line, so end the current line and start
+                // a new one.
+                buffer.append(padding);
+                buffer.append(lineBuffer);
+                buffer.append(EOL);
+
+                lineBuffer = new StringBuilder();
+                lineBuffer.append(word);
+
+                if (delimBuffer.length() > 0)
+                {
+                  delimBuffer = new StringBuilder();
+                }
               }
             }
           }
-        }
 
-        // If there's anything left in the line buffer, then add it to the
-        // final buffer.
-        buffer.append(padding);
-        buffer.append(lineBuffer);
+          // If there's anything left in the line buffer, then add it to the
+          // final buffer.
+          buffer.append(padding);
+          buffer.append(lineBuffer);
+        }
       }
     }
-
     return buffer.toString();
   }
 
@@ -3909,5 +3913,32 @@ public final class StaticUtils
       return exitCode;
     }
   }
+
+  /**
+   * Checks that no more that one of a set of arguments is present.  This
+   * utility should be used after argument parser has parsed a set of
+   * arguments.
+   *
+   * @param  args to test for the presence of more than one
+   * @throws ArgumentException if more than one of <code>args</code> is
+   *         present and containing an error message identifying the
+   *         arguments in violation
+   */
+  public static void checkOnlyOneArgPresent(Argument... args)
+    throws ArgumentException
+  {
+    if (args != null) {
+      for (Argument arg : args) {
+        for (Argument otherArg : args) {
+          if (arg != otherArg && arg.isPresent() && otherArg.isPresent()) {
+            throw new ArgumentException(
+                    ToolMessages.ERR_INCOMPATIBLE_ARGUMENTS.get(
+                            arg.getName(), otherArg.getName()));
+          }
+        }
+      }
+    }
+  }
+
 }
 

@@ -59,6 +59,8 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.io.File;
 
 /**
@@ -73,6 +75,24 @@ public class RestoreTask extends Task
   private static final DebugTracer TRACER = getTracer();
 
 
+  /**
+   * Stores mapping between configuration attribute name and its label.
+   */
+  static private Map<String,Message> argDisplayMap =
+          new HashMap<String,Message>();
+  static {
+    argDisplayMap.put(
+            ATTR_BACKUP_DIRECTORY_PATH,
+            INFO_RESTORE_ARG_BACKUP_DIR.get());
+
+    argDisplayMap.put(
+            ATTR_BACKUP_ID,
+            INFO_RESTORE_ARG_BACKUP_ID.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_RESTORE_VERIFY_ONLY,
+            INFO_RESTORE_ARG_VERIFY_ONLY.get());
+  }
 
 
   // The task arguments.
@@ -80,6 +100,20 @@ public class RestoreTask extends Task
   private String backupID;
   private boolean verifyOnly;
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_RESTORE_NAME.get();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getAttributeDisplayName(String name) {
+    return argDisplayMap.get(name);
+  }
 
   /**
    * {@inheritDoc}

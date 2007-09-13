@@ -27,39 +27,58 @@
 
 package org.opends.server.tools.tasks;
 
-import org.opends.server.types.RawAttribute;
+import org.opends.messages.Message;
 
-import java.util.List;
+import org.opends.server.types.OpenDsException;
 
 /**
- * Interface for tools that are capable of scheduling a task remotely
- * through the task backend.
- *
- * @see TaskClient
+ * Exception for problems related to interacting with the task backend.
  */
-public interface TaskScheduleInformation {
+public class TaskClientException extends OpenDsException {
+
+  private static final long serialVersionUID = 3800881643050096416L;
 
   /**
-   * Adds utility specific attributes to <code>attributes</code> for
-   * population of the entry that is added to the task backend.
-   *
-   * @param attributes that will be added to the task backend
+   * Constructs a default instance.
    */
-  void addTaskAttributes(List<RawAttribute> attributes);
+  public TaskClientException() {
+  }
 
   /**
-   * Gets the objectclass used to represent scheduled instances of this
-   * utility in the task backend.
+   * Constructs a parameterized instance.
    *
-   * @return String representation of this utilities objectclass
+   * @param cause of this exception
    */
-  String getTaskObjectclass();
+  public TaskClientException(OpenDsException cause) {
+    super(cause);
+  }
 
   /**
-   * Gets the Class that implements the utility to execute.
+   * Constructs a parameterized instance.
    *
-   * @return class of the tasks implementation
+   * @param message for this exception
    */
-  Class getTaskClass();
+  public TaskClientException(Message message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a parameterized instance.
+   *
+   * @param cause of this exception
+   */
+  public TaskClientException(Throwable cause) {
+    super(cause);
+  }
+
+  /**
+   * Constructs a parameterized instance.
+   *
+   * @param message for this exception
+   * @param cause of this exception
+   */
+  public TaskClientException(Message message, Throwable cause) {
+    super(message, cause);
+  }
 
 }

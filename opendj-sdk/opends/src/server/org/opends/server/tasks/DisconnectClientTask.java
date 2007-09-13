@@ -69,7 +69,12 @@ public class DisconnectClientTask
   // The disconnect message to send to the client.
   private Message disconnectMessage;
 
-
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_DISCONNECT_CLIENT_NAME.get();
+  }
 
   /**
    * {@inheritDoc}

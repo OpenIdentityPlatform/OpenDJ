@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -91,6 +92,13 @@ public class RebuildTask extends Task
   String baseDN = null;
   ArrayList<String> indexes = null;
   int maxThreads = -1;
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return TaskMessages.INFO_TASK_REBUILD_NAME.get();
+  }
 
   /**
    * {@inheritDoc}

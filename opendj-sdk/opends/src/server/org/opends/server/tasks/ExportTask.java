@@ -53,6 +53,8 @@ import org.opends.server.types.SearchFilter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -61,7 +63,64 @@ import java.util.List;
 public class ExportTask extends Task
 {
 
+  /**
+   * Stores mapping between configuration attribute name and its label.
+   */
+  static private Map<String,Message> argDisplayMap =
+          new HashMap<String,Message>();
+  static {
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_LDIF_FILE,
+            INFO_EXPORT_ARG_LDIF_FILE.get());
 
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_BACKEND_ID,
+            INFO_EXPORT_ARG_BACKEND_ID.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_APPEND_TO_LDIF,
+            INFO_EXPORT_ARG_APPEND_TO_LDIF.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_COMPRESS_LDIF,
+            INFO_EXPORT_ARG_COMPRESS_LDIF.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_ENCRYPT_LDIF,
+            INFO_EXPORT_ARG_ENCRYPT_LDIF.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_SIGN_HASH,
+            INFO_EXPORT_ARG_SIGN_HASH.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE,
+            INFO_EXPORT_ARG_INCL_ATTR.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE,
+            INFO_EXPORT_ARG_EXCL_ATTR.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_INCLUDE_FILTER,
+            INFO_EXPORT_ARG_INCL_FILTER.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_EXCLUDE_FILTER,
+            INFO_EXPORT_ARG_EXCL_FILTER.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_INCLUDE_BRANCH,
+            INFO_EXPORT_ARG_INCL_BRANCH.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_EXCLUDE_BRANCH,
+            INFO_EXPORT_ARG_EXCL_BRANCH.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_EXPORT_WRAP_COLUMN,
+            INFO_EXPORT_ARG_WRAP_COLUMN.get());
+  }
 
   private String  ldifFile;
   private String  backendID;
@@ -76,6 +135,21 @@ public class ExportTask extends Task
   private ArrayList<String> excludeFilterStrings;
   private ArrayList<String> includeBranchStrings;
   private ArrayList<String> excludeBranchStrings;
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_EXPORT_NAME.get();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getAttributeDisplayName(String name) {
+    return argDisplayMap.get(name);
+  }
 
   /**
    * {@inheritDoc}
