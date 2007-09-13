@@ -1747,7 +1747,7 @@ public class ReplicationCliMain extends CliApplicationHelper
 
                 String adminUid = uData.getAdminUid();
                 String adminPwd = uData.getAdminPwd();
-                
+
                 boolean errorDisplayed = false;
                 while (!connected)
                 {
