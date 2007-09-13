@@ -231,26 +231,12 @@ public class AciHandler
     private void processGlobalAcis(
         DseeCompatAccessControlHandlerCfg configuration)
     throws InitializationException {
-        LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
-        SortedSet<String> globalAci = configuration.getGlobalACI();
+        SortedSet<Aci> globalAcis = configuration.getGlobalACI();
         try {
-            if (globalAci != null)   {
-                LinkedHashSet<AttributeValue> attVals =
-                  new LinkedHashSet<AttributeValue>(globalAci.size());
-                for (String aci : globalAci)
-                {
-                  attVals.add(new AttributeValue(globalAciType,aci));
-                }
-                Attribute attr = new Attribute(globalAciType,
-                        globalAciType.toString(),
-                        attVals);
-                Entry e = new Entry(configuration.dn(), null, null, null);
-                e.addAttribute(attr, new ArrayList<AttributeValue>());
-                int aciCount =  aciList.addAci(e, false, true, failedACIMsgs);
-                if(!failedACIMsgs.isEmpty())
-                    aciListenerMgr.logMsgsSetLockDownMode(failedACIMsgs);
+            if (globalAcis != null)   {
+                aciList.addAci(DN.nullDN(),globalAcis);
                 Message message = INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(
-                    Integer.toString(aciCount));
+                    Integer.toString(globalAcis.size()));
                 logError(message);
             }  else {
                 Message message = INFO_ACI_ADD_LIST_NO_GLOBAL_ACIS.get();

@@ -49,6 +49,7 @@
   <xsl:include href="property-types/ip-address-mask.xsl" />
   <xsl:include href="property-types/ip-address.xsl" />
   <xsl:include href="property-types/java-class.xsl" />
+  <xsl:include href="property-types/aci.xsl" />
   <xsl:include href="property-types/oid.xsl" />
   <xsl:include href="property-types/password.xsl" />
   <xsl:include href="property-types/size.xsl" />
