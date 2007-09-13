@@ -8501,8 +8501,80 @@ public class DirectoryServer
     shutdownMonitor.waitForMonitor();
 
 
-    // At this point, the server is no longer running.
-    directoryServer.isRunning = false;
+    // At this point, the server is no longer running.  We should destroy the
+    // handle to the previous instance, but we will want to get a new instance
+    // in case the server is to be started again later in the same JVM.  Before
+    // doing that, destroy the previous instance.
+    DirectoryEnvironmentConfig envConfig = directoryServer.environmentConfig;
+    directoryServer.destroy();
+    directoryServer = getNewInstance(envConfig);
+  }
+
+
+
+  /**
+   * Destroy key structures in the current Directory Server instance in a manner
+   * that can help detect any inappropriate cached references to server
+   * components.
+   */
+  private void destroy()
+  {
+    checkSchema                   = true;
+    isBootstrapped                = false;
+    isClientBootstrapped          = false;
+    isRunning                     = false;
+    lockdownMode                  = true;
+    rejectUnauthenticatedRequests = true;
+    shuttingDown                  = true;
+
+    configClass              = null;
+    configFile               = null;
+    configHandler            = null;
+    coreConfigManager        = null;
+    compressedSchema         = null;
+    cryptoManager            = null;
+    defaultBinarySyntax      = null;
+    defaultBooleanSyntax     = null;
+    defaultDNSyntax          = null;
+    defaultIntegerSyntax     = null;
+    defaultStringSyntax      = null;
+    defaultSyntax            = null;
+    entryCache               = null;
+    environmentConfig        = null;
+    objectClassAttributeType = null;
+    schemaDN                 = null;
+    shutdownHook             = null;
+    workQueue                = null;
+
+    if (privateNamingContexts != null)
+    {
+      privateNamingContexts.clear();
+      privateNamingContexts = null;
+    }
+
+    if (publicNamingContexts != null)
+    {
+      publicNamingContexts.clear();
+      publicNamingContexts = null;
+    }
+
+    if (baseDNs != null)
+    {
+      baseDNs.clear();
+      baseDNs = null;
+    }
+
+    if (backends != null)
+    {
+      backends.clear();
+      backends = null;
+    }
+
+    if (schema != null)
+    {
+      schema.destroy();
+      schema = null;
+    }
   }
 
 
