@@ -69,6 +69,12 @@ public class ShutdownTask
   private Message shutdownMessage;
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_SHUTDOWN_NAME.get();
+  }
 
   /**
    * Performs any task-specific initialization that may be required before

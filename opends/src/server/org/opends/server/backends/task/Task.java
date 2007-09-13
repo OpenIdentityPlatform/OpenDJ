@@ -144,7 +144,34 @@ public abstract class Task
   // The scheduler with which this task is associated.
   private TaskScheduler taskScheduler;
 
+  /**
+   * Gets a message that identifies this type of task suitable for
+   * presentation to humans in monitoring tools.
+   *
+   * @return name of task
+   */
+  public Message getDisplayName() {
+    // NOTE: this method is invoked via reflection.  If you rename
+    // it be sure to modify the calls.
+    return null;
+  };
 
+  /**
+   * Given an attribute type name returns and locale sensitive
+   * representation.
+   *
+   * @param name of an attribute type associated with the object
+   *        class that represents this entry in the directory
+   * @return Message diaplay name
+   */
+  public Message getAttributeDisplayName(String name) {
+    // Subclasses that are schedulable from the task interface
+    // should override this
+
+    // NOTE: this method is invoked via reflection.  If you rename
+    // it be sure to modify the calls.
+    return null;
+  }
 
   /**
    * Performs generic initialization for this task based on the information in
@@ -1224,6 +1251,21 @@ public abstract class Task
   public void interruptTask(TaskState interruptState, Message interruptReason)
   {
     // No action is performed by default.
+
+    // NOTE:  if you implement this make sure to override isInterruptable
+    //        to return 'true'
   }
+
+
+
+  /**
+   * Indicates whether or not this task is interruptable or not.
+   *
+   * @return boolean where true indicates that this task can be interrupted.
+   */
+  public boolean isInterruptable() {
+    return false;
+  }
+
 }
 

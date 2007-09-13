@@ -50,6 +50,14 @@ import static org.opends.messages.TaskMessages.*;
 public class LeaveLockdownModeTask
        extends Task
 {
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_LEAVE_LOCKDOWN_MODE_NAME.get();
+  }
+
   /**
    * {@inheritDoc}
    */

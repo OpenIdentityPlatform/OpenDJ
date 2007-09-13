@@ -83,7 +83,12 @@ public class AddSchemaFileTask
   // The list of files to be added to the server schema.
   TreeSet<String> filesToAdd;
 
-
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_ADD_SCHEMA_FILE_NAME.get();
+  }
 
   /**
    * {@inheritDoc}

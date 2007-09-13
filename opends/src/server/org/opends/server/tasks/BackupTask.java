@@ -60,6 +60,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.HashMap;
 import java.text.SimpleDateFormat;
 import java.io.File;
 
@@ -71,6 +72,53 @@ import java.io.File;
 public class BackupTask extends Task
 {
 
+
+  /**
+   * Stores mapping between configuration attribute name and its label.
+   */
+  static private Map<String,Message> argDisplayMap =
+          new HashMap<String,Message>();
+  static {
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_ALL,
+            INFO_BACKUP_ARG_BACKUPALL.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_COMPRESS,
+            INFO_BACKUP_ARG_COMPRESS.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_ENCRYPT,
+            INFO_BACKUP_ARG_ENCRYPT.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_HASH,
+            INFO_BACKUP_ARG_HASH.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_INCREMENTAL,
+            INFO_BACKUP_ARG_INCREMENTAL.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_SIGN_HASH,
+            INFO_BACKUP_ARG_SIGN_HASH.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_BACKEND_ID,
+            INFO_BACKUP_ARG_BACKEND_IDS.get());
+
+    argDisplayMap.put(
+            ATTR_BACKUP_ID,
+            INFO_BACKUP_ARG_BACKUP_ID.get());
+
+    argDisplayMap.put(
+            ATTR_BACKUP_DIRECTORY_PATH,
+            INFO_BACKUP_ARG_BACKUP_DIR.get());
+
+    argDisplayMap.put(
+            ATTR_TASK_BACKUP_INCREMENTAL_BASE_ID,
+            INFO_BACKUP_ARG_INC_BASE_ID.get());
+  }
 
 
   // The task arguments.
@@ -92,6 +140,20 @@ public class BackupTask extends Task
   private Map<String,ConfigEntry> configEntries;
 
   private ArrayList<Backend> backendsToArchive;
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getDisplayName() {
+    return INFO_TASK_BACKUP_NAME.get();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Message getAttributeDisplayName(String attrName) {
+    return argDisplayMap.get(attrName);
+  }
 
   /**
    * {@inheritDoc}

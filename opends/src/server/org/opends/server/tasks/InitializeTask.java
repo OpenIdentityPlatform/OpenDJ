@@ -80,6 +80,13 @@ public class InitializeTask extends Task
   /**
    * {@inheritDoc}
    */
+  public Message getDisplayName() {
+    return TaskMessages.INFO_TASK_INITIALIZE_NAME.get();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override public void initializeTask() throws DirectoryException
   {
     if (TaskState.isDone(getTaskState()))

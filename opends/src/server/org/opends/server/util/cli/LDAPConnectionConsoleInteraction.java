@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.messages.ToolMessages.INFO_LDAPAUTH_PASSWORD_PROMPT;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
+import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -1315,5 +1316,24 @@ public class LDAPConnectionConsoleInteraction {
       }
     }
   }
+
+ /**
+  * Populates an a set of LDAP options with state from this interaction.
+  *
+  * @param  options existing set of options; may be null in which case this
+  *         method will create a new set of <code>LDAPConnectionOptions</code>
+  *         to be returned
+  * @return used during this interaction
+  */
+ public LDAPConnectionOptions populateLDAPOptions(
+         LDAPConnectionOptions options)
+ {
+   if (options == null) {
+     options = new LDAPConnectionOptions();
+   }
+   options.setUseSSL(this.useSSL);
+   options.setStartTLS(this.useStartTLS);
+   return options;
+ }
 
 }

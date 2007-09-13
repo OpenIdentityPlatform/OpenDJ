@@ -352,6 +352,16 @@ public abstract class ConsoleApplication {
   }
 
 
+  /**
+   * Displays a message to the error stream.
+   *
+   * @param msg
+   *          The message.
+   */
+  public final void print(Message msg) {
+    err.print(wrapText(msg, MAX_LINE_WIDTH));
+  }
+
 
   /**
    * Displays a message to the error stream indented by the specified

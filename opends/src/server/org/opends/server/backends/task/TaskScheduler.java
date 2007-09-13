@@ -347,6 +347,10 @@ public class TaskScheduler
         activeThreads.put(task.getTaskID(), taskThread);
         taskThread.setTask(task);
       }
+      else if (TaskState.isDone(state))
+      {
+        completedTasks.add(task);
+      }
       else
       {
         pendingTasks.add(task);
@@ -871,6 +875,13 @@ public class TaskScheduler
    */
   private TaskState shouldStart(Task task)
   {
+    // If the task has finished we don't want to restart it
+    TaskState state = task.getTaskState();
+    if (state != null && TaskState.isDone(state))
+    {
+      return state;
+    }
+
     if (! isRunning)
     {
       return TaskState.UNSCHEDULED;

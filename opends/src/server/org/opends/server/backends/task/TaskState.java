@@ -26,6 +26,9 @@
  */
 package org.opends.server.backends.task;
 
+import org.opends.messages.Message;
+import static org.opends.messages.TaskMessages.*;
+
 
 /**
  * This enumeration defines the various states that a task can have during its
@@ -37,7 +40,7 @@ public enum TaskState
    * The task state that indicates that the task has not yet been scheduled,
    * or possibly that the scheduler is currently not running.
    */
-  UNSCHEDULED,
+  UNSCHEDULED(INFO_TASK_STATE_UNSCHEDULED.get()),
 
 
 
@@ -45,7 +48,7 @@ public enum TaskState
    * The task state that indicates that the task has been disabled by an
    * administrator.
    */
-  DISABLED,
+  DISABLED(INFO_TASK_STATE_DISABLED.get()),
 
 
 
@@ -53,7 +56,7 @@ public enum TaskState
    * The task state that indicates that the task's scheduled start time has not
    * yet arrived.
    */
-  WAITING_ON_START_TIME,
+  WAITING_ON_START_TIME(INFO_TASK_STATE_WAITING_ON_START_TIME.get()),
 
 
 
@@ -61,14 +64,14 @@ public enum TaskState
    * The task state that indicates that at least one of the task's defined
    * dependencies has not yet completed.
    */
-  WAITING_ON_DEPENDENCY,
+  WAITING_ON_DEPENDENCY(INFO_TASK_STATE_WAITING_ON_DEPENDENCY.get()),
 
 
 
   /**
    * The task state that indicates that the task is currently running.
    */
-  RUNNING,
+  RUNNING(INFO_TASK_STATE_RUNNING.get()),
 
 
 
@@ -76,7 +79,7 @@ public enum TaskState
    * The task state that indicates that the task has completed without any
    * errors.
    */
-  COMPLETED_SUCCESSFULLY,
+  COMPLETED_SUCCESSFULLY(INFO_TASK_STATE_COMPLETED_SUCCESSFULLY.get()),
 
 
 
@@ -85,7 +88,7 @@ public enum TaskState
    * intended goal, but that one or more errors were encountered during the
    * process.
    */
-  COMPLETED_WITH_ERRORS,
+  COMPLETED_WITH_ERRORS(INFO_TASK_STATE_COMPLETED_WITH_ERRORS.get()),
 
 
 
@@ -93,7 +96,7 @@ public enum TaskState
    * The task state that indicates that the task was unable to complete because
    * it was interrupted by the shutdown of the task backend.
    */
-  STOPPED_BY_SHUTDOWN,
+  STOPPED_BY_SHUTDOWN(INFO_TASK_STATE_STOPPED_BY_SHUTDOWN.get()),
 
 
 
@@ -101,7 +104,7 @@ public enum TaskState
    * The task state that indicates that one or more errors prevented the task
    * from completing.
    */
-  STOPPED_BY_ERROR,
+  STOPPED_BY_ERROR(INFO_TASK_STATE_STOPPED_BY_ERROR.get()),
 
 
 
@@ -109,7 +112,7 @@ public enum TaskState
    * The task state that indicates that the task was stopped by an administrator
    * after it had already started but before it was able to complete.
    */
-  STOPPED_BY_ADMINISTRATOR,
+  STOPPED_BY_ADMINISTRATOR(INFO_TASK_STATE_STOPPED_BY_ADMINISTRATOR.get()),
 
 
 
@@ -117,7 +120,7 @@ public enum TaskState
    * The task state that indicates that the task was canceled by an
    * administrator before it started running.
    */
-  CANCELED_BEFORE_STARTING;
+  CANCELED_BEFORE_STARTING(INFO_TASK_STATE_CANCELED_BEFORE_STARTING.get());
 
 
 
@@ -281,6 +284,21 @@ public enum TaskState
     {
       return null;
     }
+  }
+
+  private Message displayName;
+
+  /**
+   * Gets a locale sensitive representation of this state.
+   *
+   * @return Message describing state
+   */
+  public Message getDisplayName() {
+    return displayName;
+  }
+
+  private TaskState(Message displayName) {
+    this.displayName = displayName;
   }
 }
 

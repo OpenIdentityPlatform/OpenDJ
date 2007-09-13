@@ -31,13 +31,15 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
+import org.opends.server.types.LDAPException;
 import org.opends.messages.Message;
-import static org.opends.messages.ToolMessages.ERR_LDAP_CONN_CANNOT_CONNECT;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
+import java.io.IOException;
 
 /**
  * Base class for tools that are capable of operating either by running
@@ -61,24 +63,38 @@ public abstract class TaskTool implements TaskScheduleInformation {
                         boolean initializeServer,
                         PrintStream out, PrintStream err) {
     int ret;
+    String taskId;
     if (argParser.isLdapOperation())
     {
       try {
         LDAPConnection conn = argParser.connect(out, err);
-        TaskSchedulingClient tc = new TaskSchedulingClient(conn);
-        ret = tc.schedule(this, out, err);
+        TaskClient tc = new TaskClient(conn);
+        taskId = tc.schedule(this);
+        out.println(wrapText(INFO_TASK_TOOL_TASK_SCHEDULED.get(taskId),
+                MAX_LINE_WIDTH));
+        ret = 0;
       } catch (LDAPConnectionException e) {
         Message message = ERR_LDAP_CONN_CANNOT_CONNECT.get(e.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
-        ret = LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
+        ret = 1;
       } catch (ArgumentException e) {
         Message message = e.getMessageObject();
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
-        ret = LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        ret = 1;
+      } catch (IOException ioe) {
+        Message message = ERR_TASK_TOOL_IO_ERROR.get(String.valueOf(ioe));
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        ret = 1;
+      } catch (ASN1Exception ae) {
+        Message message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        ret = 1;
+      } catch (LDAPException le) {
+        Message message = ERR_TASK_TOOL_DECODE_ERROR.get(le.getMessage());
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        ret = 1;
       }
-    }
-    else
-    {
+    } else {
       ret = processLocal(initializeServer, out, err);
     }
     return ret;
