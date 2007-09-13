@@ -209,13 +209,13 @@ public class ConnectionUtils
     final Object[] pair = new Object[] {null, null};
     final Hashtable fEnv = env;
     final TrustManager fTrustManager = trustManager;
-    final KeyManager   fKeyManage    = keyManager;
+    final KeyManager   fKeyManager   = keyManager;
 
     Thread t = new Thread(new Runnable() {
       public void run() {
         try {
           TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
-              fKeyManage);
+              fKeyManager);
           pair[0] = new InitialLdapContext(fEnv, null);
 
         } catch (NamingException ne) {
