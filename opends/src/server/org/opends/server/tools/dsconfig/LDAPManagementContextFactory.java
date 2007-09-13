@@ -27,7 +27,7 @@
 package org.opends.server.tools.dsconfig;
 
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.admin.ads.util.OpendsCertificationException;
+import org.opends.admin.ads.util.OpendsCertificateException;
 
 import static org.opends.messages.DSConfigMessages.*;
 import org.opends.messages.Message;
@@ -118,10 +118,10 @@ public final class LDAPManagementContextFactory implements
             {
               if ((e.getRootCause() != null)
                   && (e.getRootCause().getCause()
-                      instanceof OpendsCertificationException))
+                      instanceof OpendsCertificateException))
               {
-                OpendsCertificationException oce =
-                  (OpendsCertificationException) e.getRootCause().getCause();
+                OpendsCertificateException oce =
+                  (OpendsCertificateException) e.getRootCause().getCause();
                   if (ci.checkServerCertificate(oce.getChain()))
                   {
                     // If the certificate is trusted, update the trust manager.
@@ -166,10 +166,10 @@ public final class LDAPManagementContextFactory implements
             {
               if ((e.getRootCause() != null)
                   && (e.getRootCause().getCause()
-                      instanceof OpendsCertificationException))
+                      instanceof OpendsCertificateException))
               {
-                OpendsCertificationException oce =
-                  (OpendsCertificationException) e.getRootCause().getCause();
+                OpendsCertificateException oce =
+                  (OpendsCertificateException) e.getRootCause().getCause();
                   if (ci.checkServerCertificate(oce.getChain()))
                   {
                     // If the certificate is trusted, update the trust manager.

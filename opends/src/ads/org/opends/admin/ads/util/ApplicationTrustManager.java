@@ -163,7 +163,7 @@ public class ApplicationTrustManager implements X509TrustManager
       lastRefusedChain = chain;
       lastRefusedAuthType = authType;
       lastRefusedCause = Cause.NOT_TRUSTED;
-      OpendsCertificationException e = new OpendsCertificationException(
+      OpendsCertificateException e = new OpendsCertificateException(
           chain);
       e.initCause(ce);
       throw e;
@@ -180,7 +180,7 @@ public class ApplicationTrustManager implements X509TrustManager
         lastRefusedChain = chain;
         lastRefusedAuthType = authType;
         lastRefusedCause = Cause.HOST_NAME_MISMATCH;
-        OpendsCertificationException e = new OpendsCertificationException(
+        OpendsCertificateException e = new OpendsCertificateException(
             chain);
         e.initCause(ce);
         throw e;
@@ -220,7 +220,7 @@ public class ApplicationTrustManager implements X509TrustManager
       lastRefusedChain = chain;
       lastRefusedAuthType = authType;
       lastRefusedCause = Cause.NOT_TRUSTED;
-      OpendsCertificationException e = new OpendsCertificationException(chain);
+      OpendsCertificateException e = new OpendsCertificateException(chain);
       e.initCause(ce);
       throw e;
     }
@@ -236,7 +236,7 @@ public class ApplicationTrustManager implements X509TrustManager
         lastRefusedChain = chain;
         lastRefusedAuthType = authType;
         lastRefusedCause = Cause.HOST_NAME_MISMATCH;
-        OpendsCertificationException e = new OpendsCertificationException(
+        OpendsCertificateException e = new OpendsCertificateException(
             chain);
         e.initCause(ce);
         throw e;
@@ -345,7 +345,7 @@ public class ApplicationTrustManager implements X509TrustManager
     }
     if (!found)
     {
-      throw new OpendsCertificationException(
+      throw new OpendsCertificateException(
           "Certificate not in list of accepted certificates", chain);
     }
   }
@@ -379,7 +379,7 @@ public class ApplicationTrustManager implements X509TrustManager
 
       if (!matches)
       {
-        throw new OpendsCertificationException(
+        throw new OpendsCertificateException(
             "Hostname mismatch between host name " + host
                 + " and subject DN: " + chain[0].getSubjectX500Principal(),
             chain);

@@ -38,7 +38,7 @@ import java.security.cert.X509Certificate ;
  * this exception is thrown. This allows to get the certificate chain
  * which is unknown.
  */
-public class OpendsCertificationException extends CertificateException
+public class OpendsCertificateException extends CertificateException
 {
 
   /**
@@ -62,7 +62,7 @@ public class OpendsCertificationException extends CertificateException
    * @param chain the certificate chain which is unknown and has caused
    *        the SSL handcheck failure.
    */
-  public OpendsCertificationException(X509Certificate[] chain)
+  public OpendsCertificateException(X509Certificate[] chain)
   {
     super();
     this.chain = chain;
@@ -76,7 +76,7 @@ public class OpendsCertificationException extends CertificateException
    * @param chain the certificate chain which is unknown and has caused
    *        the SSL handcheck failure.
    */
-  public OpendsCertificationException(String msg, X509Certificate[] chain)
+  public OpendsCertificateException(String msg, X509Certificate[] chain)
   {
     super(msg);
     this.chain = chain;
