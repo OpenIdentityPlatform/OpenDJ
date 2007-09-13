@@ -33,7 +33,6 @@ import org.apache.tools.ant.Location;
 import static org.opends.build.tools.Utilities.*;
 import org.opends.messages.Category;
 import org.opends.messages.Severity;
-import org.opends.build.tools.MessagePropertyKey;
 import org.opends.messages.MessageDescriptor;
 
 import java.io.File;
@@ -44,7 +43,6 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
@@ -143,11 +141,10 @@ public class GenerateMessageFile extends Task {
             .append("describing the purpose of the message ")
             .append("\n\nORDINAL is an integer between 0 and 65535 that is ")
             .append("unique to other messages defined in this file.\n\n")
-            .append("You can turn relax the mandate for including the ")
-            .append("more of the CATEGORY,")
+            .append("You can relax the mandate for including the CATEGORY, ")
             .append("SEVERITY, and/or ORDINAL by including one or more ")
-            .append("of the following property directives in your properties ")
-            .append("file:  ")
+            .append("of the following respective property directives in your ")
+            .append("properties file:  ")
             .append(GLOBAL_CATEGORY)
             .append(", ")
             .append(GLOBAL_SEVERITY)
@@ -750,6 +747,7 @@ public class GenerateMessageFile extends Task {
    * @param descClassName name of the message descriptor class
    * @return true if the class was acutally added to the registry;
    *         false indicates that the class was already present.
+   * @throws IOException if there is a problem with the file I/O
    */
   private boolean registerMessageDescriptor(String descClassName)
           throws IOException
@@ -796,9 +794,20 @@ public class GenerateMessageFile extends Task {
   }
 
   private File getProjectBase() {
+    File projectBase;
+
+    // Get the path to build.xml and return the parent
+    // directory else just return the working directory.
     Location l = getLocation();
-    File f = new File(l.getFileName());
-    return f.getParentFile();
+    String fileName = l.getFileName();
+    if (fileName != null) {
+      File f = new File(fileName);
+      projectBase = f.getParentFile();
+    } else {
+      projectBase = new File(System.getProperty("user.dir"));
+    }
+
+    return projectBase;
   }
 
   private String unixifyPath(String path) {
@@ -814,7 +823,7 @@ public class GenerateMessageFile extends Task {
    * @param args from command line
    */
   public static void main(String[] args) {
-    File source = new File("resource/messages/xxx.properties");
+    File source = new File("src/messages/messages/tools.properties");
     File dest = new File("/tmp/org/opends/XXX.java");
     GenerateMessageFile gmf = new GenerateMessageFile();
     gmf.setOverwrite(true);
