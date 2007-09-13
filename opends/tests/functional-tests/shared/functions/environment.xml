@@ -152,8 +152,12 @@
         True = 1
         False = 0     
 
-        DSCONFIG = 'dsconfig'          
+        DSCONFIG = 'dsconfig'       
+        DSREPLICATION = 'dsreplication'   
         NO_CHECK = 'noCheck'  
+          
+        AdminUID = 'admin'
+        AdminPswd = 'admin'
           
         # Replication configuration default names
         MultimasterSync = 'Multimaster Synchronization'

@@ -49,14 +49,14 @@
              'Create DS topology as described in %s' % topologyFile
           </message>
         
-      <call function="'createTopology'">
-        { 'topologyDescFile' : topologyFile,
+          <call function="'createTopology'">
+            { 'topologyDescFile' : topologyFile,
               'sharedDataFolder' : 'replication' }
-      </call>  
+          </call>  
       
-      <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult }
+          <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAXResult }
           </call>
 
           <!-- Setup variables -->
@@ -71,6 +71,7 @@
               
             master = _topologyServerList[0]
             masterHost = master.getHostname()
+            masterReplicationServer = master.getChangelogServer()
             masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
             masterDataDir = '%s/%s' % (master.getDir(),relativeDataDir)
 
@@ -81,7 +82,52 @@
           <call function="'startServers'">
             [_topologyServerList]
           </call>            
-                              
+            
+          
+          <iterate var="server" in="consumerList">
+            <sequence>
+              <!-- Configure replication if required so by the server
+              !  (i.e. server is a changelog server and/or has synchronized suffixes) 
+              -->
+              <if expr="server.requiresSynchronization()">
+                <sequence>          
+                  <message>
+                    'Instance requires REPLICATION configuration.'
+                  </message>
+                    
+                  <script>
+                    replicationServer = server.getChangelogServer()
+                    replicatedSuffixList = server.getSynchronizedSuffixList()
+                    replicatedDnList = []
+                    for suffix in replicatedSuffixList:
+                      replicatedDnList.append(suffix.getSuffixDn())
+                  </script>
+                                        
+                  <message>
+                    'Enable replication for server:\nHost: %s\nLdap port: %s\nReplication port: %s\nReplicated DN list: %s' % (server.getHostname(), server.getPort(), replicationServer.getPort(), replicatedDnList)
+                  </message>
+                                        
+                  <call function="'enableReplication'">
+                    { 'location'  :  clientHost,
+                      'dsPath'  :  clientPath,
+                      'dsInstanceHost'  :  server.getHostname(),
+                      'dsInstancePort'  :  server.getPort(),
+                      'dsInstanceDn'  :  server.getRootDn(),
+                      'dsInstancePswd'  :  server.getRootPwd(),
+                      'dsReplicationPort'  :  replicationServer.getPort(),
+                      'refInstanceHost'  :  masterHost,
+                      'refInstancePort'  :  master.getPort(),
+                      'refInstanceDn'  :  master.getRootDn(),
+                      'refInstancePswd'  :  master.getRootPwd(),
+                      'refReplicationPort'  :  masterReplicationServer.getPort(),
+                      'replicationDnList'  :  replicatedDnList }                      
+                  </call>
+                </sequence>
+              </if>                
+                
+            </sequence>              
+          </iterate>                   
+                                                                                             
         </sequence>
 
       </block>
