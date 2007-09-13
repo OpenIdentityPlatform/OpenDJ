@@ -111,7 +111,7 @@
                 <!-- Configure replication if required so by the server
                      !  (i.e. server is a changelog server and/or has synchronized suffixes) 
                 -->
-                <if expr="server.requiresSynchronization()">
+<!--                <if expr="server.requiresSynchronization()">
                   <sequence>          
                     <message>
                       'Instance requires REPLICATION configuration.'
@@ -121,6 +121,7 @@
                     </call>
                   </sequence>
                 </if>
+-->    
               </sequence>
             </iterate>
           </sequence>
@@ -700,7 +701,222 @@
     </sequence>
   </function>
   
-  
+
+
+
+  <!-- Enable replication between servers using dsreplication -->
+  <function name="enableReplication">
+    <function-prolog>
+      This function enables replication between servers using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsReplicationPort" type="required">
+        <function-arg-description>
+          Replication port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+        
+      <function-arg-def name="refInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Reference Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="refInstancePort" type="required">
+        <function-arg-description>
+          Reference Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+      
+      <function-arg-def name="refInstanceDn" type="required">
+        <function-arg-description>
+          Reference server Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="refInstancePswd" type="required">
+        <function-arg-description>
+          Reference server Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="refReplicationPort" type="required">
+        <function-arg-description>
+          Reference server Replication port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+                        
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="DN list" />
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" 
+                                   type="optional"
+                                   default="AdminUID">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+        <function-arg-property name="type" value="UID" />
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" 
+                                   type="optional"
+                                   default="AdminPswd">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSREPLICATION,fileExt)
+        
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('enable')
+        STAFCmdParamsList.append('-n')                    
+        STAFCmdParamsList.append('-Q')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+      
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+      
+        if dsInstancePswd:
+          STAFCmdParamsList.append('--bindPassword1 "%s"' % dsInstancePswd)
+
+        if dsReplicationPort:
+          STAFCmdParamsList.append('-r %s' % dsReplicationPort)                    
+
+        if refInstanceHost:
+          STAFCmdParamsList.append('-O %s' % refInstanceHost)
+      
+        if refInstancePort:
+          STAFCmdParamsList.append('--port2 %s' % refInstancePort)
+      
+        if refInstanceDn:
+          STAFCmdParamsList.append('--bindDN2 "%s"' % refInstanceDn)
+      
+        if refInstancePswd:
+          STAFCmdParamsList.append('--bindPassword2 "%s"' % refInstancePswd)
+
+        if refReplicationPort:
+          STAFCmdParamsList.append('-R %s' % refReplicationPort)                    
+
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+                    
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+      
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)          
+                    
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Enable Replication',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>
+
+
+                          
   
   <function name="readTopology">
     <function-prolog>
