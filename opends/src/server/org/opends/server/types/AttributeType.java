@@ -101,6 +101,9 @@ public final class AttributeType
   // Indicates whether this attribute type is the objectclass type.
   private final boolean isObjectClassType;
 
+  // Indicates whether this attribute type is operational.
+  private final boolean isOperational;
+
   // Indicates whether this attribute type is declared "single-value".
   private final boolean isSingleValue;
 
@@ -119,6 +122,9 @@ public final class AttributeType
 
   // The definition string used to create this attribute type.
   private final String definition;
+
+  // The OID for the associated syntax.
+  private final String syntaxOID;
 
   // The substring matching rule for this attribute type.
   private final SubstringMatchingRule substringMatchingRule;
@@ -324,6 +330,7 @@ public final class AttributeType
     {
       this.syntax = syntax;
     }
+    syntaxOID = this.syntax.getOID();
 
 
     if (approximateMatchingRule == null)
@@ -386,6 +393,8 @@ public final class AttributeType
     {
       isObjectClassType = hasName(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     }
+
+    isOperational = this.attributeUsage.isOperational();
   }
 
 
@@ -504,7 +513,7 @@ public final class AttributeType
    */
   public String getSyntaxOID()
   {
-    return syntax.getOID();
+    return syntaxOID;
   }
 
 
@@ -588,7 +597,7 @@ public final class AttributeType
    */
   public boolean isOperational()
   {
-    return attributeUsage.isOperational();
+    return isOperational;
   }
 
 
