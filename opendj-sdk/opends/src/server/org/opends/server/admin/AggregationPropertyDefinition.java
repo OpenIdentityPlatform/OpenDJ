@@ -321,8 +321,18 @@ public final class AggregationPropertyDefinition
      * {@inheritDoc}
      */
     public ConfigChangeResult applyConfigurationChange(S configuration) {
-      throw new IllegalStateException("Attempting to disable a referenced "
-          + configuration.definition().getUserFriendlyName());
+      PropertyProvider provider = configuration.properties();
+      Collection<Boolean> values = provider
+          .getPropertyValues(getTargetEnabledPropertyDefinition());
+      if (values.iterator().next() == false) {
+        // This should not happen - the
+        // isConfigurationChangeAcceptable() call-back should have
+        // trapped this.
+        throw new IllegalStateException("Attempting to disable a referenced "
+            + configuration.definition().getUserFriendlyName());
+      } else {
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      }
     }
 
 
@@ -383,6 +393,9 @@ public final class AggregationPropertyDefinition
      * {@inheritDoc}
      */
     public ConfigChangeResult applyConfigurationDelete(S configuration) {
+      // This should not happen - the
+      // isConfigurationDeleteAcceptable() call-back should have
+      // trapped this.
       if (configuration.dn().equals(dn)) {
         throw new IllegalStateException("Attempting to delete a referenced "
             + configuration.definition().getUserFriendlyName());
