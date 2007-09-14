@@ -91,7 +91,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
    *  - receive all messages from the ReplicationBroker, check that
    *    the client receives the correct number of operations.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=false, groups="slow")
   public void saturateQueueAndRestart() throws Exception
   {
     logError(Message.raw(
@@ -350,8 +350,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
     ProtocolVersion.setCurrentVersion((short)2);
 
     ReplicationBroker broker = new ReplicationBroker(
-        new ServerState(), 
-        baseDn, 
+        new ServerState(),
+        baseDn,
         (short) 13, 0, 0, 0, 0, 1000, 0,
         ReplicationTestCase.getGenerationId(baseDn),
         getReplSessionSecurity());
@@ -371,11 +371,11 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // Check broker negociated version
     pversion = broker.getProtocolVersion();
     assertEquals(pversion, 0);
-    
+
     broker.stop();
-    
+
     logError(Message.raw(
         Category.SYNC, Severity.INFORMATION,
         "Ending Replication ProtocolWindowTest : protocolVersion"));
-  }    
+  }
 }
