@@ -90,7 +90,9 @@
     By default property values are represented using strings which
     don't require an import statement - so do nothing.
   -->
-  <xsl:template match="*" mode="java-value-imports" />
+  <xsl:template match="*" mode="java-value-imports">
+    <xsl:param name="interface" select="/.." />
+  </xsl:template>
   <!--
     Generate the Java definition type used to define the property.
     
@@ -114,7 +116,9 @@
       <xsl:value-of select="'org.opends.server.admin.'" />
       <xsl:apply-templates select="." mode="java-definition-type" />
     </xsl:element>
-    <xsl:apply-templates select="." mode="java-value-imports" />
+    <xsl:apply-templates select="." mode="java-value-imports">
+      <xsl:with-param name="interface" select="'server'" />
+    </xsl:apply-templates>
   </xsl:template>
   <!--
     If the property definition is generic, get the generic type. Otherwise,
@@ -136,6 +140,48 @@
   -->
   <xsl:template match="*" mode="java-definition-post-ctor" />
   <!--
+    Generate property getter declaration(s).
+    
+    By default, generate a single getter with minimal documentation.
+  -->
+  <xsl:template match="*" mode="java-property-getter-declaration">
+    <xsl:param name="interface" select="/.." />
+    <xsl:call-template
+      name="generate-default-property-getter-declaration">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:call-template>
+  </xsl:template>
+  <!--
+    Generate property getter implementation(s).
+    
+    By default, generate a single getter.
+  -->
+  <xsl:template match="*" mode="java-property-getter-implementation">
+    <xsl:param name="interface" select="/.." />
+    <xsl:call-template
+      name="generate-default-property-getter-implementation">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:call-template>
+  </xsl:template>
+  <!--
+    Generate property setter declaration(s).
+    
+    By default, generate a single setter with minimal documentation.
+  -->
+  <xsl:template match="*" mode="java-property-setter-declaration">
+    <xsl:call-template
+      name="generate-default-property-setter-declaration" />
+  </xsl:template>
+  <!--
+    Generate property setter implementation(s).
+    
+    By default, generate a single setter.
+  -->
+  <xsl:template match="*" mode="java-property-setter-implementation">
+    <xsl:call-template
+      name="generate-default-property-setter-implementation" />
+  </xsl:template>
+  <!--
     
     
     Wrapper templates which can be called directly instead of
@@ -148,8 +194,11 @@
     Get the Java imports required for a property's values.
   -->
   <xsl:template name="get-property-java-imports">
+    <xsl:param name="interface" select="/.." />
     <xsl:apply-templates select="adm:syntax/*"
-      mode="java-value-imports" />
+      mode="java-value-imports">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:apply-templates>
   </xsl:template>
   <!-- 
     Get the Java imports required for a property's definition.
@@ -202,10 +251,52 @@
     <xsl:apply-templates select="adm:syntax/*"
       mode="java-definition-post-ctor" />
   </xsl:template>
-  <!--
+  <!-- 
     Generate the property getter declarations.
   -->
   <xsl:template name="generate-property-getter-declaration">
+    <xsl:param name="interface" select="/.." />
+    <xsl:apply-templates select="adm:syntax/*"
+      mode="java-property-getter-declaration">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:apply-templates>
+  </xsl:template>
+  <!-- 
+    Generate the property getter implementations.
+  -->
+  <xsl:template name="generate-property-getter-implementation">
+    <xsl:param name="interface" select="/.." />
+    <xsl:apply-templates select="adm:syntax/*"
+      mode="java-property-getter-implementation">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:apply-templates>
+  </xsl:template>
+  <!-- 
+    Generate the property setter declarations.
+  -->
+  <xsl:template name="generate-property-setter-declaration">
+    <xsl:apply-templates select="adm:syntax/*"
+      mode="java-property-setter-declaration" />
+  </xsl:template>
+  <!-- 
+    Generate the property setter implementations.
+  -->
+  <xsl:template name="generate-property-setter-implementation">
+    <xsl:apply-templates select="adm:syntax/*"
+      mode="java-property-setter-implementation" />
+  </xsl:template>
+  <!--
+    Generate the default property getter declarations.
+  -->
+  <xsl:template name="generate-default-property-getter-declaration">
+    <xsl:param name="interface" select="/.." />
+    <xsl:apply-templates select="../.."
+      mode="generate-default-property-getter-declaration-aux">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:apply-templates>
+  </xsl:template>
+  <xsl:template match="adm:property"
+    mode="generate-default-property-getter-declaration-aux">
     <xsl:param name="interface" select="/.." />
     <xsl:variable name="name" select="@name" />
     <xsl:variable name="java-property-name">
@@ -215,7 +306,7 @@
     </xsl:variable>
     <xsl:value-of
       select="concat('  /**&#xa;',
-                     '   * Get the &quot;', $name,'&quot; property.&#xa;')" />
+                     '   * Gets the &quot;', $name,'&quot; property.&#xa;')" />
     <xsl:if test="adm:synopsis">
       <xsl:value-of select="'   * &lt;p&gt;&#xa;'" />
       <xsl:call-template name="add-java-comment">
@@ -282,9 +373,95 @@
                                  '();&#xa;')" />
   </xsl:template>
   <!--
-    Generate the property setter declarations.
+    Generate the default property getter implementation.
   -->
-  <xsl:template name="generate-property-setter-declaration">
+  <xsl:template
+    name="generate-default-property-getter-implementation">
+    <xsl:param name="interface" select="/.." />
+    <xsl:apply-templates select="../.."
+      mode="generate-default-property-getter-implementation-aux">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:apply-templates>
+  </xsl:template>
+  <xsl:template match="adm:property"
+    mode="generate-default-property-getter-implementation-aux">
+    <xsl:param name="interface" select="/.." />
+    <xsl:variable name="java-prop-name">
+      <xsl:call-template name="name-to-java">
+        <xsl:with-param name="value" select="@name" />
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:value-of
+      select="concat('    /**&#xa;',
+                     '     * {@inheritDoc}&#xa;',
+                     '     */&#xa;',
+                     '    public ')" />
+    <xsl:choose>
+      <xsl:when test="string(@multi-valued) != 'true'">
+        <xsl:choose>
+          <xsl:when test="adm:default-behavior/adm:defined">
+            <!--
+              The method is guaranteed to return a value since there is a
+              well-defined default value.
+            -->
+            <xsl:call-template name="get-property-java-primitive-type" />
+          </xsl:when>
+          <xsl:when
+            test="$interface = 'server' and @mandatory = 'true'">
+            <!--
+              The method is guaranteed to return a value in the server interface, but
+              not necessarily in the client, since the mandatory property might not
+              have been created yet.
+            -->
+            <xsl:call-template name="get-property-java-primitive-type" />
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="get-property-java-type" />
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="'SortedSet&lt;'" />
+        <xsl:call-template name="get-property-java-type" />
+        <xsl:value-of select="'&gt;'" />
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:choose>
+      <xsl:when test="adm:syntax/adm:boolean">
+        <xsl:value-of select="' is'" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="' get'" />
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:choose>
+      <xsl:when test="string(@multi-valued) != 'true'">
+        <xsl:value-of
+          select="concat($java-prop-name, '() {&#xa;',
+                                     '      return impl.getPropertyValue',
+                                     '(INSTANCE.get', $java-prop-name ,
+                                     'PropertyDefinition());&#xa;' ,
+                                     '    }&#xa;')" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of
+          select="concat($java-prop-name, '() {&#xa;',
+                                     '      return impl.getPropertyValues',
+                                     '(INSTANCE.get', $java-prop-name ,
+                                     'PropertyDefinition());&#xa;' ,
+                                     '    }&#xa;')" />
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <!--
+    Generate the default property setter declarations.
+  -->
+  <xsl:template name="generate-default-property-setter-declaration">
+    <xsl:apply-templates select="../.."
+      mode="generate-default-property-setter-declaration-aux" />
+  </xsl:template>
+  <xsl:template match="adm:property"
+    mode="generate-default-property-setter-declaration-aux">
     <xsl:if test="not(@monitoring='true')">
       <xsl:variable name="name" select="@name" />
       <xsl:variable name="java-property-name">
@@ -294,7 +471,7 @@
       </xsl:variable>
       <xsl:value-of
         select="concat('  /**&#xa;',
-                     '   * Set the &quot;', $name, '&quot; property.&#xa;')" />
+                     '   * Sets the &quot;', $name, '&quot; property.&#xa;')" />
       <xsl:if test="adm:synopsis">
         <xsl:value-of select="'   * &lt;p&gt;&#xa;'" />
         <xsl:call-template name="add-java-comment">
@@ -369,6 +546,65 @@
         <xsl:value-of select="', PropertyIsReadOnlyException'" />
       </xsl:if>
       <xsl:value-of select="';&#xa;'" />
+    </xsl:if>
+  </xsl:template>
+  <!--
+    Generate the default property setter implementation.
+  -->
+  <xsl:template
+    name="generate-default-property-setter-implementation">
+    <xsl:apply-templates select="../.."
+      mode="generate-default-property-setter-implementation-aux" />
+  </xsl:template>
+  <xsl:template match="adm:property"
+    mode="generate-default-property-setter-implementation-aux">
+    <xsl:if test="not(@monitoring='true')">
+      <xsl:variable name="java-prop-name">
+        <xsl:call-template name="name-to-java">
+          <xsl:with-param name="value" select="@name" />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:value-of
+        select="concat('    /**&#xa;',
+                     '     * {@inheritDoc}&#xa;',
+                     '     */&#xa;',
+                     '    public void set',
+                     $java-prop-name ,
+                     '(')" />
+      <xsl:choose>
+        <xsl:when test="not(@multi-valued='true')">
+          <xsl:choose>
+            <xsl:when test="@mandatory='true'">
+              <xsl:call-template
+                name="get-property-java-primitive-type" />
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="get-property-java-type" />
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:value-of select="' value)'" />
+          <xsl:if test="@read-only='true'">
+            <xsl:value-of
+              select="' throws PropertyIsReadOnlyException'" />
+          </xsl:if>
+          <xsl:value-of
+            select="concat(' {&#xa;' ,
+                     '      impl.setPropertyValue(INSTANCE.get',
+                     $java-prop-name ,
+                     'PropertyDefinition(), value);&#xa;',
+                     '    }&#xa;')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="'Collection&lt;'" />
+          <xsl:call-template name="get-property-java-type" />
+          <xsl:value-of
+            select="concat('&gt; values) {&#xa;' ,
+                     '      impl.setPropertyValues(INSTANCE.get',
+                     $java-prop-name ,
+                     'PropertyDefinition(), values);&#xa;',
+                     '    }&#xa;')" />
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:if>
   </xsl:template>
 </xsl:stylesheet>

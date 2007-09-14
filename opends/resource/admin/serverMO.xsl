@@ -351,7 +351,9 @@
             select="concat($this-package, '.client.', $this-java-class, 'CfgClient')" />
         </xsl:element>
         <xsl:for-each select="$this-local-properties">
-          <xsl:call-template name="get-property-java-imports" />
+          <xsl:call-template name="get-property-java-imports" >
+            <xsl:with-param name="interface" select="'server'" />
+          </xsl:call-template>
         </xsl:for-each>
         <xsl:if test="$this-local-properties[@multi-valued='true']">
           <import>java.util.SortedSet</import>

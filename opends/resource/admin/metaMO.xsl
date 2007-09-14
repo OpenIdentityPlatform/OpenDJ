@@ -368,13 +368,13 @@
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:call-template name="generate-property-getter">
+      <xsl:call-template name="generate-property-getter-implementation">
         <xsl:with-param name="interface" select="'client'" />
       </xsl:call-template>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:call-template name="generate-property-setter" />
+      <xsl:call-template name="generate-property-setter-implementation" />
     </xsl:for-each>
     <!--
       Relation methods.
@@ -485,7 +485,7 @@
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:call-template name="generate-property-getter">
+      <xsl:call-template name="generate-property-getter-implementation">
         <xsl:with-param name="interface" select="'server'" />
       </xsl:call-template>
     </xsl:for-each>
@@ -1020,131 +1020,6 @@
                      '  }&#xa;')" />
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:template>
-  <!--
-    Generate a property value getter.
-  -->
-  <xsl:template name="generate-property-getter">
-    <xsl:param name="interface" select="/.." />
-    <xsl:variable name="java-prop-name">
-      <xsl:call-template name="name-to-java">
-        <xsl:with-param name="value" select="@name" />
-      </xsl:call-template>
-    </xsl:variable>
-    <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
-                     '    public ')" />
-    <xsl:choose>
-      <xsl:when test="string(@multi-valued) != 'true'">
-        <xsl:choose>
-          <xsl:when test="adm:default-behavior/adm:defined">
-            <!--
-              The method is guaranteed to return a value since there is a
-              well-defined default value.
-            -->
-            <xsl:call-template name="get-property-java-primitive-type" />
-          </xsl:when>
-          <xsl:when
-            test="$interface = 'server' and @mandatory = 'true'">
-            <!--
-              The method is guaranteed to return a value in the server interface, but
-              not necessarily in the client, since the mandatory property might not
-              have been created yet.
-            -->
-            <xsl:call-template name="get-property-java-primitive-type" />
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:call-template name="get-property-java-type" />
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="'SortedSet&lt;'" />
-        <xsl:call-template name="get-property-java-type" />
-        <xsl:value-of select="'&gt;'" />
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:choose>
-      <xsl:when test="adm:syntax/adm:boolean">
-        <xsl:value-of select="' is'" />
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="' get'" />
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:choose>
-      <xsl:when test="string(@multi-valued) != 'true'">
-        <xsl:value-of
-          select="concat($java-prop-name, '() {&#xa;',
-                                     '      return impl.getPropertyValue',
-                                     '(INSTANCE.get', $java-prop-name ,
-                                     'PropertyDefinition());&#xa;' ,
-                                     '    }&#xa;')" />
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of
-          select="concat($java-prop-name, '() {&#xa;',
-                                     '      return impl.getPropertyValues',
-                                     '(INSTANCE.get', $java-prop-name ,
-                                     'PropertyDefinition());&#xa;' ,
-                                     '    }&#xa;')" />
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <!--
-    Generate a property value setter.
-  -->
-  <xsl:template name="generate-property-setter">
-    <xsl:if test="not(@monitoring='true')">
-      <xsl:variable name="java-prop-name">
-        <xsl:call-template name="name-to-java">
-          <xsl:with-param name="value" select="@name" />
-        </xsl:call-template>
-      </xsl:variable>
-      <xsl:value-of
-        select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
-                     '    public void set',
-                     $java-prop-name ,
-                     '(')" />
-      <xsl:choose>
-        <xsl:when test="not(@multi-valued='true')">
-          <xsl:choose>
-            <xsl:when test="@mandatory='true'">
-              <xsl:call-template
-                name="get-property-java-primitive-type" />
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:call-template name="get-property-java-type" />
-            </xsl:otherwise>
-          </xsl:choose>
-          <xsl:value-of select="' value)'" />
-          <xsl:if test="@read-only='true'">
-            <xsl:value-of
-              select="' throws PropertyIsReadOnlyException'" />
-          </xsl:if>
-          <xsl:value-of
-            select="concat(' {&#xa;' ,
-                     '      impl.setPropertyValue(INSTANCE.get',
-                     $java-prop-name ,
-                     'PropertyDefinition(), value);&#xa;',
-                     '    }&#xa;')" />
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="'Collection&lt;'" />
-          <xsl:call-template name="get-property-java-type" />
-          <xsl:value-of
-            select="concat('&gt; values) {&#xa;' ,
-                     '      impl.setPropertyValues(INSTANCE.get',
-                     $java-prop-name ,
-                     'PropertyDefinition(), values);&#xa;',
-                     '    }&#xa;')" />
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:if>
   </xsl:template>
   <!--
     Generate client relation methods.
@@ -1718,7 +1593,6 @@
           <import>
             org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider
           </import>
-          <import>org.opends.server.admin.ManagedObjectPath</import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties/adm:default-behavior/adm:inherited/adm:relative">
@@ -1759,7 +1633,9 @@
             select="concat($this-package, '.server.', $this-java-class, 'Cfg')" />
         </xsl:element>
         <xsl:for-each select="$this-inherited-properties">
-          <xsl:call-template name="get-property-java-imports" />
+          <xsl:call-template name="get-property-java-imports">
+            <xsl:with-param name="interface" select="'server'" />
+          </xsl:call-template>
         </xsl:for-each>
         <xsl:for-each select="$this-all-properties">
           <xsl:call-template
