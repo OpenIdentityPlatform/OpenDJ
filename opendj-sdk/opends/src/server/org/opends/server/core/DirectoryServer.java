@@ -657,12 +657,6 @@ public class DirectoryServer
   // The schema configuration manager for the Directory Server.
   private SchemaConfigManager schemaConfigManager;
 
-  // The debug logger that will be used during the Directory Server startup.
-  private TextDebugLogPublisher startupDebugLogPublisher;
-
-  // The error logger that will be used during the Directory Server startup.
-  private TextErrorLogPublisher startupErrorLogPublisher;
-
   // The set of disabled privileges.
   private Set<Privilege> disabledPrivileges;
 
@@ -745,8 +739,6 @@ public class DirectoryServer
     shuttingDown             = false;
     lockdownMode             = false;
     serverErrorResultCode    = ResultCode.OTHER;
-    startupDebugLogPublisher = null;
-    startupErrorLogPublisher = null;
 
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
   }
@@ -1463,12 +1455,14 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
 
-      if (startupDebugLogPublisher != null)
+      for(DebugLogPublisher startupDebugLogPublisher :
+          environmentConfig.getDebugLoggers())
       {
         removeDebugLogPublisher(startupDebugLogPublisher);
       }
 
-      if (startupErrorLogPublisher != null)
+      for(ErrorLogPublisher startupErrorLogPublisher :
+          environmentConfig.getErrorLoggers())
       {
         removeErrorLogPublisher(startupErrorLogPublisher);
       }
@@ -9598,9 +9592,6 @@ public class DirectoryServer
     DirectoryServer directoryServer = DirectoryServer.getInstance();
     try
     {
-      directoryServer.startupErrorLogPublisher = startupErrorLogPublisher;
-      directoryServer.startupDebugLogPublisher = startupDebugLogPublisher;
-
       directoryServer.setEnvironmentConfig(environmentConfig);
       directoryServer.bootstrapServer();
       directoryServer.initializeConfiguration(configClass.getValue(),
