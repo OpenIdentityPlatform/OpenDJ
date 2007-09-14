@@ -57,6 +57,12 @@ public abstract class VersionIssueNotifier {
   static private final Logger LOG =
           Logger.getLogger(VersionIssueNotifier.class.getName());
 
+  /**
+   * End Of Line.
+   */
+  public static String EOL = System.getProperty("line.separator");
+
+
   /** Descriptor for a directive. */
   protected enum DirectiveType {
 
