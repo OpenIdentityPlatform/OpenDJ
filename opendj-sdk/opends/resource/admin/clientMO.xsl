@@ -362,19 +362,24 @@
     <xsl:call-template name="generate-import-statements">
       <xsl:with-param name="imports">
         <xsl:for-each select="$this-local-properties">
-          <xsl:call-template name="get-property-java-imports" />
+          <xsl:call-template name="get-property-java-imports">
+            <xsl:with-param name="interface" select="'client'" />
+          </xsl:call-template>
         </xsl:for-each>
         <xsl:if test="$this-local-properties[@multi-valued='true']">
           <import>java.util.Collection</import>
           <import>java.util.SortedSet</import>
         </xsl:if>
-        <xsl:if test="$this-local-properties[not(@monitoring='true')]">
+        <xsl:if
+          test="$this-local-properties[not(@monitoring='true')]">
           <import>
             org.opends.server.admin.IllegalPropertyValueException
           </import>
         </xsl:if>
         <xsl:if test="$this-local-properties[@read-only='true']">
-          <import>org.opends.server.admin.PropertyIsReadOnlyException</import>
+          <import>
+            org.opends.server.admin.PropertyIsReadOnlyException
+          </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
           <import>
@@ -396,7 +401,8 @@
             org.opends.server.admin.client.CommunicationException
           </import>
         </xsl:if>
-        <xsl:for-each select="$this-local-relations[adm:one-to-zero-or-one]|$this-local-relations[adm:one-to-many]">
+        <xsl:for-each
+          select="$this-local-relations[adm:one-to-zero-or-one]|$this-local-relations[adm:one-to-many]">
           <xsl:variable name="java-class-name">
             <xsl:call-template name="name-to-java">
               <xsl:with-param name="value"
