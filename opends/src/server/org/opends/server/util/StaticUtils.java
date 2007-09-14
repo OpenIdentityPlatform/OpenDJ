@@ -1513,6 +1513,18 @@ public final class StaticUtils
         message.append(stackElements[0].getFileName());
         message.append(":");
         message.append(stackElements[0].getLineNumber());
+
+        // FIXME Temporary to debug issue 2256.
+        if (t instanceof IllegalStateException)
+        {
+          for (int i = 1; i < stackElements.length; i++)
+          {
+            message.append(' ');
+            message.append(stackElements[i].getFileName());
+            message.append(":");
+            message.append(stackElements[i].getLineNumber());
+          }
+        }
       }
       else
       {
