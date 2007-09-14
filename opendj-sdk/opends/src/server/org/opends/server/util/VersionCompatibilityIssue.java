@@ -424,6 +424,7 @@ public final class VersionCompatibilityIssue {
   //***************************************************
 
   static {
+    register(Cause.PROPERTY_CHANGE_1, new BuildVersion(1, 0, 0, 3053));
     register(Cause.DB_FORMAT_CHANGE_2, new BuildVersion(0, 9, 0, 2049));
     register(Cause.DB_FORMAT_CHANGE_1, new BuildVersion(0, 1, 0, 1582));
     register(Cause.BERKLEY_UPGRADE_1, new BuildVersion(0, 1, 0, 890));

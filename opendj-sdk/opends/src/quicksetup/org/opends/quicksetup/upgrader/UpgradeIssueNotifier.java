@@ -76,17 +76,21 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
     if (hasIssues()) {
       List<Directive> issues = getIssues();
       if (!isSupported()) {
+        MessageBuilder reason = new MessageBuilder();
         if (issues != null) {
           for (VersionIssueNotifier.Directive directive : issues) {
             LOG.log(Level.INFO, "Unsupported upgrade details: " +
                     directive.getMessage());
+            reason.append(directive.getMessage());
+            reason.append(EOL);
           }
         }
         throw new ApplicationException(
             ReturnCode.APPLICATION_ERROR,
                 INFO_UPGRADE_ORACLE_UNSUPPORTED.get(
                         currentBuildInfo.toString(),
-                        newBuildInfo.toString()),
+                        newBuildInfo.toString(),
+                        reason.toMessage()),
                 null);
       } else {
         if (ui != null) {
