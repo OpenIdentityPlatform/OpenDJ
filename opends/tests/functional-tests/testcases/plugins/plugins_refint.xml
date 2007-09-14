@@ -57,7 +57,7 @@
     <message>' '</message>
 
     <!-- Add an entry -->
-    <iterate var="username" in="['user01','user02','user03','user4','user05']" >
+    <iterate var="username" in="['user01','user02','user03','user04','user05','user06','user07']" >
        <sequence>
          <script>
            listAttr=[]
@@ -107,7 +107,7 @@
        }
     </call>
 
-    <!-- Add a static group -->
+    <!-- Add a static group under dc=groups-->
     <script>
       listAttr = []
       listAttr.append('objectclass:top')
@@ -118,7 +118,9 @@
       listAttr.append('uniqueMember:cn=user02,%s' % DIRECTORY_INSTANCE_SFX)      
       listAttr.append('uniqueMember:cn=user03,%s' % DIRECTORY_INSTANCE_SFX)  
       listAttr.append('uniqueMember:cn=user04,%s' % DIRECTORY_INSTANCE_SFX)  
-      listAttr.append('uniqueMember:cn=user05,%s' % DIRECTORY_INSTANCE_SFX)              
+      listAttr.append('uniqueMember:cn=user05,%s' % DIRECTORY_INSTANCE_SFX)       
+      listAttr.append('uniqueMember:cn=user06,%s' % DIRECTORY_INSTANCE_SFX)                    
+      listAttr.append('uniqueMember:cn=user07,%s' % DIRECTORY_INSTANCE_SFX)                    
     </script>
 	    
     <call function="'addAnEntry'">
@@ -133,13 +135,40 @@
     </call>
 
 
+    <!-- Add a static group under DIRECTORY_INSTANCE_SFX-->
+    <script>
+      listAttr = []
+      listAttr.append('objectclass:top')
+      listAttr.append('objectclass:groupofuniquenames')
+      listAttr.append('description:this is the description of my_staticgroup on top ')
+      listAttr.append('cn:my_staticgroup')
+      listAttr.append('uniqueMember:cn=user01,%s' % DIRECTORY_INSTANCE_SFX)
+      listAttr.append('uniqueMember:cn=user02,%s' % DIRECTORY_INSTANCE_SFX)      
+      listAttr.append('uniqueMember:cn=user03,%s' % DIRECTORY_INSTANCE_SFX)  
+      listAttr.append('uniqueMember:cn=user04,%s' % DIRECTORY_INSTANCE_SFX)  
+      listAttr.append('uniqueMember:cn=user05,%s' % DIRECTORY_INSTANCE_SFX)       
+      listAttr.append('uniqueMember:cn=user06,%s' % DIRECTORY_INSTANCE_SFX)                    
+      listAttr.append('uniqueMember:cn=user07,%s' % DIRECTORY_INSTANCE_SFX)                   
+    </script>
+	    
+    <call function="'addAnEntry'">
+      { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+         'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+         'dsInstanceDn'	  : DIRECTORY_INSTANCE_DN ,
+         'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'        : 'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes' : listAttr,
+         'expectedRC'     :  0
+       }
+    </call>
+
     <!-- Check the group configuration -->
     <call function="'SearchObject'">
      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
           'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX,
+          'dsBaseDN'        :  'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
           'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
           'attributes'        : 'uniqueMember',
           'expectedRC'	    :  0 }
@@ -155,6 +184,28 @@
          'expectedResult'	   : '1' }
     </call>                
     
+ <!-- Check the group configuration -->
+    <call function="'SearchObject'">
+     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'        :  'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
+          'attributes'        : 'uniqueMember',
+          'expectedRC'	    :  0 }
+    </call>  		
+
+
+    <script>
+      returnString = STAXResult[0][1]
+    </script>
+    <call function="'searchStringForSubstring'">
+      { 'returnString'	   : returnString ,
+         'testString'	   : 'uniqueMember',
+         'expectedResult'	   : '1' }
+    </call>                
+        
     
     <message>'######  Activate the referential integrity plugin. ###### '</message>
     <message>'  '</message> 
@@ -174,9 +225,134 @@
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
+          
+         
+<!--
+#@TestMarker       Plugin referential integrity
+#@TestName         Referential integrity check on group after a change of base DN
+#@TestPreamble    none
+#@TestStep           Check change of the referential-integrity-base-dn  attribute is dynamic
+#@TestStep           Delete the user06
+#@TestStep           Check that the references to the deleted user are still present
+#@TestPostamble    none
+#@TestResult         all steps must be success
+-->  
+    
+   
+ <testcase name="getTestCaseName('Check the change of the referential-integrity-base-dn attribute')">
+  <sequence>
+    <call function="'testCase_Preamble'"/>
+ 
+    <message>'######  Set the referential-integrity-base-dn to  dc=groups,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
+    <message>'  '</message> 
+       
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'          : 'set-plugin-prop' ,
+        'objectType'             : 'plugin-name' ,
+        'objectName'            : 'Referential Integrity',
+        'optionsString'          : '--set referential-integrity-base-dn:dc=groups,%s' % DIRECTORY_INSTANCE_SFX, 
+        'expectedRC'           : 0 } 
+    </call>	    
 
+    <call function="'dsconfigGet'">
+      { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+          'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+          'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+          'objectName'     : 'plugin',
+          'propertyType'   : 'plugin',
+          'propertyName'   : 'Referential Integrity',
+          'attributeName'  : 'referential-integrity-base-dn'
+      }
+    </call>        
+    
+    <!-- Delete an entry -->
+    <message>'######  Delete an user entry###### '</message>
+    <message>' '</message>
 
-                  
+    <call function="'DeleteEntry'">
+     { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+        'dsBaseDN'	          :  'cn=user06,%s' % (DIRECTORY_INSTANCE_SFX),
+      }
+    </call>   
+    
+    <!-- Check the new configuration is applied -->
+    <message>'The reference check must be limited to the scope dc=groups,dc=com'</message>   
+    <message>' '</message>
+    
+    <message>'The reference check must be done to the base DN dc=groups,dc=com'</message>       
+    <call function="'SearchObject'">
+     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'        :  'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
+          'attributes'        : 'uniquemember',
+          'expectedRC'	    :  0 }
+    </call>  		
+    
+    <script>
+      returnString = STAXResult[0][1]
+    </script>
+    <message>'The references to the delete user must be removed' </message>    
+    <call function="'searchStringForSubstring'">
+      { 'returnString'	   : returnString ,
+         'testString'	   : 'user06',
+         'expectedResult'	   : '0' }
+    </call>                
+    
+   <message>'The reference check must not be done to the base DN dc=com'</message>   
+    
+    <call function="'SearchObject'">
+     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'        :  'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
+          'attributes'        : 'uniquemember',
+          'expectedRC'	    :  0 }
+    </call>  		
+    
+    <script>
+      returnString = STAXResult[0][1]
+    </script>
+    <message>'The references to the delete user must be still present ' </message>    
+    <call function="'searchStringForSubstring'">
+      { 'returnString'	   : returnString ,
+         'testString'	   : 'user06',
+         'expectedResult'	   : '1' }
+    </call>                
+    
+   <message>'######  Reset the referential-integrity-base-dn ###### '</message>
+    <message>'  '</message> 
+       
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'          : 'set-plugin-prop' ,
+        'objectType'             : 'plugin-name' ,
+        'objectName'            : 'Referential Integrity',
+        'optionsString'          : '--reset referential-integrity-base-dn', 
+        'expectedRC'           : 0 } 
+    </call>	    
+        
+    
+    <call function="'testCase_Postamble'"/>
+  </sequence>
+ </testcase>
+                       
+                          
 <!--
 #@TestMarker       Plugin referential integrity
 #@TestName         Referential integrity check on GROUPS
@@ -311,18 +487,126 @@
          'expectedResult'	   : '1' }
     </call>                
     
+  <message>'######  Restore the attribute uniquemember from the list of referential-integrity-attribute-type ###### '</message>
+    <message>'  '</message> 
+       
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'          : 'set-plugin-prop' ,
+        'objectType'             : 'plugin-name' ,
+        'objectName'            : 'Referential Integrity',
+        'optionsString'          : '--add referential-integrity-attribute-type:uniquemember',
+        'expectedRC'           : 0 } 
+    </call>	    
+        
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
 
       
-               
+       
+      
+          
 <!--
 #@TestMarker       Plugin referential integrity
-#@TestName         Referential integrity check on GROUPS is disabled
+#@TestName         Referential integrity check on group after a change of plugin-type
+#@TestPreamble    none
+#@TestStep           Check change of the plugin-type attribute is dynamic
+#@TestStep           Delete the user05
+#@TestStep           Check that the references to the deleted user are still present
+#@TestPostamble    none
+#@TestResult         all steps must be success
+-->  
+    
+   
+ <testcase name="getTestCaseName('Check the change of the plugin-type attribute')">
+  <sequence>
+    <call function="'testCase_Preamble'"/>
+ 
+    <message>'######  Remove the plugin-type attribute  postoperationdelete ###### '</message>
+    <message>'  '</message> 
+       
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'          : 'set-plugin-prop' ,
+        'objectType'             : 'plugin-name' ,
+        'objectName'            : 'Referential Integrity',
+        'optionsString'          : '--remove plugin-type:postoperationdelete',
+        'expectedRC'           : 0 } 
+    </call>	    
+    
+    <!-- Delete an entry -->
+    <message>'######  Delete an user entry###### '</message>
+    <message>' '</message>
+
+    <call function="'DeleteEntry'">
+     { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+        'dsBaseDN'	          :  'cn=user05,%s' % (DIRECTORY_INSTANCE_SFX),
+      }
+    </call>   
+    
+    <!-- Check the new configuration is applied -->
+    <message>'Check the new configuration is applied'</message>   
+    
+    <call function="'SearchObject'">
+     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX,
+          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
+          'attributes'        : 'uniquemember',
+          'expectedRC'	    :  0 }
+    </call>  		
+    
+    <script>
+      returnString = STAXResult[0][1]
+    </script>
+    <message>'The references to the delete user must be still present ' </message>    
+    <call function="'searchStringForSubstring'">
+      { 'returnString'	   : returnString ,
+         'testString'	   : 'user05',
+         'expectedResult'	   : '1' }
+    </call>                
+    
+
+    <message>'######  Add the plugin-type attribute  postoperationdelete ###### '</message>
+    <message>'  '</message> 
+       
+    <call function="'dsconfig'">
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'          : 'set-plugin-prop' ,
+        'objectType'             : 'plugin-name' ,
+        'objectName'            : 'Referential Integrity',
+        'optionsString'          : '--add plugin-type:postoperationdelete',
+        'expectedRC'           : 0 } 
+    </call>	    
+        
+    <call function="'testCase_Postamble'"/>
+  </sequence>
+ </testcase>
+
+        
+          
+
+<!--
+#@TestMarker       Plugin referential integrity
+#@TestName         Referential integrity check on groups is disabled
 #@TestPreamble    none
 #@TestStep           Disable the referential integrity plugin
-#@TestStep           Delete the user03
+#@TestStep           Delete an user
 #@TestStep           Check that the references to the deleted user are still present
 #@TestPostamble    none
 #@TestResult         all steps must be success
@@ -374,7 +658,7 @@
         'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	          :  'cn=user03,%s' % (DIRECTORY_INSTANCE_SFX),
+        'dsBaseDN'	          :  'cn=user07,%s' % (DIRECTORY_INSTANCE_SFX),
       }
     </call>   
     
@@ -399,7 +683,7 @@
     <message>'The references to the delete user must be still present ' </message>    
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
-         'testString'	   : 'user03',
+         'testString'	   : 'user07',
          'expectedResult'	   : '1' }
     </call>                
     
