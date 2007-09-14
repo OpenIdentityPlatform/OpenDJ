@@ -527,7 +527,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           properties.add(pd);
         }
 
-        PropertyValueEditor editor = new PropertyValueEditor(app);
+        PropertyValueEditor editor = new PropertyValueEditor(app, context);
         MenuResult<Void> result2 = editor.edit(child, properties, false);
         if (result2.isQuit()) {
           if (!app.isMenuDrivenMode()) {
