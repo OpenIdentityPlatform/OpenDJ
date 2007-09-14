@@ -177,7 +177,7 @@ public class MultifileTextWriter
     }
 
     FileOutputStream stream = new FileOutputStream(file, append);
-    outputStream = new MeteredStream(stream, 0);
+    outputStream = new MeteredStream(stream, file.length());
 
     OutputStreamWriter osw = new OutputStreamWriter(outputStream, encoding);
     BufferedWriter bw = null;
