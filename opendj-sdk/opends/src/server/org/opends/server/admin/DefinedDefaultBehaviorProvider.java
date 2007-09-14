@@ -42,7 +42,7 @@ import java.util.Collection;
  * @param <T>
  *          The type of values represented by this provider.
  */
-public final class DefinedDefaultBehaviorProvider<T> implements
+public final class DefinedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
   // The collection of default values.

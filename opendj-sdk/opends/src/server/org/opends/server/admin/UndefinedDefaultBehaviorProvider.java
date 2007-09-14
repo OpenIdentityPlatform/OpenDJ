@@ -37,7 +37,7 @@ package org.opends.server.admin;
  * @param <T>
  *          The type of values represented by this provider.
  */
-public final class UndefinedDefaultBehaviorProvider<T> implements
+public final class UndefinedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
   /**

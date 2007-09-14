@@ -699,7 +699,7 @@
         <xsl:variable name="path"
           select="adm:default-behavior/adm:inherited/adm:absolute/@path" />
         <xsl:value-of
-          select="concat('ManagedObjectPath.valueOf(&quot;', $path, '&quot;), &quot;', $property-name, '&quot;);&#xa;')" />
+          select="concat('&quot;', $path, '&quot;, &quot;', $property-name, '&quot;);&#xa;')" />
         <xsl:value-of
           select="'      builder.setDefaultBehaviorProvider(provider);&#xa;'" />
       </xsl:when>

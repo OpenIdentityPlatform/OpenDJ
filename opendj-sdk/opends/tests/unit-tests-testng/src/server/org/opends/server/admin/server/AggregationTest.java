@@ -43,7 +43,6 @@ import org.opends.server.admin.AdministratorAction;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.TestCfg;
@@ -56,7 +55,6 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.LDAPConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -306,11 +304,11 @@ public final class AggregationTest extends AdminTestCase {
         AdministratorAction.Type.NONE, d, "aggregation-property"));
     builder
         .setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
-    builder.setParentPath(ManagedObjectPath.valueOf("/"));
+    builder.setParentPath("/");
     builder.setRelationDefinition("connection-handler");
-    builder.setManagedObjectDefinition(ConnectionHandlerCfgDefn.getInstance());
     builder.setTargetEnabledPropertyName("enabled");
     aggregationPropertyDefinitionTargetMustBeEnabled = builder.getInstance();
+    TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
 
     builder = AggregationPropertyDefinition.createBuilder(d,
         "aggregation-property");
@@ -319,13 +317,13 @@ public final class AggregationTest extends AdminTestCase {
         AdministratorAction.Type.NONE, d, "aggregation-property"));
     builder
         .setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
-    builder.setParentPath(ManagedObjectPath.valueOf("/"));
+    builder.setParentPath("/");
     builder.setRelationDefinition("connection-handler");
-    builder.setManagedObjectDefinition(ConnectionHandlerCfgDefn.getInstance());
     builder.setTargetEnabledPropertyName("enabled");
     builder.setSourceEnabledPropertyName("mandatory-boolean-property");
     aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = builder
         .getInstance();
+    TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
   }
 
 

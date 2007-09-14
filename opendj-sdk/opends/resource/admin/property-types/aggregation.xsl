@@ -41,15 +41,9 @@
       <xsl:value-of select="'.server.'" />
       <xsl:call-template name="get-server-type" />
     </xsl:element>
-    <xsl:element name="import">
-      <xsl:call-template name="get-definition-package" />
-      <xsl:value-of select="'.meta.'" />
-      <xsl:call-template name="get-definition-type" />
-    </xsl:element>
     <xsl:if test="../../@multi-valued = 'true'">
       <import>java.util.TreeSet</import>
     </xsl:if>
-    <import>org.opends.server.admin.ManagedObjectPath</import>
     <import>org.opends.server.admin.AggregationPropertyDefinition</import>
   </xsl:template>
   <xsl:template match="adm:aggregation" mode="java-value-type">
@@ -91,14 +85,11 @@
       </xsl:message>
     </xsl:if>
     <xsl:value-of
-      select="concat('      builder.setParentPath(ManagedObjectPath.valueOf(&quot;',
-                     normalize-space(@parent-path), '&quot;));&#xa;')" />
+      select="concat('      builder.setParentPath(&quot;',
+                     normalize-space(@parent-path), '&quot;);&#xa;')" />
     <xsl:value-of
       select="concat('      builder.setRelationDefinition(&quot;',
                      normalize-space(@relation-name), '&quot;);&#xa;')" />
-    <xsl:value-of select="'      builder.setManagedObjectDefinition('" />
-    <xsl:call-template name="get-definition-type" />
-    <xsl:value-of select="'.getInstance());&#xa;'" />
     <xsl:if test="@source-enabled-property-name">
       <xsl:value-of
         select="concat('      builder.setSourceEnabledPropertyName(&quot;',

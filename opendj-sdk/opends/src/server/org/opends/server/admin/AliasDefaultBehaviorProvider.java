@@ -42,7 +42,7 @@ import java.util.Locale;
  * @param <T>
  *          The type of values represented by this provider.
  */
-public final class AliasDefaultBehaviorProvider<T> implements
+public final class AliasDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
   // The managed object definition associated with this default
