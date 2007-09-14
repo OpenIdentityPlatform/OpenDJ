@@ -171,11 +171,32 @@ public class StaticGroup
     // Determine whether it is a groupOfNames or groupOfUniqueNames entry.  If
     // neither, then that's a problem.
     AttributeType memberAttributeType;
+    ObjectClass groupOfEntriesClass =
+         DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
     ObjectClass groupOfNamesClass =
          DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
     ObjectClass groupOfUniqueNamesClass =
          DirectoryConfig.getObjectClass(OC_GROUP_OF_UNIQUE_NAMES_LC, true);
-    if (groupEntry.hasObjectClass(groupOfNamesClass))
+    if (groupEntry.hasObjectClass(groupOfEntriesClass))
+    {
+      if (groupEntry.hasObjectClass(groupOfNamesClass))
+      {
+        Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
+            get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_ENTRIES,
+                OC_GROUP_OF_NAMES);
+        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
+      }
+      else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
+      {
+        Message message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
+            get(String.valueOf(groupEntry.getDN()), OC_GROUP_OF_ENTRIES,
+                OC_GROUP_OF_UNIQUE_NAMES);
+        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
+      }
+
+      memberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
+    }
+    else if (groupEntry.hasObjectClass(groupOfNamesClass))
     {
       if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
@@ -247,7 +268,8 @@ public class StaticGroup
     // FIXME -- This needs to exclude enhanced groups once we have support for
     // them.
     String filterString =
-         "(&(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames))" +
+         "(&(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)" +
+            "(objectClass=groupOfEntries))" +
             "(!(objectClass=ds-virtual-static-group)))";
     return SearchFilter.createFilterFromString(filterString);
   }
@@ -271,11 +293,23 @@ public class StaticGroup
       return false;
     }
 
+    ObjectClass groupOfEntriesClass =
+         DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
     ObjectClass groupOfNamesClass =
          DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
     ObjectClass groupOfUniqueNamesClass =
          DirectoryConfig.getObjectClass(OC_GROUP_OF_UNIQUE_NAMES_LC, true);
-    if (entry.hasObjectClass(groupOfNamesClass))
+    if (entry.hasObjectClass(groupOfEntriesClass))
+    {
+      if (entry.hasObjectClass(groupOfNamesClass) ||
+          entry.hasObjectClass(groupOfUniqueNamesClass))
+      {
+        return false;
+      }
+
+      return true;
+    }
+    else if (entry.hasObjectClass(groupOfNamesClass))
     {
       if (entry.hasObjectClass(groupOfUniqueNamesClass))
       {

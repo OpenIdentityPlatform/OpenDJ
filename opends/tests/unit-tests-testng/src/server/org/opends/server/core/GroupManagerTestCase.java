@@ -1002,6 +1002,200 @@ public class GroupManagerTestCase
 
 
   /**
+   * Tests that the server properly handles adding, deleting, and modifying a
+   * static group based on the groupOfEntries object class where that group
+   * contains valid members.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testValidPopulatedGroupOfEntries()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntries(
+      "dn: ou=People,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: People",
+      "",
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups",
+      "",
+      "dn: uid=user.1,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.1",
+      "givenName: User",
+      "sn: 1",
+      "cn: User 1",
+      "userPassword: password",
+      "",
+      "dn: uid=user.2,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.2",
+      "givenName: User",
+      "sn: 2",
+      "cn: User 2",
+      "userPassword: password",
+      "",
+      "dn: uid=user.3,ou=People,o=test",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: user.3",
+      "givenName: User",
+      "sn: 3",
+      "cn: User 3",
+      "userPassword: password");
+
+
+    // Make sure that there aren't any groups registered with the server.
+    assertFalse(groupManager.getGroupInstances().iterator().hasNext());
+
+
+    // Add a new static group to the server and make sure it gets registered
+    // with the group manager.
+    TestCaseUtils.addEntry(
+      "dn: cn=Test Group of Entries,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfEntries",
+      "cn: Test Group of Entries",
+      "member: uid=user.1,ou=People,o=test",
+      "member: uid=user.2,ou=People,o=test");
+
+
+    // Perform a basic set of validation on the group itself.
+    DN groupDN = DN.decode("cn=Test Group of Entries,ou=Groups,o=test");
+    DN user1DN = DN.decode("uid=user.1,ou=People,o=test");
+    DN user2DN = DN.decode("uid=user.2,ou=People,o=test");
+    DN user3DN = DN.decode("uid=user.3,ou=People,o=test");
+
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+    assertEquals(groupInstance.getGroupDN(), groupDN);
+    assertTrue(groupInstance.isMember(user1DN));
+    assertTrue(groupInstance.isMember(user2DN));
+    assertFalse(groupInstance.isMember(user3DN));
+
+    MemberList memberList = groupInstance.getMembers();
+    while (memberList.hasMoreMembers())
+    {
+      DN memberDN = memberList.nextMemberDN();
+      assertTrue(memberDN.equals(user1DN) || memberDN.equals(user2DN));
+    }
+
+    SearchFilter filter = SearchFilter.createFilterFromString("(uid=user.1)");
+    memberList = groupInstance.getMembers(DN.decode("o=test"),
+                                          SearchScope.WHOLE_SUBTREE, filter);
+    assertTrue(memberList.hasMoreMembers());
+    DN memberDN = memberList.nextMemberDN();
+    assertTrue(memberDN.equals(user1DN));
+    assertFalse(memberList.hasMoreMembers());
+
+    filter = SearchFilter.createFilterFromString("(uid=user.3)");
+    memberList = groupInstance.getMembers(DN.decode("o=test"),
+                                          SearchScope.WHOLE_SUBTREE, filter);
+    assertFalse(memberList.hasMoreMembers());
+
+
+    // Modify the group and make sure the group manager gets updated
+    // accordingly.
+    LinkedList<Modification> mods = new LinkedList<Modification>();
+    Attribute a2 = new Attribute("member", "uid=user.2,ou=People,o=test");
+    Attribute a3 = new Attribute("member", "uid=user.3,ou=People,o=test");
+    mods.add(new Modification(ModificationType.DELETE, a2));
+    mods.add(new Modification(ModificationType.ADD, a3));
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    ModifyOperation modifyOperation = conn.processModify(groupDN, mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+    groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+    assertEquals(groupInstance.getGroupDN(), groupDN);
+    assertTrue(groupInstance.isMember(user1DN));
+    assertFalse(groupInstance.isMember(user2DN));
+    assertTrue(groupInstance.isMember(user3DN));
+
+
+    // Delete the group and make sure the group manager gets updated
+    // accordingly.
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
+   * Tests that the server properly handles a groupOfEntries object that doesn't
+   * contain any members.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testValidEmptyGroupOfEntries()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+
+    TestCaseUtils.addEntry(
+      "dn: ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: organizationalUnit",
+      "ou: Groups");
+
+
+    // Make sure that there aren't any groups registered with the server.
+    assertFalse(groupManager.getGroupInstances().iterator().hasNext());
+
+
+    // Add a new static group to the server and make sure it gets registered
+    // with the group manager.
+    TestCaseUtils.addEntry(
+      "dn: cn=Test Group of Entries,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfEntries",
+      "cn: Test Group of Names");
+
+
+    // Make sure that the group exists but doesn't have any members.
+    DN groupDN = DN.decode("cn=Test Group of Entries,ou=Groups,o=test");
+    Group groupInstance = groupManager.getGroupInstance(groupDN);
+    assertNotNull(groupInstance);
+    assertEquals(groupInstance.getGroupDN(), groupDN);
+    assertFalse(groupInstance.getMembers().hasMoreMembers());
+
+
+    // Delete the group and make sure the group manager gets updated
+    // accordingly.
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+    DeleteOperation deleteOperation = conn.processDelete(groupDN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(groupDN));
+  }
+
+
+
+  /**
    * Verifies that the group manager properly handles modify DN operations on
    * static group entries.
    *
@@ -1170,13 +1364,21 @@ public class GroupManagerTestCase
       "objectClass: groupOfUniqueNames",
       "cn: Group 3",
       "uniqueMember: uid=user.1,ou=People,o=test",
-      "uniqueMember: uid=user.3,ou=People,o=test");
+      "uniqueMember: uid=user.3,ou=People,o=test",
+      "",
+      "dn: cn=Group 4,ou=Groups,o=test",
+      "objectClass: top",
+      "objectClass: groupOfEntries",
+      "cn: Group 4",
+      "member: uid=user.1,ou=People,o=test",
+      "member: uid=user.2,ou=People,o=test");
 
 
     // Perform basic validation on the groups.
     DN group1DN = DN.decode("cn=Group 1,ou=Groups,o=test");
     DN group2DN = DN.decode("cn=Group 2,ou=Groups,o=test");
     DN group3DN = DN.decode("cn=Group 3,ou=Groups,o=test");
+    DN group4DN = DN.decode("cn=Group 4,ou=Groups,o=test");
     DN user1DN  = DN.decode("uid=user.1,ou=People,o=test");
     DN user2DN  = DN.decode("uid=user.2,ou=People,o=test");
     DN user3DN  = DN.decode("uid=user.3,ou=People,o=test");
@@ -1184,6 +1386,7 @@ public class GroupManagerTestCase
     Group group1 = groupManager.getGroupInstance(group1DN);
     Group group2 = groupManager.getGroupInstance(group2DN);
     Group group3 = groupManager.getGroupInstance(group3DN);
+    Group group4 = groupManager.getGroupInstance(group4DN);
 
     assertNotNull(group1);
     assertTrue(group1.isMember(user1DN));
@@ -1199,6 +1402,11 @@ public class GroupManagerTestCase
     assertTrue(group3.isMember(user1DN));
     assertFalse(group3.isMember(user2DN));
     assertTrue(group3.isMember(user3DN));
+
+    assertNotNull(group4);
+    assertTrue(group4.isMember(user1DN));
+    assertTrue(group4.isMember(user2DN));
+    assertFalse(group4.isMember(user3DN));
 
 
     // Get a client connection authenticated as user1 and make sure it handles
@@ -1330,6 +1538,10 @@ public class GroupManagerTestCase
     assertNull(groupManager.getGroupInstance(group2DN));
 
     deleteOperation = conn.processDelete(group3DN);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNull(groupManager.getGroupInstance(group3DN));
+
+    deleteOperation = conn.processDelete(group4DN);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(groupManager.getGroupInstance(group3DN));
   }
