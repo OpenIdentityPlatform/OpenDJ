@@ -46,11 +46,20 @@
       <xsl:value-of select="'.meta.'" />
       <xsl:call-template name="get-definition-type" />
     </xsl:element>
+    <xsl:if test="../../@multi-valued = 'true'">
+      <import>java.util.TreeSet</import>
+    </xsl:if>
     <import>org.opends.server.admin.ManagedObjectPath</import>
     <import>org.opends.server.admin.AggregationPropertyDefinition</import>
   </xsl:template>
   <xsl:template match="adm:aggregation" mode="java-value-type">
     <xsl:value-of select="'String'" />
+  </xsl:template>
+  <xsl:template match="adm:aggregation" mode="java-value-imports">
+    <xsl:param name="interface" select="/.." />
+    <xsl:if test="$interface = 'server'">
+      <import>org.opends.server.types.DN</import>
+    </xsl:if>
   </xsl:template>
   <xsl:template match="adm:aggregation" mode="java-definition-type">
     <xsl:value-of select="'AggregationPropertyDefinition'" />
@@ -108,6 +117,121 @@
       <xsl:with-param name="value" select="../../@name" />
     </xsl:call-template>
     <xsl:value-of select="');&#xa;'" />
+  </xsl:template>
+  <!--
+    Generate property getter declaration(s).
+  -->
+  <xsl:template match="adm:aggregation"
+    mode="java-property-getter-declaration">
+    <xsl:param name="interface" select="/.." />
+    <xsl:call-template
+      name="generate-default-property-getter-declaration">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:call-template>
+    <xsl:if test="$interface='server'">
+      <xsl:variable name="name" select="../../@name" />
+      <xsl:variable name="java-property-name">
+        <xsl:call-template name="name-to-java">
+          <xsl:with-param name="value" select="$name" />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:variable name="comment">
+        <xsl:if test="../../adm:synopsis">
+          <xsl:value-of select="'&lt;p&gt;&#xa;'" />
+          <xsl:value-of select="normalize-space(../../adm:synopsis)" />
+          <xsl:value-of select="'&#xa;'" />
+        </xsl:if>
+        <xsl:if test="../../adm:description">
+          <xsl:value-of select="'&lt;p&gt;&#xa;'" />
+          <xsl:value-of select="normalize-space(../../adm:description)" />
+          <xsl:value-of select="'&#xa;'" />
+        </xsl:if>
+      </xsl:variable>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:choose>
+        <xsl:when test="string(../../@multi-valued) != 'true'">
+          <xsl:call-template name="add-java-comment2">
+            <xsl:with-param name="indent" select="2" />
+            <xsl:with-param name="content"
+              select="concat(
+                       'Gets the &quot;', $name,'&quot; property as a DN.&#xa;',
+                       $comment,
+                       '&#xa;',
+                       '@return Returns the DN value of the &quot;', $name, '&quot; property.&#xa;')" />
+          </xsl:call-template>
+          <xsl:value-of
+            select="concat('  DN get', $java-property-name, 'DN();&#xa;')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="add-java-comment2">
+            <xsl:with-param name="indent" select="2" />
+            <xsl:with-param name="content"
+              select="concat(
+                       'Gets the &quot;', $name,'&quot; property as a set of DNs.&#xa;',
+                       $comment,
+                       '&#xa;',
+                       '@return Returns the DN values of the &quot;', $name, '&quot; property.&#xa;')" />
+          </xsl:call-template>
+          <xsl:value-of
+            select="concat('  SortedSet&lt;DN&gt; get', $java-property-name, 'DNs();&#xa;')" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:if>
+  </xsl:template>
+  <!--
+    Generate property getter implementation(s).
+  -->
+  <xsl:template match="adm:aggregation"
+    mode="java-property-getter-implementation">
+    <xsl:param name="interface" select="/.." />
+    <xsl:call-template
+      name="generate-default-property-getter-implementation">
+      <xsl:with-param name="interface" select="$interface" />
+    </xsl:call-template>
+    <xsl:if test="$interface='server'">
+      <xsl:variable name="name" select="../../@name" />
+      <xsl:variable name="java-property-name">
+        <xsl:call-template name="name-to-java">
+          <xsl:with-param name="value" select="$name" />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:call-template name="add-java-comment2">
+        <xsl:with-param name="indent" select="4" />
+        <xsl:with-param name="content" select="'{@inheritDoc}&#xa;'" />
+      </xsl:call-template>
+      <xsl:choose>
+        <xsl:when test="string(../../@multi-valued) != 'true'">
+          <xsl:value-of
+            select="concat('    public DN get', $java-property-name, 'DN() {&#xa;')" />
+          <xsl:value-of
+            select="concat('      String value = get', $java-property-name, '();&#xa;')" />
+          <xsl:value-of
+            select="concat('      return INSTANCE.get', $java-property-name, 'PropertyDefinition().getChildDN(value);&#xa;')" />
+          <xsl:value-of select="'    }&#xa;'" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of
+            select="concat('    public SortedSet&lt;DN&gt; get', $java-property-name, 'DNs() {&#xa;')" />
+          <xsl:value-of
+            select="concat('      SortedSet&lt;String&gt; values = get', $java-property-name, '();&#xa;')" />
+          <xsl:value-of
+            select="'      SortedSet&lt;DN&gt; dnValues = new TreeSet&lt;DN&gt;();&#xa;'" />
+          <xsl:value-of
+            select="'      for (String value : values) {&#xa;'" />
+          <xsl:value-of
+            select="concat('        DN dn = INSTANCE.get', $java-property-name, 'PropertyDefinition().getChildDN(value);&#xa;')" />
+          <xsl:value-of select="'        dnValues.add(dn);&#xa;'" />
+          <xsl:value-of select="'      }&#xa;'" />
+          <xsl:value-of select="'      return dnValues;&#xa;'" />
+          <xsl:value-of select="'    }&#xa;'" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:if>
   </xsl:template>
   <!--
     Gets the Java client configuration interface for the referenced type.
