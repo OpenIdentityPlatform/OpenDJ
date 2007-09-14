@@ -31,6 +31,7 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.messages.DSConfigMessages.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -43,14 +44,20 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.BooleanPropertyDefinition;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.EnumPropertyDefinition;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.IllegalPropertyValueStringException;
+import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
 import org.opends.server.admin.PropertyDefinitionVisitor;
@@ -61,7 +68,10 @@ import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
+import org.opends.server.admin.client.AuthorizationException;
+import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.util.Validator;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
@@ -322,39 +332,37 @@ final class PropertyValueEditor {
    * properties.
    */
   private final class MandatoryPropertyInitializer extends
-      PropertyDefinitionVisitor<MenuResult<Void>, ManagedObject<?>> {
+      PropertyDefinitionVisitor<MenuResult<Void>, Void> implements
+      MenuCallback<Void> {
 
     // Any exception that was caught during processing.
     private CLIException e = null;
 
+    // The managed object being edited.
+    private final ManagedObject<?> mo;
+
+    // The property to be edited.
+    private final PropertyDefinition<?> pd;
 
 
-    // Private constructor.
-    private MandatoryPropertyInitializer() {
-      // No implementation required.
+
+    // Creates a new property editor for the specified property.
+    private MandatoryPropertyInitializer(ManagedObject<?> mo,
+        PropertyDefinition<?> pd) {
+      this.mo = mo;
+      this.pd = pd;
     }
 
 
 
     /**
-     * Read the initial value(s) for a mandatory property.
-     *
-     * @param mo
-     *          The managed object.
-     * @param pd
-     *          The property definition.
-     * @return Returns <code>true</code> if new values were read
-     *         successfully, or <code>false</code> if no values were
-     *         read and the user chose to quit.
-     * @throws CLIException
-     *           If the user input could not be retrieved for some
-     *           reason.
+     * {@inheritDoc}
      */
-    public MenuResult<Void> read(ManagedObject<?> mo, PropertyDefinition<?> pd)
+    public MenuResult<Void> invoke(ConsoleApplication app)
         throws CLIException {
       displayPropertyHeader(app, pd);
 
-      MenuResult<Void> result = pd.accept(this, mo);
+      MenuResult<Void> result = pd.accept(this, null);
 
       if (e != null) {
         throw e;
@@ -366,11 +374,80 @@ final class PropertyValueEditor {
 
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+        MenuResult<Void> visitAggregation(
+        AggregationPropertyDefinition<C, S> d, Void p) {
+      MenuBuilder<String> builder = new MenuBuilder<String>(app);
+      builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
+
+      InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
+      if (d.hasOption(PropertyOption.MULTI_VALUED)) {
+        builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENT_MULTI.get(rd
+            .getUserFriendlyPluralName(), d.getName()));
+        builder.setAllowMultiSelect(true);
+      } else {
+        builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENT_SINGLE.get(rd
+            .getUserFriendlyName(), d.getName()));
+      }
+
+      // Create a list of possible names.
+      Set<String> values = new TreeSet<String>(d);
+      ManagedObjectPath<?,?> path = d.getParentPath();
+      try {
+        values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
+      } catch (AuthorizationException e) {
+        this.e = new CLIException(e.getMessageObject());
+        return MenuResult.quit();
+      } catch (ManagedObjectNotFoundException e) {
+        this.e = new CLIException(e.getMessageObject());
+        return MenuResult.cancel();
+      } catch (CommunicationException e) {
+        this.e = new CLIException(e.getMessageObject());
+        return MenuResult.quit();
+      }
+
+      // FIXME: give the user the option to enable/create a component.
+      for (String value : values) {
+        Message option = getPropertyValues(d, Collections.singleton(value));
+        builder.addNumberedOption(option, MenuResult.success(value));
+      }
+
+      builder.addHelpOption(new PropertyHelpCallback(mo
+          .getManagedObjectDefinition(), d));
+      if (app.isMenuDrivenMode()) {
+        builder.addCancelOption(true);
+      }
+      builder.addQuitOption();
+
+      Menu<String> menu = builder.toMenu();
+      try {
+        app.println();
+        MenuResult<String> result = menu.run();
+
+        if (result.isQuit()) {
+          return MenuResult.quit();
+        } else if (result.isCancel()) {
+          return MenuResult.cancel();
+        } else {
+          mo.setPropertyValues(d, result.getValues());
+          return MenuResult.success();
+        }
+      } catch (CLIException e) {
+        this.e = e;
+        return MenuResult.cancel();
+      }
+    }
+
+
+
+    /**
      * /** {@inheritDoc}
      */
     @Override
-    public MenuResult<Void> visitBoolean(BooleanPropertyDefinition d,
-        ManagedObject<?> p) {
+    public MenuResult<Void> visitBoolean(BooleanPropertyDefinition d, Void p) {
       MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
 
       builder
@@ -381,7 +458,7 @@ final class PropertyValueEditor {
       builder.addNumberedOption(INFO_VALUE_FALSE.get(), MenuResult
           .success(false));
 
-      builder.addHelpOption(new PropertyHelpCallback(p
+      builder.addHelpOption(new PropertyHelpCallback(mo
           .getManagedObjectDefinition(), d));
       if (app.isMenuDrivenMode()) {
         builder.addCancelOption(true);
@@ -398,7 +475,7 @@ final class PropertyValueEditor {
         } else if (result.isCancel()) {
           return MenuResult.cancel();
         } else {
-          p.setPropertyValue(d, result.getValue());
+          mo.setPropertyValue(d, result.getValue());
           return MenuResult.success();
         }
       } catch (CLIException e) {
@@ -414,7 +491,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <E extends Enum<E>> MenuResult<Void> visitEnum(
-        EnumPropertyDefinition<E> d, ManagedObject<?> p) {
+        EnumPropertyDefinition<E> d, Void x) {
       MenuBuilder<E> builder = new MenuBuilder<E>(app);
       builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
 
@@ -434,7 +511,7 @@ final class PropertyValueEditor {
         builder.addNumberedOption(option, MenuResult.success(value));
       }
 
-      builder.addHelpOption(new PropertyHelpCallback(p
+      builder.addHelpOption(new PropertyHelpCallback(mo
           .getManagedObjectDefinition(), d));
       if (app.isMenuDrivenMode()) {
         builder.addCancelOption(true);
@@ -451,7 +528,7 @@ final class PropertyValueEditor {
         } else if (result.isCancel()) {
           return MenuResult.cancel();
         } else {
-          p.setPropertyValues(d, result.getValues());
+          mo.setPropertyValues(d, result.getValues());
           return MenuResult.success();
         }
       } catch (CLIException e) {
@@ -467,7 +544,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <T> MenuResult<Void> visitUnknown(PropertyDefinition<T> d,
-        ManagedObject<?> p) throws UnknownPropertyDefinitionException {
+        Void p) throws UnknownPropertyDefinitionException {
       PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
           true);
       app.println();
@@ -475,7 +552,7 @@ final class PropertyValueEditor {
 
       // Set the new property value(s).
       try {
-        p.setPropertyValues(d, readPropertyValues(app, p
+        mo.setPropertyValues(d, readPropertyValues(app, mo
             .getManagedObjectDefinition(), d));
         return MenuResult.success();
       } catch (CLIException e) {
@@ -491,8 +568,8 @@ final class PropertyValueEditor {
   /**
    * A menu call-back for editing a modifiable multi-valued property.
    */
-  private static final class MultiValuedPropertyEditor extends
-      PropertyDefinitionVisitor<MenuResult<Boolean>, ConsoleApplication>
+  private final class MultiValuedPropertyEditor extends
+      PropertyDefinitionVisitor<MenuResult<Boolean>, Void>
       implements MenuCallback<Boolean> {
 
     // Any exception that was caught during processing.
@@ -524,7 +601,7 @@ final class PropertyValueEditor {
         throws CLIException {
       displayPropertyHeader(app, pd);
 
-      MenuResult<Boolean> result = pd.accept(this, app);
+      MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
       } else {
@@ -538,8 +615,169 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+        MenuResult<Boolean> visitAggregation(
+        final AggregationPropertyDefinition<C, S> d, Void p) {
+      // FIXME: give the user the option to enable/create a component.
+      final SortedSet<String> defaultValues = mo.getPropertyDefaultValues(d);
+      final SortedSet<String> oldValues = mo.getPropertyValues(d);
+      final SortedSet<String> currentValues = mo.getPropertyValues(d);
+      InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
+      final Message ufpn = rd.getUserFriendlyPluralName();
+
+      boolean isFirst = true;
+      while (true) {
+        if (!isFirst) {
+          app.println();
+          app.println(INFO_EDITOR_HEADING_CONFIGURE_PROPERTY_CONT.get(d
+              .getName()));
+        } else {
+          isFirst = false;
+        }
+
+        if (currentValues.size() > 1) {
+          app.println();
+          app.println(INFO_EDITOR_HEADING_COMPONENT_SUMMARY.get(d.getName(),
+              ufpn));
+          app.println();
+          displayPropertyValues(app, d, currentValues);
+        }
+
+        // Create a list of possible names.
+        final Set<String> values = new TreeSet<String>(d);
+        ManagedObjectPath<?,?> path = d.getParentPath();
+        try {
+          values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
+        } catch (AuthorizationException e) {
+          this.e = new CLIException(e.getMessageObject());
+          return MenuResult.quit();
+        } catch (ManagedObjectNotFoundException e) {
+          this.e = new CLIException(e.getMessageObject());
+          return MenuResult.cancel();
+        } catch (CommunicationException e) {
+          this.e = new CLIException(e.getMessageObject());
+          return MenuResult.quit();
+        }
+
+        // Create the add values call-back.
+        MenuCallback<Boolean> addCallback = null;
+        values.removeAll(currentValues);
+        if (!values.isEmpty()) {
+          addCallback = new MenuCallback<Boolean>() {
+
+            public MenuResult<Boolean> invoke(ConsoleApplication app)
+                throws CLIException {
+              MenuBuilder<String> builder = new MenuBuilder<String>(app);
+
+              builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENTS_ADD
+                  .get(ufpn));
+              builder.setAllowMultiSelect(true);
+              builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
+
+              for (String value : values) {
+                Message svalue = getPropertyValues(d, Collections
+                    .singleton(value));
+                builder.addNumberedOption(svalue, MenuResult.success(value));
+              }
+
+              if (values.size() > 1) {
+                // No point in having this option if there's only one
+                // possible value.
+                builder.addNumberedOption(INFO_EDITOR_OPTION_ADD_ALL_COMPONENTS
+                    .get(ufpn), MenuResult.success(values));
+              }
+
+              builder.addHelpOption(new PropertyHelpCallback(mo
+                  .getManagedObjectDefinition(), d));
+
+              builder.addCancelOption(true);
+              builder.addQuitOption();
+
+              app.println();
+              app.println();
+              Menu<String> menu = builder.toMenu();
+              MenuResult<String> result = menu.run();
+
+              if (result.isSuccess()) {
+                // Set the new property value(s).
+                currentValues.addAll(result.getValues());
+                app.println();
+                app.pressReturnToContinue();
+                return MenuResult.success(false);
+              } else if (result.isCancel()) {
+                app.println();
+                app.pressReturnToContinue();
+                return MenuResult.success(false);
+              } else {
+                return MenuResult.quit();
+              }
+            }
+
+          };
+        }
+
+        // Create the remove values call-back.
+        MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
+
+          public MenuResult<Boolean> invoke(ConsoleApplication app)
+              throws CLIException {
+            MenuBuilder<String> builder = new MenuBuilder<String>(app);
+
+            builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENTS_REMOVE
+                .get(ufpn));
+            builder.setAllowMultiSelect(true);
+            builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
+
+            for (String value : currentValues) {
+              Message svalue = getPropertyValues(d, Collections
+                  .singleton(value));
+              builder.addNumberedOption(svalue, MenuResult.success(value));
+            }
+
+            builder.addHelpOption(new PropertyHelpCallback(mo
+                .getManagedObjectDefinition(), d));
+
+            builder.addCancelOption(true);
+            builder.addQuitOption();
+
+            app.println();
+            app.println();
+            Menu<String> menu = builder.toMenu();
+            MenuResult<String> result = menu.run();
+
+            if (result.isSuccess()) {
+              // Set the new property value(s).
+              currentValues.removeAll(result.getValues());
+              app.println();
+              app.pressReturnToContinue();
+              return MenuResult.success(false);
+            } else if (result.isCancel()) {
+              app.println();
+              app.pressReturnToContinue();
+              return MenuResult.success(false);
+            } else {
+              return MenuResult.quit();
+            }
+          }
+
+        };
+
+        MenuResult<Boolean> result = runMenu(d, app, defaultValues, oldValues,
+            currentValues, addCallback, removeCallback);
+        if (!result.isAgain()) {
+          return result;
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public <T extends Enum<T>> MenuResult<Boolean> visitEnum(
-        final EnumPropertyDefinition<T> d, ConsoleApplication app) {
+        final EnumPropertyDefinition<T> d, Void p) {
       final SortedSet<T> defaultValues = mo.getPropertyDefaultValues(d);
       final SortedSet<T> oldValues = mo.getPropertyValues(d);
       final SortedSet<T> currentValues = mo.getPropertyValues(d);
@@ -680,7 +918,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d,
-        ConsoleApplication app) {
+        Void p) {
       PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
           true);
       app.println();
@@ -1107,9 +1345,9 @@ final class PropertyValueEditor {
   /**
    * A menu call-back for viewing a read-only properties.
    */
-  private static final class ReadOnlyPropertyViewer extends
-      PropertyDefinitionVisitor<MenuResult<Boolean>, ConsoleApplication>
-      implements MenuCallback<Boolean> {
+  private final class ReadOnlyPropertyViewer extends
+      PropertyDefinitionVisitor<MenuResult<Boolean>, Void> implements
+      MenuCallback<Boolean> {
 
     // Any exception that was caught during processing.
     private CLIException e = null;
@@ -1138,7 +1376,7 @@ final class PropertyValueEditor {
      */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws CLIException {
-      MenuResult<Boolean> result = pd.accept(this, app);
+      MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
       } else {
@@ -1153,7 +1391,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <T> MenuResult<Boolean> visitUnknown(PropertyDefinition<T> pd,
-        ConsoleApplication app) {
+        Void p) {
       SortedSet<T> values = mo.getPropertyValues(pd);
 
       app.println();
@@ -1210,8 +1448,8 @@ final class PropertyValueEditor {
   /**
    * A menu call-back for editing a modifiable single-valued property.
    */
-  private static final class SingleValuedPropertyEditor extends
-      PropertyDefinitionVisitor<MenuResult<Boolean>, ConsoleApplication>
+  private final class SingleValuedPropertyEditor extends
+      PropertyDefinitionVisitor<MenuResult<Boolean>, Void>
       implements MenuCallback<Boolean> {
 
     // Any exception that was caught during processing.
@@ -1243,7 +1481,7 @@ final class PropertyValueEditor {
         throws CLIException {
       displayPropertyHeader(app, pd);
 
-      MenuResult<Boolean> result = pd.accept(this, app);
+      MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
       } else {
@@ -1257,8 +1495,83 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     @Override
+    public <C extends ConfigurationClient, S extends Configuration>
+        MenuResult<Boolean> visitAggregation(
+        AggregationPropertyDefinition<C, S> d, Void p) {
+      // Construct a menu of actions.
+      MenuBuilder<String> builder = new MenuBuilder<String>(app);
+      builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
+      builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
+
+      DefaultBehaviorQuery<String> query = DefaultBehaviorQuery.query(d);
+      SortedSet<String> currentValues = mo.getPropertyValues(d);
+      SortedSet<String> defaultValues = mo.getPropertyDefaultValues(d);
+      String currentValue = currentValues.isEmpty() ? null : currentValues
+          .first();
+      String defaultValue = defaultValues.isEmpty() ? null : defaultValues
+          .first();
+
+      // First option is for leaving the property unchanged.
+      Message option = getKeepDefaultValuesMenuOption(d);
+      builder.addNumberedOption(option, MenuResult.<String> cancel());
+      builder.setDefault(Message.raw("1"), MenuResult.<String> cancel());
+
+      // Create a list of possible names.
+      final Set<String> values = new TreeSet<String>(d);
+      ManagedObjectPath<?,?> path = d.getParentPath();
+      InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
+      try {
+        values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
+      } catch (AuthorizationException e) {
+        this.e = new CLIException(e.getMessageObject());
+        return MenuResult.quit();
+      } catch (ManagedObjectNotFoundException e) {
+        this.e = new CLIException(e.getMessageObject());
+        return MenuResult.cancel();
+      } catch (CommunicationException e) {
+        this.e = new CLIException(e.getMessageObject());
+        return MenuResult.quit();
+      }
+
+      final Message ufn = rd.getUserFriendlyName();
+      for (String value : values) {
+        if (currentValue != null && d.compare(value, currentValue) == 0) {
+          // This option is unnecessary.
+          continue;
+        }
+
+        Message svalue = getPropertyValues(d, Collections.singleton(value));
+        if (value.equals(defaultValue) && query.isDefined()) {
+          option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_COMPONENT.get(ufn,
+              svalue);
+        } else {
+          option = INFO_EDITOR_OPTION_CHANGE_TO_COMPONENT.get(ufn, svalue);
+        }
+
+        builder.addNumberedOption(option, MenuResult.success(value));
+      }
+
+      // Third option is to reset the value back to its default.
+      if (mo.isPropertyPresent(d) && !query.isDefined()) {
+        option = getResetToDefaultValuesMenuOption(d);
+        if (option != null) {
+          builder.addNumberedOption(option, MenuResult.<String> success());
+        }
+      }
+
+      // FIXME: give the user the option to enable/create a component.
+
+      return runMenu(d, builder);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public MenuResult<Boolean> visitBoolean(BooleanPropertyDefinition d,
-        ConsoleApplication app) {
+        Void p) {
       // Construct a menu of actions.
       MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
       builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
@@ -1311,7 +1624,7 @@ final class PropertyValueEditor {
         }
       }
 
-      return runMenu(app, d, builder);
+      return runMenu(d, builder);
     }
 
 
@@ -1321,7 +1634,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <E extends Enum<E>> MenuResult<Boolean> visitEnum(
-        EnumPropertyDefinition<E> d, ConsoleApplication app) {
+        EnumPropertyDefinition<E> d, Void p) {
       // Construct a menu of actions.
       MenuBuilder<E> builder = new MenuBuilder<E>(app);
       builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
@@ -1366,7 +1679,7 @@ final class PropertyValueEditor {
         }
       }
 
-      return runMenu(app, d, builder);
+      return runMenu(d, builder);
     }
 
 
@@ -1376,7 +1689,7 @@ final class PropertyValueEditor {
      */
     @Override
     public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d,
-        ConsoleApplication app) {
+        Void p) {
       PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
           true);
       app.println();
@@ -1413,7 +1726,7 @@ final class PropertyValueEditor {
         }
       }
 
-      return runMenu(app, d, builder);
+      return runMenu(d, builder);
     }
 
 
@@ -1505,11 +1818,10 @@ final class PropertyValueEditor {
 
 
     // Common menu processing.
-    private <T> MenuResult<Boolean> runMenu(ConsoleApplication app,
-        final PropertyDefinition<T> d, MenuBuilder<T> builder)
-        throws IllegalPropertyValueException, PropertyIsSingleValuedException,
-        PropertyIsReadOnlyException, PropertyIsMandatoryException,
-        IllegalArgumentException {
+    private <T> MenuResult<Boolean> runMenu(final PropertyDefinition<T> d,
+        MenuBuilder<T> builder) throws IllegalPropertyValueException,
+        PropertyIsSingleValuedException, PropertyIsReadOnlyException,
+        PropertyIsMandatoryException, IllegalArgumentException {
       builder.addHelpOption(new PropertyHelpCallback(mo
           .getManagedObjectDefinition(), d));
       builder.addQuitOption();
@@ -1739,6 +2051,9 @@ final class PropertyValueEditor {
   // The application console.
   private final ConsoleApplication app;
 
+  // The management context.
+  private final ManagementContext context;
+
 
 
   /**
@@ -1747,9 +2062,13 @@ final class PropertyValueEditor {
    *
    * @param app
    *          The application console.
+   * @param context
+   *          The management context.
    */
-  public PropertyValueEditor(ConsoleApplication app) {
+  public PropertyValueEditor(ConsoleApplication app,
+      ManagementContext context) {
     this.app = app;
+    this.context = context;
   }
 
 
@@ -1782,11 +2101,12 @@ final class PropertyValueEditor {
       Collection<PropertyDefinition<?>> c, boolean isCreate)
       throws CLIException {
     // Get values for this missing mandatory property.
-    MandatoryPropertyInitializer mpi = new MandatoryPropertyInitializer();
     for (PropertyDefinition<?> pd : c) {
       if (pd.hasOption(PropertyOption.MANDATORY)) {
         if (mo.getPropertyValues(pd).isEmpty()) {
-          MenuResult<Void> result = mpi.read(mo, pd);
+          MandatoryPropertyInitializer mpi = new MandatoryPropertyInitializer(
+              mo, pd);
+          MenuResult<Void> result = mpi.invoke(app);
           if (!result.isSuccess()) {
             return result;
           }
