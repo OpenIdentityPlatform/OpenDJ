@@ -713,6 +713,23 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
+   * Initializes all of the property definitions associated with this
+   * managed object definition.
+   *
+   * @throws Exception
+   *           If this managed object definition could not be
+   *           initialized.
+   */
+  protected final void initialize() throws Exception {
+    for (PropertyDefinition<?> pd : getAllPropertyDefinitions()) {
+      pd.initialize();
+      pd.getDefaultBehaviorProvider().initialize();
+    }
+  }
+
+
+
+  /**
    * Register a constraint with the managed object definition.
    * <p>
    * This method <b>must not</b> be called by applications.

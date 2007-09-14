@@ -26,7 +26,6 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
 
 
 
@@ -37,6 +36,8 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Set;
+
+import org.opends.messages.Message;
 
 
 
@@ -661,4 +662,18 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
    */
   public abstract void validateValue(T value)
       throws IllegalPropertyValueException;
+
+
+
+  /**
+   * Performs any run-time initialization required by this property
+   * definition. This may include resolving managed object paths and
+   * property names.
+   *
+   * @throws Exception
+   *           If this property definition could not be initialized.
+   */
+  protected void initialize() throws Exception {
+    // No implementation required.
+  }
 }

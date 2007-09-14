@@ -30,18 +30,22 @@ package org.opends.server.admin;
 
 /**
  * A default behavior provider which retrieves default values from a
- * managed object in an abolute location. It should be used by
+ * managed object in an absolute location. It should be used by
  * properties which inherit their default value(s) from properties
  * held in an other managed object.
  *
  * @param <T>
  *          The type of values represented by this provider.
  */
-public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
+public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
   // The absolute path to the managed object containing the property.
-  private final ManagedObjectPath<?, ?> path;
+  private ManagedObjectPath<?, ?> path = null;
+
+  // The string representation of the managed object path specifying
+  // the absolute location of the managed object.
+  private final String pathString;
 
   // The name of the property containing the inherited default values.
   private final String propertyName;
@@ -52,24 +56,16 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
    * Create an absolute inherited default behavior provider associated
    * with the managed object at the specified absolute location.
    *
-   * @param path
-   *          The absolute location of the managed object.
+   * @param pathString
+   *          The string representation of the managed object path
+   *          specifying the absolute location of the managed object.
    * @param propertyName
    *          The name of the property containing the inherited
    *          default values.
-   * @throws IllegalArgumentException
-   *           If the named property is associated with the managed
-   *           object definition identified by the path.
-   * @throws ClassCastException
-   *           If the named property does not have the same type of
-   *           property values as this default behavior provider.
    */
-  @SuppressWarnings("unchecked")
-  public AbsoluteInheritedDefaultBehaviorProvider(ManagedObjectPath path,
-      String propertyName) throws IllegalArgumentException, ClassCastException {
-    // We do not decode the property name now because the property
-    // might not have been constructed at this point.
-    this.path = path;
+  public AbsoluteInheritedDefaultBehaviorProvider(String pathString,
+      String propertyName) {
+    this.pathString = pathString;
     this.propertyName = propertyName;
   }
 
@@ -111,7 +107,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Get the name of the property containing the inherited default
+   * Gets the name of the property containing the inherited default
    * values.
    *
    * @return Returns the name of the property containing the inherited
@@ -119,6 +115,17 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> implements
    */
   public String getPropertyName() {
     return propertyName;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void initialize() throws Exception {
+    // Decode the path.
+    path = ManagedObjectPath.valueOf(pathString);
   }
 
 }

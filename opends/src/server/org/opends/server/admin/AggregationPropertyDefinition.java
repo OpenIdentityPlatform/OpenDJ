@@ -113,12 +113,9 @@ public final class AggregationPropertyDefinition
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<String, AggregationPropertyDefinition<C, S>> {
 
-    // The type of referenced managed objects.
-    private AbstractManagedObjectDefinition<?, ?> cd = null;
-
-    // The name of the managed object which is the parent of the
-    // aggregated managed objects.
-    private ManagedObjectPath<?, ?> p = null;
+    // The string representation of the managed object path specifying
+    // the parent of the aggregated managed objects.
+    private String parentPathString = null;
 
     // The name of a relation in the parent managed object which
     // contains the aggregated managed objects.
@@ -145,35 +142,19 @@ public final class AggregationPropertyDefinition
 
 
     /**
-     * Sets the definition of the type of referenced managed objects.
-     * <p>
-     * This must be defined before the property definition can be
-     * built.
-     *
-     * @param d
-     *          The definition of the type of referenced managed
-     *          objects.
-     */
-    public final void setManagedObjectDefinition(
-        AbstractManagedObjectDefinition<C, S> d) {
-      this.cd = d;
-    }
-
-
-
-    /**
      * Sets the name of the managed object which is the parent of the
      * aggregated managed objects.
      * <p>
      * This must be defined before the property definition can be
      * built.
      *
-     * @param p
-     *          The name of the managed object which is the parent of
-     *          the aggregated managed objects.
+     * @param pathString
+     *          The string representation of the managed object path
+     *          specifying the parent of the aggregated managed
+     *          objects.
      */
-    public final void setParentPath(ManagedObjectPath<?, ?> p) {
-      this.p = p;
+    public final void setParentPath(String pathString) {
+      this.parentPathString = pathString;
     }
 
 
@@ -236,14 +217,13 @@ public final class AggregationPropertyDefinition
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings("unchecked")
     @Override
     protected AggregationPropertyDefinition<C, S> buildInstance(
         AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<String> defaultBehavior) {
       // Make sure that the parent path has been defined.
-      if (p == null) {
+      if (parentPathString == null) {
         throw new IllegalStateException("Parent path undefined");
       }
 
@@ -251,29 +231,6 @@ public final class AggregationPropertyDefinition
       if (rdName == null) {
         throw new IllegalStateException("Relation definition undefined");
       }
-
-      // Make sure that the managed object definition has been
-      // defined.
-      if (cd == null) {
-        throw new IllegalStateException("Managed object definition undefined");
-      }
-
-      // Make sure that the relation definition is a member of the
-      // parent path's definition.
-      AbstractManagedObjectDefinition<?, ?> parent = p
-          .getManagedObjectDefinition();
-      RelationDefinition<?, ?> rd = parent.getRelationDefinition(rdName);
-
-      // Make sure the relation refers to the child type.
-      AbstractManagedObjectDefinition<?, ?> dTmp = rd.getChildDefinition();
-      if (dTmp != cd) {
-        throw new IllegalStateException("Relation definition \"" + rd.getName()
-            + "\" does not refer to definition " + d.getName());
-      }
-
-      // Force the relation to the correct type.
-      InstantiableRelationDefinition<C, S> relation =
-        (InstantiableRelationDefinition<C, S>) rd;
 
       // Make sure that if a source property is specified then a
       // target property is also specified.
@@ -284,8 +241,8 @@ public final class AggregationPropertyDefinition
       }
 
       return new AggregationPropertyDefinition<C, S>(d, propertyName, options,
-          adminAction, defaultBehavior, p, relation, sourceEnabledPropertyName,
-          targetEnabledPropertyName);
+          adminAction, defaultBehavior, parentPathString, rdName,
+          sourceEnabledPropertyName, targetEnabledPropertyName);
     }
 
   }
@@ -397,6 +354,9 @@ public final class AggregationPropertyDefinition
       // isConfigurationDeleteAcceptable() call-back should have
       // trapped this.
       if (configuration.dn().equals(dn)) {
+        // This should not happen - the
+        // isConfigurationDeleteAcceptable() call-back should have
+        // trapped this.
         throw new IllegalStateException("Attempting to delete a referenced "
             + configuration.definition().getUserFriendlyName());
       } else {
@@ -642,7 +602,7 @@ public final class AggregationPropertyDefinition
    * @return Returns the new aggregation property definition builder.
    */
   public static <C extends ConfigurationClient, S extends Configuration>
-      Builder<C, S> createBuilder(
+  Builder<C, S> createBuilder(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
     return new Builder<C, S>(d, propertyName);
   }
@@ -650,31 +610,45 @@ public final class AggregationPropertyDefinition
   // The active server-side referential integrity change listeners
   // associated with this property.
   private final Map<DN, List<ReferentialIntegrityChangeListener>>
-      changeListeners =
-        new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
+    changeListeners =
+      new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
 
   // The active server-side referential integrity delete listeners
   // associated with this property.
   private final Map<DN, List<ReferentialIntegrityDeleteListener>>
-      deleteListeners =
-        new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
+    deleteListeners =
+      new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
 
   // The name of the managed object which is the parent of the
   // aggregated managed objects.
-  private final ManagedObjectPath<?, ?> parentPath;
+  private ManagedObjectPath<?, ?> parentPath;
+
+  // The string representation of the managed object path specifying
+  // the parent of the aggregated managed objects.
+  private final String parentPathString;
+
+  // The name of a relation in the parent managed object which
+  // contains the aggregated managed objects.
+  private final String rdName;
 
   // The relation in the parent managed object which contains the
   // aggregated managed objects.
-  private final InstantiableRelationDefinition<C, S> relationDefinition;
+  private InstantiableRelationDefinition<C, S> relationDefinition;
 
-  // The optional name of a boolean "enabled" property in this managed
-  // object. When this property is true, the enabled property in the
-  // aggregated managed object must also be true.
+  // The decoded source property definition.
+  private BooleanPropertyDefinition sourceEnabledProperty;
+
+  // The optional name of a boolean "enabled" property in this
+  // managed object. When this property is true, the enabled
+  // property in the aggregated managed object must also be true.
   private final String sourceEnabledPropertyName;
 
+  // The decoded target property definition.
+  private BooleanPropertyDefinition targetEnabledProperty;
+
   // The optional name of a boolean "enabled" property in the
-  // aggregated managed object. This property must not be false while
-  // the aggregated managed object is referenced.
+  // aggregated managed object. This property must not be false
+  // while the aggregated managed object is referenced.
   private final String targetEnabledPropertyName;
 
 
@@ -683,14 +657,13 @@ public final class AggregationPropertyDefinition
   private AggregationPropertyDefinition(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options, AdministratorAction adminAction,
-      DefaultBehaviorProvider<String> defaultBehavior,
-      ManagedObjectPath<?, ?> parentPath,
-      InstantiableRelationDefinition<C, S> relationDefinition,
-      String sourceEnabledPropertyName, String targetEnabledPropertyName) {
+      DefaultBehaviorProvider<String> defaultBehavior, String parentPathString,
+      String rdName, String sourceEnabledPropertyName,
+      String targetEnabledPropertyName) {
     super(d, String.class, propertyName, options, adminAction, defaultBehavior);
 
-    this.parentPath = parentPath;
-    this.relationDefinition = relationDefinition;
+    this.parentPathString = parentPathString;
+    this.rdName = rdName;
     this.sourceEnabledPropertyName = sourceEnabledPropertyName;
     this.targetEnabledPropertyName = targetEnabledPropertyName;
   }
@@ -821,27 +794,9 @@ public final class AggregationPropertyDefinition
    * @return Returns the optional boolean "enabled" property in this
    *         managed object, or <code>null</code> if none is
    *         defined.
-   * @throws IllegalArgumentException
-   *           If the named property does not exist in this property's
-   *           associated managed object definition.
-   * @throws ClassCastException
-   *           If the named property does exist but is not a
-   *           {@link BooleanPropertyDefinition}.
    */
-  public final BooleanPropertyDefinition getSourceEnabledPropertyDefinition()
-      throws IllegalArgumentException, ClassCastException {
-    if (sourceEnabledPropertyName == null) {
-      return null;
-    }
-
-    AbstractManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
-
-    PropertyDefinition<?> pd;
-    pd = d.getPropertyDefinition(sourceEnabledPropertyName);
-
-    // Runtime cast is required to workaround a
-    // bug in JDK versions prior to 1.5.0_08.
-    return BooleanPropertyDefinition.class.cast(pd);
+  public final BooleanPropertyDefinition getSourceEnabledPropertyDefinition() {
+    return sourceEnabledProperty;
   }
 
 
@@ -854,28 +809,9 @@ public final class AggregationPropertyDefinition
    * @return Returns the optional boolean "enabled" property in the
    *         aggregated managed object, or <code>null</code> if none
    *         is defined.
-   * @throws IllegalArgumentException
-   *           If the named property does not exist in the aggregated
-   *           managed object's definition.
-   * @throws ClassCastException
-   *           If the named property does exist but is not a
-   *           {@link BooleanPropertyDefinition}.
    */
-  public final BooleanPropertyDefinition getTargetEnabledPropertyDefinition()
-      throws IllegalArgumentException, ClassCastException {
-    if (targetEnabledPropertyName == null) {
-      return null;
-    }
-
-    AbstractManagedObjectDefinition<?, ?> d;
-    PropertyDefinition<?> pd;
-
-    d = relationDefinition.getChildDefinition();
-    pd = d.getPropertyDefinition(targetEnabledPropertyName);
-
-    // Runtime cast is required to workaround a
-    // bug in JDK versions prior to 1.5.0_08.
-    return BooleanPropertyDefinition.class.cast(pd);
+  public final BooleanPropertyDefinition getTargetEnabledPropertyDefinition() {
+    return targetEnabledProperty;
   }
 
 
@@ -932,6 +868,52 @@ public final class AggregationPropertyDefinition
       Reference.parseName(parentPath, relationDefinition, value);
     } catch (IllegalArgumentException e) {
       throw new IllegalPropertyValueException(this, value);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  protected void initialize() throws Exception {
+    // Decode the path.
+    parentPath = ManagedObjectPath.valueOf(parentPathString);
+
+    // Decode the relation definition.
+    AbstractManagedObjectDefinition<?, ?> parent = parentPath
+        .getManagedObjectDefinition();
+    RelationDefinition<?, ?> rd = parent.getRelationDefinition(rdName);
+    relationDefinition = (InstantiableRelationDefinition<C, S>) rd;
+
+    // Now decode the property definitions.
+    if (sourceEnabledPropertyName == null) {
+      sourceEnabledProperty = null;
+    } else {
+      AbstractManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
+
+      PropertyDefinition<?> pd;
+      pd = d.getPropertyDefinition(sourceEnabledPropertyName);
+
+      // Runtime cast is required to workaround a
+      // bug in JDK versions prior to 1.5.0_08.
+      sourceEnabledProperty = BooleanPropertyDefinition.class.cast(pd);
+    }
+
+    if (targetEnabledPropertyName == null) {
+      targetEnabledProperty = null;
+    } else {
+      AbstractManagedObjectDefinition<?, ?> d;
+      PropertyDefinition<?> pd;
+
+      d = relationDefinition.getChildDefinition();
+      pd = d.getPropertyDefinition(targetEnabledPropertyName);
+
+      // Runtime cast is required to workaround a
+      // bug in JDK versions prior to 1.5.0_08.
+      targetEnabledProperty = BooleanPropertyDefinition.class.cast(pd);
     }
   }
 

@@ -37,7 +37,7 @@ package org.opends.server.admin;
  * @param <T>
  *          The type of values represented by this provider.
  */
-public final class RelativeInheritedDefaultBehaviorProvider<T> implements
+public final class RelativeInheritedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
   // The type of managed object expected at the relative offset.
@@ -69,7 +69,6 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
    * @throws IllegalArgumentException
    *           If the offset is less than 0.
    */
-  @SuppressWarnings("unchecked")
   public RelativeInheritedDefaultBehaviorProvider(
       AbstractManagedObjectDefinition<?, ?> d, String propertyName, int offset)
       throws IllegalArgumentException {
@@ -126,7 +125,7 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
 
 
   /**
-   * Get the name of the property containing the inherited default
+   * Gets the name of the property containing the inherited default
    * values.
    *
    * @return Returns the name of the property containing the inherited
@@ -148,5 +147,4 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> implements
   public int getRelativeOffset() {
     return offset;
   }
-
 }

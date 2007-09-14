@@ -25,15 +25,13 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
 
 
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.AdminMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,6 +39,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -52,8 +51,10 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.Validator;
@@ -474,21 +475,13 @@ public final class ClassLoaderProvider {
 
     try {
       loadDefinitionClasses(is);
-    } catch (IOException e) {
+    } catch (InitializationException e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_ADMIN_CANNOT_READ_CORE_MANIFEST.get(
-          CORE_MANIFEST, stackTraceToSingleLineString(e));
-      throw new InitializationException(message);
-    } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_ADMIN_CANNOT_LOAD_CLASS_FROM_CORE_MANIFEST.get(
-          CORE_MANIFEST, stackTraceToSingleLineString(e));
+      Message message = ERR_CLASS_LOADER_CANNOT_LOAD_CORE.get(CORE_MANIFEST,
+          stackTraceToSingleLineString(e));
       throw new InitializationException(message);
     }
   }
@@ -519,31 +512,21 @@ public final class ClassLoaderProvider {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.
-            get(EXTENSION_MANIFEST, jarFile.getName(),
-                stackTraceToSingleLineString(e));
+        Message message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.get(
+            EXTENSION_MANIFEST, jarFile.getName(),
+            stackTraceToSingleLineString(e));
         throw new InitializationException(message);
       }
 
       try {
         loadDefinitionClasses(is);
-      } catch (IOException e) {
+      } catch (InitializationException e) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        Message message = ERR_ADMIN_CANNOT_READ_EXTENSION_MANIFEST.
-            get(EXTENSION_MANIFEST, jarFile.getName(),
-                stackTraceToSingleLineString(e));
-        throw new InitializationException(message);
-      } catch (Exception e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_ADMIN_CANNOT_LOAD_CLASS_FROM_EXTENSION_MANIFEST.
-            get(EXTENSION_MANIFEST, jarFile.getName(),
-                stackTraceToSingleLineString(e));
+        Message message = ERR_CLASS_LOADER_CANNOT_LOAD_EXTENSION.get(jarFile
+            .getName(), EXTENSION_MANIFEST, stackTraceToSingleLineString(e));
         throw new InitializationException(message);
       }
     }
@@ -557,24 +540,25 @@ public final class ClassLoaderProvider {
    *
    * @param is
    *          The manifest file input stream.
-   * @throws IOException
-   *           If an IO error occurred whilst reading the manifest
-   *           file.
-   * @throws ClassNotFoundException
-   *           If an IO error occurred whilst reading the manifest
-   *           file.
-   * @throws LinkageError
-   *           If the linkage fails.
-   * @throws ExceptionInInitializerError
-   *           If the initialization provoked by this method fails.
+   * @throws InitializationException
+   *           If the definition classes could not be loaded and
+   *           initialized.
    */
   private void loadDefinitionClasses(InputStream is)
-      throws IOException, ClassNotFoundException, LinkageError,
-      ExceptionInInitializerError {
+      throws InitializationException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(
         is));
+    List<AbstractManagedObjectDefinition<?, ?>> definitions =
+      new LinkedList<AbstractManagedObjectDefinition<?,?>>();
     while (true) {
-      String className = reader.readLine();
+      String className;
+      try {
+        className = reader.readLine();
+      } catch (IOException e) {
+        Message msg = ERR_CLASS_LOADER_CANNOT_READ_MANIFEST_FILE.get(String
+            .valueOf(e.getMessage()));
+        throw new InitializationException(msg, e);
+      }
 
       // Break out when the end of the manifest is reached.
       if (className == null) {
@@ -594,8 +578,48 @@ public final class ClassLoaderProvider {
 
       TRACER.debugMessage(DebugLogLevel.INFO, "Loading class " + className);
 
-      // Use the underlying loader.
-      Class.forName(className, true, loader);
+      // Load the class and get an instance of it if it is a definition.
+      Class<?> theClass;
+      try {
+        theClass = Class.forName(className, true, loader);
+      } catch (Exception e) {
+        Message msg = ERR_CLASS_LOADER_CANNOT_LOAD_CLASS.get(className, String
+            .valueOf(e.getMessage()));
+        throw new InitializationException(msg, e);
+      }
+      if (AbstractManagedObjectDefinition.class.isAssignableFrom(theClass)) {
+        // We need to instantiate it using its getInstance() static method.
+        Method method;
+        try {
+          method = theClass.getMethod("getInstance");
+        } catch (Exception e) {
+          Message msg = ERR_CLASS_LOADER_CANNOT_FIND_GET_INSTANCE_METHOD.get(
+              className, String.valueOf(e.getMessage()));
+          throw new InitializationException(msg, e);
+        }
+
+        // Get the definition instance.
+        AbstractManagedObjectDefinition<?, ?> d;
+        try {
+          d = (AbstractManagedObjectDefinition<?, ?>) method.invoke(null);
+        } catch (Exception e) {
+          Message msg = ERR_CLASS_LOADER_CANNOT_INVOKE_GET_INSTANCE_METHOD.get(
+              className, String.valueOf(e.getMessage()));
+          throw new InitializationException(msg, e);
+        }
+        definitions.add(d);
+      }
+    }
+
+    // Initialize any definitions that were loaded.
+    for (AbstractManagedObjectDefinition<?, ?> d : definitions) {
+      try {
+        d.initialize();
+      } catch (Exception e) {
+        Message msg = ERR_CLASS_LOADER_CANNOT_INITIALIZE_DEFN.get(d.getName(),
+            d.getClass().getName(), String.valueOf(e.getMessage()));
+        throw new InitializationException(msg, e);
+      }
     }
   }
 

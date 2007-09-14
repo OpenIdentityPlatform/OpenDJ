@@ -127,6 +127,7 @@ public final class TestCfg {
 
       // Register the test parent resource bundle.
       TestParentCfgDefn d = TestParentCfgDefn.getInstance();
+      d.initialize();
       String baseName = d.getClass().getName();
       ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
       ManagedObjectDefinitionI18NResource.getInstance().setResourceBundle(d,
@@ -139,6 +140,7 @@ public final class TestCfg {
 
       // Register the test child resource bundle.
       TestChildCfgDefn d = TestChildCfgDefn.getInstance();
+      d.initialize();
       String baseName = d.getClass().getName();
       ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
       ManagedObjectDefinitionI18NResource.getInstance().setResourceBundle(d,
@@ -211,6 +213,22 @@ public final class TestCfg {
    */
   public static OptionalRelationDefinition<TestParentCfgClient, TestParentCfg> getTestOneToZeroOrOneParentRelationDefinition() {
     return RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
+  }
+
+
+
+  /**
+   * Initializes a property definition and its default behavior.
+   *
+   * @param pd
+   *          The property definition to be initialized.
+   * @throws Exception
+   *           If the property definition could not be initialized.
+   */
+  public static void initializePropertyDefinition(PropertyDefinition<?> pd)
+      throws Exception {
+    pd.initialize();
+    pd.getDefaultBehaviorProvider().initialize();
   }
 
 
