@@ -32,7 +32,7 @@
       <block name="'plugins'">
          <sequence>
            <script>
-             CurrentTestPath['group']=STAXCurrentBlock
+             CurrentTestPath['group']='plugins'
            </script>
           
           <call function="'testGroup_Preamble'" />
