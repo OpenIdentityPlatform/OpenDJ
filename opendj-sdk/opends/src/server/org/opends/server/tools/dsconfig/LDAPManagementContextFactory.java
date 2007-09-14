@@ -109,6 +109,7 @@ public final class LDAPManagementContextFactory implements
             ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
                 bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
                 trustManager, keyManager);
+            ctx.reconnect(null);
             conn = JNDIDirContextAdaptor.adapt(ctx);
             break;
           }
@@ -157,6 +158,7 @@ public final class LDAPManagementContextFactory implements
             ctx = ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
                 bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
                 trustManager, keyManager, null);
+            ctx.reconnect(null);
             conn = JNDIDirContextAdaptor.adapt(ctx);
             break;
           }
