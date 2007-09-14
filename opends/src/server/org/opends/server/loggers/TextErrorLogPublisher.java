@@ -224,13 +224,11 @@ public class TextErrorLogPublisher
         } else
         {
           String categoryName = overrideSeverity.substring(0, equalPos);
-          Category category = Category.valueOf(categoryName);
-          if (category == null)
+          categoryName = categoryName.replace("-", "_").toUpperCase();
+          try
           {
-            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
-            throw new ConfigException(msg);
-          } else
-          {
+            Category category = Category.valueOf(categoryName);
+
             HashSet<Severity> severities =
                 new HashSet<Severity>();
             StringTokenizer sevTokenizer =
@@ -238,6 +236,7 @@ public class TextErrorLogPublisher
             while (sevTokenizer.hasMoreElements())
             {
               String severityName = sevTokenizer.nextToken();
+              severityName = severityName.replace("-", "_").toUpperCase();
               if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
                 severities.add(Severity.FATAL_ERROR);
@@ -250,20 +249,27 @@ public class TextErrorLogPublisher
               }
               else
               {
-                Severity severity =
-                    Severity.parseString(severityName);
-                if (severity == null)
+                try
+                {
+                  Severity severity =
+                      Severity.parseString(severityName);
+
+                  severities.add(severity);
+                }
+                catch(Exception e)
                 {
                   Message msg =
                       WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
                   throw new ConfigException(msg);
-                } else
-                {
-                  severities.add(severity);
                 }
               }
             }
             definedSeverities.put(category, severities);
+          }
+          catch(Exception e)
+          {
+            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
+            throw new ConfigException(msg);
           }
         }
       }
@@ -327,30 +333,37 @@ public class TextErrorLogPublisher
         } else
         {
           String categoryName = overrideSeverity.substring(0, equalPos);
-          Category category = Category.valueOf(categoryName);
-          if (category == null)
+          Category category;
+          categoryName = categoryName.replace("-", "_").toUpperCase();
+          try
+          {
+            category = Category.valueOf(categoryName);
+          }
+          catch(Exception e)
           {
             Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
             unacceptableReasons.add(msg);
-            return false;
-          } else
-          {
-            StringTokenizer sevTokenizer =
+          }
+
+          StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
-            while (sevTokenizer.hasMoreElements())
+          while (sevTokenizer.hasMoreElements())
+          {
+            String severityName = sevTokenizer.nextToken();
+            severityName = severityName.replace("-", "_").toUpperCase();
+            if(!severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
             {
-              String severityName = sevTokenizer.nextToken();
-              if(!severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
+              try
               {
                 Severity severity =
                     Severity.parseString(severityName);
-                if (severity == null)
-                {
-                  Message msg = WARN_ERROR_LOGGER_INVALID_SEVERITY.get(
-                          severityName);
-                  unacceptableReasons.add(msg);
-                  return false;
-                }
+              }
+              catch(Exception e)
+              {
+                Message msg =
+                    WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
+                unacceptableReasons.add(msg);
+                return false;
               }
             }
           }
@@ -459,14 +472,11 @@ public class TextErrorLogPublisher
         } else
         {
           String categoryName = overrideSeverity.substring(0, equalPos);
-          Category category = Category.valueOf(categoryName);
-          if (category == null)
+          categoryName = categoryName.replace("-", "_").toUpperCase();
+          try
           {
-            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
-            resultCode = DirectoryServer.getServerErrorResultCode();
-            messages.add(msg);
-          } else
-          {
+            Category category = Category.valueOf(categoryName);
+
             HashSet<Severity> severities =
                 new HashSet<Severity>();
             StringTokenizer sevTokenizer =
@@ -474,6 +484,7 @@ public class TextErrorLogPublisher
             while (sevTokenizer.hasMoreElements())
             {
               String severityName = sevTokenizer.nextToken();
+              severityName = severityName.replace("-", "_").toUpperCase();
               if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
                 severities.add(Severity.FATAL_ERROR);
@@ -486,21 +497,28 @@ public class TextErrorLogPublisher
               }
               else
               {
-                Severity severity =
-                    Severity.parseString(severityName);
-                if (severity == null)
+                try
                 {
-                  Message msg = WARN_ERROR_LOGGER_INVALID_SEVERITY.get(
-                          severityName);
-                  resultCode = DirectoryServer.getServerErrorResultCode();
-                  messages.add(msg);
-                } else
-                {
+                  Severity severity =
+                      Severity.parseString(severityName);
+
                   severities.add(severity);
+                }
+                catch(Exception e)
+                {
+                  Message msg =
+                      WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
+                  throw new ConfigException(msg);
                 }
               }
             }
             definedSeverities.put(category, severities);
+          }
+          catch(Exception e)
+          {
+            Message msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(categoryName);
+            resultCode = DirectoryServer.getServerErrorResultCode();
+            messages.add(msg);
           }
         }
       }
