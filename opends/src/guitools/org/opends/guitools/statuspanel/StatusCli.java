@@ -85,6 +85,9 @@ class StatusCli extends CliApplicationHelper
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
 
+  /** Maximum number of connection attempts. */
+  private final int MAX_CONNECTION_RETRY =3;
+
   /**
    * The enumeration containing the different return codes that the command-line
    * can have.
@@ -112,7 +115,11 @@ class StatusCli extends CliApplicationHelper
     /**
      * User cancelled (for instance not accepting the certificate proposed).
      */
-    USER_CANCELLED(3);
+    USER_CANCELLED(3),
+    /**
+     * Too many connection failure.
+     */
+   ERROR_TOO_MANY_CONNECTION_FAILURE(4);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -350,8 +357,10 @@ class StatusCli extends CliApplicationHelper
             }
 
             InitialLdapContext ctx = null;
-            while (!connected && !cancelled)
+            int remainingRetry = MAX_CONNECTION_RETRY;
+            while (!connected && !cancelled && (remainingRetry > 0))
             {
+             remainingRetry--;
               if (prompted)
               {
                 printLineBreak();
@@ -445,6 +454,14 @@ class StatusCli extends CliApplicationHelper
             if (cancelled)
             {
               return ErrorReturnCode.USER_CANCELLED.getReturnCode();
+            }
+            else
+            if (remainingRetry <= 0)
+            {
+              printErrorMessage(
+                  ERR_STATUS_CLI_TOO_MANY_CONNECTION_ATTEMPT.get());
+              return ErrorReturnCode.ERROR_TOO_MANY_CONNECTION_FAILURE
+                  .getReturnCode();
             }
           }
           else
