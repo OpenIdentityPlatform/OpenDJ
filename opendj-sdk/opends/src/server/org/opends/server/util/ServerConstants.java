@@ -655,6 +655,22 @@ public final class ServerConstants
 
 
   /**
+   * The name of the standard "groupOfEntries" object class, formatted in
+   * camelCase.
+   */
+  public static final String OC_GROUP_OF_ENTRIES = "groupOfEntries";
+
+
+
+  /**
+   * The name of the standard "groupOfEntries" object class, formatted in all
+   * lowercase characters.
+   */
+  public static final String OC_GROUP_OF_ENTRIES_LC = "groupofentries";
+
+
+
+  /**
    * The name of the standard "groupOfNames" object class, formatted in
    * camelCase.
    */
