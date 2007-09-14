@@ -5411,7 +5411,7 @@ public class PluginConfigManager
 
 
     // Get the existing plugin if it's already enabled.
-    DirectoryServerPlugin<? extends PluginCfg> existingPlugin =
+    DirectoryServerPlugin existingPlugin =
          registeredPlugins.get(configuration.dn());
 
 
@@ -5441,19 +5441,9 @@ public class PluginConfigManager
       {
         adminActionRequired = true;
       }
-      //The plugin-types might have been changed. Replace the plugin's
-      //plugin-types with the configuration's plugin-types and re-register the
-      //plugin with new types.
-      Set<PluginType> currPluginTypes = existingPlugin.getPluginTypes();
-      currPluginTypes.clear();
-      for (PluginCfgDefn.PluginType pluginType :
-           configuration.getPluginType())
-      {
-        currPluginTypes.add(getPluginType(pluginType));
-      }
+
       existingPlugin.setInvokeForInternalOperations(
                           configuration.isInvokeForInternalOperations());
-      registerPlugin(existingPlugin, configuration.dn(), currPluginTypes);
 
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
@@ -5473,7 +5463,11 @@ public class PluginConfigManager
     }
     catch (InitializationException ie)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = DirectoryServer.getServerErrorResultCode();
+      }
+
       messages.add(ie.getMessageObject());
     }
 

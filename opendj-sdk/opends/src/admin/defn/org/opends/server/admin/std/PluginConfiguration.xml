@@ -91,8 +91,12 @@
   <adm:property name="plugin-type" mandatory="true" multi-valued="true">
     <adm:synopsis>
       The plugin types, which define the conditions under which this plugin
-      should be invoked.
+      should be invoked.  The plugin must be disabled and re-enabled for plugin
+      type changes to take effect.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="startup">
