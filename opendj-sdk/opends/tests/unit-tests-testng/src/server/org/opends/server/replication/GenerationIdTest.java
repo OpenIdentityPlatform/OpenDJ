@@ -702,7 +702,7 @@ public class GenerationIdTest extends ReplicationTestCase
    *
    * @throws Exception
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void testSingleRS() throws Exception
   {
     String testCase = "testSingleRS";
@@ -1044,7 +1044,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * - genId setting propagation from one RS to the others
    * - genId reset   propagation from one RS to the others
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void testMultiRS() throws Exception
   {
     String testCase = "testMultiRS";
