@@ -787,6 +787,7 @@ public final class MenuBuilder<T> {
       printer.setDisplayHeadings(false);
     } else {
       printer.setDisplayHeadings(true);
+      printer.setHeadingSeparatorStartColumn(1);
     }
 
     printer.setIndentWidth(4);

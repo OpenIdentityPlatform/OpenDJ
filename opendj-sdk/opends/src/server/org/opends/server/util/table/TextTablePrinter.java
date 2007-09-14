@@ -139,10 +139,20 @@ public final class TextTablePrinter extends TablePrinter {
           }
 
           for (int j = 0; j < width; j++) {
-            builder.append(headingSeparator);
+            if (headingSeparatorStartColumn > 0) {
+              if (i < headingSeparatorStartColumn) {
+                builder.append(' ');
+              } else if (i == headingSeparatorStartColumn && j < padding) {
+                builder.append(' ');
+              } else {
+                builder.append(headingSeparator);
+              }
+            } else {
+              builder.append(headingSeparator);
+            }
           }
 
-          if (i < (totalColumns - 1)) {
+          if ((i >= headingSeparatorStartColumn) && i < (totalColumns - 1)) {
             builder.append(columnSeparator);
           }
         }
@@ -362,6 +372,9 @@ public final class TextTablePrinter extends TablePrinter {
   // heading row from the rows beneath.
   private char headingSeparator = DEFAULT_HEADING_SEPARATOR;
 
+  // The column where the heading separator should begin.
+  private int headingSeparatorStartColumn = 0;
+
   // The padding which will be used to separate a cell's
   // contents from its adjacent column separators.
   private int padding = DEFAULT_PADDING;
@@ -474,6 +487,26 @@ public final class TextTablePrinter extends TablePrinter {
    */
   public void setHeadingSeparator(char headingSeparator) {
     this.headingSeparator = headingSeparator;
+  }
+
+
+
+  /**
+   * Sets the heading separator start column. The heading separator
+   * will only be display in the specified column and all subsequent
+   * columns. Usually this should be left at zero (the default) but
+   * sometimes it useful to indent the heading separate in order to
+   * provide additional emphasis (for example in menus).
+   *
+   * @param startColumn
+   *          The heading separator start column.
+   */
+  public void setHeadingSeparatorStartColumn(int startColumn) {
+    if (startColumn < 0) {
+      throw new IllegalArgumentException("Negative start column "
+          + startColumn);
+    }
+    this.headingSeparatorStartColumn = startColumn;
   }
 
 
