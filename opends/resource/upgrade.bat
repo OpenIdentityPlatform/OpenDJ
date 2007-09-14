@@ -84,7 +84,7 @@ goto end
 
 :reverter
 if EXIST "%INSTANCE_ROOT%\tmp\revert" rd "%INSTANCE_ROOT%\tmp\revert" /s /q
-xcopy "%INSTANCE_ROOT%\lib\*.*" "%INSTANCE_ROOT%\tmp\revert" /E /D /Y
+xcopy "%INSTANCE_ROOT%\lib\*.*" "%INSTANCE_ROOT%\tmp\revert\lib\" /E /Q /Y
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\revert\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 "%JAVA_BIN%" org.opends.quicksetup.upgrader.ReversionLauncher %*
