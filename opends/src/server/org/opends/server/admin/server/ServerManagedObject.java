@@ -33,12 +33,12 @@ import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.opends.messages.AdminMessages;
 import org.opends.messages.Message;
@@ -411,10 +411,10 @@ public final class ServerManagedObject<S extends Configuration> implements
    *          The type of the property to be retrieved.
    * @param d
    *          The property to be retrieved.
-   * @return Returns a newly allocated set containing a copy of the
-   *         property's effective values. An empty set indicates that
-   *         the property has no default values defined and any
-   *         default behavior is applicable.
+   * @return Returns an unmodifiable set containing the property's
+   *         effective values. An empty set indicates that the
+   *         property has no default values defined and any default
+   *         behavior is applicable.
    * @throws IllegalArgumentException
    *           If the property definition is not associated with this
    *           managed object's definition.
@@ -425,7 +425,7 @@ public final class ServerManagedObject<S extends Configuration> implements
     if (!properties.containsKey(d)) {
       throw new IllegalArgumentException("Unknown property " + d.getName());
     }
-    return new TreeSet<T>((SortedSet<T>) properties.get(d));
+    return Collections.unmodifiableSortedSet((SortedSet<T>) properties.get(d));
   }
 
 

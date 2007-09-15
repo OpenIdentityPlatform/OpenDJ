@@ -86,7 +86,8 @@
     <xsl:for-each
       select="$this-local-properties[adm:syntax/adm:enumeration and not(adm:profile[@name='preprocessor']/adm:first-defined-in)]">
       <xsl:sort select="@name" />
-      <xsl:if test="not(adm:profile[@name='preprocessor']/admpp:first-defined-in)">
+      <xsl:if
+        test="not(adm:profile[@name='preprocessor']/admpp:first-defined-in)">
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -368,7 +369,8 @@
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:call-template name="generate-property-getter-implementation">
+      <xsl:call-template
+        name="generate-property-getter-implementation">
         <xsl:with-param name="interface" select="'client'" />
       </xsl:call-template>
       <xsl:text>&#xa;</xsl:text>
@@ -455,6 +457,50 @@
       select="concat('    // Private implementation.&#xa;',
                      '    private ServerManagedObject&lt;? extends ', $this-java-class, 'Cfg&gt; impl;&#xa;')" />
     <!--
+      Private members for each property.
+    -->
+    <xsl:for-each select="$this-all-properties">
+      <xsl:sort select="@name" />
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:value-of
+        select="concat('    // The value of the &quot;', @name, '&quot; property.&#xa;')" />
+      <xsl:value-of select="'    private final '" />
+      <xsl:choose>
+        <xsl:when test="string(@multi-valued) != 'true'">
+          <xsl:choose>
+            <xsl:when test="adm:default-behavior/adm:defined">
+              <!--
+                The property is guaranteed to contain a value since there is a
+                well-defined default value.
+              -->
+              <xsl:call-template
+                name="get-property-java-primitive-type" />
+            </xsl:when>
+            <xsl:when test="@mandatory = 'true'">
+              <!--
+                The property is guaranteed to contain a value in the server interface.
+              -->
+              <xsl:call-template
+                name="get-property-java-primitive-type" />
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="get-property-java-type" />
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="'SortedSet&lt;'" />
+          <xsl:call-template name="get-property-java-type" />
+          <xsl:value-of select="'&gt;'" />
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:value-of select="' p'" />
+      <xsl:call-template name="name-to-java">
+        <xsl:with-param name="value" select="@name" />
+      </xsl:call-template>
+      <xsl:value-of select="';&#xa;'" />
+    </xsl:for-each>
+    <!--
       Private constructor.
     -->
     <xsl:text>&#xa;</xsl:text>
@@ -465,8 +511,28 @@
                      '    private ',
                      $this-java-class,
                      'CfgServerImpl(ServerManagedObject&lt;? extends ', $this-java-class, 'Cfg&gt; impl) {&#xa;',
-                     '      this.impl = impl;&#xa;',
-                     '    }&#xa;')" />
+                     '      this.impl = impl;&#xa;')" />
+    <xsl:for-each select="$this-all-properties">
+      <xsl:sort select="@name" />
+      <xsl:variable name="java-prop-name">
+        <xsl:call-template name="name-to-java">
+          <xsl:with-param name="value" select="@name" />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:value-of
+        select="concat('      this.p', $java-prop-name, ' = ')" />
+      <xsl:choose>
+        <xsl:when test="string(@multi-valued) != 'true'">
+          <xsl:value-of
+            select="concat('impl.getPropertyValue(INSTANCE.get', $java-prop-name , 'PropertyDefinition());&#xa;')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of
+            select="concat('impl.getPropertyValues(INSTANCE.get', $java-prop-name , 'PropertyDefinition());&#xa;')" />
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:for-each>
+    <xsl:value-of select="'    }&#xa;'" />
     <!--
       Generate all the change listener methods - one for each managed
       object in the hierarchy.
@@ -478,14 +544,15 @@
       <xsl:call-template name="generate-change-listener" />
     </xsl:if>
     <!--
-      Getters/Setters for all properties.
+      Getters for all properties.
     -->
     <xsl:for-each select="$this-all-properties">
       <xsl:sort select="@name" />
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
       <xsl:text>&#xa;</xsl:text>
-      <xsl:call-template name="generate-property-getter-implementation">
+      <xsl:call-template
+        name="generate-property-getter-implementation">
         <xsl:with-param name="interface" select="'server'" />
       </xsl:call-template>
     </xsl:for-each>
@@ -716,7 +783,7 @@
       select="concat('      PD_', $java-prop-name, ' = builder.getInstance();&#xa;')" />
     <xsl:value-of
       select="concat('      INSTANCE.registerPropertyDefinition(PD_', $java-prop-name, ');&#xa;')" />
-    <xsl:call-template name="get-property-definition-post-ctor"/>
+    <xsl:call-template name="get-property-definition-post-ctor" />
     <xsl:value-of select="'  }&#xa;'" />
   </xsl:template>
   <!--
