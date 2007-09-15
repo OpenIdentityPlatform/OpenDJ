@@ -351,10 +351,20 @@
         </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:value-of
-          select="concat('   *&#xa;',
+        <xsl:choose>
+          <xsl:when test="$interface='server'">
+            <xsl:value-of
+              select="concat('   *&#xa;',
+                     '   * @return Returns an unmodifiable set containing the values of the &quot;', $name,'&quot; property.&#xa;',
+                     '   */&#xa;')" />
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of
+              select="concat('   *&#xa;',
                      '   * @return Returns the values of the &quot;', $name,'&quot; property.&#xa;',
                      '   */&#xa;')" />
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:value-of select="'  SortedSet&lt;'" />
         <xsl:call-template name="get-property-java-type" />
         <xsl:value-of select="'&gt;'" />
@@ -435,21 +445,31 @@
       </xsl:otherwise>
     </xsl:choose>
     <xsl:choose>
-      <xsl:when test="string(@multi-valued) != 'true'">
+      <xsl:when test="$interface='server'">
         <xsl:value-of
           select="concat($java-prop-name, '() {&#xa;',
+                                     '      return p', $java-prop-name , ';&#xa;' ,
+                                     '    }&#xa;')" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="string(@multi-valued) != 'true'">
+            <xsl:value-of
+              select="concat($java-prop-name, '() {&#xa;',
                                      '      return impl.getPropertyValue',
                                      '(INSTANCE.get', $java-prop-name ,
                                      'PropertyDefinition());&#xa;' ,
                                      '    }&#xa;')" />
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of
-          select="concat($java-prop-name, '() {&#xa;',
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of
+              select="concat($java-prop-name, '() {&#xa;',
                                      '      return impl.getPropertyValues',
                                      '(INSTANCE.get', $java-prop-name ,
                                      'PropertyDefinition());&#xa;' ,
                                      '    }&#xa;')" />
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
