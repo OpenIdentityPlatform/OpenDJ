@@ -3962,8 +3962,12 @@ public abstract class Installer extends GuiApplication {
       catch (NameNotFoundException x)
       {
         isOver = true;
-        notifyListeners(getFormattedProgress(
+        LOG.log(Level.INFO, "Initialization entry not found.");
+        if (displayProgress)
+        {
+          notifyListeners(getFormattedProgress(
             INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
+        }
       }
       catch (NamingException ne)
       {
