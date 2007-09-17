@@ -233,7 +233,7 @@
             #@TestPostamble             none
             #@TestResult                Success if OpenDS returns 0
         -->
-        <testcase name="getTestCaseName('JKS - List LDAPS Conn Handler Props')">
+        <testcase name="getTestCaseName('Custom JKS - List LDAPS Conn Handler Props')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
