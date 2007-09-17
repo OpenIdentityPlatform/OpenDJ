@@ -1617,7 +1617,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     *
     * @param infoMsg The information message.
     */
-   public void setReplServerInfo(ReplServerInfoMessage infoMsg)
+   public void receiveReplServerInfo(ReplServerInfoMessage infoMsg)
    {
      if (debugEnabled())
        TRACER.debugInfo("In " + replicationCache.getReplicationServer().
@@ -1749,6 +1749,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    public void sendGenerationId(ResetGenerationId msg)
    throws IOException
    {
+     generationId = msg.getGenerationId();
      session.publish(msg);
    }
 }

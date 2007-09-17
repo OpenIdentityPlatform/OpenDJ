@@ -2415,7 +2415,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public void resetGenerationId()
   {
     requestedResetSinceLastStart = true;
-    ResetGenerationId genIdMessage = new ResetGenerationId();
+    ResetGenerationId genIdMessage = new ResetGenerationId(this.generationId);
     broker.publish(genIdMessage);
   }
 

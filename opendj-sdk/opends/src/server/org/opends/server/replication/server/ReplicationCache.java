@@ -959,19 +959,6 @@ public class ReplicationCache
     }
 
     /**
-     * Sets the replication server informations for the provided
-     * handler from the provided ReplServerInfoMessage.
-     *
-     * @param handler The server handler from which the info was received.
-     * @param infoMsg The information message that was received.
-     */
-    public void setReplServerInfo(
-        ServerHandler handler, ReplServerInfoMessage infoMsg)
-    {
-      handler.setReplServerInfo(infoMsg);
-    }
-
-    /**
      * Sets the provided value as the new in memory generationId.
      *
      * @param generationId The new value of generationId.
@@ -1007,20 +994,27 @@ public class ReplicationCache
      *
      * @param senderHandler The handler associated to the server
      *        that requested to reset the generationId.
+     * @param genIdMsg The reset generation ID msg received.
      */
-    public void resetGenerationId(ServerHandler senderHandler)
+    public void resetGenerationId(ServerHandler senderHandler,
+        ResetGenerationId genIdMsg)
     {
+      long newGenId = genIdMsg.getGenerationId();
+
       if (debugEnabled())
         TRACER.debugInfo(
           "In " + this.replicationServer.getMonitorInstanceName() +
           " baseDN=" + baseDn +
-          " RCache.resetGenerationId");
+          " RCache.resetGenerationId received new ref genId="  + newGenId);
 
       // Notifies the others LDAP servers that from now on
       // they have the bad generationId
       for (ServerHandler handler : connectedServers.values())
       {
-        handler.resetGenerationId();
+        if (newGenId != handler.getGenerationId())
+        {
+          handler.resetGenerationId();
+        }
       }
 
       // Propagates the reset message to the others replication servers
@@ -1031,7 +1025,7 @@ public class ReplicationCache
         {
           try
           {
-            handler.sendGenerationId(new ResetGenerationId());
+            handler.sendGenerationId(genIdMsg);
           }
           catch (IOException e)
           {
@@ -1041,45 +1035,48 @@ public class ReplicationCache
         }
       }
 
-      // Reset the localchange and state db for the current domain
-      synchronized (sourceDbHandlers)
+      if (this.generationId != newGenId)
       {
-        for (DbHandler dbHandler : sourceDbHandlers.values())
+        // Reset the localchange and state db for the current domain
+        synchronized (sourceDbHandlers)
         {
-          try
+          for (DbHandler dbHandler : sourceDbHandlers.values())
           {
-            dbHandler.clear();
+            try
+            {
+              dbHandler.clear();
+            }
+            catch (Exception e)
+            {
+              // TODO: i18n
+              logError(Message.raw(
+                  "Exception caught while clearing dbHandler:" +
+                  e.getLocalizedMessage()));
+            }
           }
-          catch (Exception e)
-          {
-            // TODO: i18n
-            logError(Message.raw(
-                "Exception caught while clearing dbHandler:" +
-                e.getLocalizedMessage()));
-          }
+          sourceDbHandlers.clear();
+
+          if (debugEnabled())
+            TRACER.debugInfo(
+                "In " + this.replicationServer.getMonitorInstanceName() +
+                " baseDN=" + baseDn +
+            " The source db handler has been cleared");
         }
-        sourceDbHandlers.clear();
+        try
+        {
+          replicationServer.clearGenerationId(baseDn);
+        }
+        catch (Exception e)
+        {
+          // TODO: i18n
+          logError(Message.raw(
+              "Exception caught while clearing generationId:" +
+              e.getLocalizedMessage()));
+        }
 
-        if (debugEnabled())
-          TRACER.debugInfo(
-              "In " + this.replicationServer.getMonitorInstanceName() +
-              " baseDN=" + baseDn +
-              " The source db handler has been cleared");
+        // Reset the in memory domain generationId
+        generationId = newGenId;
       }
-      try
-      {
-        replicationServer.clearGenerationId(baseDn);
-      }
-      catch (Exception e)
-      {
-        // TODO: i18n
-        logError(Message.raw(
-            "Exception caught while clearing generationId:" +
-            e.getLocalizedMessage()));
-      }
-
-      // Reset the in memory domain generationId
-      generationId = -1;
     }
 
     /**
