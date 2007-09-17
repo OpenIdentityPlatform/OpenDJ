@@ -43,6 +43,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Arrays;
+import java.lang.reflect.Method;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -144,6 +145,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     // default (preferred) AES/CBC/PKCS5Padding 128bit key.
     paramList.add(new CipherParameters(null, null, null, 128, 128));
     // custom
+//    paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 192, 64));
     paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 128, 64));
     paramList.add(new CipherParameters("RC4", null, null, 104, 0));
     paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 56));
@@ -219,5 +221,32 @@ public class CryptoManagerTestCase extends TypesTestCase
     assertEquals(is.read(), -1);
     is.close();
     assertEquals(new String(plainText), secretMessage);
+  }
+
+  /**
+   Tests to ensure the same key identifier (and hence, key) is used for
+   successive encryptions specifying the same algorithm and key length.
+
+   @throws Exception  In case an error occurs in the encryption routine.
+   */
+  @Test
+  public void testKeyEntryReuse()
+          throws Exception {
+
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "1234";
+
+    try {
+      Method m = Arrays.class.getMethod("copyOfRange", (new byte[16]).getClass(),
+              Integer.TYPE, Integer.TYPE);
+      final byte[] cipherText = cm.encrypt(secretMessage.getBytes());
+      final byte[] keyID = (byte[])m.invoke(null, cipherText, 0, 16);
+      final byte[] cipherText2 = cm.encrypt(secretMessage.getBytes());
+      final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 0, 16);
+      assertTrue(Arrays.equals(keyID, keyID2));
+    }
+    catch (NoSuchMethodException ex) {
+      // ignore - requires Java 6
+    }
   }
 }
