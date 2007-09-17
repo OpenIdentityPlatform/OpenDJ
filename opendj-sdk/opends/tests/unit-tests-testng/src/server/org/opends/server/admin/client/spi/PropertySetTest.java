@@ -28,17 +28,32 @@
 package org.opends.server.admin.client.spi;
 
 import static org.testng.Assert.*;
-import org.testng.annotations.*;
-import org.opends.server.admin.*;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.client.ManagedObject;
-import org.opends.server.admin.client.spi.Property;
-import org.opends.server.admin.client.spi.PropertySet;
-import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.DirectoryServerTestCase;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.SortedSet;
+
+import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AdminTestCase;
+import org.opends.server.admin.BooleanPropertyDefinition;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.ConfigurationClient;
+import org.opends.server.admin.DefaultBehaviorProvider;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.ManagedObjectDefinition;
+import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyOption;
+import org.opends.server.admin.PropertyProvider;
+import org.opends.server.admin.StringPropertyDefinition;
+import org.opends.server.admin.TopCfgDefn;
+import org.opends.server.admin.client.ManagedObject;
+import org.opends.server.admin.server.ServerManagedObject;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * PropertySet Tester.
@@ -73,21 +88,21 @@ public class PropertySetTest extends AdminTestCase {
   @BeforeClass
   public void setUp() {
     BooleanPropertyDefinition.Builder builder =
-            BooleanPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-bool-prop");
+            BooleanPropertyDefinition.createBuilder(TopCfgDefn.getInstance(), "test-bool-prop");
     DefinedDefaultBehaviorProvider<Boolean> dbp =
             new DefinedDefaultBehaviorProvider<Boolean>(BOOL_DEFAULT.toString());
     builder.setDefaultBehaviorProvider(dbp);
     testBoolPropertyDefinition = builder.getInstance();
 
     StringPropertyDefinition.Builder builder2 =
-            StringPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-sv-str-prop");
+            StringPropertyDefinition.createBuilder(TopCfgDefn.getInstance(), "test-sv-str-prop");
     DefinedDefaultBehaviorProvider<String> dbp2 =
             new DefinedDefaultBehaviorProvider<String>(STR_DEFAULT);
     builder2.setDefaultBehaviorProvider(dbp2);
     testSvStringPropertyDefinition = builder2.getInstance();
 
     StringPropertyDefinition.Builder builder3 =
-            StringPropertyDefinition.createBuilder(RootCfgDefn.getInstance(), "test-mv-str-prop");
+            StringPropertyDefinition.createBuilder(TopCfgDefn.getInstance(), "test-mv-str-prop");
     DefinedDefaultBehaviorProvider<String> dbp3 =
             new DefinedDefaultBehaviorProvider<String>(STR_DEFAULT);
     builder3.setDefaultBehaviorProvider(dbp3);
@@ -385,7 +400,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   private PropertySet createTestPropertySet(PropertyProvider pp) {
-    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", null);
+    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", TopCfgDefn.getInstance());
     PropertySet ps = new PropertySet();
     for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
       addProperty(ps, pd, pp);

@@ -222,7 +222,7 @@
         <xsl:value-of
           select="concat('    super(&quot;',
                          $this/@name,
-                         '&quot;, null);&#xa;')" />
+                         '&quot;, TopCfgDefn.getInstance());&#xa;')" />
       </xsl:otherwise>
     </xsl:choose>
     <xsl:value-of select="'  }&#xa;'" />
@@ -1628,6 +1628,9 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:call-template name="generate-import-statements">
       <xsl:with-param name="imports">
+        <xsl:if test="not(boolean($this/@extends))">
+          <import>org.opends.server.admin.TopCfgDefn</import>
+        </xsl:if>
         <xsl:if
           test="$this-local-properties[@multi-valued='true' or
                                        @read-only='true' or

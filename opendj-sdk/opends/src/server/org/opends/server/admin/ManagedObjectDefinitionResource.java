@@ -42,6 +42,8 @@ import java.util.Properties;
 /**
  * A class for retrieving non-internationalized resource properties
  * associated with a managed object definition.
+ * <p>
+ * Resource properties are not available for the {@link TopCfgDefn}.
  */
 public final class ManagedObjectDefinitionResource {
 
@@ -89,9 +91,18 @@ public final class ManagedObjectDefinitionResource {
    *         key.
    * @throws MissingResourceException
    *           If the key was not found.
+   * @throws UnsupportedOperationException
+   *           If the provided managed object definition was the
+   *           {@link TopCfgDefn}.
    */
-  public String getString(AbstractManagedObjectDefinition<?, ?> d,
-      String key) throws MissingResourceException {
+  public String getString(AbstractManagedObjectDefinition<?, ?> d, String key)
+      throws MissingResourceException, UnsupportedOperationException {
+    if (d.isTop()) {
+      throw new UnsupportedOperationException(
+          "Profile resources are not available for the "
+              + "Top configuration definition");
+    }
+
     Properties p = getProperties(d);
     String result = p.getProperty(key);
 
@@ -109,8 +120,7 @@ public final class ManagedObjectDefinitionResource {
 
 
   // Retrieve the properties table associated with a managed object,
-  // lazily
-  // loading it if necessary.
+  // lazily loading it if necessary.
   private synchronized Properties getProperties(
       AbstractManagedObjectDefinition<?, ?> d)
       throws MissingResourceException {
