@@ -4204,18 +4204,18 @@ public class SchemaBackend
     Mac           mac             = null;
     MessageDigest digest          = null;
     String        digestAlgorithm = null;
-    String        macAlgorithm    = null;
+    String        macKeyID    = null;
 
     if (hash)
     {
       if (signHash)
       {
-        macAlgorithm = cryptoManager.getPreferredMACAlgorithm();
-        backupProperties.put(BACKUP_PROPERTY_MAC_ALGORITHM, macAlgorithm);
-
         try
         {
-          mac = cryptoManager.getPreferredMACProvider();
+          macKeyID = cryptoManager.getMacEngineKeyEntryID();
+          backupProperties.put(BACKUP_PROPERTY_MAC_KEY_ID, macKeyID);
+
+          mac = cryptoManager.getMacEngine(macKeyID);
         }
         catch (Exception e)
         {
@@ -4225,7 +4225,7 @@ public class SchemaBackend
           }
 
           Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_MAC.get(
-              macAlgorithm, stackTraceToSingleLineString(e));
+              macKeyID, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                          DirectoryServer.getServerErrorResultCode(), message,
                          e);
@@ -4653,9 +4653,9 @@ public class SchemaBackend
     Mac mac = null;
     if (signedHash != null)
     {
-      String macAlgorithm =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_ALGORITHM);
-      if (macAlgorithm == null)
+      String macKeyID =
+           backupInfo.getBackupProperty(BACKUP_PROPERTY_MAC_KEY_ID);
+      if (macKeyID == null)
       {
         Message message = ERR_SCHEMA_RESTORE_UNKNOWN_MAC.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
@@ -4664,12 +4664,12 @@ public class SchemaBackend
 
       try
       {
-        mac = DirectoryServer.getCryptoManager().getMACProvider(macAlgorithm);
+        mac = DirectoryServer.getCryptoManager().getMacEngine(macKeyID);
       }
       catch (Exception e)
       {
         Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_MAC.get(
-            backupID, macAlgorithm);
+            backupID, macKeyID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }

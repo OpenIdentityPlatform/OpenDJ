@@ -168,18 +168,18 @@ public class BackupManager
     Mac           mac             = null;
     MessageDigest digest          = null;
     String        digestAlgorithm = null;
-    String        macAlgorithm    = null;
+    String        macKeyID    = null;
 
     if (hash)
     {
       if (signHash)
       {
-        macAlgorithm = cryptoManager.getPreferredMACAlgorithm();
-        backupProperties.put(BACKUP_PROPERTY_MAC_ALGORITHM, macAlgorithm);
-
         try
         {
-          mac = cryptoManager.getPreferredMACProvider();
+          macKeyID = cryptoManager.getMacEngineKeyEntryID();
+          backupProperties.put(BACKUP_PROPERTY_MAC_KEY_ID, macKeyID);
+
+          mac = cryptoManager.getMacEngine(macKeyID);
         }
         catch (Exception e)
         {
@@ -189,7 +189,7 @@ public class BackupManager
           }
 
           Message message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
-              macAlgorithm, stackTraceToSingleLineString(e));
+              macKeyID, stackTraceToSingleLineString(e));
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message, e);
         }
@@ -924,15 +924,15 @@ public class BackupManager
     Mac           mac             = null;
     MessageDigest digest          = null;
     String        digestAlgorithm = null;
-    String        macAlgorithm    = null;
+    String        macKeyID        = null;
 
     if (signHash != null)
     {
-      macAlgorithm = backupProperties.get(BACKUP_PROPERTY_MAC_ALGORITHM);
+      macKeyID = backupProperties.get(BACKUP_PROPERTY_MAC_KEY_ID);
 
       try
       {
-        mac = cryptoManager.getMACProvider(macAlgorithm);
+        mac = cryptoManager.getMacEngine(macKeyID);
       }
       catch (Exception e)
       {
@@ -942,7 +942,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_MAC.get(
-            macAlgorithm, stackTraceToSingleLineString(e));
+            macKeyID, stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
