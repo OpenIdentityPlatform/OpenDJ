@@ -29,16 +29,24 @@ package org.opends.server.tools.tasks;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.args.StringArgument;
 import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
+import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.types.LDAPException;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
+import java.text.ParseException;
+import java.util.Date;
 import java.io.IOException;
 
 /**
@@ -47,6 +55,87 @@ import java.io.IOException;
  * action running within the directory server through the tasks interface.
  */
 public abstract class TaskTool implements TaskScheduleInformation {
+
+  LDAPConnectionArgumentParser argParser;
+
+  StringArgument startArg;
+
+  /**
+   * Called when this utility should perform its actions locally in this
+   * JVM.
+   *
+   * @param initializeServer indicates whether or not to initialize the
+   *        directory server in the case of a local action
+   * @param out stream to write messages; may be null
+   * @param err stream to write messages; may be null
+   * @return int indicating the result of this action
+   */
+  abstract protected int processLocal(boolean initializeServer,
+                                      PrintStream out,
+                                      PrintStream err);
+
+  /**
+   * Creates an argument parser prepopulated with arguments for processing
+   * input for scheduling tasks with the task backend.
+   *
+   * @param className of this tool
+   * @param toolDescription of this tool
+   * @return LDAPConnectionArgumentParser for processing CLI input
+   */
+  protected LDAPConnectionArgumentParser createArgParser(String className,
+                                           Message toolDescription)
+  {
+    LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
+            className, toolDescription, false);
+
+    try {
+      startArg =
+           new StringArgument(
+                   OPTION_LONG_START_DATETIME,
+                   OPTION_SHORT_START_DATETIME,
+                   OPTION_LONG_START_DATETIME, false, false,
+                   true, OPTION_VALUE_START_DATETIME,
+                   null, null,
+                   INFO_DESCRIPTION_START_DATETIME.get());
+      argParser.addArgument(startArg);
+    } catch (ArgumentException e) {
+      // should never happen
+    }
+
+    return argParser;
+  }
+
+  /**
+   * Validates arguments related to task scheduling.  This should be
+   * called after the <code>ArgumentParser.parseArguments</code> has
+   * been called.
+   *
+   * @throws ArgumentException if there is a problem with the arguments
+   */
+  protected void validateTaskArgs() throws ArgumentException {
+    if (startArg.isPresent()) {
+      try {
+        StaticUtils.parseDateTimeString(startArg.getValue());
+      } catch (ParseException pe) {
+        throw new ArgumentException(ERR_START_DATETIME_FORMAT.get());
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Date getStartDateTime() {
+    Date start = null;
+    if (startArg != null && startArg.isPresent()) {
+      try {
+        start = StaticUtils.parseDateTimeString(startArg.getValue());
+      } catch (ParseException pe) {
+        // ignore; valiidated in validateTaskArgs()
+      }
+    }
+    return start;
+  }
 
   /**
    * Either invokes initiates this tool's local action or schedule this
@@ -63,22 +152,48 @@ public abstract class TaskTool implements TaskScheduleInformation {
                         boolean initializeServer,
                         PrintStream out, PrintStream err) {
     int ret;
-    String taskId;
+
     if (argParser.isLdapOperation())
     {
+      if (initializeServer)
+      {
+        try
+        {
+          DirectoryServer.bootstrapClient();
+          DirectoryServer.initializeJMX();
+        }
+        catch (Exception e)
+        {
+          Message message = ERR_SERVER_BOOTSTRAP_ERROR.get(
+                  getExceptionMessage(e));
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return 1;
+        }
+      }
+
       try {
         LDAPConnection conn = argParser.connect(out, err);
         TaskClient tc = new TaskClient(conn);
-        taskId = tc.schedule(this);
-        out.println(wrapText(INFO_TASK_TOOL_TASK_SCHEDULED.get(taskId),
-                MAX_LINE_WIDTH));
+        TaskEntry taskEntry = tc.schedule(this);
+        Message startTime = taskEntry.getScheduledStartTime();
+        if (startTime == null || startTime.length() == 0) {
+          out.println(
+                  wrapText(INFO_TASK_TOOL_TASK_SCHEDULED_NOW.get(
+                          taskEntry.getType(),
+                          taskEntry.getId()),
+                  MAX_LINE_WIDTH));
+
+        } else {
+          out.println(
+                  wrapText(INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
+                          taskEntry.getType(),
+                          taskEntry.getId(),
+                          taskEntry.getScheduledStartTime()),
+                  MAX_LINE_WIDTH));
+        }
         ret = 0;
       } catch (LDAPConnectionException e) {
         Message message = ERR_LDAP_CONN_CANNOT_CONNECT.get(e.getMessage());
-        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
-        ret = 1;
-      } catch (ArgumentException e) {
-        Message message = e.getMessageObject();
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (IOException ioe) {
@@ -93,25 +208,15 @@ public abstract class TaskTool implements TaskScheduleInformation {
         Message message = ERR_TASK_TOOL_DECODE_ERROR.get(le.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
+      } catch (OpenDsException e) {
+        Message message = e.getMessageObject();
+        if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+        ret = 1;
       }
     } else {
       ret = processLocal(initializeServer, out, err);
     }
     return ret;
   }
-
-  /**
-   * Called when this utility should perform its actions locally in this
-   * JVM.
-   *
-   * @param initializeServer indicates whether or not to initialize the
-   *        directory server in the case of a local action
-   * @param out stream to write messages; may be null
-   * @param err stream to write messages; may be null
-   * @return int indicating the result of this action
-   */
-  abstract protected int processLocal(boolean initializeServer,
-                                      PrintStream out,
-                                      PrintStream err);
 
 }

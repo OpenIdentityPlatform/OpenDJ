@@ -177,11 +177,10 @@ public class BackUpDB extends TaskTool
     }
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_BACKUPDB_TOOL_DESCRIPTION.get();
     LDAPConnectionArgumentParser argParser =
-         new LDAPConnectionArgumentParser("org.opends.server.tools.BackUpDB",
-                                          toolDescription,
-                                          false);
+            createArgParser("org.opends.server.tools.BackUpDB",
+                            INFO_BACKUPDB_TOOL_DESCRIPTION.get());
+
 
     // Initialize all the command-line argument types and register them with the
     // parser.
@@ -298,6 +297,7 @@ public class BackUpDB extends TaskTool
     try
     {
       argParser.parseArguments(args);
+      validateTaskArgs();
     }
     catch (ArgumentException ae)
     {

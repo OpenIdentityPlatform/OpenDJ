@@ -454,9 +454,10 @@ public class TaskEntry {
         }
         Date date = dateFormat.parse(timeString);
         DateFormat df = DateFormat.getDateTimeInstance(
-                DateFormat.FULL,
-                DateFormat.FULL);
-        ret = Message.raw(df.format(date));
+                DateFormat.MEDIUM,
+                DateFormat.LONG);
+        String dateString = df.format(date);
+        ret = Message.raw(dateString);
       } catch (ParseException pe){
         ret = Message.raw(timeString);
       }

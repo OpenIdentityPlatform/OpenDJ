@@ -178,10 +178,9 @@ public class ExportLDIF extends TaskTool {
     }
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDIFEXPORT_TOOL_DESCRIPTION.get();
     LDAPConnectionArgumentParser argParser =
-         new LDAPConnectionArgumentParser("org.opends.server.tools.ExportLDIF",
-                                          toolDescription, false);
+            createArgParser("org.opends.server.tools.ExportLDIF",
+                            INFO_LDIFEXPORT_TOOL_DESCRIPTION.get());
 
 
     // Initialize all the command-line argument types and register them with the
@@ -323,6 +322,7 @@ public class ExportLDIF extends TaskTool {
     try
     {
       argParser.parseArguments(args);
+      validateTaskArgs();
     }
     catch (ArgumentException ae)
     {

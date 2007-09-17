@@ -59,6 +59,8 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import static org.opends.server.types.ResultCode.*;
 import org.opends.server.backends.task.TaskState;
+import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.util.StaticUtils;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -102,9 +104,10 @@ public class TaskClient {
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
    * @throws ASN1Exception if there is a problem with the encoding
+   * @throws TaskClientException if there is a problem with the task entry
    */
-  public synchronized String schedule(TaskScheduleInformation information)
-          throws LDAPException, IOException, ASN1Exception
+  public synchronized TaskEntry schedule(TaskScheduleInformation information)
+          throws LDAPException, IOException, ASN1Exception, TaskClientException
   {
     LDAPReader reader = connection.getLDAPReader();
     LDAPWriter writer = connection.getLDAPWriter();
@@ -134,6 +137,17 @@ public class TaskClient {
     ArrayList<ASN1OctetString> classValues = new ArrayList<ASN1OctetString>(1);
     classValues.add(new ASN1OctetString(information.getTaskClass().getName()));
     attributes.add(new LDAPAttribute(ATTR_TASK_CLASS, classValues));
+
+    // add the start time if necessary
+    Date startDate = information.getStartDateTime();
+    if (startDate != null) {
+      String startTimeString = StaticUtils.formatDateTimeString(startDate);
+      ArrayList<ASN1OctetString> startDateValues =
+              new ArrayList<ASN1OctetString>(1);
+      startDateValues.add(new ASN1OctetString(startTimeString));
+      attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
+              startDateValues));
+    }
 
     information.addTaskAttributes(attributes);
 
@@ -171,7 +185,7 @@ public class TaskClient {
               LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
               errorMessage);
     }
-    return taskID;
+    return getTaskEntry(taskID);
   }
 
   /**
