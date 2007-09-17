@@ -1016,6 +1016,10 @@
           <include name="*.jar" />
         </fileset>
 
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+
         <dirset dir="${classes.dir}" />
         <dirset dir="${dsml.classes.dir}" />
         <dirset dir="${quicksetup.classes.dir}" />
