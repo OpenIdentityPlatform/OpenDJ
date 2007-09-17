@@ -182,7 +182,7 @@ public class ServerReader extends DirectoryThread
         else if (msg instanceof ResetGenerationId)
         {
           ResetGenerationId genIdMsg = (ResetGenerationId) msg;
-          replicationCache.resetGenerationId(this.handler);
+          replicationCache.resetGenerationId(this.handler, genIdMsg);
         }
         else if (msg instanceof WindowProbe)
         {
@@ -192,7 +192,7 @@ public class ServerReader extends DirectoryThread
         else if (msg instanceof ReplServerInfoMessage)
         {
           ReplServerInfoMessage infoMsg = (ReplServerInfoMessage)msg;
-          handler.setReplServerInfo(infoMsg);
+          handler.receiveReplServerInfo(infoMsg);
 
           if (debugEnabled())
           {

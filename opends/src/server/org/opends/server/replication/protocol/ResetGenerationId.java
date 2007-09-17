@@ -26,7 +26,10 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 
@@ -38,13 +41,15 @@ public class ResetGenerationId extends ReplicationMessage implements
     Serializable
 {
   private static final long serialVersionUID = 7657049716115572226L;
-
+  private long generationId;
 
   /**
    * Creates a new message.
+   * @param generationId The new reference value of the generationID.
    */
-  public ResetGenerationId()
+  public ResetGenerationId(long generationId)
   {
+    this.generationId = generationId;
   }
 
   /**
@@ -57,9 +62,24 @@ public class ResetGenerationId extends ReplicationMessage implements
    */
   public ResetGenerationId(byte[] in) throws DataFormatException
   {
-    if (in[0] != MSG_TYPE_RESET_GENERATION_ID)
-      throw new
-      DataFormatException("input is not a valid GenerationId Message");
+    try
+    {
+      if (in[0] != MSG_TYPE_RESET_GENERATION_ID)
+        throw new
+        DataFormatException("input is not a valid GenerationId Message");
+
+      int pos = 1;
+
+      /* read the generationId */
+      int length = getNextLength(in, pos);
+      generationId = Long.valueOf(new String(in, pos, length,
+      "UTF-8"));
+      pos += length +1;
+    } catch (UnsupportedEncodingException e)
+    {
+      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+
   }
 
   /**
@@ -68,11 +88,33 @@ public class ResetGenerationId extends ReplicationMessage implements
   @Override
   public byte[] getBytes()
   {
-    int length = 1;
-    byte[] resultByteArray = new byte[length];
+    try
+    {
+      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
 
-    /* put the type of the operation */
-    resultByteArray[0] = MSG_TYPE_RESET_GENERATION_ID;
-    return resultByteArray;
+      /* Put the message type */
+      oStream.write(MSG_TYPE_RESET_GENERATION_ID);
+
+      // Put the generationId
+      oStream.write(String.valueOf(generationId).getBytes("UTF-8"));
+      oStream.write(0);
+
+      return oStream.toByteArray();
+    }
+    catch (IOException e)
+    {
+      // never happens
+      return null;
+    }
+  }
+
+  /**
+   * Returns the generation Id set in this message.
+   * @return the value of the generation ID.
+   *
+   */
+  public long getGenerationId()
+  {
+    return this.generationId;
   }
 }

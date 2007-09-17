@@ -130,6 +130,14 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   // ID of the backend
   private static final String backendId = "replicationChanges";
 
+  // At startup, the listen thread wait on this flag for the connet
+  // thread to look for other servers in the topology.
+  // TODO when a replication server is out of date (has old changes
+  // to receive from other servers, the listen thread should not accept
+  // connection from ldap servers. (issue 1302)
+  private boolean connectedInTopology = false;
+  private final Object connectedInTopologyLock = new Object();
+
   /**
    * The tracer object for the debug logger.
    */
@@ -211,6 +219,23 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   void runListen()
   {
     Socket newSocket;
+
+    // wait for the connect thread to find other replication
+    // servers in the topology before starting to accept connections
+    // from the ldap servers.
+    synchronized (connectedInTopologyLock)
+    {
+      if (connectedInTopology == false)
+      {
+        try
+        {
+          connectedInTopologyLock.wait(1000);
+        } catch (InterruptedException e)
+        {
+        }
+      }
+    }
+
     while ((shutdown == false) && (stopListen  == false))
     {
       // Wait on the replicationServer port.
@@ -284,6 +309,15 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
             Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
             logError(message);
           }
+        }
+      }
+      synchronized (connectedInTopologyLock)
+      {
+        // wake up the listen thread if necessary.
+        if (connectedInTopology == false)
+        {
+          connectedInTopologyLock.notify();
+          connectedInTopology = true;
         }
       }
       try
@@ -391,7 +425,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       // FIXME : Is it better to have the time to receive the ReplServerInfo
       // from all the other replication servers since this info is necessary
       // to route an early received total update request.
-
+      try { Thread.sleep(300);} catch(Exception e) {}
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " creates listen threads");
@@ -798,6 +832,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
         // Add the replication backend
         DirectoryServer.getConfigHandler().addEntry(backendConfigEntry, null);
       }
+      ldifImportConfig.close();
     }
     catch(Exception e)
     {

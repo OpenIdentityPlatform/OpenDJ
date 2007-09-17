@@ -3974,6 +3974,7 @@ public abstract class Installer extends GuiApplication {
                         ne), ne);
       }
     }
+    resetGenerationId(ctx, suffixDn, true, sourceServerDisplay);
   }
 
   /**
@@ -4022,5 +4023,139 @@ public abstract class Installer extends GuiApplication {
   private static int getRandomInt(Random random,int modulo)
   {
     return (random.nextInt() & modulo);
+  }
+
+  private void resetGenerationId(InitialLdapContext ctx,
+      String suffixDn, boolean displayProgress, String sourceServerDisplay)
+  throws ApplicationException
+  {
+    boolean taskCreated = false;
+    int i = 1;
+    boolean isOver = false;
+    String dn = null;
+    BasicAttributes attrs = new BasicAttributes();
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-task");
+    oc.add("ds-task-reset-generation-id");
+    attrs.put(oc);
+    attrs.put("ds-task-class-name",
+        "org.opends.server.tasks.SetGenerationIdTask");
+    attrs.put("ds-task-reset-generation-id-domain-base-dn", suffixDn);
+    while (!taskCreated)
+    {
+      String id = "quicksetup-reset-generation-id-"+i;
+      dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
+      attrs.put("ds-task-id", id);
+      try
+      {
+        DirContext dirCtx = ctx.createSubcontext(dn, attrs);
+        taskCreated = true;
+        LOG.log(Level.INFO, "created task entry: "+attrs);
+        dirCtx.close();
+      }
+      catch (NameAlreadyBoundException x)
+      {
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
+        throw new ApplicationException(
+            ReturnCode.APPLICATION_ERROR,
+                getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(
+                        sourceServerDisplay
+                ), ne), ne);
+      }
+      i++;
+    }
+    // Wait until it is over
+    SearchControls searchControls = new SearchControls();
+    searchControls.setCountLimit(1);
+    searchControls.setSearchScope(
+        SearchControls. OBJECT_SCOPE);
+    String filter = "objectclass=*";
+    searchControls.setReturningAttributes(
+        new String[] {
+            "ds-task-log-message",
+            "ds-task-state"
+        });
+    Message lastDisplayedMsg = null;
+    String lastLogMsg = null;
+    long lastTimeMsgDisplayed = -1;
+    while (!isOver)
+    {
+      try
+      {
+        Thread.sleep(500);
+      }
+      catch (Throwable t)
+      {
+      }
+      try
+      {
+        NamingEnumeration res = ctx.search(dn, filter, searchControls);
+        SearchResult sr = (SearchResult)res.next();
+        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        if (logMsg != null)
+        {
+          if (!logMsg.equals(lastLogMsg))
+          {
+            LOG.log(Level.INFO, logMsg);
+            lastLogMsg = logMsg;
+          }
+        }
+        InstallerHelper helper = new InstallerHelper();
+        String state = getFirstValue(sr, "ds-task-state");
+
+        if (helper.isDone(state) || helper.isStoppedByError(state))
+        {
+          isOver = true;
+          Message errorMsg;
+          if (lastLogMsg == null)
+          {
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
+                    sourceServerDisplay, state, sourceServerDisplay);
+          }
+          else
+          {
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
+                    sourceServerDisplay, lastLogMsg, state,
+                    sourceServerDisplay);
+          }
+
+          if (helper.isCompletedWithErrors(state))
+          {
+            notifyListeners(getFormattedWarning(errorMsg));
+          }
+          else if (!helper.isSuccessful(state) ||
+              helper.isStoppedByError(state))
+          {
+            ApplicationException ae = new ApplicationException(
+                ReturnCode.APPLICATION_ERROR, errorMsg,
+                null);
+            throw ae;
+          }
+          else if (displayProgress)
+          {
+            notifyListeners(getFormattedProgress(
+                INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
+          }
+        }
+      }
+      catch (NameNotFoundException x)
+      {
+        isOver = true;
+        notifyListeners(getFormattedProgress(
+            INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
+      }
+      catch (NamingException ne)
+      {
+        throw new ApplicationException(
+            ReturnCode.APPLICATION_ERROR,
+                getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(
+                        sourceServerDisplay),
+                        ne), ne);
+      }
+    }
   }
 }

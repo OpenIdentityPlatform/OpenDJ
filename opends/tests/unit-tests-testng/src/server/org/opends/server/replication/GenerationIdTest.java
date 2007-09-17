@@ -719,7 +719,6 @@ public class GenerationIdTest extends ReplicationTestCase
       long genId;
 
       replServer1 = createReplicationServer(changelog1ID, false, testCase);
-      assertEquals(replServer1.getGenerationId(baseDn), -1);
 
       /*
        * Test  : empty replicated backend
@@ -892,6 +891,13 @@ public class GenerationIdTest extends ReplicationTestCase
        * Test: Reset the replication server in order to allow new data set.
        */
 
+      debugInfo("Launch an on-line import on DS.");
+      genId=-1;
+      Entry importTask = getTaskImport();
+      addTask(importTask, ResultCode.SUCCESS, null);
+      waitTaskState(importTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+      Thread.sleep(500);
+
       Entry taskReset = TestCaseUtils.makeEntry(
           "dn: ds-task-id=resetgenid"+genId+ UUID.randomUUID() +
           ",cn=Scheduled Tasks,cn=Tasks",
@@ -908,33 +914,17 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // TODO: Test that replication server db has been cleared
 
-      assertEquals(replServer1.getGenerationId(baseDn),
-          -1, "Expected genId to be reset in replServer1");
+      debugInfo("Expect new genId to be computed on DS and sent to all replServers after on-line import.");
+      genId = readGenId();
+      assertTrue(genId != -1, "DS is expected to have a new genID computed " +
+          " after on-line import but genId=" + genId);
 
-      ReplicationMessage rcvmsg = broker2.receive();
-      if (!(rcvmsg instanceof ErrorMessage))
-      {
-        fail("Broker2 is expected to receive an ErrorMessage " +
-            " to signal degradation due to reset" + rcvmsg);
-      }
-      ErrorMessage emsg = (ErrorMessage)rcvmsg;
-      debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
+      rgenId = replServer1.getGenerationId(baseDn);     
+      assertEquals(genId, rgenId, "DS and replServer are expected to have same genId.");
 
-      rcvmsg = broker3.receive();
-      if (!(rcvmsg instanceof ErrorMessage))
-      {
-        fail("Broker3 is expected to receive an ErrorMessage " +
-            " to signal degradation due to reset" + rcvmsg);
-      }
-      emsg = (ErrorMessage)rcvmsg;
-      debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
-
-      rgenId = replServer1.getGenerationId(baseDn);
-      assertTrue(rgenId==-1,"Expecting that genId has been reset in replServer1: rgenId="+rgenId);
-
-      assertTrue(replServer1.getReplicationCache(baseDn, false).
+      assertTrue(!replServer1.getReplicationCache(baseDn, false).
           isDegradedDueToGenerationId(server1ID),
-      "Expecting that DS is degraded since domain genId has been reset");
+      "Expecting that DS is not degraded since domain genId has been reset");
 
       assertTrue(replServer1.getReplicationCache(baseDn, false).
           isDegradedDueToGenerationId(server2ID),
@@ -946,8 +936,39 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // Now create a change that normally would be replicated
       // but will not be replicated here since DS and brokers are degraded
-      String[] ent2 = { createEntry(UUID.randomUUID()) };
-      this.addTestEntriesToDB(ent2);
+      String[] ent3 = { createEntry(UUID.randomUUID()) };
+      this.addTestEntriesToDB(ent3);
+
+      try
+      {
+        ReplicationMessage msg = broker2.receive();
+        if (!(msg instanceof ErrorMessage))
+        {
+          fail("Broker 2 connection is expected to receive an ErrorMessage."
+              + msg);
+        }
+        ErrorMessage emsg = (ErrorMessage)msg;
+        debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("Broker 2 is expected to receive an ErrorMessage.");
+      }
+      try
+      {
+        ReplicationMessage msg = broker3.receive();
+        if (!(msg instanceof ErrorMessage))
+        {
+          fail("Broker 3 connection is expected to receive an ErrorMessage."
+              + msg);
+        }
+        ErrorMessage emsg = (ErrorMessage)msg;
+        debugInfo(testCase + " " + emsg.getMsgID() + " " + emsg.getDetails());
+      }
+      catch(SocketTimeoutException se)
+      {
+        fail("Broker 3 is expected to receive an ErrorMessage.");
+      }
 
       try
       {
@@ -969,23 +990,7 @@ public class GenerationIdTest extends ReplicationTestCase
         ReplicationMessage msg = broker3.receive();
         fail("No update message is supposed to be received by degraded broker3"+ msg);
       } catch(SocketTimeoutException e) { /* expected */ }
-
-
-      debugInfo("Launch an on-line import on DS.");
-      genId=-1;
-      Entry importTask = getTaskImport();
-      addTask(importTask, ResultCode.SUCCESS, null);
-      waitTaskState(importTask, TaskState.COMPLETED_SUCCESSFULLY, null);
-      Thread.sleep(500);
-
-      debugInfo("Expect new genId to be computed on DS and sent to all replServers after on-line import.");
-      genId = readGenId();
-      assertTrue(genId != -1, "DS is expected to have a new genID computed " +
-          " after on-line import but genId=" + genId);
-
-      rgenId = replServer1.getGenerationId(baseDn);     
-      assertEquals(genId, rgenId, "DS and replServer are expected to have same genId.");
-
+    
       // In S1 launch the total update to initialize S2
       addTask(taskInitRemoteS2, ResultCode.SUCCESS, null);
 
@@ -1008,7 +1013,7 @@ public class GenerationIdTest extends ReplicationTestCase
       Thread.sleep(200);
 
       debugInfo("Verifying that replServer1 has been reset.");
-      assertEquals(replServer1.getGenerationId(baseDn), -1);
+      assertEquals(replServer1.getGenerationId(baseDn), rgenId);
 
       debugInfo("Disconnect DS from replServer1 (required in order to DEL entries).");
       disconnectFromReplServer(changelog1ID);
@@ -1163,9 +1168,9 @@ public class GenerationIdTest extends ReplicationTestCase
     
     debugInfo("Verifying that all replservers genIds have been reset.");
     genId = readGenId();
-    assertEquals(replServer1.getGenerationId(baseDn), -1);
-    assertEquals(replServer2.getGenerationId(baseDn), -1);
-    assertEquals(replServer3.getGenerationId(baseDn), -1);
+    assertEquals(replServer2.getGenerationId(baseDn), genId);
+    assertEquals(replServer2.getGenerationId(baseDn), genId);
+    assertEquals(replServer3.getGenerationId(baseDn), genId);
 
     debugInfo("Disconnect DS from replServer1 (required in order to DEL entries).");
     disconnectFromReplServer(changelog1ID);

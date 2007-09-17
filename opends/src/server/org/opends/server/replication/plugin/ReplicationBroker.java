@@ -122,7 +122,7 @@ public class ReplicationBroker implements InternalSearchListener
    */
   private boolean connectionError = false;
 
-  private Object connectPhaseLock = new Object();
+  private final Object connectPhaseLock = new Object();
 
   /**
    * Creates a new ReplicationServer Broker for a particular ReplicationDomain.
