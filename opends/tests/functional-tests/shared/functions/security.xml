@@ -998,7 +998,22 @@
           'subcommand'     : 'set-connection-handler-prop' ,
           'objectType'     : 'handler-name' ,
           'objectName'     : 'LDAPS Connection Handler',
-          'optionsString'  : '--set enabled:false --reset key-manager-provider-dn --reset trust-manager-provider-dn --reset ssl-cert-nickname',
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0 
+        }
+      </call>
+      
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath ,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort ,
+          'dsInstanceDn'   : dsInstanceDn ,
+          'dsInstancePswd' : dsInstancePswd ,
+          'subcommand'     : 'set-connection-handler-prop' ,
+          'objectType'     : 'handler-name' ,
+          'objectName'     : 'LDAPS Connection Handler',
+          'optionsString'  : '--reset key-manager-provider-dn --reset trust-manager-provider-dn --reset ssl-cert-nickname',
           'expectedRC'     : 0 
         }
       </call>
