@@ -2235,10 +2235,11 @@ public final class ServerConstants
 
 
   /**
-   * The name of the backup property that holds the name of the MAC algorithm
-   * used to generate the signed hash of a backup.
+   * The name of the backup property that holds the identifer of the key entry
+   * that contains the MAC algorithm and shared secret key used to generate
+   * the signed hash of a backup.
    */
-  public static final String BACKUP_PROPERTY_MAC_ALGORITHM = "mac_algorithm";
+  public static final String BACKUP_PROPERTY_MAC_KEY_ID = "mac_key_id";
 
 
 
