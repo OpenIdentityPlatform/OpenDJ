@@ -2465,9 +2465,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
         if (msg instanceof EntryMessage)
         {
-          // FIXME
           EntryMessage entryMsg = (EntryMessage)msg;
-          byte[] entryBytes = entryMsg.getEntryBytes().clone();
+          byte[] entryBytes = entryMsg.getEntryBytes();
           ieContext.updateCounters();
           return entryBytes;
         }
