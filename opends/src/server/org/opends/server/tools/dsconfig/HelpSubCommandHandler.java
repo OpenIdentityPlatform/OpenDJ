@@ -757,7 +757,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       AbstractManagedObjectDefinition<?, ?> d) {
     // Determine the definition's base name.
     AbstractManagedObjectDefinition<?, ?> parent = d;
-    while (parent.getParent() != null) {
+    while (!parent.getParent().isTop()) {
       parent = parent.getParent();
     }
 

@@ -43,6 +43,7 @@ import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
+import org.opends.server.util.Validator;
 
 
 
@@ -108,11 +109,24 @@ public abstract class AbstractManagedObjectDefinition
    * @param name
    *          The name of the definition.
    * @param parent
-   *          The parent definition, or <code>null</code> if there is no
-   *          parent.
+   *          The parent definition, or <code>null</code> if there
+   *          is no parent (only the {@link TopCfgDefn} should have a
+   *          <code>null</code> parent}.
    */
   protected AbstractManagedObjectDefinition(String name,
       AbstractManagedObjectDefinition<? super C, ? super S> parent) {
+    // Perform sanity checks.
+    if (this.getClass() == TopCfgDefn.class) {
+      Validator.ensureTrue(name.equals("top"),
+          "TopCfgDefn should have the name 'top'");
+      Validator.ensureTrue(parent == null,
+          "TopCfgDefn should not have a parent");
+    } else {
+      Validator.ensureTrue(!name.equals("top"),
+          "Only the TopCfgDefn should have the name 'top'");
+      Validator.ensureTrue(parent != null, "No parent defined");
+    }
+
     this.name = name;
     this.parent = parent;
     this.constraints = new LinkedList<Constraint>();
@@ -309,8 +323,11 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the description of this managed object definition
    *         in the default locale, or <code>null</code> if there is
    *         no description.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getDescription() {
+  public final Message getDescription() throws UnsupportedOperationException {
     return getDescription(Locale.getDefault());
   }
 
@@ -325,11 +342,15 @@ public abstract class AbstractManagedObjectDefinition
    * @return Returns the description of this managed object definition
    *         in the specified locale, or <code>null</code> if there
    *         is no description.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getDescription(Locale locale) {
+  public final Message getDescription(Locale locale)
+      throws UnsupportedOperationException {
     try {
       return ManagedObjectDefinitionI18NResource.getInstance()
-          .getMessage(this, "description", locale);
+        .getMessage(this, "description", locale);
     } catch (MissingResourceException e) {
       return null;
     }
@@ -352,8 +373,8 @@ public abstract class AbstractManagedObjectDefinition
    * Get the parent managed object definition, if applicable.
    *
    * @return Returns the parent of this managed object definition, or
-   *         <code>null</code> if this definition does not have a
-   *         parent.
+   *         <code>null</code> if this definition is the
+   *         {@link TopCfgDefn}.
    */
   public final AbstractManagedObjectDefinition<? super C,
       ? super S> getParent() {
@@ -459,8 +480,11 @@ public abstract class AbstractManagedObjectDefinition
    *
    * @return Returns the synopsis of this managed object definition in
    *         the default locale.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getSynopsis() {
+  public final Message getSynopsis() throws UnsupportedOperationException {
     return getSynopsis(Locale.getDefault());
   }
 
@@ -474,8 +498,12 @@ public abstract class AbstractManagedObjectDefinition
    *          The locale.
    * @return Returns the synopsis of this managed object definition in
    *         the specified locale.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getSynopsis(Locale locale) {
+  public final Message getSynopsis(Locale locale)
+      throws UnsupportedOperationException {
     return ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "synopsis", locale);
   }
@@ -488,8 +516,12 @@ public abstract class AbstractManagedObjectDefinition
    *
    * @return Returns the user friendly name of this managed object
    *         definition in the default locale.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyName() {
+  public final Message getUserFriendlyName()
+      throws UnsupportedOperationException {
     return getUserFriendlyName(Locale.getDefault());
   }
 
@@ -503,8 +535,12 @@ public abstract class AbstractManagedObjectDefinition
    *          The locale.
    * @return Returns the user friendly name of this managed object
    *         definition in the specified locale.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyName(Locale locale) {
+  public final Message getUserFriendlyName(Locale locale)
+      throws UnsupportedOperationException {
     // TODO: have admin framework getMessage return a Message
     return Message.raw(ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "user-friendly-name", locale));
@@ -518,8 +554,12 @@ public abstract class AbstractManagedObjectDefinition
    *
    * @return Returns the user friendly plural name of this managed
    *         object definition in the default locale.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyPluralName() {
+  public final Message getUserFriendlyPluralName()
+      throws UnsupportedOperationException {
     return getUserFriendlyPluralName(Locale.getDefault());
   }
 
@@ -533,8 +573,12 @@ public abstract class AbstractManagedObjectDefinition
    *          The locale.
    * @return Returns the user friendly plural name of this managed
    *         object definition in the specified locale.
+   * @throws UnsupportedOperationException
+   *           If this managed object definition is the
+   *           {@link TopCfgDefn}.
    */
-  public final Message getUserFriendlyPluralName(Locale locale) {
+  public final Message getUserFriendlyPluralName(Locale locale)
+      throws UnsupportedOperationException {
     return ManagedObjectDefinitionI18NResource.getInstance()
         .getMessage(this, "user-friendly-plural-name", locale);
   }
@@ -611,6 +655,19 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final boolean isParentOf(AbstractManagedObjectDefinition<?, ?> d) {
     return d.isChildOf(this);
+  }
+
+
+
+  /**
+   * Determines whether or not this managed object definition is the
+   * {@link TopCfgDefn}.
+   *
+   * @return Returns <code>true</code> if this managed object
+   *         definition is the {@link TopCfgDefn}.
+   */
+  public final boolean isTop() {
+    return (this == TopCfgDefn.getInstance());
   }
 
 

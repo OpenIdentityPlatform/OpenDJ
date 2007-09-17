@@ -268,6 +268,10 @@ public final class LDAPProfile {
    */
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d)
       throws MissingResourceException {
+    if (d.isTop()) {
+      return "top";
+    }
+
     for (Wrapper profile : profiles) {
       String objectClass = profile.getObjectClass(d);
       if (objectClass != null) {
@@ -307,11 +311,6 @@ public final class LDAPProfile {
         s.add(oc);
       }
       d = d.getParent();
-    }
-
-    // Make sure that we have top.
-    if (!s.contains("top")) {
-      objectClasses.addFirst("top");
     }
 
     return objectClasses;

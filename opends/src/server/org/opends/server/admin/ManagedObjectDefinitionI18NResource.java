@@ -42,6 +42,9 @@ import java.util.ResourceBundle;
 /**
  * A class for retrieving internationalized resource properties
  * associated with a managed object definition.
+ * <p>
+ * I18N resource properties are not available for the
+ * {@link TopCfgDefn}.
  */
 public final class ManagedObjectDefinitionI18NResource {
 
@@ -127,9 +130,12 @@ public final class ManagedObjectDefinitionI18NResource {
    *         specified key in the default locale.
    * @throws MissingResourceException
    *           If the key was not found.
+   * @throws UnsupportedOperationException
+   *           If the provided managed object definition was the
+   *           {@link TopCfgDefn}.
    */
-  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
-      String key) throws MissingResourceException {
+  public Message getMessage(AbstractManagedObjectDefinition<?, ?> d, String key)
+      throws MissingResourceException, UnsupportedOperationException {
     return getMessage(d, key, Locale.getDefault(), (String[]) null);
   }
 
@@ -149,9 +155,13 @@ public final class ManagedObjectDefinitionI18NResource {
    *         specified key and locale.
    * @throws MissingResourceException
    *           If the key was not found.
+   * @throws UnsupportedOperationException
+   *           If the provided managed object definition was the
+   *           {@link TopCfgDefn}.
    */
   public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
-      String key, Locale locale) throws MissingResourceException {
+      String key, Locale locale) throws MissingResourceException,
+      UnsupportedOperationException {
     return getMessage(d, key, locale, (String[]) null);
   }
 
@@ -174,10 +184,13 @@ public final class ManagedObjectDefinitionI18NResource {
    *         specified key and locale.
    * @throws MissingResourceException
    *           If the key was not found.
+   * @throws UnsupportedOperationException
+   *           If the provided managed object definition was the
+   *           {@link TopCfgDefn}.
    */
   public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale, String... args)
-      throws MissingResourceException {
+      throws MissingResourceException, UnsupportedOperationException {
     ResourceBundle resource = getResourceBundle(d, locale);
 
     // TODO: use message framework directly
@@ -206,9 +219,13 @@ public final class ManagedObjectDefinitionI18NResource {
    *         specified key in the default locale.
    * @throws MissingResourceException
    *           If the key was not found.
+   * @throws UnsupportedOperationException
+   *           If the provided managed object definition was the
+   *           {@link TopCfgDefn}.
    */
   public Message getMessage(AbstractManagedObjectDefinition<?, ?> d,
-      String key, String... args) throws MissingResourceException {
+      String key, String... args) throws MissingResourceException,
+      UnsupportedOperationException {
     return getMessage(d, key, Locale.getDefault(), args);
   }
 
@@ -303,7 +320,13 @@ public final class ManagedObjectDefinitionI18NResource {
   // locale, lazily loading it if necessary.
   private synchronized ResourceBundle getResourceBundle(
       AbstractManagedObjectDefinition<?, ?> d, Locale locale)
-      throws MissingResourceException {
+      throws MissingResourceException, UnsupportedOperationException {
+    if (d.isTop()) {
+      throw new UnsupportedOperationException(
+          "I18n resources are not available for the "
+              + "Top configuration definition");
+    }
+
     // First get the locale-resource mapping, creating it if
     // necessary.
     Map<Locale, ResourceBundle> map = resources.get(d);

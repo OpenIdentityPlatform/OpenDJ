@@ -71,7 +71,7 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
   }
 
   // Test definitions.
-  private TestDefinition top = new TestDefinition("top", null);
+  private TestDefinition top = new TestDefinition("topmost", TopCfgDefn.getInstance());
 
   private TestDefinition middle1 = new TestDefinition("middle1", top);
 
