@@ -1442,7 +1442,7 @@ public class CryptoManager
      *
      * @param cryptoManager  The CryptoManager instance.
      *
-     * @param keyIDBytes  The key identifier.
+     * @param keyIDString  The key identifier.
      *
      * @param transformation  The cipher transformation for which the
      * key entry was produced.
@@ -1468,18 +1468,18 @@ public class CryptoManager
      */
     public static CipherKeyEntry importCipherKeyEntry(
             final CryptoManager cryptoManager,
-            final byte[] keyIDBytes,
+            final String keyIDString,
             final String transformation,
             final String keyAlgorithm,
             final byte[] key,
             final int ivLengthBits,
             final boolean isCompromised)
             throws CryptoManagerException {
-      Validator.ensureNotNull(keyIDBytes, transformation,
+      Validator.ensureNotNull(keyIDString, transformation,
               keyAlgorithm, key);
       Validator.ensureTrue(0 <= ivLengthBits);
 
-      final KeyEntryID keyID = new KeyEntryID(keyIDBytes);
+      final KeyEntryID keyID = new KeyEntryID(keyIDString);
 
       // Check map for existing key entry with the supplied keyID.
       CipherKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
