@@ -2585,7 +2585,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Export the entries from the backend.
    * The ieContext must have been set before calling.
    *
-   * @throws DirectoryException when an error occured
+   * @throws DirectoryException when an error occurred
    */
   protected void exportBackend()
   throws DirectoryException

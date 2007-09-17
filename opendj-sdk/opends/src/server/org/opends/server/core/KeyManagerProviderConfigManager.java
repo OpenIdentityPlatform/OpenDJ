@@ -370,9 +370,10 @@ public class KeyManagerProviderConfigManager
    * @return  The possibly initialized key manager provider.
    *
    * @throws  InitializationException  If the provided configuration is not
-   *                                   acceptable, or if a problem occured while
-   *                                   attempting to initialize the key manager
-   *                                   provider using that configuration.
+   *                                   acceptable, or if a problem occurred
+   *                                   while attempting to initialize the key
+   *                                   manager provider using that
+   *                                   configuration.
    */
   private KeyManagerProvider loadProvider(String className,
                                           KeyManagerCfg configuration,

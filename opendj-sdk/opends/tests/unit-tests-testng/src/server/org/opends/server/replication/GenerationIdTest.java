@@ -90,7 +90,7 @@ import org.testng.annotations.Test;
  * - testSingleRS : test generation ID setting with different servers and one
  *   Replication server.
  *
- * - testMultiRS : tests generation ID propagatoion with more than one 
+ * - testMultiRS : tests generation ID propagatoion with more than one
  *   Replication server.
  *
  */
@@ -102,7 +102,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   private static final String baseDnStr = "dc=example,dc=com";
   private static final String baseSnStr = "genidcom";
-  
+
   private static final int   WINDOW_SIZE = 10;
   private static final int   CHANGELOG_QUEUE_SIZE = 100;
   private static final short server1ID = 1;
@@ -407,11 +407,11 @@ public class GenerationIdTest extends ReplicationTestCase
   /**
    * Creates a new replicationServer.
    * @param changelogId The serverID of the replicationServer to create.
-   * @param all         Specifies whether to coonect the created replication 
+   * @param all         Specifies whether to coonect the created replication
    *                    server to the other replication servers in the test.
    * @return The new created replication server.
    */
-  private ReplicationServer createReplicationServer(short changelogId, 
+  private ReplicationServer createReplicationServer(short changelogId,
       boolean all, String suffix)
   {
     SortedSet<String> servers = null;
@@ -512,7 +512,7 @@ public class GenerationIdTest extends ReplicationTestCase
     try
     {
       // suffix synchronized
-      String synchroServerStringDN = "cn=" + baseSnStr + ", cn=domains," + 
+      String synchroServerStringDN = "cn=" + baseSnStr + ", cn=domains," +
       synchroPluginStringDN;
       if (synchroServerEntry != null)
       {
@@ -587,7 +587,7 @@ public class GenerationIdTest extends ReplicationTestCase
     catch(Exception e)
     {
       fail("Exception raised in readGenId", e);
-    }    
+    }
     return genId;
   }
 
@@ -697,7 +697,7 @@ public class GenerationIdTest extends ReplicationTestCase
   }
 
   /**
-   * SingleRS tests basic features of generationID 
+   * SingleRS tests basic features of generationID
    * with one single Replication Server.
    *
    * @throws Exception
@@ -736,7 +736,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(genId,-1);
 
       debugInfo(testCase + " Expect genId to be set in memory on the replication " +
-      " server side even if not wrote on disk/db since no change occured.");
+      " server side even if not wrote on disk/db since no change occurred.");
       rgenId = replServer1.getGenerationId(baseDn);
       assertEquals(rgenId, 3211313L);
 
@@ -754,7 +754,7 @@ public class GenerationIdTest extends ReplicationTestCase
       this.addTestEntriesToDB(updatedEntries);
       connectToReplServer(changelog1ID);
 
-      // Test that the generationId is written in the DB in the 
+      // Test that the generationId is written in the DB in the
       // root entry on the replica side
       genId = readGenId();
       assertTrue(genId != -1);
@@ -772,7 +772,7 @@ public class GenerationIdTest extends ReplicationTestCase
       try
       {
         broker2 = openReplicationSession(baseDn,
-            server2ID, 100, getChangelogPort(changelog1ID), 
+            server2ID, 100, getChangelogPort(changelog1ID),
             1000, !emptyOldChanges, genId+1);
       }
       catch(SocketException se)
@@ -813,7 +813,7 @@ public class GenerationIdTest extends ReplicationTestCase
        * Test  : generationID persistence in Replication server
        *         Shutdown/Restart Replication Server and redo connections
        *         with valid and invalid generationId
-       * Check : same expected connections results 
+       * Check : same expected connections results
        */
 
       // The changes from broker2 should be ignored
@@ -879,10 +879,10 @@ public class GenerationIdTest extends ReplicationTestCase
       catch(SocketException se)
       {
         fail("Broker connection is expected to be accepted.");
-      }      
+      }
 
       /*
-       * 
+       *
        * FIXME Should clearJEBackend() regenerate generationId and do a start
        *       against ReplicationServer ?
        */
@@ -919,7 +919,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertTrue(genId != -1, "DS is expected to have a new genID computed " +
           " after on-line import but genId=" + genId);
 
-      rgenId = replServer1.getGenerationId(baseDn);     
+      rgenId = replServer1.getGenerationId(baseDn);
       assertEquals(genId, rgenId, "DS and replServer are expected to have same genId.");
 
       assertTrue(!replServer1.getReplicationCache(baseDn, false).
@@ -982,7 +982,7 @@ public class GenerationIdTest extends ReplicationTestCase
         fail("No update message is supposed to be received by degraded broker3"+ msg);
       } catch(SocketTimeoutException e) { /* expected */ }
 
-      debugInfo("broker2 is publishing a change, " + 
+      debugInfo("broker2 is publishing a change, " +
       "replServer1 expected to ignore this change.");
       broker2.publish(createAddMsg());
       try
@@ -990,7 +990,7 @@ public class GenerationIdTest extends ReplicationTestCase
         ReplicationMessage msg = broker3.receive();
         fail("No update message is supposed to be received by degraded broker3"+ msg);
       } catch(SocketTimeoutException e) { /* expected */ }
-    
+
       // In S1 launch the total update to initialize S2
       addTask(taskInitRemoteS2, ResultCode.SUCCESS, null);
 
@@ -1035,14 +1035,14 @@ public class GenerationIdTest extends ReplicationTestCase
     }
     catch(Exception e)
     {
-      fail(testCase + " Exception:"+ e.getMessage() + " " + 
+      fail(testCase + " Exception:"+ e.getMessage() + " " +
           stackTraceToSingleLineString(e));
     }
   }
 
   /**
   /**
-   * SingleRS tests basic features of generationID 
+   * SingleRS tests basic features of generationID
    * with more than one Replication Server.
    * The following test focus on:
    * - genId checking accross multiple starting RS (replication servers)
@@ -1081,7 +1081,7 @@ public class GenerationIdTest extends ReplicationTestCase
     Thread.sleep(1000);
 
     debugInfo("Expect genId to be unset(-1) in all servers since no server is " +
-        " connected and no change ever occured");
+        " connected and no change ever occurred");
     assertEquals(replServer1.getGenerationId(baseDn), -1, " in replServer1");
     assertEquals(replServer2.getGenerationId(baseDn), -1, " in replServer2");
     assertEquals(replServer3.getGenerationId(baseDn), -1, " in replServer3");
@@ -1095,7 +1095,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
     debugInfo("Expect genIds to be set in all servers based on the added entries.");
     genId = readGenId();
-    assertTrue(genId != -1);    
+    assertTrue(genId != -1);
     assertEquals(replServer1.getGenerationId(baseDn), genId);
     assertEquals(replServer2.getGenerationId(baseDn), genId);
     assertEquals(replServer3.getGenerationId(baseDn), genId);
@@ -1104,7 +1104,7 @@ public class GenerationIdTest extends ReplicationTestCase
     try
     {
       broker2 = openReplicationSession(baseDn,
-          server2ID, 100, getChangelogPort(changelog3ID), 
+          server2ID, 100, getChangelogPort(changelog3ID),
           1000, !emptyOldChanges, genId);
       Thread.sleep(1000);
     }
@@ -1130,7 +1130,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       long badgenId=1;
       broker3 = openReplicationSession(baseDn,
-          server3ID, 100, getChangelogPort(changelog1ID), 
+          server3ID, 100, getChangelogPort(changelog1ID),
           1000, !emptyOldChanges, badgenId);
       Thread.sleep(1000);
     }
@@ -1165,7 +1165,7 @@ public class GenerationIdTest extends ReplicationTestCase
     addTask(taskReset, ResultCode.SUCCESS, null);
     waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
     Thread.sleep(500);
-    
+
     debugInfo("Verifying that all replservers genIds have been reset.");
     genId = readGenId();
     assertEquals(replServer2.getGenerationId(baseDn), genId);
