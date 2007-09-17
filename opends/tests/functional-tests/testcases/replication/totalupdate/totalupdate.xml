@@ -53,36 +53,36 @@
             
               <call function="'testCase_Preamble'"/>
               
-              <!-- Stop the Directory Server -->
+              <!-- Stop "master" Directory Server -->
               <call function="'StopDsWithScript'">
-                { 'location'  : server1.getHostname(),
-                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME),
-                  'dsHost'    : server1.getHostname(),
-                  'dsPort'    : server1.getPort(),
-                  'dsBindDN'  : server1.getRootDn(),
-                  'dsBindPwd' : server1.getRootPwd()
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'dsHost'    : masterHost,
+                  'dsPort'    : master.getPort(),
+                  'dsBindDN'  : master.getRootDn(),
+                  'dsBindPwd' : master.getRootPwd()
                 }
               </call>
               
               <!-- Check that the Directory Server is stopped -->
               
-              <!-- Import data into Directory Server -->
+              <!-- Import data into "master" Directory Server -->
               <call function="'ImportLdifWithScript'">
-                { 'location'     : server1.getHostname() ,
-                  'dsPath'       : '%s/%s' % (server1.getDir(),OPENDSNAME),
+                { 'location'     : masterHost,
+                  'dsPath'       : masterPath,
                   'dsBackEnd'    : 'userRoot',          
-                  'dsLdifFile'   : '%s/replication/Example.ldif' % server1DataDir
+                  'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir
                 }
               </call>
               
               <!-- Check some data was imported into Directory Server -->
               <call function="'checkImport'">
-                { 'location'        : server1.getHostname(),
-                  'dsPath'          : '%s/%s' % (server1.getDir(),OPENDSNAME),
-                  'dsHost'          : server1.getHostname(),
-                  'dsPort'          : server1.getPort(),
-                  'dsDn'            : server1.getRootDn(),
-                  'dsPswd'          : server1.getRootPwd(),
+                { 'location'        : masterHost,
+                  'dsPath'          : masterPath,
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
                                        'uid=rhunt, ou=People, o=example']
@@ -91,65 +91,61 @@
               
               <!-- Start the Directory Server -->
               <call function="'StartDsWithScript'">
-                { 'location'  : server1.getHostname(),
-                  'dsPath'    : '%s/%s' % (server1.getDir(),OPENDSNAME)
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath
                 }
               </call>
               
               <!-- Wait for DS to start -->
               <call function="'isAlive'">
-                { 'location'         : server1.getHostname(),
-                  'dsPath'           : '%s/%s' % (server1.getDir(),OPENDSNAME),
-                  'dsInstanceHost'   : server1.getHostname() ,
-                  'dsInstancePort'   : server1.getPort() ,
-                  'dsInstanceDn'     : server1.getRootDn() ,
-                  'dsInstancePswd'   : server1.getRootPwd() ,
+                { 'location'         : masterHost,
+                  'dsPath'           : masterPath,
+                  'dsInstanceHost'   : masterHost,
+                  'dsInstancePort'   : master.getPort() ,
+                  'dsInstanceDn'     : master.getRootDn() ,
+                  'dsInstancePswd'   : master.getRootPwd() ,
                   'noOfLoops'        : 10 ,
                   'noOfMilliSeconds' : 2000
                 }
               </call>
-              
-              <!-- Perform the total update -->
-              <call function="'TotalUpdateTask'">
-                { 'location'        : server1.getHostname(),
-                  'dsPath'          : '%s/%s' % (server2.getDir(),OPENDSNAME),                
-                  'dsInstanceHost'  : server2.getHostname(),
-                  'dsInstancePort'  : server2.getPort(),
-                  'dsInstanceDn'    : server2.getRootDn(),
-                  'dsInstancePswd'  : server2.getRootPwd(),
-                  'taskID'          : 'task',
-                  'domainDN'        : 'o=example',
-                  'replicaServerID' : '1'
-                }
-              </call>
-              
-              <script>
-                STAXCode, STAXReason=STAXResult
-              </script>
-              
-              <if expr="STAXCode != 0">
-                <sequence>
-                  <message>
-                    'Totalupdate failed (Code=%s,Reason=%s)' % (STAXCode,STAXReason)
-                  </message>
-                  <tcstatus result="'fail'" />
+
+
+              <iterate var="server" in="consumerList">
+                <sequence>                                                                            
+                  <!-- Perform the total update -->
+                  <call function="'initializeReplication'">
+                    { 'location'  :  clientHost,
+                      'dsPath'  :  clientPath,
+                      'dsInstanceHost'  :  server.getHostname(),
+                      'dsInstancePort'  :  server.getPort(),
+                      'sourceInstanceHost'  :  masterHost,
+                      'sourceInstancePort'  :  master.getPort(),
+                      'replicationDnList'  :  ['o=example']
+                    }
+                  </call>
+                                                            
+                  <!-- Verify the total update -->
+                  <call function="'checkImport'">
+                    { 'location'  : server.getHostname(),
+                      'dsPath'    : '%s/%s' % (server.getDir(),OPENDSNAME),
+                      'dsHost'    : server.getHostname(),
+                      'dsPort'    : server.getPort(),
+                      'dsDn'      : server.getRootDn(),
+                      'dsPswd'    : server.getRootPwd(),
+                      'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                           'uid=dmiller, ou=People, o=example',
+                                           'uid=rhunt, ou=People, o=example'],
+                      'startDS'  : 'no'
+                    }
+                  </call>                                                                                
                 </sequence>
-              </if>
-              
-              <!-- Verify the total update -->
-              <call function="'checkImport'">
-                { 'location'  : server2.getHostname(),
-                  'dsPath'    : '%s/%s' % (server2.getDir(),OPENDSNAME),
-                  'dsHost'    : server2.getHostname(),
-                  'dsPort'    : server2.getPort(),
-                  'dsDn'      : server2.getRootDn(),
-                  'dsPswd'    : server2.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example'],
-                  'startDS'  : 'no'
-                }
-              </call>
+              </iterate>
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, 'o=example' ]
+              </call>                 
+                           
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
