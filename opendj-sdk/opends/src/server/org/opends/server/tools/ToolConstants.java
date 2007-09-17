@@ -706,5 +706,21 @@ public class ToolConstants
    * Value for verbose option long form.
    */
   public static final String OPTION_LONG_VERBOSE = "verbose";
+
+  /**
+   * Scheduled start date/time option long form.
+   */
+  public static final String OPTION_LONG_START_DATETIME = "start";
+
+  /**
+   * Scheduled start date/time option short form.
+   */
+  public static final Character OPTION_SHORT_START_DATETIME = 't';
+
+  /**
+   * Placeholder string for the usage statement.
+   */
+  public static final String OPTION_VALUE_START_DATETIME = "{startTime}";
+
 }
 

@@ -199,11 +199,9 @@ public class ImportLDIF extends TaskTool {
 
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = INFO_LDIFIMPORT_TOOL_DESCRIPTION.get();
     LDAPConnectionArgumentParser argParser =
-         new LDAPConnectionArgumentParser("org.opends.server.tools.ImportLDIF",
-                                          toolDescription, false);
-
+            createArgParser("org.opends.server.tools.ImportLDIF",
+                            INFO_LDIFIMPORT_TOOL_DESCRIPTION.get());
 
     // Initialize all the command-line argument types and register them with the
     // parser.
@@ -236,7 +234,7 @@ public class ImportLDIF extends TaskTool {
 
 
       templateFile =
-           new StringArgument("templatefile", 't', "templateFile", false, false,
+           new StringArgument("templatefile", 'A', "templateFile", false, false,
                               true, "{templateFile}", null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE.get());
       argParser.addArgument(templateFile);
@@ -390,6 +388,7 @@ public class ImportLDIF extends TaskTool {
     try
     {
       argParser.parseArguments(args);
+      validateTaskArgs();
     }
     catch (ArgumentException ae)
     {

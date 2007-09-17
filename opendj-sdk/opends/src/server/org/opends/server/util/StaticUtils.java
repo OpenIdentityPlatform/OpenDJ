@@ -41,6 +41,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -48,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.RandomAccess;
 import java.util.StringTokenizer;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -64,7 +67,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.IdentifiedException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RDN;
-
 
 
 /**
@@ -3950,6 +3952,57 @@ public final class StaticUtils
         }
       }
     }
+  }
+
+  /**
+   * Converts a string representing a time in "yyyyMMddHHmmss.SSS'Z'" or
+   * "yyyyMMddHHmmss" to a <code>Date</code>.
+   *
+   * @param timeStr string formatted appropriately
+   * @return Date object; null if <code>timeStr</code> is null
+   * @throws ParseException if there was a problem converting the string to
+   *         a <code>Date</code>.
+   */
+  static public Date parseDateTimeString(String timeStr) throws ParseException
+  {
+    Date dateTime = null;
+    if (timeStr != null)
+    {
+      if (timeStr.endsWith("Z"))
+      {
+        SimpleDateFormat dateFormat =
+            new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        dateFormat.setLenient(true);
+        dateTime = dateFormat.parse(timeStr);
+      }
+      else
+      {
+        SimpleDateFormat dateFormat =
+            new SimpleDateFormat(DATE_FORMAT_COMPACT_LOCAL_TIME);
+        dateFormat.setLenient(true);
+        dateTime = dateFormat.parse(timeStr);
+      }
+    }
+    return dateTime;
+  }
+
+  /**
+   * Formats a Date to String representation in "yyyyMMddHHmmss'Z'".
+   *
+   * @param date to format; null if <code>date</code> is null
+   * @return string representation of the date
+   */
+  static public String formatDateTimeString(Date date)
+  {
+    String timeStr = null;
+    if (date != null)
+    {
+      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      timeStr = dateFormat.format(date);
+    }
+    return timeStr;
   }
 
 }

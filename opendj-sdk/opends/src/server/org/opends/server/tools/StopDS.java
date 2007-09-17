@@ -480,40 +480,15 @@ public class StopDS
     if (stopTimeStr.isPresent())
     {
       String timeStr = stopTimeStr.getValue();
-      if (timeStr.endsWith("Z"))
+      try
       {
-        SimpleDateFormat dateFormat =
-            new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        dateFormat.setLenient(true);
-
-        try
-        {
-          stopTime = dateFormat.parse(timeStr);
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
-        }
+        stopTime = parseDateTimeString(timeStr);
       }
-      else
+      catch (Exception e)
       {
-        SimpleDateFormat dateFormat =
-            new SimpleDateFormat(DATE_FORMAT_COMPACT_LOCAL_TIME);
-        dateFormat.setLenient(true);
-
-        try
-        {
-          stopTime = dateFormat.parse(timeStr);
-        }
-        catch (Exception e)
-        {
-          Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
-        }
+        Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
       }
     }
 

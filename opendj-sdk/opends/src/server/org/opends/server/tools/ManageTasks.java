@@ -180,7 +180,7 @@ public class ManageTasks extends ConsoleApplication {
     try {
 
       task = new StringArgument(
-              "task", 't', "task",
+              "info", 'i', "info",
               false, true, "{taskID}",
               INFO_TASKINFO_TASK_ARG_DESCRIPTION.get());
       argParser.addArgument(task);

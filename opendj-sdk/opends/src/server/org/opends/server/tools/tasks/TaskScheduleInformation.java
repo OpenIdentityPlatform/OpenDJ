@@ -30,6 +30,7 @@ package org.opends.server.tools.tasks;
 import org.opends.server.types.RawAttribute;
 
 import java.util.List;
+import java.util.Date;
 
 /**
  * Interface for tools that are capable of scheduling a task remotely
@@ -62,4 +63,10 @@ public interface TaskScheduleInformation {
    */
   Class getTaskClass();
 
+  /**
+   * Gets the date at which this task should be scheduled to start.
+   *
+   * @return date/time at which the task should be scheduled
+   */
+  Date getStartDateTime();
 }

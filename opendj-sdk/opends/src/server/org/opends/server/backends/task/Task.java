@@ -61,6 +61,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.util.EMailMessage;
 import org.opends.server.util.TimeThread;
+import org.opends.server.util.StaticUtils;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -726,10 +727,9 @@ public abstract class Task
                     ATTR_TASK_ACTUAL_START_TIME);
       }
 
-      SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
-      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       Date d = new Date(actualStartTime);
-      ASN1OctetString s = new ASN1OctetString(dateFormat.format(d));
+      String startTimeStr = StaticUtils.formatDateTimeString(d);
+      ASN1OctetString s = new ASN1OctetString(startTimeStr);
 
       LinkedHashSet<AttributeValue> values =
            new LinkedHashSet<AttributeValue>();
