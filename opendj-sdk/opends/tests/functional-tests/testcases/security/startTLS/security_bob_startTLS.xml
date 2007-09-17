@@ -120,6 +120,30 @@
             
           </sequence>
         </testcase>
+        
+        <testcase name="getTestCaseName('List LDAP Conn Handeler Props')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: JKS: Listing LDAPS Connection Handler Properties'
+            </message>
+            
+            <call function="'dsconfig'">
+              { 'location'       : location,
+              'dsPath'         : dsPath ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'   : dsInstanceDn ,
+              'dsInstancePswd' : dsInstancePswd ,
+              'subcommand'     : 'get-connection-handler-prop' ,
+              'objectType'     : 'handler-name' ,
+              'objectName'     : 'LDAP Connection Handler',
+              'optionsString'  : '-q -X',
+              'expectedRC'     : 0
+              }
+            </call>
+          </sequence>
+        </testcase>
 
      </sequence>
 

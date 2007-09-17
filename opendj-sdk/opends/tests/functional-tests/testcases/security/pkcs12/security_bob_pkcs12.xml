@@ -213,6 +213,43 @@
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
+  <!--- Test Case : List propeties using dsconfig through SSL port -->
+       <!---
+            Place test-specific test information here.
+            The tag, TestMarker, be the same as the marker, TestSuiteName.
+            #@TestMarker                PKCS12 Tests
+            #@TestName                  PKCS12 Bob Test 6
+            #@TestIssue                 1830
+            #@TestPurpose               List properties using dsconfig.
+            #@TestPreamble              none
+            #@TestStep                  Client calls dsconfig
+                                        to list ldaps connection handler properties.
+            #@TestPostamble             none
+            #@TestResult                Success if OpenDS returns 0
+        -->
+        <testcase name="getTestCaseName('List LDAPS Conn Handler Props')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Security: PKCS12: Listing LDAPS Connection Handler Properties'
+            </message>
+            
+            <call function="'dsconfig'">
+              { 'location'       : location,
+              'dsPath'         : dsPath ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort' : DIRECTORY_INSTANCE_SSL_PORT ,
+              'dsInstanceDn'   : dsInstanceDn ,
+              'dsInstancePswd' : dsInstancePswd ,
+              'subcommand'     : 'get-connection-handler-prop' ,
+              'objectType'     : 'handler-name' ,
+              'objectName'     : 'LDAPS Connection Handler',
+              'optionsString'  : '-Z -X',
+              'expectedRC'     : 0
+              }
+            </call>
+          </sequence>
+        </testcase>
 
      </sequence>
 
