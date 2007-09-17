@@ -3841,7 +3841,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       try
       {
         installer.initializeSuffix(ctxDestination, replicationId, baseDN,
-            displayProgress, ConnectionUtils.getHostPort(ctxSource));
+            displayProgress, ConnectionUtils.getHostPort(ctxDestination));
         initDone = true;
       }
       catch (PeerNotFoundException pnfe)
