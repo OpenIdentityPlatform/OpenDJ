@@ -197,6 +197,7 @@
               </sequence>
             </else>
           </if>
+          <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
       
@@ -224,14 +225,6 @@
             '----  Basic tests on Debug loggers -----'
           </message>
 
-  <!-- DESACTRIVATED : bug 2259]-->
-          <script>
-            knownIssue(2259)
-            bug=2259
-          </script>
-          <if expr="bug == 0">
-            <sequence>                                  
-                  
           <message>'------  Enabled Debug logger --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -312,11 +305,12 @@
               'expectedRC'     : 0
             }
           </call>          
-         </sequence>
-         </if>          
+             
+          <call function="'testCase_Postamble'"/>
         </sequence>
       </testcase>
-    </sequence>
+      <call function="'testSuite_Postamble'"/>
+    </sequence> 
     </block>     
   </function>
 </stax>
