@@ -1035,6 +1035,53 @@
           </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="source-enabled-property-name"
+              minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The optional boolean "enabled" property in the
+                  aggregating managed object. When this property is
+                  true, the "target-enabled-property-name" in the
+                  aggregated managed objects must also be true. The
+                  "target-enabled-property-name" attribute must be
+                  specified when this attribute is defined.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:attribute name="name" type="tns:name-type"
+                  use="required">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The name of the source property.
+                    </xsd:documentation>
+                  </xsd:annotation>
+                </xsd:attribute>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="target-enabled-property-name"
+              minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The optional boolean "enabled" property in the
+                  aggregated managed objects. This property must not be
+                  false while the aggregated managed object is
+                  referenced. This attribute must be defined when the
+                  "source-enabled-property-name" attribute is specified.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:attribute name="name" type="tns:name-type"
+                  use="required">
+                  <xsd:annotation>
+                    <xsd:documentation>
+                      The name of the target property.
+                    </xsd:documentation>
+                  </xsd:annotation>
+                </xsd:attribute>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
           <xsd:attribute name="parent-path" type="tns:path-type"
             use="required">
             <xsd:annotation>
@@ -1069,31 +1116,6 @@
                 The package containing the referenced managed object
                 definition if it is not the same as this managed
                 object's package.
-              </xsd:documentation>
-            </xsd:annotation>
-          </xsd:attribute>
-          <xsd:attribute name="source-enabled-property-name"
-            type="tns:name-type" use="optional">
-            <xsd:annotation>
-              <xsd:documentation>
-                The optional boolean "enabled" property in the
-                aggregating managed object. When this property is true,
-                the "target-enabled-property-name" in the aggregated
-                managed objects must also be true. The
-                "target-enabled-property-name" attribute must be
-                specified when this attribute is defined.
-              </xsd:documentation>
-            </xsd:annotation>
-          </xsd:attribute>
-          <xsd:attribute name="target-enabled-property-name"
-            type="tns:name-type" use="optional">
-            <xsd:annotation>
-              <xsd:documentation>
-                The optional boolean "enabled" property in the
-                aggregated managed objects. This property must not be
-                false while the aggregated managed object is referenced.
-                This attribute must be defined when the
-                "source-enabled-property-name" attribute is specified.
               </xsd:documentation>
             </xsd:annotation>
           </xsd:attribute>

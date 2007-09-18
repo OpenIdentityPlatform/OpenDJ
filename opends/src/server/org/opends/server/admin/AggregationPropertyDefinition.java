@@ -121,10 +121,11 @@ public final class AggregationPropertyDefinition
     // contains the aggregated managed objects.
     private String rdName = null;
 
-    // The optional name of a boolean "enabled" property in this
-    // managed object. When this property is true, the enabled
-    // property in the aggregated managed object must also be true.
-    private String sourceEnabledPropertyName = null;
+    // The optional names of boolean "enabled" properties in this
+    // managed object. When all of the properties are true, the
+    // enabled property in the aggregated managed object must also be
+    // true.
+    private List<String> sourceEnabledPropertyNames = new LinkedList<String>();
 
     // The optional name of a boolean "enabled" property in the
     // aggregated managed object. This property must not be false
@@ -177,20 +178,22 @@ public final class AggregationPropertyDefinition
 
 
     /**
-     * Sets the optional boolean "enabled" property in this managed
-     * object. When this property is true, the enabled property in the
-     * aggregated managed object must also be true.
+     * Registers a boolean "enabled" property in this managed object.
+     * When all the registered properties are true, the enabled
+     * property in the aggregated managed object must also be true.
      * <p>
-     * By default no source property is defined. When it is defined,
-     * the target property must also be defined.
+     * By default no source properties are defined which indicates
+     * that the target property must always be true. When there is one
+     * or more source properties defined, a target property must also
+     * be defined.
      *
      * @param sourceEnabledPropertyName
      *          The optional boolean "enabled" property in this
      *          managed object.
      */
-    public final void setSourceEnabledPropertyName(
+    public final void addSourceEnabledPropertyName(
         String sourceEnabledPropertyName) {
-      this.sourceEnabledPropertyName = sourceEnabledPropertyName;
+      this.sourceEnabledPropertyNames.add(sourceEnabledPropertyName);
     }
 
 
@@ -234,15 +237,16 @@ public final class AggregationPropertyDefinition
 
       // Make sure that if a source property is specified then a
       // target property is also specified.
-      if (sourceEnabledPropertyName != null
+      if (!sourceEnabledPropertyNames.isEmpty()
           && targetEnabledPropertyName == null) {
         throw new IllegalStateException(
-            "Source property defined but target property is undefined");
+            "One or more source properties defined but " +
+            "target property is undefined");
       }
 
       return new AggregationPropertyDefinition<C, S>(d, propertyName, options,
           adminAction, defaultBehavior, parentPathString, rdName,
-          sourceEnabledPropertyName, targetEnabledPropertyName);
+          sourceEnabledPropertyNames, targetEnabledPropertyName);
     }
 
   }
@@ -410,7 +414,8 @@ public final class AggregationPropertyDefinition
       SortedSet<String> names = managedObject.getPropertyValues(pd);
       ServerManagementContext context = ServerManagementContext.getInstance();
       BooleanPropertyDefinition tpd = pd.getTargetEnabledPropertyDefinition();
-      BooleanPropertyDefinition spd = pd.getSourceEnabledPropertyDefinition();
+      List<BooleanPropertyDefinition> spdlist = pd
+          .getSourceEnabledPropertyDefinitions();
       Message thisUFN = managedObject.getManagedObjectDefinition()
           .getUserFriendlyName();
       String thisDN = managedObject.getDN().toString();
@@ -430,11 +435,18 @@ public final class AggregationPropertyDefinition
           // Check that the referenced component is enabled.
           ServerManagedObject<? extends S> ref = context.getManagedObject(path);
 
-          if (spd != null) {
-            // Target must be enabled but only if the source is
-            // enabled.
-            if (managedObject.getPropertyValue(spd)
-                && !ref.getPropertyValue(tpd)) {
+          if (!spdlist.isEmpty()) {
+            // Target must be enabled but only if the source
+            // properties are enabled.
+            boolean isRequired = true;
+            for (BooleanPropertyDefinition spd : spdlist) {
+              if (!managedObject.getPropertyValue(spd)) {
+                isRequired = false;
+                break;
+              }
+            }
+
+            if (isRequired && !ref.getPropertyValue(tpd)) {
               Message msg = ERR_SERVER_REFINT_SOURCE_ENABLED_TARGET_DISABLED
                   .get(name, pd.getName(), thisUFN, thisDN, thatUFN, thatDN);
               unacceptableReasons.add(msg);
@@ -473,7 +485,8 @@ public final class AggregationPropertyDefinition
       // Add change and delete listeners against all referenced
       // components.
       BooleanPropertyDefinition tpd = pd.getTargetEnabledPropertyDefinition();
-      BooleanPropertyDefinition spd = pd.getSourceEnabledPropertyDefinition();
+      List<BooleanPropertyDefinition> spdlist = pd
+          .getSourceEnabledPropertyDefinitions();
       Message thisUFN = managedObject.getManagedObjectDefinition()
           .getUserFriendlyName();
       String thisDN = managedObject.getDN().toString();
@@ -483,10 +496,12 @@ public final class AggregationPropertyDefinition
       // if they have can be disabled.
       boolean needsChangeListeners;
       if (tpd != null) {
-        if (spd == null) {
-          needsChangeListeners = true;
-        } else {
-          needsChangeListeners = managedObject.getPropertyValue(spd);
+        needsChangeListeners = true;
+        for (BooleanPropertyDefinition spd : spdlist) {
+          if (!managedObject.getPropertyValue(spd)) {
+            needsChangeListeners = false;
+            break;
+          }
         }
       } else {
         needsChangeListeners = false;
@@ -635,13 +650,14 @@ public final class AggregationPropertyDefinition
   // aggregated managed objects.
   private InstantiableRelationDefinition<C, S> relationDefinition;
 
-  // The decoded source property definition.
-  private BooleanPropertyDefinition sourceEnabledProperty;
+  // The decoded source property definitions.
+  private List<BooleanPropertyDefinition> sourceEnabledProperties;
 
-  // The optional name of a boolean "enabled" property in this
-  // managed object. When this property is true, the enabled
-  // property in the aggregated managed object must also be true.
-  private final String sourceEnabledPropertyName;
+  // The optional names of boolean "enabled" properties in this
+  // managed object. When all of the properties are true or if there
+  // are none defined, the enabled property in the aggregated managed
+  // object must also be true.
+  private final List<String> sourceEnabledPropertyNames;
 
   // The decoded target property definition.
   private BooleanPropertyDefinition targetEnabledProperty;
@@ -658,13 +674,13 @@ public final class AggregationPropertyDefinition
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options, AdministratorAction adminAction,
       DefaultBehaviorProvider<String> defaultBehavior, String parentPathString,
-      String rdName, String sourceEnabledPropertyName,
+      String rdName, List<String> sourceEnabledPropertyNames,
       String targetEnabledPropertyName) {
     super(d, String.class, propertyName, options, adminAction, defaultBehavior);
 
     this.parentPathString = parentPathString;
     this.rdName = rdName;
-    this.sourceEnabledPropertyName = sourceEnabledPropertyName;
+    this.sourceEnabledPropertyNames = sourceEnabledPropertyNames;
     this.targetEnabledPropertyName = targetEnabledPropertyName;
   }
 
@@ -787,16 +803,17 @@ public final class AggregationPropertyDefinition
 
 
   /**
-   * Gets the optional boolean "enabled" property in this managed
-   * object. When this property is true, the enabled property in the
-   * aggregated managed object must also be true.
+   * Gets the optional boolean "enabled" properties in this managed
+   * object. When these properties are all true or if there are no
+   * properties, the enabled property in the aggregated managed object
+   * must also be true.
    *
-   * @return Returns the optional boolean "enabled" property in this
-   *         managed object, or <code>null</code> if none is
-   *         defined.
+   * @return Returns the optional boolean "enabled" properties in this
+   *         managed object, which may be empty.
    */
-  public final BooleanPropertyDefinition getSourceEnabledPropertyDefinition() {
-    return sourceEnabledProperty;
+  public final List<BooleanPropertyDefinition>
+      getSourceEnabledPropertyDefinitions() {
+    return sourceEnabledProperties;
   }
 
 
@@ -846,10 +863,17 @@ public final class AggregationPropertyDefinition
     builder.append(" relationDefinition=");
     builder.append(relationDefinition.getName());
 
-    if (sourceEnabledPropertyName != null) {
-      builder.append(" sourceEnabledPropertyName=");
-      builder.append(sourceEnabledPropertyName);
+    builder.append(" sourceEnabledPropertyName=[");
+    boolean isFirst = true;
+    for (String name : sourceEnabledPropertyNames) {
+      if (!isFirst) {
+        builder.append(", ");
+      } else {
+        isFirst = false;
+      }
+      builder.append(name);
     }
+    builder.append(']');
 
     if (targetEnabledPropertyName != null) {
       builder.append(" targetEnabledPropertyName=");
@@ -889,23 +913,19 @@ public final class AggregationPropertyDefinition
     relationDefinition = (InstantiableRelationDefinition<C, S>) rd;
 
     // Now decode the property definitions.
-    if (sourceEnabledPropertyName == null) {
-      sourceEnabledProperty = null;
-    } else {
-      AbstractManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
-
-      PropertyDefinition<?> pd;
-      pd = d.getPropertyDefinition(sourceEnabledPropertyName);
+    AbstractManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
+    sourceEnabledProperties = new LinkedList<BooleanPropertyDefinition>();
+    for (String name : sourceEnabledPropertyNames) {
+      PropertyDefinition<?> pd = d.getPropertyDefinition(name);
 
       // Runtime cast is required to workaround a
       // bug in JDK versions prior to 1.5.0_08.
-      sourceEnabledProperty = BooleanPropertyDefinition.class.cast(pd);
+      sourceEnabledProperties.add(BooleanPropertyDefinition.class.cast(pd));
     }
 
     if (targetEnabledPropertyName == null) {
       targetEnabledProperty = null;
     } else {
-      AbstractManagedObjectDefinition<?, ?> d;
       PropertyDefinition<?> pd;
 
       d = relationDefinition.getChildDefinition();
