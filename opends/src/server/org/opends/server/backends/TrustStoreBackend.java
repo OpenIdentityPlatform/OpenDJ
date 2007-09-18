@@ -59,7 +59,6 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
 import org.opends.server.util.CertificateManager;
-import org.opends.server.util.ExpirationCheckTrustManager;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
 import org.opends.server.admin.Configuration;
@@ -70,7 +69,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 import javax.naming.ldap.Rdn;
 import java.security.cert.Certificate;
 import java.net.UnknownHostException;
@@ -1404,13 +1402,13 @@ public class TrustStoreBackend
            TrustManagerFactory.getInstance(trustManagerAlgorithm);
       trustManagerFactory.init(trustStore);
       TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
-      TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
-      for (int i=0; i < trustManagers.length; i++)
-      {
-        newTrustManagers[i] = new ExpirationCheckTrustManager(
-                                       (X509TrustManager) trustManagers[i]);
-      }
-      return newTrustManagers;
+//    TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
+//    for (int i=0; i < trustManagers.length; i++)
+//    {
+//      newTrustManagers[i] = new ExpirationCheckTrustManager(
+//                                     (X509TrustManager) trustManagers[i]);
+//    }
+      return trustManagers;
     }
     catch (Exception e)
     {
