@@ -2367,7 +2367,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             printProgressLineBreak();
             Message msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
-                    ConnectionUtils.getHostPort(ctxDestination)));
+                    ConnectionUtils.getHostPort(ctxSource)));
             printProgressMessage(msg);
             printProgressLineBreak();
             initializeSuffix(baseDN, ctxSource, ctxDestination, true);
@@ -3841,7 +3841,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       try
       {
         installer.initializeSuffix(ctxDestination, replicationId, baseDN,
-            displayProgress, ConnectionUtils.getHostPort(ctxDestination));
+            displayProgress, ConnectionUtils.getHostPort(ctxSource));
         initDone = true;
       }
       catch (PeerNotFoundException pnfe)
