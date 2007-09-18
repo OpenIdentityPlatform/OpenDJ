@@ -502,12 +502,13 @@
       <fileset dir="${unittest.testng.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
-
+<!--
     <checkstyle config="${checkstyle.dir}/opends-functest-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${functest.testng.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
+-->
   </target>
 
 
