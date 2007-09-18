@@ -44,7 +44,9 @@
     <xsl:if test="../../@multi-valued = 'true'">
       <import>java.util.TreeSet</import>
     </xsl:if>
-    <import>org.opends.server.admin.AggregationPropertyDefinition</import>
+    <import>
+      org.opends.server.admin.AggregationPropertyDefinition
+    </import>
   </xsl:template>
   <xsl:template match="adm:aggregation" mode="java-value-type">
     <xsl:value-of select="'String'" />
@@ -90,15 +92,17 @@
     <xsl:value-of
       select="concat('      builder.setRelationDefinition(&quot;',
                      normalize-space(@relation-name), '&quot;);&#xa;')" />
-    <xsl:if test="@source-enabled-property-name">
+    <xsl:for-each select="adm:source-enabled-property-name">
+      <xsl:sort select="@name" />
       <xsl:value-of
-        select="concat('      builder.setSourceEnabledPropertyName(&quot;',
-                       normalize-space(@source-enabled-property-name), '&quot;);&#xa;')" />
-    </xsl:if>
-    <xsl:if test="@target-enabled-property-name">
+        select="concat('      builder.addSourceEnabledPropertyName(&quot;',
+                       normalize-space(@name), '&quot;);&#xa;')" />
+    </xsl:for-each>
+    <xsl:if test="source-enabled-property-name"></xsl:if>
+    <xsl:if test="adm:target-enabled-property-name">
       <xsl:value-of
         select="concat('      builder.setTargetEnabledPropertyName(&quot;',
-                       normalize-space(@target-enabled-property-name), '&quot;);&#xa;')" />
+                       normalize-space(adm:target-enabled-property-name/@name), '&quot;);&#xa;')" />
     </xsl:if>
   </xsl:template>
   <xsl:template match="adm:aggregation"

@@ -320,7 +320,7 @@ public final class AggregationTest extends AdminTestCase {
     builder.setParentPath("/");
     builder.setRelationDefinition("connection-handler");
     builder.setTargetEnabledPropertyName("enabled");
-    builder.setSourceEnabledPropertyName("mandatory-boolean-property");
+    builder.addSourceEnabledPropertyName("mandatory-boolean-property");
     aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = builder
         .getInstance();
     TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
