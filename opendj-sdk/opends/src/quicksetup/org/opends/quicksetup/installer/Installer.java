@@ -1151,7 +1151,7 @@ public abstract class Installer extends GuiApplication {
       argList.add(getConfigurationFile());
       argList.add("-n");
       argList.add(getBackendName());
-      argList.add("-t");
+      argList.add("-A");
       argList.add(templatePath.getAbsolutePath());
       argList.add("-s"); // seed
       argList.add("0");
