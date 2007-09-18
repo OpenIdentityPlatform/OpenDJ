@@ -126,6 +126,10 @@ public class MonitorConfigManager
           MonitorProvider<? extends MonitorProviderCfg> monitor =
                loadMonitor(className, monitorConfig);
           monitors.put(monitorConfig.dn(), monitor);
+          if (monitor.getUpdateInterval() > 0)
+          {
+            monitor.start();
+          }
           DirectoryServer.registerMonitorProvider(monitor);
         }
         catch (InitializationException ie)
@@ -207,6 +211,10 @@ public class MonitorConfigManager
     if (resultCode == ResultCode.SUCCESS)
     {
       monitors.put(configuration.dn(), monitor);
+      if (monitor.getUpdateInterval() > 0)
+      {
+        monitor.start();
+      }
       DirectoryServer.registerMonitorProvider(monitor);
     }
 
@@ -350,6 +358,10 @@ public class MonitorConfigManager
     if (resultCode == ResultCode.SUCCESS)
     {
       monitors.put(configuration.dn(), monitor);
+      if (monitor.getUpdateInterval() > 0)
+      {
+        monitor.start();
+      }
       DirectoryServer.registerMonitorProvider(monitor);
     }
 

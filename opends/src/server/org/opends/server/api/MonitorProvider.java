@@ -275,7 +275,17 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
     {
       long stopSleepTime =
            System.currentTimeMillis() + getUpdateInterval();
-      updateMonitorData();
+      try
+      {
+        updateMonitorData();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
 
       long remainingSleepTime =
            stopSleepTime - System.currentTimeMillis();
