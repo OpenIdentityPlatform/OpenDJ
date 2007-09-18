@@ -60,12 +60,6 @@
   <property name="unittest.resource.dir"
        location="${build.dir}/unit-tests/resource"/>
 
-  <!-- Properties for use in functional/integration testing.  -->
-  <property name="functest.testng.dir"
-       location="tests/integration-tests-testng" />
-  <property name="functest.testng.src.dir"
-    location="${functest.testng.dir}/src"/>
-
   <!-- Properties for use with the DSML component.                      -->
   <property name="dsml.dir"         location="resource/dsml"             />
   <property name="dsml.src.dir"     location="src/dsml"                  />
@@ -502,13 +496,6 @@
       <fileset dir="${unittest.testng.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
-<!--
-    <checkstyle config="${checkstyle.dir}/opends-functest-checkstyle.xml"
-         failOnViolation="true">
-      <fileset dir="${functest.testng.src.dir}" includes="**/*.java" />
-      <formatter type="plain" />
-    </checkstyle>
--->
   </target>
 
 
@@ -1666,11 +1653,6 @@
     </junitreport>
   </target>
 
-
-  <target name="integration-tests"
-            description="Builds the integration tests">
-    <ant dir="${functest.testng.dir}" inheritall="false"/>
-  </target>
 
 
 
