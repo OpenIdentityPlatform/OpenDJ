@@ -1086,7 +1086,10 @@ public class ReplicationDomain extends DirectoryThread
    */
   public int getNumRcvdUpdates()
   {
-    return numRcvdUpdates.get();
+    if (numRcvdUpdates != null)
+      return numRcvdUpdates.get();
+    else
+      return 0;
   }
 
   /**
@@ -1096,7 +1099,10 @@ public class ReplicationDomain extends DirectoryThread
    */
   public int getNumSentUpdates()
   {
-    return numSentUpdates.get();
+    if (numSentUpdates != null)
+      return numSentUpdates.get();
+    else
+      return 0;
   }
 
   /**
@@ -1106,7 +1112,10 @@ public class ReplicationDomain extends DirectoryThread
    */
   public int getPendingUpdatesCount()
   {
-    return pendingChanges.size();
+    if (pendingChanges != null)
+      return pendingChanges.size();
+    else
+      return 0;
   }
 
   /**
@@ -1124,7 +1133,10 @@ public class ReplicationDomain extends DirectoryThread
    */
   public int getNumProcessedUpdates()
   {
-    return numProcessedUpdates.get();
+    if (numProcessedUpdates != null)
+      return numProcessedUpdates.get();
+    else
+      return 0;
   }
 
   /**
@@ -1254,7 +1266,10 @@ public class ReplicationDomain extends DirectoryThread
    */
   public String getReplicationServer()
   {
-    return broker.getReplicationServer();
+    if (broker != null)
+      return broker.getReplicationServer();
+    else
+      return "Not connected";
   }
 
   /**
@@ -2060,7 +2075,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public int getMaxRcvWindow()
   {
-    return broker.getMaxRcvWindow();
+    if (broker != null)
+      return broker.getMaxRcvWindow();
+    else
+      return 0;
   }
 
   /**
@@ -2070,7 +2088,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public int getCurrentRcvWindow()
   {
-    return broker.getCurrentRcvWindow();
+    if (broker != null)
+      return broker.getCurrentRcvWindow();
+    else
+      return 0;
   }
 
   /**
@@ -2080,7 +2101,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public int getMaxSendWindow()
   {
-    return broker.getMaxSendWindow();
+    if (broker != null)
+      return broker.getMaxSendWindow();
+    else
+      return 0;
   }
 
   /**
@@ -2090,7 +2114,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public int getCurrentSendWindow()
   {
-    return broker.getCurrentSendWindow();
+    if (broker != null)
+      return broker.getCurrentSendWindow();
+    else
+      return 0;
   }
 
   /**
@@ -2099,7 +2126,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public int getNumLostConnections()
   {
-    return broker.getNumLostConnections();
+    if (broker != null)
+      return broker.getNumLostConnections();
+    else
+      return 0;
   }
 
   /**
@@ -2731,7 +2761,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return The backend of that domain.
    * @param baseDN The baseDN to retrieve the backend
    */
-  protected Backend retrievesBackend(DN baseDN)
+  protected static Backend retrievesBackend(DN baseDN)
   {
     // Retrieves the backend related to this domain
     return DirectoryServer.getBackend(baseDN);
@@ -3256,6 +3286,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       unacceptableReasons.add(message);
       return false;
     }
+
+    // Check that the base DN is configured as a base-dn of the directory server
+    if (retrievesBackend(dn) == null)
+    {
+      Message message = ERR_UNKNOWN_DN.get(dn.toString());
+      unacceptableReasons.add(message);
+      return false;
+    }
     return true;
   }
 
@@ -3329,7 +3367,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public boolean isConnected()
   {
-    return broker.isConnected();
+    if (broker != null)
+      return broker.isConnected();
+    else
+      return false;
   }
 
   /**
@@ -3338,6 +3379,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public boolean isSessionEncrypted()
   {
-    return broker.isSessionEncrypted();
+    if (broker != null)
+      return broker.isSessionEncrypted();
+    else
+      return false;
   }
 }
