@@ -195,7 +195,6 @@ public abstract class Task
     String taskDN = taskEntryDN.toString();
 
     taskBackend       = taskScheduler.getTaskBackend();
-    logMessageCounter = 0;
 
 
     // Get the task ID and recurring task ID values.  At least one of them must
@@ -365,6 +364,9 @@ public abstract class Task
 
     // Get the log messages for the task.
     logMessages  = getAttributeValues(ATTR_TASK_LOG_MESSAGES);
+    if (logMessages != null) {
+      logMessageCounter = logMessages.size();
+    }
   }
 
 
@@ -962,30 +964,25 @@ public abstract class Task
       }
 
       List<Attribute> attrList = taskEntry.getAttribute(type);
+      LinkedHashSet<AttributeValue> values;
       if (attrList == null)
       {
         attrList = new ArrayList<Attribute>();
-
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>();
-        values.add(new AttributeValue(type, new ASN1OctetString(message)));
+        values = new LinkedHashSet<AttributeValue>();
         attrList.add(new Attribute(type, ATTR_TASK_LOG_MESSAGES, values));
         taskEntry.putAttribute(type, attrList);
       }
       else if (attrList.isEmpty())
       {
-        LinkedHashSet<AttributeValue> values =
-             new LinkedHashSet<AttributeValue>();
-        values.add(new AttributeValue(type, new ASN1OctetString(message)));
+        values = new LinkedHashSet<AttributeValue>();
         attrList.add(new Attribute(type, ATTR_TASK_LOG_MESSAGES, values));
       }
       else
       {
         Attribute attr = attrList.get(0);
-        LinkedHashSet<AttributeValue> values = attr.getValues();
-        values.add(new AttributeValue(type, new ASN1OctetString(message)));
-        attrList.add(new Attribute(type, ATTR_TASK_LOG_MESSAGES, values));
+        values = attr.getValues();
       }
+      values.add(new AttributeValue(type, new ASN1OctetString(messageString)));
     }
     finally
     {
