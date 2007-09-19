@@ -2871,12 +2871,18 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     boolean adsAlreadyReplicated = false;
 
+    // Booleans used to know if the ADS existed already on the servers.
+    boolean ads1Existed = false;
+    boolean ads2Existed = false;
+
     printProgressMessage(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_ADS_CONTENTS.get()));
     try
     {
       if (adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
+        ads1Existed = true;
+        ads2Existed = true;
         Set<Map<ADSContext.ServerProperty, Object>> registry1 =
           adsCtx1.readServerRegistry();
         Set<Map<ADSContext.ServerProperty, Object>> registry2 =
@@ -2942,6 +2948,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
+        ads2Existed = true;
         adsCtx1.createAdministrationSuffix(null);
         if (!hasAdministrator(adsCtx2.getDirContext()))
         {
@@ -2956,6 +2963,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       else if (adsCtx1.hasAdminData() && !adsCtx2.hasAdminData())
       {
+        ads1Existed = true;
         adsCtx2.createAdministrationSuffix(null);
         if (!hasAdministrator(adsCtx1.getDirContext()))
         {
@@ -3052,11 +3060,11 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       // Inform the user of the potential errors that we found.
       LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
-      if (cache1 != null)
+      if ((cache1 != null) && ads1Existed)
       {
         messages.addAll(getErrorMessages(cache1));
       }
-      if (cache2 != null)
+      if ((cache2 != null) && ads2Existed)
       {
         messages.addAll(getErrorMessages(cache2));
       }
