@@ -782,7 +782,8 @@ public class SearchOperationBasis
             Attribute ocAttr = entry.getObjectClassAttribute();
             try
             {
-              entryToReturn.setObjectClasses(ocAttr.getValues());
+              if (ocAttr != null)
+                entryToReturn.setObjectClasses(ocAttr.getValues());
             }
             catch (DirectoryException e)
             {

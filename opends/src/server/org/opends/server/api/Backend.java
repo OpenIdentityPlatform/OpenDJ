@@ -1056,11 +1056,9 @@ public abstract class Backend
             return false;
           }
         }
-
         return true;
       }
     }
-
     return false;
   }
 

@@ -609,6 +609,16 @@ public class MultimasterReplication
 
     return;
   }
+
+  /**
+   * Returns the replication server listener associated to that Multimaster
+   * Replication.
+   * @return the listener.
+   */
+  public ReplicationServerListener getReplicationServerListener()
+  {
+    return replicationServerListener;
+  }
 }
 
 
