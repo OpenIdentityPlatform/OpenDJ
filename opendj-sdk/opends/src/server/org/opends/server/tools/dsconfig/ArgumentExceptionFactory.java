@@ -44,10 +44,15 @@ import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
+import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
+import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 
 
@@ -103,35 +108,6 @@ public final class ArgumentExceptionFactory {
 
 
   /**
-   * Creates an argument exception from a missing mandatory properties
-   * exception.
-   *
-   * @param e
-   *          The missing mandatory properties exception.
-   * @param d
-   *          The managed object definition.
-   * @return Returns an argument exception.
-   */
-  public static ArgumentException adaptMissingMandatoryPropertiesException(
-      MissingMandatoryPropertiesException e,
-      AbstractManagedObjectDefinition<?, ?> d) {
-    StringBuilder builder = new StringBuilder();
-    boolean isFirst = true;
-    for (PropertyIsMandatoryException pe : e.getCauses()) {
-      if (!isFirst) {
-        builder.append(", ");
-      }
-      builder.append(pe.getPropertyDefinition().getName());
-      isFirst = false;
-    }
-    Message msg = ERR_DSCFG_ERROR_CREATE_MMPE.get(
-            d.getUserFriendlyName(), builder.toString());
-    return new ArgumentException(msg);
-  }
-
-
-
-  /**
    * Creates an argument exception from a property exception.
    *
    * @param e
@@ -167,6 +143,150 @@ public final class ArgumentExceptionFactory {
               e.getMessage());
       return new ArgumentException(message);
     }
+  }
+
+
+
+  /**
+   * Displays a table listing reasons why a managed object could not
+   * be decoded successfully.
+   *
+   * @param app
+   *          The console application.
+   * @param e
+   *          The managed object decoding exception.
+   */
+  public static void displayManagedObjectDecodingException(
+      ConsoleApplication app, ManagedObjectDecodingException e) {
+    AbstractManagedObjectDefinition<?, ?> d = e.getPartialManagedObject()
+        .getManagedObjectDefinition();
+    Message ufn = d.getUserFriendlyName();
+    Message msg;
+    if (e.getCauses().size() == 1) {
+      msg = ERR_GET_HEADING_MODE_SINGLE.get(ufn);
+    } else {
+      msg = ERR_GET_HEADING_MODE_PLURAL.get(ufn);
+    }
+
+    app.println(msg);
+    app.println();
+    TableBuilder builder = new TableBuilder();
+    for (PropertyException pe : e.getCauses()) {
+      ArgumentException ae = adaptPropertyException(pe, d);
+      builder.startRow();
+      builder.appendCell("*");
+      builder.appendCell(ae.getMessage());
+    }
+
+    TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+    printer.setDisplayHeadings(false);
+    printer.setColumnWidth(1, 0);
+    printer.setIndentWidth(4);
+    builder.print(printer);
+  }
+
+
+
+  /**
+   * Displays a table listing missing mandatory properties.
+   *
+   * @param app
+   *          The console application.
+   * @param e
+   *          The missing mandatory property exception.
+   */
+  public static void displayMissingMandatoryPropertyException(
+      ConsoleApplication app, MissingMandatoryPropertiesException e) {
+    Message ufn = e.getUserFriendlyName();
+    Message msg;
+    if (e.isCreate()) {
+      if (e.getCauses().size() == 1) {
+        msg = ERR_CREATE_HEADING_MMPE_SINGLE.get(ufn);
+      } else {
+        msg = ERR_CREATE_HEADING_MMPE_PLURAL.get(ufn);
+      }
+    } else {
+      if (e.getCauses().size() == 1) {
+        msg = ERR_MODIFY_HEADING_MMPE_SINGLE.get(ufn);
+      } else {
+        msg = ERR_MODIFY_HEADING_MMPE_PLURAL.get(ufn);
+      }
+    }
+
+    app.println(msg);
+    app.println();
+    TableBuilder builder = new TableBuilder();
+    builder.addSortKey(0);
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
+    builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_SYNTAX.get());
+
+    PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
+    for (PropertyIsMandatoryException pe : e.getCauses()) {
+      PropertyDefinition<?> pd = pe.getPropertyDefinition();
+      builder.startRow();
+      builder.appendCell(pd.getName());
+      builder.appendCell(b.getUsage(pd));
+    }
+
+    TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+    printer.setDisplayHeadings(true);
+    printer.setColumnWidth(1, 0);
+    printer.setIndentWidth(4);
+    builder.print(printer);
+  }
+
+
+
+  /**
+   * Displays a table listing the reasons why an operation was
+   * rejected.
+   *
+   * @param app
+   *          The console application.
+   * @param e
+   *          The operation rejected exception.
+   */
+  public static void displayOperationRejectedException(ConsoleApplication app,
+      OperationRejectedException e) {
+    Message ufn = e.getUserFriendlyName();
+    Message msg;
+    switch (e.getOperationType()) {
+    case CREATE:
+      if (e.getMessages().size() == 1) {
+        msg = ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(ufn);
+      } else {
+        msg = ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(ufn);
+      }
+      break;
+    case DELETE:
+      if (e.getMessages().size() == 1) {
+        msg = ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(ufn);
+      } else {
+        msg = ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(ufn);
+      }
+      break;
+    default:
+      if (e.getMessages().size() == 1) {
+        msg = ERR_DSCFG_ERROR_MODIFY_ORE_SINGLE.get(ufn);
+      } else {
+        msg = ERR_DSCFG_ERROR_MODIFY_ORE_PLURAL.get(ufn);
+      }
+      break;
+    }
+
+    app.println(msg);
+    app.println();
+    TableBuilder builder = new TableBuilder();
+    for (Message reason : e.getMessages()) {
+      builder.startRow();
+      builder.appendCell("*");
+      builder.appendCell(reason);
+    }
+    TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+    printer.setDisplayHeadings(false);
+    printer.setColumnWidth(1, 0);
+    printer.setIndentWidth(4);
+    builder.print(printer);
   }
 
 

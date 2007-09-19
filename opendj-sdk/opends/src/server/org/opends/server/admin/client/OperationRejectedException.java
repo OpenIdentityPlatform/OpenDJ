@@ -57,6 +57,26 @@ import org.opends.server.util.Validator;
 public class OperationRejectedException extends AdminClientException {
 
   /**
+   * The type of operation that caused this exception.
+   */
+  public enum OperationType {
+    /**
+     * A managed object could not be created.
+     */
+    CREATE,
+
+    /**
+     * A managed object could not be deleted.
+     */
+    DELETE,
+
+    /**
+     * A managed object could not be modified.
+     */
+    MODIFY;
+  }
+
+  /**
    * Serialization ID.
    */
   private static final long serialVersionUID = 8547688890613079044L;
@@ -102,14 +122,27 @@ public class OperationRejectedException extends AdminClientException {
   // The messages describing the constraint violations that occurred.
   private final Collection<Message> messages;
 
+  // The type of operation that caused this exception.
+  private final OperationType type;
+
+  // The user friendly name of the component that caused this
+  // exception.
+  private final Message ufn;
+
 
 
   /**
    * Creates a new operation rejected exception with a default
    * message.
+   *
+   * @param type
+   *          The type of operation that caused this exception.
+   * @param ufn
+   *          The user friendly name of the component that caused this
+   *          exception.
    */
-  public OperationRejectedException() {
-    this(ERR_OPERATION_REJECTED_DEFAULT.get());
+  public OperationRejectedException(OperationType type, Message ufn) {
+    this(type, ufn, ERR_OPERATION_REJECTED_DEFAULT.get());
   }
 
 
@@ -118,15 +151,23 @@ public class OperationRejectedException extends AdminClientException {
    * Creates a new operation rejected exception with the provided
    * messages.
    *
+   * @param type
+   *          The type of operation that caused this exception.
+   * @param ufn
+   *          The user friendly name of the component that caused this
+   *          exception.
    * @param messages
    *          The messages describing the constraint violations that
    *          occurred (must be non-<code>null</code> and
    *          non-empty).
    */
-  public OperationRejectedException(Collection<Message> messages) {
+  public OperationRejectedException(OperationType type, Message ufn,
+      Collection<Message> messages) {
     super(getDefaultMessage(messages));
 
     this.messages = new ArrayList<Message>(messages);
+    this.type = type;
+    this.ufn = ufn;
   }
 
 
@@ -135,12 +176,18 @@ public class OperationRejectedException extends AdminClientException {
    * Creates a new operation rejected exception with the provided
    * message.
    *
+   * @param type
+   *          The type of operation that caused this exception.
+   * @param ufn
+   *          The user friendly name of the component that caused this
+   *          exception.
    * @param message
    *          The message describing the constraint violation that
    *          occurred.
    */
-  public OperationRejectedException(Message message) {
-    this(Collections.singleton(message));
+  public OperationRejectedException(OperationType type, Message ufn,
+      Message message) {
+    this(type, ufn, Collections.singleton(message));
   }
 
 
@@ -167,6 +214,30 @@ public class OperationRejectedException extends AdminClientException {
    */
   public Message getMessagesAsSingleMessage() {
     return getSingleMessage(messages);
+  }
+
+
+
+  /**
+   * Gets the type of operation that caused this exception.
+   *
+   * @return Returns the type of operation that caused this exception.
+   */
+  public OperationType getOperationType() {
+    return type;
+  }
+
+
+
+  /**
+   * Gets the user friendly name of the component that caused this
+   * exception.
+   *
+   * @return Returns the user friendly name of the component that
+   *         caused this exception.
+   */
+  public Message getUserFriendlyName() {
+    return ufn;
   }
 
 }

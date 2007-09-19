@@ -68,6 +68,7 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.client.OperationRejectedException.OperationType;
 
 
 
@@ -151,7 +152,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     }
 
     if (!exceptions.isEmpty()) {
-      throw new MissingMandatoryPropertiesException(exceptions);
+      throw new MissingMandatoryPropertiesException(definition
+          .getUserFriendlyName(), exceptions, !existsOnServer);
     }
 
     // Now enforce any constraints.
@@ -175,7 +177,13 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
     }
 
     if (!isAcceptable) {
-      throw new OperationRejectedException(messages);
+      if (existsOnServer) {
+        throw new OperationRejectedException(OperationType.MODIFY, definition
+            .getUserFriendlyName(), messages);
+      } else {
+        throw new OperationRejectedException(OperationType.CREATE, definition
+            .getUserFriendlyName(), messages);
+      }
     }
 
     // Commit the managed object.

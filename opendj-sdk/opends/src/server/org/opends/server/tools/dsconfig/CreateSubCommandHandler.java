@@ -29,6 +29,7 @@ package org.opends.server.tools.dsconfig;
 
 
 import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +45,8 @@ import java.util.TreeSet;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.AggregationPropertyDefinition;
+import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefaultBehaviorException;
@@ -355,6 +358,285 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     return new CreateSubCommandHandler<C, S>(parser, p, r, null, p.child(r));
   }
 
+
+
+  /**
+   * Create the provided managed object.
+   *
+   * @param app
+   *          The console application.
+   * @param context
+   *          The management context.
+   * @param mo
+   *          The managed object to be created.
+   * @return Returns a MenuResult.success() if the managed object was
+   *         created successfully, or MenuResult.quit(), or
+   *         MenuResult.cancel(), if the managed object was edited
+   *         interactively and the user chose to quit or cancel.
+   * @throws ClientException
+   *           If an unrecoverable client exception occurred whilst
+   *           interacting with the server.
+   * @throws CLIException
+   *           If an error occurred whilst interacting with the
+   *           console.
+   */
+  public static MenuResult<Void> createManagedObject(ConsoleApplication app,
+      ManagementContext context, ManagedObject<?> mo) throws ClientException,
+      CLIException {
+    ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
+    Message ufn = d.getUserFriendlyName();
+
+    while (true) {
+      // Interactively set properties if applicable.
+      if (app.isInteractive()) {
+        SortedSet<PropertyDefinition<?>> properties =
+          new TreeSet<PropertyDefinition<?>>();
+        for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+          if (pd.hasOption(PropertyOption.HIDDEN)) {
+            continue;
+          }
+          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+            continue;
+          }
+          properties.add(pd);
+        }
+
+        PropertyValueEditor editor = new PropertyValueEditor(app, context);
+        MenuResult<Void> result = editor.edit(mo, properties, false);
+
+        // Interactively enable/edit referenced components.
+        if (result.isSuccess()) {
+          result = checkReferences(app, context, mo);
+          if (result.isAgain()) {
+            // Edit again.
+            continue;
+          }
+        }
+
+        if (result.isQuit()) {
+          if (!app.isMenuDrivenMode()) {
+            // User chose to cancel any changes.
+            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
+            app.printVerboseMessage(msg);
+          }
+          return MenuResult.quit();
+        } else if (result.isCancel()) {
+          return MenuResult.cancel();
+        }
+      }
+
+      try {
+        // Create the managed object.
+        mo.commit();
+
+        // Output success message.
+        app.println();
+        Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
+        app.printVerboseMessage(msg);
+
+        return MenuResult.success();
+      } catch (MissingMandatoryPropertiesException e) {
+        if (app.isInteractive()) {
+          // If interactive, give the user the chance to fix the
+          // problems.
+          app.println();
+          displayMissingMandatoryPropertyException(app, e);
+          app.println();
+          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+            return MenuResult.cancel();
+          }
+        } else {
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+              .getMessageObject(), e);
+        }
+      } catch (AuthorizationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      } catch (OperationRejectedException e) {
+        if (app.isInteractive()) {
+          // If interactive, give the user the chance to fix the
+          // problems.
+          app.println();
+          displayOperationRejectedException(app, e);
+          app.println();
+          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+            return MenuResult.cancel();
+          }
+        } else {
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+              .getMessageObject(), e);
+        }
+      } catch (CommunicationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      } catch (ManagedObjectAlreadyExistsException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
+        throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
+      }
+    }
+  }
+
+
+
+  // Check that any referenced components are enabled if
+  // required.
+  private static MenuResult<Void> checkReferences(ConsoleApplication app,
+      ManagementContext context, ManagedObject<?> mo) throws ClientException,
+      CLIException {
+    ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
+    Message ufn = d.getUserFriendlyName();
+
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+      if (pd instanceof AggregationPropertyDefinition) {
+        AggregationPropertyDefinition<?, ?> apd =
+          (AggregationPropertyDefinition<?, ?>) pd;
+
+        // Skip this aggregation if it doesn't have an enable
+        // property.
+        BooleanPropertyDefinition tpd = apd
+            .getTargetEnabledPropertyDefinition();
+        if (tpd == null) {
+          continue;
+        }
+
+        // Skip this aggregation if this managed object's enable
+        // properties are not all true.
+        boolean needsEnabling = true;
+        for (BooleanPropertyDefinition bpd : apd
+            .getSourceEnabledPropertyDefinitions()) {
+          if (!mo.getPropertyValue(bpd)) {
+            needsEnabling = false;
+            break;
+          }
+        }
+        if (!needsEnabling) {
+          continue;
+        }
+
+        // The referenced component(s) must be enabled.
+        for (String name : mo.getPropertyValues(apd)) {
+          ManagedObjectPath<?, ?> path = apd.getChildPath(name);
+          Message rufn = path.getManagedObjectDefinition()
+              .getUserFriendlyName();
+          ManagedObject<?> ref;
+          try {
+            ref = context.getManagedObject(path);
+          } catch (AuthorizationException e) {
+            Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+            throw new ClientException(
+                LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+          } catch (DefinitionDecodingException e) {
+            Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
+            throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+          } catch (ManagedObjectDecodingException e) {
+            // FIXME: should not abort here. Instead, display the
+            // errors (if verbose) and apply the changes to the
+            // partial managed object.
+            Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
+            throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
+          } catch (CommunicationException e) {
+            Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+            throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+          } catch (ManagedObjectNotFoundException e) {
+            Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
+            throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+          }
+
+          while (!ref.getPropertyValue(tpd)) {
+            boolean isBadReference = true;
+            app.println();
+            if (app.confirmAction(
+                INFO_EDITOR_PROMPT_ENABLED_REFERENCED_COMPONENT.get(rufn, name,
+                    ufn), true)) {
+              ref.setPropertyValue(tpd, true);
+              try {
+                ref.commit();
+                isBadReference = false;
+              } catch (MissingMandatoryPropertiesException e) {
+                // Give the user the chance to fix the problems.
+                app.println();
+                displayMissingMandatoryPropertyException(app, e);
+                app.println();
+                if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
+                  // FIXME: edit the properties of the referenced
+                  // object.
+                  MenuResult<Void> result = SetPropSubCommandHandler
+                      .modifyManagedObject(app, context, ref);
+                  if (result.isQuit()) {
+                    return result;
+                  } else if (result.isSuccess()) {
+                    // The referenced component was modified
+                    // successfully, but may still be disabled.
+                    isBadReference = false;
+                  }
+                }
+              } catch (AuthorizationException e) {
+                Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+                throw new ClientException(
+                    LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+              } catch (ConcurrentModificationException e) {
+                Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+                throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+                    msg);
+              } catch (OperationRejectedException e) {
+                // Give the user the chance to fix the problems.
+                app.println();
+                displayOperationRejectedException(app, e);
+                app.println();
+                if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
+                  MenuResult<Void> result = SetPropSubCommandHandler
+                      .modifyManagedObject(app, context, ref);
+                  if (result.isQuit()) {
+                    return result;
+                  } else if (result.isSuccess()) {
+                    // The referenced component was modified
+                    // successfully, but may still be disabled.
+                    isBadReference = false;
+                  }
+                }
+              } catch (CommunicationException e) {
+                Message msg = ERR_DSCFG_ERROR_CREATE_CE
+                    .get(ufn, e.getMessage());
+                throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+              } catch (ManagedObjectAlreadyExistsException e) {
+                // Should never happen.
+                throw new IllegalStateException(e);
+              }
+            }
+
+            // If the referenced component is still disabled because
+            // the user refused to modify it, then give the used the
+            // option of editing the referencing component.
+            if (isBadReference) {
+              app.println();
+              app.println(ERR_SET_REFERENCED_COMPONENT_DISABLED.get(ufn, rufn));
+              app.println();
+              if (app
+                  .confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+                return MenuResult.again();
+              } else {
+                return MenuResult.cancel();
+              }
+            }
+
+            // If the referenced component is now enabled, then drop out.
+            if (ref.getPropertyValue(tpd)) {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return MenuResult.success();
+  }
+
+
+
   // The sub-commands naming arguments.
   private final List<StringArgument> namingArgs;
 
@@ -642,94 +924,16 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       setProperty(child, provider, pd);
     }
 
-    while (true) {
-      // Interactively set properties if applicable.
-      if (app.isInteractive()) {
-        SortedSet<PropertyDefinition<?>> properties =
-          new TreeSet<PropertyDefinition<?>>();
-
-        for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-          if (pd.hasOption(PropertyOption.HIDDEN)) {
-            continue;
-          }
-
-          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
-            continue;
-          }
-
-          properties.add(pd);
-        }
-
-        PropertyValueEditor editor = new PropertyValueEditor(app, context);
-        MenuResult<Void> result2 = editor.edit(child, properties, true);
-        if (result2.isQuit()) {
-          if (!app.isMenuDrivenMode()) {
-            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
-            app.printVerboseMessage(msg);
-          }
-          return MenuResult.quit();
-        } else if (result2.isCancel()) {
-          return MenuResult.cancel();
-        }
-      }
-
-      try {
-        // Create the managed object.
-        child.commit();
-
-        // Output success message.
-        Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
-        app.printVerboseMessage(msg);
-        return MenuResult.success(0);
-      } catch (MissingMandatoryPropertiesException e) {
-        throw ArgumentExceptionFactory.adaptMissingMandatoryPropertiesException(
-            e, d);
-      } catch (AuthorizationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            msg);
-      } catch (ManagedObjectAlreadyExistsException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
-        throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
-      } catch (ConcurrentModificationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-      } catch (OperationRejectedException e) {
-        Message msg;
-        if (e.getMessages().size() == 1) {
-          msg = ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(ufn);
-        } else {
-          msg = ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(ufn);
-        }
-
-        if (app.isInteractive()) {
-          // If interactive, give the user the chance to fix the problems.
-          app.println();
-          app.println(msg);
-          app.println();
-          TableBuilder builder = new TableBuilder();
-          for (Message reason : e.getMessages()) {
-            builder.startRow();
-            builder.appendCell("*");
-            builder.appendCell(reason);
-          }
-          TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
-          printer.setDisplayHeadings(false);
-          printer.setColumnWidth(1, 0);
-          printer.setIndentWidth(4);
-          builder.print(printer);
-          app.println();
-          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
-            return MenuResult.cancel();
-          }
-        } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-              msg, e);
-        }
-      } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
-      }
+    // Now the command line changes have been made, create the managed
+    // object interacting with the user to fix any problems if
+    // required.
+    MenuResult<Void> result2 = createManagedObject(app, context, child);
+    if (result2.isCancel()) {
+      return MenuResult.cancel();
+    } else if (result2.isQuit()) {
+      return MenuResult.quit();
+    } else {
+      return MenuResult.success(0);
     }
   }
 
