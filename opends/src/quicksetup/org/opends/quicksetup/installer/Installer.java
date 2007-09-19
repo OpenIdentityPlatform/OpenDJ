@@ -1037,7 +1037,7 @@ public abstract class Installer extends GuiApplication {
 
     argList.add("-F");
 
-    argList.add("-q");
+    argList.add("-Q");
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
