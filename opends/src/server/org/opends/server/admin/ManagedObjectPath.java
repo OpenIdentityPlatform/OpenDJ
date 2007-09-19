@@ -1000,6 +1000,27 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
 
   /**
+   * Get the name of the managed object referred to by this path if
+   * applicable.
+   * <p>
+   * If there path does not refer to an instantiable managed object
+   * <code>null</code> is returned.
+   *
+   * @return Returns the name of the managed object referred to by
+   *         this path, or <code>null</code> if the managed object
+   *         does not have a name.
+   */
+  public String getName() {
+    if (elements.isEmpty()) {
+      return null;
+    } else {
+      return elements.get(elements.size() - 1).getName();
+    }
+  }
+
+
+
+  /**
    * Get the relation definition of the managed object referred to by
    * this path.
    * <p>
