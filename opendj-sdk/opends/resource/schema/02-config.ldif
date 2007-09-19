@@ -2509,4 +2509,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.172
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.173
   NAME 'ds-cfg-entry-cache-monitor-provider' SUP ds-cfg-monitor-provider
   STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.174
+  NAME 'ds-cfg-memory-usage-monitor-provider' SUP ds-cfg-monitor-provider
+  STRUCTURAL X-ORIGIN 'OpenDS Directory Server' )
 
