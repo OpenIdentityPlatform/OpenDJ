@@ -43,6 +43,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import javax.swing.*;
 
 import java.awt.Cursor;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.logging.Handler;
@@ -92,6 +93,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
 
   // Update period of the dialogs.
   private static final int UPDATE_PERIOD = 500;
+
+  // The full pathname of the MacOS X LaunchServices OPEN(1) helper.
+  private static final String MAC_APPLICATIONS_OPENER = "/usr/bin/open";
 
   /**
    * This method creates the install/uninstall dialogs and to check the current
@@ -388,8 +392,16 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           } else {
             installation = Installation.getLocal();
           }
-          String cmd = getPath(installation.getStatusPanelCommandFile());
-          ProcessBuilder pb = new ProcessBuilder(cmd);
+          ProcessBuilder pb;
+          if (isMacOS()) {
+            ArrayList<String> cmd = new ArrayList<String>();
+            cmd.add(MAC_APPLICATIONS_OPENER);
+            cmd.add(getPath(installation.getStatusPanelCommandFile()));
+            pb = new ProcessBuilder(cmd);
+          } else {
+            String cmd = getPath(installation.getStatusPanelCommandFile());
+            pb = new ProcessBuilder(cmd);
+          }
           Map<String, String> env = pb.environment();
           env.put("JAVA_HOME", System.getProperty("java.home"));
           /* Remove JAVA_BIN to be sure that we use the JVM running the

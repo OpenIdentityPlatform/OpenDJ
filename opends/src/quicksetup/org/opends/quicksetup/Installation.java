@@ -64,6 +64,11 @@ public class Installation {
   public static final String UNIX_BINARIES_PATH_RELATIVE = "bin";
 
   /**
+   * The relative path where all the MacOS X Applications are.
+   */
+  public static final String MAC_APPLICATIONS_PATH_RELATIVE = "bin";
+
+  /**
    * The relative path where all the libraries (jar files) are.
    */
   public static final String LIBRARIES_PATH_RELATIVE = "lib";
@@ -187,6 +192,11 @@ public class Installation {
    * The Windows status panel batch file name.
    */
   public static final String WINDOWS_STATUSPANEL_FILE_NAME = "status-panel.bat";
+
+  /**
+   * The MacOS X status panel application bundle name.
+   */
+  public static final String MAC_STATUSPANEL_FILE_NAME = "StatusPanel.app";
 
   /**
    * The UNIX status command line script file name.
@@ -725,6 +735,10 @@ public class Installation {
     if (Utils.isWindows()) {
       statusPanelCommandFile = new File(getBinariesDirectory(),
               WINDOWS_STATUSPANEL_FILE_NAME);
+    } else if (Utils.isMacOS()) {
+      statusPanelCommandFile = new File(getRootDirectory() +
+        File.separator + MAC_APPLICATIONS_PATH_RELATIVE,
+        MAC_STATUSPANEL_FILE_NAME);
     } else {
       statusPanelCommandFile = new File(getBinariesDirectory(),
               UNIX_STATUSPANEL_FILE_NAME);
@@ -796,6 +810,7 @@ public class Installation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString() {
     return Utils.getPath(rootDirectory);
   }
