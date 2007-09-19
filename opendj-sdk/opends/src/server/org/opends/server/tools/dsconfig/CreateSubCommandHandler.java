@@ -83,7 +83,6 @@ import org.opends.server.util.args.SubCommandArgumentParser;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.HelpCallback;
-import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.cli.ValidationCallback;
@@ -233,7 +232,21 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
    * A help call-back which displays help about available component
    * types.
    */
-  private final class TypeHelpCallback implements HelpCallback {
+  private static final class TypeHelpCallback
+      <C extends ConfigurationClient, S extends Configuration>
+      implements HelpCallback {
+
+    // The abstract definition for which to provide help on its sub-types.
+    private final AbstractManagedObjectDefinition<C, S> d;
+
+
+
+    // Create a new type help call-back.
+    private TypeHelpCallback(AbstractManagedObjectDefinition<C, S> d) {
+      this.d = d;
+    }
+
+
 
     /**
      * {@inheritDoc}
@@ -250,7 +263,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           .get());
 
       boolean isFirst = true;
-      for (ManagedObjectDefinition<?, ?> d : types.values()) {
+      for (ManagedObjectDefinition<?, ?> mod : getSubTypes(d).values()) {
         if (!isFirst) {
           builder.startRow();
           builder.startRow();
@@ -259,13 +272,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
 
         builder.startRow();
-        builder.appendCell(d.getUserFriendlyName());
-        builder.appendCell(d.getSynopsis());
-        if (d.getDescription() != null) {
+        builder.appendCell(mod.getUserFriendlyName());
+        builder.appendCell(mod.getSynopsis());
+        if (mod.getDescription() != null) {
           builder.startRow();
           builder.startRow();
           builder.appendCell();
-          builder.appendCell(d.getDescription());
+          builder.appendCell(mod.getDescription());
         }
       }
 
@@ -277,6 +290,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       app.pressReturnToContinue();
     }
   }
+
+
 
   /**
    * The value for the -t argument which will be used for the most
@@ -361,18 +376,27 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
   /**
-   * Create the provided managed object.
+   * Interactively lets a user create a new managed object beneath a
+   * parent.
    *
+   * @param <C>
+   *          The type of managed object which can be created.
+   * @param <S>
+   *          The type of server managed object which can be created.
    * @param app
    *          The console application.
    * @param context
    *          The management context.
-   * @param mo
-   *          The managed object to be created.
-   * @return Returns a MenuResult.success() if the managed object was
-   *         created successfully, or MenuResult.quit(), or
-   *         MenuResult.cancel(), if the managed object was edited
-   *         interactively and the user chose to quit or cancel.
+   * @param parent
+   *          The parent managed object.
+   * @param rd
+   *          The relation beneath which the child managed object
+   *          should be created.
+   * @return Returns a MenuResult.success() containing the name of the
+   *         created managed object if it was created successfully, or
+   *         MenuResult.quit(), or MenuResult.cancel(), if the managed
+   *         object was edited interactively and the user chose to
+   *         quit or cancel.
    * @throws ClientException
    *           If an unrecoverable client exception occurred whilst
    *           interacting with the server.
@@ -380,103 +404,43 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
    *           If an error occurred whilst interacting with the
    *           console.
    */
-  public static MenuResult<Void> createManagedObject(ConsoleApplication app,
-      ManagementContext context, ManagedObject<?> mo) throws ClientException,
-      CLIException {
-    ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
-    Message ufn = d.getUserFriendlyName();
+  public static <C extends ConfigurationClient, S extends Configuration>
+      MenuResult<String> createManagedObject(
+      ConsoleApplication app, ManagementContext context,
+      ManagedObject<?> parent, InstantiableRelationDefinition<C, S> rd)
+      throws ClientException, CLIException {
+    AbstractManagedObjectDefinition<C, S> d = rd.getChildDefinition();
 
-    while (true) {
-      // Interactively set properties if applicable.
-      if (app.isInteractive()) {
-        SortedSet<PropertyDefinition<?>> properties =
-          new TreeSet<PropertyDefinition<?>>();
-        for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-          if (pd.hasOption(PropertyOption.HIDDEN)) {
-            continue;
-          }
-          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
-            continue;
-          }
-          properties.add(pd);
-        }
+    // First determine what type of component the user wants to create.
+    MenuResult<ManagedObjectDefinition<? extends C, ? extends S>> result;
+    result = getTypeInteractively(app, d);
 
-        PropertyValueEditor editor = new PropertyValueEditor(app, context);
-        MenuResult<Void> result = editor.edit(mo, properties, false);
+    ManagedObjectDefinition<? extends C, ? extends S> mod;
+    if (result.isSuccess()) {
+      mod = result.getValue();
+    } else if (result.isCancel()) {
+      return MenuResult.cancel();
+    } else {
+      return MenuResult.quit();
+    }
 
-        // Interactively enable/edit referenced components.
-        if (result.isSuccess()) {
-          result = checkReferences(app, context, mo);
-          if (result.isAgain()) {
-            // Edit again.
-            continue;
-          }
-        }
+    // Now create the component.
+    // FIXME: handle default value exceptions?
+    List<DefaultBehaviorException> exceptions =
+      new LinkedList<DefaultBehaviorException>();
+    app.println();
+    app.println();
+    ManagedObject<? extends C> mo =
+      createChildInteractively(app, parent, rd, mod, exceptions);
 
-        if (result.isQuit()) {
-          if (!app.isMenuDrivenMode()) {
-            // User chose to cancel any changes.
-            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
-            app.printVerboseMessage(msg);
-          }
-          return MenuResult.quit();
-        } else if (result.isCancel()) {
-          return MenuResult.cancel();
-        }
-      }
-
-      try {
-        // Create the managed object.
-        mo.commit();
-
-        // Output success message.
-        app.println();
-        Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
-        app.printVerboseMessage(msg);
-
-        return MenuResult.success();
-      } catch (MissingMandatoryPropertiesException e) {
-        if (app.isInteractive()) {
-          // If interactive, give the user the chance to fix the
-          // problems.
-          app.println();
-          displayMissingMandatoryPropertyException(app, e);
-          app.println();
-          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
-            return MenuResult.cancel();
-          }
-        } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
-              .getMessageObject(), e);
-        }
-      } catch (AuthorizationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            msg);
-      } catch (ConcurrentModificationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
-      } catch (OperationRejectedException e) {
-        if (app.isInteractive()) {
-          // If interactive, give the user the chance to fix the
-          // problems.
-          app.println();
-          displayOperationRejectedException(app, e);
-          app.println();
-          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
-            return MenuResult.cancel();
-          }
-        } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
-              .getMessageObject(), e);
-        }
-      } catch (CommunicationException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
-      } catch (ManagedObjectAlreadyExistsException e) {
-        Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
-        throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
-      }
+    // Let the user interactively configure the managed object and commit it.
+    MenuResult<Void> result2 = commitManagedObject(app, context, mo);
+    if (result2.isCancel()) {
+      return MenuResult.cancel();
+    } else if (result2.isQuit()) {
+      return MenuResult.quit();
+    } else {
+      return MenuResult.success(mo.getManagedObjectPath().getName());
     }
   }
 
@@ -637,6 +601,286 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
+  // Commit a new managed object's configuration.
+  private static MenuResult<Void> commitManagedObject(ConsoleApplication app,
+      ManagementContext context, ManagedObject<?> mo) throws ClientException,
+      CLIException {
+    ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
+    Message ufn = d.getUserFriendlyName();
+
+    while (true) {
+      // Interactively set properties if applicable.
+      if (app.isInteractive()) {
+        SortedSet<PropertyDefinition<?>> properties =
+          new TreeSet<PropertyDefinition<?>>();
+        for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+          if (pd.hasOption(PropertyOption.HIDDEN)) {
+            continue;
+          }
+          if (!app.isAdvancedMode() && pd.hasOption(PropertyOption.ADVANCED)) {
+            continue;
+          }
+          properties.add(pd);
+        }
+
+        PropertyValueEditor editor = new PropertyValueEditor(app, context);
+        MenuResult<Void> result = editor.edit(mo, properties, false);
+
+        // Interactively enable/edit referenced components.
+        if (result.isSuccess()) {
+          result = checkReferences(app, context, mo);
+          if (result.isAgain()) {
+            // Edit again.
+            continue;
+          }
+        }
+
+        if (result.isQuit()) {
+          if (!app.isMenuDrivenMode()) {
+            // User chose to cancel any changes.
+            Message msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
+            app.printVerboseMessage(msg);
+          }
+          return MenuResult.quit();
+        } else if (result.isCancel()) {
+          return MenuResult.cancel();
+        }
+      }
+
+      try {
+        // Create the managed object.
+        mo.commit();
+
+        // Output success message.
+        app.println();
+        Message msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
+        app.printVerboseMessage(msg);
+
+        return MenuResult.success();
+      } catch (MissingMandatoryPropertiesException e) {
+        if (app.isInteractive()) {
+          // If interactive, give the user the chance to fix the
+          // problems.
+          app.println();
+          displayMissingMandatoryPropertyException(app, e);
+          app.println();
+          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+            return MenuResult.cancel();
+          }
+        } else {
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+              .getMessageObject(), e);
+        }
+      } catch (AuthorizationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+            msg);
+      } catch (ConcurrentModificationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      } catch (OperationRejectedException e) {
+        if (app.isInteractive()) {
+          // If interactive, give the user the chance to fix the
+          // problems.
+          app.println();
+          displayOperationRejectedException(app, e);
+          app.println();
+          if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
+            return MenuResult.cancel();
+          }
+        } else {
+          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+              .getMessageObject(), e);
+        }
+      } catch (CommunicationException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      } catch (ManagedObjectAlreadyExistsException e) {
+        Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
+        throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
+      }
+    }
+  }
+
+
+
+  // Interactively create the child by prompting for the name.
+  private static <C extends ConfigurationClient, S extends Configuration>
+  ManagedObject<? extends C> createChildInteractively(
+      ConsoleApplication app, final ManagedObject<?> parent,
+      final InstantiableRelationDefinition<C, S> irelation,
+      final ManagedObjectDefinition<? extends C, ? extends S> d,
+      final List<DefaultBehaviorException> exceptions) throws CLIException {
+    ValidationCallback<ManagedObject<? extends C>> validator =
+      new ValidationCallback<ManagedObject<? extends C>>() {
+
+      public ManagedObject<? extends C> validate(ConsoleApplication app,
+          String input) throws CLIException {
+        ManagedObject<? extends C> child;
+
+        // First attempt to create the child, this will guarantee that
+        // the name is acceptable.
+        try {
+          child = parent.createChild(irelation, d, input, exceptions);
+        } catch (IllegalManagedObjectNameException e) {
+          CLIException ae = ArgumentExceptionFactory
+              .adaptIllegalManagedObjectNameException(e, d);
+          app.println();
+          app.println(ae.getMessageObject());
+          app.println();
+          return null;
+        }
+
+        // Make sure that there are not any other children with the
+        // same name.
+        try {
+          // Attempt to retrieve a child using this name.
+          parent.getChild(irelation, input);
+        } catch (AuthorizationException e) {
+          Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(irelation
+              .getUserFriendlyName());
+          throw new CLIException(msg);
+        } catch (ConcurrentModificationException e) {
+          Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
+              .getUserFriendlyName());
+          throw new CLIException(msg);
+        } catch (CommunicationException e) {
+          Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
+              .getUserFriendlyName(), e.getMessage());
+          throw new CLIException(msg);
+        } catch (DefinitionDecodingException e) {
+          // Do nothing.
+        } catch (ManagedObjectDecodingException e) {
+          // Do nothing.
+        } catch (ManagedObjectNotFoundException e) {
+          // The child does not already exist so this name is ok.
+          return child;
+        }
+
+        // A child with the specified name must already exist.
+        Message msg = ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(irelation
+            .getUserFriendlyName(), input);
+        app.println();
+        app.println(msg);
+        app.println();
+        return null;
+      }
+
+    };
+
+    // Display additional help if the name is a naming property.
+    Message ufn = d.getUserFriendlyName();
+    PropertyDefinition<?> pd = irelation.getNamingPropertyDefinition();
+    if (pd != null) {
+      app.println(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING.get(ufn, pd.getName()));
+
+      app.println();
+      app.println(pd.getSynopsis(), 4);
+
+      if (pd.getDescription() != null) {
+        app.println();
+        app.println(pd.getDescription(), 4);
+      }
+
+      PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
+          true);
+      app.println();
+      app.println(INFO_EDITOR_HEADING_SYNTAX.get(b.getUsage(pd)), 4);
+      app.println();
+
+      return app.readValidatedInput(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING_CONT
+          .get(ufn), validator);
+    } else {
+      return app.readValidatedInput(INFO_DSCFG_CREATE_NAME_PROMPT.get(ufn),
+          validator);
+    }
+  }
+
+
+
+  // Generate the type name - definition mapping table.
+  @SuppressWarnings("unchecked")
+  private static <C extends ConfigurationClient, S extends Configuration>
+  SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
+      getSubTypes(AbstractManagedObjectDefinition<C, S> d) {
+    SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
+    map =
+      new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
+
+    // If the top-level definition is instantiable, we use the value
+    // "generic".
+    if (d instanceof ManagedObjectDefinition) {
+      ManagedObjectDefinition<? extends C, ? extends S> mod =
+        (ManagedObjectDefinition<? extends C, ? extends S>) d;
+      map.put(GENERIC_TYPE, mod);
+    }
+
+    // Process its sub-definitions.
+    String suffix = "-" + d.getName();
+    for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
+        .getAllChildren()) {
+      if (c instanceof ManagedObjectDefinition) {
+        ManagedObjectDefinition<? extends C, ? extends S> mod =
+          (ManagedObjectDefinition<? extends C, ? extends S>) c;
+
+        // For the type name we shorten it, if possible, by stripping
+        // off the trailing part of the name which matches the
+        // base-type.
+        String name = mod.getName();
+        if (name.endsWith(suffix)) {
+          name = name.substring(0, name.length() - suffix.length());
+        }
+
+        map.put(name, mod);
+      }
+    }
+
+    return map;
+  }
+
+
+
+  // Interactively ask the user which type of component they want to create.
+  private static <C extends ConfigurationClient, S extends Configuration>
+      MenuResult<ManagedObjectDefinition<? extends C, ? extends S>>
+      getTypeInteractively(ConsoleApplication app,
+          AbstractManagedObjectDefinition<C, S> d) throws CLIException {
+    Collection<ManagedObjectDefinition<? extends C, ? extends S>> types;
+    types = getSubTypes(d).values();
+
+    // If there is only one choice then return immediately.
+    if (types.size() == 1) {
+      ManagedObjectDefinition<? extends C, ? extends S> type =
+        types.iterator().next();
+      return MenuResult.<ManagedObjectDefinition<? extends C,
+          ? extends S>>success(type);
+    } else {
+      MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>> builder =
+        new MenuBuilder<ManagedObjectDefinition<? extends C, ? extends S>>(app);
+      Message msg = INFO_DSCFG_CREATE_TYPE_PROMPT.get(d.getUserFriendlyName());
+      builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
+      builder.setPrompt(msg);
+
+      for (ManagedObjectDefinition<? extends C, ? extends S> mod : types) {
+        Message option = mod.getUserFriendlyName();
+        if ((mod == d) && (mod instanceof ManagedObjectDefinition)) {
+          option = INFO_DSCFG_GENERIC_TYPE_OPTION.get(option);
+        }
+        builder.addNumberedOption(option,
+            MenuResult.<ManagedObjectDefinition<? extends C,
+                ? extends S>>success(mod));
+      }
+      builder.addHelpOption(new TypeHelpCallback<C,S>(d));
+      if (app.isMenuDrivenMode()) {
+        builder.addCancelOption(true);
+      }
+      builder.addQuitOption();
+      return builder.toMenu().run();
+    }
+  }
+
+
+
   // The sub-commands naming arguments.
   private final List<StringArgument> namingArgs;
 
@@ -770,69 +1014,41 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       ManagementContextFactory factory) throws ArgumentException,
       ClientException, CLIException {
     // Determine the type of managed object to be created.
-    String typeName;
-
+    ManagedObjectDefinition<? extends C, ? extends S> d;
     if (!typeArgument.isPresent()) {
       if (app.isInteractive()) {
         // Let the user choose.
+        MenuResult<ManagedObjectDefinition<? extends C, ? extends S>> result;
+        app.println();
+        app.println();
+        result = getTypeInteractively(app, relation.getChildDefinition());
 
-        // If there is only one choice then return immediately.
-        if (types.size() == 1) {
-          typeName = types.keySet().iterator().next();
+        if (result.isSuccess()) {
+          d = result.getValue();
+        } else if (result.isCancel()) {
+          return MenuResult.cancel();
         } else {
-          MenuBuilder<String> builder = new MenuBuilder<String>(app);
-          Message msg = INFO_DSCFG_CREATE_TYPE_PROMPT.get(relation
-              .getChildDefinition().getUserFriendlyName());
-          builder.setMultipleColumnThreshold(MULTI_COLUMN_THRESHOLD);
-          builder.setPrompt(msg);
-
-          for (String type : types.keySet()) {
-            ManagedObjectDefinition<?, ?> d = types.get(type);
-            Message option = d.getUserFriendlyName();
-            if (type.equals(GENERIC_TYPE)) {
-              option = INFO_DSCFG_GENERIC_TYPE_OPTION.get(option);
-            }
-            builder.addNumberedOption(option, MenuResult.success(type));
+          // Must be quit.
+          if (!app.isMenuDrivenMode()) {
+            app.printVerboseMessage(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(relation
+                .getUserFriendlyName()));
           }
-          builder.addHelpOption(new TypeHelpCallback());
-          if (app.isMenuDrivenMode()) {
-            builder.addCancelOption(true);
-          }
-          builder.addQuitOption();
-
-          Menu<String> menu = builder.toMenu();
-          app.println();
-          app.println();
-          MenuResult<String> result = menu.run();
-          if (result.isSuccess()) {
-            typeName = result.getValue();
-          } else if (result.isCancel()) {
-            return MenuResult.cancel();
-          } else {
-            // Must be quit.
-            if (!app.isMenuDrivenMode()) {
-              msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(relation
-                  .getUserFriendlyName());
-              app.printVerboseMessage(msg);
-            }
-            return MenuResult.quit();
-          }
+          return MenuResult.quit();
         }
       } else if (typeArgument.getDefaultValue() != null) {
-        typeName = typeArgument.getDefaultValue();
+        d = types.get(typeArgument.getDefaultValue());
       } else {
         throw ArgumentExceptionFactory
             .missingMandatoryNonInteractiveArgument(typeArgument);
       }
     } else {
-      typeName = typeArgument.getValue();
+      d = types.get(typeArgument.getValue());
+      if (d == null) {
+        throw ArgumentExceptionFactory.unknownSubType(relation, typeArgument
+            .getValue(), typeUsage);
+      }
     }
 
-    ManagedObjectDefinition<? extends C, ? extends S> d = types.get(typeName);
-    if (d == null) {
-      throw ArgumentExceptionFactory.unknownSubType(relation, typeName,
-          typeUsage);
-    }
     Message ufn = d.getUserFriendlyName();
 
     // Get the naming argument values.
@@ -894,6 +1110,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       String name = names.get(names.size() - 1);
       if (name == null) {
         if (app.isInteractive()) {
+          app.println();
+          app.println();
           child = createChildInteractively(app, parent, irelation,
               d, exceptions);
         } else {
@@ -927,7 +1145,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     // Now the command line changes have been made, create the managed
     // object interacting with the user to fix any problems if
     // required.
-    MenuResult<Void> result2 = createManagedObject(app, context, child);
+    MenuResult<Void> result2 = commitManagedObject(app, context, child);
     if (result2.isCancel()) {
       return MenuResult.cancel();
     } else if (result2.isQuit()) {
@@ -935,143 +1153,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     } else {
       return MenuResult.success(0);
     }
-  }
-
-
-
-  // Interactively create the child by prompting for the name.
-  private ManagedObject<? extends C> createChildInteractively(
-      ConsoleApplication app, final ManagedObject<?> parent,
-      final InstantiableRelationDefinition<C, S> irelation,
-      final ManagedObjectDefinition<? extends C, ? extends S> d,
-      final List<DefaultBehaviorException> exceptions) throws CLIException {
-    ValidationCallback<ManagedObject<? extends C>> validator =
-      new ValidationCallback<ManagedObject<? extends C>>() {
-
-      public ManagedObject<? extends C> validate(ConsoleApplication app,
-          String input) throws CLIException {
-        ManagedObject<? extends C> child;
-
-        // First attempt to create the child, this will guarantee that
-        // the name is acceptable.
-        try {
-          child = parent.createChild(irelation, d, input, exceptions);
-        } catch (IllegalManagedObjectNameException e) {
-          CLIException ae = ArgumentExceptionFactory
-              .adaptIllegalManagedObjectNameException(e, d);
-          app.println();
-          app.println(ae.getMessageObject());
-          app.println();
-          return null;
-        }
-
-        // Make sure that there are not any other children with the
-        // same name.
-        try {
-          // Attempt to retrieve a child using this name.
-          parent.getChild(irelation, input);
-        } catch (AuthorizationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(irelation
-              .getUserFriendlyName());
-          throw new CLIException(msg);
-        } catch (ConcurrentModificationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
-              .getUserFriendlyName());
-          throw new CLIException(msg);
-        } catch (CommunicationException e) {
-          Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
-              .getUserFriendlyName(), e.getMessage());
-          throw new CLIException(msg);
-        } catch (DefinitionDecodingException e) {
-          // Do nothing.
-        } catch (ManagedObjectDecodingException e) {
-          // Do nothing.
-        } catch (ManagedObjectNotFoundException e) {
-          // The child does not already exist so this name is ok.
-          return child;
-        }
-
-        // A child with the specified name must already exist.
-        Message msg = ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(relation
-            .getUserFriendlyName(), input);
-        app.println();
-        app.println(msg);
-        app.println();
-        return null;
-      }
-
-    };
-
-    app.println();
-    app.println();
-
-    // Display additional help if the name is a naming property.
-    Message ufn = d.getUserFriendlyName();
-    PropertyDefinition<?> pd = irelation.getNamingPropertyDefinition();
-    if (pd != null) {
-      app.println(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING.get(ufn, pd.getName()));
-
-      app.println();
-      app.println(pd.getSynopsis(), 4);
-
-      if (pd.getDescription() != null) {
-        app.println();
-        app.println(pd.getDescription(), 4);
-      }
-
-      PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
-          true);
-      app.println();
-      app.println(INFO_EDITOR_HEADING_SYNTAX.get(b.getUsage(pd)), 4);
-      app.println();
-
-      return app.readValidatedInput(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING_CONT
-          .get(ufn), validator);
-    } else {
-      return app.readValidatedInput(INFO_DSCFG_CREATE_NAME_PROMPT.get(ufn),
-          validator);
-    }
-  }
-
-
-
-  // Generate the type name - definition mapping table.
-  @SuppressWarnings("unchecked")
-  private SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
-      getSubTypes(AbstractManagedObjectDefinition<C, S> d) {
-    SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
-    map =
-      new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
-
-    // If the top-level definition is instantiable, we use the value
-    // "generic".
-    if (d instanceof ManagedObjectDefinition) {
-      ManagedObjectDefinition<? extends C, ? extends S> mod =
-        (ManagedObjectDefinition<? extends C, ? extends S>) d;
-      map.put(GENERIC_TYPE, mod);
-    }
-
-    // Process its sub-definitions.
-    String suffix = "-" + d.getName();
-    for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
-        .getAllChildren()) {
-      if (c instanceof ManagedObjectDefinition) {
-        ManagedObjectDefinition<? extends C, ? extends S> mod =
-          (ManagedObjectDefinition<? extends C, ? extends S>) c;
-
-        // For the type name we shorten it, if possible, by stripping
-        // off the trailing part of the name which matches the
-        // base-type.
-        String name = mod.getName();
-        if (name.endsWith(suffix)) {
-          name = name.substring(0, name.length() - suffix.length());
-        }
-
-        map.put(name, mod);
-      }
-    }
-
-    return map;
   }
 
 

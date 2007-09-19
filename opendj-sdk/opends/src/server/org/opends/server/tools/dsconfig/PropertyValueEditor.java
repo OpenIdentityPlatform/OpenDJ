@@ -51,6 +51,7 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.EnumPropertyDefinition;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.IllegalPropertyValueStringException;
@@ -71,7 +72,10 @@ import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
+import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.ClientException;
 import org.opends.server.util.Validator;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
@@ -89,6 +93,86 @@ import org.opends.server.util.table.TextTablePrinter;
  * Common methods used for interactively editing properties.
  */
 final class PropertyValueEditor {
+
+  /**
+   * A menu call-back which can be used to dynamically create new
+   * components when configuring aggregation based properties.
+   */
+  private final class CreateComponentCallback
+      <C extends ConfigurationClient, S extends Configuration>
+      implements MenuCallback<String> {
+
+    // The aggregation property definition.
+    private final AggregationPropertyDefinition<C, S> pd;
+
+
+
+    // Creates a new component create call-back for the provided
+    // aggregation property definition.
+    private CreateComponentCallback(AggregationPropertyDefinition<C, S> pd) {
+      this.pd = pd;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public MenuResult<String> invoke(ConsoleApplication app)
+        throws CLIException {
+      try {
+        // First get the parent managed object.
+        InstantiableRelationDefinition<?, ?> rd = pd.getRelationDefinition();
+        ManagedObjectPath<?, ?> path = pd.getParentPath();
+        Message ufn = rd.getUserFriendlyName();
+
+        ManagedObject<?> parent;
+        try {
+          parent = context.getManagedObject(path);
+        } catch (AuthorizationException e) {
+          Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+          throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              msg);
+        } catch (DefinitionDecodingException e) {
+          Message pufn = path.getManagedObjectDefinition()
+              .getUserFriendlyName();
+          Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
+          throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+        } catch (ManagedObjectDecodingException e) {
+          Message pufn = path.getManagedObjectDefinition()
+              .getUserFriendlyName();
+          Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
+          throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
+        } catch (CommunicationException e) {
+          Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+          throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+              msg);
+        } catch (ManagedObjectNotFoundException e) {
+          Message pufn = path.getManagedObjectDefinition()
+              .getUserFriendlyName();
+          Message msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
+          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+        }
+
+        // Now let the user create the child component.
+        app.println();
+        app.println();
+        return CreateSubCommandHandler.createManagedObject(app, context,
+            parent, rd);
+      } catch (ClientException e) {
+        // FIXME: should really do something better with the exception
+        // handling here. For example, if a authz or communications
+        // exception occurs then the application should exit.
+        app.println();
+        app.println(e.getMessageObject());
+        app.println();
+        app.pressReturnToContinue();
+        return MenuResult.cancel();
+      }
+    }
+  }
+
+
 
   /**
    * A help call-back which displays a description and summary of a
@@ -409,11 +493,13 @@ final class PropertyValueEditor {
         return MenuResult.quit();
       }
 
-      // FIXME: give the user the option to enable/create a component.
       for (String value : values) {
         Message option = getPropertyValues(d, Collections.singleton(value));
         builder.addNumberedOption(option, MenuResult.success(value));
       }
+      MenuCallback<String> callback = new CreateComponentCallback<C, S>(d);
+      builder.addNumberedOption(INFO_EDITOR_OPTION_CREATE_A_NEW_COMPONENT
+          .get(rd.getUserFriendlyName()), callback);
 
       builder.addHelpOption(new PropertyHelpCallback(mo
           .getManagedObjectDefinition(), d));
@@ -618,11 +704,10 @@ final class PropertyValueEditor {
     public <C extends ConfigurationClient, S extends Configuration>
         MenuResult<Boolean> visitAggregation(
         final AggregationPropertyDefinition<C, S> d, Void p) {
-      // FIXME: give the user the option to enable/create a component.
       final SortedSet<String> defaultValues = mo.getPropertyDefaultValues(d);
       final SortedSet<String> oldValues = mo.getPropertyValues(d);
       final SortedSet<String> currentValues = mo.getPropertyValues(d);
-      InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
+      final InstantiableRelationDefinition<C, S> rd = d.getRelationDefinition();
       final Message ufpn = rd.getUserFriendlyPluralName();
 
       boolean isFirst = true;
@@ -679,6 +764,11 @@ final class PropertyValueEditor {
                     .singleton(value));
                 builder.addNumberedOption(svalue, MenuResult.success(value));
               }
+              MenuCallback<String> callback = new CreateComponentCallback<C, S>(
+                  d);
+              builder.addNumberedOption(
+                  INFO_EDITOR_OPTION_CREATE_A_NEW_COMPONENT.get(rd
+                      .getUserFriendlyName()), callback);
 
               if (values.size() > 1) {
                 // No point in having this option if there's only one
@@ -1550,6 +1640,9 @@ final class PropertyValueEditor {
 
         builder.addNumberedOption(option, MenuResult.success(value));
       }
+      MenuCallback<String> callback = new CreateComponentCallback<C, S>(d);
+      builder.addNumberedOption(INFO_EDITOR_OPTION_CREATE_A_NEW_COMPONENT
+          .get(ufn), callback);
 
       // Third option is to reset the value back to its default.
       if (mo.isPropertyPresent(d) && !query.isDefined()) {
@@ -1558,8 +1651,6 @@ final class PropertyValueEditor {
           builder.addNumberedOption(option, MenuResult.<String> success());
         }
       }
-
-      // FIXME: give the user the option to enable/create a component.
 
       return runMenu(d, builder);
     }
