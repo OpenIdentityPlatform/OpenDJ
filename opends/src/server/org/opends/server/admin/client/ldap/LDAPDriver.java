@@ -76,6 +76,7 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.client.OperationRejectedException.OperationType;
 import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.admin.client.spi.PropertySet;
 import org.opends.server.admin.std.client.RootCfgClient;
@@ -422,11 +423,15 @@ final class LDAPDriver extends Driver {
       connection.deleteSubtree(dn);
     } catch (OperationNotSupportedException e) {
       // Unwilling to perform.
+      AbstractManagedObjectDefinition<?, ?> d =
+        path.getManagedObjectDefinition();
       if (e.getMessage() == null) {
-        throw new OperationRejectedException();
+        throw new OperationRejectedException(OperationType.DELETE, d
+            .getUserFriendlyName());
       } else {
         Message m = Message.raw("%s", e.getMessage());
-        throw new OperationRejectedException(m);
+        throw new OperationRejectedException(OperationType.DELETE, d
+            .getUserFriendlyName(), m);
       }
     } catch (NamingException e) {
       adaptNamingException(e);

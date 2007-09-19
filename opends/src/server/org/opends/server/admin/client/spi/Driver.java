@@ -69,6 +69,7 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.client.OperationRejectedException.OperationType;
 import org.opends.server.admin.std.client.RootCfgClient;
 
 
@@ -783,7 +784,8 @@ public abstract class Driver {
     }
 
     if (!isAcceptable) {
-      throw new OperationRejectedException(messages);
+      throw new OperationRejectedException(OperationType.DELETE, d
+          .getUserFriendlyName(), messages);
     }
 
     deleteManagedObject(path);

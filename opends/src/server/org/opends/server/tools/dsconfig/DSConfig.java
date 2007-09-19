@@ -32,6 +32,7 @@ import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.InputStream;
@@ -45,15 +46,14 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
+import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.tools.ClientException;
@@ -72,8 +72,6 @@ import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuCallback;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.cli.OutputStreamConsoleApplication;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
 
 
 
@@ -826,50 +824,27 @@ public final class DSConfig extends ConsoleApplication {
       println(e.getMessageObject());
       return 1;
     } catch (ClientException e) {
-      // If the client exception was caused by a decoding exception
-      // then we should display the causes.
-      println(e.getMessageObject());
-
       Throwable cause = e.getCause();
       if (cause instanceof ManagedObjectDecodingException) {
         ManagedObjectDecodingException de =
           (ManagedObjectDecodingException) cause;
-
         println();
-        TableBuilder builder = new TableBuilder();
-        for (PropertyException pe : de.getCauses()) {
-          AbstractManagedObjectDefinition<?, ?> d = de
-              .getPartialManagedObject().getManagedObjectDefinition();
-          ArgumentException ae = ArgumentExceptionFactory
-              .adaptPropertyException(pe, d);
-          builder.startRow();
-          builder.appendCell("*");
-          builder.appendCell(ae.getMessage());
-        }
-
-        TextTablePrinter printer = new TextTablePrinter(getErrorStream());
-        printer.setDisplayHeadings(false);
-        printer.setColumnWidth(1, 0);
-        printer.setIndentWidth(4);
-        builder.print(printer);
+        displayManagedObjectDecodingException(this, de);
+        println();
+      } else if (cause instanceof MissingMandatoryPropertiesException) {
+        MissingMandatoryPropertiesException mmpe =
+          (MissingMandatoryPropertiesException) cause;
+        println();
+        displayMissingMandatoryPropertyException(this, mmpe);
         println();
       } else if (cause instanceof OperationRejectedException) {
         OperationRejectedException ore = (OperationRejectedException) cause;
-
         println();
-        TableBuilder builder = new TableBuilder();
-        for (Message reason : ore.getMessages()) {
-          builder.startRow();
-          builder.appendCell("*");
-          builder.appendCell(reason);
-        }
-
-        TextTablePrinter printer = new TextTablePrinter(getErrorStream());
-        printer.setDisplayHeadings(false);
-        printer.setColumnWidth(1, 0);
-        printer.setIndentWidth(4);
-        builder.print(printer);
+        displayOperationRejectedException(this, ore);
         println();
+      } else {
+        // Just display the default message.
+        println(e.getMessageObject());
       }
 
       return 1;

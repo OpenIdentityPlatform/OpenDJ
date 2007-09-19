@@ -86,21 +86,37 @@ public class MissingMandatoryPropertiesException extends OperationsException {
   // The causes of this exception.
   private final Collection<PropertyIsMandatoryException> causes;
 
+  // Indicates whether the exception occurred during managed object
+  // creation.
+  private final boolean isCreate;
+
+  // The user friendly name of the component that caused this
+  // exception.
+  private final Message ufn;
+
 
 
   /**
    * Creates a new missing mandatory properties exception with the
    * provided causes.
    *
+   * @param ufn
+   *          The user friendly name of the component that caused this
+   *          exception.
    * @param causes
    *          The causes of this exception (must be non-<code>null</code>
    *          and non-empty).
+   * @param isCreate
+   *          Indicates whether the exception occurred during managed
+   *          object creation.
    */
-  public MissingMandatoryPropertiesException(
-      Collection<PropertyIsMandatoryException> causes) {
+  public MissingMandatoryPropertiesException(Message ufn,
+      Collection<PropertyIsMandatoryException> causes, boolean isCreate) {
     super(createMessage(causes));
 
     this.causes = new ArrayList<PropertyIsMandatoryException>(causes);
+    this.ufn = ufn;
+    this.isCreate = isCreate;
   }
 
 
@@ -126,6 +142,32 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    */
   public Collection<PropertyIsMandatoryException> getCauses() {
     return Collections.unmodifiableCollection(causes);
+  }
+
+
+
+  /**
+   * Gets the user friendly name of the component that caused this
+   * exception.
+   *
+   * @return Returns the user friendly name of the component that
+   *         caused this exception.
+   */
+  public Message getUserFriendlyName() {
+    return ufn;
+  }
+
+
+
+  /**
+   * Indicates whether or not this exception was thrown during managed
+   * object creation or during modification.
+   *
+   * @return Returns <code>true</code> if this exception was thrown
+   *         during managed object creation.
+   */
+  public boolean isCreate() {
+    return isCreate;
   }
 
 }

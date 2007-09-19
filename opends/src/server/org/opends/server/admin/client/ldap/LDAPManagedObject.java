@@ -60,6 +60,7 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.client.OperationRejectedException.OperationType;
 import org.opends.server.admin.client.spi.AbstractManagedObject;
 import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.admin.client.spi.Property;
@@ -160,6 +161,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
       CommunicationException, OperationRejectedException,
       ConcurrentModificationException, ManagedObjectAlreadyExistsException {
     // First make sure that the parent managed object still exists.
+    ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
     ManagedObjectPath<?, ?> path = getManagedObjectPath();
     ManagedObjectPath<?, ?> parent = path.parent();
 
@@ -181,8 +183,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
       // TODO: this implementation does not handle relations which
       // comprise of more than one RDN arc (this will probably never
       // be required anyway).
-      LdapName dn = LDAPNameBuilder
-          .create(parent, ir, driver.getLDAPProfile());
+      LdapName dn = LDAPNameBuilder.create(parent, ir, driver.getLDAPProfile());
       if (!driver.entryExists(dn)) {
         // We need to create the entry.
         Attributes attributes = new BasicAttributes();
@@ -205,10 +206,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
         } catch (OperationNotSupportedException e) {
           // Unwilling to perform.
           if (e.getMessage() == null) {
-            throw new OperationRejectedException();
+            throw new OperationRejectedException(OperationType.CREATE, d
+                .getUserFriendlyName());
           } else {
             Message m = Message.raw("%s", e.getMessage());
-            throw new OperationRejectedException(m);
+            throw new OperationRejectedException(OperationType.CREATE, d
+                .getUserFriendlyName(), m);
           }
         } catch (NamingException e) {
           driver.adaptNamingException(e);
@@ -254,10 +257,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
     } catch (OperationNotSupportedException e) {
       // Unwilling to perform.
       if (e.getMessage() == null) {
-        throw new OperationRejectedException();
+        throw new OperationRejectedException(OperationType.CREATE, d
+            .getUserFriendlyName());
       } else {
         Message m = Message.raw("%s", e.getMessage());
-        throw new OperationRejectedException(m);
+        throw new OperationRejectedException(OperationType.CREATE, d
+            .getUserFriendlyName(), m);
       }
     } catch (NamingException e) {
       driver.adaptNamingException(e);
@@ -285,12 +290,11 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
       AuthorizationException, CommunicationException {
     // Build the list of modified attributes.
     Attributes mods = new BasicAttributes();
-    ManagedObjectDefinition<?, ?> definition = getManagedObjectDefinition();
-    for (PropertyDefinition<?> pd : definition.getAllPropertyDefinitions()) {
+    ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       Property<?> p = getProperty(pd);
       if (p.isModified()) {
-        String attrID = driver.getLDAPProfile().getAttributeName(definition,
-            pd);
+        String attrID = driver.getLDAPProfile().getAttributeName(d, pd);
         Attribute attribute = new BasicAttribute(attrID);
         encodeProperty(attribute, pd);
         mods.put(attribute);
@@ -308,10 +312,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
       } catch (OperationNotSupportedException e) {
         // Unwilling to perform.
         if (e.getMessage() == null) {
-          throw new OperationRejectedException();
+          throw new OperationRejectedException(OperationType.MODIFY, d
+              .getUserFriendlyName());
         } else {
           Message m = Message.raw("%s", e.getMessage());
-          throw new OperationRejectedException(m);
+          throw new OperationRejectedException(OperationType.MODIFY, d
+              .getUserFriendlyName(), m);
         }
       } catch (NamingException e) {
         // Just treat it as a communication problem.
