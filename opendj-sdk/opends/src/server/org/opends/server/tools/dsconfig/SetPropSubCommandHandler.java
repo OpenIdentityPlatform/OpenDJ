@@ -342,8 +342,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       if (pd instanceof AggregationPropertyDefinition) {
+        // Runtime cast is required to workaround a
+        // bug in JDK versions prior to 1.5.0_08.
         AggregationPropertyDefinition<?, ?> apd =
-          (AggregationPropertyDefinition<?, ?>) pd;
+          AggregationPropertyDefinition.class.cast(pd);
 
         // Skip this aggregation if it doesn't have an enable
         // property.
