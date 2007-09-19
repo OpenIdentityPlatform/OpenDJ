@@ -53,6 +53,7 @@ import org.opends.server.util.args.StringArgument;
  */
 public class UninstallerArgumentParser extends SecureConnectionCliParser
 {
+  private BooleanArgument cliArg;
   private BooleanArgument noPromptArg;
   BooleanArgument forceOnErrorArg;
   private BooleanArgument quietArg;
@@ -103,6 +104,12 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     LinkedHashSet<Argument> args = new LinkedHashSet<Argument>();
+    cliArg = new BooleanArgument(
+        OPTION_LONG_CLI,
+        OPTION_SHORT_CLI,
+        OPTION_LONG_CLI,
+        INFO_UNINSTALLDS_DESCRIPTION_CLI.get());
+    args.add(cliArg);
     removeAllArg = new BooleanArgument(
         "remove-all",
         'a',

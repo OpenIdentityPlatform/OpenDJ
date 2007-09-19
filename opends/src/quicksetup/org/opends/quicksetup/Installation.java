@@ -139,16 +139,6 @@ public class Installation {
   public static final String WINDOWS_SETUP_FILE_NAME = "setup.bat";
 
   /**
-   * The UNIX GUI setup script file name.
-   */
-  public static final String UNIX_SETUP_GUI_FILE_NAME = "setup-gui";
-
-  /**
-   * The Windows GUI setup batch file name.
-   */
-  public static final String WINDOWS_SETUP_GUI_FILE_NAME = "setup-gui.bat";
-
-  /**
    * The UNIX uninstall script file name.
    */
   public static final String UNIX_UNINSTALL_FILE_NAME = "uninstall";
@@ -157,17 +147,6 @@ public class Installation {
    * The Windows uninstall batch file name.
    */
   public static final String WINDOWS_UNINSTALL_FILE_NAME = "uninstall.bat";
-
-  /**
-   * The UNIX uninstall script file name.
-   */
-  public static final String UNIX_UNINSTALL_GUI_FILE_NAME = "uninstall-gui";
-
-  /**
-   * The Windows uninstall batch file name.
-   */
-  public static final String WINDOWS_UNINSTALL_GUI_FILE_NAME =
-    "uninstall-gui.bat";
 
   /**
    * The UNIX upgrade script file name.

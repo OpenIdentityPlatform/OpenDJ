@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 import org.opends.server.util.args.ArgumentParser;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
 
 import org.opends.quicksetup.util.Utils;
@@ -171,7 +172,8 @@ public abstract class Launcher {
   protected boolean isCli() {
     boolean isCli = false;
     for (String arg : args) {
-      if (arg.equalsIgnoreCase("--cli") || arg.equalsIgnoreCase("-c")) {
+      if (arg.equalsIgnoreCase("--"+OPTION_LONG_CLI) ||
+          arg.equalsIgnoreCase("-"+OPTION_SHORT_CLI)) {
         isCli = true;
         break;
       }

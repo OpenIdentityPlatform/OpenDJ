@@ -57,9 +57,10 @@ import org.opends.server.util.args.StringArgument;
  * a given port is free) nor the validity of the certificate information
  * provided.
  */
-class InstallDSArgumentParser extends ArgumentParser
+public class InstallDSArgumentParser extends ArgumentParser
 {
   BooleanArgument   testOnlyArg;
+  BooleanArgument   cliArg;
   BooleanArgument   addBaseEntryArg;
   BooleanArgument   showUsageArg;
   BooleanArgument   quietArg;
@@ -113,6 +114,13 @@ class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_TESTONLY.get());
     testOnlyArg.setHidden(true);
     addArgument(testOnlyArg);
+
+    cliArg = new BooleanArgument(
+        OPTION_LONG_CLI,
+        OPTION_SHORT_CLI,
+        OPTION_LONG_CLI,
+        INFO_INSTALLDS_DESCRIPTION_CLI.get());
+    addArgument(cliArg);
 
     configFileArg = new StringArgument(
         "configfile", 'c', "configFile", false,

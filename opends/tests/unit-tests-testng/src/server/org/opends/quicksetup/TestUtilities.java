@@ -44,7 +44,7 @@ import java.util.ArrayList;
  *
  */
 public class TestUtilities {
-    
+
   /**
    * The name of the system property that specifies the server build root.
    */
@@ -95,6 +95,7 @@ public class TestUtilities {
     } else {
       args.add(new File(root, "setup.bat").getPath());
     }
+    args.add("--cli");
     args.add("-n");
     args.add("-p");
     args.add(Integer.toString(ldapPort));

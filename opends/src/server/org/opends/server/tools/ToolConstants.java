@@ -458,6 +458,11 @@ public class ToolConstants
   public static final String OPTION_LONG_CLI = "cli";
 
   /**
+   * The value for the short option cli.
+   */
+  public static final char OPTION_SHORT_CLI = 'i';
+
+  /**
    * The value for the short option proxyAs.
    */
   public static final char OPTION_SHORT_PROXYAUTHID = 'Y';
