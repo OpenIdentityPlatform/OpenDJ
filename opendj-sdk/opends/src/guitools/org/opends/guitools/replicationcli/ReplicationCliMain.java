@@ -3025,6 +3025,18 @@ public class ReplicationCliMain extends CliApplicationHelper
           ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()),
           ERROR_UPDATING_ADS, adce);
     }
+    try
+    {
+      ServerDescriptor.seedAdsTrustStore(ctxDestination,
+        adsCtxSource.getTrustedCertificates());
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.SEVERE, "Error seeding truststores: "+t, t);
+      throw new ReplicationCliException(
+          ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(t.toString()),
+          ERROR_SEEDING_TRUSTORE, t);
+    }
     printProgressMessage(formatter.getFormattedDone());
     printProgressMessage(formatter.getLineBreak());
 
@@ -3245,18 +3257,6 @@ public class ReplicationCliMain extends CliApplicationHelper
               ConnectionUtils.getHostPort(ctxDestination),
               ConnectionUtils.getHostPort(ctxSource))));
 
-      try
-      {
-        ServerDescriptor.seedAdsTrustStore(ctxDestination,
-          adsCtxSource.getTrustedCertificates());
-      }
-      catch (Throwable t)
-      {
-        LOG.log(Level.SEVERE, "Error seeding truststores: "+t, t);
-        throw new ReplicationCliException(
-            ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(t.toString()),
-            ERROR_SEEDING_TRUSTORE, t);
-      }
       initializeSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource,
           ctxDestination, false);
       printProgressMessage(formatter.getFormattedDone());
