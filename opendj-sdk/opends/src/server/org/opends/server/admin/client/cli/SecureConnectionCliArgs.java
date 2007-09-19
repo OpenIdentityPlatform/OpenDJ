@@ -154,6 +154,10 @@ public final class SecureConnectionCliArgs
    */
   public StringArgument  saslOptionArg = null;
 
+  /**
+   * Private container for global arguments.
+   */
+  private LinkedHashSet<Argument> argList = null;
 
   // the trust manager.
   private ApplicationTrustManager trustManager;
@@ -179,6 +183,25 @@ public final class SecureConnectionCliArgs
    */
   public SecureConnectionCliArgs()
   {
+  }
+
+  /**
+   * Indicates whether or not any of the arguments are present.
+   *
+   * @return boolean where true indicates that at least one of the
+   *         arguments is present
+   */
+  public boolean argumentsPresent() {
+    boolean present = false;
+    if (argList != null) {
+      for (Argument arg : argList) {
+        if (arg.isPresent()) {
+          present = true;
+          break;
+        }
+      }
+    }
+    return present;
   }
 
   /**
@@ -360,42 +383,42 @@ public final class SecureConnectionCliArgs
   public LinkedHashSet<Argument> createGlobalArguments()
   throws ArgumentException
   {
-    LinkedHashSet<Argument> set = new LinkedHashSet<Argument>();
+    argList = new LinkedHashSet<Argument>();
 
     useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
         OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
-    set.add(useSSLArg);
+    argList.add(useSSLArg);
 
     useStartTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
         OPTION_LONG_START_TLS,
         INFO_DESCRIPTION_START_TLS.get());
-    set.add(useStartTLSArg);
+    argList.add(useStartTLSArg);
 
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_HOST.get());
-    set.add(hostNameArg);
+    argList.add(hostNameArg);
 
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_PORT.get());
-    set.add(portArg);
+    argList.add(portArg);
 
     bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
-    set.add(bindDnArg);
+    argList.add(bindDnArg);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
         OPTION_VALUE_BINDPWD, null, null, INFO_DESCRIPTION_BINDPASSWORD.get());
-    set.add(bindPasswordArg);
+    argList.add(bindPasswordArg);
 
     bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_BINDPASSWORDFILE.get());
-    set.add(bindPasswordFileArg);
+    argList.add(bindPasswordFileArg);
 
     saslOptionArg = new StringArgument(
             "sasloption", OPTION_SHORT_SASLOPTION,
@@ -403,56 +426,56 @@ public final class SecureConnectionCliArgs
             true, true,
             OPTION_VALUE_SASLOPTION, null, null,
             INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
-    set.add(saslOptionArg);
+    argList.add(saslOptionArg);
 
     trustAllArg = new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL,
         OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
-    set.add(trustAllArg);
+    argList.add(trustAllArg);
 
     trustStorePathArg = new StringArgument("trustStorePath",
         OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
         false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPATH.get());
-    set.add(trustStorePathArg);
+    argList.add(trustStorePathArg);
 
     trustStorePasswordArg = new StringArgument("trustStorePassword",
         OPTION_SHORT_TRUSTSTORE_PWD, OPTION_LONG_TRUSTSTORE_PWD, false, false,
         true, OPTION_VALUE_TRUSTSTORE_PWD, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
-    set.add(trustStorePasswordArg);
+    argList.add(trustStorePasswordArg);
 
     trustStorePasswordFileArg = new FileBasedArgument("trustStorePasswordFile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
-    set.add(trustStorePasswordFileArg);
+    argList.add(trustStorePasswordFileArg);
 
     keyStorePathArg = new StringArgument("keyStorePath",
         OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
         true, OPTION_VALUE_KEYSTOREPATH, null, null,
         INFO_DESCRIPTION_KEYSTOREPATH.get());
-    set.add(keyStorePathArg);
+    argList.add(keyStorePathArg);
 
     keyStorePasswordArg = new StringArgument("keyStorePassword",
         OPTION_SHORT_KEYSTORE_PWD,
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
         OPTION_VALUE_KEYSTORE_PWD, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
-    set.add(keyStorePasswordArg);
+    argList.add(keyStorePasswordArg);
 
     keyStorePasswordFileArg = new FileBasedArgument("keystorePasswordFile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
-    set.add(keyStorePasswordFileArg);
+    argList.add(keyStorePasswordFileArg);
 
     certNicknameArg = new StringArgument("certNickname",
         OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
         false, false, true, OPTION_VALUE_CERT_NICKNAME, null, null,
         INFO_DESCRIPTION_CERT_NICKNAME.get());
-    set.add(certNicknameArg);
+    argList.add(certNicknameArg);
 
-    return set;
+    return argList;
   }
 
   /**

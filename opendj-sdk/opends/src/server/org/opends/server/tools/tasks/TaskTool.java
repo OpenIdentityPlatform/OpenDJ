@@ -56,6 +56,13 @@ import java.io.IOException;
  */
 public abstract class TaskTool implements TaskScheduleInformation {
 
+  /**
+   * Magic value used to indicate that the user would like to schedule
+   * this operation to run immediately as a task as opposed to running
+   * the operation in the local VM.
+   */
+  public static final String NOW = "0";
+
   LDAPConnectionArgumentParser argParser;
 
   StringArgument startArg;
@@ -85,8 +92,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
   protected LDAPConnectionArgumentParser createArgParser(String className,
                                            Message toolDescription)
   {
-    LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
-            className, toolDescription, false);
+    argParser = new LDAPConnectionArgumentParser(className,
+            toolDescription, false);
 
     try {
       startArg =
@@ -113,7 +120,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @throws ArgumentException if there is a problem with the arguments
    */
   protected void validateTaskArgs() throws ArgumentException {
-    if (startArg.isPresent()) {
+    if (startArg.isPresent() && !NOW.equals(startArg.getValue())) {
       try {
         StaticUtils.parseDateTimeString(startArg.getValue());
       } catch (ParseException pe) {
@@ -128,10 +135,14 @@ public abstract class TaskTool implements TaskScheduleInformation {
   public Date getStartDateTime() {
     Date start = null;
     if (startArg != null && startArg.isPresent()) {
-      try {
-        start = StaticUtils.parseDateTimeString(startArg.getValue());
-      } catch (ParseException pe) {
-        // ignore; valiidated in validateTaskArgs()
+      if (NOW.equals(startArg.getValue())) {
+        start = new Date();
+      } else {
+        try {
+          start = StaticUtils.parseDateTimeString(startArg.getValue());
+        } catch (ParseException pe) {
+          // ignore; valiidated in validateTaskArgs()
+        }
       }
     }
     return start;
@@ -153,7 +164,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
                         PrintStream out, PrintStream err) {
     int ret;
 
-    if (argParser.isLdapOperation())
+    if (startArg.isPresent())
     {
       if (initializeServer)
       {
@@ -193,7 +204,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         ret = 0;
       } catch (LDAPConnectionException e) {
-        Message message = ERR_LDAP_CONN_CANNOT_CONNECT.get(e.getMessage());
+        Message message = ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (IOException ioe) {
@@ -213,6 +224,10 @@ public abstract class TaskTool implements TaskScheduleInformation {
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       }
+    } else if (argParser.argumentsPresent()) {
+      Message message = ERR_TASK_TOOL_LDAP_NO_START_TIME.get();
+      if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
+      ret = 1;
     } else {
       ret = processLocal(initializeServer, out, err);
     }
