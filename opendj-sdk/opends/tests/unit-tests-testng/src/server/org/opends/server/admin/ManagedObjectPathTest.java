@@ -29,12 +29,10 @@ package org.opends.server.admin;
 
 
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.GlobalCfgClient;
 import org.opends.server.admin.std.client.LDAPConnectionHandlerCfgClient;
@@ -129,6 +127,17 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
 
 
   /**
+   * Tests that the empty path has no name.
+   */
+  @Test
+  public void testEmptyPathHasNoName() {
+    ManagedObjectPath<?, ?> path = ManagedObjectPath.emptyPath();
+    assertNull(path.getName());
+  }
+
+
+
+  /**
    * Tests that the empty path has a string representation of "/".
    */
   @Test
@@ -163,6 +172,7 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
     assertFalse(child.isEmpty());
     assertEquals(child.size(), 1);
     assertEquals(child.parent(), path);
+    assertNull(child.getName());
     assertEquals(child.getManagedObjectDefinition(), GlobalCfgDefn
         .getInstance());
     assertEquals(child.getRelationDefinition(), RootCfgDefn.getInstance()
@@ -188,6 +198,7 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
     assertFalse(child.isEmpty());
     assertEquals(child.size(), 1);
     assertEquals(child.parent(), path);
+    assertEquals(child.getName(), "LDAP connection handler");
     assertEquals(child.getManagedObjectDefinition(), ConnectionHandlerCfgDefn
         .getInstance());
     assertEquals(child.getRelationDefinition(), RootCfgDefn.getInstance()
