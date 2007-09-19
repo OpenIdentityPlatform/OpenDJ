@@ -28,9 +28,12 @@ package org.opends.server.monitors;
 
 
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.opends.server.admin.std.server.SystemInfoMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -142,7 +145,7 @@ public class SystemInfoMonitorProvider
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(12);
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>(13);
 
     attrs.add(createAttribute("javaVersion",
                               System.getProperty("java.version")));
@@ -186,6 +189,28 @@ public class SystemInfoMonitorProvider
                               String.valueOf(runtime.totalMemory())));
     attrs.add(createAttribute("freeUsedMemory",
                               String.valueOf(runtime.freeMemory())));
+
+
+    // Get the JVM input arguments.
+    RuntimeMXBean rtBean = ManagementFactory.getRuntimeMXBean();
+    List<String> jvmArguments = rtBean.getInputArguments();
+    if ((jvmArguments != null) && (! jvmArguments.isEmpty()))
+    {
+      StringBuilder argList = new StringBuilder();
+      for (String jvmArg : jvmArguments)
+      {
+        if (argList.length() > 0)
+        {
+          argList.append(" ");
+        }
+
+        argList.append("\"");
+        argList.append(jvmArg);
+        argList.append("\"");
+      }
+
+      attrs.add(createAttribute("jvmArguments", argList.toString()));
+    }
 
 
     return attrs;
