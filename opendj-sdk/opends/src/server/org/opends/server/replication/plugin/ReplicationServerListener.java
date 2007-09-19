@@ -137,4 +137,13 @@ public class ReplicationServerListener
   {
     return true;
   }
+
+  /**
+   * Returns the associated Replication Server.
+   * @return The replication server.
+   */
+  public ReplicationServer getReplicationServer()
+  {
+    return replicationServer;
+  }
 }

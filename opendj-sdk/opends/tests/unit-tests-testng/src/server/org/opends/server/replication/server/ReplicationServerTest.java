@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
@@ -33,19 +34,26 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -72,13 +80,18 @@ import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
@@ -132,7 +145,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    // logError(Message.raw(Category.SYNC, Severity.NOTICE, s));
+    // logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST **" + s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);
@@ -905,7 +918,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   public void shutdown() throws Exception
   {
     if (replicationServer != null) {
-      replicationServer.shutdown();
+      replicationServer.remove();
       replicationServer = null;
     }
   }
@@ -1058,6 +1071,11 @@ public class ReplicationServerTest extends ReplicationTestCase
       addTask(exportTask, ResultCode.SUCCESS, null);
       waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
 
+      if (server1 != null)
+        server1.stop();
+      if (server2 != null)
+        server2.stop();
+
       debugInfo("Ending export");
     }
 
@@ -1177,8 +1195,16 @@ public class ReplicationServerTest extends ReplicationTestCase
        // - Modify
        Attribute attr1 = new Attribute("description", "new value");
        Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
+       Attribute attr2 = new Attribute("modifiersName", "cn=Directory Manager,cn=Root DNs,cn=config");
+       Modification mod2 = new Modification(ModificationType.REPLACE, attr2);
+       Attribute attr3 = new Attribute("modifyTimestamp", "20070917172420Z");
+       Modification mod3 = new Modification(ModificationType.REPLACE, attr3);
        List<Modification> mods = new ArrayList<Modification>();
+
        mods.add(mod1);
+       mods.add(mod2);
+       mods.add(mod3);
+
        cn = new ChangeNumber(time, ts++, serverId);
        DN dn = DN.decode("o=test,"+suffix);
        ModifyMsg modMsg = new ModifyMsg(cn, dn, 
@@ -1202,4 +1228,158 @@ public class ReplicationServerTest extends ReplicationTestCase
      catch(Exception e) {};
      return l;
    }
- }
+
+   /**
+    * Testing searches on the backend of the replication server.
+    * @throws Exception
+    */
+   @Test(enabled=true)
+   public void searchBackend() throws Exception
+   {
+     debugInfo("Starting searchBackend");
+
+     LDIFWriter ldifWriter = null;
+     ByteArrayOutputStream stream = new ByteArrayOutputStream();
+     LDIFExportConfig exportConfig = new LDIFExportConfig(stream);
+     try
+     {
+       ldifWriter = new LDIFWriter(exportConfig);
+     }
+     catch (Exception e){}
+
+     debugInfo("Create broker");
+     ReplicationBroker server1 = null;
+     try {
+       server1 = openReplicationSession(
+           DN.decode("dc=example,dc=com"), (short) 1, 100, replicationServerPort,
+           1000, true);
+     }
+     catch(Exception e) {}
+
+     debugInfo("Publish changes");
+     List<UpdateMessage> msgs = createChanges("dc=example,dc=com", (short)1);
+     for(UpdateMessage msg : msgs )
+     {
+       server1.publish(msg);
+     }
+     Thread.sleep(200);
+
+     // Sets manually the association backend-replication server since
+     // no config object exist for our replication server.
+     ReplicationBackend b =
+       (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
+     b.setServer(replicationServer);
+
+     // General search
+     InternalSearchOperation op = connection.processSearch(
+         new ASN1OctetString("dc=oops"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=*)"));
+     assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
+
+     // General search
+     op = connection.processSearch(
+         new ASN1OctetString("dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=*)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertEquals(op.getSearchEntries().size(), 5);
+
+     debugInfo("Search result");
+     LinkedList<SearchResultEntry> entries = op.getSearchEntries();
+     if (entries != null)
+     {
+       for (SearchResultEntry entry : entries)
+       {
+         debugInfo(entry.toLDIFString());
+         ldifWriter.writeEntry(entry);
+       }
+     }
+     debugInfo("\n" + stream.toString());
+
+     debugInfo("Query / filter based on changetype");
+     op = connection.processSearch(
+         new ASN1OctetString("dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=add)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertTrue(op.getSearchEntries().size() == 2);
+
+     op = connection.processSearch(
+         new ASN1OctetString("dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=modify)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertTrue(op.getSearchEntries().size() == 1);
+
+     op = connection.processSearch(
+         new ASN1OctetString("dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=moddn)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertTrue(op.getSearchEntries().size() == 1);
+
+     op = connection.processSearch(
+         new ASN1OctetString("dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=delete)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertTrue(op.getSearchEntries().size() == 1);
+
+     debugInfo("Query / filter based on objectclass");
+     op = connection.processSearch(
+         new ASN1OctetString("dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(objectclass=person)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertEquals(op.getSearchEntries().size(), 1);
+
+     debugInfo("Query / searchBase");
+     op = connection.processSearch(
+         new ASN1OctetString("uid=new person,ou=People,dc=example,dc=com,dc=replicationChanges"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(changetype=*)"));
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertEquals(op.getSearchEntries().size(), 2);
+
+     debugInfo("Query / 1 attrib");
+
+     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+     attrs.add("newrdn");
+     SearchFilter ALLMATCH;
+     ALLMATCH = SearchFilter.createFilterFromString("(changetype=moddn)");
+     op =
+       connection.processSearch(DN.decode("dc=replicationChanges"), 
+           SearchScope.WHOLE_SUBTREE,
+           DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
+           attrs);
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertEquals(op.getSearchEntries().size(), 1);
+     entries = op.getSearchEntries();
+     if (entries != null)
+     {
+       for (SearchResultEntry entry : entries)
+       {
+         debugInfo(entry.toLDIFString());
+         ldifWriter.writeEntry(entry);
+       }
+     }
+
+     debugInfo("Query / All attribs");
+     LinkedHashSet<String> attrs2 = new LinkedHashSet<String>(1);
+     attrs.add("*");
+     ALLMATCH = SearchFilter.createFilterFromString("(changetype=*)");
+     op =
+       connection.processSearch(DN.decode("dc=replicationChanges"), 
+           SearchScope.WHOLE_SUBTREE,
+           DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
+           attrs2);
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertEquals(op.getSearchEntries().size(), 5);
+
+     if (server1 != null)
+       server1.stop();
+
+     debugInfo("Successfully ending searchBackend");     
+   }
+}
