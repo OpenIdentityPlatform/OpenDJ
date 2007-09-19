@@ -1523,10 +1523,24 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     else
     {
-      String bindDn = getValue(argParser.getBindDn1(),
-          argParser.getDefaultBindDn1());
-      uData.setBindDn1(bindDn);
-      uData.setPwd1(pwd1);
+      // Best-effort: try to use admin, if it does not work, use bind DN.
+      try
+      {
+        InitialLdapContext ctx = createContext(uData.getHostName1(),
+            uData.getPort1(), uData.useSSL1(), uData.useStartTLS1(),
+            ADSContext.getAdministratorDN(adminUid), adminPwd,
+            getTrustManager());
+        uData.setBindDn1(ADSContext.getAdministratorDN(adminUid));
+        uData.setPwd1(adminPwd);
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+        String bindDn = getValue(argParser.getBindDn1(),
+            argParser.getDefaultBindDn1());
+        uData.setBindDn1(bindDn);
+        uData.setPwd1(pwd1);
+      }
     }
     int replicationPort1 = getValue(argParser.getReplicationPort1(),
         argParser.getDefaultReplicationPort1());
@@ -1548,10 +1562,24 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     else
     {
-      String bindDn = getValue(argParser.getBindDn2(),
-          argParser.getDefaultBindDn2());
-      uData.setBindDn2(bindDn);
-      uData.setPwd2(pwd2);
+      // Best-effort: try to use admin, if it does not work, use bind DN.
+      try
+      {
+        InitialLdapContext ctx = createContext(uData.getHostName2(),
+            uData.getPort2(), uData.useSSL2(), uData.useStartTLS2(),
+            ADSContext.getAdministratorDN(adminUid), adminPwd,
+            getTrustManager());
+        uData.setBindDn2(ADSContext.getAdministratorDN(adminUid));
+        uData.setPwd2(adminPwd);
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+        String bindDn = getValue(argParser.getBindDn2(),
+            argParser.getDefaultBindDn2());
+        uData.setBindDn2(bindDn);
+        uData.setPwd2(pwd2);
+      }
     }
     int replicationPort2 = getValue(argParser.getReplicationPort2(),
         argParser.getDefaultReplicationPort2());
