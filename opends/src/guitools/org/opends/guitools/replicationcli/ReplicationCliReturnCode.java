@@ -158,13 +158,13 @@ public enum ReplicationCliReturnCode
   /**
    * Error initializing Administration Framework.
    */
-  ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK(20,
+  ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK(21,
       ERR_REPLICATION_NO_MESSAGE.get()),
 
   /**
    * Error seeding trustore.
    */
-  ERROR_SEEDING_TRUSTORE(21, ERR_REPLICATION_NO_MESSAGE.get());
+  ERROR_SEEDING_TRUSTORE(22, ERR_REPLICATION_NO_MESSAGE.get());
 
 
   private Message message;
