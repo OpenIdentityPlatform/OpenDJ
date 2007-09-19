@@ -3978,7 +3978,7 @@ public abstract class Installer extends GuiApplication {
                         ne), ne);
       }
     }
-    resetGenerationId(ctx, suffixDn, true, sourceServerDisplay);
+    resetGenerationId(ctx, suffixDn, sourceServerDisplay);
   }
 
   /**
@@ -4030,7 +4030,7 @@ public abstract class Installer extends GuiApplication {
   }
 
   private void resetGenerationId(InitialLdapContext ctx,
-      String suffixDn, boolean displayProgress, String sourceServerDisplay)
+      String suffixDn, String sourceServerDisplay)
   throws ApplicationException
   {
     boolean taskCreated = false;
@@ -4139,18 +4139,11 @@ public abstract class Installer extends GuiApplication {
                 null);
             throw ae;
           }
-          else if (displayProgress)
-          {
-            notifyListeners(getFormattedProgress(
-                INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
-          }
         }
       }
       catch (NameNotFoundException x)
       {
         isOver = true;
-        notifyListeners(getFormattedProgress(
-            INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
       }
       catch (NamingException ne)
       {
