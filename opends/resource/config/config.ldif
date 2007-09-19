@@ -1155,6 +1155,22 @@ cn: Client Connections
 ds-cfg-monitor-provider-class: org.opends.server.monitors.ClientConnectionMonitorProvider
 ds-cfg-monitor-provider-enabled: true
 
+dn: cn=Entry Cache,cn=Monitor Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-entry-cache-monitor-provider
+cn: Entry Cache
+ds-cfg-monitor-provider-class: org.opends.server.monitors.EntryCacheMonitorProvider
+ds-cfg-monitor-provider-enabled: true
+
+dn: cn=JVM Memory Usage,cn=Monitor Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-monitor-provider
+objectClass: ds-cfg-memory-usage-monitor-provider
+cn: JVM Memory Usage
+ds-cfg-monitor-provider-class: org.opends.server.monitors.MemoryUsageMonitorProvider
+ds-cfg-monitor-provider-enabled: true
+
 dn: cn=JVM Stack Trace,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
@@ -1177,14 +1193,6 @@ objectClass: ds-cfg-monitor-provider
 objectClass: ds-cfg-version-monitor-provider
 cn: Version
 ds-cfg-monitor-provider-class: org.opends.server.monitors.VersionMonitorProvider
-ds-cfg-monitor-provider-enabled: true
-
-dn: cn=Entry Cache,cn=Monitor Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-monitor-provider
-objectClass: ds-cfg-entry-cache-monitor-provider
-cn: Entry Cache
-ds-cfg-monitor-provider-class: org.opends.server.monitors.EntryCacheMonitorProvider
 ds-cfg-monitor-provider-enabled: true
 
 dn: cn=Password Generators,cn=config
