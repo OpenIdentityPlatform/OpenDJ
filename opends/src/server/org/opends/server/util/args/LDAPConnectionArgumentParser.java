@@ -124,10 +124,8 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * @return true if the user wants to perform a remote operation;
    *         false otherwise
    */
-  public boolean isLdapOperation() {
-    return args.hostNameArg.isPresent() ||
-            args.portArg.isPresent() ||
-            args.bindDnArg.isPresent();
+  public boolean argumentsPresent() {
+    return args != null && args.argumentsPresent();
   }
 
   /**
