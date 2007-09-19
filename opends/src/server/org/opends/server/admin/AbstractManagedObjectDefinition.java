@@ -667,7 +667,9 @@ public abstract class AbstractManagedObjectDefinition
    *         definition is the {@link TopCfgDefn}.
    */
   public final boolean isTop() {
-    return (this == TopCfgDefn.getInstance());
+    // Casting to Object and instanceof check are required
+    // to workaround a bug in JDK versions prior to 1.5.0_08.
+    return ((Object) this instanceof TopCfgDefn);
   }
 
 
