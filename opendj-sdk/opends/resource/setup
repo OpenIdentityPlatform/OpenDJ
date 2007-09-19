@@ -118,7 +118,7 @@ fi
 
 
 # Launch the setup process.
-"${JAVA_BIN}" -Dorg.opends.server.scriptName=setup org.opends.server.tools.InstallDS "${@}"
+"${JAVA_BIN}" -Dorg.opends.server.scriptName=setup org.opends.quicksetup.installer.SetupLauncher "${@}"
 
 # return part
 RETURN_CODE=$?

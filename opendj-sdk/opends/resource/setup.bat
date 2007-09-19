@@ -84,7 +84,15 @@ rem Test that the provided JDK is 1.5 compatible.
 "%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
-"%JAVA_BIN%" %JAVA_ARGS% -Dorg.opends.server.scriptName=setup.bat org.opends.server.tools.InstallDS %*
+if "%~1" == "" goto callLaunch
+goto callJava
+
+:callLaunch
+"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupLauncher
+goto end
+
+:callJava
+"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

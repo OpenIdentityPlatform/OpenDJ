@@ -123,13 +123,6 @@ public class UninstallLauncher extends Launcher {
   /**
    * {@inheritDoc}
    */
-  protected boolean isCli() {
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   protected void guiLaunchFailed(String logFilePath) {
     if (logFilePath != null)
     {

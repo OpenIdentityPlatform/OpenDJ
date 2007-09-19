@@ -28,9 +28,7 @@
 package org.opends.quicksetup.installer;
 
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_SHOWUSAGE;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -43,31 +41,31 @@ import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.Utils;
 import org.opends.messages.Message;
-import org.opends.messages.ToolMessages;
+import org.opends.server.tools.InstallDS;
+import org.opends.server.tools.InstallDSArgumentParser;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
 
 /**
- * This class is called by the setup GUI command line to launch the setup
+ * This class is called by the setup command line to launch the setup
  * of the Directory Server. It just checks the command line arguments and the
  * environment and determines whether the graphical or the command line
  * based setup much be launched.
  */
-public class SetupGuiLauncher extends Launcher {
+public class SetupLauncher extends Launcher {
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-setup-gui-";
+  static public final String LOG_FILE_PREFIX = "opends-setup-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
 
   static private final Logger LOG =
-          Logger.getLogger(SetupGuiLauncher.class.getName());
+          Logger.getLogger(SetupLauncher.class.getName());
 
   /**
-   * The main method which is called by the setup GUI command lines.
+   * The main method which is called by the setup command lines.
    *
    * @param args the arguments passed by the command lines.  In the case
    * we want to launch the cli setup they are basically the arguments that we
@@ -83,23 +81,23 @@ public class SetupGuiLauncher extends Launcher {
       System.err.println("Unable to initialize log");
       t.printStackTrace();
     }
-    new SetupGuiLauncher(args).launch();
+    new SetupLauncher(args).launch();
   }
 
-  private ArgumentParser argParser;
+  private InstallDSArgumentParser argParser;
 
   /**
    * Creates a launcher.
    *
    * @param args the arguments passed by the command lines.
    */
-  public SetupGuiLauncher(String[] args) {
+  public SetupLauncher(String[] args) {
     super(args);
     String scriptName;
     if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_SETUP_GUI_FILE_NAME;
+      scriptName = Installation.WINDOWS_SETUP_FILE_NAME;
     } else {
-      scriptName = Installation.UNIX_SETUP_GUI_FILE_NAME;
+      scriptName = Installation.UNIX_SETUP_FILE_NAME;
     }
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
     initializeParser();
@@ -110,23 +108,15 @@ public class SetupGuiLauncher extends Launcher {
    */
   protected void initializeParser()
   {
-    argParser = new ArgumentParser(getClass().getName(),
-        INFO_SETUP_LAUNCHER_USAGE_DESCRIPTION.get(),
-        false);
+    argParser = new InstallDSArgumentParser(InstallDS.class.getName());
     try
     {
-      BooleanArgument showUsageArg = new BooleanArgument("showUsage",
-          OPTION_SHORT_HELP,
-          OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
-      argParser.addArgument(showUsageArg);
-      argParser.setUsageArgument(showUsageArg);
-      argParser.parseArguments(args);
+      argParser.initializeArguments();
     }
     catch (ArgumentException ae)
     {
-      System.err.println(org.opends.server.util.StaticUtils.wrapText(
-          ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()),
-          Utils.getCommandLineMaxLineWidth()));
+      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      System.out.println(message);
     }
   }
 
@@ -148,7 +138,12 @@ public class SetupGuiLauncher extends Launcher {
         printUsage(false);
       }
       System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
-    } else {
+    }
+    else if (isCli())
+    {
+      System.exit(InstallDS.mainCLI(args));
+    }
+    else {
       willLaunchGui();
       int exitCode = launchGui(args);
       if (exitCode != 0) {
@@ -161,16 +156,9 @@ public class SetupGuiLauncher extends Launcher {
         {
           guiLaunchFailed(null);
         }
-        System.exit(exitCode);
+        System.exit(InstallDS.mainCLI(args));
       }
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected boolean isCli() {
-    return false;
   }
 
   /**

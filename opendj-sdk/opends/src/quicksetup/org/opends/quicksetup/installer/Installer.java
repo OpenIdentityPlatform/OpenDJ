@@ -180,8 +180,8 @@ public abstract class Installer extends GuiApplication {
       if (!QuickSetupLog.isInitialized())
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
-                    SetupGuiLauncher.LOG_FILE_PREFIX,
-                    SetupGuiLauncher.LOG_FILE_SUFFIX));
+                    SetupLauncher.LOG_FILE_PREFIX,
+                    SetupLauncher.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println("Failed to initialize log");
     }
