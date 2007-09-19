@@ -316,7 +316,7 @@
     <path id="quickSetup.classpath">
        <pathelement location="${quicksetup.classes.dir}" />
     </path>
-    
+
     <tstamp>
       <format property="timestamp" pattern="yyyyMMddHHmmss'Z'"
            timezone="UTC" />
@@ -622,7 +622,7 @@
   	   <fileset dir="${msg.prop.dir}"
   	          includes="**/quicksetup.properties" />
   	</copy>
-  	
+
   </target>
 
 
@@ -769,25 +769,40 @@
     <property name="pdir"
          location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
-    <mkdir dir="${pdir}"                 />
-    <mkdir dir="${pdir}/adminDb"         />
-    <mkdir dir="${pdir}/bak"             />
-    <mkdir dir="${pdir}/bat"             />
-    <mkdir dir="${pdir}/bin"             />
-    <mkdir dir="${pdir}/classes"         />
-    <mkdir dir="${pdir}/config"          />
-    <mkdir dir="${pdir}/config/upgrade"  />
-    <mkdir dir="${pdir}/config/schema"   />
-    <mkdir dir="${pdir}/config/messages" />
-    <mkdir dir="${pdir}/config/MakeLDIF" />
-    <mkdir dir="${pdir}/db"              />
-    <mkdir dir="${pdir}/changelogDb"     />
-    <mkdir dir="${pdir}/ldif"            />
-    <mkdir dir="${pdir}/legal-notices"   />
-    <mkdir dir="${pdir}/lib"             />
-    <mkdir dir="${pdir}/lib/extensions"  />
-    <mkdir dir="${pdir}/locks"           />
-    <mkdir dir="${pdir}/logs"            />
+    <mkdir dir="${pdir}"                                             />
+    <mkdir dir="${pdir}/adminDb"                                     />
+    <mkdir dir="${pdir}/bak"                                         />
+    <mkdir dir="${pdir}/bat"                                         />
+    <mkdir dir="${pdir}/bin"                                         />
+    <mkdir dir="${pdir}/classes"                                     />
+    <mkdir dir="${pdir}/config"                                      />
+    <mkdir dir="${pdir}/config/upgrade"                              />
+    <mkdir dir="${pdir}/config/schema"                               />
+    <mkdir dir="${pdir}/config/messages"                             />
+    <mkdir dir="${pdir}/config/MakeLDIF"                             />
+    <mkdir dir="${pdir}/db"                                          />
+    <mkdir dir="${pdir}/changelogDb"                                 />
+    <mkdir dir="${pdir}/ldif"                                        />
+    <mkdir dir="${pdir}/legal-notices"                               />
+    <mkdir dir="${pdir}/lib"                                         />
+    <mkdir dir="${pdir}/lib/extensions"                              />
+    <mkdir dir="${pdir}/locks"                                       />
+    <mkdir dir="${pdir}/logs"                                        />
+    <mkdir dir="${pdir}/bin/StatusPanel.app"                         />
+    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents"                />
+    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents/MacOS"          />
+    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents/Resources"      />
+    <mkdir dir="${pdir}/bin/StatusPanel.app/Contents/Resources/Java" />
+    <mkdir dir="${pdir}/QuickSetup.app"                              />
+    <mkdir dir="${pdir}/QuickSetup.app/Contents"                     />
+    <mkdir dir="${pdir}/QuickSetup.app/Contents/MacOS"               />
+    <mkdir dir="${pdir}/QuickSetup.app/Contents/Resources"           />
+    <mkdir dir="${pdir}/QuickSetup.app/Contents/Resources/Java"      />
+    <mkdir dir="${pdir}/Uninstall.app"                               />
+    <mkdir dir="${pdir}/Uninstall.app/Contents"                      />
+    <mkdir dir="${pdir}/Uninstall.app/Contents/MacOS"                />
+    <mkdir dir="${pdir}/Uninstall.app/Contents/Resources"            />
+    <mkdir dir="${pdir}/Uninstall.app/Contents/Resources/Java"       />
 
 
     <!-- copy the message properties files -->
@@ -801,8 +816,8 @@
           file="${msg.javagen.dir}/org/opends/messages/descriptors.reg" />
 
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
-         basedir="${classes.dir}" 
-         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}"    
+         basedir="${classes.dir}"
+         excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir}"
          compress="true" index="true" />
 
     <jar jarfile="${pdir}/lib/quicksetup.jar"
@@ -871,6 +886,32 @@
     <chmod file="${pdir}/setup" perm="755" />
     <chmod file="${pdir}/uninstall" perm="755" />
     <chmod file="${pdir}/upgrade" perm="755" />
+
+    <copy todir="${pdir}/QuickSetup.app">
+      <fileset dir="${resource.dir}/mac/QuickSetup.app" />
+    </copy>
+    <chmod perm="755">
+      <fileset dir="${pdir}">
+        <include name="QuickSetup.app/Contents/MacOS/JavaApplicationStub" />
+      </fileset>
+    </chmod>
+    <copy todir="${pdir}/Uninstall.app">
+      <fileset dir="${resource.dir}/mac/Uninstall.app" />
+    </copy>
+    <chmod perm="755">
+      <fileset dir="${pdir}">
+        <include name="Uninstall.app/Contents/MacOS/JavaApplicationStub" />
+      </fileset>
+    </chmod>
+    <copy todir="${pdir}/bin/StatusPanel.app">
+      <fileset dir="${resource.dir}/mac/StatusPanel.app" />
+    </copy>
+    <chmod perm="755">
+      <fileset dir="${pdir}/bin">
+        <include name="StatusPanel.app/Contents/MacOS/JavaApplicationStub" />
+      </fileset>
+    </chmod>
+
     <chmod perm="755">
       <fileset dir="${pdir}/bin">
       </fileset>
@@ -887,7 +928,7 @@
        description="Package the Directory Server for distribution.">
     <zip destfile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip">
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
-           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade"
+           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
            includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh"
@@ -897,7 +938,7 @@
            filemode="755" dirmode="755" />
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"
            filemode="644" dirmode="755" />
-      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade"
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
            filemode="755" dirmode="755" />
     </zip>
     <property name="package.built" value="true"/>
@@ -1112,7 +1153,7 @@
         </not>
       </and>
     </condition>
- 
+
     <!-- run tests dependent upon creation of the .zip file -->
     <condition property="test.packages" value="org.opends.server.*,org.opends.messages.*,org.opends.quicksetup.*">
       <and>
@@ -1488,9 +1529,9 @@
 
 
     <!-- If the debug port was set, we pass these options into the <testng> target below:
-           -Xdebug 
-           -Xnoagent 
-           -Djava.compiler=NONE 
+           -Xdebug
+           -Xnoagent
+           -Djava.compiler=NONE
            -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005
      -->
     <condition property="test.remote.debug.suspend" value="y">
@@ -1507,8 +1548,8 @@
     <condition property="jvm.debug.arg3" value="-Djava.compiler=NONE" else="-Dopends.bogus.debug.arg3">
        <isset property="test.remote.debug.port" />
     </condition>
-    <condition property="jvm.debug.arg4" 
-         value="-Xrunjdwp:transport=dt_socket,server=y,suspend=${test.remote.debug.suspend},address=${test.remote.debug.port}" 
+    <condition property="jvm.debug.arg4"
+         value="-Xrunjdwp:transport=dt_socket,server=y,suspend=${test.remote.debug.suspend},address=${test.remote.debug.port}"
          else="-Dopends.bogus.debug.arg4">
        <isset property="test.remote.debug.port" />
     </condition>
