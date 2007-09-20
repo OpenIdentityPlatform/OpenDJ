@@ -164,6 +164,16 @@ public class Installation {
   public static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
 
   /**
+   * Newly upgraded Windows upgrade batch file name.  When the upgrade
+   * batch file requires upgrade it is not done during execution of the
+   * upgrade utility itself since replacing a running script on Windows
+   * with a different version leads to unpredictable results.  Instead
+   * this new name is used for the upgraded version and the user is
+   * expected to manually rename the file following the upgrade.
+   */
+  public static final String WINDOWS_UPGRADE_FILE_NAME_NEW = "upgrade.bat.NEW";
+
+  /**
    * The UNIX start script file name.
    */
   public static final String UNIX_START_FILE_NAME = "start-ds";

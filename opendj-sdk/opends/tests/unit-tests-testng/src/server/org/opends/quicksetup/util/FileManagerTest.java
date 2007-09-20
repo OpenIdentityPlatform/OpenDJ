@@ -498,6 +498,39 @@ public class FileManagerTest extends QuickSetupTestCase {
     assertTrue(ORIGINAL.equals(contentsOf(copiedF2b1)));
   }
 
+  @DataProvider(name = "differTestData")
+  public Object[][] differTestData() {
+    return new Object[][] {
+      new Object[] { "abc", "abc" },
+      new Object[] { "abc", "xyz" },
+      new Object[] { "abc", "abc\n" },
+      new Object[] { "abc\n", "abc\n" },
+      new Object[] { "abc\nabc", "abc\nabc" },
+      new Object[] { "abc\nabc\nabc", "abc\nabc\nabc" }
+    };
+  }
+
+  @Test(dataProvider = "differTestData")
+  public void testFilesDiffer(String contents1, String contents2)
+          throws Exception
+  {
+    File f1 = new File(fmWorkspace, "f1");
+    File f2 = new File(fmWorkspace, "f2");
+    writeContents(f1, contents1);
+    writeContents(f2, contents2);
+    if (!contents1.equals(contents2)) {
+      assertTrue(fileManager.filesDiffer(f1, f2),
+              "File contents '" + contents1 + "' and '" + contents2 + "' are " +
+                      "not equal despite what FileManager claims");
+    } else {
+      assertFalse(fileManager.filesDiffer(f1, f2),
+              "File contents '" + contents1 + "' and '" + contents2 + "' are " +
+                      "equal despite what FileManager claims");
+    }
+    f1.delete();
+    f2.delete();
+  }
+
   /**
    * Creates a set of file for testing.
    * @param parent of the files.

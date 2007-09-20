@@ -46,6 +46,7 @@ import org.opends.quicksetup.Application;
 import org.opends.quicksetup.HistoricalRecord;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.CliUserInteraction;
+import static org.opends.quicksetup.Installation.*;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
@@ -90,6 +91,7 @@ public class Reverter extends Application implements CliApplication {
   private BuildInformation archiveBuildInfo;
   private boolean abort = false;
   private boolean restartServer = false;
+  private Stage stage = null;
 
   /**
    * {@inheritDoc}
@@ -100,7 +102,7 @@ public class Reverter extends Application implements CliApplication {
     if (launcher instanceof UpgradeLauncher) {
       ud = new ReverterUserData();
       UpgradeLauncher rl = (UpgradeLauncher)launcher;
-      File filesDir = null;
+      File filesDir;
       if (rl.isInteractive()) {
         if (rl.isNoPrompt()) {
           StringBuilder sb = new StringBuilder()
@@ -219,7 +221,7 @@ public class Reverter extends Application implements CliApplication {
         if (historyDir.exists()) {
           FilenameFilter filter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
-              return !Installation.HISTORY_LOG_FILE_NAME.equals(name);
+              return !HISTORY_LOG_FILE_NAME.equals(name);
             }
           };
           String[] childNames = historyDir.list(filter);
@@ -233,7 +235,7 @@ public class Reverter extends Application implements CliApplication {
             Arrays.sort(childNames);
             for (String childName : childNames) {
               File b = new File(historyDir, childName);
-              File d = new File(b, Installation.HISTORY_BACKUP_FILES_DIR_NAME);
+              File d = new File(b, HISTORY_BACKUP_FILES_DIR_NAME);
               if (isReversionFilesDirectory(d)) {
                 ud.setReversionArchiveDirectory(d);
                 break;
@@ -330,7 +332,7 @@ public class Reverter extends Application implements CliApplication {
       if (f.getParentFile() != null &&
               f.getParentFile().getParentFile() != null &&
               new File(f.getParentFile().getParentFile(),
-                      Installation.LOCKS_PATH_RELATIVE).exists()) {
+                      LOCKS_PATH_RELATIVE).exists()) {
         installationPath = Utils.getPath(f.getParentFile().getParentFile());
       } else {
         installationPath = path;
@@ -546,7 +548,15 @@ public class Reverter extends Application implements CliApplication {
       FileFilter filter = new UpgradeFileFilter(root);
       for (String fileName : root.list()) {
         File f = new File(root, fileName);
-        //fm.copyRecursively(f, filesBackupDirectory,
+
+        // Replacing a Windows bat file while it is running with a different
+        // version leads to unpredictable behavior so we make a special case
+        // here and during the upgrade components step.
+        if (Utils.isWindows() &&
+                fileName.equals(WINDOWS_UPGRADE_FILE_NAME)) {
+          continue;
+        }
+
         fm.move(f, filesBackupDirectory, filter);
       }
       LOG.log(Level.INFO, "Finished backing up filesystem");
@@ -564,16 +574,10 @@ public class Reverter extends Application implements CliApplication {
 
   private void revertComponents() throws ApplicationException {
     try {
-      File stageDir = getReversionFilesDirectory();
+      Stage stage = getStage();
       Installation installation = getInstallation();
       File root = installation.getRootDirectory();
-      FileManager fm = new FileManager();
-      for (String fileName : stageDir.list()) {
-        File f = new File(stageDir, fileName);
-        fm.copyRecursively(f, root,
-                new UpgradeFileFilter(stageDir),
-                /*overwrite=*/true);
-      }
+      stage.move(root);
 
       // The bits should now be of the new version.  Have
       // the installation update the build information so
@@ -616,8 +620,8 @@ public class Reverter extends Application implements CliApplication {
       Set<String> cs = new HashSet<String>(Arrays.asList(children));
 
       // TODO:  more testing of file dir
-      isFilesDir = cs.contains(Installation.CONFIG_PATH_RELATIVE) &&
-              cs.contains(Installation.LIBRARIES_PATH_RELATIVE);
+      isFilesDir = cs.contains(CONFIG_PATH_RELATIVE) &&
+              cs.contains(LIBRARIES_PATH_RELATIVE);
     }
     return isFilesDir;
   }
@@ -674,6 +678,17 @@ public class Reverter extends Application implements CliApplication {
                 INFO_GENERAL_SEE_FOR_HISTORY.get(
                      Utils.getPath(getInstallation().getHistoryLogFile())))
               .append(getLineBreak()).toMessage());
+
+      try {
+        Stage stage = getStage();
+        List<Message> stageMessages = stage.getMessages();
+        for (Message m : stageMessages) {
+          notifyListeners(m);
+        }
+      } catch (IOException e) {
+        LOG.log(Level.INFO, "failed to access stage", e);
+      }
+
     } catch (ApplicationException e) {
       notifyListeners(getFormattedDoneWithLineBreak());
       LOG.log(Level.INFO, "Error cleaning up after reversion.", e);
@@ -828,7 +843,7 @@ public class Reverter extends Application implements CliApplication {
   {
     if (tempBackupDir == null) {
       tempBackupDir = new File(getInstallation().getTemporaryDirectory(),
-              Installation.HISTORY_BACKUP_FILES_DIR_NAME);
+              HISTORY_BACKUP_FILES_DIR_NAME);
       if (tempBackupDir.exists()) {
         FileManager fm = new FileManager();
         fm.deleteRecursively(tempBackupDir);
@@ -866,7 +881,7 @@ public class Reverter extends Application implements CliApplication {
         }
       } else {
 
-        Installation archiveInstall = null;
+        Installation archiveInstall;
         try {
           archiveInstall = getArchiveInstallation();
           archiveBuildInfo = archiveInstall.getBuildInformation();
@@ -962,12 +977,19 @@ public class Reverter extends Application implements CliApplication {
     if (archiveDir != null) {
       // Automatically append the 'filesDir' subdirectory if necessary
       if (!archiveDir.getName().
-              endsWith(Installation.HISTORY_BACKUP_FILES_DIR_NAME)) {
+              endsWith(HISTORY_BACKUP_FILES_DIR_NAME)) {
         archiveDir = new File(archiveDir,
-                Installation.HISTORY_BACKUP_FILES_DIR_NAME);
+                HISTORY_BACKUP_FILES_DIR_NAME);
       }
     }
     return archiveDir;
+  }
+
+  private Stage getStage() throws IOException, ApplicationException {
+    if (this.stage == null) {
+      this.stage = new Stage(getReversionFilesDirectory());
+    }
+    return stage;
   }
 
 }
