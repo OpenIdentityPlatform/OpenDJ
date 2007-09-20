@@ -521,7 +521,7 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
               .get());
 
-      propertiesFileArgument = new StringArgument("propertieFilePath",
+      propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
           false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
