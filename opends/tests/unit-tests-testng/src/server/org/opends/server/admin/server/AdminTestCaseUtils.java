@@ -88,6 +88,10 @@ public final class AdminTestCaseUtils {
       ServerManagementContext context = ServerManagementContext.getInstance();
       ServerManagedObject<? extends S> mo = context.decode(getPath(definition),
           configEntry);
+      
+      // Ensure constraints are satisfied.
+      mo.ensureIsUsable();
+      
       return mo.getConfiguration();
     } catch (DefinitionDecodingException e) {
       throw ConfigExceptionFactory.getInstance()
@@ -95,6 +99,9 @@ public final class AdminTestCaseUtils {
     } catch (ServerManagedObjectDecodingException e) {
       throw ConfigExceptionFactory.getInstance()
           .createDecodingExceptionAdaptor(e);
+    } catch (ConstraintViolationException e) {
+      throw ConfigExceptionFactory.getInstance()
+      .createDecodingExceptionAdaptor(e);
     }
   }
 
