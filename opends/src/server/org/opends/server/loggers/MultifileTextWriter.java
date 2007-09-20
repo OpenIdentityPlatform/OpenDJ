@@ -46,6 +46,7 @@ import java.io.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Calendar;
 
 /**
  * A MultiFileTextWriter is a specialized TextWriter which supports publishing
@@ -89,8 +90,8 @@ public class MultifileTextWriter
 
   private Thread rotaterThread;
 
-  private long lastRotationTime = TimeThread.getTime();
-  private long lastCleanTime = TimeThread.getTime();
+  private Calendar lastRotationTime = TimeThread.getCalendar();
+  private Calendar lastCleanTime = TimeThread.getCalendar();
   private long lastCleanCount = 0;
   private long totalFilesRotated = 0;
   private long totalFilesCleaned = 0;
@@ -430,7 +431,7 @@ public class MultifileTextWriter
               retentionPolicy.deleteFiles(writer);
           if(numFilesDeleted > 0)
           {
-            lastCleanTime = TimeThread.getTime();
+            lastCleanTime = TimeThread.getCalendar();
             lastCleanCount = numFilesDeleted;
             totalFilesCleaned++;
           }
@@ -612,7 +613,7 @@ public class MultifileTextWriter
     }
 
     totalFilesRotated++;
-    lastRotationTime = TimeThread.getTime();
+    lastRotationTime = TimeThread.getCalendar();
   }
 
   /**
@@ -642,7 +643,7 @@ public class MultifileTextWriter
    *
    * @return The last time log files are cleaned.
    */
-  public long getLastCleanTime()
+  public Calendar getLastCleanTime()
   {
     return lastCleanTime;
   }
@@ -664,7 +665,7 @@ public class MultifileTextWriter
    *
    * @return The last time log rotation occurred.
    */
-  public long getLastRotationTime()
+  public Calendar getLastRotationTime()
   {
     return lastRotationTime;
   }

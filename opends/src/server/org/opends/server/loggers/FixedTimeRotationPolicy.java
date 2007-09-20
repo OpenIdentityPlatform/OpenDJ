@@ -56,22 +56,19 @@ public class FixedTimeRotationPolicy implements
   private static final long MS_IN_DAY = 24 * 3600 * 1000;
 
   // The scheduled rotation times as ms offsets from the beginnging of the day.
-  private long[] rotationTimes;
+  private int[] rotationTimes;
 
   /**
    * {@inheritDoc}
    */
   public void initializeLogRotationPolicy(FixedTimeLogRotationPolicyCfg config)
   {
-    rotationTimes = new long[config.getTimeOfDay().size()];
+    rotationTimes = new int[config.getTimeOfDay().size()];
 
     int i = 0;
     for(String time : config.getTimeOfDay())
     {
-      int hour = Integer.valueOf(time)/100;
-      int min = Integer.valueOf(time) - hour*100;
-
-      rotationTimes[i++] = hour*3600*1000 + min*60*1000;
+      rotationTimes[i++] = Integer.valueOf(time);
     }
 
     Arrays.sort(rotationTimes);
@@ -100,15 +97,12 @@ public class FixedTimeRotationPolicy implements
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
-    rotationTimes = new long[config.getTimeOfDay().size()];
+    rotationTimes = new int[config.getTimeOfDay().size()];
 
     int i = 0;
     for(String time : config.getTimeOfDay())
     {
-      int hour = Integer.valueOf(time)/100;
-      int min = Integer.valueOf(time) - hour*100;
-
-      rotationTimes[i++] = hour*3600*1000 + min*60*1000;
+      rotationTimes[i++] = Integer.valueOf(time);
     }
 
     Arrays.sort(rotationTimes);
@@ -121,39 +115,35 @@ public class FixedTimeRotationPolicy implements
    */
   public boolean rotateFile(MultifileTextWriter writer)
   {
-    long currTime = TimeThread.getTime();
-    long lastRotationTime = writer.getLastRotationTime();
-    long dayOfLastRotation = MS_IN_DAY * (lastRotationTime / MS_IN_DAY);
-    long hourOfLastRotation = lastRotationTime - dayOfLastRotation;
+    Calendar lastRotationTime = writer.getLastRotationTime();
 
-    // Find a scheduled rotation time thats right after the last rotation time.
-    long hourOfNextRotation = 0;
-    for(long time : rotationTimes)
+    Calendar nextRotationTime = (Calendar)lastRotationTime.clone();
+    int i = 0;
+    nextRotationTime.set(Calendar.HOUR_OF_DAY, rotationTimes[i] / 100);
+    nextRotationTime.set(Calendar.MINUTE, rotationTimes[i] % 100);
+    nextRotationTime.set(Calendar.SECOND, 0);
+    while(lastRotationTime.after(nextRotationTime))
     {
-      if(time > hourOfLastRotation)
+      if(i == rotationTimes.length - 1)
       {
-        hourOfNextRotation = time;
-        break;
+        nextRotationTime.add(Calendar.DATE, 1);
+        i = 0;
       }
-    }
+      else
+      {
+        i++;
+      }
 
-    if(hourOfNextRotation <= 0)
-    {
-      // Rotation alrealy happened after the latest fixed time for that day.
-      // Set it the first rotation time for the next day.
-      hourOfNextRotation = rotationTimes[0] + MS_IN_DAY;
+      nextRotationTime.set(Calendar.HOUR_OF_DAY, rotationTimes[i] / 100);
+      nextRotationTime.set(Calendar.MINUTE, rotationTimes[i] % 100);
     }
-
-    long nextRotationTime = dayOfLastRotation + hourOfNextRotation;
 
     if (debugEnabled())
     {
-      TRACER.debugInfo("The next fixed rotation time in %ds",
-                       (currTime - nextRotationTime)/1000);
+      TRACER.debugInfo("The next fixed rotation time is %s", rotationTimes[i]);
     }
 
-    return currTime > nextRotationTime;
-
+    return TimeThread.getCalendar().after(nextRotationTime);
   }
 }
 
