@@ -289,10 +289,9 @@ public class RootDSEBackend
     supportedFeatures = new HashSet<String>(0);
 
 
-    // Set the backend ID for this backend.  We don't have to worry about
-    // potential conflicts because this backend will never get registered with
-    // the Directory Server like other backends.
-    setBackendID("rootdse");
+    // Set the backend ID for this backend. The identifier needs to be
+    // specific enough to avoid conflict with user backend identifiers.
+    setBackendID("__root.dse__");
 
 
     // Register as a change listener.

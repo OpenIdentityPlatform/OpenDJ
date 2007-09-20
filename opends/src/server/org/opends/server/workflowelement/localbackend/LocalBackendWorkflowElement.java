@@ -46,6 +46,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
@@ -139,8 +140,17 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // the backend associated to that workflow element
-  Backend backend;
+  // the backend associated with the local workflow element
+  private Backend backend;
+
+  // the set of local backend workflow elements registered with the server
+  private static
+    TreeMap<String, LocalBackendWorkflowElement> registeredLocalBackends =
+      new TreeMap<String, LocalBackendWorkflowElement>();
+
+  // a lock to guarantee safe concurrent access to the registeredLocalBackends
+  // variable
+  private static Object registeredLocalBackendsLock = new Object();
 
 
   /**
@@ -149,7 +159,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
    * @param workflowElementID  the workflow element identifier
    * @param backend  the backend associated to that workflow element
    */
-  public LocalBackendWorkflowElement(
+  private LocalBackendWorkflowElement(
       String  workflowElementID,
       Backend backend
       )
@@ -161,6 +171,122 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
     if (this.backend != null)
     {
       isPrivate = this.backend.isPrivateBackend();
+    }
+  }
+
+
+  /**
+   * Creates and registers a local backend with the server.
+   *
+   * @param workflowElementID  the identifier of the workflow element to create
+   * @param backend            the backend to associate with the local backend
+   *                           workflow element
+   *
+   * @return the existing local backend workflow element if it was
+   *         already created or a newly created local backend workflow
+   *         element.
+   */
+  public static LocalBackendWorkflowElement create(
+      String  workflowElementID,
+      Backend backend
+      )
+  {
+    LocalBackendWorkflowElement localBackend = null;
+
+    // If the requested workflow element does not exist then create one.
+    localBackend = registeredLocalBackends.get(workflowElementID);
+    if (localBackend == null)
+    {
+      localBackend = new LocalBackendWorkflowElement(
+          workflowElementID, backend);
+
+      // store the new local backend in the list of registered backends
+      registerLocalBackend(localBackend);
+    }
+
+    return localBackend;
+  }
+
+
+  /**
+   * Removes a local backend that was registered with the server.
+   *
+   * @param workflowElementID  the identifier of the workflow element to remove
+   */
+  public static void remove(
+      String workflowElementID
+      )
+  {
+    deregisterLocalBackend(workflowElementID);
+  }
+
+
+  /**
+   * Removes all the local backends that were registered with the server.
+   * This function is intended to be called when the server is shutting down.
+   */
+  public static void removeAll()
+  {
+    synchronized (registeredLocalBackendsLock)
+    {
+      for (LocalBackendWorkflowElement localBackend:
+           registeredLocalBackends.values())
+      {
+        deregisterLocalBackend(localBackend.getWorkflowElementID());
+      }
+    }
+  }
+
+
+  /**
+   * Registers a local backend with the server.
+   *
+   * @param localBackend  the local backend to register with the server
+   */
+  private static void registerLocalBackend(
+      LocalBackendWorkflowElement localBackend
+      )
+  {
+    synchronized (registeredLocalBackendsLock)
+    {
+      String localBackendID = localBackend.getWorkflowElementID();
+      LocalBackendWorkflowElement existingLocalBackend =
+        registeredLocalBackends.get(localBackendID);
+
+      if (existingLocalBackend == null)
+      {
+        TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
+          new TreeMap
+            <String, LocalBackendWorkflowElement>(registeredLocalBackends);
+        newLocalBackends.put(localBackendID, localBackend);
+        registeredLocalBackends = newLocalBackends;
+      }
+    }
+  }
+
+
+  /**
+   * Deregisters a local backend with the server.
+   *
+   * @param workflowElementID  the identifier of the workflow element to remove
+   */
+  private static void deregisterLocalBackend(
+      String workflowElementID
+      )
+  {
+    synchronized (registeredLocalBackendsLock)
+    {
+      LocalBackendWorkflowElement existingLocalBackend =
+        registeredLocalBackends.get(workflowElementID);
+
+      if (existingLocalBackend != null)
+      {
+        TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
+          new TreeMap
+            <String, LocalBackendWorkflowElement>(registeredLocalBackends);
+        newLocalBackends.remove(workflowElementID);
+        registeredLocalBackends = newLocalBackends;
+      }
     }
   }
 

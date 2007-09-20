@@ -31,11 +31,22 @@ import static org.opends.messages.CoreMessages.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
+
+import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchScope;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -469,6 +480,160 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Deregister the network group
     networkGroup.deregister();
+  }
+
+
+  /**
+   * This test checks that network groups are updated as appropriate when
+   * backend base DNs are added or removed. When a new backend base DN is
+   * added, the new suffix should be accessible for the route process - ie.
+   * a workflow should be created and be a potential candidate for the route
+   * process. Simillarly, when a backend base DN is removed its associated
+   * workflow should be removed; subsequently, any request targetting the
+   * removed suffix should be rejected and a no such entry status code be
+   * returned.
+   */
+  @Test
+  public void testBackendBaseDNModification()
+         throws Exception
+  {
+    String suffix  = "dc=example,dc=com";
+    String suffix2 = "o=networkgroup suffix";
+    String backendBaseDNName = "ds-cfg-backend-base-dn";
+
+    // Initialize a backend with a base entry.
+    TestCaseUtils.clearJEBackend(true, "userRoot", suffix);
+
+    // Create a client connection for the test.
+    InternalClientConnection connection =
+      InternalClientConnection.getRootConnection();
+
+    // Check that suffix is accessible while suffix2 is not.
+    searchEntry(connection, suffix,  true);
+    searchEntry(connection, suffix2, false);
+
+    // Add a new suffix in the backend and create a base entry for the
+    // new suffix.
+    String backendConfigDN = "ds-cfg-backend-id=userRoot," + DN_BACKEND_BASE;
+    modifyAttribute(
+        connection, backendConfigDN,
+        ModificationType.ADD, backendBaseDNName, suffix2);
+    addBaseEntry(connection, suffix2, "networkgroup suffix");
+
+    // Both old and new suffix should be accessible.
+    searchEntry(connection, suffix,  true);
+    searchEntry(connection, suffix2, true);
+
+    // Remove the new suffix...
+    modifyAttribute(
+        connection, backendConfigDN,
+        ModificationType.DELETE, backendBaseDNName, suffix2);
+
+    // ...and check that the removed suffix is no more accessible.
+    searchEntry(connection, suffix,  true);
+    searchEntry(connection, suffix2, false);
+    
+    // Replace the suffix with suffix2 in the backend
+    modifyAttribute(
+        connection, backendConfigDN,
+        ModificationType.REPLACE, backendBaseDNName, suffix2);
+
+    // Now none of the suffixes are accessible: this means the entries
+    // under the old suffix are not moved to the new suffix.
+    searchEntry(connection, suffix,  false);
+    searchEntry(connection, suffix2, false);
+    
+    // Add a base entry for the new suffix
+    addBaseEntry(connection, suffix2, "networkgroup suffix");
+    
+    // The new suffix is accessible while the old one is not.
+    searchEntry(connection, suffix,  false);
+    searchEntry(connection, suffix2, true);
+  }
+
+
+  /**
+   * Searches an entry on a given connection.
+   *
+   * @param connection    the connection to use for the search request
+   * @param baseDN        the request base DN string
+   * @param shouldExist   if true the searched entry is expected to be found
+   */
+  private void searchEntry(
+      InternalClientConnection connection,
+      String  baseDN,
+      boolean shouldExist
+      ) throws Exception
+  {
+    SearchOperation search = connection.processSearch(
+        DN.decode(baseDN),
+        SearchScope.BASE_OBJECT,
+        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+
+    // Compare the result code with the expected one
+    ResultCode resultCode = search.getResultCode();
+    if (shouldExist)
+    {
+      assertEquals(resultCode, ResultCode.SUCCESS);
+    }
+    else
+    {
+      assertEquals(resultCode, ResultCode.NO_SUCH_OBJECT);
+    }
+  }
+
+
+  /**
+   * Creates a base entry for the given suffix.
+   *
+   * @param connection  the connection to use for the add request
+   * @param suffix      the suffix for which the base entry is to be created
+   */
+  private void addBaseEntry(
+      InternalClientConnection connection,
+      String  suffix,
+      String  namingAttribute
+      ) throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(
+        "dn: " + suffix,
+        "objectClass: top",
+        "objectClass: organization",
+        "o: " + namingAttribute);
+
+   AddOperation addOperation = connection.processAdd(
+       e.getDN(),
+       e.getObjectClasses(),
+       e.getUserAttributes(),
+       e.getOperationalAttributes());
+
+   assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+
+  /**
+   * Adds/Deletes/Replaces an attribute in a given entry.
+   *
+   * @param connection      the connection to use for the modify request
+   * @param baseDN          the request base DN string
+   * @param modType         the modification type (add/delete/replace)
+   * @param attributeName   the name  of the attribute to add/delete/replace
+   * @param attributeValue  the value of the attribute to add/delete/replace
+   */
+  private void modifyAttribute(
+      InternalClientConnection connection,
+      String  baseDN,
+      ModificationType modType,
+      String  attributeName,
+      String  attributeValue
+      ) throws Exception
+  {
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+    Attribute attributeToModify = new Attribute(attributeName, attributeValue);
+    mods.add(new Modification(modType, attributeToModify));
+    ModifyOperation modifyOperation = connection.processModify(
+        DN.decode(baseDN), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
