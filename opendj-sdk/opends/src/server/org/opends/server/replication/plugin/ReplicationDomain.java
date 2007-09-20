@@ -2314,8 +2314,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     op.run();
 
     ResultCode result = op.getResultCode();
-    if (result != ResultCode.SUCCESS)
+    if ((result != ResultCode.SUCCESS) && (result != ResultCode.NO_SUCH_OBJECT))
     {
+      // The case where the backend is empty (NO_SUCH_OBJECT)
+      // is not an error case.
       Message message = ERR_UPDATING_GENERATION_ID.get(
                           op.getResultCode().getResultCodeName() + " " +
                           op.getErrorMessage(),
