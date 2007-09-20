@@ -41,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,6 +75,7 @@ import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMessage;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMessage;
+import org.opends.server.replication.protocol.ResetGenerationId;
 import org.opends.server.replication.protocol.ServerStartMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
@@ -1237,7 +1239,9 @@ public class ReplicationServerTest extends ReplicationTestCase
    public void searchBackend() throws Exception
    {
      debugInfo("Starting searchBackend");
-
+ 
+     replicationServer.clearDb();
+    
      LDIFWriter ldifWriter = null;
      ByteArrayOutputStream stream = new ByteArrayOutputStream();
      LDIFExportConfig exportConfig = new LDIFExportConfig(stream);

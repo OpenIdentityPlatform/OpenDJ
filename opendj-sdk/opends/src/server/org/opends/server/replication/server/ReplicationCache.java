@@ -1037,45 +1037,53 @@ public class ReplicationCache
 
       if (this.generationId != newGenId)
       {
-        // Reset the localchange and state db for the current domain
-        synchronized (sourceDbHandlers)
-        {
-          for (DbHandler dbHandler : sourceDbHandlers.values())
-          {
-            try
-            {
-              dbHandler.clear();
-            }
-            catch (Exception e)
-            {
-              // TODO: i18n
-              logError(Message.raw(
-                  "Exception caught while clearing dbHandler:" +
-                  e.getLocalizedMessage()));
-            }
-          }
-          sourceDbHandlers.clear();
-
-          if (debugEnabled())
-            TRACER.debugInfo(
-                "In " + this.replicationServer.getMonitorInstanceName() +
-                " baseDN=" + baseDn +
-            " The source db handler has been cleared");
-        }
-        try
-        {
-          replicationServer.clearGenerationId(baseDn);
-        }
-        catch (Exception e)
-        {
-          // TODO: i18n
-          logError(Message.raw(
-              "Exception caught while clearing generationId:" +
-              e.getLocalizedMessage()));
-        }
+        clearDbs();
 
         // Reset the in memory domain generationId
         generationId = newGenId;
+      }
+    }
+
+    /**
+     * Clears the Db associated with that cache.
+     */
+    public void clearDbs()
+    {
+      // Reset the localchange and state db for the current domain
+      synchronized (sourceDbHandlers)
+      {
+        for (DbHandler dbHandler : sourceDbHandlers.values())
+        {
+          try
+          {
+            dbHandler.clear();
+          }
+          catch (Exception e)
+          {
+            // TODO: i18n
+            logError(Message.raw(
+                "Exception caught while clearing dbHandler:" +
+                e.getLocalizedMessage()));
+          }
+        }
+        sourceDbHandlers.clear();
+
+        if (debugEnabled())
+          TRACER.debugInfo(
+              "In " + this.replicationServer.getMonitorInstanceName() +
+              " baseDN=" + baseDn +
+          " The source db handler has been cleared");
+      }
+      try
+      {
+        replicationServer.clearGenerationId(baseDn);
+      }
+      catch (Exception e)
+      {
+        // TODO: i18n
+        logError(Message.raw(
+            "Exception caught while clearing generationId:" +
+            e.getLocalizedMessage()));
       }
     }
 
