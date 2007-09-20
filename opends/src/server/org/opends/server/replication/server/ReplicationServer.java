@@ -989,4 +989,20 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     else
       return null;
   }
+
+  /**
+   * Clears the Db associated with that server.
+   */
+  public void clearDb()
+  {
+    Iterator<ReplicationCache> rcachei = getCacheIterator();
+    if (rcachei != null)
+    {
+      while (rcachei.hasNext())
+      {
+        ReplicationCache rc = rcachei.next();
+        rc.clearDbs();
+      }
+    }
+  }
 }
