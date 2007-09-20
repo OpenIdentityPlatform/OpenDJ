@@ -2394,13 +2394,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         {
           Attribute attr = attrs.get(0);
           LinkedHashSet<AttributeValue> values = attr.getValues();
-          if (values.size()!=1)
+          if (values.size()>1)
           {
             Message message = ERR_LOADING_GENERATION_ID.get(
-                baseDN.toString(), "#Values != 1");
+                baseDN.toString(), "#Values=" + values.size() +
+                " Must be exactly 1 in entry " +
+                resultEntry.toLDIFString());
             logError(message);
           }
-          else
+          else if (values.size() == 1)
           {
             found=true;
             try
