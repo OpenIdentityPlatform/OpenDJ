@@ -367,15 +367,6 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
-  public synchronized void search(SearchOperation searchOperation)
-         throws DirectoryException
-  {
-    this.searchBackend(searchOperation);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
@@ -978,8 +969,8 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
-  public synchronized void searchBackend(SearchOperation searchOperation)
-  throws DirectoryException
+  public synchronized void search(SearchOperation searchOperation)
+         throws DirectoryException
   {
     // Get the base DN, scope, and filter for the search.
     DN           searchBaseDN = searchOperation.getBaseDN();
