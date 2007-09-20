@@ -469,11 +469,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          localOp.setResultCode(de.getResultCode());
-          localOp.appendErrorMessage(de.getMessageObject());
-          localOp.setMatchedDN(de.getMatchedDN());
-          localOp.setReferralURLs(de.getReferralURLs());
-
+          localOp.setResponseData(de);
           break modifyProcessing;
         }
 
@@ -2291,70 +2287,15 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
             backend.replaceEntry(modifiedEntry, localOp);
 
 
-            // If the modification was successful, then see if there's any other
-            // work that we need to do here before handing off to postop
-            // plugins.
-            if (passwordChanged)
-            {
-              if (selfChange)
-              {
-                AuthenticationInfo authInfo =
-                  clientConnection.getAuthenticationInfo();
-                if (authInfo.getAuthenticationDN().equals(entryDN))
-                {
-                  clientConnection.setMustChangePassword(false);
-                }
 
-                Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
-                pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.PASSWORD_CHANGED,
-                    modifiedEntry, message,
-                    AccountStatusNotification.createProperties(pwPolicyState,
-                         false, -1, localOp.getCurrentPasswords(),
-                         localOp.getNewPasswords()));
-              }
-              else
-              {
-                Message message = INFO_MODIFY_PASSWORD_RESET.get();
-                pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.PASSWORD_RESET, modifiedEntry,
-                    message,
-                    AccountStatusNotification.createProperties(pwPolicyState,
-                         false, -1, localOp.getCurrentPasswords(),
-                         localOp.getNewPasswords()));
-              }
-            }
-
-            if (enabledStateChanged)
+            // See if we need to generate any account status notifications as a
+            // result of the changes.
+            if (passwordChanged || enabledStateChanged || wasLocked)
             {
-              if (isEnabled)
-              {
-                Message message = INFO_MODIFY_ACCOUNT_ENABLED.get();
-                pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.ACCOUNT_ENABLED,
-                    modifiedEntry, message,
-                    AccountStatusNotification.createProperties(pwPolicyState,
-                         false, -1, null, null));
-              }
-              else
-              {
-                Message message = INFO_MODIFY_ACCOUNT_DISABLED.get();
-                pwPolicyState.generateAccountStatusNotification(
-                    AccountStatusNotificationType.ACCOUNT_DISABLED,
-                    modifiedEntry, message,
-                    AccountStatusNotification.createProperties(pwPolicyState,
-                         false, -1, null, null));
-              }
-            }
-
-            if (wasLocked)
-            {
-              Message message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
-              pwPolicyState.generateAccountStatusNotification(
-                  AccountStatusNotificationType.ACCOUNT_UNLOCKED, modifiedEntry,
-                  message,
-                  AccountStatusNotification.createProperties(pwPolicyState,
-                       false, -1, null, null));
+              handleAccountStatusNotifications(passwordChanged, selfChange,
+                                               enabledStateChanged, isEnabled,
+                                               wasLocked, localOp,
+                                               pwPolicyState, modifiedEntry);
             }
           }
 
@@ -2600,6 +2541,92 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
 
     // Stop the processing timer.
     localOp.setProcessingStopTime();
+  }
+
+  /**
+   * Handles any account status notifications that may be needed as a result of
+   * modify processing using the provided information.
+   *
+   * @param  passwordChanged      Indicates whether the modify operation
+   *                              included a password change.
+   * @param  selfChange           Indicates whether the password change was
+   *                              performed by the end user or an administrator.
+   * @param  enabledStateChanged  Indicates whether the user's account changed
+   *                              from enabled to disabled (or vice versa)
+   * @param  isEnabled            Indicates whether the user's account is now
+   *                              enabled.
+   * @param  wasLocked            Indicates whether the user's account was
+   *                              previously locked.
+   * @param  localOp              The modify operation being processed.
+   * @param  pwPolicyState        The password policy state for the user.
+   * @param  modifiedEntry        The updated version of the entry.
+   */
+  private void handleAccountStatusNotifications(boolean passwordChanged,
+                    boolean selfChange, boolean enabledStateChanged,
+                    boolean isEnabled, boolean wasLocked,
+                    LocalBackendModifyOperation  localOp,
+                    PasswordPolicyState pwPolicyState, Entry modifiedEntry)
+  {
+    if (passwordChanged)
+    {
+      if (selfChange)
+      {
+        AuthenticationInfo authInfo =
+          localOp.getClientConnection().getAuthenticationInfo();
+        if (authInfo.getAuthenticationDN().equals(modifiedEntry.getDN()))
+        {
+          localOp.getClientConnection().setMustChangePassword(false);
+        }
+
+        Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
+        pwPolicyState.generateAccountStatusNotification(
+            AccountStatusNotificationType.PASSWORD_CHANGED,
+            modifiedEntry, message,
+            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
+                 localOp.getCurrentPasswords(), localOp.getNewPasswords()));
+      }
+      else
+      {
+        Message message = INFO_MODIFY_PASSWORD_RESET.get();
+        pwPolicyState.generateAccountStatusNotification(
+            AccountStatusNotificationType.PASSWORD_RESET, modifiedEntry,
+            message,
+            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
+                 localOp.getCurrentPasswords(), localOp.getNewPasswords()));
+      }
+    }
+
+    if (enabledStateChanged)
+    {
+      if (isEnabled)
+      {
+        Message message = INFO_MODIFY_ACCOUNT_ENABLED.get();
+        pwPolicyState.generateAccountStatusNotification(
+            AccountStatusNotificationType.ACCOUNT_ENABLED,
+            modifiedEntry, message,
+            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
+                 null, null));
+      }
+      else
+      {
+        Message message = INFO_MODIFY_ACCOUNT_DISABLED.get();
+        pwPolicyState.generateAccountStatusNotification(
+            AccountStatusNotificationType.ACCOUNT_DISABLED,
+            modifiedEntry, message,
+            AccountStatusNotification.createProperties(pwPolicyState, false, -1,
+                 null, null));
+      }
+    }
+
+    if (wasLocked)
+    {
+      Message message = INFO_MODIFY_ACCOUNT_UNLOCKED.get();
+      pwPolicyState.generateAccountStatusNotification(
+          AccountStatusNotificationType.ACCOUNT_UNLOCKED, modifiedEntry,
+          message,
+          AccountStatusNotification.createProperties(pwPolicyState, false, -1,
+               null, null));
+    }
   }
 
   /**
