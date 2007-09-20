@@ -206,6 +206,8 @@
           <xsl:value-of
             select="concat('      String value = get', $java-property-name, '();&#xa;')" />
           <xsl:value-of
+            select="concat('      if (value == null) return null;&#xa;')" />
+          <xsl:value-of
             select="concat('      return INSTANCE.get', $java-property-name, 'PropertyDefinition().getChildDN(value);&#xa;')" />
           <xsl:value-of select="'    }&#xa;'" />
         </xsl:when>
