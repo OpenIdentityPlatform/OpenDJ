@@ -371,6 +371,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       defaultArgs.remove(argsToRemove[i]);
     }
+    defaultArgs.remove(noPropertiesFileArg);
+    defaultArgs.remove(propertiesFileArg);
+
     int index = 0;
 
     baseDNsArg = new StringArgument("baseDNs", OPTION_SHORT_BASEDN,

@@ -1489,7 +1489,7 @@ public final class TestCaseUtils {
    */
   public static void dsconfig(String... args)
   {
-    String[] fullArgs = new String[args.length + 9];
+    String[] fullArgs = new String[args.length + 10];
     fullArgs[0] = "-h";
     fullArgs[1] = "127.0.0.1";
     fullArgs[2] = "-p";
@@ -1499,8 +1499,9 @@ public final class TestCaseUtils {
     fullArgs[6] = "-w";
     fullArgs[7] = "password";
     fullArgs[8] = "-n";
+    fullArgs[9] = "--noPropertiesFile";
 
-    System.arraycopy(args, 0, fullArgs, 9, args.length);
+    System.arraycopy(args, 0, fullArgs, 10, args.length);
 
     assertEquals(DSConfig.main(fullArgs, false, System.out, System.err), 0);
   }

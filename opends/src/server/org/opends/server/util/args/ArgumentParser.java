@@ -29,10 +29,12 @@ import org.opends.messages.Message;
 
 
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -60,6 +62,17 @@ import org.opends.messages.MessageBuilder;
  */
 public class ArgumentParser
 {
+  /**
+   * The argument that will be used to indicate the file properties.
+   */
+  private StringArgument filePropertiesPathArgument;
+
+  /**
+   * The argument that will be used to indicate that we'll not look for
+   * default properties file.
+   */
+  private BooleanArgument NoPropertiesFileArgument;
+
   // The argument that will be used to trigger the display of usage information.
   private Argument usageArgument;
 
@@ -148,6 +161,8 @@ public class ArgumentParser
     trailingArguments       = new ArrayList<String>();
     rawArguments            = null;
     usageArgument           = null;
+    filePropertiesPathArgument = null;
+    NoPropertiesFileArgument = null;
     usageOutputStream       = System.out;
   }
 
@@ -402,7 +417,6 @@ public class ArgumentParser
   }
 
 
-
   /**
    * Adds the provided argument to the set of arguments handled by this parser.
    *
@@ -501,6 +515,31 @@ public class ArgumentParser
   }
 
 
+  /**
+   * Sets the provided argument which will be used to identify the
+   * file properties.
+   *
+   * @param argument
+   *          The argument which will be used to identify the file
+   *          properties.
+   */
+  public void setFilePropertiesArgument(StringArgument argument)
+  {
+    filePropertiesPathArgument= argument;
+  }
+
+  /**
+   * Sets the provided argument which will be used to identify the
+   * file properties.
+   *
+   * @param argument
+   *          The argument which will be used to indicate if we have to
+   *          look for properties file.
+   */
+  public void setNoPropertiesFileArgument(BooleanArgument argument)
+  {
+    NoPropertiesFileArgument= argument;
+  }
 
   /**
    * Parses the provided set of arguments and updates the information associated
@@ -943,37 +982,55 @@ public class ArgumentParser
       }
     }
 
+    // If we don't have the argumentProperties, try to load a properties file.
+    if (argumentProperties == null)
+    {
+      argumentProperties = checkExternalProperties();
+    }
 
     // Iterate through all of the arguments.  For any that were not provided on
     // the command line, see if there is an alternate default that can be used.
     // For cases where there is not, see that argument is required.
     for (Argument a : argumentList)
     {
-      if ((! a.isPresent()) && a.needsValue())
+      if (! a.isPresent())
       {
-        // See if there is a default value in the properties that can be used.
-        boolean valueSet = false;
+        // See if there is a value in the properties that can be used
         if ((argumentProperties != null) && (a.getPropertyName() != null))
         {
-          String value = argumentProperties.getProperty(a.getPropertyName());
+          String value = argumentProperties.getProperty(a.getPropertyName()
+              .toLowerCase());
           if (value != null)
           {
-            a.addValue(value);
-            valueSet = true;
+            if (a.needsValue())
+            {
+              a.addValue(value);
+              a.setPresent(true);
+            }
+            else
+            if (value.toLowerCase().equals(CONFIG_VALUE_TRUE))
+            {
+              // Boolean value. Set to "present" only if
+              // value property value is "true"
+              // (insensitive case)
+              a.setPresent(true);
+            }
           }
         }
+      }
 
-        // If there is still no value, then see if the argument defines a
-        // default.
-        if ((! valueSet) && (a.getDefaultValue() != null))
+
+      if ((! a.isPresent()) && a.needsValue())
+      {
+        // See if the argument defines a default.
+        if (a.getDefaultValue() != null)
         {
           a.addValue(a.getDefaultValue());
-          valueSet = true;
         }
 
         // If there is still no value and the argument is required, then that's
         // a problem.
-        if ((! valueSet) && a.isRequired())
+        if ((! a.hasValue()) && a.isRequired())
         {
           Message message =
               ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
@@ -986,11 +1043,142 @@ public class ArgumentParser
 
 
   /**
-   * Appends usage information based on the defined arguments to the provided
-   * buffer.
+   * Check if we have a properties file.
    *
-   * @param  buffer  The buffer to which the usage information should be
-   *                 appended.
+   * @return The properties found in the properties file or null.
+   * @throws ArgumentException
+   *           If a problem was encountered while parsing the provided
+   *           arguments.
+   */
+  protected Properties checkExternalProperties()
+      throws ArgumentException
+  {
+    // We don't look for properties file.
+    if ((NoPropertiesFileArgument != null)
+        && (NoPropertiesFileArgument.isPresent()))
+    {
+      return null;
+    }
+
+    // Check if we have a properties file argument
+    if (filePropertiesPathArgument == null)
+    {
+      return null;
+    }
+
+    // check if the properties file argument has been set. If not
+    // look for default location.
+    String propertiesFilePath = null;
+    if (filePropertiesPathArgument.isPresent())
+    {
+      propertiesFilePath = filePropertiesPathArgument.getValue();
+    }
+    else
+    {
+      // Check in "user home"/.opends directory
+      String userDir = System.getProperty("user.home");
+      propertiesFilePath = findPropertiesFile(userDir + File.separator
+          + DEFAULT_OPENDS_CONFIG_DIR);
+
+      if (propertiesFilePath == null)
+      {
+        // check "Opends instance"/config directory
+        String instanceDir = System.getProperty(PROPERTY_SERVER_ROOT);
+        propertiesFilePath = findPropertiesFile(instanceDir+ File.separator
+            + "config");
+      }
+    }
+
+    // We don't have a properties file location
+    if (propertiesFilePath == null)
+    {
+      return null;
+    }
+
+    // We have a location for the properties file.
+    Properties argumentProperties = new Properties();
+    String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+    try
+    {
+      Properties p = new Properties();
+      FileInputStream fis = new FileInputStream(propertiesFilePath);
+      p.load(fis);
+      fis.close();
+
+      for (Enumeration<?> e = p.propertyNames(); e.hasMoreElements();)
+      {
+        String currentPropertyName = (String) e.nextElement();
+        String propertyName = currentPropertyName;
+
+        // Property name form <script name>.<property name> has the
+        // precedence to <property name>
+        if (scriptName != null)
+        {
+          if (currentPropertyName.startsWith(scriptName))
+          {
+           propertyName = currentPropertyName
+                .substring(scriptName.length() + 1);
+          }
+          else
+          {
+            if (p.containsKey(scriptName + "." + currentPropertyName ))
+            {
+              continue;
+            }
+          }
+        }
+        argumentProperties.setProperty(propertyName.toLowerCase(), p
+            .getProperty(currentPropertyName));
+      }
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
+          .valueOf(propertiesFilePath), getExceptionMessage(e));
+      throw new ArgumentException(message, e);
+    }
+    return argumentProperties;
+  }
+
+
+  /**
+   * Get the absolute path of the properties file.
+   *
+   * @param directory
+   *          The location in which we should look for properties file
+   * @return The absolute path of the properties file or null
+   */
+  private String findPropertiesFile(String directory)
+  {
+    // Check directory
+    File dir = new File(directory);
+    if (! dir.exists())
+    {
+      return null;
+    }
+
+    // Look for the tools properties file
+    String path = directory + File.separator
+        + DEFAULT_OPENDS_PROPERTIES_FILE_NAME
+        + DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION;
+    File f = new File(path);
+    if (f.exists() && f.canRead())
+    {
+      return f.getAbsolutePath();
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Appends usage information based on the defined arguments to the
+   * provided buffer.
+   *
+   * @param buffer
+   *          The buffer to which the usage information should be
+   *          appended.
    */
   public void getUsage(StringBuilder buffer)
   {

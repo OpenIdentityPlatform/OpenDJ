@@ -103,6 +103,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -123,6 +124,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -143,6 +145,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -169,6 +172,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -192,6 +196,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -212,6 +217,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
@@ -238,6 +244,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
@@ -261,6 +268,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -287,6 +295,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "-n",
+      "--noPropertiesFile",
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
@@ -305,15 +314,15 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   @Test()
   public void testHelp()
   {
-    String[] args = { "--help" };
+    String[] args = {"--noPropertiesFile","--help" };
     assertEquals(DSConfig.main(args, false, null, null),
         SUCCESSFUL.getReturnCode());
 
-    args = new String[] { "-H" };
+    args = new String[] { "--noPropertiesFile", "-H" };
     assertEquals(DSConfig.main(args, false, null, null),
         SUCCESSFUL.getReturnCode());
 
-    args = new String[] { "-?" };
+    args = new String[] { "--noPropertiesFile", "-?" };
     assertEquals(DSConfig.main(args, false, null, null),
         SUCCESSFUL.getReturnCode());
   }

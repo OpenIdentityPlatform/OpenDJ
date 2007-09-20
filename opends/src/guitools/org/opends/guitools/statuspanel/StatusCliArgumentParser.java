@@ -78,6 +78,8 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(secureArgsList.portArg);
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(verboseArg);
+    defaultArgs.remove(noPropertiesFileArg);
+    defaultArgs.remove(propertiesFileArg);
     noPromptArg = new BooleanArgument(
         ToolConstants.OPTION_LONG_NO_PROMPT,
         ToolConstants.OPTION_SHORT_NO_PROMPT,
