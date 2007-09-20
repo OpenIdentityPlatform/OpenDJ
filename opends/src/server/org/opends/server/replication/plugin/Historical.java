@@ -281,7 +281,8 @@ public class Historical
           }
           else if (valInfo.getValueUpdateTime() != null)
           {
-            if (delAttr && valInfo.getValueUpdateTime() == deleteTime)
+            if ((delAttr && valInfo.getValueUpdateTime() == deleteTime)
+               && (valInfo.getValue() != null))
             {
               strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
               valInfo.getValueUpdateTime().toString() +  ":repl:" +

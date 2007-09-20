@@ -161,6 +161,48 @@ public class ModifyConflictTest
                11, false);
 
   }
+  
+  /**
+   * Test that replace with null value is corrrectly seen as a delete
+   * by doing first a replace with null, then add at at previous time
+   * then check that the add was ignored
+   */
+  @Test()
+  public void replaceWithNull() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    Historical hist = Historical.load(entry);
+
+    /*
+     * simulate a replace with null done at time t3
+     */
+    testModify(entry, hist, "displayname", ModificationType.REPLACE, null, 3,
+        true);
+
+    /*
+     * Now simulate an add at an earlier date that the previous replace. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, "displayname", ModificationType.ADD,
+        "older value", 1, false);
+
+    /*
+     * Now simulate an add at an earlier date that the previous delete. The
+     * conflict resolution should detect that this add must be ignored. (a
+     * second time to make sure that historical information is kept...)
+     */
+    testModify(entry, hist, "displayname", ModificationType.ADD,
+        "older value", 2, false);
+
+    /*
+     * Now simulate an add at a later date that the previous delete.
+     * conflict resolution should keep it
+     */
+    testModify(entry, hist, "displayname", ModificationType.ADD, "new value",
+        4, true);
+  }
 
   /**
    * Test that conflict between modify-add and modify-replace for
