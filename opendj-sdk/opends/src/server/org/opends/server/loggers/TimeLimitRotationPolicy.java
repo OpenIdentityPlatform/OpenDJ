@@ -100,8 +100,8 @@ public class TimeLimitRotationPolicy implements
    */
   public boolean rotateFile(MultifileTextWriter writer)
   {
-    long currTime = TimeThread.getTime();
-    long currInterval = currTime - writer.getLastRotationTime();
+    long currInterval = TimeThread.getTime() -
+        writer.getLastRotationTime().getTimeInMillis();
 
     if (debugEnabled())
     {
