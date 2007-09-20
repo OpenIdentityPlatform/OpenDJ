@@ -28,6 +28,7 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.messages.Message;
+
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.awt.Color;
@@ -42,6 +43,8 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -67,6 +70,8 @@ public class UIFactory
   private static boolean initialized = false;
 
   private static String parentPackagePath;
+
+  private static final Logger LOG = Logger.getLogger(UIFactory.class.getName());
 
   /**
    * Specifies the horizontal insets between buttons.
@@ -526,12 +531,20 @@ public class UIFactory
       new HashMap<IconType, ImageIcon>();
 
   static {
-    UIManager.put("OptionPane.background",
-            getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
-    UIManager.put("Panel.background",
-            getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
-    UIManager.put("ComboBox.background",
-            getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
+    try
+    {
+      UIManager.put("OptionPane.background",
+          getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
+      UIManager.put("Panel.background",
+          getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
+      UIManager.put("ComboBox.background",
+          getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
+    }
+    catch (Throwable t)
+    {
+      // This might occur when we do not get the display
+      LOG.log(Level.WARNING, "Error updating UIManager: "+t, t);
+    }
   }
 
   /**
