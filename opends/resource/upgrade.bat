@@ -30,6 +30,16 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
 set INSTANCE_ROOT=%DIR_HOME%
 
+:checkNewVersion
+if exist "upgrade.bat.NEW" goto newVersion
+goto checkJavaBin
+
+:newVersion
+echo A new version of this script was made available by the last upgrade
+echo operation.  Delete this old version and rename file 'upgrade.bat.NEW'
+echo to 'upgrade.bat' before continuing.
+goto end
+
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto noJavaBin
 goto callExtractor

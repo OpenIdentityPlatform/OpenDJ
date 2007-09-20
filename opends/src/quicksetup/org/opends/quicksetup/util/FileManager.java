@@ -353,6 +353,33 @@ public class FileManager {
             filter);
   }
 
+ /**
+  * Determines whether or not two files differ in content.
+  *
+  * @param f1 file to compare
+  * @param f2 file to compare
+  * @return boolean where true indicates that two files differ
+  * @throws IOException if there is a problem reading the files' conents
+  */
+ public boolean filesDiffer(File f1, File f2) throws IOException {
+   boolean differ = false;
+   FileReader fr1 = new FileReader(f1);
+   FileReader fr2 = new FileReader(f2);
+   try {
+     boolean done = false;
+     while (!differ && !done) {
+       int c1 = fr1.read();
+       int c2 = fr2.read();
+       differ = c1 != c2;
+       done = c1 == -1 || c2 == -1;
+     }
+   } finally {
+     fr1.close();
+     fr2.close();
+   }
+   return differ;
+ }
+
   private void operateRecursively(FileOperation op, FileFilter filter)
           throws ApplicationException {
     File file = op.getObjectFile();

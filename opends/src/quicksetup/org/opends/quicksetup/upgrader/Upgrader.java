@@ -148,11 +148,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private ApplicationException runWarning = null;
 
   /**
-   * Helps with CLI specific tasks.
-   */
-  private UpgraderCliHelper cliHelper = null;
-
-  /**
    * Directory where backup is kept in case the upgrade needs reversion.
    */
   private File backupDirectory = null;
@@ -178,7 +173,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
    */
   private Installation stagedInstallation = null;
 
+  // TODO: remove dead code
   private RemoteBuildManager remoteBuildManager = null;
+
+
+  /**
+   * Represents staged files for upgrade.
+   */
+  private Stage stage = null;
+
 
   /** Set to true if the user decides to close the window while running. */
   private boolean abort = false;
@@ -1026,6 +1029,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
                     Utils.getPath(getInstallation().getHistoryLogFile())))
                 .append(formatter.getLineBreak())
                 .toMessage());
+
+        try {
+          Stage stage = getStage();
+          List<Message> stageMessages = stage.getMessages();
+          for (Message m : stageMessages) {
+            notifyListeners(m);
+          }
+        } catch (IOException e) {
+          LOG.log(Level.INFO, "failed to access stage", e);
+        }
+
       } catch (ApplicationException e) {
         notifyListeners(getFormattedErrorWithLineBreak());
         LOG.log(Level.INFO, "Error cleaning up after upgrade.", e);
@@ -1164,18 +1178,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   }
 
+  private Stage getStage() throws IOException, ApplicationException {
+    if (this.stage == null) {
+      this.stage = new Stage(getStageDirectory());
+    }
+    return this.stage;
+  }
+
   private void upgradeComponents() throws ApplicationException {
     try {
-      File stageDir = getStageDirectory();
+      Stage stage = getStage();
       Installation installation = getInstallation();
       File root = installation.getRootDirectory();
-      FileManager fm = new FileManager();
-      for (String fileName : stageDir.list()) {
-        File f = new File(stageDir, fileName);
-        fm.copyRecursively(f, root,
-                new UpgradeFileFilter(stageDir),
-                /*overwrite=*/true);
-      }
+      stage.move(root);
 
       // The bits should now be of the new version.  Have
       // the installation update the build information so
@@ -1223,7 +1238,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
       FileFilter filter = new UpgradeFileFilter(root);
       for (String fileName : root.list()) {
         File f = new File(root, fileName);
-        //fm.copyRecursively(f, filesBackupDirectory,
+
+        // Replacing a Windows bat file while it is running with a different
+        // version leads to unpredictable behavior so we make a special case
+        // here and during the upgrade components step.
+        if (Utils.isWindows() &&
+                fileName.equals(Installation.WINDOWS_UPGRADE_FILE_NAME)) {
+          continue;
+        }
+
         fm.move(f, filesBackupDirectory, filter);
       }
     } catch (ApplicationException ae) {
