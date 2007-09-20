@@ -1659,19 +1659,19 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.490 NAME 'ds-cfg-poll-interval'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.491
-  NAME 'ds-cfg-plugin-order-synchronization-add'
+  NAME 'ds-cfg-plugin-order-post-synchronization-add'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.492
-  NAME 'ds-cfg-plugin-order-synchronization-delete'
+  NAME 'ds-cfg-plugin-order-post-synchronization-delete'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.493
-  NAME 'ds-cfg-plugin-order-synchronization-modify'
+  NAME 'ds-cfg-plugin-order-post-synchronization-modify'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.494
-  NAME 'ds-cfg-plugin-order-synchronization-modify-dn'
+  NAME 'ds-cfg-plugin-order-post-synchronization-modify-dn'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.495
@@ -2275,10 +2275,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.114 NAME 'ds-cfg-plugin-root'
   ds-cfg-plugin-order-post-response-modify $
   ds-cfg-plugin-order-post-response-modify-dn $
   ds-cfg-plugin-order-post-response-search $
-  ds-cfg-plugin-order-synchronization-add $
-  ds-cfg-plugin-order-synchronization-delete $
-  ds-cfg-plugin-order-synchronization-modify $
-  ds-cfg-plugin-order-synchronization-modify-dn $
+  ds-cfg-plugin-order-post-synchronization-add $
+  ds-cfg-plugin-order-post-synchronization-delete $
+  ds-cfg-plugin-order-post-synchronization-modify $
+  ds-cfg-plugin-order-post-synchronization-modify-dn $
   ds-cfg-plugin-order-search-result-entry $
   ds-cfg-plugin-order-search-result-reference $
   ds-cfg-plugin-order-subordinate-modify-dn $
