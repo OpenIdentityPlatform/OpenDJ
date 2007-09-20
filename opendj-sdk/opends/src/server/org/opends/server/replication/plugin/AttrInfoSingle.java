@@ -107,7 +107,15 @@ public class AttrInfoSingle extends AttributeInfo
       break;
 
     case REPLACE:
-      deleteTime = addTime = changeNumber;
+      if (value == null)
+      {
+        // REPLACE with null value is actually a DELETE
+        deleteTime = changeNumber;
+      }
+      else
+      {
+        deleteTime = addTime = changeNumber;
+      }
       value = newValue;
       break;
 
@@ -184,9 +192,17 @@ public class AttrInfoSingle extends AttributeInfo
       }
       else
       {
-        addTime = changeNumber;
-        value = newValue;
-        deleteTime = changeNumber;
+        if (newValue == null)
+        {
+          value = newValue;
+          deleteTime = changeNumber;
+        }
+        else
+        {
+          addTime = changeNumber;
+          value = newValue;
+          deleteTime = changeNumber;
+        }
       }
       break;
 
