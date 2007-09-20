@@ -993,7 +993,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     {
       if (parentIDMap.size() >= PARENT_ID_MAP_SIZE)
       {
-        parentIDMap.keySet().iterator().remove();
+        Iterator<DN> iterator = parentIDMap.keySet().iterator();
+        iterator.next();
+        iterator.remove();
       }
 
       parentIDMap.put(parentDN, parentID);
