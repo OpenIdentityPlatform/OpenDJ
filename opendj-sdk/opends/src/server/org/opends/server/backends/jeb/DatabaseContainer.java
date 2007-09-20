@@ -106,8 +106,8 @@ public abstract class DatabaseContainer
         database = env.openDatabase(txn, name, dbConfig);
         if (debugEnabled())
         {
-          TRACER.debugVerbose("JE database %s opened with %d records. txnid=%d",
-                              database.getDatabaseName(), database.count(),
+          TRACER.debugVerbose("JE database %s opened. txnid=%d",
+                              database.getDatabaseName(),
                               txn.getId());
         }
         entryContainer.transactionCommit(txn);
@@ -123,8 +123,8 @@ public abstract class DatabaseContainer
       database = env.openDatabase(null, name, dbConfig);
       if (debugEnabled())
       {
-        TRACER.debugVerbose("JE database %s opened with %d records. txnid=none",
-                            database.getDatabaseName(), database.count());
+        TRACER.debugVerbose("JE database %s opened. txnid=none",
+                            database.getDatabaseName());
       }
     }
   }
