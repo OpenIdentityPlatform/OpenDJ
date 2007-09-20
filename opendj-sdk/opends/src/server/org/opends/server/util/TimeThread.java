@@ -91,7 +91,7 @@ public final class TimeThread
   private static int hourAndMinute;
 
   // The current time in milliseconds since the epoch.
-  private static long time;
+  private static volatile long time;
 
   // The date formatter that will be used to obtain the generalized time.
   private static SimpleDateFormat generalizedTimeFormatter;
