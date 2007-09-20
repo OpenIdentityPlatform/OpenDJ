@@ -731,6 +731,10 @@ public class ConfigFileHandler
 
     try
     {
+      // Set a backend ID for the config backend. Try to avoid potential
+      // conflict with user backend identifiers.
+      setBackendID("__config.ldif__");
+
       DirectoryServer.registerBaseDN(configRootEntry.getDN(), this, true,
                                      false);
     }

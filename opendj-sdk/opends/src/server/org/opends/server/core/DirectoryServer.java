@@ -2587,32 +2587,49 @@ public class DirectoryServer
 
 
   /**
-   * Deregister a workflow from a network group.
+   * Deregisters a set of workflows each of which is identified with
+   * a baseDN.
    *
    * In the first implementation, workflows are stored in the default network
-   * group.
+   * group only.
    *
-   * @param backend  the backend which is handled by the workflows to
-   *                 deregister
+   * @param baseDNs  the DNs of the workflows to deregister
    */
   private static void deregisterWorkflows(
-      Backend backend
+      DN[] baseDNs
+      )
+  {
+    for (DN baseDN: baseDNs)
+    {
+      deregisterWorkflow(baseDN);
+    }
+  }
+
+
+  /**
+   * Deregisters one workflow with the appropriate network group.
+   *
+   * In the first implementation, workflows are stored in the default network
+   * group only.
+   *
+   * @param baseDN  the DN of the workflow to deregister
+   */
+  private static void deregisterWorkflow(
+      DN baseDN
       )
   {
     // Get the default network group and deregister all the workflows
     // being configured for the backend (reminder: there is one worklfow
     // per base DN configured in the backend).
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    for (DN baseDN: backend.getBaseDNs())
-    {
-      defaultNetworkGroup.deregisterWorkflow (baseDN);
-    }
+    defaultNetworkGroup.deregisterWorkflow (baseDN);
   }
 
 
   /**
-   * Create a workflow for the a backend then register the workflow
-   * with the appropriate network group.
+   * Creates a set of workflows for a given backend. There are as many
+   * workflows as base DNs defined in the backend. Each workflow is
+   * registered with the appropriate network group.
    *
    * TODO implement the registration with the appropriate network group.
    *
@@ -2622,28 +2639,55 @@ public class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static void createAndRegisterWorkflows(
+  public static void createAndRegisterWorkflows(
       Backend backend
       ) throws DirectoryException
   {
-    // Create a root workflow element to encapsulate the backend
-    LocalBackendWorkflowElement rootWE =
-        new LocalBackendWorkflowElement(backend.getBackendID(), backend);
-
     // Create a worklfow for each baseDN being configured
     // in the backend and register the workflow with the network groups.
-    // The workflow identifier is the same as the backend ID.
+    // In the automatic configuration mode, the workflow identifier is
+    // set to the backend ID.
     for (DN curBaseDN: backend.getBaseDNs())
     {
-      WorkflowImpl workflowImpl = new WorkflowImpl(
-          curBaseDN.toString(), curBaseDN, (WorkflowElement) rootWE);
-      registerWorkflowInNetworkGroups(workflowImpl);
+      createAndRegisterWorkflow(curBaseDN, backend);
     }
   }
 
 
   /**
-   * Register a workflow with the appropriate network groups.
+   * Creates one workflow for a given base DN in a backend. The workflow
+   * is registered with the appropriate network group.
+   *
+   * TODO implement the registration with the appropriate network group.
+   *
+   * @param baseDN   the base DN of the workflow to create
+   * @param backend  the backend handled by the workflow
+   *
+   * @throws  DirectoryException  If the workflow ID for the provided
+   *                              workflow conflicts with the workflow
+   *                              ID of an existing workflow.
+   */
+  public static void createAndRegisterWorkflow(
+      DN      baseDN,
+      Backend backend
+      ) throws DirectoryException
+  {
+    String backendID = backend.getBackendID();
+
+    // Create a root workflow element to encapsulate the backend
+    LocalBackendWorkflowElement rootWE =
+        LocalBackendWorkflowElement.create(backendID, backend);
+
+    // Create the worklfow for the base DN and register the workflow with
+    // the appropriate network groups.
+    WorkflowImpl workflowImpl = new WorkflowImpl(
+        baseDN.toString(), baseDN, (WorkflowElement) rootWE);
+    registerWorkflowInNetworkGroups(workflowImpl);
+  }
+
+
+  /**
+   * Registers a workflow with the appropriate network groups.
    *
    * In the first implementation, the workflow is registered with the
    * default network group only.
@@ -2661,7 +2705,6 @@ public class DirectoryServer
       WorkflowImpl workflowImpl
       ) throws DirectoryException
   {
-    // Register first the workflow with the default network group
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
     defaultNetworkGroup.registerWorkflow(workflowImpl);
 
@@ -2674,14 +2717,8 @@ public class DirectoryServer
 
 
   /**
-   * Create the workflows for the backends that were not registered through
-   * registerBackend method, nemely cn=config and RootDSE.
-   *
-   * TODO jdemendi - read the Workflow config and create them accordingly
-   *
-   * For the prototype: there is no configuration for the workflows.
-   * So we create one workflow per local backend, and we register it
-   * to the pool.
+   * Creates the workflows for the backends whose baseDNs were not registered
+   * with registerBaseDN method, namely config backend and RootDSE backend.
    *
    * @throws  ConfigException  If there is a configuration problem with any of
    *                           the workflows.
@@ -2691,10 +2728,7 @@ public class DirectoryServer
   {
     try
     {
-      // Create a workflow for the cn=config backend
       createAndRegisterWorkflows (configHandler);
-
-      // Create a workflows for the rootDSE backend
       createAndRegisterWorkflows (rootDSEBackend);
     }
     catch (DirectoryException de)
@@ -6190,15 +6224,6 @@ public class DirectoryServer
         monitor.initializeMonitorProvider(null);
         backend.setBackendMonitor(monitor);
         registerMonitorProvider(monitor);
-
-        // FIXME jdemendi - temporary code: create one workflow for each
-        // base DN being configured in the backend. We should not rely on the
-        // backend registration to create and register workflows because
-        // a workflow can be created for different type of "backend", including
-        // remote lDAP server. Instead, we should create the workflows using
-        // the administration framework. We will be doing so as soon as we
-        // have a configuration section for the workflows.
-        createAndRegisterWorkflows (backend);
       }
     }
   }
@@ -6225,12 +6250,9 @@ public class DirectoryServer
 
       directoryServer.backends = newBackends;
 
-      // Delete all the workflows registered for the backend.
-      // FIXME jdemendi - This task should be performed in the scope of the
-      // administration framework. However the administration framework
-      // requires a configuration section for the workflows which we don't have
-      // as of today.
-      deregisterWorkflows (backend);
+      // Don't need anymore the local backend workflow element
+      LocalBackendWorkflowElement.remove(backend.getBackendID());
+
 
       BackendMonitor monitor = backend.getBackendMonitor();
       if (monitor != null)
@@ -6547,6 +6569,15 @@ public class DirectoryServer
         directoryServer.baseDNs               = newBaseDNs;
         directoryServer.publicNamingContexts  = newPublicNamingContexts;
         directoryServer.privateNamingContexts = newPrivateNamingContexts;
+
+        // Now create a workflow for the registered baseDN and register
+        // the workflow with the network groups, but don't register the
+        // workflow if the backend happens to be the configuration backend
+        // because it's too soon.
+        if (! baseDN.equals(DN.decode("cn=config")))
+        {
+          createAndRegisterWorkflow(baseDN, backend);
+        }
       }
     }
   }
@@ -6693,6 +6724,9 @@ public class DirectoryServer
         directoryServer.baseDNs               = newBaseDNs;
         directoryServer.publicNamingContexts  = newPublicNamingContexts;
         directoryServer.privateNamingContexts = newPrivateNamingContexts;
+
+        // Now deregister the workflow that was associated with the base DN.
+        deregisterWorkflow(baseDN);
       }
     }
   }
@@ -8396,6 +8430,10 @@ public class DirectoryServer
     {
       try
       {
+        // Deregister all the local backend workflow elements that have been
+        // registered with the server.
+        LocalBackendWorkflowElement.removeAll();
+
         for (BackendInitializationListener listener :
              directoryServer.backendInitializationListeners)
         {
