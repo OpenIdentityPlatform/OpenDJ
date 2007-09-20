@@ -387,37 +387,44 @@ public final class SecureConnectionCliArgs
 
     useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
         OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
+    useSSLArg.setPropertyName(OPTION_LONG_USE_SSL);
     argList.add(useSSLArg);
 
     useStartTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
         OPTION_LONG_START_TLS,
         INFO_DESCRIPTION_START_TLS.get());
+    useStartTLSArg.setPropertyName(OPTION_LONG_START_TLS);
     argList.add(useStartTLSArg);
 
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_HOST.get());
+    hostNameArg.setPropertyName(OPTION_LONG_HOST);
     argList.add(hostNameArg);
 
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
         false, false, true, OPTION_VALUE_PORT, 389, null,
         INFO_DESCRIPTION_PORT.get());
+    portArg.setPropertyName(OPTION_LONG_PORT);
     argList.add(portArg);
 
     bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
+    bindDnArg.setPropertyName(OPTION_LONG_BINDDN);
     argList.add(bindDnArg);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
         OPTION_VALUE_BINDPWD, null, null, INFO_DESCRIPTION_BINDPASSWORD.get());
+    bindPasswordArg.setPropertyName(OPTION_LONG_BINDPWD);
     argList.add(bindPasswordArg);
 
     bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_BINDPASSWORDFILE.get());
+    bindPasswordFileArg.setPropertyName(OPTION_LONG_BINDPWD_FILE);
     argList.add(bindPasswordFileArg);
 
     saslOptionArg = new StringArgument(
@@ -426,34 +433,40 @@ public final class SecureConnectionCliArgs
             true, true,
             OPTION_VALUE_SASLOPTION, null, null,
             INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
+    saslOptionArg.setPropertyName(OPTION_LONG_SASLOPTION);
     argList.add(saslOptionArg);
 
     trustAllArg = new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL,
         OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
+    trustAllArg.setPropertyName(OPTION_LONG_TRUSTALL);
     argList.add(trustAllArg);
 
     trustStorePathArg = new StringArgument("trustStorePath",
         OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
         false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPATH.get());
+    trustStorePathArg.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
     argList.add(trustStorePathArg);
 
     trustStorePasswordArg = new StringArgument("trustStorePassword",
         OPTION_SHORT_TRUSTSTORE_PWD, OPTION_LONG_TRUSTSTORE_PWD, false, false,
         true, OPTION_VALUE_TRUSTSTORE_PWD, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
+    trustStorePasswordArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
     argList.add(trustStorePasswordArg);
 
     trustStorePasswordFileArg = new FileBasedArgument("trustStorePasswordFile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
         false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
+    trustStorePasswordFileArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
     argList.add(trustStorePasswordFileArg);
 
     keyStorePathArg = new StringArgument("keyStorePath",
         OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
         true, OPTION_VALUE_KEYSTOREPATH, null, null,
         INFO_DESCRIPTION_KEYSTOREPATH.get());
+    keyStorePathArg.setPropertyName(OPTION_LONG_KEYSTOREPATH);
     argList.add(keyStorePathArg);
 
     keyStorePasswordArg = new StringArgument("keyStorePassword",
@@ -461,18 +474,21 @@ public final class SecureConnectionCliArgs
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
         OPTION_VALUE_KEYSTORE_PWD, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
+    keyStorePasswordArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
     argList.add(keyStorePasswordArg);
 
     keyStorePasswordFileArg = new FileBasedArgument("keystorePasswordFile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
+    keyStorePasswordFileArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
     argList.add(keyStorePasswordFileArg);
 
     certNicknameArg = new StringArgument("certNickname",
         OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
         false, false, true, OPTION_VALUE_CERT_NICKNAME, null, null,
         INFO_DESCRIPTION_CERT_NICKNAME.get());
+    certNicknameArg.setPropertyName(OPTION_LONG_CERT_NICKNAME);
     argList.add(certNicknameArg);
 
     return argList;

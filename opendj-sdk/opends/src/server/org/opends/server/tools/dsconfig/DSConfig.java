@@ -63,6 +63,7 @@ import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
 import org.opends.server.util.cli.CLIException;
@@ -364,7 +365,12 @@ public final class DSConfig extends ConsoleApplication {
   // The argument which should be used to request verbose output.
   private BooleanArgument verboseArgument;
 
+  // The argument which should be used to indicate the properties file.
+  private StringArgument propertiesFileArgument;
 
+  // The argument which should be used to indicate that we will not look for
+  // properties file.
+  private BooleanArgument noPropertiesFileArgument;
 
   /**
    * Creates a new dsconfig application instance.
@@ -515,6 +521,15 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
               .get());
 
+      propertiesFileArgument = new StringArgument("propertieFilePath",
+          null, OPTION_LONG_PROP_FILE_PATH,
+          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
+
+      noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
+
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
       parser.setUsageArgument(showUsageArgument, getOutputStream());
@@ -523,6 +538,10 @@ public final class DSConfig extends ConsoleApplication {
       parser.addGlobalArgument(scriptFriendlyArgument);
       parser.addGlobalArgument(noPromptArgument);
       parser.addGlobalArgument(advancedModeArgument);
+      parser.addGlobalArgument(propertiesFileArgument);
+      parser.setFilePropertiesArgument(propertiesFileArgument);
+      parser.addGlobalArgument(noPropertiesFileArgument);
+      parser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
       // Register any global arguments required by the management
       // context factory.
@@ -655,6 +674,16 @@ public final class DSConfig extends ConsoleApplication {
     if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(scriptFriendlyArgument
           .getLongIdentifier(), verboseArgument.getLongIdentifier());
+      displayMessageAndUsageReference(message);
+      return 1;
+    }
+
+    if (noPropertiesFileArgument.isPresent()
+        && propertiesFileArgument.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          noPropertiesFileArgument.getLongIdentifier(),
+          propertiesFileArgument.getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }

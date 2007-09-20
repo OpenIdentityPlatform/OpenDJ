@@ -90,6 +90,25 @@ public class ToolConstants
 
 
   /**
+   * The name of the opends configuration direction in the user
+   * home directory.
+   */
+  public static final String DEFAULT_OPENDS_CONFIG_DIR = ".opends";
+
+  /**
+   * The default properties file name.
+   */
+  public static final String DEFAULT_OPENDS_PROPERTIES_FILE_NAME =
+    "tools";
+
+  /**
+   * The default properties file extension.
+   */
+  public static final String DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION =
+    ".properties";
+
+
+  /**
    * The value for the short option configClass.
    */
   public static final char OPTION_SHORT_CONFIG_CLASS = 'C';
@@ -726,6 +745,23 @@ public class ToolConstants
    * Placeholder string for the usage statement.
    */
   public static final String OPTION_VALUE_START_DATETIME = "{startTime}";
+
+  /**
+   * The value for the long option propertiesFilePAth .
+   */
+  public static final String OPTION_LONG_PROP_FILE_PATH = "propertiesFilePath";
+
+  /**
+   * The placeholder value of propertiesFilePAth that will be
+   * displayed in usage information.
+   */
+  public static final String OPTION_VALUE_PROP_FILE_PATH =
+    "{propertiesFilePath}";
+
+  /**
+   * The value for the long option propertiesFilePAth .
+   */
+  public static final String OPTION_LONG_NO_PROP_FILE = "noPropertiesFile";
 
 }
 

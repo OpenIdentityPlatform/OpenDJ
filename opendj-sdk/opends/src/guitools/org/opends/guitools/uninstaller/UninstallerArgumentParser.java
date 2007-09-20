@@ -198,6 +198,8 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
     defaultArgs.remove(verboseArg);
+    defaultArgs.remove(noPropertiesFileArg);
+    defaultArgs.remove(propertiesFileArg);
     UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,

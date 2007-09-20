@@ -86,6 +86,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "create-ads",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
       "--backendName", "admin"
@@ -106,6 +107,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "delete-ads",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
       "--backendName", "admin"
@@ -124,6 +126,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "malformed",
       "-w", "password"
@@ -142,6 +145,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Does Not Exist",
       "-w", "password"
@@ -160,6 +164,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "wrongPassword"
@@ -184,6 +189,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-j", validPasswordFile,
@@ -205,6 +211,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-j",invalidPasswordFile
@@ -223,6 +230,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
       "-w", "password",
       "-Z",
@@ -247,6 +255,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapsPort()),
       "-w", "password",
       "-Z",
@@ -268,6 +277,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
       "-q",
@@ -292,6 +302,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
     String[] args =
     {
       "list-groups",
+      "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-w", "password",
       "-q",
@@ -308,15 +319,15 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
   @Test()
   public void testHelp()
   {
-    String[] args = { "--help" };
+    String[] args = {"--noPropertiesFile", "--help" };
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
         SUCCESSFUL.getReturnCode());
 
-    args = new String[] { "-H" };
+    args = new String[] {"--noPropertiesFile", "-H" };
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
         SUCCESSFUL.getReturnCode());
 
-    args = new String[] { "-?" };
+    args = new String[] {"--noPropertiesFile", "-?" };
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, null, null),
         SUCCESSFUL.getReturnCode());
   }

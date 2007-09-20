@@ -613,7 +613,6 @@ public class SubCommandArgumentParser extends ArgumentParser
   }
 
 
-
   /**
    * Parses the provided set of arguments and updates the information associated
    * with this parser accordingly.
@@ -1012,7 +1011,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               if (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
               {
                   // "-V" will always be interpreted as requesting
-                  // version information except if it's alreadydefined.
+                  // version information except if it's already defined.
                 boolean dashVAccepted = true;
                 if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
                 {
@@ -1223,35 +1222,53 @@ public class SubCommandArgumentParser extends ArgumentParser
       }
     }
 
+    // If we don't have the argumentProperties, try to load a properties file.
+    if (argumentProperties == null)
+    {
+      argumentProperties = checkExternalProperties();
+    }
+
     // Iterate through all the global arguments and make sure that they have
     // values or a suitable default is available.
     for (Argument a : globalArgumentList)
     {
-      if ((! a.isPresent()) && a.needsValue())
+      if (! a.isPresent())
       {
-        // See if there is a default value in the properties that can be used.
-        boolean valueSet = false;
+        // See if there is a value in the properties that can be used
         if ((argumentProperties != null) && (a.getPropertyName() != null))
         {
-          String value = argumentProperties.getProperty(a.getPropertyName());
+          String value = argumentProperties.getProperty(a.getPropertyName()
+              .toLowerCase());
           if (value != null)
           {
-            a.addValue(value);
-            valueSet = true;
+            if (a.needsValue())
+            {
+              a.addValue(value);
+              a.setPresent(true);
+            }
+            else
+            if (value.toLowerCase().equals(CONFIG_VALUE_TRUE))
+            {
+              // Boolean value. Set to "present" only if
+              // value property value is "true"
+              // (insensitive case)
+              a.setPresent(true);
+            }
           }
         }
+      }
 
-        // If there is still no value, then see if the argument defines a
-        // default.
-        if ((! valueSet) && (a.getDefaultValue() != null))
+      if ((! a.isPresent()) && a.needsValue())
+      {
+        // ISee if the argument defines a default.
+        if (a.getDefaultValue() != null)
         {
           a.addValue(a.getDefaultValue());
-          valueSet = true;
         }
 
         // If there is still no value and the argument is required, then that's
         // a problem.
-        if ((! valueSet) && a.isRequired())
+        if ((! a.hasValue()) && a.isRequired())
         {
           Message message =
               ERR_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
@@ -1267,31 +1284,43 @@ public class SubCommandArgumentParser extends ArgumentParser
     {
       for (Argument a : subCommand.getArguments())
       {
-        if ((! a.isPresent()) && a.needsValue())
+        if (! a.isPresent())
         {
-          // See if there is a default value in the properties that can be used.
-          boolean valueSet = false;
+          // See if there is a value in the properties that can be used
           if ((argumentProperties != null) && (a.getPropertyName() != null))
           {
-            String value = argumentProperties.getProperty(a.getPropertyName());
+            String value = argumentProperties.getProperty(a.getPropertyName()
+                .toLowerCase());
             if (value != null)
             {
-              a.addValue(value);
-              valueSet = true;
+              if (a.needsValue())
+              {
+                a.addValue(value);
+                a.setPresent(true);
+              }
+              else
+              if (value.toLowerCase().equals(CONFIG_VALUE_TRUE))
+              {
+                // Boolean value. Set to "present" only if
+                // value property value is "true"
+                // (insensitive case)
+                a.setPresent(true);
+              }
             }
           }
+        }
 
-          // If there is still no value, then see if the argument defines a
-          // default.
-          if ((! valueSet) && (a.getDefaultValue() != null))
+        if ((! a.isPresent()) && a.needsValue())
+        {
+          // See if the argument defines a default.
+          if (a.getDefaultValue() != null)
           {
             a.addValue(a.getDefaultValue());
-            valueSet = true;
           }
 
           // If there is still no value and the argument is required, then
           // that's a problem.
-          if ((! valueSet) && a.isRequired())
+          if ((! a.hasValue()) && a.isRequired())
           {
             Message message =
                 ERR_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());

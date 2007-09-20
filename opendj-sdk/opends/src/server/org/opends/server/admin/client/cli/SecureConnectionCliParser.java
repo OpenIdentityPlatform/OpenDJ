@@ -27,9 +27,11 @@
 
 package org.opends.server.admin.client.cli;
 
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.ToolMessages.*;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.tools.ToolConstants.*;
@@ -79,6 +81,17 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * The secure args list object.
    */
   protected SecureConnectionCliArgs secureArgsList ;
+
+  /**
+   * Argument indicating a properties file argument.
+   */
+  protected StringArgument  propertiesFileArg = null;
+
+  /**
+   * The argument which should be used to indicate that we will not
+   * look for properties file.
+   */
+  protected BooleanArgument noPropertiesFileArg;
 
   /**
    * The tracer object for the debug logger.
@@ -305,6 +318,20 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
     set.add(verboseArg);
 
+    propertiesFileArg = new StringArgument("propertieFilePath",
+        null, OPTION_LONG_PROP_FILE_PATH,
+        false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    setFilePropertiesArgument(propertiesFileArg);
+    set.add(propertiesFileArg);
+
+    noPropertiesFileArg = new BooleanArgument(
+        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    setNoPropertiesFileArgument(noPropertiesFileArg);
+    set.add(noPropertiesFileArg);
+
+
     return set;
   }
 
@@ -321,6 +348,9 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     {
       addGlobalArgument(arg);
     }
+
+    // Set the propertiesFile argument
+    setFilePropertiesArgument(propertiesFileArg);
   }
 
   /**
@@ -353,7 +383,25 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public int validateGlobalOptions(MessageBuilder buf)
   {
-    return secureArgsList.validateGlobalOptions(buf) ;
+    int ret = secureArgsList.validateGlobalOptions(buf) ;
+
+    // Couldn't have at the same time properties file arg and
+    // propertiesFileArg
+    if (noPropertiesFileArg.isPresent()
+        && propertiesFileArg.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          noPropertiesFileArg.getLongIdentifier(), propertiesFileArg
+              .getLongIdentifier());
+      if (buf.length() > 0)
+      {
+        buf.append(EOL);
+      }
+      buf.append(message);
+      ret = CONFLICTING_ARGS.getReturnCode();
+    }
+
+    return ret;
   }
   /**
    * Indication if provided global options are validate.
