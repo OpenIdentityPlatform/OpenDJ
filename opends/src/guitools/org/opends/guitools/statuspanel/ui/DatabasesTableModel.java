@@ -329,7 +329,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     BaseDNDescriptor desc = dataArray.get(row);
     if (col == 0)
     {
-      v = desc.getDn();
+      v = desc.getUnescapedDn();
     }
     else if (col == 1)
     {
@@ -433,7 +433,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
   private int compareDns(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
-    return desc1.getDn().compareTo(desc2.getDn());
+    return desc1.getUnescapedDn().compareTo(desc2.getUnescapedDn());
   }
 
   private int compareRepl(BaseDNDescriptor desc1, BaseDNDescriptor desc2)

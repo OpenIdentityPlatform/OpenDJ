@@ -1982,7 +1982,7 @@ public class ADSContext
     String ben = backendName ;
     if (backendName == null)
     {
-      ben = getBackendName() ;
+      ben = getDefaultBackendName() ;
     }
     helper.createAdministrationSuffix(getDirContext(), ben,
         getDbName(), getImportTemp());
@@ -1995,10 +1995,14 @@ public class ADSContext
   private void removeAdministrationSuffix() throws ADSContextException
   {
     ADSContextHelper helper = new ADSContextHelper();
-    helper.removeAdministrationSuffix(getDirContext(), getBackendName());
+    helper.removeAdministrationSuffix(getDirContext(), getDefaultBackendName());
   }
 
-  private static String getBackendName()
+  /**
+   * Returns the default backend name of the administration data.
+   * @return the default backend name of the administration data.
+   */
+  public static String getDefaultBackendName()
   {
     return "adminRoot";
   }

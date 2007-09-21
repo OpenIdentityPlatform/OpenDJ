@@ -77,6 +77,10 @@ public class ListenerDescriptor
      */
     JMXS,
     /**
+     * LDIF protocol.
+     */
+    LDIF,
+    /**
      * Other protocol.
      */
     OTHER

@@ -68,6 +68,7 @@ import javax.swing.table.TableColumn;
 
 import org.opends.guitools.statuspanel.BaseDNDescriptor;
 import org.opends.guitools.statuspanel.DatabaseDescriptor;
+import org.opends.guitools.statuspanel.ListenerDescriptor;
 import org.opends.guitools.statuspanel.ServerStatusDescriptor;
 import org.opends.guitools.statuspanel.event.StatusPanelButtonListener;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
@@ -99,6 +100,7 @@ public class StatusPanelDialog extends JFrame
 
   private JLabel lServerStatus;
   private JLabel lCurrentConnections;
+  private JLabel lHostname;
   private JLabel lAdministrativeUsers;
   private JLabel lInstallPath;
   private JLabel lOpenDSVersion;
@@ -188,6 +190,8 @@ public class StatusPanelDialog extends JFrame
     updateStatusContents(desc);
 
     updateCurrentConnectionContents(desc);
+
+    updateHostnameContents(desc);
 
     updateAdministrativeUserContents(desc);
 
@@ -645,6 +649,9 @@ public class StatusPanelDialog extends JFrame
     JLabel[] leftLabels =
       {
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+            INFO_HOSTNAME_LABEL.get(),
+            UIFactory.TextStyle.PRIMARY_FIELD_VALID),
+        UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
             INFO_ADMINISTRATIVE_USERS_LABEL.get(),
             UIFactory.TextStyle.PRIMARY_FIELD_VALID),
         UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
@@ -658,6 +665,9 @@ public class StatusPanelDialog extends JFrame
             UIFactory.TextStyle.PRIMARY_FIELD_VALID)
       };
 
+    lHostname = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
+        NOT_AVAILABLE,
+        UIFactory.TextStyle.READ_ONLY);
     lAdministrativeUsers = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
         NOT_AVAILABLE, UIFactory.TextStyle.READ_ONLY);
     lInstallPath = UIFactory.makeJLabel(UIFactory.IconType.NO_ICON,
@@ -669,7 +679,8 @@ public class StatusPanelDialog extends JFrame
 
     JLabel[] rightLabels =
       {
-        lAdministrativeUsers, lInstallPath, lOpenDSVersion, lJavaVersion
+        lHostname, lAdministrativeUsers, lInstallPath, lOpenDSVersion,
+        lJavaVersion
       };
 
 
@@ -942,7 +953,18 @@ public class StatusPanelDialog extends JFrame
   }
 
   /**
-   * Updates the admiinistrative user contents displaying with what is specified
+   * Updates the host name contents displaying with what is specified
+   * in the provided ServerStatusDescriptor object.
+   * This method must be called from the event thread.
+   * @param desc the ServerStatusDescriptor object.
+   */
+  private void updateHostnameContents(ServerStatusDescriptor desc)
+  {
+    lHostname.setText(desc.getHostname());
+  }
+
+  /**
+   * Updates the administrative user contents displaying with what is specified
    * in the provided ServerStatusDescriptor object.
    * This method must be called from the event thread.
    * @param desc the ServerStatusDescriptor object.
@@ -1049,7 +1071,17 @@ public class StatusPanelDialog extends JFrame
    */
   private void updateListenerContents(ServerStatusDescriptor desc)
   {
-    listenersTableModel.setData(desc.getListeners());
+    Set<ListenerDescriptor> allListeners = desc.getListeners();
+
+    Set<ListenerDescriptor> listeners = new LinkedHashSet<ListenerDescriptor>();
+    for (ListenerDescriptor listener: allListeners)
+    {
+      if (listener.getProtocol() != ListenerDescriptor.Protocol.LDIF)
+      {
+        listeners.add(listener);
+      }
+    }
+    listenersTableModel.setData(listeners);
 
     if (listenersTableModel.getRowCount() == 0)
     {
@@ -1092,6 +1124,7 @@ public class StatusPanelDialog extends JFrame
   {
     Set<BaseDNDescriptor> replicas = new HashSet<BaseDNDescriptor>();
     Set<DatabaseDescriptor> dbs = desc.getDatabases();
+
     for (DatabaseDescriptor db: dbs)
     {
       replicas.addAll(db.getBaseDns());

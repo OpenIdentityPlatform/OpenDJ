@@ -870,6 +870,22 @@ public class ConfigFromLDAP
         state = ListenerDescriptor.State.DISABLED;
       }
     }
+    else if (hasObjectClass(entry, "ds-cfg-ldif-connection-handler"))
+    {
+      addressPort = INFO_UNKNOWN_LABEL.get().toString();
+      protocol = ListenerDescriptor.Protocol.LDIF;
+      protocolDescription = INFO_LDIF_PROTOCOL_LABEL.get();
+      boolean enabled = "true".equalsIgnoreCase(
+          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+      if (enabled)
+      {
+        state = ListenerDescriptor.State.ENABLED;
+      }
+      else
+      {
+        state = ListenerDescriptor.State.DISABLED;
+      }
+    }
     else
     {
       addressPort = INFO_UNKNOWN_LABEL.get().toString();
