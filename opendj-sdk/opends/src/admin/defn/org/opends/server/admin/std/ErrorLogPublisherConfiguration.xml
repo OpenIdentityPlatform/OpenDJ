@@ -147,6 +147,13 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
             processing.
           </adm:synopsis>
         </adm:value>
+        <adm:value name="debug">
+          <adm:synopsis>
+            The error log severity that will be used for messages that
+            provide debugging information triggered during
+            processing.
+          </adm:synopsis>
+        </adm:value>
       </adm:enumeration>
     </adm:syntax>
     <adm:profile name="ldap">
@@ -162,7 +169,12 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       Property to specify the override severity levels for the logger
       based on the category of the messages. Each override severity
       level should include the category and the severity levels to log
-      for that category. (i.e., core-server=mild_error,info,mild_warning).
+      for that category. (i.e., core=mild-error,info,mild-warning). Valid
+      categories are: core, extensions, protocol, config, log, util, schema,
+      plugin, jeb, backend, tools, task, access-control, admin, sync, version,
+      quicksetup, admin-tool, dsconfig, user-defined. Valid severities are:
+      all, fatal-error, info, mild-error, mild-warning, notice, severe-error,
+      severe-warning, debug.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
