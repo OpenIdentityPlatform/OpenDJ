@@ -1083,7 +1083,7 @@ public class ArgumentParser
       if (propertiesFilePath == null)
       {
         // check "Opends instance"/config directory
-        String instanceDir = System.getProperty(PROPERTY_SERVER_ROOT);
+        String instanceDir = DirectoryServer.getServerRoot();
         propertiesFilePath = findPropertiesFile(instanceDir+ File.separator
             + "config");
       }
@@ -1150,18 +1150,9 @@ public class ArgumentParser
    */
   private String findPropertiesFile(String directory)
   {
-    // Check directory
-    File dir = new File(directory);
-    if (! dir.exists())
-    {
-      return null;
-    }
-
     // Look for the tools properties file
-    String path = directory + File.separator
-        + DEFAULT_OPENDS_PROPERTIES_FILE_NAME
-        + DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION;
-    File f = new File(path);
+    File f = new File(directory,DEFAULT_OPENDS_PROPERTIES_FILE_NAME
+        + DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION);
     if (f.exists() && f.canRead())
     {
       return f.getAbsolutePath();
