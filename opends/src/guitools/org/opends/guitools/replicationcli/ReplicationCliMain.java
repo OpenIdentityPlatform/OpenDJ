@@ -4163,12 +4163,12 @@ public class ReplicationCliMain extends CliApplicationHelper
     if (Utils.isCertificateException(ne))
     {
       msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              hostPort, ne.toString());
+              hostPort, ne.toString(true));
     }
     else
     {
        msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-          hostPort, ne.toString());
+          hostPort, ne.toString(true));
     }
     return msg;
   }

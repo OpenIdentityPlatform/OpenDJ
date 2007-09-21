@@ -719,10 +719,18 @@ public abstract class Application implements ProgressNotifier, Runnable {
     }
     catch (NamingException ne)
     {
-      Message errorMessage = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-          server.getHostPort(true), ne.toString(true));
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR, errorMessage,
+      Message msg;
+      if (Utils.isCertificateException(ne))
+      {
+        msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+            server.getHostPort(true), ne.toString(true));
+      }
+      else
+      {
+         msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+             server.getHostPort(true), ne.toString(true));
+      }
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
           ne);
     }
     return ctx;
