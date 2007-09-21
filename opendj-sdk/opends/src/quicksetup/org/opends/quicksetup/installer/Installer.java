@@ -61,6 +61,8 @@ import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.util.Utils;
+
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.quicksetup.Step.*;
 import org.opends.quicksetup.*;
@@ -1801,11 +1803,19 @@ public abstract class Installer extends GuiApplication {
       }
       catch (NamingException ne)
       {
-        throw new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                        server.getHostPort(true),
-                        ne.getLocalizedMessage()), ne);
+        Message msg;
+        if (Utils.isCertificateException(ne))
+        {
+          msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+              server.getHostPort(true), ne.toString(true));
+        }
+        else
+        {
+           msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+               server.getHostPort(true), ne.toString(true));
+        }
+        throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
+            ne);
       }
       finally
       {
@@ -1857,11 +1867,19 @@ public abstract class Installer extends GuiApplication {
           }
           catch (NamingException ne)
           {
-            throw new ApplicationException(
-                ReturnCode.CONFIGURATION_ERROR,
-                INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                        server.getHostPort(true),
-                        ne.getLocalizedMessage()), ne);
+            Message msg;
+            if (Utils.isCertificateException(ne))
+            {
+              msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+                  server.getHostPort(true), ne.toString(true));
+            }
+            else
+            {
+               msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
+                   server.getHostPort(true), ne.toString(true));
+            }
+            throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
+                ne);
           }
           finally
           {
@@ -2096,7 +2114,7 @@ public abstract class Installer extends GuiApplication {
         throw new ApplicationException(
                 ReturnCode.CONFIGURATION_ERROR,
                 INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                        getHostDisplay(auth), ne.getLocalizedMessage()), ne);
+                        getHostDisplay(auth), ne.toString(true)), ne);
       }
       else
       {
@@ -3008,7 +3026,7 @@ public abstract class Installer extends GuiApplication {
       else if (t instanceof NamingException)
       {
         errorMsgs.add(INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                host+":"+port, t.toString()));
+                host+":"+port, ((NamingException)t).toString(true)));
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PORT, true);
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
