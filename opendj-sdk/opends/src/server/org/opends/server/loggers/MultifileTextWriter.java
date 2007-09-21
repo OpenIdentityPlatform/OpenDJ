@@ -524,8 +524,35 @@ public class MultifileTextWriter
    */
   public void writeRecord(String record)
   {
+    // Assume each character is 1 byte ASCII
+    int length = record.length();
+    int size = length;
+    char c;
+    for (int i=0; i < length; i++)
+    {
+      c = record.charAt(i);
+      if (c != (byte) (c & 0x0000007F))
+      {
+        try
+        {
+          // String contains a non ASCII character. Fall back to getBytes.
+          size = record.getBytes("UTF-8").length;
+        }
+        catch(Exception e)
+        {
+          size = length * 2;
+        }
+        break;
+      }
+    }
+
     synchronized(this)
     {
+      if(sizeLimit > 0 && outputStream.written + size + 1 >= sizeLimit)
+      {
+        rotate();
+      }
+
       try
       {
         writer.write(record);
@@ -540,11 +567,6 @@ public class MultifileTextWriter
       {
         flush();
       }
-    }
-
-    if(sizeLimit > 0 && outputStream.written >= sizeLimit)
-    {
-      rotate();
     }
   }
 
