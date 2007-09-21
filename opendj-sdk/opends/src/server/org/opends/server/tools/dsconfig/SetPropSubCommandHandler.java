@@ -322,7 +322,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         }
       } catch (CommunicationException e) {
         Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-        throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+        throw new ClientException(LDAPResultCode.OTHER, msg);
       } catch (ManagedObjectAlreadyExistsException e) {
         // Should never happen.
         throw new IllegalStateException(e);
@@ -383,16 +383,16 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
           } catch (DefinitionDecodingException e) {
             Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
-            throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+            throw new ClientException(LDAPResultCode.OTHER, msg);
           } catch (ManagedObjectDecodingException e) {
             // FIXME: should not abort here. Instead, display the
             // errors (if verbose) and apply the changes to the
             // partial managed object.
             Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
-            throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
+            throw new ClientException(LDAPResultCode.OTHER, msg, e);
           } catch (CommunicationException e) {
             Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-            throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+            throw new ClientException(LDAPResultCode.OTHER, msg);
           } catch (ManagedObjectNotFoundException e) {
             Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
             throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
@@ -453,7 +453,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
               } catch (CommunicationException e) {
                 Message msg = ERR_DSCFG_ERROR_MODIFY_CE
                     .get(ufn, e.getMessage());
-                throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+                throw new ClientException(LDAPResultCode.OTHER, msg);
               } catch (ManagedObjectAlreadyExistsException e) {
                 // Should never happen.
                 throw new IllegalStateException(e);
@@ -607,15 +607,15 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      throw new ClientException(LDAPResultCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       // FIXME: should not abort here. Instead, display the errors (if
       // verbose) and apply the changes to the partial managed object.
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
+      throw new ClientException(LDAPResultCode.OTHER, msg, e);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      throw new ClientException(LDAPResultCode.OTHER, msg);
     } catch (ConcurrentModificationException e) {
       Message msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
       throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);

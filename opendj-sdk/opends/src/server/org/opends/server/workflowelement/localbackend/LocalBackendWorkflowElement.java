@@ -962,7 +962,7 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
                   localOp.isSynchronizationOperation() ||
                   m.isInternal()))
               {
-                localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
                 localOp.appendErrorMessage(
                     ERR_MODIFY_ATTR_IS_OBSOLETE.get(String.valueOf(entryDN),
                     a.getName()));
@@ -5052,7 +5052,7 @@ addProcessing:
               }
               else
               {
-                localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                 localOp.appendErrorMessage(ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
                         String.valueOf(entryDN),
@@ -5094,7 +5094,7 @@ addProcessing:
                 }
                 else
                 {
-                  localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                  localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                   localOp.appendErrorMessage(
                       ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
@@ -5124,7 +5124,7 @@ addProcessing:
               }
               else
               {
-                localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                 localOp.appendErrorMessage(
                     ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
@@ -5166,7 +5166,7 @@ addProcessing:
                 }
                 else
                 {
-                  localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                  localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
                   localOp.appendErrorMessage(
                       ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
@@ -5277,7 +5277,7 @@ addProcessing:
                     ERR_ADD_NO_SUCH_PWPOLICY.get(String.valueOf(entryDN),
                         String.valueOf(policyDN)));
 
-                localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+                localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
                 break addProcessing;
               }
             }
@@ -5450,7 +5450,7 @@ addProcessing:
                       String.valueOf(entryDN),
                       at.getNameOrOID());
               localOp.appendErrorMessage(message);
-              localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               break addProcessing;
             }
           }
@@ -5463,7 +5463,7 @@ addProcessing:
                       String.valueOf(entryDN),
                       at.getNameOrOID());
               localOp.appendErrorMessage(message);
-              localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               break addProcessing;
             }
           }
@@ -5476,7 +5476,7 @@ addProcessing:
                       String.valueOf(entryDN),
                       oc.getNameOrOID());
               localOp.appendErrorMessage(message);
-              localOp.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              localOp.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               break addProcessing;
             }
           }
@@ -8166,7 +8166,7 @@ modifyDNProcessing:
             AttributeType at = newRDN.getAttributeType(i);
             if (at.isObsolete())
             {
-              op.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+              op.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
               op.appendErrorMessage(ERR_MODDN_NEWRDN_ATTR_IS_OBSOLETE.get(
                       String.valueOf(entryDN),
                       at.getNameOrOID()));

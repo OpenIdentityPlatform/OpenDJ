@@ -232,10 +232,10 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+      throw new ClientException(LDAPResultCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
+      throw new ClientException(LDAPResultCode.OTHER, msg, e);
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);

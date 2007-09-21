@@ -145,7 +145,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
       // passwords.
       Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     Attribute passwordAttr = attrList.get(0);
@@ -153,7 +153,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
     {
       Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     LinkedHashSet<AttributeValue> values = passwordAttr.getValues();
@@ -170,7 +170,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
 
       Message message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
@@ -198,7 +198,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
 
             Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
                 passwordAttribute.getNameOrOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
         }
@@ -219,7 +219,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
 
             Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
                 passwordAttribute.getNameOrOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
         }
@@ -245,7 +245,7 @@ public class LocalBackendAddOperation extends AddOperationWrapper
             Message message = ERR_PWPOLICY_VALIDATION_FAILED.
                 get(passwordAttribute.getNameOrOID(),
                     String.valueOf(invalidReason));
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
         }

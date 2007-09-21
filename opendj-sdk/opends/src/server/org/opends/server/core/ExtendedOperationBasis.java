@@ -472,7 +472,7 @@ extendedProcessing:
            DirectoryServer.getExtendedOperationHandler(requestOID);
       if (handler == null)
       {
-        setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+        setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_EXTENDED_NO_HANDLER.get(
                 String.valueOf(requestOID)));
         break extendedProcessing;
