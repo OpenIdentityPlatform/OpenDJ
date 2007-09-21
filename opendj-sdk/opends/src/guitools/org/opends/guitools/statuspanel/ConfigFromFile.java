@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.admin.ads.ADSContext;
 import org.opends.messages.Message;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -64,6 +65,8 @@ public class ConfigFromFile
     DirectoryServer.getObjectClass("ds-cfg-ldap-connection-handler", true);
   private final ObjectClass jmxConnectionHandlerOc =
     DirectoryServer.getObjectClass("ds-cfg-jmx-connection-handler", true);
+  private final ObjectClass ldifConnectionHandlerOc =
+    DirectoryServer.getObjectClass("ds-cfg-ldif-connection-handler", true);
   private final ObjectClass backendOc =
     DirectoryServer.getObjectClass("ds-cfg-backend", true);
   private final ObjectClass administrativeUserOc =
@@ -411,7 +414,10 @@ public class ConfigFromFile
     "schema".equalsIgnoreCase(id) ||
     "config".equalsIgnoreCase(id) ||
     "monitor".equalsIgnoreCase(id) ||
-    "backup".equalsIgnoreCase(id);
+    "backup".equalsIgnoreCase(id) ||
+    ADSContext.getDefaultBackendName().equalsIgnoreCase(id) ||
+    "ads-truststore".equalsIgnoreCase(id) ||
+    "replicationchanges".equalsIgnoreCase(id);
   }
 
 
@@ -499,6 +505,22 @@ public class ConfigFromFile
         protocolDescription = INFO_JMX_PROTOCOL_LABEL.get();
         protocol = ListenerDescriptor.Protocol.JMX;
       }
+      boolean enabled = "true".equalsIgnoreCase(
+          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+      if (enabled)
+      {
+        state = ListenerDescriptor.State.ENABLED;
+      }
+      else
+      {
+        state = ListenerDescriptor.State.DISABLED;
+      }
+    }
+    else if (entry.hasObjectClass(ldifConnectionHandlerOc))
+    {
+      addressPort = INFO_UNKNOWN_LABEL.get().toString();
+      protocol = ListenerDescriptor.Protocol.LDIF;
+      protocolDescription = INFO_LDIF_PROTOCOL_LABEL.get();
       boolean enabled = "true".equalsIgnoreCase(
           getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
       if (enabled)

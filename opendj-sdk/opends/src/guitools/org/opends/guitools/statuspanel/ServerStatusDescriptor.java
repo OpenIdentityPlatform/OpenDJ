@@ -49,6 +49,18 @@ public class ServerStatusDescriptor
   private Message errorMsg;
   private boolean isAuthenticated;
 
+  private static String hostName = "locahost";
+  static
+  {
+    try
+    {
+      hostName = java.net.InetAddress.getLocalHost().getHostName();
+    }
+    catch (Throwable t)
+    {
+    }
+  };
+
   /**
    * Enumeration indicating the status of the server.
    *
@@ -358,5 +370,14 @@ public class ServerStatusDescriptor
   public void setListeners(Set<ListenerDescriptor> listeners)
   {
     this.listeners = listeners;
+  }
+
+  /**
+   * Returns the host name of the server.
+   * @return the host name of the server.
+   */
+  public String getHostname()
+  {
+    return hostName;
   }
 }

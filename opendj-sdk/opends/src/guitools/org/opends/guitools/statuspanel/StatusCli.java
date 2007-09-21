@@ -34,6 +34,7 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -570,6 +571,7 @@ class StatusCli extends CliApplicationHelper
       {
         INFO_SERVER_STATUS_LABEL.get(),
         INFO_CONNECTIONS_LABEL.get(),
+        INFO_HOSTNAME_LABEL.get(),
         INFO_ADMINISTRATIVE_USERS_LABEL.get(),
         INFO_INSTALLATION_PATH_LABEL.get(),
         INFO_OPENDS_VERSION_LABEL.get(),
@@ -589,6 +591,7 @@ class StatusCli extends CliApplicationHelper
 
     title = INFO_SERVER_DETAILS_TITLE.get();
     out.println(centerTitle(title));
+    writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
     writeInstallPathContents(desc, labelWidth);
     writeVersionContents(desc, labelWidth);
@@ -691,9 +694,22 @@ class StatusCli extends CliApplicationHelper
   }
 
   /**
+   * Writes the host name contents.
+   * @param desc the ServerStatusDescriptor object.
+   * @param maxLabelWidth the maximum label width of the left label.
+   */
+  private void writeHostnameContents(ServerStatusDescriptor desc,
+      int maxLabelWidth)
+  {
+    writeLabelValue(INFO_HOSTNAME_LABEL.get(),
+        Message.raw(desc.getHostname()),
+        maxLabelWidth);
+  }
+  /**
    * Writes the administrative user contents displaying with what is specified
    * in the provided ServerStatusDescriptor object.
    * @param desc the ServerStatusDescriptor object.
+   * @param maxLabelWidth the maximum label width of the left label.
    */
   private void writeAdministrativeUserContents(ServerStatusDescriptor desc,
       int maxLabelWidth)
@@ -748,6 +764,7 @@ class StatusCli extends CliApplicationHelper
    * Writes the install path contents displaying with what is specified in the
    * provided ServerStatusDescriptor object.
    * @param desc the ServerStatusDescriptor object.
+   * @param maxLabelWidth the maximum label width of the left label.
    */
   private void writeInstallPathContents(ServerStatusDescriptor desc,
       int maxLabelWidth)
@@ -778,6 +795,7 @@ class StatusCli extends CliApplicationHelper
    * the provided ServerStatusDescriptor object.
    * This method must be called from the event thread.
    * @param desc the ServerStatusDescriptor object.
+   * @param maxLabelWidth the maximum label width of the left label.
    */
   private void writeJavaVersionContents(ServerStatusDescriptor desc,
       int maxLabelWidth)
@@ -815,7 +833,16 @@ class StatusCli extends CliApplicationHelper
     Message title = INFO_LISTENERS_TITLE.get();
     out.println(centerTitle(title));
 
-    Set<ListenerDescriptor> listeners = desc.getListeners();
+    Set<ListenerDescriptor> allListeners = desc.getListeners();
+
+    Set<ListenerDescriptor> listeners = new LinkedHashSet<ListenerDescriptor>();
+    for (ListenerDescriptor listener: allListeners)
+    {
+      if (listener.getProtocol() != ListenerDescriptor.Protocol.LDIF)
+      {
+        listeners.add(listener);
+      }
+    }
 
     if (listeners.size() == 0)
     {
@@ -839,7 +866,7 @@ class StatusCli extends CliApplicationHelper
     else
     {
       ListenersTableModel listenersTableModel = new ListenersTableModel();
-      listenersTableModel.setData(desc.getListeners());
+      listenersTableModel.setData(listeners);
       writeTableModel(listenersTableModel, desc);
     }
   }
