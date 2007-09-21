@@ -656,13 +656,15 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       {
         Message message = ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString());
         logError(message);
-        new ConfigChangeResult(ResultCode.OPERATIONS_ERROR, false);
+        new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                               false);
       }
       catch (InterruptedException e)
       {
         Message message = ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString());
         logError(message);
-        new ConfigChangeResult(ResultCode.OPERATIONS_ERROR, false);
+        new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+                               false);
       }
     }
 

@@ -137,12 +137,12 @@ final class PropertyValueEditor {
           Message pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
           Message msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
-          throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg);
+          throw new ClientException(LDAPResultCode.OTHER, msg);
         } catch (ManagedObjectDecodingException e) {
           Message pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
           Message msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
-          throw new ClientException(LDAPResultCode.OPERATIONS_ERROR, msg, e);
+          throw new ClientException(LDAPResultCode.OTHER, msg, e);
         } catch (CommunicationException e) {
           Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
           throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,

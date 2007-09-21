@@ -164,7 +164,7 @@ public final class JmxConnectionHandler extends
       }
       catch (RuntimeException e)
       {
-        resultCode = ResultCode.OPERATIONS_ERROR;
+        resultCode = DirectoryServer.getServerErrorResultCode();
         messages.add(Message.raw(e.getMessage()));
       }
     }
