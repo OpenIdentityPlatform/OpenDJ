@@ -5330,6 +5330,48 @@ public class SchemaBackendTestCase
 
 
   /**
+   * Tests the ability to properly handle adding and removing a schema
+   * definition in which the definition has extra spaces.  This was added as a
+   * test case for issue #2171.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testAddAndDeleteDefinitionWithExtraSpaces()
+         throws Exception
+  {
+    int resultCode = TestCaseUtils.applyModifications(
+      "dn: cn=schema",
+      "changetype: modify",
+      "add: objectClasses",
+      "objectClasses: ( testaddanddeletedefinitionwithextraspaces-oid",
+      "  NAME 'testAddAndDeleteDefinitionWithExtraSpaces'  SUP person",
+      "  MAY ( street $ c) X-ORIGIN 'user defined' )");
+    assertEquals(resultCode, 0);
+
+    assertNotNull(DirectoryServer.getObjectClass(
+                       "testaddanddeletedefinitionwithextraspaces"));
+    assertNotNull(DirectoryServer.getObjectClass(
+                       "testaddanddeletedefinitionwithextraspaces-oid"));
+
+    resultCode = TestCaseUtils.applyModifications(
+      "dn: cn=schema",
+      "changetype: modify",
+      "delete: objectClasses",
+      "objectClasses: ( testaddanddeletedefinitionwithextraspaces-oid",
+      "  NAME 'testAddAndDeleteDefinitionWithExtraSpaces'  SUP person",
+      "  MAY ( street $ c) X-ORIGIN 'user defined' )");
+    assertEquals(resultCode, 0);
+
+    assertNull(DirectoryServer.getObjectClass(
+                    "testaddanddeletedefinitionwithextraspaces"));
+    assertNull(DirectoryServer.getObjectClass(
+                    "testaddanddeletedefinitionwithextraspaces-oid"));
+  }
+
+
+
+  /**
    * Tests the {@code exportLDIF} method with a valid configuration.
    *
    * @throws  Exception  If an unexpected problem occurs.

@@ -25,7 +25,6 @@
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
 
 
 
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -50,14 +50,15 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.*;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
+
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -93,6 +94,10 @@ public final class Schema
 
 
 
+
+  // The matching rule that will be used to normalize schema element
+  // definitions.
+  private EqualityMatchingRule normalizationMatchingRule;
 
   // The set of subordinate attribute types registered within the
   // server schema.
@@ -257,8 +262,9 @@ public final class Schema
     nameFormSet         = new LinkedHashSet<AttributeValue>();
     objectClassSet      = new LinkedHashSet<AttributeValue>();
 
-    oldestModificationTime   = System.currentTimeMillis();
-    youngestModificationTime = oldestModificationTime;
+    normalizationMatchingRule = new CaseIgnoreEqualityMatchingRule();
+    oldestModificationTime    = System.currentTimeMillis();
+    youngestModificationTime  = oldestModificationTime;
   }
 
 
@@ -398,8 +404,8 @@ public final class Schema
       // that would kill performance.
       String valueString = attributeType.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       attributeTypeSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -435,12 +441,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = attributeType.getDefinition();
-      ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      attributeTypeSet.remove(new AttributeValue(rawValue,
-                                                 normValue));
+      try
+      {
+        String valueString = attributeType.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        attributeTypeSet.remove(new AttributeValue(rawValue,
+                                                   normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = attributeType.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        attributeTypeSet.remove(new AttributeValue(rawValue,
+                                                   normValue));
+      }
     }
   }
 
@@ -666,8 +685,8 @@ public final class Schema
       // that would kill performance.
       String valueString = objectClass.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       objectClassSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -697,11 +716,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = objectClass.getDefinition();
-      ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      objectClassSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = objectClass.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        objectClassSet.remove(new AttributeValue(rawValue,
+                                                 normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = objectClass.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        objectClassSet.remove(new AttributeValue(rawValue,
+                                                 normValue));
+      }
     }
   }
 
@@ -813,8 +846,8 @@ public final class Schema
       // that would kill performance.
       String valueString = syntax.toString();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       syntaxSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -838,11 +871,23 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = syntax.toString();
-      ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      syntaxSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = syntax.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        syntaxSet.remove(new AttributeValue(rawValue, normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = syntax.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        syntaxSet.remove(new AttributeValue(rawValue, normValue));
+      }
     }
   }
 
@@ -1003,8 +1048,9 @@ public final class Schema
         // match) that would kill performance.
         String valueString = matchingRule.toString();
         ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-        ASN1OctetString normValue =
-             new ASN1OctetString(toLowerCase(valueString));
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
         matchingRuleSet.add(new AttributeValue(rawValue, normValue));
       }
     }
@@ -1059,12 +1105,25 @@ public final class Schema
         // rather than the attribute type because otherwise it would
         // use a very expensive matching rule (OID first component
         // match) that would kill performance.
-        String valueString = matchingRule.toString();
-        ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-        ASN1OctetString normValue =
-             new ASN1OctetString(toLowerCase(valueString));
-        matchingRuleSet.remove(new AttributeValue(rawValue,
-                                                  normValue));
+        try
+        {
+          String valueString = matchingRule.toString();
+          ASN1OctetString rawValue = new ASN1OctetString(valueString);
+          ByteString normValue =
+               normalizationMatchingRule.normalizeValue(
+                    new ASN1OctetString(valueString));
+          matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                    normValue));
+        }
+        catch (Exception e)
+        {
+          String valueString = matchingRule.toString();
+          ASN1OctetString rawValue = new ASN1OctetString(valueString);
+          ASN1OctetString normValue =
+               new ASN1OctetString(toLowerCase(valueString));
+          matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                    normValue));
+        }
       }
     }
   }
@@ -1181,8 +1240,8 @@ public final class Schema
       // that would kill performance.
       String valueString = matchingRule.toString();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       matchingRuleSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -1217,11 +1276,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRule.toString();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      matchingRuleSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
     }
   }
 
@@ -1335,8 +1408,8 @@ public final class Schema
       // that would kill performance.
       String valueString = matchingRule.toString();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       matchingRuleSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -1372,11 +1445,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRule.toString();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      matchingRuleSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
     }
   }
 
@@ -1490,8 +1577,8 @@ public final class Schema
       // that would kill performance.
       String valueString = matchingRule.toString();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       matchingRuleSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -1526,11 +1613,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRule.toString();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      matchingRuleSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
     }
   }
 
@@ -1644,8 +1745,8 @@ public final class Schema
       // that would kill performance.
       String valueString = matchingRule.toString();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       matchingRuleSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -1680,11 +1781,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRule.toString();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      matchingRuleSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = matchingRule.toString();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        matchingRuleSet.remove(new AttributeValue(rawValue,
+                                                  normValue));
+      }
     }
   }
 
@@ -1801,8 +1916,8 @@ public final class Schema
       // that would kill performance.
       String valueString = matchingRuleUse.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       matchingRuleUseSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -1828,12 +1943,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = matchingRuleUse.getDefinition();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      matchingRuleUseSet.remove(new AttributeValue(rawValue,
-                                                   normValue));
+      try
+      {
+        String valueString = matchingRuleUse.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        matchingRuleUseSet.remove(new AttributeValue(rawValue,
+                                                     normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = matchingRuleUse.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        matchingRuleUseSet.remove(new AttributeValue(rawValue,
+                                                     normValue));
+      }
     }
   }
 
@@ -1949,8 +2077,8 @@ public final class Schema
       // that would kill performance.
       String valueString = ditContentRule.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       ditContentRuleSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -1975,12 +2103,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = ditContentRule.getDefinition();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      ditContentRuleSet.remove(new AttributeValue(rawValue,
-                                                  normValue));
+      try
+      {
+        String valueString = ditContentRule.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        ditContentRuleSet.remove(new AttributeValue(rawValue,
+                                                    normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = ditContentRule.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        ditContentRuleSet.remove(new AttributeValue(rawValue,
+                                                    normValue));
+      }
     }
   }
 
@@ -2165,8 +2306,8 @@ public final class Schema
       // that would kill performance.
       String valueString = ditStructureRule.getDefinition();
       ASN1OctetString rawValue = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-          new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       ditStructureRuleSet.add(new AttributeValue(rawValue,
                                                  normValue));
     }
@@ -2195,12 +2336,25 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = ditStructureRule.getDefinition();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      ditStructureRuleSet.remove(new AttributeValue(rawValue,
-                                                    normValue));
+      try
+      {
+        String valueString = ditStructureRule.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        ditStructureRuleSet.remove(new AttributeValue(rawValue,
+                                                      normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = ditStructureRule.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        ditStructureRuleSet.remove(new AttributeValue(rawValue,
+                                                      normValue));
+      }
     }
   }
 
@@ -2394,8 +2548,8 @@ public final class Schema
       // that would kill performance.
       String valueString = nameForm.getDefinition();
       ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
+      ByteString normValue = normalizationMatchingRule.normalizeValue(
+                                  new ASN1OctetString(valueString));
       nameFormSet.add(new AttributeValue(rawValue, normValue));
     }
   }
@@ -2424,11 +2578,23 @@ public final class Schema
       // rather than the attribute type because otherwise it would use
       // a very expensive matching rule (OID first component match)
       // that would kill performance.
-      String valueString = nameForm.getDefinition();
-      ASN1OctetString rawValue  = new ASN1OctetString(valueString);
-      ASN1OctetString normValue =
-           new ASN1OctetString(toLowerCase(valueString));
-      nameFormSet.remove(new AttributeValue(rawValue, normValue));
+      try
+      {
+        String valueString = nameForm.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ByteString normValue =
+             normalizationMatchingRule.normalizeValue(
+                  new ASN1OctetString(valueString));
+        nameFormSet.remove(new AttributeValue(rawValue, normValue));
+      }
+      catch (Exception e)
+      {
+        String valueString = nameForm.getDefinition();
+        ASN1OctetString rawValue = new ASN1OctetString(valueString);
+        ASN1OctetString normValue =
+             new ASN1OctetString(toLowerCase(valueString));
+        nameFormSet.remove(new AttributeValue(rawValue, normValue));
+      }
     }
   }
 
