@@ -540,7 +540,16 @@
         'optionsString'          : '--remove plugin-type:postoperationdelete',
         'expectedRC'           : 0 } 
     </call>	    
-    
+
+    <!-- plugin-type attribute is not dynamic. Need to restart the server -->
+	  <call function="'RestartDs'">
+     { 'dsHost'	  : DIRECTORY_INSTANCE_HOST,
+        'dsPort'	  : DIRECTORY_INSTANCE_PORT,
+        'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+    }
+    </call>
+            
     <!-- Delete an entry -->
     <message>'######  Delete an user entry###### '</message>
     <message>' '</message>
