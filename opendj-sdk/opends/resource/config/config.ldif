@@ -217,7 +217,6 @@ dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: cn
-ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
 
@@ -237,7 +236,6 @@ dn: ds-cfg-index-attribute=givenName,cn=Index,ds-cfg-backend-id=userRoot,cn=Back
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: givenName
-ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
 
@@ -245,7 +243,6 @@ dn: ds-cfg-index-attribute=mail,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: mail
-ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
 
@@ -265,7 +262,6 @@ dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: sn
-ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
 
@@ -273,7 +269,6 @@ dn: ds-cfg-index-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=userRoot,c
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: telephoneNumber
-ds-cfg-index-type: presence
 ds-cfg-index-type: equality
 ds-cfg-index-type: substring
 
