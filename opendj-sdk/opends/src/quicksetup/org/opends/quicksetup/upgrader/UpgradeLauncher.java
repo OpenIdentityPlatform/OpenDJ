@@ -349,8 +349,7 @@ public class UpgradeLauncher extends Launcher {
         isReversion =
                 reversionArchive.isPresent() || revertMostRecent.isPresent();
 
-        if (showUsage.isPresent()) {
-          argParser.getUsage(System.out);
+        if (argParser.usageOrVersionDisplayed()) {
           System.exit(ReturnCode.PRINT_USAGE.getReturnCode());
         } else if (isUpgrade) {
           if (reversionArchive.isPresent()) {
