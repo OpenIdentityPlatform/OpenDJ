@@ -1676,6 +1676,28 @@ public final class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
+   * notification generated when the LDIF backend cannot write an updated LDIF
+   * file.
+   */
+  public static final String
+       ALERT_DESCRIPTION_LDIF_BACKEND_CANNOT_WRITE_UPDATE =
+            "This alert type will be used to provide notification that an " +
+            "LDIF backend was unable to store an updated copy of the LDIF " +
+            "file after processing a write operation.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated when the LDIF backend cannot write an updated LDIF file.
+   */
+  public static final String ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE =
+       "org.opends.server.LDIFBackendCannotWriteUupdate";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
    * notification generated when the LDIF connection handler is unable to
    * process the contents of a file as valid LDIF.
    */
