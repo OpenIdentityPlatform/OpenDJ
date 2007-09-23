@@ -863,13 +863,35 @@ public class LDIFBackend
         throw new DirectoryException(ResultCode.ENTRY_ALREADY_EXISTS, m);
       }
 
-      DN parentDN = newDN.getParentDNInSuffix();
-      if (! entryMap.containsKey(parentDN))
+      DN newParentDN = newDN.getParentDNInSuffix();
+      if (! entryMap.containsKey(newParentDN))
       {
         Message m = ERR_LDIF_BACKEND_MODDN_NEW_PARENT_DOESNT_EXIST.get(
-                         String.valueOf(parentDN));
+                         String.valueOf(newParentDN));
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, m);
       }
+
+      // Remove the entry from the list of children for the old parent and
+      // add the new entry DN to the set of children for the new parent.
+      DN oldParentDN = currentDN.getParentDNInSuffix();
+      HashSet<DN> parentChildDNs = childDNs.get(oldParentDN);
+      if (parentChildDNs != null)
+      {
+        parentChildDNs.remove(currentDN);
+        if (parentChildDNs.isEmpty() &&
+            (modifyDNOperation.getNewSuperior() != null))
+        {
+          childDNs.remove(oldParentDN);
+        }
+      }
+
+      parentChildDNs = childDNs.get(newParentDN);
+      if (parentChildDNs == null)
+      {
+        parentChildDNs = new HashSet<DN>();
+        childDNs.put(newParentDN, parentChildDNs);
+      }
+      parentChildDNs.add(newDN);
 
 
       // If the entry has children, then we'll need to work on the whole
