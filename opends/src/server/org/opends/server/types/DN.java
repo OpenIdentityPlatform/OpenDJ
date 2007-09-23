@@ -41,6 +41,7 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 
 
@@ -91,17 +92,17 @@ public class DN
 
 
   // The number of RDN components that comprise this DN.
-  private int numComponents;
+  private final int numComponents;
 
   // The set of RDN components that comprise this DN, arranged with
   // the suffix as the last element.
-  private RDN[] rdnComponents;
+  private final RDN[] rdnComponents;
 
   // The string representation of this DN.
   private String dnString;
 
   // The normalized string representation of this DN.
-  private String normalizedDN;
+  private final String normalizedDN;
 
 
 
@@ -136,7 +137,7 @@ public class DN
 
     numComponents = this.rdnComponents.length;
     dnString      = null;
-    normalizedDN  = toNormalizedString();
+    normalizedDN  = normalize(this.rdnComponents);
   }
 
 
@@ -162,7 +163,37 @@ public class DN
 
     numComponents = this.rdnComponents.length;
     dnString      = null;
-    normalizedDN  = toNormalizedString();
+    normalizedDN  = normalize(this.rdnComponents);
+  }
+
+
+
+  /**
+   * Creates a new DN with the given RDN below the specified parent.
+   *
+   * @param  rdn       The RDN to use for the new DN.  It must not be
+   *                   {@code null}.
+   * @param  parentDN  The DN of the entry below which the new DN
+   *                   should exist. It must not be {@code null}.
+   */
+  public DN(RDN rdn, DN parentDN)
+  {
+    ensureNotNull(rdn, parentDN);
+    if (parentDN.isNullDN())
+    {
+      rdnComponents = new RDN[] { rdn };
+    }
+    else
+    {
+      rdnComponents = new RDN[parentDN.numComponents + 1];
+      rdnComponents[0] = rdn;
+      System.arraycopy(parentDN.rdnComponents, 0, rdnComponents, 1,
+                       parentDN.numComponents);
+    }
+
+    numComponents = this.rdnComponents.length;
+    dnString      = null;
+    normalizedDN  = normalize(this.rdnComponents);
   }
 
 
@@ -2808,33 +2839,43 @@ public class DN
 
 
   /**
+   * Retrieves a normalized representation of the DN with the provided
+   * components.
+   *
+   * @param  rdnComponents  The RDN components for which to obtain the
+   *                        normalized string representation.
+   *
+   * @return  The normalized string representation of the provided RDN
+   *          components.
+   */
+  private static final String normalize(RDN[] rdnComponents)
+  {
+    if (rdnComponents.length == 0)
+    {
+      return "";
+    }
+
+    StringBuilder buffer = new StringBuilder();
+    rdnComponents[0].toNormalizedString(buffer);
+
+    for (int i=1; i < rdnComponents.length; i++)
+    {
+      buffer.append(',');
+      rdnComponents[i].toNormalizedString(buffer);
+    }
+
+    return buffer.toString();
+  }
+
+
+
+  /**
    * Retrieves a normalized string representation of this DN.
    *
    * @return  A normalized string representation of this DN.
    */
   public String toNormalizedString()
   {
-    if (normalizedDN == null)
-    {
-      if (numComponents == 0)
-      {
-        normalizedDN = "";
-      }
-      else
-      {
-        StringBuilder buffer = new StringBuilder();
-        rdnComponents[0].toNormalizedString(buffer);
-
-        for (int i=1; i < numComponents; i++)
-        {
-          buffer.append(',');
-          rdnComponents[i].toNormalizedString(buffer);
-        }
-
-        normalizedDN = buffer.toString();
-      }
-    }
-
     return normalizedDN;
   }
 

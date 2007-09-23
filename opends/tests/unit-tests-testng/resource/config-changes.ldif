@@ -855,3 +855,15 @@ cn: RC4
 ds-cfg-password-storage-scheme-class: org.opends.server.extensions.RC4PasswordStorageScheme
 ds-cfg-password-storage-scheme-enabled: true
 
+dn: ds-cfg-backend-id=ldifRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-ldif-backend
+ds-cfg-backend-id: ldifRoot
+ds-cfg-backend-enabled: true
+ds-cfg-backend-class: org.opends.server.backends.LDIFBackend
+ds-cfg-backend-writability-mode: enabled
+ds-cfg-backend-base-dn: o=ldif
+ds-cfg-ldif-file: config/ldif-backend.ldif
+
