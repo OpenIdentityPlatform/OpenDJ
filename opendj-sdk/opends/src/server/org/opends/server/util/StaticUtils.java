@@ -38,6 +38,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -2388,13 +2389,14 @@ public final class StaticUtils
     }
     else
     {
+      InputStream processStream =  process.getInputStream();
       BufferedReader reader =
            new BufferedReader(new InputStreamReader(
                                        process.getInputStream()));
 
       try
       {
-        while (true)
+        while (processStream.available() > 0)
         {
           String line = reader.readLine();
           if (line == null)

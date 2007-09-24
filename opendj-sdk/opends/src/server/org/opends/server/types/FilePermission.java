@@ -32,7 +32,6 @@ import org.opends.messages.Message;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
 import org.opends.server.core.DirectoryServer;
 
@@ -590,11 +589,10 @@ public class FilePermission
       f.getAbsolutePath()
     };
 
-    ArrayList<String> outputLines = new ArrayList<String>(1);
     int exitCode;
     try
     {
-      exitCode = exec("chmod", arguments, null, null, outputLines);
+      exitCode = exec("chmod", arguments, null, null, null);
     }
     catch (Exception e)
     {
