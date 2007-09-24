@@ -111,7 +111,7 @@ public class BackendConfigManagerTestCase
   public void testDeregisterNonExistentBaseDN()
          throws Exception
   {
-    DirectoryServer.deregisterBaseDN(DN.decode("o=unregistered"), false);
+    DirectoryServer.deregisterBaseDN(DN.decode("o=unregistered"));
   }
 
 

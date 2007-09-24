@@ -170,7 +170,7 @@ public class LDIFBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false, false);
+        DirectoryServer.registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -375,7 +375,7 @@ public class LDIFBackend
       {
         try
         {
-          DirectoryServer.deregisterBaseDN(dn, false);
+          DirectoryServer.deregisterBaseDN(dn);
         }
         catch (Exception e)
         {
