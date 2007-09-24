@@ -109,7 +109,6 @@ public class SoftReferenceEntryCache
   {
     super();
 
-
     dnMap = new ConcurrentHashMap<DN,SoftReference<CacheEntry>>();
     idMap = new ConcurrentHashMap<Backend,
                      ConcurrentHashMap<Long,SoftReference<CacheEntry>>>();
@@ -118,10 +117,6 @@ public class SoftReferenceEntryCache
     setIncludeFilters(new HashSet<SearchFilter>());
     setLockTimeout(LockManager.DEFAULT_TIMEOUT);
     referenceQueue = new ReferenceQueue<CacheEntry>();
-
-    cleanerThread = new Thread(this, "Soft Reference Entry Cache Cleaner");
-    cleanerThread.setDaemon(true);
-    cleanerThread.start();
   }
 
 
@@ -134,6 +129,10 @@ public class SoftReferenceEntryCache
       )
       throws ConfigException, InitializationException
   {
+    cleanerThread = new Thread(this, "Soft Reference Entry Cache Cleaner");
+    cleanerThread.setDaemon(true);
+    cleanerThread.start();
+
     registeredConfiguration = configuration;
     configuration.addSoftReferenceChangeListener (this);
 
