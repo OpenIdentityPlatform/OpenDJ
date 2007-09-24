@@ -68,6 +68,7 @@
           <sequence>
             <testcase name="getTestCaseName(componentList[componentNumber][0])" >
               <sequence>
+                <call function="'testCase_Preamble'" />
                 <message>
                     'Listing component %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2])
                 </message>
@@ -115,7 +116,8 @@
                     { 'returnString'       : returnString ,
                       'expectedString'     : componentList[componentNumber][2] }
                 </call>
-               
+                
+                <call function="'testCase_Postamble'" />
                 <script>
                     componentNumber=componentNumber+1
                 </script>

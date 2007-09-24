@@ -71,6 +71,7 @@
             </script>
             <testcase name="getTestCaseName(thisTestname)" >
               <sequence>
+                <call function="'testCase_Preamble'" />
                 <message>
                     'Getting component %s, %s, %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2], componentList[componentNumber][3], componentList[componentNumber][4])
                 </message>
@@ -122,7 +123,7 @@
                       'expectedString'     : componentList[componentNumber][4] }
                 </call>
                
-                
+                <call function="'testCase_Postamble'" />
               </sequence>
             </testcase>
             <script>
@@ -152,6 +153,7 @@
             </script>
             <testcase name="getTestCaseName(thisTestname)" >
               <sequence>
+                <call function="'testCase_Preamble'" />
                 <message>
                     'Getting component %s, %s, %s' % (componentList2[componentNumber][0], componentList2[componentNumber][1], componentList2[componentNumber][2])
                 </message>
@@ -183,7 +185,7 @@
                       'expectedString'     : componentList2[componentNumber][2] }
                 </call>
                
-                
+                <call function="'testCase_Postamble'" />
               </sequence>
             </testcase>
             <script>
