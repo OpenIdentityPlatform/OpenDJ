@@ -96,7 +96,7 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public Message visitBoolean(BooleanPropertyDefinition d, Boolean v,
+    public Message visitBoolean(BooleanPropertyDefinition pd, Boolean v,
         Void p) {
       if (v == false) {
         return INFO_VALUE_FALSE.get();
@@ -111,13 +111,14 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public Message visitDuration(DurationPropertyDefinition d, Long v, Void p) {
-      if (d.getUpperLimit() == null && (v < 0 || v == Long.MAX_VALUE)) {
+    public Message visitDuration(DurationPropertyDefinition pd, Long v,
+        Void p) {
+      if (pd.getUpperLimit() == null && (v < 0 || v == Long.MAX_VALUE)) {
         return INFO_VALUE_UNLIMITED.get();
       }
 
       MessageBuilder builder = new MessageBuilder();
-      long ms = d.getBaseUnit().toMilliSeconds(v);
+      long ms = pd.getBaseUnit().toMilliSeconds(v);
 
       if (timeUnit == null && !isScriptFriendly && ms != 0) {
         // Use human-readable string representation by default.
@@ -127,7 +128,7 @@ final class PropertyValuePrinter {
         // base unit.
         DurationUnit unit = timeUnit;
         if (unit == null) {
-          unit = d.getBaseUnit();
+          unit = pd.getBaseUnit();
         }
 
         builder.append(numberFormat.format(unit.fromMilliSeconds(ms)));
@@ -144,8 +145,8 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public Message visitSize(SizePropertyDefinition d, Long v, Void p) {
-      if (d.isAllowUnlimited() && v < 0) {
+    public Message visitSize(SizePropertyDefinition pd, Long v, Void p) {
+      if (pd.isAllowUnlimited() && v < 0) {
         return INFO_VALUE_UNLIMITED.get();
       }
 
@@ -173,10 +174,10 @@ final class PropertyValuePrinter {
      * {@inheritDoc}
      */
     @Override
-    public <T> Message visitUnknown(PropertyDefinition<T> d, T v, Void p) {
+    public <T> Message visitUnknown(PropertyDefinition<T> pd, T v, Void p) {
       // For all other property definition types the default encoding
       // will do.
-      String s = d.encodeValue(v);
+      String s = pd.encodeValue(v);
       if (isScriptFriendly) {
         return Message.raw("%s", s);
       } else if (s.trim().length() == 0 || s.contains(",")) {

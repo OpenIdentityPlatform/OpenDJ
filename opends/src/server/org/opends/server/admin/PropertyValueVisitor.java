@@ -73,6 +73,24 @@ public abstract class PropertyValueVisitor<R, P> {
 
 
   /**
+   * Visit a dseecompat ACI.
+   *
+   * @param pd
+   *          The dseecompat ACI property definition.
+   * @param v
+   *          The property value to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public R visitACI(ACIPropertyDefinition pd, Aci v,
+      P p) {
+    return visitUnknown(pd, v, p);
+  }
+
+
+
+  /**
    * Visit an aggregation property value.
    *
    * @param <C>
@@ -81,7 +99,7 @@ public abstract class PropertyValueVisitor<R, P> {
    * @param <S>
    *          The type of server managed object configuration that
    *          this aggregation property definition refers to.
-   * @param d
+   * @param pd
    *          The aggregation property definition to visit.
    * @param v
    *          The property value to visit.
@@ -91,8 +109,8 @@ public abstract class PropertyValueVisitor<R, P> {
    */
   public <C extends ConfigurationClient, S extends Configuration>
   R visitAggregation(
-      AggregationPropertyDefinition<C, S> d, String v, P p) {
-    return visitUnknown(d, v, p);
+      AggregationPropertyDefinition<C, S> pd, String v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -100,7 +118,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit an attribute type.
    *
-   * @param d
+   * @param pd
    *          The attribute type property definition.
    * @param v
    *          The property value to visit.
@@ -108,9 +126,9 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitAttributeType(AttributeTypePropertyDefinition d,
+  public R visitAttributeType(AttributeTypePropertyDefinition pd,
       AttributeType v, P p) {
-    return visitUnknown(d, v, p);
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -118,7 +136,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a boolean.
    *
-   * @param d
+   * @param pd
    *          The boolean property definition.
    * @param v
    *          The property value to visit.
@@ -126,8 +144,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitBoolean(BooleanPropertyDefinition d, Boolean v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitBoolean(BooleanPropertyDefinition pd, Boolean v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -135,7 +153,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a class.
    *
-   * @param d
+   * @param pd
    *          The class property definition.
    * @param v
    *          The property value to visit.
@@ -143,8 +161,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitClass(ClassPropertyDefinition d, String v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitClass(ClassPropertyDefinition pd, String v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -152,7 +170,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a DN.
    *
-   * @param d
+   * @param pd
    *          The DN property definition.
    * @param v
    *          The property value to visit.
@@ -160,8 +178,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitDN(DNPropertyDefinition d, DN v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitDN(DNPropertyDefinition pd, DN v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -169,7 +187,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a duration.
    *
-   * @param d
+   * @param pd
    *          The duration property definition.
    * @param v
    *          The property value to visit.
@@ -177,8 +195,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitDuration(DurationPropertyDefinition d, Long v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitDuration(DurationPropertyDefinition pd, Long v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -189,17 +207,17 @@ public abstract class PropertyValueVisitor<R, P> {
    * @param <E>
    *          The enumeration that should be used for values of the
    *          property definition.
+   * @param pd
+   *          The enumeration property definition.
    * @param v
    *          The property value to visit.
-   * @param d
-   *          The enumeration property definition.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
   public <E extends Enum<E>>
-  R visitEnum(EnumPropertyDefinition<E> d, E v, P p) {
-    return visitUnknown(d, v, p);
+  R visitEnum(EnumPropertyDefinition<E> pd, E v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -207,7 +225,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit an integer.
    *
-   * @param d
+   * @param pd
    *          The integer property definition.
    * @param v
    *          The property value to visit.
@@ -215,8 +233,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitInteger(IntegerPropertyDefinition d, Integer v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitInteger(IntegerPropertyDefinition pd, Integer v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -224,7 +242,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a IP address.
    *
-   * @param d
+   * @param pd
    *          The IP address property definition.
    * @param v
    *          The property value to visit.
@@ -232,8 +250,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitIPAddress(IPAddressPropertyDefinition d, InetAddress v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitIPAddress(IPAddressPropertyDefinition pd, InetAddress v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -241,7 +259,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a IP address mask.
    *
-   * @param d
+   * @param pd
    *          The IP address mask property definition.
    * @param v
    *          The property value to visit.
@@ -249,34 +267,16 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitIPAddressMask(IPAddressMaskPropertyDefinition d, AddressMask v,
+  public R visitIPAddressMask(IPAddressMaskPropertyDefinition pd, AddressMask v,
       P p) {
-    return visitUnknown(d, v, p);
+    return visitUnknown(pd, v, p);
   }
-
-
-  /**
-   * Visit a dseecompat ACI.
-   *
-   * @param d
-   *          The dseecompat ACI property definition.
-   * @param v
-   *          The property value to visit.
-   * @param p
-   *          A visitor specified parameter.
-   * @return Returns a visitor specified result.
-   */
-  public R visitACI(ACIPropertyDefinition d, Aci v,
-      P p) {
-    return visitUnknown(d, v, p);
-  }
-
 
 
   /**
    * Visit a size.
    *
-   * @param d
+   * @param pd
    *          The size property definition.
    * @param v
    *          The property value to visit.
@@ -284,8 +284,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitSize(SizePropertyDefinition d, Long v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitSize(SizePropertyDefinition pd, Long v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -293,7 +293,7 @@ public abstract class PropertyValueVisitor<R, P> {
   /**
    * Visit a string.
    *
-   * @param d
+   * @param pd
    *          The string property definition.
    * @param v
    *          The property value to visit.
@@ -301,8 +301,8 @@ public abstract class PropertyValueVisitor<R, P> {
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitString(StringPropertyDefinition d, String v, P p) {
-    return visitUnknown(d, v, p);
+  public R visitString(StringPropertyDefinition pd, String v, P p) {
+    return visitUnknown(pd, v, p);
   }
 
 
@@ -318,7 +318,7 @@ public abstract class PropertyValueVisitor<R, P> {
    *
    * @param <T>
    *          The type of property value to visit.
-   * @param d
+   * @param pd
    *          The property definition.
    * @param v
    *          The property value.
@@ -329,9 +329,9 @@ public abstract class PropertyValueVisitor<R, P> {
    *           Visitor implementations may optionally throw this
    *           exception.
    */
-  public <T> R visitUnknown(PropertyDefinition<T> d, T v, P p)
+  public <T> R visitUnknown(PropertyDefinition<T> pd, T v, P p)
       throws UnknownPropertyDefinitionException {
-    throw new UnknownPropertyDefinitionException(d, p);
+    throw new UnknownPropertyDefinitionException(pd, p);
   }
 
 }

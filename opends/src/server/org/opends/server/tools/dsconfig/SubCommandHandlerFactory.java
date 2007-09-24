@@ -62,19 +62,19 @@ final class SubCommandHandlerFactory {
     /**
      * {@inheritDoc}
      */
-    public Void visitInstantiable(InstantiableRelationDefinition<?, ?> r,
+    public Void visitInstantiable(InstantiableRelationDefinition<?, ?> rd,
         ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
-        createHandlers.add(CreateSubCommandHandler.create(parser, p, r));
-        deleteHandlers.add(DeleteSubCommandHandler.create(parser, p, r));
-        listHandlers.add(ListSubCommandHandler.create(parser, p, r));
-        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, r));
-        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, r));
+        createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
+        deleteHandlers.add(DeleteSubCommandHandler.create(parser, p, rd));
+        listHandlers.add(ListSubCommandHandler.create(parser, p, rd));
+        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, rd));
+        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, rd));
 
         // Process the referenced managed object definition and its
         // sub-types.
-        processRelation(p, r);
+        processRelation(p, rd);
       } catch (ArgumentException e) {
         exception = e;
       }
@@ -87,19 +87,19 @@ final class SubCommandHandlerFactory {
     /**
      * {@inheritDoc}
      */
-    public Void visitOptional(OptionalRelationDefinition<?, ?> r,
+    public Void visitOptional(OptionalRelationDefinition<?, ?> rd,
         ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
-        createHandlers.add(CreateSubCommandHandler.create(parser, p, r));
-        deleteHandlers.add(DeleteSubCommandHandler.create(parser, p, r));
-        listHandlers.add(ListSubCommandHandler.create(parser, p, r));
-        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, r));
-        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, r));
+        createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
+        deleteHandlers.add(DeleteSubCommandHandler.create(parser, p, rd));
+        listHandlers.add(ListSubCommandHandler.create(parser, p, rd));
+        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, rd));
+        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, rd));
 
         // Process the referenced managed object definition and its
         // sub-types.
-        processRelation(p, r);
+        processRelation(p, rd);
       } catch (ArgumentException e) {
         exception = e;
       }
@@ -112,16 +112,16 @@ final class SubCommandHandlerFactory {
     /**
      * {@inheritDoc}
      */
-    public Void visitSingleton(SingletonRelationDefinition<?, ?> r,
+    public Void visitSingleton(SingletonRelationDefinition<?, ?> rd,
         ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
-        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, r));
-        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, r));
+        getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, rd));
+        setPropHandlers.add(SetPropSubCommandHandler.create(parser, p, rd));
 
         // Process the referenced managed object definition and its
         // sub-types.
-        processRelation(p, r);
+        processRelation(p, rd);
       } catch (ArgumentException e) {
         exception = e;
       }

@@ -65,6 +65,21 @@ public abstract class PropertyDefinitionVisitor<R, P> {
 
 
   /**
+   * Visit a dseecompat Global ACI property definition.
+   *
+   * @param pd
+   *          The Global ACI property definition to visit.
+   * @param p
+   *          A visitor specified parameter.
+   * @return Returns a visitor specified result.
+   */
+  public R visitACI(ACIPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
+  }
+
+
+
+  /**
    * Visit an aggregation property definition.
    *
    * @param <C>
@@ -73,15 +88,15 @@ public abstract class PropertyDefinitionVisitor<R, P> {
    * @param <S>
    *          The type of server managed object configuration that
    *          this aggregation property definition refers to.
-   * @param d
+   * @param pd
    *          The aggregation property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
   public <C extends ConfigurationClient, S extends Configuration>
-  R visitAggregation(AggregationPropertyDefinition<C, S> d, P p) {
-    return visitUnknown(d, p);
+  R visitAggregation(AggregationPropertyDefinition<C, S> pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -89,14 +104,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit an attribute type property definition.
    *
-   * @param d
+   * @param pd
    *          The attribute type property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitAttributeType(AttributeTypePropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitAttributeType(AttributeTypePropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -104,14 +119,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a boolean property definition.
    *
-   * @param d
+   * @param pd
    *          The boolean property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitBoolean(BooleanPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitBoolean(BooleanPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -119,14 +134,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a class property definition.
    *
-   * @param d
+   * @param pd
    *          The class property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitClass(ClassPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitClass(ClassPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -134,14 +149,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a DN property definition.
    *
-   * @param d
+   * @param pd
    *          The DN property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitDN(DNPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitDN(DNPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -149,14 +164,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a duration property definition.
    *
-   * @param d
+   * @param pd
    *          The duration property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitDuration(DurationPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitDuration(DurationPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -167,14 +182,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
    * @param <E>
    *          The enumeration that should be used for values of the
    *          property definition.
-   * @param d
+   * @param pd
    *          The enumeration property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public <E extends Enum<E>> R visitEnum(EnumPropertyDefinition<E> d, P p) {
-    return visitUnknown(d, p);
+  public <E extends Enum<E>> R visitEnum(EnumPropertyDefinition<E> pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -182,14 +197,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit an integer property definition.
    *
-   * @param d
+   * @param pd
    *          The integer property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitInteger(IntegerPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitInteger(IntegerPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -197,14 +212,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a IP address property definition.
    *
-   * @param d
+   * @param pd
    *          The IP address property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitIPAddress(IPAddressPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitIPAddress(IPAddressPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -212,42 +227,28 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a IP address mask property definition.
    *
-   * @param d
+   * @param pd
    *          The IP address mask property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitIPAddressMask(IPAddressMaskPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
-  }
-
-
-  /**
-   * Visit a dseecompat Global ACI property definition.
-   *
-   * @param d
-   *          The Global ACI property definition to visit.
-   * @param p
-   *          A visitor specified parameter.
-   * @return Returns a visitor specified result.
-   */
-  public R visitACI(ACIPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitIPAddressMask(IPAddressMaskPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
   /**
    * Visit a size property definition.
    *
-   * @param d
+   * @param pd
    *          The size property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitSize(SizePropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitSize(SizePropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -255,14 +256,14 @@ public abstract class PropertyDefinitionVisitor<R, P> {
   /**
    * Visit a string property definition.
    *
-   * @param d
+   * @param pd
    *          The string property definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  public R visitString(StringPropertyDefinition d, P p) {
-    return visitUnknown(d, p);
+  public R visitString(StringPropertyDefinition pd, P p) {
+    return visitUnknown(pd, p);
   }
 
 
@@ -278,7 +279,7 @@ public abstract class PropertyDefinitionVisitor<R, P> {
    *
    * @param <T>
    *          The type of the underlying property.
-   * @param d
+   * @param pd
    *          The property definition to visit.
    * @param p
    *          A visitor specified parameter.
@@ -287,9 +288,9 @@ public abstract class PropertyDefinitionVisitor<R, P> {
    *           Visitor implementations may optionally throw this
    *           exception.
    */
-  public <T> R visitUnknown(PropertyDefinition<T> d, P p)
+  public <T> R visitUnknown(PropertyDefinition<T> pd, P p)
       throws UnknownPropertyDefinitionException {
-    throw new UnknownPropertyDefinitionException(d, p);
+    throw new UnknownPropertyDefinitionException(pd, p);
   }
 
 }
