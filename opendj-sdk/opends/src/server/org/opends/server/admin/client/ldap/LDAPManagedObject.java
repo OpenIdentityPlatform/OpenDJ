@@ -97,10 +97,10 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
     Object visitAggregation(
-        AggregationPropertyDefinition<C, S> d, String v, Void p) {
+        AggregationPropertyDefinition<C, S> pd, String v, Void p) {
       // Aggregations values are stored as full DNs in LDAP, but
       // just their common name is exposed in the admin framework.
-      Reference<C, S> reference = Reference.parseName(d.getParentPath(), d
+      Reference<C, S> reference = Reference.parseName(pd.getParentPath(), pd
           .getRelationDefinition(), v);
       return reference.toDN().toString();
     }
@@ -111,9 +111,9 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
      * {@inheritDoc}
      */
     @Override
-    public <PD> Object visitUnknown(PropertyDefinition<PD> d, PD v, Void p)
+    public <PD> Object visitUnknown(PropertyDefinition<PD> pd, PD v, Void p)
         throws UnknownPropertyDefinitionException {
-      return d.encodeValue(v);
+      return pd.encodeValue(v);
     }
   }
 

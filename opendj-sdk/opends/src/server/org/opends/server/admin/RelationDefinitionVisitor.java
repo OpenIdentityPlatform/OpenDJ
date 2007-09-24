@@ -52,38 +52,38 @@ public interface RelationDefinitionVisitor<R, P> {
   /**
    * Visit an instantiable relation definition.
    *
-   * @param d
+   * @param rd
    *          The instantiable relation definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitInstantiable(InstantiableRelationDefinition<?, ?> d, P p);
+  R visitInstantiable(InstantiableRelationDefinition<?, ?> rd, P p);
 
 
 
   /**
    * Visit an optional relation definition.
    *
-   * @param d
+   * @param rd
    *          The optional relation definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitOptional(OptionalRelationDefinition<?, ?> d, P p);
+  R visitOptional(OptionalRelationDefinition<?, ?> rd, P p);
 
 
 
   /**
    * Visit a singleton relation definition.
    *
-   * @param d
+   * @param rd
    *          The singleton relation definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitSingleton(SingletonRelationDefinition<?, ?> d, P p);
+  R visitSingleton(SingletonRelationDefinition<?, ?> rd, P p);
 
 }
