@@ -82,10 +82,6 @@ public abstract class AbstractManagedObjectDefinition
   // definition.
   private final Map<String, RelationDefinition<?, ?>> relationDefinitions;
 
-  // The set of all constraints associated with this managed object
-  // definition including inherited constraints.
-  private final Collection<Constraint> allConstraints;
-
   // The set of all property definitions associated with this managed
   // object definition including inherited property definitions.
   private final Map<String, PropertyDefinition<?>> allPropertyDefinitions;
@@ -132,7 +128,6 @@ public abstract class AbstractManagedObjectDefinition
     this.constraints = new LinkedList<Constraint>();
     this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
-    this.allConstraints = new LinkedList<Constraint>();
     this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.allRelationDefinitions =
       new HashMap<String, RelationDefinition<?, ?>>();
@@ -143,8 +138,6 @@ public abstract class AbstractManagedObjectDefinition
     // If we have a parent definition then inherit its features.
     if (parent != null) {
       parent.children.put(name, this);
-
-      allConstraints.addAll(parent.getAllConstraints());
 
       for (PropertyDefinition<?> pd : parent.getAllPropertyDefinitions()) {
         allPropertyDefinitions.put(pd.getName(), pd);
@@ -189,11 +182,22 @@ public abstract class AbstractManagedObjectDefinition
    * object. The returned collection will contain inherited
    * constraints.
    *
-   * @return Returns an unmodifiable collection containing all the
-   *         constraints associated with this type of managed object.
+   * @return Returns a collection containing all the constraints
+   *         associated with this type of managed object. The caller
+   *         is free to modify the collection if required.
    */
   public final Collection<Constraint> getAllConstraints() {
-    return Collections.unmodifiableCollection(allConstraints);
+    // This method does not used a cached set of constraints because
+    // constraints may be updated after child definitions haved been
+    // defined.
+    List<Constraint> allConstraints = new LinkedList<Constraint>();
+
+    if (parent != null) {
+      allConstraints.addAll(parent.getAllConstraints());
+    }
+    allConstraints.addAll(constraints);
+
+    return allConstraints;
   }
 
 
@@ -746,7 +750,6 @@ public abstract class AbstractManagedObjectDefinition
    */
   protected final void deregisterConstraint(Constraint constraint) {
     constraints.remove(constraint);
-    allConstraints.remove(constraint);
   }
 
 
@@ -798,7 +801,6 @@ public abstract class AbstractManagedObjectDefinition
    */
   protected final void registerConstraint(Constraint constraint) {
     constraints.add(constraint);
-    allConstraints.add(constraint);
   }
 
 
