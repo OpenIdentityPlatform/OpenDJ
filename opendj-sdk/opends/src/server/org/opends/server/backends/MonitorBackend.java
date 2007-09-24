@@ -247,7 +247,7 @@ public class MonitorBackend
     // Register the monitor base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(baseMonitorDN, this, true, false);
+      DirectoryServer.registerBaseDN(baseMonitorDN, this, true);
     }
     catch (Exception e)
     {
@@ -281,7 +281,7 @@ public class MonitorBackend
 
     try
     {
-      DirectoryServer.deregisterBaseDN(baseMonitorDN, false);
+      DirectoryServer.deregisterBaseDN(baseMonitorDN);
     }
     catch (Exception e)
     {

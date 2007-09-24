@@ -674,14 +674,10 @@ public class DirectoryServer
   // The thread group for all threads associated with the Directory Server.
   private ThreadGroup directoryThreadGroup;
 
-  // The set of base DNs registered with the server.
-  private TreeMap<DN,Backend> baseDNs;
 
-  // The set of private naming contexts registered with the server.
-  private TreeMap<DN,Backend> privateNamingContexts;
+  // Registry for base DN and naming context information.
+  private BaseDnRegistry baseDnRegistry;
 
-  // The set of public naming contexts registered with the server.
-  private TreeMap<DN,Backend> publicNamingContexts;
 
   // The set of backends registered with the server.
   private TreeMap<String,Backend> backends;
@@ -895,9 +891,7 @@ public class DirectoryServer
            new ConcurrentHashMap<String,Long>();
       directoryServer.backendInitializationListeners =
            new CopyOnWriteArraySet<BackendInitializationListener>();
-      directoryServer.baseDNs = new TreeMap<DN,Backend>();
-      directoryServer.publicNamingContexts = new TreeMap<DN,Backend>();
-      directoryServer.privateNamingContexts = new TreeMap<DN,Backend>();
+      directoryServer.baseDnRegistry = new BaseDnRegistry();
       directoryServer.changeNotificationListeners =
            new CopyOnWriteArrayList<ChangeNotificationListener>();
       directoryServer.persistentSearches =
@@ -6307,7 +6301,7 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getBaseDNs()
   {
-    return directoryServer.baseDNs;
+    return directoryServer.baseDnRegistry.getBaseDnMap();
   }
 
 
@@ -6323,7 +6317,7 @@ public class DirectoryServer
    */
   public static Backend getBackendWithBaseDN(DN baseDN)
   {
-    return directoryServer.baseDNs.get(baseDN);
+    return directoryServer.baseDnRegistry.getBaseDnMap().get(baseDN);
   }
 
 
@@ -6346,7 +6340,7 @@ public class DirectoryServer
       return directoryServer.rootDSEBackend;
     }
 
-    TreeMap<DN,Backend> baseDNs = directoryServer.baseDNs;
+    Map<DN,Backend> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
     Backend b = baseDNs.get(entryDN);
     while (b == null)
     {
@@ -6363,6 +6357,20 @@ public class DirectoryServer
   }
 
 
+  /**
+   * Obtains a copy of the server's base DN registry.  The copy can be used
+   * to test registration/deregistration of base DNs but cannot be used to
+   * modify the backends.  To modify the server's live base DN to backend
+   * mappings use {@link #registerBaseDN(DN, Backend, boolean)} and
+   * {@link #deregisterBaseDN(DN)}.
+   *
+   * @return copy of the base DN regsitry
+   */
+  public static BaseDnRegistry copyBaseDnRegistry()
+  {
+    return directoryServer.baseDnRegistry.copy();
+  }
+
 
   /**
    * Registers the provided base DN with the server.
@@ -6375,209 +6383,37 @@ public class DirectoryServer
    *                    private base DN.  If the provided base DN is a naming
    *                    context, then this controls whether it is public or
    *                    private.
-   * @param  testOnly   Indicates whether to only test whether the new base DN
-   *                    registration would be successful without actually
-   *                    applying any changes.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              register the provided base DN.
    */
   public static void registerBaseDN(DN baseDN, Backend backend,
-                                    boolean isPrivate, boolean testOnly)
+                                    boolean isPrivate)
          throws DirectoryException
   {
     ensureNotNull(baseDN, backend);
 
     synchronized (directoryServer)
     {
-      TreeMap<DN,Backend> newBaseDNs =
-           new TreeMap<DN,Backend>(directoryServer.baseDNs);
-      TreeMap<DN,Backend> newPublicNamingContexts =
-           new TreeMap<DN,Backend>(directoryServer.publicNamingContexts);
-      TreeMap<DN,Backend> newPrivateNamingContexts =
-           new TreeMap<DN,Backend>(directoryServer.privateNamingContexts);
+      List<Message> warnings =
+              directoryServer.baseDnRegistry.registerBaseDN(
+                      baseDN, backend, isPrivate);
 
-
-      // Check to see if the base DN is already registered with the server.
-      Backend existingBackend = newBaseDNs.get(baseDN);
-      if (existingBackend != null)
-      {
-        Message message = ERR_REGISTER_BASEDN_ALREADY_EXISTS.
-            get(String.valueOf(baseDN), backend.getBackendID(),
-                existingBackend.getBackendID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-
-
-      // Check to see if the backend is already registered with the server for
-      // any other base DN(s).  The new base DN must not have any hierarchical
-      // relationship with any other base Dns for the same backend.
-      LinkedList<DN> otherBaseDNs = new LinkedList<DN>();
-      for (DN dn : newBaseDNs.keySet())
-      {
-        Backend b = newBaseDNs.get(dn);
-        if (b.equals(backend))
-        {
-          otherBaseDNs.add(dn);
-
-          if (baseDN.isAncestorOf(dn) || baseDN.isDescendantOf(dn))
-          {
-            Message message = ERR_REGISTER_BASEDN_HIERARCHY_CONFLICT.
-                get(String.valueOf(baseDN), backend.getBackendID(),
-                    String.valueOf(dn));
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-          }
+      // Since we've committed the changes we need to log any issues
+      // that this registration has caused
+      if (warnings != null) {
+        for (Message warning : warnings) {
+          logError(warning);
         }
       }
 
-
-      // Check to see if the new base DN is subordinate to any other base DN
-      // already defined.  If it is, then any other base DN(s) for the same
-      // backend must also be subordinate to the same base DN.
-      Backend superiorBackend = null;
-      DN      superiorBaseDN  = null;
-      DN      parentDN        = baseDN.getParent();
-      while (parentDN != null)
+      // Now create a workflow for the registered baseDN and register
+      // the workflow with the network groups, but don't register the
+      // workflow if the backend happens to be the configuration backend
+      // because it's too soon.
+      if (! baseDN.equals(DN.decode("cn=config")))
       {
-        if (newBaseDNs.containsKey(parentDN))
-        {
-          superiorBaseDN  = parentDN;
-          superiorBackend = newBaseDNs.get(parentDN);
-
-          for (DN dn : otherBaseDNs)
-          {
-            if (! dn.isDescendantOf(superiorBaseDN))
-            {
-              Message message = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.
-                  get(String.valueOf(baseDN), backend.getBackendID(),
-                      String.valueOf(dn));
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                           message);
-            }
-          }
-
-          break;
-        }
-
-        parentDN = parentDN.getParent();
-      }
-
-      if (superiorBackend == null)
-      {
-        if (backend.getParentBackend() != null)
-        {
-          Message message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
-              get(String.valueOf(baseDN), backend.getBackendID(),
-                  backend.getParentBackend().getBackendID());
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       message);
-        }
-      }
-
-
-      // Check to see if the new base DN should be the superior base DN for any
-      // other base DN(s) already defined.
-      LinkedList<Backend> subordinateBackends = new LinkedList<Backend>();
-      LinkedList<DN>      subordinateBaseDNs  = new LinkedList<DN>();
-      for (DN dn : newBaseDNs.keySet())
-      {
-        Backend b = newBaseDNs.get(dn);
-        parentDN = dn.getParent();
-        while (parentDN != null)
-        {
-          if (parentDN.equals(baseDN))
-          {
-            subordinateBaseDNs.add(dn);
-            subordinateBackends.add(b);
-            break;
-          }
-          else if (newBaseDNs.containsKey(parentDN))
-          {
-            break;
-          }
-
-          parentDN = parentDN.getParent();
-        }
-      }
-
-
-      // If we've gotten here, then the new base DN is acceptable.  If we should
-      // actually apply the changes then do so now.
-      if (! testOnly)
-      {
-        // Check to see if any of the registered backends already contain an
-        // entry with the DN specified as the base DN.  This could happen if
-        // we're creating a new subordinate backend in an existing directory
-        // (e.g., moving the "ou=People,dc=example,dc=com" branch to its own
-        // backend when that data already exists under the "dc=example,dc=com"
-        // backend).  This condition shouldn't prevent the new base DN from
-        // being registered, but it's definitely important enough that we let
-        // the administrator know about it and remind them that the existing
-        // backend will need to be reinitialized.
-        if (superiorBackend != null)
-        {
-          if (superiorBackend.entryExists(baseDN))
-          {
-            Message message = WARN_REGISTER_BASEDN_ENTRIES_IN_MULTIPLE_BACKENDS.
-                get(superiorBackend.getBackendID(), String.valueOf(baseDN),
-                    backend.getBackendID());
-            logError(message);
-          }
-        }
-
-
-        newBaseDNs.put(baseDN, backend);
-
-        if (superiorBackend == null)
-        {
-          if (isPrivate)
-          {
-            backend.setPrivateBackend(true);
-            newPrivateNamingContexts.put(baseDN, backend);
-          }
-          else
-          {
-            backend.setPrivateBackend(false);
-            newPublicNamingContexts.put(baseDN, backend);
-          }
-        }
-        else if (otherBaseDNs.isEmpty())
-        {
-          backend.setParentBackend(superiorBackend);
-          superiorBackend.addSubordinateBackend(backend);
-        }
-
-        for (Backend b : subordinateBackends)
-        {
-          Backend oldParentBackend = b.getParentBackend();
-          if (oldParentBackend != null)
-          {
-            oldParentBackend.removeSubordinateBackend(b);
-          }
-
-          b.setParentBackend(backend);
-          backend.addSubordinateBackend(b);
-        }
-
-        for (DN dn : subordinateBaseDNs)
-        {
-          newPublicNamingContexts.remove(dn);
-          newPrivateNamingContexts.remove(dn);
-        }
-
-        directoryServer.baseDNs               = newBaseDNs;
-        directoryServer.publicNamingContexts  = newPublicNamingContexts;
-        directoryServer.privateNamingContexts = newPrivateNamingContexts;
-
-        // Now create a workflow for the registered baseDN and register
-        // the workflow with the network groups, but don't register the
-        // workflow if the backend happens to be the configuration backend
-        // because it's too soon.
-        if (! baseDN.equals(DN.decode("cn=config")))
-        {
-          createAndRegisterWorkflow(baseDN, backend);
-        }
+        createAndRegisterWorkflow(baseDN, backend);
       }
     }
   }
@@ -6589,145 +6425,30 @@ public class DirectoryServer
    *
    * @param  baseDN     The base DN to deregister with the server.  It must not
    *                    be {@code null}.
-   * @param  testOnly   Indicates whether to only test whether the new base DN
-   *                    registration would be successful without actually
-   *                    applying any changes.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              deregister the provided base DN.
    */
-  public static void deregisterBaseDN(DN baseDN, boolean testOnly)
+  public static void deregisterBaseDN(DN baseDN)
          throws DirectoryException
   {
     ensureNotNull(baseDN);
 
-    synchronized (directoryServer)
-    {
-      TreeMap<DN,Backend> newBaseDNs =
-           new TreeMap<DN,Backend>(directoryServer.baseDNs);
-      TreeMap<DN,Backend> newPublicNamingContexts =
-           new TreeMap<DN,Backend>(directoryServer.publicNamingContexts);
-      TreeMap<DN,Backend> newPrivateNamingContexts =
-           new TreeMap<DN,Backend>(directoryServer.privateNamingContexts);
+    synchronized(directoryServer) {
 
+      List<Message> warnings =
+              directoryServer.baseDnRegistry.deregisterBaseDN(baseDN);
 
-      // Make sure that the Directory Server actually contains a backend with
-      // the specified base DN.
-      Backend backend = newBaseDNs.get(baseDN);
-      if (backend == null)
-      {
-        Message message =
-            ERR_DEREGISTER_BASEDN_NOT_REGISTERED.get(String.valueOf(baseDN));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
-
-
-      // Check to see if the backend has a parent backend, and whether it has
-      // any subordinates with base DNs that are below the base DN to remove.
-      Backend             superiorBackend     = backend.getParentBackend();
-      LinkedList<Backend> subordinateBackends = new LinkedList<Backend>();
-      if (backend.getSubordinateBackends() != null)
-      {
-        for (Backend b : backend.getSubordinateBackends())
-        {
-          for (DN dn : b.getBaseDNs())
-          {
-            if (dn.isDescendantOf(baseDN))
-            {
-              subordinateBackends.add(b);
-              break;
-            }
-          }
+      // Since we've committed the changes we need to log any issues
+      // that this registration has caused
+      if (warnings != null) {
+        for (Message error : warnings) {
+          logError(error);
         }
       }
 
-
-      // See if there are any other base DNs registered within the same backend.
-      LinkedList<DN> otherBaseDNs = new LinkedList<DN>();
-      for (DN dn : newBaseDNs.keySet())
-      {
-        if (dn.equals(baseDN))
-        {
-          continue;
-        }
-
-        Backend b = newBaseDNs.get(dn);
-        if (backend.equals(b))
-        {
-          otherBaseDNs.add(dn);
-        }
-      }
-
-
-      // If we've gotten here, then it's OK to make the changes.
-      if (! testOnly)
-      {
-        // Get rid of the references to this base DN in the mapping tree
-        // information.
-        newBaseDNs.remove(baseDN);
-        newPublicNamingContexts.remove(baseDN);
-        newPrivateNamingContexts.remove(baseDN);
-
-
-        if (superiorBackend == null)
-        {
-          // If there were any subordinate backends, then all of their base DNs
-          // will now be promoted to naming contexts.
-          for (Backend b : subordinateBackends)
-          {
-            b.setParentBackend(null);
-            backend.removeSubordinateBackend(b);
-
-            for (DN dn : b.getBaseDNs())
-            {
-              if (b.isPrivateBackend())
-              {
-                newPrivateNamingContexts.put(dn, b);
-              }
-              else
-              {
-                newPublicNamingContexts.put(dn, b);
-              }
-            }
-          }
-        }
-        else
-        {
-          // If there are no other base DNs for the associated backend, then
-          // remove this backend as a subordinate of the parent backend.
-          if (otherBaseDNs.isEmpty())
-          {
-            superiorBackend.removeSubordinateBackend(backend);
-          }
-
-
-          // If there are any subordinate backends, then they need to be made
-          // subordinate to the parent backend.  Also, we should log a warning
-          // message indicating that there may be inconsistent search results
-          // because some of the structural entries will be missing.
-          if (! subordinateBackends.isEmpty())
-          {
-            Message message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
-                String.valueOf(baseDN), backend.getBackendID());
-            logError(message);
-
-            for (Backend b : subordinateBackends)
-            {
-              backend.removeSubordinateBackend(b);
-              superiorBackend.addSubordinateBackend(b);
-              b.setParentBackend(superiorBackend);
-            }
-          }
-        }
-
-
-        directoryServer.baseDNs               = newBaseDNs;
-        directoryServer.publicNamingContexts  = newPublicNamingContexts;
-        directoryServer.privateNamingContexts = newPrivateNamingContexts;
-
-        // Now deregister the workflow that was associated with the base DN.
-        deregisterWorkflow(baseDN);
-      }
+      // Now deregister the workflow that was associated with the base DN.
+      deregisterWorkflow(baseDN);
     }
   }
 
@@ -6741,7 +6462,7 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getPublicNamingContexts()
   {
-    return directoryServer.publicNamingContexts;
+    return directoryServer.baseDnRegistry.getPublicNamingContextsMap();
   }
 
 
@@ -6755,7 +6476,7 @@ public class DirectoryServer
    */
   public static Map<DN,Backend> getPrivateNamingContexts()
   {
-    return directoryServer.privateNamingContexts;
+    return directoryServer.baseDnRegistry.getPrivateNamingContextsMap();
   }
 
 
@@ -6771,8 +6492,7 @@ public class DirectoryServer
    */
   public static boolean isNamingContext(DN dn)
   {
-    return (directoryServer.publicNamingContexts.containsKey(dn) ||
-            directoryServer.privateNamingContexts.containsKey(dn));
+    return directoryServer.baseDnRegistry.containsNamingContext(dn);
   }
 
 
@@ -8578,22 +8298,10 @@ public class DirectoryServer
     shutdownHook             = null;
     workQueue                = null;
 
-    if (privateNamingContexts != null)
+    if (baseDnRegistry != null)
     {
-      privateNamingContexts.clear();
-      privateNamingContexts = null;
-    }
-
-    if (publicNamingContexts != null)
-    {
-      publicNamingContexts.clear();
-      publicNamingContexts = null;
-    }
-
-    if (baseDNs != null)
-    {
-      baseDNs.clear();
-      baseDNs = null;
+      baseDnRegistry.clear();
+      baseDnRegistry = null;
     }
 
     if (backends != null)

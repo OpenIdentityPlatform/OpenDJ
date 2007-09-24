@@ -255,7 +255,7 @@ public class TaskBackend
     // Register the task base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(taskRootDN, this, true, false);
+      DirectoryServer.registerBaseDN(taskRootDN, this, true);
     }
     catch (Exception e)
     {
@@ -318,7 +318,7 @@ public class TaskBackend
 
     try
     {
-      DirectoryServer.deregisterBaseDN(taskRootDN, false);
+      DirectoryServer.deregisterBaseDN(taskRootDN);
     }
     catch (Exception e)
     {

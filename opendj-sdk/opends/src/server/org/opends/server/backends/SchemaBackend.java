@@ -366,7 +366,7 @@ public class SchemaBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(baseDNs[i], this, true, false);
+        DirectoryServer.registerBaseDN(baseDNs[i], this, true);
       }
       catch (Exception e)
       {
@@ -514,7 +514,7 @@ public class SchemaBackend
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(baseDN, false);
+        DirectoryServer.deregisterBaseDN(baseDN);
       }
       catch (Exception e)
       {
@@ -5156,7 +5156,7 @@ public class SchemaBackend
       {
         try
         {
-          DirectoryServer.deregisterBaseDN(dn, false);
+          DirectoryServer.deregisterBaseDN(dn);
           messages.add(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(
                   String.valueOf(dn)));
         }
@@ -5179,7 +5179,7 @@ public class SchemaBackend
       {
         try
         {
-          DirectoryServer.registerBaseDN(dn, this, true, false);
+          DirectoryServer.registerBaseDN(dn, this, true);
           messages.add(INFO_SCHEMA_REGISTERED_BASE_DN.get(String.valueOf(dn)));
         }
         catch (Exception e)

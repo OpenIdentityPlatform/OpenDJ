@@ -213,7 +213,7 @@ public class BackupBackend
     // Register the backup base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(backupBaseDN, this, true, false);
+      DirectoryServer.registerBaseDN(backupBaseDN, this, true);
     }
     catch (Exception e)
     {
@@ -247,7 +247,7 @@ public class BackupBackend
 
     try
     {
-      DirectoryServer.deregisterBaseDN(backupBaseDN, false);
+      DirectoryServer.deregisterBaseDN(backupBaseDN);
     }
     catch (Exception e)
     {

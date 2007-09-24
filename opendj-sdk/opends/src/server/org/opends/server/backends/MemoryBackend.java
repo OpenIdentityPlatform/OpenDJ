@@ -203,7 +203,7 @@ public class MemoryBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false, false);
+        DirectoryServer.registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -243,7 +243,7 @@ public class MemoryBackend
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(dn, false);
+        DirectoryServer.deregisterBaseDN(dn);
       }
       catch (Exception e)
       {

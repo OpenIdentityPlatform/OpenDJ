@@ -402,11 +402,14 @@ public class BackendConfigManager implements
         }
       }
 
-      for (DN dn : addedDNs)
+      // Copy the directory server's base DN registry and make the
+      // requested changes to see if it complains.
+      BaseDnRegistry reg = DirectoryServer.copyBaseDnRegistry();
+      for (DN dn : removedDNs)
       {
         try
         {
-          DirectoryServer.registerBaseDN(dn, backend, false, true);
+          reg.deregisterBaseDN(dn);
         }
         catch (DirectoryException de)
         {
@@ -420,11 +423,11 @@ public class BackendConfigManager implements
         }
       }
 
-      for (DN dn : removedDNs)
+      for (DN dn : addedDNs)
       {
         try
         {
-          DirectoryServer.deregisterBaseDN(dn, true);
+          reg.registerBaseDN(dn, backend, false);
         }
         catch (DirectoryException de)
         {
@@ -928,11 +931,12 @@ public class BackendConfigManager implements
 
 
     // Make sure that all of the base DNs are acceptable for use in the server.
+    BaseDnRegistry reg = DirectoryServer.copyBaseDnRegistry();
     for (DN baseDN : baseDNs)
     {
       try
       {
-        DirectoryServer.registerBaseDN(baseDN, backend, false, true);
+        reg.registerBaseDN(baseDN, backend, false);
       }
       catch (DirectoryException de)
       {

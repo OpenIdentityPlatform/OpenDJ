@@ -366,7 +366,7 @@ public class TrustStoreBackend
     // Register the trust store base as a private suffix.
     try
     {
-      DirectoryServer.registerBaseDN(baseDN, this, true, false);
+      DirectoryServer.registerBaseDN(baseDN, this, true);
     }
     catch (Exception e)
     {
@@ -392,7 +392,7 @@ public class TrustStoreBackend
 
     try
     {
-      DirectoryServer.deregisterBaseDN(baseDN, false);
+      DirectoryServer.deregisterBaseDN(baseDN);
     }
     catch (Exception e)
     {

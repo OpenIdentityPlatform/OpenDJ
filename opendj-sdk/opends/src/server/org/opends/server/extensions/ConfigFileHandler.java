@@ -735,8 +735,7 @@ public class ConfigFileHandler
       // conflict with user backend identifiers.
       setBackendID("__config.ldif__");
 
-      DirectoryServer.registerBaseDN(configRootEntry.getDN(), this, true,
-                                     false);
+      DirectoryServer.registerBaseDN(configRootEntry.getDN(), this, true);
     }
     catch (Exception e)
     {
@@ -1026,7 +1025,7 @@ public class ConfigFileHandler
   {
     try
     {
-      DirectoryServer.deregisterBaseDN(configRootEntry.getDN(), false);
+      DirectoryServer.deregisterBaseDN(configRootEntry.getDN());
     }
     catch (Exception e)
     {

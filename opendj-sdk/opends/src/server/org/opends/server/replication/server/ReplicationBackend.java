@@ -232,7 +232,7 @@ public class ReplicationBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false, false);
+        DirectoryServer.registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -269,7 +269,7 @@ public class ReplicationBackend
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(dn, false);
+        DirectoryServer.deregisterBaseDN(dn);
       }
       catch (Exception e)
       {

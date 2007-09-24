@@ -340,7 +340,7 @@ public class BackendImpl
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false, false);
+        DirectoryServer.registerBaseDN(dn, this, false);
       }
       catch (Exception e)
       {
@@ -386,7 +386,7 @@ public class BackendImpl
     {
       try
       {
-        DirectoryServer.deregisterBaseDN(dn, false);
+        DirectoryServer.deregisterBaseDN(dn);
       }
       catch (Exception e)
       {
@@ -1571,7 +1571,7 @@ public class BackendImpl
           if (!found)
           {
             // The base DN was deleted.
-            DirectoryServer.deregisterBaseDN(baseDN, false);
+            DirectoryServer.deregisterBaseDN(baseDN);
             EntryContainer ec =
                 rootContainer.unregisterEntryContainer(baseDN);
             ec.delete();
@@ -1588,7 +1588,7 @@ public class BackendImpl
               EntryContainer ec =
                   rootContainer.openEntryContainer(baseDN, null);
               rootContainer.registerEntryContainer(baseDN, ec);
-              DirectoryServer.registerBaseDN(baseDN, this, false, false);
+              DirectoryServer.registerBaseDN(baseDN, this, false);
             }
             catch (Exception e)
             {
