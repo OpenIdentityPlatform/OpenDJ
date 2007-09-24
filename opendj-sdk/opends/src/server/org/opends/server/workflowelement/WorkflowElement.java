@@ -40,16 +40,13 @@ import org.opends.server.types.Operation;
  */
 public abstract class WorkflowElement
 {
+  // Indicates whether the workflow element encapsulates a private local
+  // backend.
+  private boolean isPrivate = false;
 
   // The workflow element identifier.
   private String workflowElementID = null;
 
-
-  /**
-   * Indicates whether the workflow element encapsulates a private
-   * local backend.
-   */
-  protected boolean isPrivate = false;
 
 
   /**
@@ -64,14 +61,14 @@ public abstract class WorkflowElement
   }
 
 
+
   /**
    * Executes the workflow element for an operation.
    *
    * @param operation the operation to execute
    */
-  public abstract void execute(
-      Operation operation
-      );
+  public abstract void execute(Operation operation);
+
 
 
   /**
@@ -87,6 +84,21 @@ public abstract class WorkflowElement
   }
 
 
+
+  /**
+   * Specifies whether the workflow element encapsulates a private local
+   * backend.
+   *
+   * @param  isPrivate  Indicates whether the workflow element encapsulates a
+   *                    private local backend.
+   */
+  protected void setPrivate(boolean isPrivate)
+  {
+    this.isPrivate = isPrivate;
+  }
+
+
+
   /**
    * Provides the workflow element identifier.
    *
@@ -97,3 +109,4 @@ public abstract class WorkflowElement
     return workflowElementID;
   }
 }
+
