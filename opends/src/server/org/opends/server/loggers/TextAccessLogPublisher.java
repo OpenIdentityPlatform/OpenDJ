@@ -178,8 +178,8 @@ public class TextAccessLogPublisher
     }
     catch(IOException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-          config.dn().toString(), String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+          logFile.toString(), config.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }

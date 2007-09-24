@@ -51,6 +51,8 @@ import static org.opends.messages.ConfigMessages.
     WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY;
 import static org.opends.messages.ConfigMessages.
     ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
+import static org.opends.messages.ConfigMessages.
+   ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE;
 
 
 import java.util.*;
@@ -202,8 +204,8 @@ public class TextDebugLogPublisher
     }
     catch(IOException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-          config.dn().toString(), String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+          logFile.toString(), config.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
