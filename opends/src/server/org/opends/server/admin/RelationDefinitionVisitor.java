@@ -50,19 +50,6 @@ package org.opends.server.admin;
 public interface RelationDefinitionVisitor<R, P> {
 
   /**
-   * Visit an aggregation relation definition.
-   *
-   * @param d
-   *          The aggregation relation definition to visit.
-   * @param p
-   *          A visitor specified parameter.
-   * @return Returns a visitor specified result.
-   */
-  R visitAggregation(AggregationRelationDefinition<?, ?> d, P p);
-
-
-
-  /**
    * Visit an instantiable relation definition.
    *
    * @param d

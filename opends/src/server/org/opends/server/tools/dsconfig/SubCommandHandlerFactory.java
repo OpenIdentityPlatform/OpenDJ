@@ -32,7 +32,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.AggregationRelationDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.InstantiableRelationDefinition;
@@ -59,17 +58,6 @@ final class SubCommandHandlerFactory {
    */
   private final class Visitor implements
       RelationDefinitionVisitor<Void, ManagedObjectPath<?, ?>> {
-
-    /**
-     * {@inheritDoc}
-     */
-    public Void visitAggregation(AggregationRelationDefinition<?, ?> r,
-        ManagedObjectPath<?, ?> p) {
-      // Do not create sub-commands for aggregations.
-      return null;
-    }
-
-
 
     /**
      * {@inheritDoc}
