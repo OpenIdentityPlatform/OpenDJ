@@ -188,24 +188,20 @@ public class FIFOEntryCache
   {
     cacheLock.lock();
 
-    registeredConfiguration.removeFIFOChangeListener (this);
+    try {
+      registeredConfiguration.removeFIFOChangeListener(this);
 
-    // Release all memory currently in use by this cache.
-    try
-    {
-      idMap.clear();
-      dnMap.clear();
-    }
-    catch (Exception e)
-    {
-      // This should never happen.
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      // Release all memory currently in use by this cache.
+      try {
+        idMap.clear();
+        dnMap.clear();
+      } catch (Exception e) {
+        // This should never happen.
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
       }
-    }
-    finally
-    {
+    } finally {
       cacheLock.unlock();
     }
   }
@@ -732,7 +728,11 @@ public class FIFOEntryCache
 
 
   /**
-   * {@inheritDoc}
+   * Clears all entries at or below the specified base DN that are associated
+   * with the given backend.  The caller must already hold the cache lock.
+   *
+   * @param  baseDN   The base DN below which all entries should be flushed.
+   * @param  backend  The backend for which to remove the appropriate entries.
    */
   private void clearSubtree(DN baseDN, Backend backend)
   {

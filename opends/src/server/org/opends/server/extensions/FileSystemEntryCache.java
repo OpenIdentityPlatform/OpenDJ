@@ -486,114 +486,117 @@ public class FileSystemEntryCache
 
     cacheWriteLock.lock();
 
-    registeredConfiguration.removeFileSystemChangeListener (this);
+    try {
+      registeredConfiguration.removeFileSystemChangeListener(this);
 
-    // Store index/maps in case of persistent cache. Since the cache database
-    // already exist at this point all we have to do is to serialize cache
-    // index maps @see FileSystemEntryCacheIndex and put them under indexkey
-    // allowing for the index to be restored and cache contents reused upon
-    // the next initialization. If this cache is empty skip persisting phase.
-    if (persistentCache && !dnMap.isEmpty()) {
-      FileSystemEntryCacheIndex entryCacheIndex =
+      // Store index/maps in case of persistent cache. Since the cache database
+      // already exist at this point all we have to do is to serialize cache
+      // index maps @see FileSystemEntryCacheIndex and put them under indexkey
+      // allowing for the index to be restored and cache contents reused upon
+      // the next initialization. If this cache is empty skip persisting phase.
+      if (persistentCache && !dnMap.isEmpty()) {
+        FileSystemEntryCacheIndex entryCacheIndex =
           new FileSystemEntryCacheIndex();
-      // There must be at least one backend at this stage.
-      entryCacheIndex.offlineState =
+        // There must be at least one backend at this stage.
+        entryCacheIndex.offlineState =
           DirectoryServer.getOfflineBackendsStateIDs();
 
-      // Convert entry cache maps to serializable maps for the cache index.
-      Set<Backend> backendSet = backendMap.keySet();
-      Iterator<Backend> backendIterator = backendSet.iterator();
+        // Convert entry cache maps to serializable maps for the cache index.
+        Set<Backend> backendSet = backendMap.keySet();
+        Iterator<Backend> backendIterator = backendSet.iterator();
 
-      // Start a timer for the progress report.
-      final long persistentEntriesTotal = dnMap.size();
-      Timer timer = new Timer();
-      TimerTask progressTask = new TimerTask() {
-        // Persistent state save progress report.
-        public void run() {
-          if ((persistentEntriesSaved > 0) &&
-              (persistentEntriesSaved < persistentEntriesTotal)) {
-            Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
+        // Start a timer for the progress report.
+        final long persistentEntriesTotal = dnMap.size();
+        Timer timer = new Timer();
+        TimerTask progressTask = new TimerTask() {
+          // Persistent state save progress report.
+          public void run() {
+            if ((persistentEntriesSaved > 0) &&
+                (persistentEntriesSaved < persistentEntriesTotal)) {
+              Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
                 persistentEntriesSaved, persistentEntriesTotal);
-            logError(message);
+              logError(message);
+            }
           }
-        }
-      };
-      timer.scheduleAtFixedRate(progressTask, progressInterval,
+        };
+        timer.scheduleAtFixedRate(progressTask, progressInterval,
           progressInterval);
 
-      try {
-        while (backendIterator.hasNext()) {
-          Backend backend = backendIterator.next();
-          Map<Long,DN> entriesMap = backendMap.get(backend);
-          Map<Long,String> entryMap = new LinkedHashMap<Long,String>();
-          for (Long entryID : entriesMap.keySet()) {
-            DN entryDN = entriesMap.get(entryID);
-            entryCacheIndex.dnMap.put(entryDN.toNormalizedString(), entryID);
-            entryMap.put(entryID, entryDN.toNormalizedString());
-            persistentEntriesSaved++;
+        try {
+          while (backendIterator.hasNext()) {
+            Backend backend = backendIterator.next();
+            Map<Long, DN> entriesMap = backendMap.get(backend);
+            Map<Long, String> entryMap = new LinkedHashMap<Long, String>();
+            for (Long entryID : entriesMap.keySet()) {
+              DN entryDN = entriesMap.get(entryID);
+              entryCacheIndex.dnMap.put(entryDN.toNormalizedString(), entryID);
+              entryMap.put(entryID, entryDN.toNormalizedString());
+              persistentEntriesSaved++;
+            }
+            entryCacheIndex.backendMap.put(backend.getBackendID(), entryMap);
           }
-          entryCacheIndex.backendMap.put(backend.getBackendID(), entryMap);
-        }
-      } finally {
-        // Stop persistent state save progress report timer.
-        timer.cancel();
+        } finally {
+          // Stop persistent state save progress report timer.
+          timer.cancel();
 
-        // Final persistent state save progress report.
-        Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
+          // Final persistent state save progress report.
+          Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
             persistentEntriesSaved, persistentEntriesTotal);
-        logError(message);
+          logError(message);
+        }
+
+        // Store the index.
+        try {
+          DatabaseEntry indexData = new DatabaseEntry();
+          entryCacheDataBinding.objectToEntry(entryCacheIndex, indexData);
+          DatabaseEntry indexKey =
+            new DatabaseEntry(INDEXKEY.getBytes("UTF-8"));
+          if (OperationStatus.SUCCESS != entryCacheDB.put(null, indexKey,
+              indexData)) {
+            throw new Exception();
+          }
+        } catch (Exception e) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          // Log an error message.
+          logError(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
+        }
       }
 
-      // Store the index.
+      // Close JE databases and environment and clear all the maps.
       try {
-        DatabaseEntry indexData = new DatabaseEntry();
-        entryCacheDataBinding.objectToEntry(entryCacheIndex, indexData);
-        DatabaseEntry indexKey = new DatabaseEntry(INDEXKEY.getBytes("UTF-8"));
-        if (OperationStatus.SUCCESS !=
-            entryCacheDB.put(null, indexKey, indexData)) {
-          throw new Exception();
+        backendMap.clear();
+        dnMap.clear();
+        if (entryCacheDB != null) {
+          entryCacheDB.close();
+        }
+        if (entryCacheClassDB != null) {
+          entryCacheClassDB.close();
+        }
+        if (entryCacheEnv != null) {
+          // Remove cache and index dbs if this cache is not persistent.
+          if (!persistentCache) {
+            try {
+              entryCacheEnv.removeDatabase(null, INDEXCLASSDBNAME);
+            } catch (DatabaseNotFoundException e) {}
+            try {
+              entryCacheEnv.removeDatabase(null, ENTRYCACHEDBNAME);
+            } catch (DatabaseNotFoundException e) {}
+          }
+          entryCacheEnv.cleanLog();
+          entryCacheEnv.close();
         }
       } catch (Exception e) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        // Log an error message.
-        logError(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
+        // That is ok, JE verification and repair on startup should take care of
+        // this so if there are any unrecoverable errors during next startup
+        // and we are unable to handle and cleanup them we will log errors then.
       }
-    }
-
-    // Close JE databases and environment and clear all the maps.
-    try {
-      backendMap.clear();
-      dnMap.clear();
-      if (entryCacheDB != null) {
-        entryCacheDB.close();
-      }
-      if (entryCacheClassDB != null) {
-        entryCacheClassDB.close();
-      }
-      if (entryCacheEnv != null) {
-        // Remove cache and index dbs if this cache is not persistent.
-        if ( !persistentCache ) {
-          try {
-            entryCacheEnv.removeDatabase(null, INDEXCLASSDBNAME);
-          } catch (DatabaseNotFoundException e) {}
-          try {
-            entryCacheEnv.removeDatabase(null, ENTRYCACHEDBNAME);
-          } catch (DatabaseNotFoundException e) {}
-        }
-        entryCacheEnv.cleanLog();
-        entryCacheEnv.close();
-      }
-    } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // That is ok, JE verification and repair on startup should take care of
-      // this so if there are any unrecoverable errors during next startup
-      // and we are unable to handle and cleanup them we will log errors then.
     } finally {
       cacheWriteLock.unlock();
     }
@@ -784,32 +787,35 @@ public class FileSystemEntryCache
    * {@inheritDoc}
    */
   public void clear() {
+
     cacheWriteLock.lock();
 
-    dnMap.clear();
-    backendMap.clear();
-
     try {
-      if ((entryCacheDB != null) && (entryCacheEnv != null) &&
-          (entryCacheClassDB != null) && (entryCacheDBConfig != null)) {
-        entryCacheDBConfig = entryCacheDB.getConfig();
-        entryCacheDB.close();
-        entryCacheClassDB.close();
-        entryCacheEnv.truncateDatabase(null, ENTRYCACHEDBNAME, false);
-        entryCacheEnv.truncateDatabase(null, INDEXCLASSDBNAME, false);
-        entryCacheEnv.cleanLog();
-        entryCacheDB = entryCacheEnv.openDatabase(null,
-            ENTRYCACHEDBNAME, entryCacheDBConfig);
-        entryCacheClassDB = entryCacheEnv.openDatabase(null,
+      dnMap.clear();
+      backendMap.clear();
+
+      try {
+        if ((entryCacheDB != null) && (entryCacheEnv != null) &&
+            (entryCacheClassDB != null) && (entryCacheDBConfig != null)) {
+          entryCacheDBConfig = entryCacheDB.getConfig();
+          entryCacheDB.close();
+          entryCacheClassDB.close();
+          entryCacheEnv.truncateDatabase(null, ENTRYCACHEDBNAME, false);
+          entryCacheEnv.truncateDatabase(null, INDEXCLASSDBNAME, false);
+          entryCacheEnv.cleanLog();
+          entryCacheDB = entryCacheEnv.openDatabase(null, ENTRYCACHEDBNAME,
+            entryCacheDBConfig);
+          entryCacheClassDB = entryCacheEnv.openDatabase(null,
             INDEXCLASSDBNAME, entryCacheDBConfig);
-        // Instantiate the class catalog
-        classCatalog = new StoredClassCatalog(entryCacheClassDB);
-        entryCacheDataBinding =
-            new SerialBinding(classCatalog, FileSystemEntryCacheIndex.class);
-      }
-    } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          // Instantiate the class catalog
+          classCatalog = new StoredClassCatalog(entryCacheClassDB);
+          entryCacheDataBinding = new SerialBinding(classCatalog,
+            FileSystemEntryCacheIndex.class);
+        }
+      } catch (Exception e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
       }
     } finally {
       cacheWriteLock.unlock();
@@ -823,41 +829,44 @@ public class FileSystemEntryCache
 
     cacheWriteLock.lock();
 
-    Map<Long,DN> backendEntriesMap = backendMap.get(backend);
-
     try {
-      if (backendEntriesMap == null) {
-        // No entries were in the cache for this backend,
-        // so we can return without doing anything.
-        return;
-      }
-      int entriesExamined = 0;
-      Iterator<Long> backendEntriesIterator =
-        backendEntriesMap.keySet().iterator();
-      while (backendEntriesIterator.hasNext()) {
-        Long entryID = backendEntriesIterator.next();
-        DN entryDN = backendEntriesMap.get(entryID);
-        entryCacheDB.delete(null,
-            new DatabaseEntry(entryDN.toNormalizedString().getBytes("UTF-8")));
-        backendEntriesIterator.remove();
-        dnMap.remove(entryDN);
+      Map<Long, DN> backendEntriesMap = backendMap.get(backend);
 
-        // This can take a while, so we'll periodically release and re-acquire
-        // the lock in case anyone else is waiting on it so this doesn't become
-        // a stop-the-world event as far as the cache is concerned.
-        entriesExamined++;
-        if ((entriesExamined % 1000) == 0) {
-          cacheWriteLock.unlock();
-          Thread.currentThread().yield();
-          cacheWriteLock.lock();
+      try {
+        if (backendEntriesMap == null) {
+          // No entries were in the cache for this backend,
+          // so we can return without doing anything.
+          return;
         }
-      }
+        int entriesExamined = 0;
+        Iterator<Long> backendEntriesIterator =
+          backendEntriesMap.keySet().iterator();
+        while (backendEntriesIterator.hasNext()) {
+          Long entryID = backendEntriesIterator.next();
+          DN entryDN = backendEntriesMap.get(entryID);
+          entryCacheDB.delete(null, new DatabaseEntry(
+            entryDN.toNormalizedString().getBytes("UTF-8")));
+          backendEntriesIterator.remove();
+          dnMap.remove(entryDN);
 
-      // This backend is empty now, remove it from the backend map.
-      backendMap.remove(backend);
-    } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          // This can take a while, so we'll periodically release and
+          // re-acquire the lock in case anyone else is waiting on it
+          // so this doesn't become a stop-the-world event as far as
+          // the cache is concerned.
+          entriesExamined++;
+          if ((entriesExamined % 1000) == 0) {
+            cacheWriteLock.unlock();
+            Thread.currentThread().yield();
+            cacheWriteLock.lock();
+          }
+        }
+
+        // This backend is empty now, remove it from the backend map.
+        backendMap.remove(backend);
+      } catch (Exception e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
       }
     } finally {
       cacheWriteLock.unlock();
