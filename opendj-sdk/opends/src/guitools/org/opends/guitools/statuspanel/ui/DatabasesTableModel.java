@@ -560,11 +560,11 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     Message s;
     if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
-      s = INFO_SUFFIX_REPLICATED_LABEL.get();
+      s = INFO_BASEDN_REPLICATED_LABEL.get();
     }
     else
     {
-      s = INFO_SUFFIX_NOT_REPLICATED_LABEL.get();
+      s = INFO_BASEDN_NOT_REPLICATED_LABEL.get();
     }
     return s;
   }

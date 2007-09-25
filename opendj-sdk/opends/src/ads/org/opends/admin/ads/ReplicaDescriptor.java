@@ -41,6 +41,8 @@ public class ReplicaDescriptor
   private ServerDescriptor server;
   private Set<String> replicationServers = new HashSet<String>();
   private int replicationId = -1;
+  private int missingChanges = -1;
+  private int ageOfOldestMissingChange = -1;
 
   /**
    * Returns the number of entries contained in the replica.
@@ -159,5 +161,41 @@ public class ReplicaDescriptor
   public void setReplicationId(int replicationId)
   {
     this.replicationId = replicationId;
+  }
+
+  /**
+   * Returns the age of the oldest missing change.
+   * @return the age of the oldest missing change.
+   */
+  public int getAgeOfOldestMissingChange()
+  {
+    return ageOfOldestMissingChange;
+  }
+
+  /**
+   * Sets the age of the oldest missing change.
+   * @param ageOfOldestMissingChange the age of the oldest missing change.
+   */
+  public void setAgeOfOldestMissingChange(int ageOfOldestMissingChange)
+  {
+    this.ageOfOldestMissingChange = ageOfOldestMissingChange;
+  }
+
+  /**
+   * Returns the number of missing changes.
+   * @return the number of missing changes.
+   */
+  public int getMissingChanges()
+  {
+    return missingChanges;
+  }
+
+  /**
+   * Sets the number of missing changes.
+   * @param missingChanges the number of missing changes.
+   */
+  public void setMissingChanges(int missingChanges)
+  {
+    this.missingChanges = missingChanges;
   }
 }

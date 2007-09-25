@@ -97,7 +97,8 @@ import org.opends.server.util.args.ArgumentException;
 /**
  * This class provides a tool that can be used to enable and disable replication
  * and also to initialize the contents of a replicated suffix with the contents
- * of another suffix.
+ * of another suffix.  It also allows to display the replicated status of the
+ * different base DNs of the servers that are registered in the ADS.
  */
 public class ReplicationCliMain extends CliApplicationHelper
 {
@@ -312,6 +313,10 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           returnValue = initializeReplication();
         }
+        else if (argParser.isStatusReplicationSubcommand())
+        {
+          returnValue = statusReplication();
+        }
         else
         {
           err.println(wrapText(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(),
@@ -385,6 +390,35 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       initializeWithArgParser(uData);
       returnValue = disableReplication(uData);
+    }
+    return returnValue;
+  }
+
+  /**
+   * Based on the data provided in the command-line it displays replication
+   * status.
+   * @return the error code if the operation failed and SUCCESSFUL if it was
+   * successful.
+   */
+  private ReplicationCliReturnCode statusReplication()
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    StatusReplicationUserData uData = new StatusReplicationUserData();
+    if (argParser.isInteractive())
+    {
+      if (promptIfRequired(uData))
+      {
+        returnValue = statusReplication(uData);
+      }
+      else
+      {
+        returnValue = USER_CANCELLED;
+      }
+    }
+    else
+    {
+      initializeWithArgParser(uData);
+      returnValue = statusReplication(uData);
     }
     return returnValue;
   }
@@ -1126,6 +1160,148 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
+   * Updates the contents of the provided StatusReplicationUserData object
+   * with the information provided in the command-line.  If some information
+   * is missing, ask the user to provide valid data.
+   * We assume that if this method is called we are in interactive mode.
+   * @param uData the object to be updated.
+   * @return <CODE>true</CODE> if the object was successfully updated and
+   * <CODE>false</CODE> if the user cancelled the operation.
+   */
+  private boolean promptIfRequired(StatusReplicationUserData uData)
+  {
+    boolean cancelled = false;
+
+    String adminPwd = argParser.getBindPasswordAdmin();
+    String adminUid = argParser.getAdministratorUID();
+
+    String host = argParser.getHostNameToStatus();
+    if (host == null)
+    {
+      host = promptForString(
+          INFO_REPLICATION_STATUS_HOSTNAME_PROMPT.get(),
+          argParser.getDefaultHostNameToStatus(), false);
+    }
+    int port = argParser.getPortToStatus();
+    if (port == -1)
+    {
+      port = promptForPort(
+          INFO_REPLICATION_STATUS_PORT_PROMPT.get(),
+          argParser.getDefaultPortToStatus(), false);
+    }
+    boolean useSSL = argParser.useSSLToStatus();
+    boolean useStartTLS = argParser.useStartTLSToStatus();
+    if (!useSSL && !useStartTLS)
+    {
+      useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
+      if (!useSSL)
+      {
+        useStartTLS =
+          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
+      }
+    }
+
+    if (adminUid == null)
+    {
+      adminUid = askForAdministratorUID(argParser.getDefaultAdministratorUID());
+    }
+
+    if (adminPwd == null)
+    {
+      adminPwd = askForAdministratorPwd();
+    }
+
+    /*
+     * Try to connect to the server.
+     */
+    InitialLdapContext ctx = null;
+
+    while ((ctx == null) && !cancelled)
+    {
+      try
+      {
+        ctx = createContext(host, port, useSSL, useStartTLS,
+            ADSContext.getAdministratorDN(adminUid), adminPwd,
+            getTrustManager());
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.WARNING, "Error connecting to "+host+":"+port, ne);
+        if (Utils.isCertificateException(ne))
+        {
+          String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
+          {
+            cancelled = true;
+          }
+        }
+        else
+        {
+          printLineBreak();
+          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
+              host+":"+port, ne.toString()));
+          printLineBreak();
+          host = promptForString(
+                INFO_REPLICATION_STATUS_HOSTNAME_PROMPT.get(),
+                getValue(host, argParser.getDefaultHostNameToStatus()), false);
+          port = promptForPort(
+                INFO_REPLICATION_STATUS_PORT_PROMPT.get(),
+              getValue(port, argParser.getDefaultPortToStatus()), false);
+          useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+          if (!useSSL)
+          {
+            useStartTLS =
+              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
+          }
+          adminUid = askForAdministratorUID(adminUid);
+          adminPwd = askForAdministratorPwd();
+        }
+      }
+    }
+    if (!cancelled)
+    {
+      uData.setHostName(host);
+      uData.setPort(port);
+      uData.setUseSSL(useSSL);
+      uData.setUseStartTLS(useStartTLS);
+      uData.setAdminUid(adminUid);
+      uData.setAdminPwd(adminPwd);
+      uData.setScriptFriendly(argParser.isScriptFriendly());
+    }
+    if (ctx != null)
+    {
+      // If the server contains an ADS, try to load it and only load it: if
+      // there are issues with the ADS they will be encountered in the
+      // statusReplication(StatusReplicationUserData) method.  Here we have
+      // to load the ADS to ask the user to accept the certificates and
+      // eventually admin authentication data.
+      InitialLdapContext[] aux = new InitialLdapContext[] {ctx};
+      cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+      ctx = aux[0];
+    }
+
+    if (!cancelled)
+    {
+      LinkedList<String> suffixes = argParser.getBaseDNs();
+      uData.setBaseDNs(suffixes);
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return !cancelled;
+  }
+
+  /**
    * Updates the contents of the provided InitializeReplicationUserData object
    * with the information provided in the command-line.  If some information
    * is missing, ask the user to provide valid data.
@@ -1652,6 +1828,34 @@ public class ReplicationCliMain extends CliApplicationHelper
     uData.setUseStartTLS(argParser.useStartTLSToDisable());
   }
 
+
+  /**
+   * Initializes the contents of the provided status replication user data
+   * object with what was provided in the command-line without prompting to the
+   * user.
+   * @param uData the disable replication user data object to be initialized.
+   */
+  private void initializeWithArgParser(StatusReplicationUserData uData)
+  {
+    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    String adminUid = getValue(argParser.getAdministratorUID(),
+        argParser.getDefaultAdministratorUID());
+    uData.setAdminUid(adminUid);
+    String adminPwd = argParser.getBindPasswordAdmin();
+    uData.setAdminPwd(adminPwd);
+
+    String hostName = getValue(argParser.getHostNameToStatus(),
+        argParser.getDefaultHostNameToStatus());
+    uData.setHostName(hostName);
+    int port = getValue(argParser.getPortToStatus(),
+        argParser.getDefaultPortToStatus());
+    uData.setPort(port);
+    uData.setUseSSL(argParser.useSSLToStatus());
+    uData.setUseStartTLS(argParser.useStartTLSToStatus());
+
+    uData.setScriptFriendly(argParser.isScriptFriendly());
+  }
+
   /**
    * Tells whether the server to which the LdapContext is connected has a
    * replication port or not.
@@ -1866,10 +2070,21 @@ public class ReplicationCliMain extends CliApplicationHelper
         }
         if ((exceptionMsgs.size() > 0) && !cancelled)
         {
-          cancelled = !confirm(
-              ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
-              get(Utils.getMessageFromCollection(exceptionMsgs,
+          if (uData instanceof StatusReplicationUserData)
+          {
+            printWarningMessage(
+                ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
+                    Utils.getMessageFromCollection(exceptionMsgs,
+                        Constants.LINE_SEPARATOR).toString()));
+            printLineBreak();
+          }
+          else
+          {
+            cancelled = !confirm(
+               ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
+                get(Utils.getMessageFromCollection(exceptionMsgs,
                     Constants.LINE_SEPARATOR).toString()));
+          }
         }
       }
     }
@@ -2335,6 +2550,69 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
+   * Displays the replication status of the baseDNs specified in the
+   * StatusReplicationUserData object.  This method does not prompt
+   * to the user for information if something is missing.
+   * @param uData the StatusReplicationUserData object.
+   * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
+   * successful.
+   * and the replication could be enabled and an error code otherwise.
+   */
+  private ReplicationCliReturnCode statusReplication(
+      StatusReplicationUserData uData)
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = createContext(uData.getHostName(), uData.getPort(),
+          uData.useSSL(), uData.useStartTLS(),
+          ADSContext.getAdministratorDN(uData.getAdminUid()),
+          uData.getAdminPwd(), getTrustManager());
+    }
+    catch (NamingException ne)
+    {
+      String hostPort = uData.getHostName()+":"+uData.getPort();
+      printLineBreak();
+      printErrorMessage(getMessageForException(ne, hostPort));
+      LOG.log(Level.SEVERE, "Complete error stack:", ne);
+    }
+
+    if (ctx != null)
+    {
+      uData.setBaseDNs(uData.getBaseDNs());
+      try
+      {
+        displayStatus(ctx, uData);
+        returnValue = SUCCESSFUL;
+      }
+      catch (ReplicationCliException rce)
+      {
+        returnValue = rce.getErrorCode();
+        printLineBreak();
+        printErrorMessage(rce.getMessageObject());
+        LOG.log(Level.SEVERE, "Complete error stack:", rce);
+      }
+    }
+    else
+    {
+      returnValue = ERROR_CONNECTING;
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+    return returnValue;
+  }
+
+  /**
    * Initializes the contents of one server with the contents of the other
    * using the parameters in the provided InitializeReplicationUserData.
    * This method does not prompt to the user for information if something is
@@ -2577,8 +2855,10 @@ public class ReplicationCliMain extends CliApplicationHelper
             printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_REPLICATE.get());
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-                  dn) && !Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+              if (!Utils.areDnsEqual(dn,
+                  ADSContext.getAdministrationSuffixDN()) &&
+                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 if (confirm(INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn)))
                 {
@@ -2732,8 +3012,10 @@ public class ReplicationCliMain extends CliApplicationHelper
             printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-                  dn) && !Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+              if (!Utils.areDnsEqual(dn,
+                  ADSContext.getAdministrationSuffixDN()) &&
+                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 if (confirm(INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn)))
                 {
@@ -2829,8 +3111,10 @@ public class ReplicationCliMain extends CliApplicationHelper
 
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(),
-                  dn) && !Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+              if (!Utils.areDnsEqual(dn,
+                  ADSContext.getAdministrationSuffixDN()) &&
+                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 if (confirm(INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn)))
                 {
@@ -2850,7 +3134,7 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @param ctx1 the connection to the first server.
    * @param ctx2 the connection to the second server.
    * @param uData the EnableReplicationUserData object containing the required
-   * parameters to update the confgiuration.
+   * parameters to update the configuration.
    * @throws ReplicationCliException if there is an error.
    */
   private void updateConfiguration(InitialLdapContext ctx1,
@@ -3099,7 +3383,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     if (uData.replicateSchema())
     {
       baseDNs = uData.getBaseDNs();
-      baseDNs.add("cn=schema");
+      baseDNs.add(Constants.SCHEMA_DN);
       uData.setBaseDNs(baseDNs);
     }
     TopologyCache cache1 = null;
@@ -3318,7 +3602,7 @@ public class ReplicationCliMain extends CliApplicationHelper
    * they are referenced) to disable replication.
    * @param ctx the connection to the server.
    * @param uData the DisableReplicationUserData object containing the required
-   * parameters to update the confgiuration.
+   * parameters to update the configuration.
    * @throws ReplicationCliException if there is an error.
    */
   private void updateConfiguration(InitialLdapContext ctx,
@@ -3416,6 +3700,406 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
             uData.getBaseDNs());
+      }
+    }
+  }
+
+  /**
+   * Displays the replication status of the different base DNs in the servers
+   * registered in the ADS.
+   * @param ctx the connection to the server.
+   * @param uData the StatusReplicationUserData object containing the required
+   * parameters to update the configuration.
+   * @throws ReplicationCliException if there is an error.
+   */
+  private void displayStatus(InitialLdapContext ctx,
+      StatusReplicationUserData uData) throws ReplicationCliException
+  {
+    ADSContext adsCtx = new ADSContext(ctx);
+
+    TopologyCache cache = null;
+    try
+    {
+      if (adsCtx.hasAdminData())
+      {
+        cache = new TopologyCache(adsCtx, getTrustManager());
+        cache.reloadTopology();
+      }
+    }
+    catch (ADSContextException adce)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(adce.getMessage()),
+          ERROR_READING_ADS, adce);
+    }
+    catch (TopologyCacheException tce)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
+          ERROR_READING_TOPOLOGY_CACHE, tce);
+    }
+    if (!argParser.isInteractive())
+    {
+      // Inform the user of the potential errors that we found.
+      LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
+      if (cache != null)
+      {
+        messages.addAll(getErrorMessages(cache));
+      }
+      if (!messages.isEmpty())
+      {
+        Message msg =
+            ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
+                Utils.getMessageFromCollection(messages,
+                    Constants.LINE_SEPARATOR).toString());
+        printWarningMessage(msg);
+      }
+    }
+
+    LinkedList<String> userBaseDNs = uData.getBaseDNs();
+    LinkedList<Set<ReplicaDescriptor>> replicaLists =
+      new LinkedList<Set<ReplicaDescriptor>>();
+
+    boolean oneReplicated = false;
+    for (SuffixDescriptor suffix : cache.getSuffixes())
+    {
+      String dn = suffix.getDN();
+
+      // If no base DNs where specified display all the base DNs but the schema
+      // and cn=admin data.
+      boolean found = userBaseDNs.isEmpty() &&
+      !Utils.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) &&
+      !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
+      !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN);
+      for (String baseDN : userBaseDNs)
+      {
+        found = Utils.areDnsEqual(baseDN, dn);
+        if (found)
+        {
+          break;
+        }
+      }
+      if (found)
+      {
+        boolean replicated = false;
+        for (ReplicaDescriptor replica : suffix.getReplicas())
+        {
+          if (replica.isReplicated())
+          {
+            replicated = true;
+            break;
+          }
+        }
+        if (replicated)
+        {
+          oneReplicated = true;
+          replicaLists.add(suffix.getReplicas());
+        }
+        else
+        {
+          // Check if there are already some non replicated base DNs.
+          found = false;
+          for (Set<ReplicaDescriptor> replicas : replicaLists)
+          {
+            ReplicaDescriptor replica = replicas.iterator().next();
+            if (!replica.isReplicated() &&
+                Utils.areDnsEqual(dn, replica.getSuffix().getDN()))
+            {
+              replicas.addAll(suffix.getReplicas());
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+          {
+            replicaLists.add(suffix.getReplicas());
+          }
+        }
+      }
+    }
+
+    if (replicaLists.isEmpty())
+    {
+      printProgressMessage(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
+      printProgressLineBreak();
+    }
+    else
+    {
+      LinkedList<Set<ReplicaDescriptor>> orderedReplicaLists =
+        new LinkedList<Set<ReplicaDescriptor>>();
+      for (Set<ReplicaDescriptor> replicas1 : replicaLists)
+      {
+        String dn1 = replicas1.iterator().next().getSuffix().getDN();
+        boolean inserted = false;
+        for (int i=0; i<orderedReplicaLists.size() && !inserted; i++)
+        {
+          String dn2 =
+            orderedReplicaLists.get(i).iterator().next().getSuffix().getDN();
+          if (dn1.compareTo(dn2) < 0)
+          {
+            orderedReplicaLists.add(i, replicas1);
+            inserted = true;
+          }
+        }
+        if (!inserted)
+        {
+          orderedReplicaLists.add(replicas1);
+        }
+      }
+      for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
+      {
+        printProgressLineBreak();
+        displayStatus(replicas, uData.isScriptFriendly());
+      }
+      if (oneReplicated && !uData.isScriptFriendly())
+      {
+        printProgressLineBreak();
+        printProgressMessage(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
+        printProgressLineBreak();
+      }
+    }
+  }
+
+  /**
+   * Displays the replication status of the replicas provided.  The code assumes
+   * that all the replicas have the same baseDN and that if they are replicated
+   * all the replicas are replicated with each other.
+   * @param replicas the list of replicas that we are trying to display.
+   * @param scriptFriendly wheter to display it on script-friendly mode or not.
+   */
+  private void displayStatus(Set<ReplicaDescriptor> replicas,
+      boolean scriptFriendly)
+  {
+
+    boolean isReplicated = false;
+    Set<ReplicaDescriptor> orderedReplicas =
+      new LinkedHashSet<ReplicaDescriptor>();
+    Set<String> hostPorts = new TreeSet<String>();
+    for (ReplicaDescriptor replica : replicas)
+    {
+      if (replica.isReplicated())
+      {
+        isReplicated = true;
+      }
+      hostPorts.add(replica.getServer().getHostPort(true));
+    }
+    for (String hostPort : hostPorts)
+    {
+      for (ReplicaDescriptor replica : replicas)
+      {
+        if (replica.getServer().getHostPort(true).equals(hostPort))
+        {
+          orderedReplicas.add(replica);
+        }
+      }
+    }
+    int nCols;
+    final int SERVERPORT = 0;
+    final int NUMBER_ENTRIES = 1;
+    final int MISSING_CHANGES = 2;
+    final int AGE_OF_OLDEST_MISSING_CHANGE = 3;
+    Message[] headers;
+    if (scriptFriendly)
+    {
+      if (isReplicated)
+      {
+        nCols = 4;
+        headers = new Message[] {
+            INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
+            INFO_REPLICATION_STATUS_LABEL_NUMBER_ENTRIES.get(),
+            INFO_REPLICATION_STATUS_LABEL_MISSING_CHANGES.get(),
+            INFO_REPLICATION_STATUS_LABEL_AGE_OF_OLDEST_MISSING_CHANGE.get()
+        };
+      }
+      else
+      {
+        nCols = 2;
+        headers = new Message[] {
+            INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
+            INFO_REPLICATION_STATUS_LABEL_NUMBER_ENTRIES.get()
+        };
+      }
+    }
+    else
+    {
+      if (isReplicated)
+      {
+        nCols = 4;
+        headers = new Message[] {
+            INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
+            INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get(),
+            INFO_REPLICATION_STATUS_HEADER_MISSING_CHANGES.get(),
+            INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get()
+        };
+      }
+      else
+      {
+        nCols = 2;
+        headers = new Message[] {
+            INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
+            INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get()
+        };
+      }
+    }
+    Message[][] values = new Message[orderedReplicas.size()][nCols];
+
+    int[] maxWidths = new int[nCols];
+    int i;
+    for (i=0; i<maxWidths.length; i++)
+    {
+      maxWidths[i] = Message.toString(headers[i]).length();
+    }
+
+    i = 0;
+    for (ReplicaDescriptor replica : orderedReplicas)
+    {
+      Message v;
+      for (int j=0; j<nCols; j++)
+      {
+        switch (j)
+        {
+        case SERVERPORT:
+          v = Message.raw(replica.getServer().getHostPort(true));
+          break;
+        case NUMBER_ENTRIES:
+          int nEntries = replica.getEntries();
+          if (nEntries >= 0)
+          {
+            v = Message.raw(String.valueOf(nEntries));
+          }
+          else
+          {
+            v = INFO_NOT_AVAILABLE_LABEL.get();
+          }
+          break;
+        case MISSING_CHANGES:
+          int missingChanges = replica.getMissingChanges();
+          if (missingChanges >= 0)
+          {
+            v = Message.raw(String.valueOf(missingChanges));
+          }
+          else
+          {
+            v = INFO_NOT_AVAILABLE_LABEL.get();
+          }
+          break;
+        case AGE_OF_OLDEST_MISSING_CHANGE:
+          int ageOfOldestMissingChange = replica.getAgeOfOldestMissingChange();
+          if (ageOfOldestMissingChange >= 0)
+          {
+            v = Message.raw(String.valueOf(ageOfOldestMissingChange));
+          }
+          else
+          {
+            v = INFO_NOT_AVAILABLE_LABEL.get();
+          }
+          break;
+        default:
+          throw new IllegalStateException("Unknown index: "+j);
+        }
+        values[i][j] = v;
+        maxWidths[j] = Math.max(maxWidths[j], v.toString().length());
+      }
+      i++;
+    }
+
+    int totalWidth = 0;
+    for (i=0; i<maxWidths.length; i++)
+    {
+      if (i < maxWidths.length - 1)
+      {
+        maxWidths[i] += 5;
+      }
+      totalWidth += maxWidths[i];
+    }
+
+    String dn = replicas.iterator().next().getSuffix().getDN();
+    if (scriptFriendly)
+    {
+      Message[] labels = {
+          INFO_REPLICATION_STATUS_BASEDN.get(),
+          INFO_REPLICATION_STATUS_IS_REPLICATED.get()
+      };
+      Message[] vs = {
+          Message.raw(dn),
+          isReplicated ? INFO_BASEDN_REPLICATED_LABEL.get() :
+            INFO_BASEDN_NOT_REPLICATED_LABEL.get()
+      };
+      for (i=0; i<labels.length; i++)
+      {
+        printProgressMessage(labels[i]+": "+vs[i]);
+        printProgressLineBreak();
+      }
+
+      for (i=0; i<values.length; i++)
+      {
+        printProgressMessage("-");
+        printProgressLineBreak();
+        for (int j=0; j<values[i].length; j++)
+        {
+          printProgressMessage(headers[j]+": "+values[i][j]);
+          printProgressLineBreak();
+        }
+      }
+    }
+    else
+    {
+      if (isReplicated)
+      {
+        printProgressMessage(
+            INFO_REPLICATION_STATUS_REPLICATED.get(dn));
+        printProgressLineBreak();
+      }
+      else
+      {
+        printProgressMessage(
+            INFO_REPLICATION_STATUS_NOT_REPLICATED.get(dn));
+        printProgressLineBreak();
+      }
+
+      MessageBuilder headerLine = new MessageBuilder();
+      for (i=0; i<maxWidths.length; i++)
+      {
+        String header = headers[i].toString();
+        headerLine.append(header);
+        int extra = maxWidths[i] - header.length();
+        for (int j=0; j<extra; j++)
+        {
+          headerLine.append(" ");
+        }
+      }
+      StringBuilder builder = new StringBuilder();
+      for (i=0; i<headerLine.length(); i++)
+      {
+        builder.append("=");
+      }
+      printProgressMessage(builder.toString());
+      printProgressLineBreak();
+      printProgressMessage(headerLine.toMessage());
+      printProgressLineBreak();
+      builder = new StringBuilder();
+      for (i=0; i<headerLine.length(); i++)
+      {
+        builder.append("-");
+      }
+      printProgressMessage(builder.toString());
+      printProgressLineBreak();
+
+      for (i=0; i<values.length; i++)
+      {
+        MessageBuilder line = new MessageBuilder();
+        for (int j=0; j<values[i].length; j++)
+        {
+          int extra = maxWidths[j];
+          line.append(values[i][j]);
+          extra -= values[i][j].length();
+          for (int k=0; k<extra; k++)
+          {
+            line.append(" ");
+          }
+        }
+        printProgressMessage(line.toMessage());
+        printProgressLineBreak();
       }
     }
   }

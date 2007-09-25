@@ -1125,7 +1125,7 @@ class StatusCli extends CliApplicationHelper
       labelWidth = Math.max(labelWidth, labels[i].length());
     }
 
-    Message replicatedLabel = INFO_SUFFIX_REPLICATED_LABEL.get();
+    Message replicatedLabel = INFO_BASEDN_REPLICATED_LABEL.get();
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
       if (i > 0)
