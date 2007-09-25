@@ -26,35 +26,33 @@
  */
 package com.example.opends;
 
-
-
 import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 
-
 import org.opends.server.types.ResultCode;
-import org.opends.server.messages.Message;
+import org.opends.server.types.InitializationException;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.messages.Message;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 
 import com.example.opends.server.ExamplePluginCfg;
-
-
 
 /**
  * The example plugin implementation class. This plugin will output
  * the configured message to the error log during server start up.
  */
 public class ExamplePlugin extends
-    DirectoryServerPlugin<ExamplePluginCfg> implements
-    ConfigurationChangeListener<ExamplePluginCfg> {
+  DirectoryServerPlugin<ExamplePluginCfg> implements
+  ConfigurationChangeListener<ExamplePluginCfg> {
 
   // The current configuration.
   private ExamplePluginCfg config;
@@ -69,14 +67,27 @@ public class ExamplePlugin extends
   }
 
 
-
   /**
-   * {@inheritDoc}
+   * Performs any initialization necessary for this plugin.  This will
+   * be called as soon as the plugin has been loaded and before it is
+   * registered with the server.
+   *
+   * @param  pluginTypes    The set of plugin types that indicate the
+   *                        ways in which this plugin will be invoked.
+   * @param  configuration  The configuration for this plugin.
+   *
+   * @throws  ConfigException  If the provided entry does not contain
+   *                           a valid configuration for this plugin.
+   *
+   * @throws  InitializationException  If a problem occurs while
+   *                                   initializing the plugin that is
+   *                                   not related to the server
+   *                                   configuration.
    */
   @Override()
   public void initializePlugin(Set<PluginType> pluginTypes,
       ExamplePluginCfg configuration)
-      throws ConfigException {
+      throws ConfigException, InitializationException {
     // This plugin may only be used as a server startup plugin.
     for (PluginType t : pluginTypes) {
       switch (t) {
@@ -84,8 +95,8 @@ public class ExamplePlugin extends
         // This is fine.
         break;
       default:
-        throw new ConfigException(-1, "Invalid plugin type " + t
-            + " for the example plugin.");
+        throw new ConfigException(Message.raw("Invalid plugin type " + t
+            + " for the example plugin."));
       }
     }
 
@@ -100,20 +111,30 @@ public class ExamplePlugin extends
 
 
   /**
-   * {@inheritDoc}
+   * Performs any processing that should be done when the Directory
+   * Server is in the process of starting.  This method will be called
+   * after virtually all other initialization has been performed but
+   * before the connection handlers are started.
+   *
+   * @return  The result of the startup plugin processing.
    */
   @Override
   public StartupPluginResult doStartup() {
     // Log the provided message.
-    logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.NOTICE,
-        "Example plugin message '" + config.getMessage() + "'.", 9999);
+    logError(Message.raw(Category.CONFIG, Severity.NOTICE,
+        "Example plugin message '" + config.getMessage() + "'."));
     return StartupPluginResult.SUCCESS;
   }
 
 
 
   /**
-   * {@inheritDoc}
+   * Applies the configuration changes to this change listener.
+   *
+   * @param config
+   *          The new configuration containing the changes.
+   * @return Returns information about the result of changing the
+   *         configuration.
    */
   public ConfigChangeResult applyConfigurationChange(
       ExamplePluginCfg config) {
@@ -122,10 +143,10 @@ public class ExamplePlugin extends
     // Log a message to say that the configuration has changed. This
     // isn't necessary, but we'll do it just to show that the change
     // has taken effect.
-    logError(ErrorLogCategory.CONFIGURATION, ErrorLogSeverity.NOTICE,
+    logError(Message.raw(Category.CONFIG, Severity.NOTICE,
         "Example plugin message has been changed from '"
             + this.config.getMessage() + "' to '"
-            + config.getMessage() + "'.", 9999);
+            + config.getMessage() + "'"));
 
     // Update the configuration.
     this.config = config;
@@ -137,7 +158,16 @@ public class ExamplePlugin extends
 
 
   /**
-   * {@inheritDoc}
+   * Indicates whether the proposed change to the configuration is
+   * acceptable to this change listener.
+   *
+   * @param config
+   *          The new configuration containing the changes.
+   * @param messages
+   *          A list that can be used to hold messages about why the
+   *          provided configuration is not acceptable.
+   * @return Returns <code>true</code> if the proposed change is
+   *         acceptable, or <code>false</code> if it is not.
    */
   public boolean isConfigurationChangeAcceptable(
       ExamplePluginCfg config, List<Message> messages) {
