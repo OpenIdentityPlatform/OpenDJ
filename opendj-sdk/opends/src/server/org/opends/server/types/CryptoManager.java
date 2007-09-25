@@ -360,8 +360,11 @@ public class CryptoManager
           final byte[] requestedInstanceKeyID)
           throws CryptoManagerException {
     final byte[] instanceKeyID = getInstanceKeyID();
-    final byte[] keyIDPrefix = Arrays.copyOf(symmetricKeyAttribute,
-            instanceKeyID.length);
+//    final byte[] keyIDPrefix = Arrays.copyOf(symmetricKeyAttribute,
+//            instanceKeyID.length);
+    final byte[] keyIDPrefix = new byte[instanceKeyID.length];
+    System.arraycopy(symmetricKeyAttribute, 0,
+                     keyIDPrefix, 0, instanceKeyID.length);
     if (! Arrays.equals(keyIDPrefix, instanceKeyID)) {
       throw new CryptoManagerException(
               // TODO: i18n
