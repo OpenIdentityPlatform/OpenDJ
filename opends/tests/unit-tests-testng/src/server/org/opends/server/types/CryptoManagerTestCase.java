@@ -34,6 +34,8 @@ import static org.testng.Assert.assertTrue;
 import org.opends.server.TestCaseUtils;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.util.ConnectionUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +46,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Arrays;
 import java.lang.reflect.Method;
+import java.security.MessageDigest;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -51,6 +54,9 @@ import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 
 import javax.crypto.Mac;
+import javax.naming.directory.*;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.InitialLdapContext;
 
 /**
  This class tests the CryptoManager.
@@ -78,6 +84,42 @@ public class CryptoManagerTestCase extends TypesTestCase
 
 
   @Test
+  public void testGetInstanceKeyCertificate()
+          throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final byte[] cert = cm.getInstanceKeyCertificate();
+    assertNotNull(cert);
+
+    // The certificate should now be accessible in the truststore backend via LDAP.
+    final InitialLdapContext ctx = ConnectionUtils.createLdapContext(
+            "ldap://" + "127.0.0.1" + ":"
+                    + String.valueOf(TestCaseUtils.getServerLdapPort()),
+            "cn=Directory Manager", "password",
+          ConnectionUtils.getDefaultLDAPTimeout(), null);
+    // TODO: the below dn should be in ConfigConstants
+    final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
+    final LdapName dn = new LdapName(dnStr);
+    final SearchControls searchControls = new SearchControls();
+    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
+    final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
+    searchControls.setReturningAttributes(attrIDs);
+    final SearchResult certEntry = ctx.search(dn,
+               "(objectclass=ds-cfg-instance-key)", searchControls).next();
+    final javax.naming.directory.Attribute certAttr
+            = certEntry.getAttributes().get(attrIDs[0]);
+    /* attribute ds-cfg-public-key-certificate is a MUST in the schema */
+    assertNotNull(certAttr);
+    byte[] ldapCert = (byte[])certAttr.get();
+    // Compare the certificate values.
+    assertTrue(Arrays.equals(ldapCert, cert));
+
+    // Compare the MD5 hash of the LDAP attribute with the one
+    // retrieved from the CryptoManager.
+    MessageDigest md = MessageDigest.getInstance("MD5");
+    assertTrue(Arrays.equals(md.digest(ldapCert), cm.getInstanceKeyID()));
+  }
+
+  @Test
   public void testMacSuccess()
           throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
@@ -94,6 +136,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     assertTrue(Arrays.equals(calculatedSignature, signedHash));
   }
 
+  // TODO: other-than-default MAC
 
   /**
    Cipher parameters
@@ -249,4 +292,7 @@ public class CryptoManagerTestCase extends TypesTestCase
       // ignore - requires Java 6
     }
   }
+
+  // TODO: ensure ciphers using IV output differs for successive
+  // encryptions of the same clear-text.
 }
