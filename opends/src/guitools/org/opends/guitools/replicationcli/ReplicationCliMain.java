@@ -2891,6 +2891,48 @@ public class ReplicationCliMain extends CliApplicationHelper
     ADSContext adsCtx1 = new ADSContext(ctx1);
     ADSContext adsCtx2 = new ADSContext(ctx2);
 
+    if (!argParser.isInteractive())
+    {
+      // Inform the user of the potential errors that we found in the already
+      // registered servers.
+      LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
+      try
+      {
+        if (adsCtx1.hasAdminData())
+        {
+          TopologyCache cache = new TopologyCache(adsCtx1, getTrustManager());
+          cache.reloadTopology();
+          messages.addAll(getErrorMessages(cache));
+        }
+
+        if (adsCtx2.hasAdminData())
+        {
+          TopologyCache cache = new TopologyCache(adsCtx2, getTrustManager());
+          cache.reloadTopology();
+          messages.addAll(getErrorMessages(cache));
+        }
+      }
+      catch (TopologyCacheException tce)
+      {
+        throw new ReplicationCliException(
+            ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
+            ERROR_READING_TOPOLOGY_CACHE, tce);
+      }
+      catch (ADSContextException adce)
+      {
+        throw new ReplicationCliException(
+            ERR_REPLICATION_READING_ADS.get(adce.getMessage()),
+            ERROR_READING_ADS, adce);
+      }
+      if (!messages.isEmpty())
+      {
+        printWarningMessage(
+            ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
+                Utils.getMessageFromCollection(messages,
+                    Constants.LINE_SEPARATOR).toString()));
+      }
+    }
+
     // These are used to identify which server we use to initialize
     // the contents of the other server (if any).
     InitialLdapContext ctxSource = null;
@@ -2899,18 +2941,12 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     boolean adsAlreadyReplicated = false;
 
-    // Booleans used to know if the ADS existed already on the servers.
-    boolean ads1Existed = false;
-    boolean ads2Existed = false;
-
     printProgressMessage(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_ADS_CONTENTS.get()));
     try
     {
       if (adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
-        ads1Existed = true;
-        ads2Existed = true;
         Set<Map<ADSContext.ServerProperty, Object>> registry1 =
           adsCtx1.readServerRegistry();
         Set<Map<ADSContext.ServerProperty, Object>> registry2 =
@@ -2976,7 +3012,6 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
-        ads2Existed = true;
         adsCtx1.createAdministrationSuffix(null);
         if (!hasAdministrator(adsCtx2.getDirContext()))
         {
@@ -2991,7 +3026,6 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       else if (adsCtx1.hasAdminData() && !adsCtx2.hasAdminData())
       {
-        ads1Existed = true;
         adsCtx2.createAdministrationSuffix(null);
         if (!hasAdministrator(adsCtx1.getDirContext()))
         {
@@ -3099,27 +3133,6 @@ public class ReplicationCliMain extends CliApplicationHelper
           ERROR_READING_TOPOLOGY_CACHE, tce);
     }
 
-    if (!argParser.isInteractive())
-    {
-      // Inform the user of the potential errors that we found.
-      LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
-      if ((cache1 != null) && ads1Existed)
-      {
-        messages.addAll(getErrorMessages(cache1));
-      }
-      if ((cache2 != null) && ads2Existed)
-      {
-        messages.addAll(getErrorMessages(cache2));
-      }
-      if (!messages.isEmpty())
-      {
-        printWarningMessage(
-            ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
-                Utils.getMessageFromCollection(messages,
-                    Constants.LINE_SEPARATOR).toString()));
-      }
-    }
-
     if (server1.isReplicationServer())
     {
       twoReplServers.add(server1.getReplicationServerHostPort());
@@ -3175,6 +3188,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       allRepServers.addAll(v);
     }
 
+    Set<String> alreadyConfiguredReplicationServers = new HashSet<String>();
     if (!server1.isReplicationServer())
     {
       try
@@ -3190,6 +3204,21 @@ public class ReplicationCliMain extends CliApplicationHelper
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
       }
     }
+    else
+    {
+      try
+      {
+        updateReplicationServer(ctx1, allRepServers);
+      }
+      catch (OpenDsException ode)
+      {
+        throw new ReplicationCliException(
+            getMessageForReplicationServerException(ode,
+            ConnectionUtils.getHostPort(ctx1)),
+            ERROR_CONFIGURING_REPLICATIONSERVER, ode);
+      }
+    }
+    alreadyConfiguredReplicationServers.add(server1.getId());
     if (!server2.isReplicationServer())
     {
       try
@@ -3205,6 +3234,21 @@ public class ReplicationCliMain extends CliApplicationHelper
             ERROR_CONFIGURING_REPLICATIONSERVER, ode);
       }
     }
+    else
+    {
+      try
+      {
+        updateReplicationServer(ctx2, allRepServers);
+      }
+      catch (OpenDsException ode)
+      {
+        throw new ReplicationCliException(
+            getMessageForReplicationServerException(ode,
+            ConnectionUtils.getHostPort(ctx1)),
+            ERROR_CONFIGURING_REPLICATIONSERVER, ode);
+      }
+    }
+    alreadyConfiguredReplicationServers.add(server2.getId());
 
     for (String baseDN : uData.getBaseDNs())
     {
@@ -3240,12 +3284,14 @@ public class ReplicationCliMain extends CliApplicationHelper
       if (cache1 != null)
       {
         configureToReplicateBaseDN(baseDN, repServers, usedIds, cache1, server1,
-            alreadyConfiguredServers);
+            alreadyConfiguredServers, allRepServers,
+            alreadyConfiguredReplicationServers);
       }
       if (cache2 != null)
       {
         configureToReplicateBaseDN(baseDN, repServers, usedIds, cache2, server2,
-            alreadyConfiguredServers);
+            alreadyConfiguredServers, allRepServers,
+            alreadyConfiguredReplicationServers);
       }
     }
 
@@ -3580,15 +3626,62 @@ public class ReplicationCliMain extends CliApplicationHelper
       Set<String> servers = replicationServer.getReplicationServer();
       if (servers == null)
       {
-        replicationServer.setReplicationServer(servers);
-        mustCommit = true;
-      }
-      else if (!servers.equals(replicationServers))
-      {
-        replicationServers.addAll(servers);
         replicationServer.setReplicationServer(replicationServers);
         mustCommit = true;
       }
+      else if (!areReplicationServersEqual(servers, replicationServers))
+      {
+        replicationServers.addAll(servers);
+        replicationServer.setReplicationServer(
+            mergeReplicationServers(replicationServers, servers));
+        mustCommit = true;
+      }
+    }
+    if (mustCommit)
+    {
+      replicationServer.commit();
+    }
+
+    printProgressMessage(formatter.getFormattedDone());
+    printProgressMessage(formatter.getLineBreak());
+  }
+
+  /**
+   * Updates the configuration of the replication server with the list of
+   * replication servers provided.
+   * @param ctx the context connected to the server that we want to update.
+   * @param replicationServers the list of replication servers to which the
+   * replication server will communicate with.
+   * @throws OpenDsException if there is an error updating the configuration.
+   */
+  private void updateReplicationServer(InitialLdapContext ctx,
+      LinkedHashSet<String> replicationServers) throws OpenDsException
+  {
+    printProgressMessage(formatter.getFormattedWithPoints(
+        INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(
+            ConnectionUtils.getHostPort(ctx))));
+
+    ManagementContext mCtx = LDAPManagementContext.createFromContext(
+        JNDIDirContextAdaptor.adapt(ctx));
+    RootCfgClient root = mCtx.getRootConfiguration();
+
+    MultimasterSynchronizationProviderCfgClient sync =
+      (MultimasterSynchronizationProviderCfgClient)
+    root.getSynchronizationProvider("Multimaster Synchronization");
+    boolean mustCommit = false;
+    ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
+    Set<String> servers = replicationServer.getReplicationServer();
+    if (servers == null)
+    {
+      replicationServer.setReplicationServer(replicationServers);
+      mustCommit = true;
+    }
+    else if (!areReplicationServersEqual(servers, replicationServers))
+    {
+      replicationServers.addAll(servers);
+      replicationServer.setReplicationServer(
+          mergeReplicationServers(replicationServers, servers));
+      mustCommit = true;
     }
     if (mustCommit)
     {
@@ -3713,10 +3806,10 @@ public class ReplicationCliMain extends CliApplicationHelper
         domain.setReplicationServer(servers);
         mustCommit = true;
       }
-      else if (!servers.equals(replicationServers))
+      else if (!areReplicationServersEqual(servers, replicationServers))
       {
-        replicationServers.addAll(servers);
-        domain.setReplicationServer(replicationServers);
+        domain.setReplicationServer(mergeReplicationServers(replicationServers,
+            servers));
         mustCommit = true;
       }
     }
@@ -3744,13 +3837,18 @@ public class ReplicationCliMain extends CliApplicationHelper
    * replication topology that we are interested at (we only update the replicas
    * that are already replicated with this server).
    * @param alreadyConfiguredServers the list of already configured servers.  If
-   * a server is in this list no updates are performed.
+   * a server is in this list no updates are performed to the domain.
+   * @param alreadyConfiguredReplicationServers the list of already configured
+   * servers.  If a server is in this list no updates are performed to the
+   * replication server.
    * @throws ReplicationCliException if something goes wrong.
    */
   private void configureToReplicateBaseDN(String baseDN,
       LinkedHashSet<String> repServers, Set<Integer> usedIds,
       TopologyCache cache, ServerDescriptor server,
-      Set<String>alreadyConfiguredServers) throws ReplicationCliException
+      Set<String> alreadyConfiguredServers, LinkedHashSet<String> allRepServers,
+      Set<String> alreadyConfiguredReplicationServers)
+  throws ReplicationCliException
   {
     SuffixDescriptor suffix = getSuffix(baseDN, cache, server);
     if (suffix != null)
@@ -3772,6 +3870,11 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             ctx = loader.createContext();
             configureToReplicateBaseDN(ctx, baseDN, repServers, usedIds);
+            if (!alreadyConfiguredReplicationServers.contains(s.getId()))
+            {
+              updateReplicationServer(ctx, allRepServers);
+              alreadyConfiguredReplicationServers.add(s.getId());
+            }
           }
           catch (NamingException ne)
           {
@@ -4276,5 +4379,49 @@ public class ReplicationCliMain extends CliApplicationHelper
       message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(port);
     }
     return message;
+  }
+
+  /**
+   * Convenience method used to know if one Set of replication servers equals
+   * another set of replication servers.
+   * @param s1 the first set of replication servers.
+   * @param s2 the second set of replication servers.
+   * @return <CODE>true</CODE> if the two sets represent the same replication
+   * servers and <CODE>false</CODE> otherwise.
+   */
+  private boolean areReplicationServersEqual(Set<String> s1, Set<String> s2)
+  {
+    Set<String> c1 = new HashSet<String>();
+    for (String s : s1)
+    {
+      c1.add(s.toLowerCase());
+    }
+    Set<String> c2 = new HashSet<String>();
+    for (String s : s2)
+    {
+      c2.add(s.toLowerCase());
+    }
+    return c1.equals(c2);
+  }
+
+  /**
+   * Convenience method used to merge two Sets of replication servers.
+   * @param s1 the first set of replication servers.
+   * @param s2 the second set of replication servers.
+   * @return a Set of replication servers containing all the replication servers
+   * specified in the provided Sets.
+   */
+  private Set<String> mergeReplicationServers(Set<String> s1, Set<String> s2)
+  {
+    Set<String> c1 = new HashSet<String>();
+    for (String s : s1)
+    {
+      c1.add(s.toLowerCase());
+    }
+    for (String s : s2)
+    {
+      c1.add(s.toLowerCase());
+    }
+    return c1;
   }
 }
