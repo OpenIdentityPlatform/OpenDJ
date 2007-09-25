@@ -335,6 +335,12 @@ public class LDAPConnectionConsoleInteraction {
         secureArgsList.useSSLArg.isPresent()
         ||
         secureArgsList.useStartTLSArg.isPresent()
+        ||
+        (
+          secureArgsList.useSSLArg.isValueSetByProperty()
+          &&
+          secureArgsList.useStartTLSArg.isValueSetByProperty()
+        )
       );
     if (app.isInteractive() && !connectionTypeIsSet)
     {

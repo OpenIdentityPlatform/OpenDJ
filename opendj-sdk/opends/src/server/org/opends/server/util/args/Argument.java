@@ -88,6 +88,9 @@ public abstract class Argument
   // information.
   private String valuePlaceholder;
 
+  // Indicates whether this argument was provided in the set of properties
+  // found is a properties file.
+  private boolean isValueSetByProperty;
 
 
   /**
@@ -139,6 +142,7 @@ public abstract class Argument
     this.defaultValue     = defaultValue;
     this.propertyName     = propertyName;
     this.description      = description;
+    this.isValueSetByProperty = false ;
 
     if ((shortIdentifier == null) && (longIdentifier == null))
     {
@@ -434,7 +438,31 @@ public abstract class Argument
     this.propertyName = propertyName;
   }
 
+  /**
+   * Indicates whether this argument was provided in the set of
+   * properties found is a properties file.
+   *
+   * @return <CODE>true</CODE> if this argument was provided in the
+   *         set of properties found is a properties file, or
+   *         <CODE>false</CODE> if not.
+   */
+  public boolean isValueSetByProperty()
+  {
+    return isValueSetByProperty;
+  }
 
+  /**
+   * Specifies whether this argument was provided in the set of
+   * properties found is a properties file.
+   *
+   * @param isValueSetByProperty
+   *          Specify whether this argument was provided in the set
+   *          of properties found is a properties file.
+   */
+  public void setValueSetByProperty(boolean isValueSetByProperty)
+  {
+    this.isValueSetByProperty = isValueSetByProperty;
+  }
 
   /**
    * Retrieves the human-readable description for this argument.
