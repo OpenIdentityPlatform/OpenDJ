@@ -465,6 +465,28 @@ modifyProcessing:
           }
         }
 
+
+        // Check to see if the client has permission to perform the modify.
+        // The access control check is not made any earlier because the handler
+        // needs access to the modified entry.
+
+        // FIXME: for now assume that this will check all permissions
+        // pertinent to the operation. This includes proxy authorization
+        // and any other controls specified.
+
+        // FIXME: earlier checks to see if the entry already exists may have
+        // already exposed sensitive information to the client.
+        if (! AccessControlConfigManager.getInstance().
+                   getAccessControlHandler().isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
+                                  String.valueOf(entryDN)));
+          skipPostOperation = true;
+          break modifyProcessing;
+        }
+
+
         try
         {
           handleInitialPasswordPolicyAndSchemaProcessing();
@@ -486,26 +508,6 @@ modifyProcessing:
           break modifyProcessing;
         }
 
-
-        // Check to see if the client has permission to perform the modify.
-        // The access control check is not made any earlier because the handler
-        // needs access to the modified entry.
-
-        // FIXME: for now assume that this will check all permissions
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry already exists may have
-        // already exposed sensitive information to the client.
-        if (! AccessControlConfigManager.getInstance().
-                   getAccessControlHandler().isAllowed(this))
-        {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
-                                  String.valueOf(entryDN)));
-          skipPostOperation = true;
-          break modifyProcessing;
-        }
 
         if ((! passwordChanged) && (! isInternalOperation()) &&
             pwPolicyState.mustChangePassword())
