@@ -41,6 +41,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.backends.task.TaskState;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 
@@ -215,9 +216,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
           // Poll the task printing log messages until finished
           String taskId = taskEntry.getId();
-          taskEntry = tc.getTaskEntry(taskId);
           Set<Message> printedLogMessages = new HashSet<Message>();
           do {
+            taskEntry = tc.getTaskEntry(taskId);
             List<Message> logs = taskEntry.getLogMessages();
             for (Message log : logs) {
               if (!printedLogMessages.contains(log)) {
@@ -232,8 +233,12 @@ public abstract class TaskTool implements TaskScheduleInformation {
               // ignore
             }
 
-            taskEntry = tc.getTaskEntry(taskId);
           } while (!taskEntry.isDone());
+          if (TaskState.isSuccessful(taskEntry.getTaskState())) {
+            return 0;
+          } else {
+            return 1;
+          }
         }
         ret = 0;
       } catch (LDAPConnectionException e) {
