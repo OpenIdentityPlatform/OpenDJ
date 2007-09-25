@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.util.*;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.Key;
 
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
@@ -1419,6 +1420,63 @@ public class TrustStoreBackend
 
       Message message = ERR_TRUSTSTORE_CANNOT_CREATE_FACTORY.get(
           trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+  }
+
+
+  /**
+   * Returns the key associated with the given alias, using the trust
+   * store pin to recover it.
+   *
+   * @param   alias The alias name.
+   *
+   * @return  The requested key, or null if the given alias does not exist
+   *          or does not identify a key-related entry.
+   *
+   * @throws  DirectoryException  If an error occurs while retrieving the key.
+   */
+  public Key getKey(String alias)
+         throws DirectoryException
+  {
+    KeyStore trustStore;
+    try
+    {
+      trustStore = KeyStore.getInstance(trustStoreType);
+
+      FileInputStream inputStream =
+           new FileInputStream(getFileForPath(trustStoreFile));
+      trustStore.load(inputStream, trustStorePIN);
+      inputStream.close();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_TRUSTSTORE_CANNOT_LOAD.get(
+          trustStoreFile, getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+
+
+    try
+    {
+      return trustStore.getKey(alias, trustStorePIN);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_TRUSTSTORE_ERROR_READING_KEY.get(
+           alias, trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }

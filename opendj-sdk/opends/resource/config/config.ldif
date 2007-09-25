@@ -539,6 +539,13 @@ cn: StartTLS
 ds-cfg-extended-operation-handler-class: org.opends.server.extensions.StartTLSExtendedOperation
 ds-cfg-extended-operation-handler-enabled: true
 
+dn: cn=Get Symmetric Key,cn=Extended Operations,cn=config
+objectClass: top
+objectClass: ds-cfg-extended-operation-handler
+cn: Get Symmetric Key
+ds-cfg-extended-operation-handler-class: org.opends.server.extensions.GetSymmetricKeyExtendedOperation
+ds-cfg-extended-operation-handler-enabled: true
+
 dn: cn=Who Am I,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
