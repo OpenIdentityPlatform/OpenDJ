@@ -28,7 +28,6 @@
 package org.opends.admin.ads;
 
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.naming.ldap.InitialLdapContext;
 
@@ -37,7 +36,6 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
-import org.opends.server.admin.std.meta.*;
 import org.opends.server.types.DN;
 
 /**
@@ -122,52 +120,52 @@ public class ADSContextHelper
    * @throws ADSContextException if the administration suffix could not be
    * created.
    */
-  public void createAdministrationSuffix(InitialLdapContext ctx,
-      String backendName, String dbDirectory, String importTempDirectory)
-  throws ADSContextException
-  {
-    try
-    {
-      ManagementContext mCtx = LDAPManagementContext.createFromContext(
-          JNDIDirContextAdaptor.adapt(ctx));
-      RootCfgClient root = mCtx.getRootConfiguration();
-      JEBackendCfgClient backend = null;
-      try
-      {
-        backend = (JEBackendCfgClient)root.getBackend(backendName);
-      }
-      catch (ManagedObjectNotFoundException e)
-      {
-      }
-      catch (ClassCastException cce)
-      {
-        throw new ADSContextException(
-            ADSContextException.ErrorType.UNEXPECTED_ADS_BACKEND_TYPE, cce);
-      }
-      if (backend == null)
-      {
-        JEBackendCfgDefn provider = JEBackendCfgDefn.getInstance();
-        backend = root.createBackend(provider, backendName, null);
-        backend.setBackendEnabled(true);
-        backend.setBackendId(backendName);
-        backend.setBackendDirectory(dbDirectory);
-        backend.setBackendImportTempDirectory(importTempDirectory);
-        backend.setBackendWritabilityMode(
-            BackendCfgDefn.BackendWritabilityMode.ENABLED);
-      }
-      SortedSet<DN> suffixes = backend.getBackendBaseDN();
-      if (suffixes == null)
-      {
-        suffixes = new TreeSet<DN>();
-      }
-      suffixes.add(DN.decode(ADSContext.getAdministrationSuffixDN()));
-      backend.setBackendBaseDN(suffixes);
-      backend.commit();
-    }
-    catch (Throwable t)
-    {
-      throw new ADSContextException(
-          ADSContextException.ErrorType.ERROR_UNEXPECTED, t);
-    }
-  }
+//  public void createAdministrationSuffix(InitialLdapContext ctx,
+//      String backendName, String dbDirectory, String importTempDirectory)
+//  throws ADSContextException
+//  {
+//    try
+//    {
+//      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+//          JNDIDirContextAdaptor.adapt(ctx));
+//      RootCfgClient root = mCtx.getRootConfiguration();
+//      JEBackendCfgClient backend = null;
+//      try
+//      {
+//        backend = (JEBackendCfgClient)root.getBackend(backendName);
+//      }
+//      catch (ManagedObjectNotFoundException e)
+//      {
+//      }
+//      catch (ClassCastException cce)
+//      {
+//        throw new ADSContextException(
+//            ADSContextException.ErrorType.UNEXPECTED_ADS_BACKEND_TYPE, cce);
+//      }
+//      if (backend == null)
+//      {
+//        JEBackendCfgDefn provider = JEBackendCfgDefn.getInstance();
+//        backend = root.createBackend(provider, backendName, null);
+//        backend.setBackendEnabled(true);
+//        backend.setBackendId(backendName);
+//        backend.setBackendDirectory(dbDirectory);
+//        backend.setBackendImportTempDirectory(importTempDirectory);
+//        backend.setBackendWritabilityMode(
+//            BackendCfgDefn.BackendWritabilityMode.ENABLED);
+//      }
+//      SortedSet<DN> suffixes = backend.getBackendBaseDN();
+//      if (suffixes == null)
+//      {
+//        suffixes = new TreeSet<DN>();
+//      }
+//      suffixes.add(DN.decode(ADSContext.getAdministrationSuffixDN()));
+//      backend.setBackendBaseDN(suffixes);
+//      backend.commit();
+//    }
+//    catch (Throwable t)
+//    {
+//      throw new ADSContextException(
+//          ADSContextException.ErrorType.ERROR_UNEXPECTED, t);
+//    }
+//  }
 }

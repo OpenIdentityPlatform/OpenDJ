@@ -356,6 +356,17 @@ ds-cfg-backend-base-dn: cn=tasks
 ds-cfg-task-backing-file: config/tasks.ldif
 ds-cfg-task-retention-time: 24 hours
 
+dn: ds-cfg-backend-id=adminRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-ldif-backend
+ds-cfg-backend-id: adminRoot
+ds-cfg-backend-enabled: true
+ds-cfg-backend-class: org.opends.server.backends.LDIFBackend
+ds-cfg-backend-writability-mode: enabled
+ds-cfg-backend-base-dn: cn=admin data
+ds-cfg-ldif-file: config/admin-backend.ldif
+
 dn: cn=Certificate Mappers,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
