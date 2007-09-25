@@ -49,39 +49,47 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   @Test()
   public void replServerApplyChangeTest() throws Exception
   {
+    ReplicationServer replicationServer = null;
+    
     TestCaseUtils.startServer();
 
-    // find two free ports for the replication Server port
-    ServerSocket socket1 = TestCaseUtils.bindFreePort();
-    int replicationServerPort = socket1.getLocalPort();
-    ServerSocket socket2 = TestCaseUtils.bindFreePort();
-    int newReplicationServerPort = socket2.getLocalPort();
-    socket1.close();
-    socket2.close();
+    try {
+      // find two free ports for the replication Server port
+      ServerSocket socket1 = TestCaseUtils.bindFreePort();
+      int replicationServerPort = socket1.getLocalPort();
+      ServerSocket socket2 = TestCaseUtils.bindFreePort();
+      int newReplicationServerPort = socket2.getLocalPort();
+      socket1.close();
+      socket2.close();
 
-    // instantiate a Replication server using the first port number.
-    ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(
-          replicationServerPort, null, 0, 1, 0, 0, null);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
-   
-    // Most of the configuration change are trivial to apply.
-    // The interesting change is the change of the replication server port.
-    // build a new ReplServerFakeConfiguration with a new server port
-    // apply this new configuration and check that it is now possible to 
-    // connect to this new portnumber.
-    ReplServerFakeConfiguration newconf =
-      new ReplServerFakeConfiguration(
-          newReplicationServerPort, null, 0, 1, 0, 0, null);
-    
-    replicationServer.applyConfigurationChange(newconf);
-    
-    ReplicationBroker broker = openReplicationSession(
-        DN.decode("dc=example"), (short) 1, 10, newReplicationServerPort,
-        1000, false);
-    
-    // check that the sendWindow is not null to make sure that the 
-    // broker did connect successfully.
-    assertTrue(broker.getCurrentSendWindow() != 0);
+      // instantiate a Replication server using the first port number.
+      ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(
+            replicationServerPort, null, 0, 1, 0, 0, null);
+      replicationServer = new ReplicationServer(conf);
+
+      // Most of the configuration change are trivial to apply.
+      // The interesting change is the change of the replication server port.
+      // build a new ReplServerFakeConfiguration with a new server port
+      // apply this new configuration and check that it is now possible to 
+      // connect to this new portnumber.
+      ReplServerFakeConfiguration newconf =
+        new ReplServerFakeConfiguration(
+            newReplicationServerPort, null, 0, 1, 0, 0, null);
+
+      replicationServer.applyConfigurationChange(newconf);
+
+      ReplicationBroker broker = openReplicationSession(
+          DN.decode("dc=example"), (short) 1, 10, newReplicationServerPort,
+          1000, false);
+
+      // check that the sendWindow is not null to make sure that the 
+      // broker did connect successfully.
+      assertTrue(broker.getCurrentSendWindow() != 0);
+    }
+    finally 
+    {
+      replicationServer.shutdown();
+    }
   }
 }

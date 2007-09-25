@@ -52,7 +52,6 @@ import java.net.SocketTimeoutException;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;

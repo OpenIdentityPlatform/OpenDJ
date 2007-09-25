@@ -50,6 +50,8 @@ public class ListenerThread extends DirectoryThread
 
   private ReplicationDomain listener;
   private boolean shutdown = false;
+  private boolean done = false;
+
 
   /**
    * Constructor for the ListenerThread.
@@ -76,14 +78,13 @@ public class ListenerThread extends DirectoryThread
   public void run()
   {
     UpdateMessage msg;
-    boolean done = false;
 
     if (debugEnabled())
     {
       TRACER.debugInfo("Replication Listener thread starting.");
     }
 
-    while (!done)
+    while (shutdown == false)
     {
       try
       {
@@ -91,7 +92,8 @@ public class ListenerThread extends DirectoryThread
         {
           listener.replay(msg);
         }
-        done = true;
+        if (msg == null)
+          shutdown = true;
       } catch (Exception e)
       {
         /*
@@ -104,9 +106,27 @@ public class ListenerThread extends DirectoryThread
         logError(message);
       }
     }
+    done = true;
     if (debugEnabled())
     {
       TRACER.debugInfo("Replication Listener thread stopping.");
+    }
+  }
+
+  /**
+   * Wait for the completion of this thread.
+   */
+  public void waitForShutdown()
+  {
+    try
+    {
+      while (done == false)
+      {
+        Thread.sleep(50);
+      }
+    } catch (InterruptedException e)
+    {
+      // exit the loop if this thread is interrupted.
     }
   }
 }

@@ -215,7 +215,8 @@ public class ModifyMsg extends UpdateMessage
           continue;
         }
       }
-      if (!attr.getAttributeType().equals(Historical.historicalAttrType))
+
+      if (!Historical.isHistoricalAttribute(attr))
       {
         LDAPModification ldapmod = new LDAPModification(
           mod.getModificationType(), new LDAPAttribute(mod.getAttribute()));

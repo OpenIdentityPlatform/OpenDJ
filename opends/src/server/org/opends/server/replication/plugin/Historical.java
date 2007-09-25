@@ -82,15 +82,9 @@ public class Historical
   public static final String HISTORICAL = "ds-synch-historical";
 
   /**
-   * The AttributeType associated to the attribute used to store
-   * hitorical information.
+   * The name of the entryuuid attribute.
    */
-  public static final AttributeType historicalAttrType =
-    DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
-
   static final String ENTRYUIDNAME = "entryuuid";
-  static final AttributeType entryuuidAttrType =
-    DirectoryServer.getSchema().getAttributeType(ENTRYUIDNAME);
 
 
   /*
@@ -177,7 +171,7 @@ public class Historical
     Modification mod;
     mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
-    modifiedEntry.removeAttribute(historicalAttrType);
+    modifiedEntry.removeAttribute(attr.getAttributeType());
     modifiedEntry.addAttribute(attr, null);
   }
 
@@ -194,7 +188,7 @@ public class Historical
   private AttributeInfo getAttrInfo(Modification mod)
   {
     Attribute modAttr = mod.getAttribute();
-    if (modAttr.getAttributeType().equals(Historical.historicalAttrType))
+    if (isHistoricalAttribute(modAttr))
     {
       // Don't keep historical information for the attribute that is
       // used to store the historical information.
@@ -229,6 +223,8 @@ public class Historical
    */
   public Attribute encode()
   {
+    AttributeType historicalAttrType =
+      DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
     LinkedHashSet<AttributeValue> hist = new LinkedHashSet<AttributeValue>();
 
     for (Map.Entry<AttributeType, AttrInfoWithOptions> entryWithOptions :
@@ -344,7 +340,7 @@ public class Historical
    */
   public static Historical load(Entry entry)
   {
-    List<Attribute> hist = entry.getAttribute(historicalAttrType);
+    List<Attribute> hist = getHistoricalAttr(entry);
     Historical histObj = new Historical();
     AttributeType lastAttrType = null;
     Set<String> lastOptions = new HashSet<String>();
@@ -441,7 +437,7 @@ public class Historical
   {
     TreeMap<ChangeNumber, FakeOperation> operations =
             new TreeMap<ChangeNumber, FakeOperation>();
-    List<Attribute> attrs = entry.getOperationalAttribute(historicalAttrType);
+    List<Attribute> attrs = getHistoricalAttr(entry);
     if (attrs != null)
     {
       for (Attribute attr : attrs)
@@ -478,6 +474,19 @@ public class Historical
   }
 
   /**
+   * Get the Attribute used to store the historical information from
+   * the given Entry.
+   *
+   * @param   entry  The entry containing the historical information.
+   *
+   * @return  The Attribute used to store the historical information.
+   */
+  public static List<Attribute> getHistoricalAttr(Entry entry)
+  {
+    return entry.getAttribute(HISTORICALATTRIBUTENAME);
+  }
+
+  /**
    * Get the entry unique Id in String form.
    *
    * @param entry The entry for which the unique id should be returned.
@@ -487,6 +496,8 @@ public class Historical
   public static String getEntryUuid(Entry entry)
   {
     String uuidString = null;
+    AttributeType entryuuidAttrType =
+      DirectoryServer.getSchema().getAttributeType(ENTRYUIDNAME);
     List<Attribute> uuidAttrs =
              entry.getOperationalAttribute(entryuuidAttrType);
     if (uuidAttrs != null)
@@ -513,6 +524,8 @@ public class Historical
   {
     String uuidString = null;
     Map<AttributeType, List<Attribute>> attrs = op.getOperationalAttributes();
+    AttributeType entryuuidAttrType =
+      DirectoryServer.getSchema().getAttributeType(ENTRYUIDNAME);
     List<Attribute> uuidAttrs = attrs.get(entryuuidAttrType);
 
     if (uuidAttrs != null)
@@ -525,6 +538,21 @@ public class Historical
       }
     }
     return uuidString;
+  }
+
+  /**
+   * Check if a given attribute is an attribute used to store historical
+   * information.
+   *
+   * @param   attr The attribute that needs to be checked.
+   *
+   * @return  a boolean indicating if the given attribute is
+   *          used to store historical information.
+   */
+  public static boolean isHistoricalAttribute(Attribute attr)
+  {
+    AttributeType attrType = attr.getAttributeType();
+    return attrType.getNameOrOID().equals(Historical.HISTORICALATTRIBUTENAME);
   }
 }
 
