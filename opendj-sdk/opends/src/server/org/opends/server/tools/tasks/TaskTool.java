@@ -47,6 +47,9 @@ import static org.opends.messages.ToolMessages.*;
 import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.List;
 import java.io.IOException;
 
 /**
@@ -63,8 +66,13 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   public static final String NOW = "0";
 
+  // Number of milliseconds this utility will wait before reloading
+  // this task's entry in the directory while it is polling for status
+  private static final int SYNCHRONOUS_TASK_POLL_INTERVAL = 1000;
+
   LDAPConnectionArgumentParser argParser;
 
+  // Argument for describing the task's start time
   StringArgument startArg;
 
   /**
@@ -96,14 +104,13 @@ public abstract class TaskTool implements TaskScheduleInformation {
             toolDescription, false);
 
     try {
-      startArg =
-           new StringArgument(
-                   OPTION_LONG_START_DATETIME,
-                   OPTION_SHORT_START_DATETIME,
-                   OPTION_LONG_START_DATETIME, false, false,
-                   true, OPTION_VALUE_START_DATETIME,
-                   null, null,
-                   INFO_DESCRIPTION_START_DATETIME.get());
+      startArg = new StringArgument(
+              OPTION_LONG_START_DATETIME,
+              OPTION_SHORT_START_DATETIME,
+              OPTION_LONG_START_DATETIME, false, false,
+              true, OPTION_VALUE_START_DATETIME,
+              null, null,
+              INFO_DESCRIPTION_START_DATETIME.get());
       argParser.addArgument(startArg);
     } catch (ArgumentException e) {
       // should never happen
@@ -134,6 +141,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   public Date getStartDateTime() {
     Date start = null;
+
+    // If the start time arg is present parse its value
     if (startArg != null && startArg.isPresent()) {
       if (NOW.equals(startArg.getValue())) {
         start = new Date();
@@ -164,7 +173,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
                         PrintStream out, PrintStream err) {
     int ret;
 
-    if (startArg.isPresent())
+    if (argParser.argumentsPresent())
     {
       if (initializeServer)
       {
@@ -202,6 +211,30 @@ public abstract class TaskTool implements TaskScheduleInformation {
                           taskEntry.getScheduledStartTime()),
                   MAX_LINE_WIDTH));
         }
+        if (!startArg.isPresent() || NOW.equals(startArg.getValue())) {
+
+          // Poll the task printing log messages until finished
+          String taskId = taskEntry.getId();
+          taskEntry = tc.getTaskEntry(taskId);
+          Set<Message> printedLogMessages = new HashSet<Message>();
+          do {
+            List<Message> logs = taskEntry.getLogMessages();
+            for (Message log : logs) {
+              if (!printedLogMessages.contains(log)) {
+                printedLogMessages.add(log);
+                out.println(log);
+              }
+            }
+
+            try {
+              Thread.sleep(SYNCHRONOUS_TASK_POLL_INTERVAL);
+            } catch (InterruptedException e) {
+              // ignore
+            }
+
+            taskEntry = tc.getTaskEntry(taskId);
+          } while (!taskEntry.isDone());
+        }
         ret = 0;
       } catch (LDAPConnectionException e) {
         Message message = ERR_TASK_TOOL_START_TIME_NO_LDAP.get(e.getMessage());
@@ -224,10 +257,6 @@ public abstract class TaskTool implements TaskScheduleInformation {
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       }
-    } else if (argParser.argumentsPresent()) {
-      Message message = ERR_TASK_TOOL_LDAP_NO_START_TIME.get();
-      if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
-      ret = 1;
     } else {
       ret = processLocal(initializeServer, out, err);
     }
