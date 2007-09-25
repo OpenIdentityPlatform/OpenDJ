@@ -211,7 +211,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
                           taskEntry.getScheduledStartTime()),
                   MAX_LINE_WIDTH));
         }
-        if (!startArg.isPresent() || NOW.equals(startArg.getValue())) {
+        if (!startArg.isPresent()) {
 
           // Poll the task printing log messages until finished
           String taskId = taskEntry.getId();
