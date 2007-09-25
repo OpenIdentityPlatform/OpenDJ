@@ -245,6 +245,12 @@ public class ReplicationDomain extends DirectoryThread
   private DN configDn;
 
   /**
+   * A boolean indicating if the thread used to save the persistentServerState
+   * is terminated.
+   */
+  private boolean done = false;
+
+  /**
    * This class contain the context related to an import or export
    * launched on the domain.
    */
@@ -1207,6 +1213,8 @@ public class ReplicationDomain extends DirectoryThread
       { }
     }
     state.save();
+
+    done = true;
   }
 
   /**
@@ -1216,12 +1224,18 @@ public class ReplicationDomain extends DirectoryThread
    */
   private void createListeners()
   {
-    synchroThreads.clear();
-    for (int i=0; i<listenerThreadNumber; i++)
+    synchronized (synchroThreads)
     {
-      ListenerThread myThread = new ListenerThread(this);
-      myThread.start();
-      synchroThreads.add(myThread);
+      if (!shutdown)
+      {
+        synchroThreads.clear();
+        for (int i=0; i<listenerThreadNumber; i++)
+        {
+          ListenerThread myThread = new ListenerThread(this);
+          myThread.start();
+          synchroThreads.add(myThread);
+        }
+      }
     }
   }
 
@@ -1230,14 +1244,18 @@ public class ReplicationDomain extends DirectoryThread
    */
   public void shutdown()
   {
-    // stop the listener threads
-    for (ListenerThread thread : synchroThreads)
-    {
-      thread.shutdown();
-    }
-
     // stop the flush thread
     shutdown = true;
+
+    synchronized (synchroThreads)
+    {
+      // stop the listener threads
+      for (ListenerThread thread : synchroThreads)
+      {
+        thread.shutdown();
+      }
+    }
+
     synchronized (this)
     {
       this.notify();
@@ -1253,7 +1271,19 @@ public class ReplicationDomain extends DirectoryThread
     //  wait for the listener thread to stop
     for (ListenerThread thread : synchroThreads)
     {
-      thread.shutdown();
+      thread.waitForShutdown();
+    }
+
+    // wait for completion of the persistentServerState thread.
+    try
+    {
+      while (!done)
+      {
+        Thread.sleep(50);
+      }
+    } catch (InterruptedException e)
+    {
+      // stop waiting when interrupted.
     }
   }
 
@@ -2249,7 +2279,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public long computeGenerationId() throws DirectoryException
   {
-    Backend backend = this.retrievesBackend(baseDN);
+    Backend backend = retrievesBackend(baseDN);
     long bec = backend.getEntryCount();
     this.acquireIEContext();
     ieContext.checksumOutput = true;
@@ -3049,7 +3079,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     LDIFImportConfig importConfig = null;
     DirectoryException de = null;
 
-    Backend backend = this.retrievesBackend(baseDN);
+    Backend backend = retrievesBackend(baseDN);
 
     if (!backend.supportsLDIFImport())
     {

@@ -171,7 +171,7 @@ public class HistoricalTest
     DN dn = DN.decode("uid=user.1,o=test");
     Entry entry = DirectoryServer.getEntry(dn);
 
-    List<Attribute> attrs = entry.getAttribute(Historical.historicalAttrType);
+    List<Attribute> attrs = Historical.getHistoricalAttr(entry);
     Attribute before = attrs.get(0);
 
     // Check that encoding and decoding preserves the history information.

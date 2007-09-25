@@ -793,6 +793,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
           gen.newChangeNumber(), user1entrysecondUUID);
     broker.publish(delMsg);
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
+    resultEntry = getEntry(personWithSecondUniqueID.getDN(), 10000, false);
 
     // check that the delete operation has been applied
     assertNull(resultEntry,
@@ -1171,9 +1172,19 @@ public class  UpdateOperationTest extends ReplicationTestCase
     broker.publish(modDnMsg);
     // unfortunately it is difficult to check that the operation
     // did not do anything.
-    // The only thing we can check is that resolved naminf conflict counter
+    // The only thing we can check is that resolved naming conflict counter
     // has correctly been incremented.
-    assertEquals(getMonitorDelta(), 1);
+    int count = 0;
+    while ((count<2000) && getMonitorDelta() == 0)
+    {
+      // it is possible that the update has not yet been applied
+      // wait a short time and try again.
+      Thread.sleep(100);
+      count++;
+    }
+    // if the monitor counter did not get incremented after 200sec
+    // then something got wrong.
+    assertTrue(count < 200);
     
     // Check that there was no administrative alert generated
     // because the conflict has been automatically resolved.

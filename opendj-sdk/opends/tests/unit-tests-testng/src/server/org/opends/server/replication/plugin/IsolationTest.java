@@ -108,8 +108,7 @@ public class IsolationTest extends ReplicationTestCase
       // try a new modify operation on the base entry.
       op = conn.processModify(baseDn, generatemods("description", "test"));
 
-      // chek that the operation was successful.
-      // check that the update failed.
+      // check that the operation was successfull.
       assertEquals(op.getResultCode(), ResultCode.SUCCESS, 
           op.getAdditionalLogMessage().toString());
     }
@@ -119,7 +118,10 @@ public class IsolationTest extends ReplicationTestCase
         MultimasterReplication.deleteDomain(baseDn);
 
       if (replicationPlugin != null)
+      {
+        replicationPlugin.finalizeSynchronizationProvider();
         DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
+      }
     }
   }
 

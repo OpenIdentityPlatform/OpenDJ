@@ -192,6 +192,7 @@ public class MultimasterReplication
       MultimasterSynchronizationProviderCfg configuration)
   throws ConfigException
   {
+    domains.clear();
     replicationServerListener = new ReplicationServerListener(configuration);
 
     // Register as an add and delete listener with the root configuration so we
@@ -435,6 +436,7 @@ public class MultimasterReplication
     {
       domain.shutdown();
     }
+    domains.clear();
 
     // shutdown the ReplicationServer Service if necessary
     if (replicationServerListener != null)

@@ -26,8 +26,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -40,25 +38,22 @@ import static org.testng.Assert.fail;
 import java.io.File;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.net.SocketTimeoutException;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.ReplicationDomain;
@@ -71,7 +66,6 @@ import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.SocketSession;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -79,8 +73,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -1028,7 +1020,7 @@ public class GenerationIdTest extends ReplicationTestCase
       // At this moment, root entry of the domain has been removed so
       // genId is no more in the database ... but it has still the old
       // value in memory.
-      int found = testEntriesInDb();
+      testEntriesInDb();
       replDomain.loadGenerationId();
 
       debugInfo("Successfully ending " + testCase);

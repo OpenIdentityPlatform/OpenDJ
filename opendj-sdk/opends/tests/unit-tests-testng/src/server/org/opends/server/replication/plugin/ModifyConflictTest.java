@@ -601,6 +601,10 @@ public class ModifyConflictTest
    */
   private Entry initializeEntry() throws DirectoryException
   {
+    AttributeType entryuuidAttrType =
+      DirectoryServer.getSchema().getAttributeType(
+          Historical.ENTRYUIDNAME);
+    
     /*
      * Objectclass and DN do not have any impact on the modifty conflict
      * resolution for the description attribute. Always use the same values
@@ -622,10 +626,10 @@ public class ModifyConflictTest
     // Create the att values list
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(
         1);
-    values.add(new AttributeValue(Historical.entryuuidAttrType,
+    values.add(new AttributeValue(entryuuidAttrType,
         new ASN1OctetString(uuid.toString())));
     ArrayList<Attribute> uuidList = new ArrayList<Attribute>(1);
-    Attribute uuidAttr = new Attribute(Historical.entryuuidAttrType,
+    Attribute uuidAttr = new Attribute(entryuuidAttrType,
         "entryUUID", values);
     uuidList.add(uuidAttr);
 
@@ -635,7 +639,7 @@ public class ModifyConflictTest
     Map<AttributeType, List<Attribute>> operationalAttributes = entry
         .getOperationalAttributes();
 
-    operationalAttributes.put(Historical.entryuuidAttrType, uuidList);
+    operationalAttributes.put(entryuuidAttrType, uuidList);
     return entry;
   }
 
@@ -645,14 +649,16 @@ public class ModifyConflictTest
   private void testHistoricalAndFake(
       Historical hist, Entry entry)
   {
-
+    AttributeType entryuuidAttrType =
+      DirectoryServer.getSchema().getAttributeType(Historical.ENTRYUIDNAME);
+    
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
     String uuid = Historical.getEntryUuid(entry);
 
     // Get the Entry uuid in String format
     List<Attribute> uuidAttrs = entry
-        .getOperationalAttribute(Historical.entryuuidAttrType);
+        .getOperationalAttribute(entryuuidAttrType);
     uuidAttrs.get(0).getValues().iterator().next().toString();
 
     if (uuidAttrs != null)
@@ -730,6 +736,10 @@ public class ModifyConflictTest
   private List<Modification> replayModify(
       Entry entry, Historical hist, Modification mod, int date)
   {
+    AttributeType historicalAttrType =
+      DirectoryServer.getSchema().getAttributeType(
+          Historical.HISTORICALATTRIBUTENAME);
+    
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
     ChangeNumber t = new ChangeNumber(date, (short) 0, (short) 0);
@@ -763,7 +773,7 @@ public class ModifyConflictTest
      * works  by encoding decoding and checking that the result is the same
      * as the initial value.
      */
-    entry.removeAttribute(Historical.historicalAttrType);
+    entry.removeAttribute(historicalAttrType);
     entry.addAttribute(hist.encode(), null);
     Historical hist2 = Historical.load(entry);
     assertEquals(hist2.encode().toString(), hist.encode().toString());
@@ -793,6 +803,9 @@ public class ModifyConflictTest
   private void testHistorical(
       Historical hist, LocalBackendAddOperation addOp)
   {
+    AttributeType entryuuidAttrType =
+      DirectoryServer.getSchema().getAttributeType(
+          Historical.ENTRYUIDNAME); 
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
@@ -800,7 +813,7 @@ public class ModifyConflictTest
 
     // Get the op uuid in String format
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(
-        Historical.entryuuidAttrType);
+        entryuuidAttrType);
     uuidAttrs.get(0).getValues().iterator().next().toString();
 
     if (uuidAttrs != null)

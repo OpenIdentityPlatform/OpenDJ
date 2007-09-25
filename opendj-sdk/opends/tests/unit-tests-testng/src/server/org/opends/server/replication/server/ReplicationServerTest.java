@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
@@ -41,7 +40,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,9 +47,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
@@ -75,7 +70,6 @@ import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMessage;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMessage;
-import org.opends.server.replication.protocol.ResetGenerationId;
 import org.opends.server.replication.protocol.ServerStartMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
