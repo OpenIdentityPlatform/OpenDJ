@@ -216,6 +216,7 @@ public enum TaskState
       case WAITING_ON_START_TIME:
       case WAITING_ON_DEPENDENCY:
       case RUNNING:
+      case STOPPED_BY_ERROR:
         return false;
       default:
         return true;
