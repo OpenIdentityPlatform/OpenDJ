@@ -193,7 +193,7 @@ public class LocalBackendAddOperation
     skipPostOperation = false;
 
     // Check for a request to cancel this operation.
-    if (getCancelRequest() != null)
+    if (cancelIfRequested())
     {
       return;
     }
@@ -222,7 +222,7 @@ addProcessing:
       }
 
       // Check for a request to cancel this operation.
-      if (getCancelRequest() != null)
+      if (cancelIfRequested())
       {
         return;
       }
@@ -254,7 +254,7 @@ addProcessing:
       try
       {
         // Check for a request to cancel this operation.
-        if (getCancelRequest() != null)
+        if (cancelIfRequested())
         {
           return;
         }
@@ -596,7 +596,7 @@ addProcessing:
         }
 
         // Check for a request to cancel this operation.
-        if (getCancelRequest() != null)
+        if (cancelIfRequested())
         {
           return;
         }
@@ -631,7 +631,7 @@ addProcessing:
 
 
         // Check for a request to cancel this operation.
-        if (getCancelRequest() != null)
+        if (cancelIfRequested())
         {
           return;
         }
@@ -850,6 +850,27 @@ addProcessing:
         }
       }
     }
+  }
+
+
+
+  /**
+   * Checks to determine whether there has been a request to cancel this
+   * operation.  If so, then set the cancel result and processing stop time.
+   *
+   * @return  {@code true} if there was a cancel request, or {@code false} if
+   *          not.
+   */
+  private boolean cancelIfRequested()
+  {
+    if (getCancelRequest() == null)
+    {
+      return false;
+    }
+
+    indicateCancelled(getCancelRequest());
+    setProcessingStopTime();
+    return true;
   }
 
 

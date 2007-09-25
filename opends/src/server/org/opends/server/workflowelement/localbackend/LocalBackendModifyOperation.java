@@ -366,7 +366,7 @@ modifyProcessing:
 
 
       // Check for a request to cancel this operation.
-      if (getCancelRequest() != null)
+      if (cancelIfRequested())
       {
         return;
       }
@@ -395,86 +395,26 @@ modifyProcessing:
       try
       {
         // Check for a request to cancel this operation.
-        if (getCancelRequest() != null)
+        if (cancelIfRequested())
         {
           return;
         }
 
 
-        // Get the entry to modify.  If it does not exist, then fail.
         try
         {
-          currentEntry = backend.getEntry(entryDN);
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
+          // Get the entry to modify.  If it does not exist, then fail.
+          getEntryToModify();
 
-          setResponseData(de);
-          break modifyProcessing;
-        }
-
-        if (currentEntry == null)
-        {
-          setResultCode(ResultCode.NO_SUCH_OBJECT);
-          appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(
-                                  String.valueOf(entryDN)));
-
-          // See if one of the entry's ancestors exists.
-          DN parentDN = entryDN.getParentDNInSuffix();
-          while (parentDN != null)
-          {
-            try
-            {
-              if (DirectoryServer.entryExists(parentDN))
-              {
-                setMatchedDN(parentDN);
-                break;
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              break;
-            }
-
-            parentDN = parentDN.getParentDNInSuffix();
-          }
-
-          break modifyProcessing;
-        }
-
-
-        // Check to see if there are any controls in the request.  If so, then
-        // see if there is any special processing required.
-        try
-        {
+          // Check to see if there are any controls in the request.  If so, then
+          // see if there is any special processing required.
           processRequestControls();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
 
-          setResponseData(de);
-          break modifyProcessing;
-        }
+          // Get the password policy state object for the entry that can be used
+          // to perform any appropriate password policy processing.  Also, see
+          // if the entry is being updated by the end user or an administrator.
+          selfChange = entryDN.equals(getAuthorizationDN());
 
-
-        // Get the password policy state object for the entry that can be used
-        // to perform any appropriate password policy processing.  Also, see if
-        // the entry is being updated by the end user or an administrator.
-        selfChange = entryDN.equals(getAuthorizationDN());
-        try
-        {
           // FIXME -- Need a way to enable debug mode.
           pwPolicyState = new PasswordPolicyState(currentEntry, false, false);
         }
@@ -485,8 +425,7 @@ modifyProcessing:
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          setResultCode(de.getResultCode());
-          appendErrorMessage(de.getMessageObject());
+          setResponseData(de);
           break modifyProcessing;
         }
 
@@ -529,6 +468,12 @@ modifyProcessing:
         try
         {
           handleInitialPasswordPolicyAndSchemaProcessing();
+
+          wasLocked = false;
+          if (passwordChanged)
+          {
+            performAdditionalPasswordChangedProcessing();
+          }
         }
         catch (DirectoryException de)
         {
@@ -539,28 +484,6 @@ modifyProcessing:
 
           setResponseData(de);
           break modifyProcessing;
-        }
-
-
-        // If there was a password change, then perform any additional checks
-        // that may be necessary.
-        wasLocked = false;
-        if (passwordChanged)
-        {
-          try
-          {
-            performAdditionalPasswordChangedProcessing();
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break modifyProcessing;
-          }
         }
 
 
@@ -614,7 +537,7 @@ modifyProcessing:
 
 
         // Check for a request to cancel this operation.
-        if (getCancelRequest() != null)
+        if (cancelIfRequested())
         {
           return;
         }
@@ -648,7 +571,7 @@ modifyProcessing:
 
 
         // Check for a request to cancel this operation.
-        if (getCancelRequest() != null)
+        if (cancelIfRequested())
         {
           return;
         }
@@ -761,7 +684,7 @@ modifyProcessing:
           setResultCode(cancelResult.getResultCode());
 
           Message message = coe.getMessageObject();
-          if ((message != null) && (message.length() > 0))
+          if (message != null)
           {
             appendErrorMessage(message);
           }
@@ -832,17 +755,68 @@ modifyProcessing:
       }
     }
 
+
     // Notify any change notification listeners that might be registered with
     // the server.
     if (getResultCode() == ResultCode.SUCCESS)
     {
-      for (ChangeNotificationListener changeListener :
-           DirectoryServer.getChangeNotificationListeners())
+      notifyChangeListeners();
+    }
+
+
+    // Stop the processing timer.
+    setProcessingStopTime();
+  }
+
+
+
+  /**
+   * Checks to determine whether there has been a request to cancel this
+   * operation.  If so, then set the cancel result and processing stop time.
+   *
+   * @return  {@code true} if there was a cancel request, or {@code false} if
+   *          not.
+   */
+  private boolean cancelIfRequested()
+  {
+    if (getCancelRequest() == null)
+    {
+      return false;
+    }
+
+    indicateCancelled(getCancelRequest());
+    setProcessingStopTime();
+    return true;
+  }
+
+
+
+  /**
+   * Gets the entry to modify.
+   *
+   * @return  The entry retrieved from the backend.
+   *
+   * @throws  DirectoryException  If a problem occurs while trying to get the
+   *                              entry, or if the entry doesn't exist.
+   */
+  private void getEntryToModify()
+          throws DirectoryException
+  {
+    currentEntry = backend.getEntry(entryDN);
+    if (currentEntry == null)
+    {
+      // See if one of the entry's ancestors exists.
+      DN matchedDN = null;
+      DN parentDN = entryDN.getParentDNInSuffix();
+      while (parentDN != null)
       {
         try
         {
-          changeListener.handleModifyOperation(this, currentEntry,
-                                               modifiedEntry);
+          if (DirectoryServer.entryExists(parentDN))
+          {
+            matchedDN = parentDN;
+            break;
+          }
         }
         catch (Exception e)
         {
@@ -850,18 +824,16 @@ modifyProcessing:
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-
-          Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER.get(
-              getExceptionMessage(e));
-          logError(message);
+          break;
         }
+
+        parentDN = parentDN.getParentDNInSuffix();
       }
+
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+                     ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)),
+                     matchedDN, null);
     }
-
-
-
-    // Stop the processing timer.
-    setProcessingStopTime();
   }
 
 
@@ -1584,7 +1556,8 @@ modifyProcessing:
 
 
   /**
-   * Performs the initial schema processing for an add modification.
+   * Performs the initial schema processing for an add modification and updates
+   * the entry appropriately.
    *
    * @param  attr  The attribute being added.
    *
@@ -1676,7 +1649,8 @@ modifyProcessing:
 
 
   /**
-   * Performs the initial schema processing for a delete modification.
+   * Performs the initial schema processing for a delete modification and
+   * updates the entry appropriately.
    *
    * @param  attr  The attribute being deleted.
    *
@@ -1736,7 +1710,8 @@ modifyProcessing:
 
 
   /**
-   * Performs the initial schema processing for a replace modification.
+   * Performs the initial schema processing for a replace modification and
+   * updates the entry appropriately.
    *
    * @param  attr  The attribute being replaced.
    *
@@ -1897,7 +1872,8 @@ modifyProcessing:
 
 
   /**
-   * Performs the initial schema processing for an increment modification.
+   * Performs the initial schema processing for an increment modification and
+   * updates the entry appropriately.
    *
    * @param  attr  The attribute being incremented.
    *
@@ -2406,6 +2382,34 @@ modifyProcessing:
                                            searchEntry);
 
       getResponseControls().add(responseControl);
+    }
+  }
+
+
+
+  /**
+   * Notify any registered change listeners about this update.
+   */
+  private void notifyChangeListeners()
+  {
+    for (ChangeNotificationListener changeListener :
+         DirectoryServer.getChangeNotificationListeners())
+    {
+      try
+      {
+        changeListener.handleModifyOperation(this, currentEntry, modifiedEntry);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER.get(
+            getExceptionMessage(e));
+        logError(message);
+      }
     }
   }
 }
