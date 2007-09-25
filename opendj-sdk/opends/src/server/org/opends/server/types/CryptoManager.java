@@ -56,11 +56,15 @@ import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.AddOperation;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
 import org.opends.server.util.SelectableCertificateKeyManager;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 
 /**
  * This class provides the interface to the Directory Server
@@ -216,6 +220,160 @@ public class CryptoManager
                      Message.raw("Can't get preferred cipher:  " +
                      getExceptionMessage(e).toString()), e);
     }
+  }
+
+
+  /**
+   * Returns this instance's instance-key public-key certificate from
+   * the local keystore (i.e., from the truststore-backend and not
+   * from the ADS backed keystore). If the certificate entry does not
+   * yet exist in the truststore backend, the truststore is signaled
+   * to initialized that entry, and the newly generated certificate
+   * is then retrieved and returned.
+   * @return This instance's instance-key public-key certificate from
+   * the local truststore backend.
+   * @throws CryptoManagerException If the certificate cannot be
+   * retrieved.
+   */
+ public byte[] getInstanceKeyCertificate()
+         throws CryptoManagerException {
+   final String DN_ADS_CERTIFICATE = ConfigConstants.ATTR_CERT_ALIAS
+           + "=" + ConfigConstants.ADS_CERTIFICATE_ALIAS + ","
+           + ConfigConstants.DN_TRUST_STORE_ROOT; // TODO: constant
+   final String FILTER_OC_INSTANCE_KEY
+           = new StringBuilder("(objectclass=")
+                              .append(ConfigConstants.OC_INSTANCE_KEY)
+                              .append(")").toString();
+   final String ATTR_INSTANCE_KEY_CERTIFICATE_BINARY
+           = "ds-cfg-public-key-certificate;binary";
+   final LinkedHashSet<String> requestedAttributes
+           = new LinkedHashSet<String>();
+   requestedAttributes.add(ATTR_INSTANCE_KEY_CERTIFICATE_BINARY);
+   final InternalClientConnection icc
+           = InternalClientConnection.getRootConnection();
+   byte[] certificate = null;
+   try {
+     for (int i = 0; i < 2; ++i) {
+       try {
+         /* If the entry does not exist in the instance's truststore
+            backend, add it (which induces the CryptoManager to create
+            the public-key certificate attribute), then repeat the
+            search. */
+         InternalSearchOperation searchOp = icc.processSearch(
+                 DN.decode(DN_ADS_CERTIFICATE),
+                 SearchScope.BASE_OBJECT,
+                 DereferencePolicy.NEVER_DEREF_ALIASES,
+                 /* size limit */ 0, /* time limit */ 0,
+                 /* types only */ false,
+                 SearchFilter.createFilterFromString(
+                         FILTER_OC_INSTANCE_KEY),
+                 requestedAttributes);
+         final Entry e = searchOp.getSearchEntries().getFirst();
+         /* attribute ds-cfg-public-key-certificate is a MUST in the
+            schema */
+         final List<Attribute> attrs
+                 = e.getAttribute(DirectoryServer.getAttributeType(
+                               ConfigConstants.ATTR_ADS_CERTIFICATE));
+         final Attribute a = attrs.get(0);
+         final AttributeValue v = a.getValues().iterator().next();
+         certificate = v.getValueBytes();
+         break;
+       }
+       catch (DirectoryException ex) {
+         if (0 == i
+                 && ResultCode.NO_SUCH_OBJECT == ex.getResultCode()){
+           final Entry e = new Entry(DN.decode(DN_ADS_CERTIFICATE),
+                   null, null, null);
+           final AttributeType ocAttrType
+                   = DirectoryServer.getAttributeType("objectclass");
+           e.addObjectClass(new AttributeValue(ocAttrType, "top"));
+           e.addObjectClass(new AttributeValue(ocAttrType,
+                   "ds-cfg-self-signed-cert-request"));
+           AddOperation addOperation = icc.processAdd(e.getDN(),
+                   e.getObjectClasses(),
+                   e.getUserAttributes(),
+                   e.getOperationalAttributes());
+           if (ResultCode.SUCCESS != addOperation.getResultCode()) {
+             throw new DirectoryException(
+                     addOperation.getResultCode(),
+                     Message.raw("Failed to add entry %s.",
+                             e.getDN().toString()));
+           }
+         }
+         else {
+           throw ex;
+         }
+       }
+     }
+   }
+   catch (DirectoryException ex) {
+     throw new CryptoManagerException(
+       // TODO: i18n
+       Message.raw("Failed to retrieve %s.", DN_ADS_CERTIFICATE), ex);
+   }
+   return(certificate);
+ }
+
+
+  /**
+   * Return the identifier of this instance's instance-key. An
+   * instance-key identifier is the MD5 hash of an instance's
+   * instance-key public-key certificate.
+   * @return This instance's instance-key identifier.
+   * @throws CryptoManagerException If there is a problem retrieving
+   * the instance-key public-key certificate or computing its MD5
+   * hash.
+   */
+  public byte[] getInstanceKeyID()
+          throws CryptoManagerException {
+    MessageDigest md;
+    final String mdAlgorithmName = "MD5";
+    try {
+      md = MessageDigest.getInstance(mdAlgorithmName);
+    }
+    catch (NoSuchAlgorithmException ex) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+            Message.raw("Failed to get MessageDigest instance for %s",
+                      mdAlgorithmName), ex);
+    }
+    return md.digest(getInstanceKeyCertificate());
+  }
+
+
+  /**
+   * Unwraps the supplied symmetric key attribute value and re-wraps
+   * it with the public key referred to by the requested instance key
+   * identifier. The symmetric key attribute must be wrapped in this
+   * instance's instance-key-pair public key.
+   * @param symmetricKeyAttribute The symmetric key attribute value to
+   * unwrap and rewrap.
+   * @param requestedInstanceKeyID The key identifier of the public
+   * key to use in the re-wrapping.
+   * @return The symmetric key re-wrapped in the requested public key.
+   * @throws CryptoManagerException If there is a problem unwrapping
+   * the supplied symmetric key attribute value or retrieving the
+   * requested public key.
+   */
+  public byte[] rewrapSymmetricKeyAttribute(
+          final byte[] symmetricKeyAttribute,
+          final byte[] requestedInstanceKeyID)
+          throws CryptoManagerException {
+    final byte[] instanceKeyID = getInstanceKeyID();
+    final byte[] keyIDPrefix = Arrays.copyOf(symmetricKeyAttribute,
+            instanceKeyID.length);
+    if (! Arrays.equals(keyIDPrefix, instanceKeyID)) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("The instance-key identifier tag %s of" +
+                      " the supplied symmetric key attribute does" +
+                      " not match this instance's instance-key" +
+                      " identifier %s, and hence the symmetric key" +
+                      " cannot be decrypted for processing.",
+         StaticUtils.bytesToColonDelimitedHex(keyIDPrefix),
+         StaticUtils.bytesToColonDelimitedHex(instanceKeyID)));
+    }
+    return symmetricKeyAttribute; // TODO: really unwrap and rewrap
   }
 
 
