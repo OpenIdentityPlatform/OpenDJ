@@ -775,6 +775,14 @@ public final class ServerConstants
 
 
   /**
+   * The request OID for the get symmetric key extended operation.
+   */
+  public static final String OID_GET_SYMMETRIC_KEY_EXTENDED_OP =
+       "1.3.6.1.4.1.26027.1.6.3";
+
+
+
+  /**
    * The name of the standard "ldapSubentry" objectclass (which is a special
    * type of objectclass that makes a kind of "operational" entry), formatted
    * in camel case.
