@@ -54,6 +54,8 @@ import javax.naming.directory.SearchControls;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.naming.ldap.Control;
+import javax.naming.ldap.LdapContext;
 
 /**
  * Class used to update and read the contents of the Administration Data.
@@ -942,22 +944,22 @@ public class ADSContext
   public void createAdminData(String backendName) throws ADSContextException
   {
     // Add the administration suffix
-    createAdministrationSuffix(backendName);
+//    createAdministrationSuffix(backendName);
 
     // Create the DIT below the administration suffix
-    createTopContainerEntry();
-    createAdministratorContainerEntry();
+//    createTopContainerEntry();
+//    createAdministratorContainerEntry();
     createContainerEntry(getServerContainerDN());
-    createContainerEntry(getServerGroupContainerDN());
+//    createContainerEntry(getServerGroupContainerDN());
 
     // Add the default "all-servers" group
-    Map<ServerGroupProperty, Object> allServersGroupsMap =
-      new HashMap<ServerGroupProperty, Object>();
-    allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
-    createServerGroup(allServersGroupsMap);
+//    Map<ServerGroupProperty, Object> allServersGroupsMap =
+//      new HashMap<ServerGroupProperty, Object>();
+//    allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
+//    createServerGroup(allServersGroupsMap);
 
     // Create the CryptoManager DIT below the administration suffix
-    createContainerEntry(getInstanceKeysContainerDN());
+//    createContainerEntry(getInstanceKeysContainerDN());
   }
 
   /**
@@ -966,7 +968,25 @@ public class ADSContext
    */
   public void removeAdminData() throws ADSContextException
   {
-    removeAdministrationSuffix();
+    LdapName dn = nameFromDN(getServerContainerDN());
+    try
+    {
+      Control[] controls = new Control[] { new SubtreeDeleteControl() };
+      LdapContext tmpContext = dirContext.newInstance(controls);
+      try
+      {
+        tmpContext.destroySubcontext(dn);
+      }
+      finally
+      {
+        tmpContext.close();
+      }
+    }
+    catch(NamingException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
   }
 
 
@@ -979,7 +999,7 @@ public class ADSContext
    */
   public boolean hasAdminData() throws ADSContextException
   {
-    return isExistingEntry(nameFromDN(getAdministrationSuffixDN()));
+    return isExistingEntry(nameFromDN(getServerContainerDN()));
   }
 
   /**
@@ -1975,28 +1995,29 @@ public class ADSContext
    * Administration Suffix will be used.
    * @throws ADSContextException if something goes wrong.
    */
-  public void createAdministrationSuffix(String backendName)
-  throws ADSContextException
-  {
-    ADSContextHelper helper = new ADSContextHelper();
-    String ben = backendName ;
-    if (backendName == null)
-    {
-      ben = getDefaultBackendName() ;
-    }
-    helper.createAdministrationSuffix(getDirContext(), ben,
-        getDbName(), getImportTemp());
-  }
+//  public void createAdministrationSuffix(String backendName)
+//  throws ADSContextException
+//  {
+//    ADSContextHelper helper = new ADSContextHelper();
+//    String ben = backendName ;
+//    if (backendName == null)
+//    {
+//      ben = getDefaultBackendName() ;
+//    }
+//    helper.createAdministrationSuffix(getDirContext(), ben,
+//        getDbName(), getImportTemp());
+//  }
 
   /**
    * Removes the administration suffix.
    * @throws ADSContextException if something goes wrong.
    */
-  private void removeAdministrationSuffix() throws ADSContextException
-  {
-    ADSContextHelper helper = new ADSContextHelper();
-    helper.removeAdministrationSuffix(getDirContext(), getDefaultBackendName());
-  }
+//  private void removeAdministrationSuffix() throws ADSContextException
+//  {
+//    ADSContextHelper helper = new ADSContextHelper();
+//    helper.removeAdministrationSuffix(getDirContext(),
+//                                      getDefaultBackendName());
+//  }
 
   /**
    * Returns the default backend name of the administration data.
@@ -2007,15 +2028,15 @@ public class ADSContext
     return "adminRoot";
   }
 
-  private static String getDbName()
-  {
-    return "adminDb";
-  }
-
-  private static String getImportTemp()
-  {
-    return "importAdminTemp";
-  }
+//  private static String getDbName()
+//  {
+//    return "adminDb";
+//  }
+//
+//  private static String getImportTemp()
+//  {
+//    return "importAdminTemp";
+//  }
 
 
 

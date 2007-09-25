@@ -2027,13 +2027,13 @@ public abstract class Installer extends GuiApplication {
       /* Act on local server depending on if using remote or local ADS */
       notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
       localCtx = createLocalContext();
-      if (isRemoteServer)
-      {
-        /* Create an empty ADS suffix on the local server. */
-        ADSContext localAdsContext = new ADSContext(localCtx);
-        localAdsContext.createAdministrationSuffix(null);
-      }
-      else
+//      if (isRemoteServer)
+//      {
+//        /* Create an empty ADS suffix on the local server. */
+//        ADSContext localAdsContext = new ADSContext(localCtx);
+//        localAdsContext.createAdministrationSuffix(null);
+//      }
+      if (!isRemoteServer)
       {
         /* Configure local server to have an ADS */
         adsContext = new ADSContext(localCtx); // adsContext owns localCtx

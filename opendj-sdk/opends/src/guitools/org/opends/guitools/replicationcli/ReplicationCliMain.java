@@ -2135,6 +2135,14 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
+   * Helper type for the <CODE>getCommonSuffixes</CODE> method.
+   */
+  private enum SuffixRelationType
+  {
+    NOT_REPLICATED, FULLY_REPLICATED, REPLICATED, NOT_FULLY_REPLICATED, ALL
+  }
+
+  /**
    * Returns a Collection containing a list of suffixes that are defined in
    * two servers at the same time (depending on the value of the argument
    * replicated this list contains only the suffixes that are replicated
@@ -2148,10 +2156,6 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @return a Collection containing a list of suffixes that are replicated
    * (or those that can be replicated) in two servers.
    */
-  private enum SuffixRelationType
-  {
-    NOT_REPLICATED, FULLY_REPLICATED, REPLICATED, NOT_FULLY_REPLICATED, ALL
-  };
   private Collection<String> getCommonSuffixes(
       InitialLdapContext ctx1, InitialLdapContext ctx2, SuffixRelationType type)
   {
@@ -3296,7 +3300,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
-        adsCtx1.createAdministrationSuffix(null);
+//        adsCtx1.createAdministrationSuffix(null);
         if (!hasAdministrator(adsCtx2.getDirContext()))
         {
           adsCtx2.createAdministrator(getAdministratorProperties(uData));
@@ -3310,7 +3314,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       else if (adsCtx1.hasAdminData() && !adsCtx2.hasAdminData())
       {
-        adsCtx2.createAdministrationSuffix(null);
+//        adsCtx2.createAdministrationSuffix(null);
         if (!hasAdministrator(adsCtx1.getDirContext()))
         {
           adsCtx1.createAdministrator(getAdministratorProperties(uData));
@@ -3330,7 +3334,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         adsCtx1.registerServer(server1.getAdsProperties());
         server2.updateAdsPropertiesWithServerProperties();
         adsCtx1.registerServer(server2.getAdsProperties());
-        adsCtx2.createAdministrationSuffix(null);
+//        adsCtx2.createAdministrationSuffix(null);
 
         ctxSource = ctx1;
         ctxDestination = ctx2;
@@ -3340,7 +3344,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     catch (ADSContextException adce)
     {
       throw new ReplicationCliException(
-          ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()),
+          ERR_REPLICATION_UPDATING_ADS.get(adce.getReason()),
           ERROR_UPDATING_ADS, adce);
     }
     if (!adsAlreadyReplicated)
