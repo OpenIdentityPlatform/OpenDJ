@@ -59,6 +59,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand enableReplicationSubCmd;
   private SubCommand disableReplicationSubCmd;
   private SubCommand initializeReplicationSubCmd;
+  private SubCommand statusReplicationSubCmd;
 
   private BooleanArgument noPromptArg;
 
@@ -218,6 +219,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private BooleanArgument quietArg;
 
   /**
+   * The 'scriptFriendly' argument.
+   */
+  private BooleanArgument scriptFriendlyArg;
+
+  /**
    * The text of the enable replication subcommand.
    */
   public static final String ENABLE_REPLICATION_SUBCMD_NAME = "enable";
@@ -231,6 +237,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * The text of the initialize replication subcommand.
    */
   public static final String INITIALIZE_REPLICATION_SUBCMD_NAME = "initialize";
+
+  /**
+   * The text of the status replication subcommand.
+   */
+  public static final String STATUS_REPLICATION_SUBCMD_NAME = "status";
 
   /**
    * Creates a new instance of this argument parser with no arguments.
@@ -265,6 +276,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     createEnableReplicationSubCommand();
     createDisableReplicationSubCommand();
     createInitializeReplicationSubCommand();
+    createStatusReplicationSubCommand();
   }
 
   /**
@@ -300,7 +312,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     if (!isInteractive())
     {
       // Check that we have the required data
-      if (!baseDNsArg.isPresent())
+      if (!baseDNsArg.isPresent() && !isStatusReplicationSubcommand())
       {
         errors.add(ERR_REPLICATION_NO_BASE_DN_PROVIDED.get());
       }
@@ -598,6 +610,31 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Creates the status replication subcommand and all the specific options
+   * for the subcommand.  Note: this method assumes that
+   * initializeGlobalArguments has already been called and that hostNameArg,
+   * portArg, startTLSArg and useSSLArg have been created.
+   */
+  private void createStatusReplicationSubCommand() throws ArgumentException
+  {
+    statusReplicationSubCmd = new SubCommand(this,
+        STATUS_REPLICATION_SUBCMD_NAME,
+        INFO_DESCRIPTION_SUBCMD_STATUS_REPLICATION.get());
+    scriptFriendlyArg = new BooleanArgument(
+        "script-friendly",
+        's',
+        "script-friendly",
+        INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+    Argument[] argsToAdd = { secureArgsList.hostNameArg,
+        secureArgsList.portArg, secureArgsList.useSSLArg,
+        secureArgsList.useStartTLSArg, scriptFriendlyArg };
+    for (int i=0; i<argsToAdd.length; i++)
+    {
+      statusReplicationSubCmd.addArgument(argsToAdd[i]);
+    }
+  }
+
+  /**
    * Tells whether the user specified to have an interactive operation or not.
    * This method must be called after calling parseArguments.
    * @return <CODE>true</CODE> if the user specified to have an interactive
@@ -617,6 +654,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean isQuiet()
   {
     return quietArg.isPresent();
+  }
+
+  /**
+   * Tells whether the user specified to have a script-friendly output or not.
+   * This method must be called after calling parseArguments.
+   * @return <CODE>true</CODE> if the user specified to have a script-friendly
+   * output and <CODE>false</CODE> otherwise.
+   */
+  public boolean isScriptFriendly()
+  {
+    return scriptFriendlyArg.isPresent();
   }
 
   /**
@@ -847,6 +895,30 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * the disable replication subcommand and <CODE>false</CODE> otherwise.
    */
   public boolean useStartTLSToDisable()
+  {
+    return secureArgsList.useStartTLSArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the status
+   * replication subcommand.
+   *
+   * @return <CODE>true</CODE> if SSL mode is required for the server in the
+   * status replication subcommand and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSSLToStatus()
+  {
+    return secureArgsList.useSSLArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the status
+   * replication subcommand.
+   *
+   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
+   * the status replication subcommand and <CODE>false</CODE> otherwise.
+   */
+  public boolean useStartTLSToStatus()
   {
     return secureArgsList.useStartTLSArg.isPresent();
   }
@@ -1112,6 +1184,26 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns the host name explicitly provided in the status replication
+   * subcommand.
+   * @return the host name explicitly provided in the status replication
+   * subcommand.
+   */
+  public String getHostNameToStatus()
+  {
+    return getValue(secureArgsList.hostNameArg);
+  }
+
+  /**
+   * Returns the host name default value in the status replication subcommand.
+   * @return the host name default value in the status replication subcommand.
+   */
+  public String getDefaultHostNameToStatus()
+  {
+    return getDefaultValue(secureArgsList.hostNameArg);
+  }
+
+  /**
    * Returns the source host name explicitly provided in the initialize
    * replication subcommand.
    * @return the source host name explicitly provided in the initialize
@@ -1222,6 +1314,26 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns the server port explicitly provided in the status replication
+   * subcommand.
+   * @return the server port explicitly provided in the status replication
+   * subcommand.  Returns -1 if no port was explicitly provided.
+   */
+  public int getPortToStatus()
+  {
+    return getValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port default value in the status replication subcommand.
+   * @return the server port default value in the status replication subcommand.
+   */
+  public int getDefaultPortToStatus()
+  {
+    return getDefaultValue(secureArgsList.portArg);
+  }
+
+  /**
    * Returns the list of base DNs provided by the user.
    * @return the list of base DNs provided by the user.
    */
@@ -1321,6 +1433,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       validateDisableReplicationOptions(buf);
     }
+    else if (isStatusReplicationSubcommand())
+    {
+      validateStatusReplicationOptions(buf);
+    }
     else  if (isInitializeReplicationSubcommand())
     {
       validateInitializeReplicationOptions(buf);
@@ -1354,6 +1470,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean isDisableReplicationSubcommand()
   {
     return isSubcommand(DISABLE_REPLICATION_SUBCMD_NAME);
+  }
+
+  /**
+   * Returns whether the user provided subcommand is the status replication
+   * or not.
+   * @return <CODE>true</CODE> if the user provided subcommand is the
+   * status replication and <CODE>false</CODE> otherwise.
+   */
+  public boolean isStatusReplicationSubcommand()
+  {
+    return isSubcommand(STATUS_REPLICATION_SUBCMD_NAME);
   }
 
   /**
@@ -1443,8 +1570,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     Argument[][] conflictingPairs =
     {
-        {useStartTLSSourceArg, useSSLSourceArg},
-        {useStartTLSDestinationArg, useSSLDestinationArg},
+        {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg},
         {adminUidArg, secureArgsList.bindDnArg}
     };
 
@@ -1458,6 +1584,43 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
             arg1.getLongIdentifier(), arg2.getLongIdentifier());
         addMessage(buf, message);
       }
+    }
+  }
+
+  /**
+   * Checks the status replication subcommand options and updates the provided
+   * MessageBuilder with the errors that were encountered with the subcommand
+   * options.
+   *
+   * This method assumes that the method parseArguments for the parser has
+   * already been called.
+   * @param buf the MessageBuilder object where we add the error messages
+   * describing the errors encountered.
+   */
+  private void validateStatusReplicationOptions(MessageBuilder buf)
+  {
+    Argument[][] conflictingPairs =
+    {
+        {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg}
+    };
+
+    for (int i=0; i< conflictingPairs.length; i++)
+    {
+      Argument arg1 = conflictingPairs[i][0];
+      Argument arg2 = conflictingPairs[i][1];
+      if (arg1.isPresent() && arg2.isPresent())
+      {
+        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+            arg1.getLongIdentifier(), arg2.getLongIdentifier());
+        addMessage(buf, message);
+      }
+    }
+
+    if (quietArg.isPresent())
+    {
+      Message message = ERR_REPLICATION_STATUS_QUIET.get(
+          STATUS_REPLICATION_SUBCMD_NAME, quietArg.getLongIdentifier());
+      addMessage(buf, message);
     }
   }
 

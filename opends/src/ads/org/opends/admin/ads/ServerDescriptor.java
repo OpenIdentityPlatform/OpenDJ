@@ -44,6 +44,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.quicksetup.util.Utils;
 
 /**
  * The object of this class represent an OpenDS server.
@@ -688,6 +689,7 @@ public class ServerDescriptor
       InitialLdapContext ctx) throws NamingException
   {
     boolean replicationEnabled = false;
+    boolean oneDomainReplicated = false;
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
@@ -747,6 +749,7 @@ public class ServerDescriptor
         Set<String> replicationServers = getValues(sr,
             "ds-cfg-replication-server");
         Set<String> dns = getValues(sr, "ds-cfg-replication-dn");
+        oneDomainReplicated = dns.size() > 0;
         for (String dn : dns)
         {
           for (ReplicaDescriptor replica : desc.getReplicas())
@@ -817,6 +820,58 @@ public class ServerDescriptor
     catch (NameNotFoundException nse)
     {
       /* ignore */
+    }
+
+    ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+    ctls.setReturningAttributes(
+    new String[] {
+      "approximate-delay", "waiting-changes", "base-dn"
+    });
+    filter = "(approximate-delay=*)";
+
+    jndiName = new LdapName("cn=monitor");
+
+    if (oneDomainReplicated)
+    {
+      try
+      {
+        NamingEnumeration monitorEntries = ctx.search(jndiName, filter, ctls);
+
+        while(monitorEntries.hasMore())
+        {
+          SearchResult sr = (SearchResult)monitorEntries.next();
+
+          String dn = getFirstValue(sr, "base-dn");
+
+          for (ReplicaDescriptor replica: desc.getReplicas())
+          {
+            if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
+                replica.isReplicated())
+            {
+              try
+              {
+                replica.setAgeOfOldestMissingChange(
+                    new Integer(getFirstValue(sr, "approximate-delay")));
+              }
+              catch (Throwable t)
+              {
+              }
+              try
+              {
+                replica.setMissingChanges(
+                    new Integer(getFirstValue(sr, "waiting-changes")));
+              }
+              catch (Throwable t)
+              {
+              }
+            }
+          }
+        }
+      }
+      catch (NameNotFoundException nse)
+      {
+      }
     }
   }
 
