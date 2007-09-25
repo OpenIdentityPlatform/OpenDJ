@@ -2331,691 +2331,31 @@ public final class SearchFilter
     switch (filterType)
     {
       case AND:
-        if (filterComponents == null)
-        {
-          // The set of subcomponents was null.  This is not allowed.
-          Message message =
-              ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
-                get(String.valueOf(entry.getDN()),
-                    String.valueOf(completeFilter),
-                    String.valueOf(filterType));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(),
-                         message);
-        }
-        else if (filterComponents.isEmpty())
-        {
-          // An AND filter with no elements like "(&)" is specified as
-          // "undefined" in RFC 2251, but is considered one of the
-          // TRUE/FALSE filters in RFC 4526, in which case we should
-          // always return true.
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning TRUE for LDAP TRUE " +
-                "filter (&)");
-          }
-          return ConditionResult.TRUE;
-        }
-        else
-        {
-          // We will have to evaluate one or more subcomponents.  In
-          // this case, first check our depth to make sure we're not
-          // nesting too deep.
-          if (depth >= MAX_NESTED_FILTER_DEPTH)
-          {
-            Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
-                get(String.valueOf(entry.getDN()),
-                    String.valueOf(completeFilter));
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(),
-                           message);
-          }
-
-          for (SearchFilter f : filterComponents)
-          {
-            ConditionResult result =
-                 f.matchesEntryInternal(completeFilter, entry,
-                                     depth+1);
-            switch (result)
-            {
-              case TRUE:
-                break;
-              case FALSE:
-                if (debugEnabled())
-                {
-                  TRACER.debugVerbose(
-                      "Returning FALSE for AND component %s in " +
-                      "filter %s for entry %s",
-                               f, completeFilter, entry.getDN());
-                }
-                return result;
-              case UNDEFINED:
-                if (debugEnabled())
-                {
-                  TRACER.debugInfo(
-                 "Undefined result for AND component %s in filter " +
-                 "%s for entry %s", f, completeFilter, entry.getDN());
-                }
-                return result;
-              default:
-                Message message =
-                    ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                      get(String.valueOf(entry.getDN()),
-                          String.valueOf(completeFilter),
-                          String.valueOf(result));
-                throw new
-                     DirectoryException(
-                          DirectoryServer.getServerErrorResultCode(),
-                          message);
-            }
-          }
-
-          // If we have gotten here, then all the components must have
-          // matched.
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning TRUE for AND component %s in filter %s " +
-                "for entry %s", this, completeFilter, entry.getDN());
-          }
-          return ConditionResult.TRUE;
-        }
-
+        return processAND(completeFilter, entry, depth);
 
       case OR:
-        if (filterComponents == null)
-        {
-          // The set of subcomponents was null.  This is not allowed.
-          Message message =
-              ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
-                get(String.valueOf(entry.getDN()),
-                    String.valueOf(completeFilter),
-                    String.valueOf(filterType));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(),
-                         message);
-        }
-        else if (filterComponents.isEmpty())
-        {
-          // An OR filter with no elements like "(|)" is specified as
-          // "undefined" in RFC 2251, but is considered one of the
-          // TRUE/FALSE filters in RFC 4526, in which case we should
-          // always return false.
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning FALSE for LDAP FALSE " +
-                "filter (|)");
-          }
-          return ConditionResult.FALSE;
-        }
-        else
-        {
-          // We will have to evaluate one or more subcomponents.  In
-          // this case, first check our depth to make sure we're not
-          // nesting too deep.
-          if (depth >= MAX_NESTED_FILTER_DEPTH)
-          {
-            Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
-                get(String.valueOf(entry.getDN()),
-                    String.valueOf(completeFilter));
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(),
-                           message);
-          }
-
-          ConditionResult result = ConditionResult.FALSE;
-          for (SearchFilter f : filterComponents)
-          {
-            switch (f.matchesEntryInternal(completeFilter, entry,
-                                   depth+1))
-            {
-              case TRUE:
-                if (debugEnabled())
-                {
-                  TRACER.debugVerbose(
-                    "Returning TRUE for OR component %s in filter " +
-                    "%s for entry %s",
-                    f, completeFilter, entry.getDN());
-                }
-                return ConditionResult.TRUE;
-              case FALSE:
-                break;
-              case UNDEFINED:
-                if (debugEnabled())
-                {
-                  TRACER.debugInfo(
-                  "Undefined result for OR component %s in filter " +
-                  "%s for entry %s",
-                  f, completeFilter, entry.getDN());
-                }
-                result = ConditionResult.UNDEFINED;
-                break;
-              default:
-                Message message =
-                    ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                      get(String.valueOf(entry.getDN()),
-                          String.valueOf(completeFilter),
-                          String.valueOf(result));
-                throw new
-                     DirectoryException(
-                          DirectoryServer.getServerErrorResultCode(),
-                          message);
-            }
-          }
-
-
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning %s for OR component %s in filter %s for " +
-                "entry %s", result, this, completeFilter,
-                            entry.getDN());
-          }
-          return result;
-        }
-
+        return processOR(completeFilter, entry, depth);
 
       case NOT:
-        if (notComponent == null)
-        {
-          // The NOT subcomponent was null.  This is not allowed.
-          Message message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
-              get(String.valueOf(entry.getDN()),
-                  String.valueOf(completeFilter));
-          throw new DirectoryException(
-                         DirectoryServer.getServerErrorResultCode(),
-                         message);
-        }
-        else
-        {
-          // The subcomponent for the NOT filter can be an AND, OR, or
-          // NOT filter that would require more nesting.  Make sure
-          // that we don't go too deep.
-          if (depth >= MAX_NESTED_FILTER_DEPTH)
-          {
-            Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
-                get(String.valueOf(entry.getDN()),
-                    String.valueOf(completeFilter));
-            throw new DirectoryException(
-                           DirectoryServer.getServerErrorResultCode(),
-                           message);
-          }
-
-          ConditionResult result =
-               notComponent.matchesEntryInternal(completeFilter,
-                                                 entry, depth+1);
-          switch (result)
-          {
-            case TRUE:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                   "Returning FALSE for NOT component %s in filter " +
-                   "%s for entry %s",
-                   notComponent, completeFilter, entry.getDN());
-              }
-              return ConditionResult.FALSE;
-            case FALSE:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Returning TRUE for NOT component %s in filter " +
-                    "%s for entry %s",
-                    notComponent, completeFilter, entry.getDN());
-              }
-              return ConditionResult.TRUE;
-            case UNDEFINED:
-              if (debugEnabled())
-              {
-                TRACER.debugInfo(
-                  "Undefined result for NOT component %s in filter " +
-                  "%s for entry %s",
-                  notComponent, completeFilter, entry.getDN());
-              }
-              return ConditionResult.UNDEFINED;
-            default:
-              Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
-                  get(String.valueOf(entry.getDN()),
-                      String.valueOf(completeFilter),
-                      String.valueOf(result));
-              throw new
-                   DirectoryException(
-                        DirectoryServer.getServerErrorResultCode(),
-                        message);
-          }
-        }
-
+        return processNOT(completeFilter, entry, depth);
 
       case EQUALITY:
-        // Make sure that an attribute type has been defined.
-        if (attributeType == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE.
-                get(String.valueOf(entry.getDN()), toString());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // Make sure that an assertion value has been defined.
-        if (assertionValue == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE.
-                get(String.valueOf(entry.getDN()), toString(),
-                    attributeType.getNameOrOID());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // See if the entry has an attribute with the requested type.
-        List<Attribute> attrs = entry.getAttribute(attributeType,
-                                                   attributeOptions);
-        if ((attrs == null) || (attrs.isEmpty()))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning FALSE for equality component %s in " +
-                "filter %s because entry %s didn't have attribute " +
-                "type %s",
-                         this, completeFilter, entry.getDN(),
-                         attributeType.getNameOrOID());
-          }
-          return ConditionResult.FALSE;
-        }
-
-        // Iterate through all the attributes and see if we can find a
-        // match.
-        for (Attribute a : attrs)
-        {
-          if (a.hasValue(assertionValue))
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugVerbose(
-                  "Returning TRUE for equality component %s in " +
-                  "filter %s for entry %s",
-                           this, completeFilter, entry.getDN());
-            }
-            return ConditionResult.TRUE;
-          }
-        }
-
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose(
-              "Returning FALSE for equality component %s in filter " +
-              "%s because entry %s didn't have attribute type " +
-              "%s with value %s",
-                       this, completeFilter, entry.getDN(),
-                       attributeType.getNameOrOID(),
-                       assertionValue.getStringValue());
-        }
-        return ConditionResult.FALSE;
-
+        return processEquality(completeFilter, entry);
 
       case SUBSTRING:
-        // Make sure that an attribute type has been defined.
-        if (attributeType == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE.
-                get(String.valueOf(entry.getDN()), toString());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // Make sure that at least one substring element has been
-        // defined.
-        if ((subInitialElement == null) &&
-            (subFinalElement == null) &&
-            ((subAnyElements == null) || subAnyElements.isEmpty()))
-        {
-          Message message =
-              ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
-                get(String.valueOf(entry.getDN()), toString(),
-                    attributeType.getNameOrOID());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // See if the entry has an attribute with the requested type.
-        attrs = entry.getAttribute(attributeType, attributeOptions);
-        if ((attrs == null) || (attrs.isEmpty()))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning FALSE for substring component %s in " +
-                "filter %s because entry %s didn't have attribute " +
-                "type %s",
-                         this, completeFilter, entry.getDN(),
-                         attributeType.getNameOrOID());
-          }
-          return ConditionResult.FALSE;
-        }
-
-        // Iterate through all the attributes and see if we can find a
-        // match.
-        ConditionResult result = ConditionResult.FALSE;
-        for (Attribute a : attrs)
-        {
-          switch (a.matchesSubstring(subInitialElement,
-                                     subAnyElements,
-                                     subFinalElement))
-          {
-            case TRUE:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Returning TRUE for substring component %s in " +
-                    "filter %s for entry %s",
-                             this, completeFilter, entry.getDN());
-              }
-              return ConditionResult.TRUE;
-            case FALSE:
-              break;
-            case UNDEFINED:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Undefined result encountered for substring " +
-                    "component %s in filter %s for entry %s",
-                             this, completeFilter, entry.getDN());
-              }
-              result = ConditionResult.UNDEFINED;
-              break;
-            default:
-          }
-        }
-
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose(
-              "Returning %s for substring component %s in filter " +
-              "%s for entry %s",
-              result, this, completeFilter, entry.getDN());
-        }
-        return result;
-
+        return processSubstring(completeFilter, entry);
 
       case GREATER_OR_EQUAL:
-        // Make sure that an attribute type has been defined.
-        if (attributeType == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE.
-                get(String.valueOf(entry.getDN()), toString());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // Make sure that an assertion value has been defined.
-        if (assertionValue == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE.
-                get(String.valueOf(entry.getDN()), toString(),
-                    attributeType.getNameOrOID());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // See if the entry has an attribute with the requested type.
-        attrs = entry.getAttribute(attributeType, attributeOptions);
-        if ((attrs == null) || (attrs.isEmpty()))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose("Returning FALSE for " +
-                "greater-or-equal component %s in filter %s " +
-                "because entry %s didn't have attribute type %s",
-                         this, completeFilter, entry.getDN(),
-                         attributeType.getNameOrOID());
-          }
-          return ConditionResult.FALSE;
-        }
-
-        // Iterate through all the attributes and see if we can find a
-        // match.
-        result = ConditionResult.FALSE;
-        for (Attribute a : attrs)
-        {
-          switch (a.greaterThanOrEqualTo(assertionValue))
-          {
-            case TRUE:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Returning TRUE for greater-or-equal component " +
-                    "%s in filter %s for entry %s",
-                             this, completeFilter, entry.getDN());
-              }
-              return ConditionResult.TRUE;
-            case FALSE:
-              break;
-            case UNDEFINED:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Undefined result encountered for " +
-                    "greater-or-equal component %s in filter %s " +
-                    "for entry %s", this, completeFilter,
-                    entry.getDN());
-              }
-              result = ConditionResult.UNDEFINED;
-              break;
-            default:
-          }
-        }
-
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose(
-              "Returning %s for greater-or-equal component %s in " +
-              "filter %s for entry %s",
-                       result, this, completeFilter, entry.getDN());
-        }
-        return result;
-
+        return processGreaterOrEqual(completeFilter, entry);
 
       case LESS_OR_EQUAL:
-        // Make sure that an attribute type has been defined.
-        if (attributeType == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE.
-                get(String.valueOf(entry.getDN()), toString());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // Make sure that an assertion value has been defined.
-        if (assertionValue == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE.
-                get(String.valueOf(entry.getDN()), toString(),
-                    attributeType.getNameOrOID());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // See if the entry has an attribute with the requested type.
-        attrs = entry.getAttribute(attributeType, attributeOptions);
-        if ((attrs == null) || (attrs.isEmpty()))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning FALSE for less-or-equal component %s in " +
-                "filter %s because entry %s didn't have attribute " +
-                "type %s", this, completeFilter, entry.getDN(),
-                           attributeType.getNameOrOID());
-          }
-          return ConditionResult.FALSE;
-        }
-
-        // Iterate through all the attributes and see if we can find a
-        // match.
-        result = ConditionResult.FALSE;
-        for (Attribute a : attrs)
-        {
-          switch (a.lessThanOrEqualTo(assertionValue))
-          {
-            case TRUE:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Returning TRUE for less-or-equal component %s " +
-                    "in filter %s for entry %s",
-                             this, completeFilter, entry.getDN());
-              }
-              return ConditionResult.TRUE;
-            case FALSE:
-              break;
-            case UNDEFINED:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Undefined result encountered for " +
-                        "less-or-equal component %s in filter %s " +
-                        "for entry %s",
-                        this, completeFilter, entry.getDN());
-              }
-              result = ConditionResult.UNDEFINED;
-              break;
-            default:
-          }
-        }
-
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose(
-              "Returning %s for less-or-equal component %s in " +
-              "filter %s for entry %s",
-                       result, this, completeFilter, entry.getDN());
-        }
-        return result;
-
+        return processLessOrEqual(completeFilter, entry);
 
       case PRESENT:
-        // Make sure that an attribute type has been defined.
-        if (attributeType == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE.
-                get(String.valueOf(entry.getDN()), toString());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-
-        // See if the entry has an attribute with the requested type.
-        // If so, then it's a match.  If not, then it's not a match.
-        if (entry.hasAttribute(attributeType, attributeOptions))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning TRUE for presence component %s in " +
-                "filter %s for entry %s",
-                this, completeFilter, entry.getDN());
-          }
-          return ConditionResult.TRUE;
-        }
-        else
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning FALSE for presence component %s in " +
-                "filter %s for entry %s",
-                this, completeFilter, entry.getDN());
-          }
-          return ConditionResult.FALSE;
-        }
-
+        return processPresent(completeFilter, entry);
 
       case APPROXIMATE_MATCH:
-        // Make sure that an attribute type has been defined.
-        if (attributeType == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE.
-                get(String.valueOf(entry.getDN()), toString());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // Make sure that an assertion value has been defined.
-        if (assertionValue == null)
-        {
-          Message message =
-              ERR_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE.
-                get(String.valueOf(entry.getDN()), toString(),
-                    attributeType.getNameOrOID());
-          throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                                       message);
-        }
-
-        // See if the entry has an attribute with the requested type.
-        attrs = entry.getAttribute(attributeType, attributeOptions);
-        if ((attrs == null) || (attrs.isEmpty()))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugVerbose(
-                "Returning FALSE for approximate component %s in " +
-                "filter %s because entry %s didn't have attribute " +
-                "type %s", this, completeFilter, entry.getDN(),
-                           attributeType.getNameOrOID());
-          }
-          return ConditionResult.FALSE;
-        }
-
-        // Iterate through all the attributes and see if we can find a
-        // match.
-        result = ConditionResult.FALSE;
-        for (Attribute a : attrs)
-        {
-          switch (a.approximatelyEqualTo(assertionValue))
-          {
-            case TRUE:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                   "Returning TRUE for approximate component %s in " +
-                   "filter %s for entry %s",
-                   this, completeFilter, entry.getDN());
-              }
-              return ConditionResult.TRUE;
-            case FALSE:
-              break;
-            case UNDEFINED:
-              if (debugEnabled())
-              {
-                TRACER.debugVerbose(
-                    "Undefined result encountered for approximate " +
-                    "component %s in filter %s for entry %s",
-                             this, completeFilter, entry.getDN());
-              }
-              result = ConditionResult.UNDEFINED;
-              break;
-            default:
-          }
-        }
-
-        if (debugEnabled())
-        {
-          TRACER.debugVerbose(
-              "Returning %s for approximate component %s in filter " +
-              "%s for entry %s",
-              result, this, completeFilter, entry.getDN());
-        }
-        return result;
-
+        return processApproximate(completeFilter, entry);
 
       case EXTENSIBLE_MATCH:
         return processExtensibleMatch(completeFilter, entry);
@@ -3029,6 +2369,902 @@ public final class SearchFilter
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
                                      message);
     }
+  }
+
+
+
+  /**
+   * Indicates whether the this AND filter matches the provided entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   * @param  depth           The current depth of the evaluation,
+   *                         which is used to prevent infinite
+   *                         recursion due to highly nested filters
+   *                         and eventually running out of stack
+   *                         space.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processAND(SearchFilter completeFilter,
+                                     Entry entry, int depth)
+          throws DirectoryException
+  {
+    if (filterComponents == null)
+    {
+      // The set of subcomponents was null.  This is not allowed.
+      Message message =
+          ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
+            get(String.valueOf(entry.getDN()),
+                String.valueOf(completeFilter),
+                String.valueOf(filterType));
+      throw new DirectoryException(
+                     DirectoryServer.getServerErrorResultCode(),
+                     message);
+    }
+    else if (filterComponents.isEmpty())
+    {
+      // An AND filter with no elements like "(&)" is specified as
+      // "undefined" in RFC 2251, but is considered one of the
+      // TRUE/FALSE filters in RFC 4526, in which case we should
+      // always return true.
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Returning TRUE for LDAP TRUE " +
+            "filter (&)");
+      }
+      return ConditionResult.TRUE;
+    }
+    else
+    {
+      // We will have to evaluate one or more subcomponents.  In
+      // this case, first check our depth to make sure we're not
+      // nesting too deep.
+      if (depth >= MAX_NESTED_FILTER_DEPTH)
+      {
+        Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+            get(String.valueOf(entry.getDN()),
+                String.valueOf(completeFilter));
+        throw new DirectoryException(
+                       DirectoryServer.getServerErrorResultCode(),
+                       message);
+      }
+
+      for (SearchFilter f : filterComponents)
+      {
+        ConditionResult result =
+             f.matchesEntryInternal(completeFilter, entry,
+                                 depth+1);
+        switch (result)
+        {
+          case TRUE:
+            break;
+          case FALSE:
+            if (debugEnabled())
+            {
+              TRACER.debugVerbose(
+                  "Returning FALSE for AND component %s in " +
+                  "filter %s for entry %s",
+                           f, completeFilter, entry.getDN());
+            }
+            return result;
+          case UNDEFINED:
+            if (debugEnabled())
+            {
+              TRACER.debugInfo(
+             "Undefined result for AND component %s in filter " +
+             "%s for entry %s", f, completeFilter, entry.getDN());
+            }
+            return result;
+          default:
+            Message message =
+                ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                  get(String.valueOf(entry.getDN()),
+                      String.valueOf(completeFilter),
+                      String.valueOf(result));
+            throw new
+                 DirectoryException(
+                      DirectoryServer.getServerErrorResultCode(),
+                      message);
+        }
+      }
+
+      // If we have gotten here, then all the components must have
+      // matched.
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning TRUE for AND component %s in filter %s " +
+            "for entry %s", this, completeFilter, entry.getDN());
+      }
+      return ConditionResult.TRUE;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the this OR filter matches the provided entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   * @param  depth           The current depth of the evaluation,
+   *                         which is used to prevent infinite
+   *                         recursion due to highly nested filters
+   *                         and eventually running out of stack
+   *                         space.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processOR(SearchFilter completeFilter,
+                                    Entry entry, int depth)
+          throws DirectoryException
+  {
+    if (filterComponents == null)
+    {
+      // The set of subcomponents was null.  This is not allowed.
+      Message message =
+          ERR_SEARCH_FILTER_COMPOUND_COMPONENTS_NULL.
+            get(String.valueOf(entry.getDN()),
+                String.valueOf(completeFilter),
+                String.valueOf(filterType));
+      throw new DirectoryException(
+                     DirectoryServer.getServerErrorResultCode(),
+                     message);
+    }
+    else if (filterComponents.isEmpty())
+    {
+      // An OR filter with no elements like "(|)" is specified as
+      // "undefined" in RFC 2251, but is considered one of the
+      // TRUE/FALSE filters in RFC 4526, in which case we should
+      // always return false.
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Returning FALSE for LDAP FALSE " +
+            "filter (|)");
+      }
+      return ConditionResult.FALSE;
+    }
+    else
+    {
+      // We will have to evaluate one or more subcomponents.  In
+      // this case, first check our depth to make sure we're not
+      // nesting too deep.
+      if (depth >= MAX_NESTED_FILTER_DEPTH)
+      {
+        Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+            get(String.valueOf(entry.getDN()),
+                String.valueOf(completeFilter));
+        throw new DirectoryException(
+                       DirectoryServer.getServerErrorResultCode(),
+                       message);
+      }
+
+      ConditionResult result = ConditionResult.FALSE;
+      for (SearchFilter f : filterComponents)
+      {
+        switch (f.matchesEntryInternal(completeFilter, entry,
+                               depth+1))
+        {
+          case TRUE:
+            if (debugEnabled())
+            {
+              TRACER.debugVerbose(
+                "Returning TRUE for OR component %s in filter " +
+                "%s for entry %s",
+                f, completeFilter, entry.getDN());
+            }
+            return ConditionResult.TRUE;
+          case FALSE:
+            break;
+          case UNDEFINED:
+            if (debugEnabled())
+            {
+              TRACER.debugInfo(
+              "Undefined result for OR component %s in filter " +
+              "%s for entry %s",
+              f, completeFilter, entry.getDN());
+            }
+            result = ConditionResult.UNDEFINED;
+            break;
+          default:
+            Message message =
+                ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+                  get(String.valueOf(entry.getDN()),
+                      String.valueOf(completeFilter),
+                      String.valueOf(result));
+            throw new
+                 DirectoryException(
+                      DirectoryServer.getServerErrorResultCode(),
+                      message);
+        }
+      }
+
+
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning %s for OR component %s in filter %s for " +
+            "entry %s", result, this, completeFilter,
+                        entry.getDN());
+      }
+      return result;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the this NOT filter matches the provided entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   * @param  depth           The current depth of the evaluation,
+   *                         which is used to prevent infinite
+   *                         recursion due to highly nested filters
+   *                         and eventually running out of stack
+   *                         space.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processNOT(SearchFilter completeFilter,
+                                     Entry entry, int depth)
+          throws DirectoryException
+  {
+    if (notComponent == null)
+    {
+      // The NOT subcomponent was null.  This is not allowed.
+      Message message = ERR_SEARCH_FILTER_NOT_COMPONENT_NULL.
+          get(String.valueOf(entry.getDN()),
+              String.valueOf(completeFilter));
+      throw new DirectoryException(
+                     DirectoryServer.getServerErrorResultCode(),
+                     message);
+    }
+    else
+    {
+      // The subcomponent for the NOT filter can be an AND, OR, or
+      // NOT filter that would require more nesting.  Make sure
+      // that we don't go too deep.
+      if (depth >= MAX_NESTED_FILTER_DEPTH)
+      {
+        Message message = ERR_SEARCH_FILTER_NESTED_TOO_DEEP.
+            get(String.valueOf(entry.getDN()),
+                String.valueOf(completeFilter));
+        throw new DirectoryException(
+                       DirectoryServer.getServerErrorResultCode(),
+                       message);
+      }
+
+      ConditionResult result =
+           notComponent.matchesEntryInternal(completeFilter,
+                                             entry, depth+1);
+      switch (result)
+      {
+        case TRUE:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+               "Returning FALSE for NOT component %s in filter " +
+               "%s for entry %s",
+               notComponent, completeFilter, entry.getDN());
+          }
+          return ConditionResult.FALSE;
+        case FALSE:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Returning TRUE for NOT component %s in filter " +
+                "%s for entry %s",
+                notComponent, completeFilter, entry.getDN());
+          }
+          return ConditionResult.TRUE;
+        case UNDEFINED:
+          if (debugEnabled())
+          {
+            TRACER.debugInfo(
+              "Undefined result for NOT component %s in filter " +
+              "%s for entry %s",
+              notComponent, completeFilter, entry.getDN());
+          }
+          return ConditionResult.UNDEFINED;
+        default:
+          Message message = ERR_SEARCH_FILTER_INVALID_RESULT_TYPE.
+              get(String.valueOf(entry.getDN()),
+                  String.valueOf(completeFilter),
+                  String.valueOf(result));
+          throw new
+               DirectoryException(
+                    DirectoryServer.getServerErrorResultCode(),
+                    message);
+      }
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the this equality filter matches the provided
+   * entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processEquality(SearchFilter completeFilter,
+                                          Entry entry)
+          throws DirectoryException
+  {
+    // Make sure that an attribute type has been defined.
+    if (attributeType == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_EQUALITY_NO_ATTRIBUTE_TYPE.
+            get(String.valueOf(entry.getDN()), toString());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // Make sure that an assertion value has been defined.
+    if (assertionValue == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_EQUALITY_NO_ASSERTION_VALUE.
+            get(String.valueOf(entry.getDN()), toString(),
+                attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // See if the entry has an attribute with the requested type.
+    List<Attribute> attrs = entry.getAttribute(attributeType,
+                                               attributeOptions);
+    if ((attrs == null) || (attrs.isEmpty()))
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning FALSE for equality component %s in " +
+            "filter %s because entry %s didn't have attribute " +
+            "type %s",
+                     this, completeFilter, entry.getDN(),
+                     attributeType.getNameOrOID());
+      }
+      return ConditionResult.FALSE;
+    }
+
+    // Iterate through all the attributes and see if we can find a
+    // match.
+    for (Attribute a : attrs)
+    {
+      if (a.hasValue(assertionValue))
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugVerbose(
+              "Returning TRUE for equality component %s in " +
+              "filter %s for entry %s",
+                       this, completeFilter, entry.getDN());
+        }
+        return ConditionResult.TRUE;
+      }
+    }
+
+    if (debugEnabled())
+    {
+      TRACER.debugVerbose(
+          "Returning FALSE for equality component %s in filter " +
+          "%s because entry %s didn't have attribute type " +
+          "%s with value %s",
+                   this, completeFilter, entry.getDN(),
+                   attributeType.getNameOrOID(),
+                   assertionValue.getStringValue());
+    }
+    return ConditionResult.FALSE;
+  }
+
+
+
+  /**
+   * Indicates whether the this substring filter matches the provided
+   * entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processSubstring(
+                                SearchFilter completeFilter,
+                                Entry entry)
+          throws DirectoryException
+  {
+    // Make sure that an attribute type has been defined.
+    if (attributeType == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_SUBSTRING_NO_ATTRIBUTE_TYPE.
+            get(String.valueOf(entry.getDN()), toString());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // Make sure that at least one substring element has been
+    // defined.
+    if ((subInitialElement == null) &&
+        (subFinalElement == null) &&
+        ((subAnyElements == null) || subAnyElements.isEmpty()))
+    {
+      Message message =
+          ERR_SEARCH_FILTER_SUBSTRING_NO_SUBSTRING_COMPONENTS.
+            get(String.valueOf(entry.getDN()), toString(),
+                attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // See if the entry has an attribute with the requested type.
+    List<Attribute> attrs =
+         entry.getAttribute(attributeType, attributeOptions);
+    if ((attrs == null) || (attrs.isEmpty()))
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning FALSE for substring component %s in " +
+            "filter %s because entry %s didn't have attribute " +
+            "type %s",
+                     this, completeFilter, entry.getDN(),
+                     attributeType.getNameOrOID());
+      }
+      return ConditionResult.FALSE;
+    }
+
+    // Iterate through all the attributes and see if we can find a
+    // match.
+    ConditionResult result = ConditionResult.FALSE;
+    for (Attribute a : attrs)
+    {
+      switch (a.matchesSubstring(subInitialElement,
+                                 subAnyElements,
+                                 subFinalElement))
+      {
+        case TRUE:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Returning TRUE for substring component %s in " +
+                "filter %s for entry %s",
+                         this, completeFilter, entry.getDN());
+          }
+          return ConditionResult.TRUE;
+        case FALSE:
+          break;
+        case UNDEFINED:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Undefined result encountered for substring " +
+                "component %s in filter %s for entry %s",
+                         this, completeFilter, entry.getDN());
+          }
+          result = ConditionResult.UNDEFINED;
+          break;
+        default:
+      }
+    }
+
+    if (debugEnabled())
+    {
+      TRACER.debugVerbose(
+          "Returning %s for substring component %s in filter " +
+          "%s for entry %s",
+          result, this, completeFilter, entry.getDN());
+    }
+    return result;
+  }
+
+
+
+  /**
+   * Indicates whether the this greater-or-equal filter matches the
+   * provided entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processGreaterOrEqual(
+                                SearchFilter completeFilter,
+                                Entry entry)
+          throws DirectoryException
+  {
+    // Make sure that an attribute type has been defined.
+    if (attributeType == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_ATTRIBUTE_TYPE.
+            get(String.valueOf(entry.getDN()), toString());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // Make sure that an assertion value has been defined.
+    if (assertionValue == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_GREATER_OR_EQUAL_NO_VALUE.
+            get(String.valueOf(entry.getDN()), toString(),
+                attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // See if the entry has an attribute with the requested type.
+    List<Attribute> attrs =
+         entry.getAttribute(attributeType, attributeOptions);
+    if ((attrs == null) || (attrs.isEmpty()))
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose("Returning FALSE for " +
+            "greater-or-equal component %s in filter %s " +
+            "because entry %s didn't have attribute type %s",
+                     this, completeFilter, entry.getDN(),
+                     attributeType.getNameOrOID());
+      }
+      return ConditionResult.FALSE;
+    }
+
+    // Iterate through all the attributes and see if we can find a
+    // match.
+    ConditionResult result = ConditionResult.FALSE;
+    for (Attribute a : attrs)
+    {
+      switch (a.greaterThanOrEqualTo(assertionValue))
+      {
+        case TRUE:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Returning TRUE for greater-or-equal component " +
+                "%s in filter %s for entry %s",
+                         this, completeFilter, entry.getDN());
+          }
+          return ConditionResult.TRUE;
+        case FALSE:
+          break;
+        case UNDEFINED:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Undefined result encountered for " +
+                "greater-or-equal component %s in filter %s " +
+                "for entry %s", this, completeFilter,
+                entry.getDN());
+          }
+          result = ConditionResult.UNDEFINED;
+          break;
+        default:
+      }
+    }
+
+    if (debugEnabled())
+    {
+      TRACER.debugVerbose(
+          "Returning %s for greater-or-equal component %s in " +
+          "filter %s for entry %s",
+                   result, this, completeFilter, entry.getDN());
+    }
+    return result;
+  }
+
+
+
+  /**
+   * Indicates whether the this less-or-equal filter matches the
+   * provided entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processLessOrEqual(
+                                SearchFilter completeFilter,
+                                Entry entry)
+          throws DirectoryException
+  {
+    // Make sure that an attribute type has been defined.
+    if (attributeType == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ATTRIBUTE_TYPE.
+            get(String.valueOf(entry.getDN()), toString());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // Make sure that an assertion value has been defined.
+    if (assertionValue == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_LESS_OR_EQUAL_NO_ASSERTION_VALUE.
+            get(String.valueOf(entry.getDN()), toString(),
+                attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // See if the entry has an attribute with the requested type.
+    List<Attribute> attrs =
+         entry.getAttribute(attributeType, attributeOptions);
+    if ((attrs == null) || (attrs.isEmpty()))
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning FALSE for less-or-equal component %s in " +
+            "filter %s because entry %s didn't have attribute " +
+            "type %s", this, completeFilter, entry.getDN(),
+                       attributeType.getNameOrOID());
+      }
+      return ConditionResult.FALSE;
+    }
+
+    // Iterate through all the attributes and see if we can find a
+    // match.
+    ConditionResult result = ConditionResult.FALSE;
+    for (Attribute a : attrs)
+    {
+      switch (a.lessThanOrEqualTo(assertionValue))
+      {
+        case TRUE:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Returning TRUE for less-or-equal component %s " +
+                "in filter %s for entry %s",
+                         this, completeFilter, entry.getDN());
+          }
+          return ConditionResult.TRUE;
+        case FALSE:
+          break;
+        case UNDEFINED:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Undefined result encountered for " +
+                    "less-or-equal component %s in filter %s " +
+                    "for entry %s",
+                    this, completeFilter, entry.getDN());
+          }
+          result = ConditionResult.UNDEFINED;
+          break;
+        default:
+      }
+    }
+
+    if (debugEnabled())
+    {
+      TRACER.debugVerbose(
+          "Returning %s for less-or-equal component %s in " +
+          "filter %s for entry %s",
+                   result, this, completeFilter, entry.getDN());
+    }
+    return result;
+  }
+
+
+
+  /**
+   * Indicates whether the this present filter matches the provided
+   * entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processPresent(SearchFilter completeFilter,
+                                         Entry entry)
+          throws DirectoryException
+  {
+    // Make sure that an attribute type has been defined.
+    if (attributeType == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_PRESENCE_NO_ATTRIBUTE_TYPE.
+            get(String.valueOf(entry.getDN()), toString());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+
+    // See if the entry has an attribute with the requested type.
+    // If so, then it's a match.  If not, then it's not a match.
+    if (entry.hasAttribute(attributeType, attributeOptions))
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning TRUE for presence component %s in " +
+            "filter %s for entry %s",
+            this, completeFilter, entry.getDN());
+      }
+      return ConditionResult.TRUE;
+    }
+    else
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning FALSE for presence component %s in " +
+            "filter %s for entry %s",
+            this, completeFilter, entry.getDN());
+      }
+      return ConditionResult.FALSE;
+    }
+  }
+
+
+
+  /**
+   * Indicates whether the this approximate filter matches the
+   * provided entry.
+   *
+   * @param  completeFilter  The complete filter being checked, of
+   *                         which this filter may be a subset.
+   * @param  entry           The entry for which to make the
+   *                         determination.
+   *
+   * @return  <CODE>TRUE</CODE> if this filter matches the provided
+   *          entry, <CODE>FALSE</CODE> if it does not, or
+   *          <CODE>UNDEFINED</CODE> if the result is undefined.
+   *
+   * @throws  DirectoryException  If a problem is encountered during
+   *                              processing.
+   */
+  private ConditionResult processApproximate(
+                                SearchFilter completeFilter,
+                                Entry entry)
+          throws DirectoryException
+  {
+    // Make sure that an attribute type has been defined.
+    if (attributeType == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_APPROXIMATE_NO_ATTRIBUTE_TYPE.
+            get(String.valueOf(entry.getDN()), toString());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // Make sure that an assertion value has been defined.
+    if (assertionValue == null)
+    {
+      Message message =
+          ERR_SEARCH_FILTER_APPROXIMATE_NO_ASSERTION_VALUE.
+            get(String.valueOf(entry.getDN()), toString(),
+                attributeType.getNameOrOID());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                                   message);
+    }
+
+    // See if the entry has an attribute with the requested type.
+    List<Attribute> attrs =
+         entry.getAttribute(attributeType, attributeOptions);
+    if ((attrs == null) || (attrs.isEmpty()))
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose(
+            "Returning FALSE for approximate component %s in " +
+            "filter %s because entry %s didn't have attribute " +
+            "type %s", this, completeFilter, entry.getDN(),
+                       attributeType.getNameOrOID());
+      }
+      return ConditionResult.FALSE;
+    }
+
+    // Iterate through all the attributes and see if we can find a
+    // match.
+    ConditionResult result = ConditionResult.FALSE;
+    for (Attribute a : attrs)
+    {
+      switch (a.approximatelyEqualTo(assertionValue))
+      {
+        case TRUE:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+               "Returning TRUE for approximate component %s in " +
+               "filter %s for entry %s",
+               this, completeFilter, entry.getDN());
+          }
+          return ConditionResult.TRUE;
+        case FALSE:
+          break;
+        case UNDEFINED:
+          if (debugEnabled())
+          {
+            TRACER.debugVerbose(
+                "Undefined result encountered for approximate " +
+                "component %s in filter %s for entry %s",
+                         this, completeFilter, entry.getDN());
+          }
+          result = ConditionResult.UNDEFINED;
+          break;
+        default:
+      }
+    }
+
+    if (debugEnabled())
+    {
+      TRACER.debugVerbose(
+          "Returning %s for approximate component %s in filter " +
+          "%s for entry %s",
+          result, this, completeFilter, entry.getDN());
+    }
+    return result;
   }
 
 

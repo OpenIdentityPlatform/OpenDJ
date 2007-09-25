@@ -2438,6 +2438,70 @@ public class Entry
     }
 
 
+    if (! checkAttributesAndObjectClasses(ditContentRule,
+               structuralPolicy, invalidReason))
+    {
+      return false;
+    }
+
+
+    // If there is a name form for this entry, then make sure that the
+    // RDN for the entry is in compliance with it.
+    if (nameForm != null)
+    {
+      if (! checkNameForm(nameForm, structuralPolicy, invalidReason))
+      {
+        return false;
+      }
+    }
+
+
+    // If there is a DIT content rule for this entry, then make sure
+    // that the entry is in compliance with it.
+    if (ditContentRule != null)
+    {
+      if (! checkDITContentRule(ditContentRule, structuralPolicy,
+                                invalidReason))
+      {
+        return false;
+      }
+    }
+
+
+    if (! checkDITStructureRule(ditStructureRule, structuralClass,
+               parentEntry, parentProvided, validateStructureRules,
+               structuralPolicy, invalidReason))
+    {
+      return false;
+    }
+
+
+    // If we've gotten here, then the entry is acceptable.
+    return true;
+  }
+
+
+
+  /**
+   * Checks the attributes and object classes contained in this entry
+   * to determine whether they conform to the server schema
+   * requirements.
+   *
+   * @param  ditContentRule    The DIT content rule for this entry, if
+   *                           any.
+   * @param  structuralPolicy  The policy that should be used for
+   *                           structural object class compliance.
+   * @param  invalidReason     A buffer into which an invalid reason
+   *                           may be added.
+   *
+   * @return {@code true} if this entry passes all of the checks, or
+   *         {@code false} if there are any failures.
+   */
+  private boolean checkAttributesAndObjectClasses(
+                       DITContentRule ditContentRule,
+                       AcceptRejectWarn structuralPolicy,
+                       MessageBuilder invalidReason)
+  {
     // Make sure that we recognize all of the objectclasses, that all
     // auxiliary classes are allowed by the DIT content rule, and that
     // all attributes required by the object classes are present.
@@ -2579,80 +2643,42 @@ public class Entry
     }
 
 
-    // If there is a name form for this entry, then make sure that the
-    // RDN for the entry is in compliance with it.
-    if (nameForm != null)
+    // If we've gotten here, then things are OK.
+    return true;
+  }
+
+
+
+  /**
+   * Performs any processing needed for name form validation.
+   *
+   * @param  nameForm          The name form to validate against this
+   *                           entry.
+   * @param  structuralPolicy  The policy that should be used for
+   *                           structural object class compliance.
+   * @param  invalidReason     A buffer into which an invalid reason
+   *                           may be added.
+   *
+   * @return {@code true} if this entry passes all of the checks, or
+   *         {@code false} if there are any failures.
+   */
+  private boolean checkNameForm(NameForm nameForm,
+                       AcceptRejectWarn structuralPolicy,
+                       MessageBuilder invalidReason)
+  {
+    RDN rdn = dn.getRDN();
+    if (rdn != null)
     {
-      RDN rdn = dn.getRDN();
-      if (rdn != null)
+      // Make sure that all the required attributes are present.
+      for (AttributeType t : nameForm.getRequiredAttributes())
       {
-        // Make sure that all the required attributes are present.
-        for (AttributeType t : nameForm.getRequiredAttributes())
-        {
-          if (! rdn.hasAttributeType(t))
-          {
-            Message message =
-                    ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
-                      String.valueOf(dn),
-                      t.getNameOrOID(),
-                      nameForm.getNameOrOID());
-
-            if (structuralPolicy == AcceptRejectWarn.REJECT)
-            {
-              invalidReason.append(message);
-              return false;
-            }
-            else if (structuralPolicy == AcceptRejectWarn.WARN)
-            {
-              logError(message);
-            }
-          }
-        }
-
-        // Make sure that all attributes in the RDN are allowed.
-        int numAVAs = rdn.getNumValues();
-        for (int i = 0; i < numAVAs; i++)
-        {
-          AttributeType t = rdn.getAttributeType(i);
-          if (! nameForm.isRequiredOrOptional(t))
-          {
-            Message message =
-                    ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
-                      String.valueOf(dn),
-                      t.getNameOrOID(),
-                      nameForm.getNameOrOID());
-
-            if (structuralPolicy == AcceptRejectWarn.REJECT)
-            {
-              invalidReason.append(message);
-              return false;
-            }
-            else if (structuralPolicy == AcceptRejectWarn.WARN)
-            {
-              logError(message);
-            }
-          }
-        }
-      }
-    }
-
-
-    // If there is a DIT content rule for this entry, then make sure
-    // that the entry is in compliance with it.
-    if (ditContentRule != null)
-    {
-      // Make sure that all of the required attributes are present.
-      for (AttributeType t : ditContentRule.getRequiredAttributes())
-      {
-        if (! (userAttributes.containsKey(t) ||
-               operationalAttributes.containsKey(t) ||
-               t.isObjectClassType()))
+        if (! rdn.hasAttributeType(t))
         {
           Message message =
-                  ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(
+                  ERR_ENTRY_SCHEMA_RDN_MISSING_REQUIRED_ATTR.get(
                     String.valueOf(dn),
                     t.getNameOrOID(),
-                    ditContentRule.getName());
+                    nameForm.getNameOrOID());
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2666,17 +2692,18 @@ public class Entry
         }
       }
 
-      // Make sure that none of the prohibited attributes are present.
-      for (AttributeType t : ditContentRule.getProhibitedAttributes())
+      // Make sure that all attributes in the RDN are allowed.
+      int numAVAs = rdn.getNumValues();
+      for (int i = 0; i < numAVAs; i++)
       {
-        if (userAttributes.containsKey(t) ||
-            operationalAttributes.containsKey(t))
+        AttributeType t = rdn.getAttributeType(i);
+        if (! nameForm.isRequiredOrOptional(t))
         {
           Message message =
-                  ERR_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR.get(
+                  ERR_ENTRY_SCHEMA_RDN_DISALLOWED_ATTR.get(
                     String.valueOf(dn),
                     t.getNameOrOID(),
-                    ditContentRule.getName());
+                    nameForm.getNameOrOID());
 
           if (structuralPolicy == AcceptRejectWarn.REJECT)
           {
@@ -2691,7 +2718,115 @@ public class Entry
       }
     }
 
+    // If we've gotten here, then things are OK.
+    return true;
+  }
 
+
+
+  /**
+   * Performs any processing needed for DIT content rule validation.
+   *
+   * @param  ditContentRule    The DIT content rule to validate
+   *                           against this entry.
+   * @param  structuralPolicy  The policy that should be used for
+   *                           structural object class compliance.
+   * @param  invalidReason     A buffer into which an invalid reason
+   *                           may be added.
+   *
+   * @return {@code true} if this entry passes all of the checks, or
+   *         {@code false} if there are any failures.
+   */
+  private boolean checkDITContentRule(DITContentRule ditContentRule,
+                       AcceptRejectWarn structuralPolicy,
+                       MessageBuilder invalidReason)
+  {
+    // Make sure that all of the required attributes are present.
+    for (AttributeType t : ditContentRule.getRequiredAttributes())
+    {
+      if (! (userAttributes.containsKey(t) ||
+             operationalAttributes.containsKey(t) ||
+             t.isObjectClassType()))
+      {
+        Message message =
+                ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(
+                  String.valueOf(dn),
+                  t.getNameOrOID(),
+                  ditContentRule.getName());
+
+        if (structuralPolicy == AcceptRejectWarn.REJECT)
+        {
+          invalidReason.append(message);
+          return false;
+        }
+        else if (structuralPolicy == AcceptRejectWarn.WARN)
+        {
+          logError(message);
+        }
+      }
+    }
+
+    // Make sure that none of the prohibited attributes are present.
+    for (AttributeType t : ditContentRule.getProhibitedAttributes())
+    {
+      if (userAttributes.containsKey(t) ||
+          operationalAttributes.containsKey(t))
+      {
+        Message message =
+                ERR_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR.get(
+                  String.valueOf(dn),
+                  t.getNameOrOID(),
+                  ditContentRule.getName());
+
+        if (structuralPolicy == AcceptRejectWarn.REJECT)
+        {
+          invalidReason.append(message);
+          return false;
+        }
+        else if (structuralPolicy == AcceptRejectWarn.WARN)
+        {
+          logError(message);
+        }
+      }
+    }
+
+    // If we've gotten here, then things are OK.
+    return true;
+  }
+
+
+
+  /**
+   * Performs any processing needed for DIT structure rule validation.
+   *
+   * @param  ditStructureRule        The DIT structure rule for this
+   *                                 entry.
+   * @param  structuralClass         The structural object class for
+   *                                 this entry.
+   * @param  parentEntry             The parent entry, if available
+   *                                 and applicable.
+   * @param  parentProvided          Indicates whether the parent
+   *                                 entry was provided.
+   * @param  validateStructureRules  Indicates whether to check to see
+   *                                 if this entry violates a DIT
+   *                                 structure rule for its parent.
+   * @param  structuralPolicy        The policy that should be used
+   *                                 for structural object class
+   *                                 compliance.
+   * @param  invalidReason           A buffer into which an invalid
+   *                                 reason may be added.
+   *
+   * @return {@code true} if this entry passes all of the checks, or
+   *         {@code false} if there are any failures.
+   */
+  private boolean checkDITStructureRule(
+                       DITStructureRule ditStructureRule,
+                       ObjectClass structuralClass,
+                       Entry parentEntry, boolean parentProvided,
+                       boolean validateStructureRules,
+                       AcceptRejectWarn structuralPolicy,
+                       MessageBuilder invalidReason)
+  {
     // If there is a DIT structure rule for this entry, then make sure
     // that the entry is in compliance with it.
     if ((ditStructureRule != null) &&
@@ -2965,8 +3100,7 @@ public class Entry
       }
     }
 
-
-    // If we've gotten here, then the entry is acceptable.
+    // If we've gotten here, then things are OK.
     return true;
   }
 
