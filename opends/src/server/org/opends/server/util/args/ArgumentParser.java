@@ -1002,19 +1002,12 @@ public class ArgumentParser
               .toLowerCase());
           if (value != null)
           {
+            a.addValue(value);
             if (a.needsValue())
             {
-              a.addValue(value);
               a.setPresent(true);
             }
-            else
-            if (value.toLowerCase().equals(CONFIG_VALUE_TRUE))
-            {
-              // Boolean value. Set to "present" only if
-              // value property value is "true"
-              // (insensitive case)
-              a.setPresent(true);
-            }
+            a.setValueSetByProperty(true);
           }
         }
       }
