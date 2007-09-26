@@ -32,15 +32,12 @@ import static org.opends.messages.CoreMessages.*;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
+import java.text.ParseException;
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -341,6 +338,130 @@ public class CryptoManager
   }
 
 
+  // The syntax of the ds-cfg-symmetric-key
+  //hexBytes[16]:keyWrappingCipher:wrappedKeyAlgorithm:
+  //    wrappedKeyType:hexifiedwrappedKey
+//  private String encocdeSymmetricKeyAttribute(){
+//    return "hello";
+//  }
+
+  /**
+   * Takes an encoded ds-cfg-symmetric-key attribute value and the
+   * associated key algorithm name, and returns an initialized
+   * {@code java.security.Key} object.
+   * @param symmetricKeyAttribute The encoded
+   * ds-cfg-symmetric-key-attribute value.
+   * @return A SecretKey object instantiated with the key data,
+   * algorithm, and Ciper.SECRET_KEY type, or {@code null} if the
+   * supplied symmetricKeyAttribute was encoded at another instance.
+   * @throws CryptoManagerException If there is a problem decomposing
+   * the supplied attribute value or unwrapping the encoded key.
+   */
+  private SecretKey decodeSymmetricKeyAttribute(
+          final String symmetricKeyAttribute)
+          throws CryptoManagerException {
+    // Initial decomposition.
+    byte[] keyIDElement;
+    String wrappingTransformationElement;
+    String wrappedKeyAlgorithmElement;
+    int wrappedKeyTypeElement;
+    byte[] wrappedKeyCipherTextElement;
+    String fieldName = null;
+    try {
+      String[] elements = symmetricKeyAttribute.split(":", 0);
+      if (5 != elements.length) {
+        throw new ParseException(
+                // TODO: i18n
+                Message.raw("Incorrect number of fields.").toString(),
+                0);
+      }
+      fieldName = "instance key identifier";
+      keyIDElement = StaticUtils.hexStringToByteArray(elements[0]);
+      fieldName = "key wrapping transformation";
+      wrappingTransformationElement = elements[1];
+      fieldName = "wrapped key algorithm";
+      wrappedKeyAlgorithmElement = elements[2];
+      fieldName = "wrapped key type";
+      final String rawKeyType = elements[3];
+      if ("SECRET_KEY".equals(rawKeyType)) {
+        wrappedKeyTypeElement = Cipher.SECRET_KEY;
+      }
+      else if ("PRIVATE_KEY".equals(rawKeyType)) {
+        wrappedKeyTypeElement = Cipher.PRIVATE_KEY;
+      }
+      else if ("PUBLIC_KEY".equals(rawKeyType)) {
+        wrappedKeyTypeElement = Cipher.PUBLIC_KEY;
+      }
+      else {
+        throw new ParseException(
+                // TODO: i18n
+                Message.raw("Invalid type \"%s\".",
+                        rawKeyType).toString(), 0);
+      }
+      fieldName = "wrapped key data";
+      wrappedKeyCipherTextElement
+              = StaticUtils.hexStringToByteArray(elements[4]);
+    }
+    catch (ParseException ex) {
+
+      throw new CryptoManagerException(((null == fieldName)
+              // TODO: i18n
+              ? Message.raw("The syntax of the symmetric key" +
+              " attribute value \"%s\" is invalid:",
+              symmetricKeyAttribute)
+              : Message.raw("The syntax of the symmetric key" +
+              " attribute value \"%s\" is invalid. Parsing failed" +
+              " in field: %s.", symmetricKeyAttribute, fieldName)),
+              ex);
+    }
+
+    // Confirm key can be unwrapped at this instance.
+    final byte[] instanceKeyID = getInstanceKeyID();
+    if (! Arrays.equals(keyIDElement, instanceKeyID)) {
+      return null;
+    }
+
+    // Retrieve instance-key-pair private key part.
+    PrivateKey privateKey;
+    try {
+      privateKey = (PrivateKey)getTrustStoreBackend()
+              .getKey(ConfigConstants.ADS_CERTIFICATE_ALIAS);
+    }
+    catch (ConfigException ex) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("The instance-key-pair private-key is not" +
+                      "available."), ex);
+    }
+    catch (DirectoryException ex) {
+      // TODO: is DirectoryException reasonable for getKey() ?
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("The instance-key-pair private-key is not" +
+                      "available."), ex);
+    }
+
+    // Unwrap secret key.
+    SecretKey secretKey;
+    try {
+      final Cipher unwrapper
+              = Cipher.getInstance(wrappingTransformationElement);
+      unwrapper.init(Cipher.UNWRAP_MODE, privateKey);
+      secretKey = (SecretKey)unwrapper.unwrap(
+              wrappedKeyCipherTextElement,
+              wrappedKeyAlgorithmElement,
+              wrappedKeyTypeElement);
+    } catch(GeneralSecurityException ex) {
+      throw new CryptoManagerException(
+            // TODO: i18n
+            Message.raw("Failed to decipher the wrapped secret-key" +
+                    " value."), ex);
+    }
+
+    return secretKey;
+  }
+
+
   /**
    * Unwraps the supplied symmetric key attribute value and re-wraps
    * it with the public key referred to by the requested instance key
@@ -359,23 +480,15 @@ public class CryptoManager
           final byte[] symmetricKeyAttribute,
           final byte[] requestedInstanceKeyID)
           throws CryptoManagerException {
-    final byte[] instanceKeyID = getInstanceKeyID();
-//    final byte[] keyIDPrefix = Arrays.copyOf(symmetricKeyAttribute,
-//            instanceKeyID.length);
-    final byte[] keyIDPrefix = new byte[instanceKeyID.length];
-    System.arraycopy(symmetricKeyAttribute, 0,
-                     keyIDPrefix, 0, instanceKeyID.length);
-    if (! Arrays.equals(keyIDPrefix, instanceKeyID)) {
-      throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("The instance-key identifier tag %s of" +
-                      " the supplied symmetric key attribute does" +
-                      " not match this instance's instance-key" +
-                      " identifier %s, and hence the symmetric key" +
-                      " cannot be decrypted for processing.",
-         StaticUtils.bytesToColonDelimitedHex(keyIDPrefix),
-         StaticUtils.bytesToColonDelimitedHex(instanceKeyID)));
-    }
+//      throw new CryptoManagerException(
+//              // TODO: i18n
+//              Message.raw("The instance-key identifier tag %s of" +
+//                    " the supplied symmetric key attribute value" +
+//                    " does not match this instance's instance-key" +
+//                    " identifier %s, and hence the symmetric key" +
+//                    " cannot be decrypted for processing.",
+//         keyIDElement,
+//         StaticUtils.bytesToHex(instanceKeyID)));
     return symmetricKeyAttribute; // TODO: really unwrap and rewrap
   }
 
@@ -676,7 +789,7 @@ public class CryptoManager
     }
 
     try {
-      mac.init(keyEntry.getKeySpec());
+      mac.init(keyEntry.getSecretKey());
     }
     catch (InvalidKeyException ex) {
       throw new CryptoManagerException(
@@ -757,11 +870,11 @@ public class CryptoManager
           else {
             iv = initializationVector;
           }
-          cipher.init(mode, keyEntry.getKeySpec(),
+          cipher.init(mode, keyEntry.getSecretKey(),
                   new IvParameterSpec(iv));
       }
       else {
-        cipher.init(mode, keyEntry.getKeySpec());
+        cipher.init(mode, keyEntry.getSecretKey());
       }
     }
     catch (GeneralSecurityException ex) {
@@ -1443,7 +1556,7 @@ public class CryptoManager
       final byte[] key = keyGen.generateKey().getEncoded();
 
       this.fKeyID = new KeyEntryID();
-      this.fKeySpec = new SecretKeySpec(key, algorithm);
+      this.fSecretKey = new SecretKeySpec(key, algorithm);
       this.fKeyLengthBits = key.length * Byte.SIZE;
       this.fIsCompromised = false;
     }
@@ -1457,23 +1570,23 @@ public class CryptoManager
      *
      * @param keyID  The unique identifier of this algorithm/key pair.
      *
-     * @param algorithm  The name of the secret key algorithm for
-     * which the key entry is to be produced.
+     * @param secretKey  The secret key.
      *
-     * @param key  The secret key.
+     * @param secretKeyLengthBits The length in bits of the secret
+     * key.
      *
      * @param isCompromised {@code false} if the key may be used
      * for operations on new data, or {@code true} if the key is being
      * retained only for use in validation.
      */
     public SecretKeyEntry(final KeyEntryID keyID,
-                          final String algorithm,
-                          final byte[] key,
+                          final SecretKey secretKey,
+                          final int secretKeyLengthBits,
                           final boolean isCompromised) {
       // copy arguments
       this.fKeyID = new KeyEntryID(keyID);
-      this.fKeySpec = new SecretKeySpec(key, algorithm);
-      this.fKeyLengthBits = key.length * Byte.SIZE;
+      this.fSecretKey = secretKey;
+      this.fKeyLengthBits = secretKeyLengthBits;
       this.fIsCompromised = isCompromised;
     }
 
@@ -1493,8 +1606,8 @@ public class CryptoManager
      *
      * @return The secret key spec containing the secret key.
      */
-    public SecretKeySpec getKeySpec() {
-      return fKeySpec;
+    public SecretKey getSecretKey() {
+      return fSecretKey;
     }
 
 
@@ -1527,7 +1640,7 @@ public class CryptoManager
 
     // state
     private final KeyEntryID fKeyID;
-    private final SecretKeySpec fKeySpec;
+    private final SecretKey fSecretKey;
     private final int fKeyLengthBits;
     private boolean fIsCompromised = false;
   }
@@ -1608,10 +1721,10 @@ public class CryptoManager
      * @param transformation  The cipher transformation for which the
      * key entry was produced.
      *
-     * @param keyAlgorithm  The cipher algorithm for which the key was
-     * produced.
+     * @param secretKey  The cipher key.
      *
-     * @param key  The cipher key.
+     * @param secretKeyLengthBits  The length of the cipher key in
+     * bits.
      *
      * @param ivLengthBits  The length of the initialization vector,
      * which will be zero in the case of any stream cipher algorithm,
@@ -1631,13 +1744,12 @@ public class CryptoManager
             final CryptoManager cryptoManager,
             final String keyIDString,
             final String transformation,
-            final String keyAlgorithm,
-            final byte[] key,
+            final SecretKey secretKey,
+            final int secretKeyLengthBits,
             final int ivLengthBits,
             final boolean isCompromised)
             throws CryptoManagerException {
-      Validator.ensureNotNull(keyIDString, transformation,
-              keyAlgorithm, key);
+      Validator.ensureNotNull(keyIDString, transformation, secretKey);
       Validator.ensureTrue(0 <= ivLengthBits);
 
       final KeyEntryID keyID = new KeyEntryID(keyIDString);
@@ -1651,8 +1763,8 @@ public class CryptoManager
       }
 
       // Instantiate new entry.
-      keyEntry = new CipherKeyEntry(keyID, transformation,
-              keyAlgorithm, key, ivLengthBits, isCompromised);
+      keyEntry = new CipherKeyEntry(keyID, transformation, secretKey,
+              secretKeyLengthBits, ivLengthBits, isCompromised);
 
       // Validate new entry.
       byte[] iv = null;
@@ -1796,10 +1908,10 @@ public class CryptoManager
      * @param transformation  The name of the secret-key cipher
      * transformation for which the key entry is to be produced.
      *
-     * @param keyAlgorithm  The name of the secret key cipher
-     * algorithm for which the key was produced.
+     * @param secretKey  The cipher key.
      *
-     * @param key  The cipher key.
+     * @param secretKeyLengthBits  The length of the secret key in
+     * bits.
      *
      * @param ivLengthBits  The length in bits of a mandatory
      * initialization vector or 0 if none is required. Set this
@@ -1818,12 +1930,12 @@ public class CryptoManager
      */
     private CipherKeyEntry(final KeyEntryID keyID,
                            final String transformation,
-                           final String keyAlgorithm,
-                           final byte[] key,
+                           final SecretKey secretKey,
+                           final int secretKeyLengthBits,
                            final int ivLengthBits,
                            final boolean isCompromised)
             throws CryptoManagerException {
-      super(keyID, keyAlgorithm, key, isCompromised);
+      super(keyID, secretKey, secretKeyLengthBits, isCompromised);
 
       // copy arguments
       this.fType = new String(transformation);
@@ -1946,10 +2058,13 @@ public class CryptoManager
      *
      * @param keyIDString  The key identifier.
      *
-     * @param algorithm  The algorithm for which the key entry was
-     * produced.
+     * @param algorithm  The name of the MAC algorithm for which the
+     * key entry is to be produced.
      *
-     * @param key  The cipher key.
+     * @param secretKey  The MAC key.
+     *
+     * @param secretKeyLengthBits  The length of the secret key in
+     * bits.
      *
      * @param isCompromised  Mark the key as compromised, so that it
      * will not subsequently be used for new data. The key entry
@@ -1964,10 +2079,11 @@ public class CryptoManager
             final CryptoManager cryptoManager,
             final String keyIDString,
             final String algorithm,
-            final byte[] key,
+            final SecretKey secretKey,
+            final int secretKeyLengthBits,
             final boolean isCompromised)
             throws CryptoManagerException {
-      Validator.ensureNotNull(keyIDString, algorithm, key);
+      Validator.ensureNotNull(keyIDString, secretKey);
 
       final KeyEntryID keyID = new KeyEntryID(keyIDString);
 
@@ -1980,8 +2096,8 @@ public class CryptoManager
       }
 
       // Instantiate new entry.
-      keyEntry = new MacKeyEntry(keyID, algorithm, key,
-              isCompromised);
+      keyEntry = new MacKeyEntry(keyID, algorithm, secretKey,
+              secretKeyLengthBits, isCompromised);
 
       // Validate new entry.
       getMacEngine(keyEntry);
@@ -2097,7 +2213,10 @@ public class CryptoManager
      * @param algorithm  The name of the MAC algorithm for which the
      * key entry is to be produced.
      *
-     * @param key  The MAC key.
+     * @param secretKey  The MAC key.
+     *
+     * @param secretKeyLengthBits  The length of the secret key in
+     * bits.
      *
      * @param isCompromised {@code false} if the key may be used
      * for signing, or {@code true} if the key is being retained only
@@ -2105,9 +2224,10 @@ public class CryptoManager
      */
     private MacKeyEntry(final KeyEntryID keyID,
                         final String algorithm,
-                        final byte[] key,
+                        final SecretKey secretKey,
+                        final int secretKeyLengthBits,
                         final boolean isCompromised) {
-      super(keyID, algorithm, key, isCompromised);
+      super(keyID, secretKey, secretKeyLengthBits, isCompromised);
 
       // copy arguments
       this.fType = new String(algorithm);

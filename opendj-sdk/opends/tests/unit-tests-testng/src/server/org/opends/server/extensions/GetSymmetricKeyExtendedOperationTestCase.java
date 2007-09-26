@@ -87,7 +87,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
   }
 
 
-  @Test
+  @Test(enabled=false)
   public void testInvalidRequest() throws Exception
   {
     CryptoManager cm = DirectoryServer.getCryptoManager();
