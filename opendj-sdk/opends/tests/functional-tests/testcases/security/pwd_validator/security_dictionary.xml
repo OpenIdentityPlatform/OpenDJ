@@ -156,7 +156,7 @@
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Dictionary: Enable Reverse Password'
+               'Security: Pwd Validator: Dictionary: Disable Reverse Password'
             </message>
 
             <call function="'modifyPwdValidator'">
@@ -170,7 +170,7 @@
                     'modifyType'             : 'set' }
             </call>
             <script>
-              knownIssue(2081)
+              knownIssue(2361)
             </script>
             <call function="'testCase_Postamble'"/>
             
@@ -196,9 +196,9 @@
                     'changetype'             : 'replace' }
             </call>
             <script>
-              knownIssue(2081)
+              knownIssue(2361)
             </script>
-            <!-- Uncomment when Issue 2081 is resolved.
+            <!-- Uncomment when Issue 2361 is resolved.
             <message>
                'Security: Pwd Validator: Dictionary: user binding with valid password'
             </message>
