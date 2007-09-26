@@ -32,6 +32,8 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.messages.ToolMessages.INFO_LDAPAUTH_PASSWORD_PROMPT;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.tools.LDAPConnectionOptions;
+import org.opends.server.tools.SSLConnectionFactory;
+import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.SelectableCertificateKeyManager;
@@ -80,6 +82,16 @@ public class LDAPConnectionConsoleInteraction {
 
   // The truststore to use for the SSL or STARTTLS connection
   private KeyStore truststore;
+
+  private String keystorePath;
+
+  private String keystorePassword;
+
+  private String certifNickname;
+
+  private String truststorePath;
+
+  private String truststorePassword;
 
   /**
    * Enumeration description protocols for interactive CLI choices.
@@ -149,7 +161,7 @@ public class LDAPConnectionConsoleInteraction {
      *
      * @param i
      *          the menu return value.
-     * @param s
+     * @param msg
      *          the message message.
      */
     private TrustMethod(int i, Message msg)
@@ -199,7 +211,7 @@ public class LDAPConnectionConsoleInteraction {
      *
      * @param i
      *          the menu return value.
-     * @param s
+     * @param msg
      *          the message message.
      */
     private TrustOption(int i, Message msg)
@@ -689,7 +701,7 @@ public class LDAPConnectionConsoleInteraction {
 
     // If we not trust all server certificates, we have to get info
     // about truststore. First get the truststore path.
-    String truststorePath = secureArgsList.trustStorePathArg.getValue();
+    truststorePath = secureArgsList.trustStorePathArg.getValue();
     if (app.isInteractive() && !secureArgsList.trustStorePathArg.isPresent()
         && askForTrustStore)
     {
@@ -746,7 +758,7 @@ public class LDAPConnectionConsoleInteraction {
     // Then the truststore password.
     //  As the most common case is to have no password for truststore,
     // we don't ask it in the interactive mode.
-    String truststorePassword = secureArgsList.trustStorePasswordArg
+    truststorePassword = secureArgsList.trustStorePasswordArg
         .getValue();
 
     if (secureArgsList.trustStorePasswordFileArg.isPresent())
@@ -845,7 +857,7 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // Get info about keystore. First get the keystore path.
-    String keystorePath = secureArgsList.keyStorePathArg.getValue();
+    keystorePath = secureArgsList.keyStorePathArg.getValue();
     if (app.isInteractive() && !secureArgsList.keyStorePathArg.isPresent())
     {
       if (!isHeadingDisplayed)
@@ -895,7 +907,7 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // Then the keystore password.
-    String keystorePassword = secureArgsList.keyStorePasswordArg.getValue();
+    keystorePassword = secureArgsList.keyStorePasswordArg.getValue();
 
     if (secureArgsList.keyStorePasswordFileArg.isPresent())
     {
@@ -953,7 +965,7 @@ public class LDAPConnectionConsoleInteraction {
       throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
     }
 
-    String certifNickname = secureArgsList.certNicknameArg.getValue();
+    certifNickname = secureArgsList.certNicknameArg.getValue();
     if (app.isInteractive() && !secureArgsList.certNicknameArg.isPresent()
         && aliasesEnum.hasMoreElements())
     {
@@ -1330,14 +1342,27 @@ public class LDAPConnectionConsoleInteraction {
   *         method will create a new set of <code>LDAPConnectionOptions</code>
   *         to be returned
   * @return used during this interaction
+  * @throws SSLConnectionException if this interaction has specified the use
+  *         of SSL and there is a problem initializing the SSL connection
+  *         factory
   */
  public LDAPConnectionOptions populateLDAPOptions(
          LDAPConnectionOptions options)
+         throws SSLConnectionException
  {
    if (options == null) {
      options = new LDAPConnectionOptions();
    }
-   options.setUseSSL(this.useSSL);
+   if (this.useSSL) {
+     options.setUseSSL(true);
+     SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
+     sslConnectionFactory.init(getTrustManager() == null, keystorePath,
+                               keystorePassword, certifNickname,
+                               truststorePath, truststorePassword);
+     options.setSSLConnectionFactory(sslConnectionFactory);
+   } else {
+     options.setUseSSL(false);
+   }
    options.setStartTLS(this.useStartTLS);
    return options;
  }

@@ -38,6 +38,7 @@ import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
+import org.opends.server.types.OpenDsException;
 
 import java.util.LinkedList;
 import java.util.LinkedHashSet;
@@ -357,8 +358,8 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
               ui.getBindDN(),
               ui.getBindPassword(),
               ui.populateLDAPOptions(options), out, err);
-    } catch (ArgumentException ae) {
-      err.println(ae.getMessageObject());
+    } catch (OpenDsException e) {
+      err.println(e.getMessageObject());
     }
     return connection;
   }
