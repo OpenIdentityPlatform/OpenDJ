@@ -35,10 +35,12 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.admin.std.server.IdentityMapperCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -51,6 +53,7 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -118,9 +121,31 @@ public class ExactMatchIdentityMapper
     configEntryDN = currentConfig.dn();
 
 
-    // Get the attribute types to use for the searches.
+    // Get the attribute types to use for the searches.  Ensure that they are
+    // all indexed for equality.
     attributeTypes =
          currentConfig.getMatchAttribute().toArray(new AttributeType[0]);
+
+    Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (AttributeType t : attributeTypes)
+    {
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        {
+          throw new ConfigException(ERR_EXACTMAP_ATTR_UNINDEXED.get(
+                                         configuration.dn().toString(),
+                                         t.getNameOrOID(),
+                                         b.getBackendID()));
+        }
+      }
+    }
 
 
     // Create the attribute list to include in search requests.  We want to
@@ -299,9 +324,32 @@ public class ExactMatchIdentityMapper
                       ExactMatchIdentityMapperCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // If we've gotten to this point, then the configuration should be
-    // acceptable.
     boolean configAcceptable = true;
+
+    // Make sure that all of the configured attributes are indexed for equality
+    // in all appropriate backends.
+    Set<DN> cfgBaseDNs = configuration.getMatchBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (AttributeType t : configuration.getMatchAttribute())
+    {
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        {
+          unacceptableReasons.add(ERR_EXACTMAP_ATTR_UNINDEXED.get(
+                                       configuration.dn().toString(),
+                                       t.getNameOrOID(),
+                                       b.getBackendID()));
+          configAcceptable = false;
+        }
+      }
+    }
+
     return configAcceptable;
   }
 
