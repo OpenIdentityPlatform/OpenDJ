@@ -473,8 +473,6 @@ public abstract class CliApplicationHelper {
   }
 
   /**
-<<<<<<< .mine
-=======
    * Returns <CODE>true</CODE> if this is a quiet session and
    * <CODE>false</CODE> otherwise.  This method relies on the a previous
    * call to createArgumentParser having been made and the parser
