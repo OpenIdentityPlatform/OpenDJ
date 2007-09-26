@@ -145,7 +145,9 @@ public class ConfigChangeListenerTestCase
     ConfigEntry e = DirectoryServer.getConfigEntry(dn);
     assertNotNull(e);
 
-    assertTrue(l.configChangeIsAcceptable(e, new MessageBuilder()));
+    MessageBuilder unacceptableReason = new MessageBuilder();
+    assertTrue(l.configChangeIsAcceptable(e, unacceptableReason),
+               unacceptableReason.toString());
   }
 }
 

@@ -59,9 +59,7 @@
     </adm:default-behavior>
   </adm:property-override>
 
-  <adm:property name="ldif-file"
-  mandatory="true"
-  multi-valued="false">
+  <adm:property name="ldif-file" mandatory="true" multi-valued="false">
     <adm:synopsis>
       This specifies the path to the LDIF file containing the data for this
       backend.
@@ -76,6 +74,32 @@
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.496</ldap:oid>
         <ldap:name>ds-cfg-ldif-file</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="is-private-backend" mandatory="false"
+    multi-valued="false">
+    <adm:synopsis>
+      This indicates whether the backend should be considered a private backend,
+      which indicates that it is used for storing operational data rather than
+      user-defined information.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:oid>1.3.6.1.4.1.26027.1.1.497</ldap:oid>
+        <ldap:name>ds-cfg-is-private-backend</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

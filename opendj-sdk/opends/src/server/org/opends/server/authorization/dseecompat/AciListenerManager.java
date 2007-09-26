@@ -211,6 +211,17 @@ public class AciListenerManager
      * ACI list.
      */
     public void performBackendInitializationProcessing(Backend backend) {
+      // Check to make sure that the backend has a presence index defined for
+      // the ACI attribute.  If it does not, then log a warning message because
+      // this processing could be very expensive.
+      AttributeType aciType = DirectoryServer.getAttributeType("aci", true);
+      if (! backend.isIndexed(aciType, IndexType.PRESENCE))
+      {
+        logError(WARN_ACI_ATTRIBUTE_NOT_INDEXED.get(backend.getBackendID(),
+                                                    "aci"));
+      }
+
+
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
       LinkedList<Message>failedACIMsgs=new LinkedList<Message>();

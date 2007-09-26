@@ -25,7 +25,6 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 
 
 
@@ -36,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -59,8 +58,6 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
-
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
@@ -70,11 +67,13 @@ import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.workflowelement.localbackend.
+            LocalBackendSearchOperation;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.messages.ConfigMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -584,12 +583,18 @@ public class GroupManager
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    for (Group groupImplementation : groupImplementations.values())
+    for (DN configEntryDN : groupImplementations.keySet())
     {
       SearchFilter filter;
+      Group groupImplementation = groupImplementations.get(configEntryDN);
       try
       {
         filter = groupImplementation.getGroupDefinitionFilter();
+        if (! backend.isIndexed(filter))
+        {
+          logError(WARN_GROUP_FILTER_NOT_INDEXED.get(String.valueOf(filter),
+                        String.valueOf(configEntryDN), backend.getBackendID()));
+        }
       }
       catch (Exception e)
       {

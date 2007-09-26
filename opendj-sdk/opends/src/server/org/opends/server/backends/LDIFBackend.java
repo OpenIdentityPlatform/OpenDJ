@@ -51,6 +51,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.ConditionResult;
@@ -61,6 +62,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
@@ -170,7 +172,8 @@ public class LDIFBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false);
+        DirectoryServer.registerBaseDN(dn, this,
+                                       currentConfig.isIsPrivateBackend());
       }
       catch (Exception e)
       {
@@ -436,6 +439,18 @@ public class LDIFBackend
   @Override()
   public boolean isLocal()
   {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isIndexed(AttributeType attributeType, IndexType indexType)
+  {
+    // All searches in this backend will always be considered indexed.
     return true;
   }
 

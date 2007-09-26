@@ -900,36 +900,6 @@ public class BackendConfigManager implements
     }
 
 
-    // If the backend is a configurable component, then make sure that its
-    // configuration is valid.
-//    if (backend instanceof ConfigurableComponent)
-//    {
-//      ConfigurableComponent cc = (ConfigurableComponent) backend;
-//      LinkedList<String> errorMessages = new LinkedList<String>();
-//      if (! cc.hasAcceptableConfiguration(configEntry, errorMessages))
-//      {
-//        if (errorMessages.isEmpty())
-//        {
-//          int message = ERR_CONFIG_BACKEND_UNACCEPTABLE_CONFIG.get();
-//          unacceptableReason.add(getMessage(msgID,
-//                                            String.valueOf(configEntryDN)));
-//        }
-//        else
-//        {
-//          Iterator<String> iterator = errorMessages.iterator();
-//          unacceptableReason.add(iterator.next());
-//          while (iterator.hasNext())
-//          {
-//            unacceptableReason.add("  ");
-//            unacceptableReason.add(iterator.next());
-//          }
-//        }
-//
-//        return false;
-//      }
-//    }
-
-
     // Make sure that all of the base DNs are acceptable for use in the server.
     BaseDnRegistry reg = DirectoryServer.copyBaseDnRegistry();
     for (DN baseDN : baseDNs)

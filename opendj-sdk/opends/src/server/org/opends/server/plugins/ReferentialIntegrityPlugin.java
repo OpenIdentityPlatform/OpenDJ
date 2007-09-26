@@ -26,33 +26,69 @@
  */
 package org.opends.server.plugins;
 
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.plugin.*;
+import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.api.plugin.PostOperationPluginResult;
+import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.*;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 import org.opends.server.types.operation.SubordinateModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
-import org.opends.messages.Message;
+
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.util.*;
-import java.io.*;
+
 
 /**
  * This class implements a Directory Server post operation plugin that performs
@@ -62,21 +98,22 @@ import java.io.*;
  * base DNs to search for entries that might need referential integrity
  * processing. If none of these base DNs are specified in the configuration,
  * then the public naming contexts are used as the base DNs by default.
- *
+ * <BR><BR>
  * The plugin also has an option to process changes in background using
  * a thread that wakes up periodically looking for change records in a log
  * file.
- *
- **/
+ */
 public class ReferentialIntegrityPlugin
         extends DirectoryServerPlugin<ReferentialIntegrityPluginCfg>
         implements ConfigurationChangeListener<ReferentialIntegrityPluginCfg>,
-        ServerShutdownListener {
-
+                   ServerShutdownListener
+{
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
 
   //Current plugin configuration.
   private ReferentialIntegrityPluginCfg currentConfiguration;
@@ -115,7 +152,6 @@ public class ReferentialIntegrityPlugin
    * the old entry DNs and the new entry DNs related to a modify DN rename to
    * new superior operation.
    */
-
   public static final String MODIFYDN_DNS="modifyDNs";
 
   //The buffered reader that is used to read the log file by the background
@@ -126,83 +162,135 @@ public class ReferentialIntegrityPlugin
   //when the plugin is in background processing mode.
   private BufferedWriter writer;
 
+
+
   /**
    * {@inheritDoc}
    */
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ReferentialIntegrityPluginCfg pluginCfg)
-          throws ConfigException {
-
+         throws ConfigException
+  {
     pluginCfg.addReferentialIntegrityChangeListener(this);
     currentConfiguration = pluginCfg;
+
     for (PluginType t : pluginTypes)
-      switch (t)  {
+    {
+      switch (t)
+      {
         case POST_OPERATION_DELETE:
         case POST_OPERATION_MODIFY_DN:
         case SUBORDINATE_MODIFY_DN:
           // These are acceptable.
           break;
+
         default:
           throw new
-             ConfigException(ERR_PLUGIN_REFERINT_INVALID_PLUGIN_TYPE.
-                             get(t.toString()));
+             ConfigException(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(
+                                  t.toString()));
       }
-    for(DN baseDN : pluginCfg.getReferentialIntegrityBaseDN())
-      baseDNs.add(baseDN);
-    //Iterate through attributes and check that each has a valid syntax
-    //before adding it to the list.
-    for(AttributeType type : pluginCfg.getReferentialIntegrityAttributeType()) {
-      if(!isAttributeSyntaxValid(type))
-        throw new
-          ConfigException(ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.
-                          get(type.getNameOrOID(),
-                              type.getSyntax().getSyntaxName()));
+    }
+
+    Set<DN> cfgBaseDNs = pluginCfg.getReferentialIntegrityBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+    else
+    {
+      baseDNs.addAll(cfgBaseDNs);
+    }
+
+    // Iterate through all of the defined attribute types and ensure that they
+    // have acceptable syntaxes and that they are indexed for equality below all
+    // base DNs.
+    for (AttributeType type : pluginCfg.getReferentialIntegrityAttributeType())
+    {
+      if (! isAttributeSyntaxValid(type))
+      {
+        throw new ConfigException(
+                       ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.get(
+                            type.getNameOrOID(),
+                             type.getSyntax().getSyntaxName()));
+      }
+
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(type, IndexType.EQUALITY)))
+        {
+          throw new ConfigException(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
+                                         pluginCfg.dn().toString(),
+                                         type.getNameOrOID(),
+                                         b.getBackendID()));
+        }
+      }
+
       attributeTypes.add(type);
     }
-    //Set up log file. Note: t is not allowed to change once the plugin
-    //is active.
+
+
+    // Set up log file. Note: it is not allowed to change once the plugin is
+    // active.
     setUpLogFile(pluginCfg.getReferentialIntegrityLogFile());
     interval=pluginCfg.getReferentialIntegrityUpdateInterval();
+
     //Set up background processing if interval > 0.
     if(interval > 0)
+    {
       setUpBackGroundProcessing();
+    }
   }
+
+
 
   /**
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-          ReferentialIntegrityPluginCfg newConfiguration) {
-    ResultCode resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
+          ReferentialIntegrityPluginCfg newConfiguration)
+  {
+    ResultCode         resultCode          = ResultCode.SUCCESS;
+    boolean            adminActionRequired = false;
     ArrayList<Message> messages            = new ArrayList<Message>();
 
-    LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>();
     //Load base DNs from new configuration.
+    LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>();
     for(DN baseDN : newConfiguration.getReferentialIntegrityBaseDN())
+    {
       newConfiguredBaseDNs.add(baseDN);
+    }
+
+    //Load attribute types from new configuration.
     LinkedHashSet<AttributeType> newAttributeTypes =
             new LinkedHashSet<AttributeType>();
-    //Load attribute types from new configuration.
     for(AttributeType type :
             newConfiguration.getReferentialIntegrityAttributeType())
+    {
       newAttributeTypes.add(type);
-    String newLogFileName=newConfiguration.getReferentialIntegrityLogFile();
+    }
+
     //User is not allowed to change the logfile name, append a message that the
     //server needs restarting for change to take effect.
-    if(!logFileName.equals(newLogFileName)) {
+    String newLogFileName=newConfiguration.getReferentialIntegrityLogFile();
+    if(!logFileName.equals(newLogFileName))
+    {
       adminActionRequired=true;
-      messages.add(INFO_PLUGIN_REFERENT_LOGFILE_CHANGE_REQUIRES_RESTART.
-                   get(logFileName, newLogFileName));
+      messages.add(
+           INFO_PLUGIN_REFERENT_LOGFILE_CHANGE_REQUIRES_RESTART.get(logFileName,
+                newLogFileName));
     }
+
     //Switch to the new lists.
     baseDNs = newConfiguredBaseDNs;
     attributeTypes = newAttributeTypes;
-    long newInterval=newConfiguration.getReferentialIntegrityUpdateInterval();
+
     //If the plugin is enabled and the interval has changed, process that
     //change. The change might start or stop the background processing thread.
+    long newInterval=newConfiguration.getReferentialIntegrityUpdateInterval();
     if(newConfiguration.isEnabled() && newInterval != interval)
       processIntervalChange(newInterval, messages);
+
     currentConfiguration = newConfiguration;
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -216,7 +304,7 @@ public class ReferentialIntegrityPlugin
                                            List<Message> unacceptableReasons)
   {
     ReferentialIntegrityPluginCfg cfg =
-                       (ReferentialIntegrityPluginCfg) configuration;
+         (ReferentialIntegrityPluginCfg) configuration;
     return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
   }
 
@@ -226,36 +314,66 @@ public class ReferentialIntegrityPlugin
    */
   public boolean isConfigurationChangeAcceptable(
           ReferentialIntegrityPluginCfg configuration,
-          List<Message> unacceptableReasons) {
-
+          List<Message> unacceptableReasons)
+  {
     boolean configAcceptable = true;
-    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType()) {
-      switch (pluginType)  {
+    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
+    {
+      switch (pluginType)
+      {
         case POSTOPERATIONDELETE:
         case POSTOPERATIONMODIFYDN:
         case SUBORDINATEMODIFYDN:
           // These are acceptable.
           break;
         default:
-          unacceptableReasons.add(ERR_PLUGIN_REFERINT_INVALID_PLUGIN_TYPE.
+          unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.
                                   get(pluginType.toString()));
           configAcceptable = false;
       }
-      if(!configAcceptable)
-           break;
     }
+
+    // Iterate through the set of base DNs that we will check and ensure that
+    // the corresponding backend is indexed appropriately.
+    Set<DN> cfgBaseDNs = configuration.getReferentialIntegrityBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+    else
+    {
+      baseDNs.addAll(cfgBaseDNs);
+    }
+
     //Iterate through attributes and check that each has a valid syntax
-    for(AttributeType type :
-            configuration.getReferentialIntegrityAttributeType())
-      if(!isAttributeSyntaxValid(type)) {
-        unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.
-                                get(type.getNameOrOID(),
-                                    type.getSyntax().getSyntaxName()));
+    for (AttributeType type :
+         configuration.getReferentialIntegrityAttributeType())
+    {
+      if (!isAttributeSyntaxValid(type))
+      {
+        unacceptableReasons.add(
+             ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.get(
+                  type.getNameOrOID(), type.getSyntax().getSyntaxName()));
         configAcceptable = false;
-        break;
       }
+
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(type, IndexType.EQUALITY)))
+        {
+          unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
+                                       configuration.dn().toString(),
+                                       type.getNameOrOID(), b.getBackendID()));
+          configAcceptable = false;
+        }
+      }
+    }
+
     return configAcceptable;
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -263,49 +381,52 @@ public class ReferentialIntegrityPlugin
   @SuppressWarnings("unchecked")
   public PostOperationPluginResult
          doPostOperation(PostOperationModifyDNOperation
-          modifyDNOperation) {
+          modifyDNOperation)
+  {
+    // If the operation itself failed, then we don't need to do anything because
+    // nothing changed.
+    if (modifyDNOperation.getResultCode() != ResultCode.SUCCESS)
+    {
+      return PostOperationPluginResult.SUCCESS;
+    }
 
-    //If the core operation failed, then append an error message and skip
-    //processing.
-    if(modifyDNOperation.getResultCode() != ResultCode.SUCCESS)
-         return  PostOperationPluginResult.SUCCESS;
- //     modifyDNOperation.appendErrorMessage(
- ////             ERR_PLUGIN_REFERENT_SKIP_MODIFY_DN_PROCESSING.
-  //                    get(modifyDNOperation.getEntryDN().toString()));
-    else if(modifyDNOperation.getNewSuperior() == null) {
-      //Core operation was a rename entry.
+    if (modifyDNOperation.getNewSuperior() == null)
+    {
+      // The entry was simply renamed below the same parent.
       DN oldEntryDN=modifyDNOperation.getOriginalEntry().getDN();
       DN newEntryDN=modifyDNOperation.getUpdatedEntry().getDN();
       Map<DN,DN> modDNmap=new LinkedHashMap<DN,DN>();
       modDNmap.put(oldEntryDN, newEntryDN);
       processModifyDN(modDNmap,(interval != 0));
-    } else {
-      //Core operation is a move to a new superior, use the save map of
-      //old DNs and new DNs from the operation attachment.
-      //
-      //This cast causes an unchecked cast warning, suppress it since the
-      //cast is ok.
+    }
+    else
+    {
+      // The entry was moved below a new parent.  Use the saved map of old DNs
+      // and new DNs from the operation attachment.
       Map<DN,DN> modDNmap =
-              (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
+           (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
       processModifyDN(modDNmap, (interval != 0));
     }
-    return  PostOperationPluginResult.SUCCESS;
+
+    return PostOperationPluginResult.SUCCESS;
   }
+
+
 
   /**
    * {@inheritDoc}
    */
-  public PostOperationPluginResult
-  doPostOperation(PostOperationDeleteOperation deleteOperation) {
-    //If the core operation failed, then append an error message and skip
-    //processing.
-    if(deleteOperation.getResultCode() != ResultCode.SUCCESS)
-       return  PostOperationPluginResult.SUCCESS;
- //     deleteOperation.appendErrorMessage(
- //             ERR_PLUGIN_REFERENT_SKIP_DELETE_PROCESSING.
-  //                    get(deleteOperation.getEntryDN().toString()));
-    else
-      processDelete(deleteOperation.getEntryDN(), (interval != 0));
+  public PostOperationPluginResult doPostOperation(
+              PostOperationDeleteOperation deleteOperation)
+  {
+    // If the operation itself failed, then we don't need to do anything because
+    // nothing changed.
+    if (deleteOperation.getResultCode() != ResultCode.SUCCESS)
+    {
+      return PostOperationPluginResult.SUCCESS;
+    }
+
+    processDelete(deleteOperation.getEntryDN(), (interval != 0));
     return  PostOperationPluginResult.SUCCESS;
   }
 
@@ -315,12 +436,14 @@ public class ReferentialIntegrityPlugin
   @SuppressWarnings("unchecked")
   public SubordinateModifyDNPluginResult processSubordinateModifyDN(
           SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
-          Entry newEntry, List<Modification> modifications) {
+          Entry newEntry, List<Modification> modifications)
+  {
     //This cast gives an unchecked cast warning, suppress it since the cast
     //is ok.
     Map<DN,DN>modDNmap=
-            (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
-    if(modDNmap == null) {
+         (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
+    if(modDNmap == null)
+    {
       //First time through, create the map and set it in the operation
       //attachment.
       modDNmap=new LinkedHashMap<DN,DN>();
@@ -340,7 +463,8 @@ public class ReferentialIntegrityPlugin
    * @return  Returns <code>true</code> if the attribute has a valid syntax.
    *
    */
-  private boolean isAttributeSyntaxValid(AttributeType attribute) {
+  private boolean isAttributeSyntaxValid(AttributeType attribute)
+  {
     return (attribute.getSyntaxOID().equals(SYNTAX_DN_OID) ||
             attribute.getSyntaxOID().equals(SYNTAX_NAME_AND_OPTIONAL_UID_OID));
   }
@@ -403,13 +527,21 @@ public class ReferentialIntegrityPlugin
    *            a later time.
    *
    */
-  private void processModifyDN(Map<DN, DN> modDNMap, boolean log) {
-    if(modDNMap != null) {
+  private void processModifyDN(Map<DN, DN> modDNMap, boolean log)
+  {
+    if(modDNMap != null)
+    {
       if(log)
+      {
         writeLog(modDNMap);
+      }
       else
+      {
         for(DN baseDN : getBaseDNsToSearch())
+        {
           doBaseDN(baseDN, modDNMap);
+        }
+      }
     }
   }
 
@@ -434,12 +566,19 @@ public class ReferentialIntegrityPlugin
    *            a later time.
    *
    */
-  private void processDelete(DN entryDN, boolean log) {
+  private void processDelete(DN entryDN, boolean log)
+  {
     if(log)
+    {
       writeLog(entryDN);
+    }
     else
+    {
       for(DN baseDN : getBaseDNsToSearch())
+      {
         searchBaseDN(baseDN, entryDN, null);
+      }
+    }
   }
 
   /**
@@ -453,9 +592,12 @@ public class ReferentialIntegrityPlugin
    * @param newEntryDN The entry DN after the modify DN operation.
    *
    */
-  private void processModifyDN(DN oldEntryDN, DN newEntryDN) {
+  private void processModifyDN(DN oldEntryDN, DN newEntryDN)
+  {
     for(DN baseDN : getBaseDNsToSearch())
+    {
       searchBaseDN(baseDN, oldEntryDN, newEntryDN);
+    }
   }
 
   /**
@@ -466,12 +608,16 @@ public class ReferentialIntegrityPlugin
    * @return A set of DNs to use in the reference searches.
    *
    */
-  private Set<DN>
-  getBaseDNsToSearch() {
+  private Set<DN> getBaseDNsToSearch()
+  {
     if(baseDNs.isEmpty())
+    {
       return DirectoryServer.getPublicNamingContexts().keySet();
+    }
     else
+    {
       return baseDNs;
+    }
   }
 
   /**
@@ -488,38 +634,44 @@ public class ReferentialIntegrityPlugin
    *                   if the original operation was a delete.
    *
    */
-  private void
-  searchBaseDN(DN baseDN, DN oldEntryDN, DN newEntryDN) {
-    HashSet<SearchFilter> componentFilters=new HashSet<SearchFilter>();
+  private void searchBaseDN(DN baseDN, DN oldEntryDN, DN newEntryDN)
+  {
     //Build an equality search with all of the configured attribute types
     //and the old entry DN.
+    HashSet<SearchFilter> componentFilters=new HashSet<SearchFilter>();
     for(AttributeType attributeType : attributeTypes)
+    {
       componentFilters.add(SearchFilter.createEqualityFilter(attributeType,
               new AttributeValue(attributeType, oldEntryDN.toString())));
+    }
+
     InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
+         InternalClientConnection.getRootConnection();
     InternalSearchOperation operation = conn.processSearch(baseDN,
-            SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-            SearchFilter.createORFilter(componentFilters),
-            null);
-    switch (operation.getResultCode()) {
+         SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+         false, SearchFilter.createORFilter(componentFilters), null);
+
+    switch (operation.getResultCode())
+    {
       case SUCCESS:
         break;
+
       case NO_SUCH_OBJECT:
-        Message message=
-                INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.
-                                                         get(baseDN.toString());
-        logError(message);
+        logError(INFO_PLUGIN_REFERENT_SEARCH_NO_SUCH_OBJECT.get(
+                      baseDN.toString()));
         return;
+
       default:
         Message message1 = ERR_PLUGIN_REFERENT_SEARCH_FAILED.
                 get(String.valueOf(operation.getErrorMessage()));
         logError(message1);
         return;
     }
+
     for (SearchResultEntry entry : operation.getSearchEntries())
+    {
       deleteAddAttributesEntry(entry, oldEntryDN, newEntryDN);
+    }
   }
 
   /**
@@ -533,10 +685,12 @@ public class ReferentialIntegrityPlugin
    * @param modifyDNmap The map containing the modify DN old and new entry DNs.
    *
    */
-  private void
-  doBaseDN(DN baseDN, Map<DN,DN> modifyDNmap) {
+  private void doBaseDN(DN baseDN, Map<DN,DN> modifyDNmap)
+  {
     for(Map.Entry<DN,DN> mapEntry: modifyDNmap.entrySet())
+    {
       searchBaseDN(baseDN, mapEntry.getKey(), mapEntry.getValue());
+    }
   }
 
   /**
@@ -554,38 +708,46 @@ public class ReferentialIntegrityPlugin
    *                   null.
    *
    */
-  private void
-  deleteAddAttributesEntry(Entry e, DN oldEntryDN, DN newEntryDN) {
+  private void deleteAddAttributesEntry(Entry e, DN oldEntryDN, DN newEntryDN)
+  {
     LinkedList<Modification> mods = new LinkedList<Modification>();
     DN entryDN=e.getDN();
-    for(AttributeType type : attributeTypes) {
-      if(e.hasAttribute(type)) {
-              AttributeValue deleteValue=
-                                new AttributeValue(type, oldEntryDN.toString());
+    for(AttributeType type : attributeTypes)
+    {
+      if(e.hasAttribute(type))
+      {
+        AttributeValue deleteValue=
+             new AttributeValue(type, oldEntryDN.toString());
         LinkedHashSet<AttributeValue> deleteValues=
-                                            new LinkedHashSet<AttributeValue>();
+             new LinkedHashSet<AttributeValue>();
+
         deleteValues.add(deleteValue);
         mods.add(new Modification(ModificationType.DELETE,
                 new Attribute(type, type.getNameOrOID(), deleteValues)));
+
         //If the new entry DN exists, create an ADD modification for it.
-        if(newEntryDN != null) {
+        if(newEntryDN != null)
+        {
           LinkedHashSet<AttributeValue> addValues=
-                                            new LinkedHashSet<AttributeValue>();
+               new LinkedHashSet<AttributeValue>();
           AttributeValue addValue=
-                                new AttributeValue(type, newEntryDN.toString());
+               new AttributeValue(type, newEntryDN.toString());
           addValues.add(addValue);
           mods.add(new Modification(ModificationType.ADD,
                   new Attribute(type, type.getNameOrOID(), addValues)));
         }
       }
     }
+
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
     ModifyOperation modifyOperation =
             conn.processModify(entryDN, mods);
     if(modifyOperation.getResultCode() != ResultCode.SUCCESS)
+    {
       logError(ERR_PLUGIN_REFERENT_MODIFY_FAILED.get(entryDN.toString(),
                       String.valueOf(modifyOperation.getErrorMessage())));
+    }
   }
 
   /**
@@ -600,16 +762,22 @@ public class ReferentialIntegrityPlugin
    *
    */
   private void setUpLogFile(String logFileName)
-          throws ConfigException {
-
+          throws ConfigException
+  {
     this.logFileName=logFileName;
     logFile=getFileForPath(logFileName);
-    try {
-      if(!logFile.exists()) logFile.createNewFile();
-    } catch (IOException io) {
-      Message message=
-              ERR_PLUGIN_REFERENT_CREATE_LOGFILE.get(io.getMessage());
-      throw new ConfigException(message);
+
+    try
+    {
+      if(!logFile.exists())
+      {
+        logFile.createNewFile();
+      }
+    }
+    catch (IOException io)
+    {
+      throw new ConfigException(ERR_PLUGIN_REFERENT_CREATE_LOGFILE.get(
+                                     io.getMessage()), io);
     }
   }
 
@@ -647,20 +815,23 @@ public class ReferentialIntegrityPlugin
    *
    */
   private void writeLog(Map<DN,DN> modDNmap) {
-    synchronized(logFile) {
-      try  {
+    synchronized(logFile)
+    {
+      try
+      {
         setupWriter();
-        for(Map.Entry<DN,DN> mapEntry : modDNmap.entrySet()) {
+        for(Map.Entry<DN,DN> mapEntry : modDNmap.entrySet())
+        {
           writer.write(mapEntry.getKey().toNormalizedString() + "\t" +
                   mapEntry.getValue().toNormalizedString());
           writer.newLine();
         }
         writer.flush();
         writer.close();
-      } catch (IOException io) {
-        Message message =
-                ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage());
-        logError(message);
+      }
+      catch (IOException io)
+      {
+        logError(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
       }
     }
   }
@@ -680,10 +851,10 @@ public class ReferentialIntegrityPlugin
         writer.newLine();
         writer.flush();
         writer.close();
-      } catch (IOException io) {
-        Message message =
-                ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage());
-        logError(message);
+      }
+      catch (IOException io)
+      {
+        logError(ERR_PLUGIN_REFERENT_CLOSE_LOGFILE.get(io.getMessage()));
       }
     }
   }
@@ -702,7 +873,10 @@ public class ReferentialIntegrityPlugin
     synchronized(logFile) {
       try {
         if(logFile.length() == 0)
+        {
           return;
+        }
+
         setupReader();
         String line;
         while((line=reader.readLine()) != null) {
@@ -729,9 +903,7 @@ public class ReferentialIntegrityPlugin
         logFile.delete();
         logFile.createNewFile();
       } catch (IOException io) {
-        Message message =
-                ERR_PLUGIN_REFERENT_REPLACE_LOGFILE.get(io.getMessage());
-        logError(message);
+        logError(ERR_PLUGIN_REFERENT_REPLACE_LOGFILE.get(io.getMessage()));
       }
     }
   }
@@ -754,7 +926,9 @@ public class ReferentialIntegrityPlugin
   public final void finalizePlugin() {
     currentConfiguration.removeReferentialIntegrityChangeListener(this);
     if(interval > 0)
+    {
       processServerShutdown(null);
+    }
   }
 
   /**
@@ -853,3 +1027,4 @@ public class ReferentialIntegrityPlugin
     }
   }
 }
+

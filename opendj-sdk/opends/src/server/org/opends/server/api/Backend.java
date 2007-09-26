@@ -44,18 +44,21 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.monitors.BackendMonitor;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CancelledOperationException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.types.ConditionResult;
 
@@ -218,6 +221,175 @@ public abstract class Backend
    *          remote.
    */
   public abstract boolean isLocal();
+
+
+
+  /**
+   * Indicates whether search operations which target the specified
+   * attribute in the indicated manner would be considered indexed
+   * in this backend.  The operation should be considered indexed only
+   * if the specified operation can be completed efficiently within
+   * the backend.
+   * <BR><BR>
+   * Note that this method should return a general result that covers
+   * all values of the specified attribute.  If a the specified
+   * attribute is indexed in the indicated manner but some particular
+   * values may still be treated as unindexed (e.g., if the number of
+   * entries with that attribute value exceeds some threshold), then
+   * this method should still return {@code true} for the specified
+   * attribute and index type.
+   *
+   * @param  attributeType  The attribute type for which to make the
+   *                        determination.
+   * @param  indexType      The index type for which to make the
+   *                        determination.
+   *
+   * @return  {@code true} if search operations targeting the
+   *          specified attribute in the indicated manner should be
+   *          considered indexed, or {@code false} if not.
+   */
+  public abstract boolean isIndexed(AttributeType attributeType,
+                                    IndexType indexType);
+
+
+
+  /**
+   * Indicates whether extensible match search operations that target
+   * the specified attribute with the given matching rule should be
+   * considered indexed in this backend.
+   *
+   * @param  attributeType  The attribute type for which to make the
+   *                        determination.
+   * @param  matchingRule   The matching rule for which to make the
+   *                        determination.
+   *
+   * @return  {@code true} if extensible match search operations
+   *          targeting the specified attribute with the given
+   *          matching rule should be considered indexed, or
+   *          {@code false} if not.
+   */
+  public boolean isIndexed(AttributeType attributeType,
+                           MatchingRule matchingRule)
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether a subtree search using the provided filter
+   * would be indexed in this backend.  This default implementation
+   * uses a rough set of logic that makes a best-effort determination.
+   * Subclasses that provide a more complete indexing mechanism may
+   * wish to override this method and provide a more accurate result.
+   *
+   * @param  filter  The search filter for which to make the
+   *                 determination.
+   *
+   * @return  {@code true} if it is believed that the provided filter
+   *          would be indexed in this backend, or {@code false} if
+   *          not.
+   */
+  public boolean isIndexed(SearchFilter filter)
+  {
+    switch (filter.getFilterType())
+    {
+      case AND:
+        // At least one of the subordinate filter components must be
+        // indexed.
+        for (SearchFilter f : filter.getFilterComponents())
+        {
+          if (isIndexed(f))
+          {
+            return true;
+          }
+        }
+        return false;
+
+
+      case OR:
+        for (SearchFilter f : filter.getFilterComponents())
+        {
+          if (! isIndexed(f))
+          {
+            return false;
+          }
+        }
+        return (! filter.getFilterComponents().isEmpty());
+
+
+      case NOT:
+        // NOT filters are not considered indexed by default.
+        return false;
+
+
+      case EQUALITY:
+        return isIndexed(filter.getAttributeType(),
+                         IndexType.EQUALITY);
+
+
+      case SUBSTRING:
+        return isIndexed(filter.getAttributeType(),
+                         IndexType.SUBSTRING);
+
+
+      case GREATER_OR_EQUAL:
+        return isIndexed(filter.getAttributeType(),
+                         IndexType.GREATER_OR_EQUAL);
+
+
+      case LESS_OR_EQUAL:
+        return isIndexed(filter.getAttributeType(),
+                         IndexType.LESS_OR_EQUAL);
+
+
+      case PRESENT:
+        return isIndexed(filter.getAttributeType(),
+                         IndexType.PRESENCE);
+
+
+      case APPROXIMATE_MATCH:
+        return isIndexed(filter.getAttributeType(),
+                         IndexType.APPROXIMATE);
+
+
+      case EXTENSIBLE_MATCH:
+        // The attribute type must be provided for us to make the
+        // determination.  If a matching rule ID is provided, then
+        // we'll use it as well, but if not then we'll use the
+        // default equality matching rule for the attribute type.
+        AttributeType attrType = filter.getAttributeType();
+        if (attrType == null)
+        {
+          return false;
+        }
+
+        MatchingRule matchingRule;
+        String matchingRuleID = filter.getMatchingRuleID();
+        if (matchingRuleID == null)
+        {
+          matchingRule = DirectoryServer.getMatchingRule(
+                              matchingRuleID.toLowerCase());
+        }
+        else
+        {
+          matchingRule = attrType.getEqualityMatchingRule();
+        }
+
+        if (matchingRule == null)
+        {
+          return false;
+        }
+        else
+        {
+          return isIndexed(attrType, matchingRule);
+        }
+
+
+      default:
+        return false;
+    }
+  }
 
 
 

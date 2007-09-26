@@ -278,6 +278,7 @@ public class PrivilegeTestCase
         "cn: test1 user",
         "givenName: user",
         "sn: test1",
+        "carLicense: test1",
         "",
         "dn: cn=test2 user,dc=unindexed,dc=jeb",
         "objectClass: top",
@@ -286,7 +287,8 @@ public class PrivilegeTestCase
         "objectClass: inetOrgPerson",
         "cn: test2 user",
         "givenName: user",
-        "sn: test2"
+        "sn: test2",
+        "carLicense: test2"
     );
   }
 
@@ -428,7 +430,7 @@ public class PrivilegeTestCase
 
     InternalSearchOperation searchOperation =
         conn.processSearch(DN.decode("dc=unindexed,dc=jeb"), SearchScope.WHOLE_SUBTREE,
-             SearchFilter.createFilterFromString("(sn=test*)"));
+             SearchFilter.createFilterFromString("(carLicense=test*)"));
     if (hasPrivilege)
     {
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
