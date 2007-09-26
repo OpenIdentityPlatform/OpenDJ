@@ -66,6 +66,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.args.ArgumentGroup;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
@@ -504,8 +505,9 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_QUIET,
           INFO_DESCRIPTION_QUIET.get());
 
-      scriptFriendlyArgument = new BooleanArgument("script-friendly", 's',
-          "script-friendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+      scriptFriendlyArgument = new BooleanArgument("script-friendly",
+          OPTION_SHORT_SCRIPT_FRIENDLY, OPTION_LONG_SCRIPT_FRIENDLY,
+          INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
 
       noPromptArgument = new BooleanArgument(
           OPTION_LONG_NO_PROMPT,
@@ -531,13 +533,17 @@ public final class DSConfig extends ConsoleApplication {
           INFO_DESCRIPTION_NO_PROP_FILE.get());
 
       // Register the global arguments.
+
+      ArgumentGroup toolOptionsGroup = new ArgumentGroup(
+        INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS.get(), 2);
+      parser.addGlobalArgument(advancedModeArgument, toolOptionsGroup);
+
       parser.addGlobalArgument(showUsageArgument);
       parser.setUsageArgument(showUsageArgument, getOutputStream());
       parser.addGlobalArgument(verboseArgument);
       parser.addGlobalArgument(quietArgument);
       parser.addGlobalArgument(scriptFriendlyArgument);
       parser.addGlobalArgument(noPromptArgument);
-      parser.addGlobalArgument(advancedModeArgument);
       parser.addGlobalArgument(propertiesFileArgument);
       parser.setFilePropertiesArgument(propertiesFileArgument);
       parser.addGlobalArgument(noPropertiesFileArgument);

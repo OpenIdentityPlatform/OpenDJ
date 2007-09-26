@@ -29,7 +29,6 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 
-import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -426,6 +425,24 @@ public class SubCommandArgumentParser extends ArgumentParser
   public void addGlobalArgument(Argument argument)
          throws ArgumentException
   {
+    addGlobalArgument(argument, null);
+  }
+
+
+  /**
+   * Adds the provided argument to the set of global arguments handled by this
+   * parser.
+   *
+   * @param  argument  The argument to be added.
+   * @param  group     The argument group to which the argument belongs.
+   * @throws  ArgumentException  If the provided argument conflicts with another
+   *                             global or subcommand argument that has already
+   *                             been defined.
+   */
+  public void addGlobalArgument(Argument argument, ArgumentGroup group)
+         throws ArgumentException
+  {
+
     String argumentName = argument.getName();
     if (globalArgumentMap.containsKey(argumentName))
     {
@@ -514,6 +531,12 @@ public class SubCommandArgumentParser extends ArgumentParser
     }
 
     globalArgumentList.add(argument);
+
+    if (group == null) {
+      group = getStandardGroup(argument);
+    }
+    group.addArgument(argument);
+    argumentGroups.add(group);
   }
 
   /**
@@ -1642,6 +1665,7 @@ public class SubCommandArgumentParser extends ArgumentParser
     {
       buffer.append(wrapText(toolDescription, 79));
       buffer.append(EOL);
+      buffer.append(EOL);
     }
 
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
@@ -1733,42 +1757,33 @@ public class SubCommandArgumentParser extends ArgumentParser
         buffer.append(INFO_SUBCMDPARSER_GLOBAL_HEADING.get());
         buffer.append(EOL);
       }
+      buffer.append(EOL);
 
-      // --version is a builtin option
-      boolean dashVAccepted = true;
-      if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
-      {
-        dashVAccepted = false;
-      }
-      else
-      {
-        for (SubCommand subCmd : subCommands.values())
-        {
-          if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
-          {
-            dashVAccepted = false;
-            break;
-          }
-        }
-      }
-      if (dashVAccepted)
-      {
-        buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
-      }
-      buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
-      buffer.append(EOL);
-      buffer.append("    ");
-      buffer.append( INFO_DESCRIPTION_PRODUCT_VERSION.get());
-      buffer.append(EOL);
+      boolean printGroupHeaders = printUsageGroupHeaders();
 
       // Display non-usage arguments.
-      for (Argument a : globalArgumentList) {
-        if (a.isHidden()) {
-          continue;
+      for (ArgumentGroup argGroup : argumentGroups)
+      {
+        if (argGroup.containsArguments() && printGroupHeaders)
+        {
+          // Print the groups description if any
+          Message groupDesc = argGroup.getDescription();
+          if (groupDesc != null && !Message.EMPTY.equals(groupDesc)) {
+            buffer.append(EOL);
+            buffer.append(wrapText(groupDesc.toString(), 79));
+            buffer.append(EOL);
+            buffer.append(EOL);
+          }
         }
 
-        if (!usageGroupArguments.containsKey(a)) {
-          printArgumentUsage(a, buffer);
+        for (Argument a : argGroup.getArguments()) {
+          if (a.isHidden()) {
+            continue;
+          }
+
+          if (!usageGroupArguments.containsKey(a)) {
+            printArgumentUsage(a, buffer);
+          }
         }
       }
 

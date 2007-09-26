@@ -57,6 +57,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.args.ArgumentGroup;
 
 /**
  * This is a commodity class that can be used to check the arguments required
@@ -344,9 +345,26 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   protected void initializeGlobalArguments(Collection<Argument> args)
   throws ArgumentException
   {
+    initializeGlobalArguments(args, null);
+  }
+
+
+  /**
+   * Initialize the global options with the provided set of arguments.
+   * @param args the arguments to use to initialize the global options.
+   * @param argGroup to which args will be added
+   * @throws ArgumentException if there is a conflict with the provided
+   * arguments.
+   */
+  protected void initializeGlobalArguments(
+          Collection<Argument> args,
+          ArgumentGroup argGroup)
+  throws ArgumentException
+  {
+
     for (Argument arg : args)
     {
-      addGlobalArgument(arg);
+      addGlobalArgument(arg, argGroup);
     }
 
     // Set the propertiesFile argument

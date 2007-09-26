@@ -64,13 +64,17 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *                                     tool, which will be included when
    *                                     displaying usage information.
    * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
-   *                                     be treated in a case-sensitive manner.
+   * @param  argumentGroup               Group to which LDAP arguments will be
+   *                                     added to the parser.  May be null to
+   *                                     indicate that arguments should be
+   *                                     added to the default group
    */
   public LDAPConnectionArgumentParser(String mainClassName,
                                       Message toolDescription,
-                                      boolean longArgumentsCaseSensitive) {
+                                      boolean longArgumentsCaseSensitive,
+                                      ArgumentGroup argumentGroup) {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
-    addLdapConnectionArguments();
+    addLdapConnectionArguments(argumentGroup);
   }
 
   /**
@@ -103,6 +107,10 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *                                     as a placeholder for unnamed trailing
    *                                     arguments in the generated usage
    *                                     information.
+   * @param  argumentGroup               Group to which LDAP arguments will be
+   *                                     added to the parser.  May be null to
+   *                                     indicate that arguments should be
+   *                                     added to the default group
    */
   public LDAPConnectionArgumentParser(String mainClassName,
                                       Message toolDescription,
@@ -110,11 +118,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
                                       boolean allowsTrailingArguments,
                                       int minTrailingArguments,
                                       int maxTrailingArguments,
-                                      String trailingArgsDisplayName) {
+                                      String trailingArgsDisplayName,
+                                      ArgumentGroup argumentGroup) {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive,
             allowsTrailingArguments, minTrailingArguments, maxTrailingArguments,
             trailingArgsDisplayName);
-    addLdapConnectionArguments();
+    addLdapConnectionArguments(argumentGroup);
   }
 
   /**
@@ -397,12 +406,12 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     return args;
   }
 
-  private void addLdapConnectionArguments() {
+  private void addLdapConnectionArguments(ArgumentGroup argGroup) {
     args = new SecureConnectionCliArgs();
     try {
       LinkedHashSet<Argument> argSet = args.createGlobalArguments();
       for (Argument arg : argSet) {
-        addArgument(arg);
+        addArgument(arg, argGroup);
       }
     }
     catch (ArgumentException ae) {
