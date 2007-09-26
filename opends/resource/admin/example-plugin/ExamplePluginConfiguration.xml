@@ -7,7 +7,6 @@
   <adm:synopsis>An example "Hello World" plugin.</adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>ds-cfg-example-plugin-oid</ldap:oid>
       <ldap:name>ds-cfg-example-plugin</ldap:name>
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
@@ -31,7 +30,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>ds-cfg-example-plugin-message-oid</ldap:oid>
         <ldap:name>ds-cfg-example-plugin-message</ldap:name>
       </ldap:attribute>
     </adm:profile>
