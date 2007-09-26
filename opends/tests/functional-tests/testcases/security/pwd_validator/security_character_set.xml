@@ -319,6 +319,16 @@
                'Security: Pwd Validator: Attribute Value: add attribute sn'
             </message>
             
+            <call function="'modifyPwdPolicy'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'propertyName'           : 'Default Password Policy' ,
+                    'attributeName'          : 'password-validator' ,
+                    'modifyType'             : 'reset' }
+            </call>
+            
             <call function="'modifyPwdValidator'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
@@ -354,10 +364,7 @@
                     'newAttributeValue'      : 'newruling' ,
                     'changetype'             : 'replace'  }
             </call>
-            <script>
-              knownIssue(1449)
-            </script>
-            <!-- Uncomment this when Issue 2050/1449 is resolved.
+            
             <message>
                'Security: Pwd Validator: Character Set: user binding with valid password'
             </message>
@@ -371,7 +378,7 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-            -->
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -404,7 +411,7 @@
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'uid=gfarmer,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'         : 'Newruling123' ,
+                    'dsInstancePswd'         : 'newruling' ,
                     'DNToModify'             : 'uid=gfarmer, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'newnewruling' ,
