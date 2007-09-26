@@ -110,6 +110,10 @@ public enum FieldName
    */
   SUFFIXES_TO_REPLICATE,
   /**
+   * The value associated with this is a Boolean.
+   */
+  REPLICATION_SECURE,
+  /**
    * The value associated with this is a String.
    */
   REPLICATION_PORT,
@@ -147,10 +151,15 @@ public enum FieldName
    */
   GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
   /**
-   * The value associated with this is a Map where the key is a ServerDescriptor
-   * and the value an Integer.
+   * The value associated with this is a Map where the key is a String and the
+   * value a String.
    */
   REMOTE_REPLICATION_PORT,
+  /**
+   * The value associated with this is a Map where the key is a String and the
+   * value a Boolean.
+   */
+  REMOTE_REPLICATION_SECURE,
   /**
    * The value associated with this is a Boolean.
    */

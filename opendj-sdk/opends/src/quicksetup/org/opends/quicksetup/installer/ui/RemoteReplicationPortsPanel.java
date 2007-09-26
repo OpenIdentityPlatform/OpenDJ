@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -71,6 +72,8 @@ implements Comparator<ServerDescriptor>
     new HashMap<String, JLabel>();
   private HashMap<String, JTextComponent> hmFields =
     new HashMap<String, JTextComponent>();
+  private HashMap<String, JCheckBox> hmCbs =
+    new HashMap<String, JCheckBox>();
   private JScrollPane scroll;
   private JPanel fieldsPanel;
   private TreeSet<ServerDescriptor> orderedServers =
@@ -102,6 +105,15 @@ implements Comparator<ServerDescriptor>
       for (String id : hmFields.keySet())
       {
         hm.put(id, hmFields.get(id).getText());
+      }
+      value = hm;
+    }
+    else if (fieldName == FieldName.REMOTE_REPLICATION_SECURE)
+    {
+      Map<String, Boolean> hm = new HashMap<String, Boolean>();
+      for (String id : hmCbs.keySet())
+      {
+        hm.put(id, hmCbs.get(id).isSelected());
       }
       value = hm;
     }
@@ -243,9 +255,16 @@ implements Comparator<ServerDescriptor>
       {
         hmOldValues.put(id, hmFields.get(id).getText());
       }
+      HashMap<String, Boolean> hmOldSecureValues =
+        new HashMap<String, Boolean>();
+      for (String id : hmCbs.keySet())
+      {
+        hmOldSecureValues.put(id, hmCbs.get(id).isSelected());
+      }
       orderedServers.clear();
       orderedServers.addAll(array);
       hmFields.clear();
+      hmCbs.clear();
       hmLabels.clear();
       for (ServerDescriptor server : orderedServers)
       {
@@ -264,10 +283,10 @@ implements Comparator<ServerDescriptor>
                 LabelFieldDescriptor.FieldType.TEXTFIELD,
                 LabelFieldDescriptor.LabelType.PRIMARY,
                 UIFactory.PORT_FIELD_SIZE);
-        Integer defaultValue =
+        AuthenticationData auth =
           data.getRemoteWithNoReplicationPort().get(server);
         JTextComponent field = UIFactory.makeJTextComponent(desc,
-            String.valueOf(defaultValue));
+            String.valueOf(auth.getPort()));
         String oldValue = hmOldValues.get(server.getId());
         if (oldValue != null)
         {
@@ -285,6 +304,18 @@ implements Comparator<ServerDescriptor>
         }
 
         hmLabels.put(server.getId(), label);
+
+        JCheckBox cb = UIFactory.makeJCheckBox(
+            INFO_SECURE_REPLICATION_LABEL.get(),
+            INFO_SECURE_REPLICATION_TOOLTIP.get(),
+            UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+        cb.setSelected(auth.useSecureConnection());
+        Boolean oldSecureValue = hmOldSecureValues.get(server.getId());
+        if (oldSecureValue != null)
+        {
+          cb.setSelected(oldSecureValue);
+        }
+        hmCbs.put(server.getId(), cb);
       }
       populateFieldsPanel();
     }
@@ -316,11 +347,14 @@ implements Comparator<ServerDescriptor>
       {
         gbc.insets.top = UIFactory.TOP_INSET_SECONDARY_FIELD;
       }
-      gbc.gridwidth = 3;
+      gbc.gridwidth = 4;
       fieldsPanel.add(hmLabels.get(server.getId()), gbc);
       gbc.insets.left = UIFactory.LEFT_INSET_PRIMARY_FIELD;
-      gbc.gridwidth = GridBagConstraints.RELATIVE;
+      gbc.gridwidth--;
       fieldsPanel.add(hmFields.get(server.getId()), gbc);
+      gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
+      gbc.gridwidth = GridBagConstraints.RELATIVE;
+      fieldsPanel.add(hmCbs.get(server.getId()), gbc);
       gbc.gridwidth = GridBagConstraints.REMAINDER;
       gbc.weightx = 1.0;
       fieldsPanel.add(Box.createHorizontalGlue(), gbc);

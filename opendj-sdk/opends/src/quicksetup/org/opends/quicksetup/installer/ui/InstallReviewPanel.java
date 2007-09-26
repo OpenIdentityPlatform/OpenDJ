@@ -356,7 +356,7 @@ public class InstallReviewPanel extends ReviewPanel {
     SuffixesToReplicateOptions suf =
       userInstallData.getSuffixesToReplicateOptions();
 
-    Map<ServerDescriptor, Integer> remotePorts =
+    Map<ServerDescriptor, AuthenticationData> remotePorts =
       userInstallData.getRemoteWithNoReplicationPort();
 
     if ((repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY) &&
@@ -375,9 +375,19 @@ public class InstallReviewPanel extends ReviewPanel {
       {
         serverToConnectDisplay = "";
       }
-      buf.append(String.valueOf(
-                      userInstallData.getReplicationOptions()
-                              .getReplicationPort()));
+      String s;
+      if (userInstallData.getReplicationOptions().useSecureReplication())
+      {
+        s = INFO_SECURE_REPLICATION_PORT_LABEL.get(
+            String.valueOf(userInstallData.getReplicationOptions()
+                .getReplicationPort())).toString();
+      }
+      else
+      {
+        s = String.valueOf(userInstallData.getReplicationOptions()
+            .getReplicationPort());
+      }
+      buf.append(s);
       TreeSet<Message> remoteServerLines = new TreeSet<Message>();
       for (ServerDescriptor server : remotePorts.keySet())
       {
@@ -390,8 +400,17 @@ public class InstallReviewPanel extends ReviewPanel {
         {
           serverDisplay = server.getHostPort(true);
         }
-        remoteServerLines.add(INFO_REMOTE_SERVER_REPLICATION_PORT.get(
-                String.valueOf(remotePorts.get(server)),
+        AuthenticationData repPort = remotePorts.get(server);
+        if (repPort.useSecureConnection())
+        {
+          s = INFO_SECURE_REPLICATION_PORT_LABEL.get(
+              String.valueOf(repPort.getPort())).toString();
+        }
+        else
+        {
+          s = String.valueOf(repPort.getPort());
+        }
+        remoteServerLines.add(INFO_REMOTE_SERVER_REPLICATION_PORT.get(s,
                 serverDisplay));
       }
       for (Message line : remoteServerLines)

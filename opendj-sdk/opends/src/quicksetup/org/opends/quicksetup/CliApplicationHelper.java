@@ -580,6 +580,34 @@ public abstract class CliApplicationHelper {
           Utils.getCommandLineMaxLineWidth()));
       out.flush();
     }
+    LOG.log(Level.INFO, msg);
+  }
+
+  /**
+   * Displays a progress message in the error output.
+   * @param msg the error message to be displayed.
+   */
+  protected void printProgressMessageNoWrap(String msg)
+  {
+    if (!isQuiet())
+    {
+      out.print(msg);
+      out.flush();
+    }
+    LOG.log(Level.INFO, msg);
+  }
+
+  /**
+   * Displays a progress message in the error output.
+   * @param msg the error message to be displayed.
+   */
+  protected void printProgressMessageNoWrap(Message msg)
+  {
+    if (!isQuiet())
+    {
+      out.print(msg);
+      out.flush();
+    }
     LOG.log(Level.INFO, msg.toString());
   }
 
