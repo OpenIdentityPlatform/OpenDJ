@@ -47,8 +47,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Attribute Value,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Attribute Value' }
             </call>
             
             <message>
@@ -79,8 +79,8 @@
                     'objectName'             : 'password-policy' ,
                     'propertyType'           : 'policy' ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Custom Attribute Value,cn=Password Validators,cn=config' ,
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Custom Attribute Value' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -96,8 +96,8 @@
                     'objectName'             : 'password-policy' ,
                     'propertyType'           : 'policy' ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Repeated Characters,cn=Password Validators,cn=config' ,
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Repeated Characters' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -285,7 +285,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
+                    'attributeName'          : 'password-validator' ,
                     'modifyType'             : 'reset' }
             </call>
             

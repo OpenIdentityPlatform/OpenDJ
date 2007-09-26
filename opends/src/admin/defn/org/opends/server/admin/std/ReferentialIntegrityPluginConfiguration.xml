@@ -48,13 +48,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.122</ldap:oid>
       <ldap:name>ds-cfg-referential-integrity-plugin</ldap:name>
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="plugin-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -74,7 +73,7 @@
     </adm:default-behavior>
   </adm:property-override>
 
-  <adm:property name="referential-integrity-attribute-type" mandatory="true"
+  <adm:property name="attribute-type" mandatory="true"
                 multi-valued="true">
     <adm:synopsis>
       Specifies an attribute type to  process referential integrity checking on.
@@ -91,13 +90,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.472</ldap:oid>
-        <ldap:name>ds-cfg-referential-integrity-attribute-type</ldap:name>
+        <ldap:name>ds-cfg-attribute-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="referential-integrity-base-dn" mandatory="false"
+  <adm:property name="base-dn" mandatory="false"
                 multi-valued="true">
     <adm:synopsis>
       Specifies a base DN to restrict the referential integrity
@@ -120,13 +118,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.473</ldap:oid>
-        <ldap:name>ds-cfg-referential-integrity-base-dn</ldap:name>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="referential-integrity-log-file" mandatory="false"
+  <adm:property name="log-file" mandatory="false"
                 multi-valued="false">
     <adm:synopsis>
       Specifies the log file location where the update records will be written
@@ -147,13 +144,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.474</ldap:oid>
-        <ldap:name>ds-cfg-referential-integrity-log-file</ldap:name>
+        <ldap:name>ds-cfg-log-file</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="referential-integrity-update-interval" mandatory="false"
+  <adm:property name="update-interval" mandatory="false"
                 multi-valued="false">
     <adm:synopsis>
       Specifies the interval, in seconds, when the referential integrity
@@ -176,8 +172,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.475</ldap:oid>
-        <ldap:name>ds-cfg-referential-integrity-update-interval</ldap:name>
+        <ldap:name>ds-cfg-update-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

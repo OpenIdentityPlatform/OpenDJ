@@ -32,7 +32,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.*;
-import org.opends.server.admin.std.server.VLVJEIndexCfg;
+import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -74,7 +74,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * to its own key.
  */
 public class VLVIndex extends DatabaseContainer
-    implements ConfigurationChangeListener<VLVJEIndexCfg>
+    implements ConfigurationChangeListener<LocalDBVLVIndexCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -112,7 +112,7 @@ public class VLVIndex extends DatabaseContainer
   /**
    * The VLV vlvIndex configuration.
    */
-  private VLVJEIndexCfg config;
+  private LocalDBVLVIndexCfg config;
 
   private ID2Entry id2entry;
 
@@ -141,32 +141,32 @@ public class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  public VLVIndex(VLVJEIndexCfg config, State state, Environment env,
+  public VLVIndex(LocalDBVLVIndexCfg config, State state, Environment env,
                   EntryContainer entryContainer)
       throws DatabaseException, ConfigException
   {
-    super(entryContainer.getDatabasePrefix()+"_vlv."+config.getVLVIndexName(),
+    super(entryContainer.getDatabasePrefix()+"_vlv."+config.getName(),
           env, entryContainer);
 
     this.config = config;
-    this.baseDN = config.getVLVIndexBaseDN();
-    this.scope = SearchScope.valueOf(config.getVLVIndexScope().name());
-    this.sortedSetCapacity = config.getVLVIndexMaximumBlockSize();
+    this.baseDN = config.getBaseDN();
+    this.scope = SearchScope.valueOf(config.getScope().name());
+    this.sortedSetCapacity = config.getMaxBlockSize();
     this.id2entry = entryContainer.getID2Entry();
 
     try
     {
       this.filter =
-          SearchFilter.createFilterFromString(config.getVLVIndexFilter());
+          SearchFilter.createFilterFromString(config.getFilter());
     }
     catch(Exception e)
     {
       Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-          config.getVLVIndexFilter(), name, stackTraceToSingleLineString(e));
+          config.getFilter(), name, stackTraceToSingleLineString(e));
       throw new ConfigException(msg);
     }
 
-    String[] sortAttrs = config.getVLVIndexSortOrder().split(" ");
+    String[] sortAttrs = config.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
     OrderingMatchingRule[] orderingRules =
         new OrderingMatchingRule[sortAttrs.length];
@@ -490,7 +490,7 @@ public class VLVIndex extends DatabaseContainer
         if(debugEnabled())
         {
           TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
-              "Creating unbound set.", config.getVLVIndexName());
+              "Creating unbound set.", config.getName());
         }
         sortValuesSet = new SortValuesSet(this, id2entry);
       }
@@ -504,7 +504,7 @@ public class VLVIndex extends DatabaseContainer
           StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
           TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
               "%s\nSearch Key:%s\nFound Key:%s\n",
-                              config.getVLVIndexName(),
+                              config.getName(),
                               searchKeyHex,
                               foundKeyHex);
         }
@@ -577,7 +577,7 @@ public class VLVIndex extends DatabaseContainer
       if(debugEnabled())
       {
         TRACER.debugVerbose("No sort values set exist in VLV vlvIndex %s. " +
-            "Creating unbound set.", config.getVLVIndexName());
+            "Creating unbound set.", config.getName());
       }
       sortValuesSet = new SortValuesSet(this, id2entry);
       key.setData(new byte[0]);
@@ -592,7 +592,7 @@ public class VLVIndex extends DatabaseContainer
         StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
         TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
             "%s\nSearch Key:%s\nFound Key:%s\n",
-                            config.getVLVIndexName(),
+                            config.getName(),
                             searchKeyHex,
                             foundKeyHex);
       }
@@ -674,7 +674,7 @@ public class VLVIndex extends DatabaseContainer
         StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
         TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
             "%s\nSearch Key:%s\nFound Key:%s\n",
-                            config.getVLVIndexName(),
+                            config.getName(),
                             searchKeyHex,
                             foundKeyHex);
       }
@@ -833,7 +833,7 @@ public class VLVIndex extends DatabaseContainer
                                                   4);
               TRACER.debugVerbose("Retrieved a sort values set in VLV " +
                   "vlvIndex %s\nSearch Key:%s\nFound Key:%s\n",
-                                  config.getVLVIndexName(),
+                                  config.getName(),
                                   searchKeyHex,
                                   foundKeyHex);
             }
@@ -908,7 +908,7 @@ public class VLVIndex extends DatabaseContainer
                                                   4);
               TRACER.debugVerbose("Retrieved a sort values set in VLV " +
                   "vlvIndex %s\nSearch Key:%s\nFound Key:%s\n",
-                                  config.getVLVIndexName(),
+                                  config.getName(),
                                   searchKeyHex,
                                   foundKeyHex);
             }
@@ -1051,7 +1051,7 @@ public class VLVIndex extends DatabaseContainer
             StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
             TRACER.debugVerbose("Retrieved a sort values set in VLV vlvIndex " +
                 "%s\nSearch Key:%s\nFound Key:%s\n",
-                                config.getVLVIndexName(),
+                                config.getName(),
                                 searchKeyHex,
                                 foundKeyHex);
           }
@@ -1233,24 +1233,24 @@ public class VLVIndex extends DatabaseContainer
    * {@inheritDoc}
    */
   public synchronized boolean isConfigurationChangeAcceptable(
-      VLVJEIndexCfg cfg,
+      LocalDBVLVIndexCfg cfg,
       List<Message> unacceptableReasons)
   {
     try
     {
       this.filter =
-          SearchFilter.createFilterFromString(config.getVLVIndexFilter());
+          SearchFilter.createFilterFromString(config.getFilter());
     }
     catch(Exception e)
     {
       Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-              config.getVLVIndexFilter(), name,
+              config.getFilter(), name,
               stackTraceToSingleLineString(e));
       unacceptableReasons.add(msg);
       return false;
     }
 
-    String[] sortAttrs = config.getVLVIndexSortOrder().split(" ");
+    String[] sortAttrs = config.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
     OrderingMatchingRule[] orderingRules =
         new OrderingMatchingRule[sortAttrs.length];
@@ -1302,54 +1302,54 @@ public class VLVIndex extends DatabaseContainer
    * {@inheritDoc}
    */
   public synchronized ConfigChangeResult applyConfigurationChange(
-      VLVJEIndexCfg cfg)
+      LocalDBVLVIndexCfg cfg)
   {
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
     // Update base DN only if changed..
-    if(!config.getVLVIndexBaseDN().equals(cfg.getVLVIndexBaseDN()))
+    if(!config.getBaseDN().equals(cfg.getBaseDN()))
     {
-      this.baseDN = cfg.getVLVIndexBaseDN();
+      this.baseDN = cfg.getBaseDN();
       adminActionRequired = true;
     }
 
     // Update scope only if changed.
-    if(!config.getVLVIndexScope().equals(cfg.getVLVIndexScope()))
+    if(!config.getScope().equals(cfg.getScope()))
     {
-      this.scope = SearchScope.valueOf(cfg.getVLVIndexScope().name());
+      this.scope = SearchScope.valueOf(cfg.getScope().name());
       adminActionRequired = true;
     }
 
     // Update sort set capacity only if changed.
-    if(config.getVLVIndexMaximumBlockSize() !=
-        cfg.getVLVIndexMaximumBlockSize())
+    if(config.getMaxBlockSize() !=
+        cfg.getMaxBlockSize())
     {
-      this.sortedSetCapacity = cfg.getVLVIndexMaximumBlockSize();
+      this.sortedSetCapacity = cfg.getMaxBlockSize();
 
       // Require admin action only if the new capacity is larger. Otherwise,
       // we will lazyly update the sorted sets.
-      if(config.getVLVIndexMaximumBlockSize() <
-          cfg.getVLVIndexMaximumBlockSize())
+      if(config.getMaxBlockSize() <
+          cfg.getMaxBlockSize())
       {
         adminActionRequired = true;
       }
     }
 
     // Update the filter only if changed.
-    if(!config.getVLVIndexFilter().equals(cfg.getVLVIndexFilter()))
+    if(!config.getFilter().equals(cfg.getFilter()))
     {
       try
       {
         this.filter =
-            SearchFilter.createFilterFromString(cfg.getVLVIndexFilter());
+            SearchFilter.createFilterFromString(cfg.getFilter());
         adminActionRequired = true;
       }
       catch(Exception e)
       {
         Message msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-                config.getVLVIndexFilter(), name,
+                config.getFilter(), name,
                 stackTraceToSingleLineString(e));
         messages.add(msg);
         if(resultCode == ResultCode.SUCCESS)
@@ -1360,10 +1360,10 @@ public class VLVIndex extends DatabaseContainer
     }
 
     // Update the sort order only if changed.
-    if(!config.getVLVIndexSortOrder().equals(
-        cfg.getVLVIndexMaximumBlockSize()))
+    if(!config.getSortOrder().equals(
+        cfg.getMaxBlockSize()))
     {
-      String[] sortAttrs = cfg.getVLVIndexSortOrder().split(" ");
+      String[] sortAttrs = cfg.getSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];
       OrderingMatchingRule[] orderingRules =
           new OrderingMatchingRule[sortAttrs.length];

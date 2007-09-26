@@ -111,7 +111,7 @@ public class RepeatedCharactersPasswordValidator
     // Get a handle to the current configuration and see if we need to count
     // the number of repeated characters in the password.
     RepeatedCharactersPasswordValidatorCfg config = currentConfig;
-    int maxRepeats = config.getMaximumConsecutiveLength();
+    int maxRepeats = config.getMaxConsecutiveLength();
     if (maxRepeats <= 0)
     {
       // We don't need to check anything, so the password will be acceptable.

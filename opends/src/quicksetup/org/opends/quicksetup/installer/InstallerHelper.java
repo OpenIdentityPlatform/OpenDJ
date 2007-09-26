@@ -245,10 +245,10 @@ public class InstallerHelper {
       /*
        * Configure Synchronization plugin.
        */
-      MultimasterSynchronizationProviderCfgClient sync = null;
+      ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
-        sync = (MultimasterSynchronizationProviderCfgClient)
+        sync = (ReplicationSynchronizationProviderCfgClient)
         root.getSynchronizationProvider("Multimaster Synchronization");
       }
       catch (ManagedObjectNotFoundException monfe)
@@ -257,12 +257,12 @@ public class InstallerHelper {
       }
       if (sync == null)
       {
-        MultimasterSynchronizationProviderCfgDefn provider =
-          MultimasterSynchronizationProviderCfgDefn.getInstance();
+        ReplicationSynchronizationProviderCfgDefn provider =
+          ReplicationSynchronizationProviderCfgDefn.getInstance();
         sync = root.createSynchronizationProvider(provider,
             "Multimaster Synchronization",
             new ArrayList<DefaultBehaviorException>());
-        sync.setJavaImplementationClass(
+        sync.setJavaClass(
             org.opends.server.replication.plugin.MultimasterReplication.class.
             getName());
         sync.setEnabled(Boolean.TRUE);
@@ -330,27 +330,27 @@ public class InstallerHelper {
       /*
        * Create the domains
        */
-      String[] domainNames = sync.listMultimasterDomains();
+      String[] domainNames = sync.listReplicationDomains();
       if (domainNames == null)
       {
         domainNames = new String[]{};
       }
       Set<ConfiguredDomain> domainsConf = new HashSet<ConfiguredDomain>();
-      MultimasterDomainCfgClient[] domains =
-        new MultimasterDomainCfgClient[domainNames.length];
+      ReplicationDomainCfgClient[] domains =
+        new ReplicationDomainCfgClient[domainNames.length];
       for (int i=0; i<domains.length; i++)
       {
-        domains[i] = sync.getMultimasterDomain(domainNames[i]);
+        domains[i] = sync.getReplicationDomain(domainNames[i]);
       }
       for (String dn : dns)
       {
-        MultimasterDomainCfgClient domain = null;
+        ReplicationDomainCfgClient domain = null;
         boolean isCreated;
         String domainName = null;
         for (int i=0; i<domains.length && (domain == null); i++)
         {
           if (areDnsEqual(dn,
-              domains[i].getReplicationDN().toString()))
+              domains[i].getBaseDN().toString()))
           {
             domain = domains[i];
             domainName = domainNames[i];
@@ -361,11 +361,11 @@ public class InstallerHelper {
           int domainId = getReplicationId(usedServerIds);
           usedServerIds.add(domainId);
           domainName = getDomainName(domainNames, domainId);
-          domain = sync.createMultimasterDomain(
-              MultimasterDomainCfgDefn.getInstance(), domainName,
+          domain = sync.createReplicationDomain(
+              ReplicationDomainCfgDefn.getInstance(), domainName,
               new ArrayList<DefaultBehaviorException>());
           domain.setServerId(domainId);
-          domain.setReplicationDN(DN.decode(dn));
+          domain.setBaseDN(DN.decode(dn));
           isCreated = true;
         }
         else
@@ -440,8 +440,8 @@ public class InstallerHelper {
       {
         try
         {
-          MultimasterSynchronizationProviderCfgClient sync =
-            (MultimasterSynchronizationProviderCfgClient)
+          ReplicationSynchronizationProviderCfgClient sync =
+            (ReplicationSynchronizationProviderCfgClient)
             root.getSynchronizationProvider("Multimaster Synchronization");
           if (replConf.isSynchProviderEnabled())
           {
@@ -467,14 +467,14 @@ public class InstallerHelper {
           {
             if (domain.isCreated())
             {
-              sync.removeMultimasterDomain(domain.getDomainName());
+              sync.removeReplicationDomain(domain.getDomainName());
             }
             else
             {
               try
               {
-                MultimasterDomainCfgClient d =
-                  sync.getMultimasterDomain(domain.getDomainName());
+                ReplicationDomainCfgClient d =
+                  sync.getReplicationDomain(domain.getDomainName());
                 Set<String> replServers = d.getReplicationServer();
                 if (replServers != null)
                 {

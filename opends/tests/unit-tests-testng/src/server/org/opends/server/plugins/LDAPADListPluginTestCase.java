@@ -95,10 +95,10 @@ public class LDAPADListPluginTestCase
          "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
-         "objectClass: ds-cfg-ldap-ad-list-plugin",
+         "objectClass: ds-cfg-ldap-attribute-description-list-plugin",
          "cn: LDAP Attribute Description List",
-         "ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin",
-         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-java-class: org.opends.server.plugins.LDAPADListPlugin",
+         "ds-cfg-enabled: true",
          "ds-cfg-plugin-type: preParseSearch");
 
     Object[][] array = new Object[entries.size()][1];
@@ -159,10 +159,10 @@ public class LDAPADListPluginTestCase
          "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-plugin",
-         "objectClass: ds-cfg-ldap-ad-list-plugin",
+         "objectClass: ds-cfg-ldap-attribute-description-list-plugin",
          "cn: LDAP Attribute Description List",
-         "ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin",
-         "ds-cfg-plugin-enabled: true");
+         "ds-cfg-java-class: org.opends.server.plugins.LDAPADListPlugin",
+         "ds-cfg-enabled: true");
     entries.add(e);
 
     for (String s : PluginType.getPluginTypeNames())
@@ -176,10 +176,10 @@ public class LDAPADListPluginTestCase
            "dn: cn=LDAP Attribute Description List,cn=Plugins,cn=config",
            "objectClass: top",
            "objectClass: ds-cfg-plugin",
-           "objectClass: ds-cfg-ldap-ad-list-plugin",
+           "objectClass: ds-cfg-ldap-attribute-description-list-plugin",
            "cn: LDAP Attribute Description List",
-           "ds-cfg-plugin-class: org.opends.server.plugins.LDAPADListPlugin",
-           "ds-cfg-plugin-enabled: true",
+           "ds-cfg-java-class: org.opends.server.plugins.LDAPADListPlugin",
+           "ds-cfg-enabled: true",
            "ds-cfg-plugin-type: " + s);
       entries.add(e);
     }

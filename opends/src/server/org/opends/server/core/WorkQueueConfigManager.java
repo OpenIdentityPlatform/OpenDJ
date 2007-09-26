@@ -102,9 +102,9 @@ public class WorkQueueConfigManager
     // using that configuration.
     WorkQueueCfgDefn definition = WorkQueueCfgDefn.getInstance();
     ClassPropertyDefinition propertyDefinition =
-         definition.getWorkQueueClassPropertyDefinition();
+         definition.getJavaClassPropertyDefinition();
     Class<? extends WorkQueue> workQueueClass =
-         propertyDefinition.loadClass(workQueueConfig.getWorkQueueClass(),
+         propertyDefinition.loadClass(workQueueConfig.getJavaClass(),
                                       WorkQueue.class);
 
     try
@@ -120,7 +120,7 @@ public class WorkQueueConfigManager
     catch (Exception e)
     {
       Message message = ERR_CONFIG_WORK_QUEUE_INITIALIZATION_FAILED.
-          get(workQueueConfig.getWorkQueueClass(),
+          get(workQueueConfig.getJavaClass(),
               String.valueOf(workQueueConfig.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
@@ -155,7 +155,7 @@ public class WorkQueueConfigManager
     // If the work queue class has been changed, then we should warn the user
     // that it won't take effect until the server is restarted.
     WorkQueue workQueue = DirectoryServer.getWorkQueue();
-    String workQueueClass = configuration.getWorkQueueClass();
+    String workQueueClass = configuration.getJavaClass();
     if (! workQueueClass.equals(workQueue.getClass().getName()))
     {
 

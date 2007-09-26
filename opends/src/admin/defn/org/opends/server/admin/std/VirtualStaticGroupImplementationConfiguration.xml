@@ -45,13 +45,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.138</ldap:oid>
       <ldap:name>ds-cfg-virtual-static-group-implementation</ldap:name>
       <ldap:superior>ds-cfg-group-implementation</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="group-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

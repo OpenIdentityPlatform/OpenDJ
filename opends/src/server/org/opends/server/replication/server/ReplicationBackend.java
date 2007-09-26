@@ -53,7 +53,7 @@ import java.util.TimerTask;
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackupManager;
@@ -148,7 +148,7 @@ public class ReplicationBackend
   /**
    * The configuration of this backend.
    */
-  private JEBackendCfg cfg;
+  private LocalDBBackendCfg cfg;
 
   /**
    * The number of milliseconds between job progress reports.
@@ -199,12 +199,12 @@ public class ReplicationBackend
     if (config != null)
     {
       Validator.ensureTrue(config instanceof BackendCfg);
-      cfg = (JEBackendCfg)config;
-      DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
-      cfg.getBackendBaseDN().toArray(baseDNs);
+      cfg = (LocalDBBackendCfg)config;
+      DN[] baseDNs = new DN[cfg.getBaseDN().size()];
+      cfg.getBaseDN().toArray(baseDNs);
       setBaseDNs(baseDNs);
       backendDirectory = new BackupDirectory(
-          cfg.getBackendDirectory(), null);
+          cfg.getDBDirectory(), null);
     }
   }
 

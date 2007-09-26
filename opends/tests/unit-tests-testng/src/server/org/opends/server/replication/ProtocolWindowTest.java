@@ -280,23 +280,23 @@ public class ProtocolWindowTest extends ReplicationTestCase
     String replServerLdif =
       "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-server-config\n"
+        + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
-        + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+        + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-server-id: 1\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE + "\n"
-        + "ds-cfg-replication-max-queue-size: " + REPLICATION_QUEUE_SIZE;
+        + "ds-cfg-queue-size: " + REPLICATION_QUEUE_SIZE;
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
     String synchroServerLdif =
       "dn: " + "cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-domain-config\n"
+        + "objectClass: ds-cfg-replication-domain\n"
         + "cn: example\n"
-        + "ds-cfg-replication-dn: ou=People,dc=example,dc=com\n"
+        + "ds-cfg-base-dn: ou=People,dc=example,dc=com\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
-        + "ds-cfg-directory-server-id: 1\n"
+        + "ds-cfg-server-id: 1\n"
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);

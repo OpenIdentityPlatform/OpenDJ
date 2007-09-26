@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.MultimasterSynchronizationProviderCfg;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.server.ReplicationServer;
@@ -64,7 +64,7 @@ public class ReplicationServerListener
    *                         object.
    */
   public ReplicationServerListener(
-      MultimasterSynchronizationProviderCfg configuration)
+      ReplicationSynchronizationProviderCfg configuration)
       throws ConfigException
   {
     configuration.addReplicationServerAddListener(this);

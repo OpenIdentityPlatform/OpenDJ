@@ -293,6 +293,7 @@ public class SearchOperationTestCase extends OperationTestCase
         }
       }
 
+      TestCaseUtils.quiesceServer();
       assertEquals(ldapStatistics.getSearchRequests(), searchRequests+1);
       assertEquals(ldapStatistics.getSearchResultEntries(), searchEntries);
       assertEquals(ldapStatistics.getSearchResultReferences(),

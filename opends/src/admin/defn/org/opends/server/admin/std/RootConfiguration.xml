@@ -262,8 +262,8 @@
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
-        <cli:default-property name="backend-enabled" />
-        <cli:default-property name="backend-base-dn" />
+        <cli:default-property name="enabled" />
+        <cli:default-property name="base-dn" />
       </cli:relation>
     </adm:profile>
   </adm:relation>
@@ -385,7 +385,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="key-manager">
+  <adm:relation name="key-manager-provider">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
@@ -398,7 +398,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="trust-manager">
+  <adm:relation name="trust-manager-provider">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
@@ -418,7 +418,7 @@
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
-        <cli:default-property name="work-queue-class" />
+        <cli:default-property name="java-class" />
       </cli:relation>
     </adm:profile>
   </adm:relation>

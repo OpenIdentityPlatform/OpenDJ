@@ -212,7 +212,7 @@ public final class AccessControlConfigManager
       // Initialization phase.
       if (newConfiguration.isEnabled())
       {
-        newHandlerClass = newConfiguration.getAclHandlerClass();
+        newHandlerClass = newConfiguration.getJavaClass();
       }
       else
       {
@@ -227,7 +227,7 @@ public final class AccessControlConfigManager
       if ((! enabledOld) && enabledNew)
       {
         // Access control has been enabled - get the new class name.
-        newHandlerClass = newConfiguration.getAclHandlerClass();
+        newHandlerClass = newConfiguration.getJavaClass();
       }
       else if (enabledOld && (! enabledNew))
       {
@@ -239,7 +239,7 @@ public final class AccessControlConfigManager
       {
         // Access control is already enabled, but still get the handler class
         // name to see if it has changed.
-        newHandlerClass = newConfiguration.getAclHandlerClass();
+        newHandlerClass = newConfiguration.getJavaClass();
       }
     }
 
@@ -325,7 +325,7 @@ public final class AccessControlConfigManager
       // can load the access control handler class.
       if (configuration.isEnabled())
       {
-        loadHandler(configuration.getAclHandlerClass(), configuration, false);
+        loadHandler(configuration.getJavaClass(), configuration, false);
       }
     }
     catch (InitializationException e)
@@ -434,7 +434,7 @@ public final class AccessControlConfigManager
       AccessControlHandlerCfgDefn definition =
            AccessControlHandlerCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getAclHandlerClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends AccessControlHandler> providerClass =
            propertyDefinition.loadClass(className, AccessControlHandler.class);
       AccessControlHandler<? extends AccessControlHandlerCfg> provider =

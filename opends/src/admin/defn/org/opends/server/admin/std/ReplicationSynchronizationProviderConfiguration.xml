@@ -25,8 +25,8 @@
   !
   !      Portions Copyright 2007 Sun Microsystems, Inc.
   ! -->
-<adm:managed-object name="multimaster-synchronization-provider"
-  plural-name="multimaster-synchronization-providers"
+<adm:managed-object name="replication-synchronization-provider"
+  plural-name="replication-synchronization-providers"
   package="org.opends.server.admin.std"
   extends="synchronization-provider"
   xmlns:adm="http://www.opends.org/admin"
@@ -40,12 +40,11 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.91</ldap:oid>
-      <ldap:name>ds-cfg-multimaster-synchronization-provider</ldap:name>
+      <ldap:name>ds-cfg-replication-synchronization-provider</ldap:name>
       <ldap:superior>ds-cfg-synchronization-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:relation name="multimaster-domain">
+  <adm:relation name="replication-domain">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=domains</ldap:rdn-sequence>
@@ -54,7 +53,7 @@
       <cli:relation>
         <cli:default-property name="server-id" />
         <cli:default-property name="replication-server" />
-        <cli:default-property name="replication-dn" />
+        <cli:default-property name="base-dn" />
       </cli:relation>
     </adm:profile>
   </adm:relation>
@@ -71,7 +70,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:property-override name="java-implementation-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

@@ -231,7 +231,7 @@
 #@TestMarker       Plugin referential integrity
 #@TestName         Referential integrity check on group after a change of base DN
 #@TestPreamble    none
-#@TestStep           Check change of the referential-integrity-base-dn  attribute is dynamic
+#@TestStep           Check change of the base-dn  attribute is dynamic
 #@TestStep           Delete the user06
 #@TestStep           Check that the references to the deleted user are still present
 #@TestPostamble    none
@@ -239,11 +239,11 @@
 -->  
     
    
- <testcase name="getTestCaseName('Check the change of the referential-integrity-base-dn attribute')">
+ <testcase name="getTestCaseName('Check the change of the base-dn attribute')">
   <sequence>
     <call function="'testCase_Preamble'"/>
  
-    <message>'######  Set the referential-integrity-base-dn to  dc=groups,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
+    <message>'######  Set the base-dn to  dc=groups,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
     <message>'  '</message> 
        
     <call function="'dsconfig'">
@@ -254,7 +254,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--set referential-integrity-base-dn:dc=groups,%s' % DIRECTORY_INSTANCE_SFX, 
+        'optionsString'          : '--set base-dn:dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
         'expectedRC'           : 0 } 
     </call>	    
 
@@ -266,7 +266,7 @@
           'objectName'     : 'plugin',
           'propertyType'   : 'plugin',
           'propertyName'   : 'Referential Integrity',
-          'attributeName'  : 'referential-integrity-base-dn'
+          'attributeName'  : 'base-dn'
       }
     </call>        
     
@@ -332,7 +332,7 @@
          'expectedResult'	   : '1' }
     </call>                
     
-   <message>'######  Reset the referential-integrity-base-dn ###### '</message>
+   <message>'######  Reset the base-dn ###### '</message>
     <message>'  '</message> 
        
     <call function="'dsconfig'">
@@ -343,7 +343,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--reset referential-integrity-base-dn', 
+        'optionsString'          : '--reset base-dn',
         'expectedRC'           : 0 } 
     </call>	    
         
@@ -365,7 +365,7 @@
 -->  
     
    
- <testcase name="getTestCaseName('Referential integrity on groups with default referential-integrity-attribute-type')">
+ <testcase name="getTestCaseName('Referential integrity on groups with default attribute-type')">
   <sequence>
     <call function="'testCase_Preamble'"/>
  
@@ -423,7 +423,7 @@
 #@TestMarker       Plugin referential integrity
 #@TestName         Referential integrity check on GROUPS after a change of configuration
 #@TestPreamble    none
-#@TestStep           Check change of the referential-integrity-attribute-type attribute is dynamic
+#@TestStep           Check change of the attribute-type attribute is dynamic
 #@TestStep           Delete the user02  
 #@TestStep           Check that the references to the deleted user are still present
 #@TestPostamble    none
@@ -431,11 +431,11 @@
 -->  
     
    
- <testcase name="getTestCaseName('Check the change of the referential-integrity-attribute-type attribute')">
+ <testcase name="getTestCaseName('Check the change of the attribute-type attribute')">
   <sequence>
     <call function="'testCase_Preamble'"/>
   
-    <message>'######  Remove the attribute uniquemember from the list of referential-integrity-attribute-type ###### '</message>
+    <message>'######  Remove the attribute uniquemember from the list of attribute-type ###### '</message>
     <message>'  '</message> 
        
     <call function="'dsconfig'">
@@ -446,7 +446,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--remove referential-integrity-attribute-type:uniquemember',
+        'optionsString'          : '--remove attribute-type:uniquemember',
         'expectedRC'           : 0 } 
     </call>	    
     
@@ -487,7 +487,7 @@
          'expectedResult'	   : '1' }
     </call>                
     
-  <message>'######  Restore the attribute uniquemember from the list of referential-integrity-attribute-type ###### '</message>
+  <message>'######  Restore the attribute uniquemember from the list of attribute-type ###### '</message>
     <message>'  '</message> 
        
     <call function="'dsconfig'">
@@ -498,7 +498,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--add referential-integrity-attribute-type:uniquemember',
+        'optionsString'          : '--add attribute-type:uniquemember',
         'expectedRC'           : 0 } 
     </call>	    
         
@@ -642,7 +642,7 @@
         'expectedRC'           : 0 } 
     </call>	    
     
-    <message>'######  Set the list of referential-integrity-attribute-type ###### '</message>
+    <message>'######  Set the list of attribute-type ###### '</message>
     <message>'  '</message> 
        
     <call function="'dsconfig'">
@@ -653,7 +653,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--set referential-integrity-attribute-type:uniquemember --set referential-integrity-attribute-type:member',
+        'optionsString'          : '--set attribute-type:uniquemember --set attribute-type:member',
         'expectedRC'           : 0 } 
     </call>	    
     

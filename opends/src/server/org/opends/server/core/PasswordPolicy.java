@@ -143,17 +143,14 @@ public class PasswordPolicy
 
   // The set of account status notification handlers for this password policy.
   private ConcurrentHashMap<DN, AccountStatusNotificationHandler>
-       notificationHandlers =
-            new ConcurrentHashMap<DN, AccountStatusNotificationHandler>();
+    notificationHandlers;
 
-  // The set of password validators that will be used with this password policy.
-  private ConcurrentHashMap<DN,
-               PasswordValidator<? extends PasswordValidatorCfg>>
-               passwordValidators =
-               new ConcurrentHashMap<DN,PasswordValidator<? extends
-                        PasswordValidatorCfg>>();
+  // The set of password validators that will be used with this
+  // password policy.
+  private ConcurrentHashMap<DN, PasswordValidator<?>> passwordValidators;
 
-  // The set of default password storage schemes for this password policy.
+  // The set of default password storage schemes for this password
+  // policy.
   private CopyOnWriteArrayList<PasswordStorageScheme> defaultStorageSchemes =
        new CopyOnWriteArrayList<PasswordStorageScheme>();
   {
@@ -262,9 +259,7 @@ public class PasswordPolicy
     timeUnits.put(TIME_UNIT_WEEKS_ABBR, (double) (60 * 60 * 24 * 7));
     timeUnits.put(TIME_UNIT_WEEKS_FULL, (double) (60 * 60 * 24 * 7));
 
-
     this.configEntryDN = configuration.dn();
-    int msgID;
 
     // Get the password attribute.  If specified, it must have either the
     // user password or auth password syntax.
@@ -296,48 +291,30 @@ public class PasswordPolicy
     // Get the default storage schemes.  They must all reference valid storage
     // schemes that support the syntax for the specified password attribute.
     SortedSet<DN> storageSchemeDNs =
-      configuration.getDefaultPasswordStorageSchemeDN();
+      configuration.getDefaultPasswordStorageSchemeDNs();
     try
     {
-      if (storageSchemeDNs == null)
+      LinkedList<PasswordStorageScheme> schemes =
+        new LinkedList<PasswordStorageScheme>();
+      for (DN configEntryDN : storageSchemeDNs)
       {
-        Message message = ERR_PWPOLICY_NO_DEFAULT_STORAGE_SCHEMES.get(
-            String.valueOf(configEntryDN));
-        throw new ConfigException(message);
-      }
-      else
-      {
-        LinkedList<PasswordStorageScheme> schemes =
-             new LinkedList<PasswordStorageScheme>();
-        for (DN configEntryDN : storageSchemeDNs)
+        PasswordStorageScheme scheme =
+          DirectoryServer.getPasswordStorageScheme(configEntryDN);
+
+        if (this.authPasswordSyntax &&
+            (! scheme.supportsAuthPasswordSyntax()))
         {
-          PasswordStorageScheme scheme =
-               DirectoryServer.getPasswordStorageScheme(configEntryDN);
-
-          if (scheme == null)
-          {
-            Message message = ERR_PWPOLICY_NO_SUCH_DEFAULT_SCHEME.get(
-                String.valueOf(configEntryDN), String.valueOf(configEntryDN));
-            throw new ConfigException(message);
-          }
-          else
-          {
-            if (this.authPasswordSyntax &&
-                (! scheme.supportsAuthPasswordSyntax()))
-            {
-              Message message = ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
-                                     String.valueOf(configEntryDN),
-                                     this.passwordAttribute.getNameOrOID());
-              throw new ConfigException(message);
-            }
-
-            schemes.add(scheme);
-          }
+          Message message = ERR_PWPOLICY_SCHEME_DOESNT_SUPPORT_AUTH.get(
+              String.valueOf(configEntryDN),
+              this.passwordAttribute.getNameOrOID());
+          throw new ConfigException(message);
         }
 
-        this.defaultStorageSchemes =
-             new CopyOnWriteArrayList<PasswordStorageScheme>(schemes);
+        schemes.add(scheme);
       }
+
+      this.defaultStorageSchemes =
+        new CopyOnWriteArrayList<PasswordStorageScheme>(schemes);
     }
     catch (ConfigException ce)
     {
@@ -358,49 +335,39 @@ public class PasswordPolicy
 
     // Get the names of the deprecated storage schemes.
     SortedSet<DN> deprecatedStorageSchemeDNs =
-      configuration.getDeprecatedPasswordStorageSchemeDN();
+      configuration.getDeprecatedPasswordStorageSchemeDNs();
     try
     {
-      if (deprecatedStorageSchemeDNs != null)
+      LinkedHashSet<String> newDeprecatedStorageSchemes =
+        new LinkedHashSet<String>();
+      for (DN schemeDN : deprecatedStorageSchemeDNs)
       {
-        LinkedHashSet<String> newDeprecatedStorageSchemes =
-             new LinkedHashSet<String>();
-        for (DN schemeDN : deprecatedStorageSchemeDNs)
+        PasswordStorageScheme scheme =
+          DirectoryServer.getPasswordStorageScheme(schemeDN);
+        if (this.authPasswordSyntax)
         {
-          PasswordStorageScheme scheme =
-               DirectoryServer.getPasswordStorageScheme(schemeDN);
-          if (scheme == null)
+          if (scheme.supportsAuthPasswordSyntax())
           {
-            Message message = ERR_PWPOLICY_NO_SUCH_DEPRECATED_SCHEME.get(
-                                   String.valueOf(configEntryDN),
-                                   String.valueOf(schemeDN));
-            throw new ConfigException(message);
-          }
-          else if (this.authPasswordSyntax)
-          {
-            if (scheme.supportsAuthPasswordSyntax())
-            {
-              newDeprecatedStorageSchemes.add(
-                   scheme.getAuthPasswordSchemeName());
-            }
-            else
-            {
-              Message message = ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
-                                     String.valueOf(configEntryDN),
-                                     String.valueOf(schemeDN));
-              throw new ConfigException(message);
-            }
+            newDeprecatedStorageSchemes.add(
+                scheme.getAuthPasswordSchemeName());
           }
           else
           {
-            newDeprecatedStorageSchemes.add(
-                 toLowerCase(scheme.getStorageSchemeName()));
+            Message message = ERR_PWPOLICY_DEPRECATED_SCHEME_NOT_AUTH.get(
+                String.valueOf(configEntryDN),
+                String.valueOf(schemeDN));
+            throw new ConfigException(message);
           }
         }
-
-        this.deprecatedStorageSchemes =
-             new CopyOnWriteArraySet<String>(newDeprecatedStorageSchemes);
+        else
+        {
+          newDeprecatedStorageSchemes.add(
+              toLowerCase(scheme.getStorageSchemeName()));
+        }
       }
+
+      this.deprecatedStorageSchemes =
+        new CopyOnWriteArraySet<String>(newDeprecatedStorageSchemes);
     }
     catch (Exception e)
     {
@@ -417,93 +384,29 @@ public class PasswordPolicy
 
 
     // Get the password validators.
-    SortedSet<DN> passwordValidators =
-      configuration.getPasswordValidatorDN();
-    try
+    SortedSet<DN> passwordValidators = configuration.getPasswordValidatorDNs();
+    ConcurrentHashMap<DN, PasswordValidator<?>> validators =
+      new ConcurrentHashMap<DN, PasswordValidator<?>>();
+    for (DN validatorDN : passwordValidators)
     {
-      if (passwordValidators != null)
-      {
-        ConcurrentHashMap<DN,
-             PasswordValidator<? extends PasswordValidatorCfg>>
-             validators =
-                  new ConcurrentHashMap<DN,
-                       PasswordValidator<? extends
-                            PasswordValidatorCfg>>();
-        for (DN validatorDN : passwordValidators)
-        {
-          PasswordValidator<? extends PasswordValidatorCfg>
-               validator = DirectoryServer.getPasswordValidator(validatorDN);
-          if (validator == null)
-          {
-            Message message = ERR_PWPOLICY_NO_SUCH_VALIDATOR.get(
-                String.valueOf(configEntryDN), String.valueOf(validatorDN));
-            throw new ConfigException(message);
-          }
-
-          validators.put(validatorDN, validator);
-        }
-
-        this.passwordValidators = validators;
-      }
+      validators.put(validatorDN,
+          DirectoryServer.getPasswordValidator(validatorDN));
     }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_PASSWORD_VALIDATORS.get(
-          String.valueOf(configEntryDN), getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
+    this.passwordValidators = validators;
 
 
     // Get the status notification handlers.
     SortedSet<DN> statusNotificationHandlers =
-      configuration.getAccountStatusNotificationHandlerDN();
-    try
+      configuration.getAccountStatusNotificationHandlerDNs();
+    ConcurrentHashMap<DN,AccountStatusNotificationHandler> handlers =
+      new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
+    for (DN handlerDN : statusNotificationHandlers)
     {
-      if (statusNotificationHandlers != null)
-      {
-        ConcurrentHashMap<DN,AccountStatusNotificationHandler> handlers =
-             new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
-        for (DN handlerDN : statusNotificationHandlers)
-        {
-          AccountStatusNotificationHandler handler =
-               DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
-          if (handler == null)
-          {
-            Message message = ERR_PWPOLICY_NO_SUCH_NOTIFICATION_HANDLER.get(
-                String.valueOf(configEntryDN), String.valueOf(handlerDN));
-            throw new ConfigException(message);
-          }
-
-          handlers.put(handlerDN, handler);
-        }
-
-        this.notificationHandlers = handlers;
-      }
+      AccountStatusNotificationHandler handler =
+        DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
+      handlers.put(handlerDN, handler);
     }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_NOTIFICATION_HANDLERS.get(
-          String.valueOf(configEntryDN), getExceptionMessage(e));
-      throw new InitializationException(message, e);
-    }
+    this.notificationHandlers = handlers;
 
 
     // Determine whether to allow user password changes.
@@ -525,37 +428,10 @@ public class PasswordPolicy
 
     // Get the password generator.
     DN passGenDN = configuration.getPasswordGeneratorDN() ;
-    try
+    if (passGenDN != null)
     {
-      if (passGenDN != null)
-      {
-        PasswordGenerator generator =
-             DirectoryServer.getPasswordGenerator(passGenDN);
-        if (generator == null)
-        {
-          Message message = ERR_PWPOLICY_NO_SUCH_GENERATOR.get(
-              String.valueOf(configEntryDN), String.valueOf(passGenDN));
-          throw new ConfigException(message);
-        }
-
-        this.passwordGeneratorDN = passGenDN;
-        this.passwordGenerator   = generator;
-      }
-    }
-    catch (ConfigException ce)
-    {
-      throw ce;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWPOLICY_CANNOT_DETERMINE_PASSWORD_GENERATOR.get(
-          String.valueOf(configEntryDN), getExceptionMessage(e));
-      throw new InitializationException(message, e);
+      this.passwordGeneratorDN = passGenDN;
+      this.passwordGenerator = DirectoryServer.getPasswordGenerator(passGenDN);
     }
 
 
@@ -575,14 +451,14 @@ public class PasswordPolicy
     this.allowPreEncodedPasswords = configuration.isAllowPreEncodedPasswords();
 
     // Get the minimum password age.
-    this.minimumPasswordAge = (int) configuration.getMinimumPasswordAge();
+    this.minimumPasswordAge = (int) configuration.getMinPasswordAge();
 
     // Get the maximum password age.
-    this.maximumPasswordAge = (int) configuration.getMaximumPasswordAge();
+    this.maximumPasswordAge = (int) configuration.getMaxPasswordAge();
 
     // Get the maximum password reset age.
     this.maximumPasswordResetAge = (int) configuration
-        .getMaximumPasswordResetAge();
+        .getMaxPasswordResetAge();
 
     // Get the warning interval.
     this.warningInterval = (int) configuration

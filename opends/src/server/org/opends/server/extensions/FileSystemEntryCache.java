@@ -1119,16 +1119,16 @@ public class FileSystemEntryCache
     newMaxAllowedMemory = configuration.getMaxMemorySize();
 
     // Determine JE cache percent.
-    newJECachePercent = configuration.getDatabaseCachePercent();
+    newJECachePercent = configuration.getDBCachePercent();
 
     // Determine JE cache size.
-    newJECacheSize = configuration.getDatabaseCacheSize();
+    newJECacheSize = configuration.getDBCacheSize();
 
     // Check if this cache is persistent.
     newPersistentCache = configuration.isPersistentCache();
 
     // Check if this cache should use compact encoding.
-    newCompactEncoding = configuration.isBackendCompactEncoding();
+    newCompactEncoding = configuration.isCompactEncoding();
 
     // Get native JE properties.
     newJEProperties = configuration.getJEProperty();

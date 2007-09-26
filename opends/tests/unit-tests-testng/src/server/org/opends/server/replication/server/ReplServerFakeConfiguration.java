@@ -109,7 +109,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
-  public String getReplicationDbDirectory()
+  public String getReplicationDBDirectory()
   {
     return dirName;
   }

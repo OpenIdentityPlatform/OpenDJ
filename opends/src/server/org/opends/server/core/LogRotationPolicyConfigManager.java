@@ -207,7 +207,7 @@ public class LogRotationPolicyConfigManager implements
 
     RotationPolicy policy =
         DirectoryServer.getRotationPolicy(configuration.dn());
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     if(!className.equals(policy.getClass().getName()))
     {
       adminActionRequired = true;
@@ -219,10 +219,10 @@ public class LogRotationPolicyConfigManager implements
   private boolean isJavaClassAcceptable(LogRotationPolicyCfg config,
                                         List<Message> unacceptableReasons)
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a RotationPolicy.
     Class<? extends RotationPolicy> theClass;
     try {
@@ -255,10 +255,10 @@ public class LogRotationPolicyConfigManager implements
 
   private RotationPolicy getRotationPolicy(LogRotationPolicyCfg config)
       throws ConfigException {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a RotationPolicy.
     Class<? extends RotationPolicy> theClass;
     RotationPolicy rotationPolicy;

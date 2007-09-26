@@ -94,9 +94,9 @@ public class AttributeValuePasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-attribute-value-password-validator",
          "cn: Attribute Value",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-test-reversed-password: true",
          "",
          "dn: cn=Attribute Value,cn=Password Validators,cn=config",
@@ -104,9 +104,9 @@ public class AttributeValuePasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-attribute-value-password-validator",
          "cn: Attribute Value",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-test-reversed-password: true",
          "",
@@ -115,9 +115,9 @@ public class AttributeValuePasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-attribute-value-password-validator",
          "cn: Attribute Value",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn",
          "ds-cfg-match-attribute: givenName",
@@ -129,9 +129,9 @@ public class AttributeValuePasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-attribute-value-password-validator",
          "cn: Attribute Value",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-test-reversed-password: false");
 
     Object[][] array = new Object[entries.size()][1];
@@ -184,9 +184,9 @@ public class AttributeValuePasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-attribute-value-password-validator",
          "cn: Attribute Value",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-test-reversed-password: invalid",
          "",
          // Invalid match attribute.
@@ -195,9 +195,9 @@ public class AttributeValuePasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-attribute-value-password-validator",
          "cn: Attribute Value",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "AttributeValuePasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: nosuchattribute",
          "ds-cfg-test-reversed-password: true");
 
@@ -260,9 +260,9 @@ public class AttributeValuePasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-attribute-value-password-validator",
              "cn: Attribute Value",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "AttributeValuePasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-test-reversed-password: true"),
         "password",
         true
@@ -278,9 +278,9 @@ public class AttributeValuePasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-attribute-value-password-validator",
              "cn: Attribute Value",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "AttributeValuePasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-test-reversed-password: true"),
         "test",
         false
@@ -296,9 +296,9 @@ public class AttributeValuePasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-attribute-value-password-validator",
              "cn: Attribute Value",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "AttributeValuePasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-test-reversed-password: true"),
         "tset",
         false
@@ -314,9 +314,9 @@ public class AttributeValuePasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-attribute-value-password-validator",
              "cn: Attribute Value",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "AttributeValuePasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-test-reversed-password: false"),
         "tset",
         true
@@ -332,9 +332,9 @@ public class AttributeValuePasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-attribute-value-password-validator",
              "cn: Attribute Value",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "AttributeValuePasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-match-attribute: cn",
              "ds-cfg-match-attribute: sn",
              "ds-cfg-match-attribute: givenName",
@@ -354,9 +354,9 @@ public class AttributeValuePasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-attribute-value-password-validator",
              "cn: Attribute Value",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "AttributeValuePasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-match-attribute: cn",
              "ds-cfg-match-attribute: sn",
              "ds-cfg-match-attribute: givenName",

@@ -53,9 +53,9 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.admin.std.client.MultimasterDomainCfgClient;
+import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
 import
-org.opends.server.admin.std.client.MultimasterSynchronizationProviderCfgClient;
+org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
 import org.opends.server.admin.std.client.ReplicationServerCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
@@ -1789,8 +1789,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      MultimasterSynchronizationProviderCfgClient sync =
-        (MultimasterSynchronizationProviderCfgClient)
+      ReplicationSynchronizationProviderCfgClient sync =
+        (ReplicationSynchronizationProviderCfgClient)
         root.getSynchronizationProvider("Multimaster Synchronization");
       if (sync.hasReplicationServer())
       {
@@ -1827,13 +1827,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
         }
       }
-      String[] domainNames = sync.listMultimasterDomains();
+      String[] domainNames = sync.listReplicationDomains();
       if (domainNames != null)
       {
         for (int i=0; i<domainNames.length; i++)
         {
-          MultimasterDomainCfgClient domain =
-            sync.getMultimasterDomain(domainNames[i]);
+          ReplicationDomainCfgClient domain =
+            sync.getReplicationDomain(domainNames[i]);
           Set<String> replServers = domain.getReplicationServer();
           if (replServers != null)
           {
@@ -1850,7 +1850,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             if (replServer != null)
             {
               LOG.log(Level.INFO, "Updating references in domain " +
-                  domain.getReplicationDN()+" on " + serverDisplay + ".");
+                  domain.getBaseDN()+" on " + serverDisplay + ".");
               replServers.remove(replServer);
               if (replServers.size() > 0)
               {
@@ -1859,7 +1859,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               }
               else
               {
-                sync.removeMultimasterDomain(domainNames[i]);
+                sync.removeReplicationDomain(domainNames[i]);
                 sync.commit();
               }
             }

@@ -137,7 +137,7 @@ public abstract class AbstractManagedObjectDefinition
 
     // If we have a parent definition then inherit its features.
     if (parent != null) {
-      parent.children.put(name, this);
+      registerInParent();
 
       for (PropertyDefinition<?> pd : parent.getAllPropertyDefinitions()) {
         allPropertyDefinitions.put(pd.getName(), pd);
@@ -740,41 +740,6 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Deregister a constraint from the managed object definition.
-   * <p>
-   * This method <b>must not</b> be called by applications and is
-   * only intended for internal testing.
-   *
-   * @param constraint
-   *          The constraint to be deregistered.
-   */
-  protected final void deregisterConstraint(Constraint constraint) {
-    constraints.remove(constraint);
-  }
-
-
-
-  /**
-   * Deregister a relation definition from the managed object
-   * definition.
-   * <p>
-   * This method <b>must not</b> be called by applications and is
-   * only intended for internal testing.
-   *
-   * @param d
-   *          The relation definition to be deregistered.
-   */
-  protected final void deregisterRelationDefinition(
-      RelationDefinition<?, ?> d) {
-    String name = d.getName();
-
-    relationDefinitions.remove(name);
-    allRelationDefinitions.remove(name);
-  }
-
-
-
-  /**
    * Initializes all of the property definitions associated with this
    * managed object definition.
    *
@@ -851,6 +816,68 @@ public abstract class AbstractManagedObjectDefinition
    */
   protected final void registerTag(Tag t) {
     allTags.add(t);
+  }
+
+
+
+  /**
+   * Deregister a constraint from the managed object definition.
+   * <p>
+   * This method <b>must not</b> be called by applications and is
+   * only intended for internal testing.
+   *
+   * @param constraint
+   *          The constraint to be deregistered.
+   */
+  final void deregisterConstraint(Constraint constraint) {
+    constraints.remove(constraint);
+  }
+
+
+
+  /**
+   * Deregister this managed object definition from its parent.
+   * <p>
+   * This method <b>must not</b> be called by applications and is
+   * only intended for internal testing.
+   */
+  final void deregisterFromParent() {
+    if (parent != null) {
+      parent.children.remove(name);
+    }
+  }
+
+
+
+  /**
+   * Deregister a relation definition from the managed object
+   * definition.
+   * <p>
+   * This method <b>must not</b> be called by applications and is
+   * only intended for internal testing.
+   *
+   * @param d
+   *          The relation definition to be deregistered.
+   */
+  final void deregisterRelationDefinition(
+      RelationDefinition<?, ?> d) {
+    String name = d.getName();
+    relationDefinitions.remove(name);
+    allRelationDefinitions.remove(name);
+  }
+
+
+
+  /**
+   * Register this managed object definition in its parent.
+   * <p>
+   * This method <b>must not</b> be called by applications and is
+   * only intended for internal testing.
+   */
+  final void registerInParent() {
+    if (parent != null) {
+      parent.children.put(name, this);
+    }
   }
 
 

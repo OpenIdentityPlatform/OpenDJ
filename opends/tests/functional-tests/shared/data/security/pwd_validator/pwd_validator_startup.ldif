@@ -331,7 +331,7 @@ objectClass: person
 objectClass: inetOrgPerson
 objectClass: top
 objectClass: organizationalPerson
-objectClass: ds-cfg-root-dn
+objectClass: ds-cfg-root-dn-user
 userPassword: password
 cn: Sales Admin
 givenName: Sales

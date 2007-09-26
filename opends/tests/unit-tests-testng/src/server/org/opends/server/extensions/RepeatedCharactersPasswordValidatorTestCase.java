@@ -99,10 +99,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: false",
          "",
          "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
@@ -110,10 +110,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: true",
          "",
          "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
@@ -121,10 +121,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 0",
          "ds-cfg-case-sensitive-validation: false");
 
     Object[][] array = new Object[entries.size()][1];
@@ -177,9 +177,9 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-case-sensitive-validation: false",
          "",
          // Missing case-sensitive validation
@@ -188,10 +188,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "",
          // Non-numeric maximum consecutive length
          "dn: cn=Repeated Characters,cn=Password Validators,cn=config",
@@ -199,10 +199,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: non-numeric",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: non-numeric",
          "ds-cfg-case-sensitive-validation: false",
          "",
          // Non-boolean case-sensitive validation
@@ -211,10 +211,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: non-boolean",
          "",
          // Maximum consecutive length out of range.
@@ -223,10 +223,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: -1",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: -1",
          "ds-cfg-case-sensitive-validation: false");
 
     Object[][] array = new Object[entries.size()][1];
@@ -294,10 +294,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: false");
 
     RepeatedCharactersPasswordValidatorCfg configuration =
@@ -363,10 +363,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: false");
 
     RepeatedCharactersPasswordValidatorCfg configuration =
@@ -431,10 +431,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: true");
 
     RepeatedCharactersPasswordValidatorCfg configuration =
@@ -500,10 +500,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: false");
 
     RepeatedCharactersPasswordValidatorCfg configuration =
@@ -567,10 +567,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 0",
          "ds-cfg-case-sensitive-validation: true");
 
     RepeatedCharactersPasswordValidatorCfg configuration =
@@ -635,10 +635,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 0",
          "ds-cfg-case-sensitive-validation: true");
 
     RepeatedCharactersPasswordValidatorCfg configuration =
@@ -675,10 +675,10 @@ public class RepeatedCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-repeated-characters-password-validator",
          "cn: Repeated Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "RepeatedCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-consecutive-length: 2",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-consecutive-length: 2",
          "ds-cfg-case-sensitive-validation: true");
 
     RepeatedCharactersPasswordValidatorCfg updatedConfiguration =

@@ -28,18 +28,18 @@ objectClass: ds-cfg-password-policy
 objectClass: top
 ds-cfg-skip-validation-for-administrators: false
 ds-cfg-password-expiration-warning-interval: 5 days
-ds-cfg-default-password-storage-scheme-dn: cn=Salted MD5,cn=Password Storage Schemes,cn=config
+ds-cfg-default-password-storage-scheme: cn=Salted MD5,cn=Password Storage Schemes,cn=config
 ds-cfg-grace-login-count: 0
 ds-cfg-lockout-duration: 0 seconds
-ds-cfg-maximum-password-age: 6 weeks
-ds-cfg-maximum-password-reset-age: 0 seconds
+ds-cfg-max-password-age: 6 weeks
+ds-cfg-max-password-reset-age: 0 seconds
 ds-cfg-lockout-failure-expiration-interval: 0 seconds
 ds-cfg-allow-user-password-changes: true
 ds-cfg-allow-multiple-password-values: false
-ds-cfg-minimum-password-age: 0 seconds
+ds-cfg-min-password-age: 0 seconds
 ds-cfg-expire-passwords-without-warning: false
 ds-cfg-idle-lockout-interval: 0 seconds
-ds-cfg-password-generator-dn: cn=Random Password Generator,cn=Password Generator
+ds-cfg-password-generator: cn=Random Password Generator,cn=Password Generator
  s,cn=config
 ds-cfg-require-secure-authentication: false
 ds-cfg-force-change-on-add: false

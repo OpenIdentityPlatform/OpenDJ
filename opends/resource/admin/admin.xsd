@@ -1157,15 +1157,6 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="oid">
-        <xsd:annotation>
-          <xsd:documentation>
-            Used for properties which contain LDAP object identifiers
-            (e.g. attribute names, object classes, controls, etc).
-          </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType />
-      </xsd:element>
       <xsd:element name="aci">
         <xsd:annotation>
           <xsd:documentation>

@@ -48,7 +48,6 @@ import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -324,20 +323,8 @@ public final class JmxConnectionHandler extends
   public void initializeConnectionHandler(JMXConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // Validate the key manager provider DN.
-    DN keyManagerProviderDN = config.getKeyManagerProviderDN();
-    if (keyManagerProviderDN != null) {
-      KeyManagerProvider provider = DirectoryServer
-          .getKeyManagerProvider(keyManagerProviderDN);
-      if (provider == null) {
-        Message message = ERR_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN.get(
-            String.valueOf(config.dn()), String.valueOf(keyManagerProviderDN));
-        throw new ConfigException(message);
-      }
-    }
-
     // Issue warning if there is not key manager by SSL is enabled.
-    if (config.isUseSSL() && keyManagerProviderDN == null) {
+    if (config.isUseSSL() && config.getKeyManagerProvider() == null) {
       // TODO: give a more useful feedback message.
       Message message = ERR_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL.get(
           String.valueOf(currentConfig.dn()), "");
@@ -441,23 +428,8 @@ public final class JmxConnectionHandler extends
       List<Message> unacceptableReasons) {
     boolean isAcceptable = true;
 
-    //  Validate the key manager provider DN.
-    DN keyManagerProviderDN = config.getKeyManagerProviderDN();
-    if (keyManagerProviderDN != null) {
-      KeyManagerProvider provider = DirectoryServer
-          .getKeyManagerProvider(keyManagerProviderDN);
-      if (provider == null) {
-
-        unacceptableReasons.add(ERR_JMX_CONNHANDLER_INVALID_KEYMANAGER_DN.get(
-                String.valueOf(config.dn()),
-                String.valueOf(keyManagerProviderDN)));
-        isAcceptable = false;
-      }
-    }
-
-    if (config.isUseSSL() && keyManagerProviderDN == null) {
+    if (config.isUseSSL() && config.getKeyManagerProvider() == null) {
       // TODO: give a more useful feedback message.
-
       unacceptableReasons.add(ERR_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL.get(
               String.valueOf(config.dn()), ""));
       isAcceptable = false;

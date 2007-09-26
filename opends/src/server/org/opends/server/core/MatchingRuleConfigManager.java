@@ -135,7 +135,7 @@ public class MatchingRuleConfigManager
 
       if (mrConfiguration.isEnabled())
       {
-        String className = mrConfiguration.getMatchingRuleClass();
+        String className = mrConfiguration.getJavaClass();
         try
         {
           MatchingRule matchingRule =
@@ -175,7 +175,7 @@ public class MatchingRuleConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // matching rule.
-      String className = configuration.getMatchingRuleClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMatchingRule(className, configuration, false);
@@ -213,7 +213,7 @@ public class MatchingRuleConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a
     // matching rule.
-    String className = configuration.getMatchingRuleClass();
+    String className = configuration.getJavaClass();
     try
     {
       matchingRule = loadMatchingRule(className, configuration, true);
@@ -374,7 +374,7 @@ public class MatchingRuleConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // matching rule.
-      String className = configuration.getMatchingRuleClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMatchingRule(className, configuration, false);
@@ -507,7 +507,7 @@ public class MatchingRuleConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the matching rule is disabled, then instantiate the
     // class and initialize and register it as a matching rule.
-    String className = configuration.getMatchingRuleClass();
+    String className = configuration.getJavaClass();
     if (existingRule != null)
     {
       if (! className.equals(existingRule.getClass().getName()))
@@ -584,7 +584,7 @@ public class MatchingRuleConfigManager
         ApproximateMatchingRuleCfgDefn definition =
              ApproximateMatchingRuleCfgDefn.getInstance();
         ClassPropertyDefinition propertyDefinition =
-             definition.getMatchingRuleClassPropertyDefinition();
+             definition.getJavaClassPropertyDefinition();
         Class<? extends ApproximateMatchingRule> approximateMatchingRuleClass =
              propertyDefinition.loadClass(className,
                                           ApproximateMatchingRule.class);
@@ -595,7 +595,7 @@ public class MatchingRuleConfigManager
         EqualityMatchingRuleCfgDefn definition =
              EqualityMatchingRuleCfgDefn.getInstance();
         ClassPropertyDefinition propertyDefinition =
-             definition.getMatchingRuleClassPropertyDefinition();
+             definition.getJavaClassPropertyDefinition();
         Class<? extends EqualityMatchingRule> equalityMatchingRuleClass =
              propertyDefinition.loadClass(className,
                                           EqualityMatchingRule.class);
@@ -606,7 +606,7 @@ public class MatchingRuleConfigManager
         OrderingMatchingRuleCfgDefn definition =
              OrderingMatchingRuleCfgDefn.getInstance();
         ClassPropertyDefinition propertyDefinition =
-             definition.getMatchingRuleClassPropertyDefinition();
+             definition.getJavaClassPropertyDefinition();
         Class<? extends OrderingMatchingRule> orderingMatchingRuleClass =
              propertyDefinition.loadClass(className,
                                           OrderingMatchingRule.class);
@@ -617,7 +617,7 @@ public class MatchingRuleConfigManager
         SubstringMatchingRuleCfgDefn definition =
              SubstringMatchingRuleCfgDefn.getInstance();
         ClassPropertyDefinition propertyDefinition =
-             definition.getMatchingRuleClassPropertyDefinition();
+             definition.getJavaClassPropertyDefinition();
         Class<? extends SubstringMatchingRule> substringMatchingRuleClass =
              propertyDefinition.loadClass(className,
                                           SubstringMatchingRule.class);

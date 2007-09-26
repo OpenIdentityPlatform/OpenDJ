@@ -128,7 +128,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
         .getRootConnection();
     mods.add(new Modification(ModificationType.REPLACE,
         new org.opends.server.types.Attribute(
-            "ds-cfg-connection-handler-enabled", "true")));
+            "ds-cfg-enabled", "true")));
     ModifyOperationBasis op = new ModifyOperationBasis(
         conn,
         conn.nextOperationID(),

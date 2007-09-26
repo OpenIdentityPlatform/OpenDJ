@@ -42,8 +42,8 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.TrustManagerCfg;
-import org.opends.server.admin.std.server.FileBasedTrustManagerCfg;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
+import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -68,8 +68,8 @@ import static org.opends.server.util.StaticUtils.*;
  * stored in a file located on the Directory Server filesystem.
  */
 public class FileBasedTrustManagerProvider
-       extends TrustManagerProvider<FileBasedTrustManagerCfg>
-       implements ConfigurationChangeListener<FileBasedTrustManagerCfg>
+       extends TrustManagerProvider<FileBasedTrustManagerProviderCfg>
+       implements ConfigurationChangeListener<FileBasedTrustManagerProviderCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -86,7 +86,7 @@ public class FileBasedTrustManagerProvider
   private char[] trustStorePIN;
 
   // The handle to the configuration for this trust manager.
-  private FileBasedTrustManagerCfg currentConfig;
+  private FileBasedTrustManagerProviderCfg currentConfig;
 
   // The path to the trust store backing file.
   private String trustStoreFile;
@@ -113,7 +113,7 @@ public class FileBasedTrustManagerProvider
    */
   @Override()
   public void initializeTrustManagerProvider(
-                   FileBasedTrustManagerCfg configuration)
+                   FileBasedTrustManagerProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // Store the DN of the configuration entry and register to listen for any
@@ -346,10 +346,12 @@ public class FileBasedTrustManagerProvider
    * {@inheritDoc}
    */
   @Override()
-  public boolean isConfigurationAcceptable(TrustManagerCfg configuration,
-                                           List<Message> unacceptableReasons)
+  public boolean isConfigurationAcceptable(
+                         TrustManagerProviderCfg configuration,
+                         List<Message> unacceptableReasons)
   {
-    FileBasedTrustManagerCfg config = (FileBasedTrustManagerCfg) configuration;
+    FileBasedTrustManagerProviderCfg config =
+            (FileBasedTrustManagerProviderCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
@@ -359,7 +361,7 @@ public class FileBasedTrustManagerProvider
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-                      FileBasedTrustManagerCfg configuration,
+                      FileBasedTrustManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
@@ -509,7 +511,7 @@ public class FileBasedTrustManagerProvider
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-                                 FileBasedTrustManagerCfg configuration)
+                                 FileBasedTrustManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

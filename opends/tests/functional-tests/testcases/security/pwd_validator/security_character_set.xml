@@ -46,7 +46,7 @@
                 'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-password-validator-enabled:true',
+                'attrToBeCompared'   : 'ds-cfg-enabled:true',
                 'entryToBeCompared'  : 'cn=Character Set,cn=Password Validators,cn=config' }
             </call>
 
@@ -60,8 +60,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Character Set,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Character Set' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -390,8 +390,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Character Set,cn=Password Validators,cn=config' ,
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Character Set' ,
                     'modifyType'             : 'remove' }
             </call>
             

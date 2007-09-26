@@ -41,13 +41,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.139</ldap:oid>
       <ldap:name>ds-cfg-client-connection-monitor-provider</ldap:name>
       <ldap:superior>ds-cfg-monitor-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="monitor-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

@@ -26,8 +26,8 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="multimaster-domain"
-  plural-name="multimaster-domains"
+<adm:managed-object name="replication-domain"
+  plural-name="replication-domains"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
@@ -40,8 +40,7 @@
   <adm:tag name="replication"/>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.58</ldap:oid>
-      <ldap:name>ds-cfg-replication-domain-config</ldap:name>
+      <ldap:name>ds-cfg-replication-domain</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -71,7 +70,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.160</ldap:oid>
         <ldap:name>ds-cfg-replication-server</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -92,12 +90,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.279</ldap:oid>
-        <ldap:name>ds-cfg-directory-server-id</ldap:name>
+        <ldap:name>ds-cfg-server-id</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="replication-dn" mandatory="true"
+  <adm:property name="base-dn" mandatory="true"
     multi-valued="false" read-only="true">
     <adm:synopsis>
       Specifies the base dn of the Multimaster Domain
@@ -107,8 +104,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.226</ldap:oid>
-        <ldap:name>ds-cfg-replication-dn</ldap:name>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -128,7 +124,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.164</ldap:oid>
         <ldap:name>ds-cfg-max-receive-queue</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -150,7 +145,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.165</ldap:oid>
         <ldap:name>ds-cfg-max-receive-delay</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -171,7 +165,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.166</ldap:oid>
         <ldap:name>ds-cfg-max-send-queue</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -193,7 +186,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.167</ldap:oid>
         <ldap:name>ds-cfg-max-send-delay</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -214,7 +206,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.288</ldap:oid>
         <ldap:name>ds-cfg-window-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -239,7 +230,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.305</ldap:oid>
         <ldap:name>ds-cfg-heartbeat-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -279,7 +269,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.383</ldap:oid>
         <ldap:name>ds-cfg-isolation-policy</ldap:name>
       </ldap:attribute>
     </adm:profile>

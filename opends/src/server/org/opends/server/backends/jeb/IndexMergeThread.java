@@ -50,7 +50,7 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.JebMessages.*;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 /**
@@ -73,7 +73,7 @@ public class IndexMergeThread extends DirectoryThread
   /**
    * The configuration of the JE backend containing the index.
    */
-  JEBackendCfg config;
+  LocalDBBackendCfg config;
 
   /**
    * The LDIF import configuration, which indicates whether we are
@@ -134,7 +134,7 @@ public class IndexMergeThread extends DirectoryThread
    * @param index The index database to be written.
    * @param entryLimit The configured index entry limit.
    */
-  IndexMergeThread(JEBackendCfg config,
+  IndexMergeThread(LocalDBBackendCfg config,
                    LDIFImportConfig ldifImportConfig,
                    Index index, int entryLimit)
   {
@@ -185,7 +185,7 @@ public class IndexMergeThread extends DirectoryThread
          new TreeMap<ASN1OctetString, MergeValue>(comparator);
 
     // Open all the files.
-    File tempDir = getFileForPath(config.getBackendImportTempDirectory());
+    File tempDir = getFileForPath(config.getImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
 
     if (files == null || files.length == 0)

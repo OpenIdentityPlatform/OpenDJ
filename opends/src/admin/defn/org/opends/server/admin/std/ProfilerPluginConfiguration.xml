@@ -39,12 +39,11 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.38</ldap:oid>
       <ldap:name>ds-cfg-profiler-plugin</ldap:name>
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="plugin-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -74,7 +73,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.85</ldap:oid>
         <ldap:name>ds-cfg-profile-sample-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -94,7 +92,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.83</ldap:oid>
         <ldap:name>ds-cfg-profile-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -115,7 +112,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.33</ldap:oid>
         <ldap:name>ds-cfg-enable-profiling-on-startup</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -164,7 +160,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.82</ldap:oid>
         <ldap:name>ds-cfg-profile-action</ldap:name>
       </ldap:attribute>
     </adm:profile>

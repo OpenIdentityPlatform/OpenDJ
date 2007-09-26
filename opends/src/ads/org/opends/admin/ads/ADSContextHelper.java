@@ -82,7 +82,7 @@ public class ADSContextHelper
       }
       if (backend != null)
       {
-        SortedSet<DN> suffixes = backend.getBackendBaseDN();
+        SortedSet<DN> suffixes = backend.getBaseDN();
         if (suffixes != null)
         {
           if (suffixes.remove(
@@ -90,7 +90,7 @@ public class ADSContextHelper
           {
             if (suffixes.size() > 0)
             {
-              backend.setBackendBaseDN(suffixes);
+              backend.setBaseDN(suffixes);
               backend.commit();
             }
             else

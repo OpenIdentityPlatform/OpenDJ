@@ -102,11 +102,8 @@ public class DigestMD5SASLMechanismHandler
   // The current configuration for this SASL mechanism handler.
   private DigestMD5SASLMechanismHandlerCfg currentConfig;
 
-  // The DN of the configuration entry for this SASL mechanism handler.
-  private DN configEntryDN;
-
   // The identity mapper that will be used to map ID strings to user entries.
-  private IdentityMapper identityMapper;
+  private IdentityMapper<?> identityMapper;
 
   // The message digest engine that will be used to create the MD5 digests.
   private MessageDigest md5Digest;
@@ -141,9 +138,7 @@ public class DigestMD5SASLMechanismHandler
          throws ConfigException, InitializationException
   {
     configuration.addDigestMD5ChangeListener(this);
-
     currentConfig = configuration;
-    configEntryDN = configuration.dn();
 
 
     // Initialize the variables needed for the MD5 digest creation.
@@ -170,12 +165,6 @@ public class DigestMD5SASLMechanismHandler
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (identityMapper == null)
-    {
-      Message message = ERR_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER.get(
-          String.valueOf(identityMapperDN), String.valueOf(configEntryDN));
-      throw new ConfigException(message);
-    }
 
 
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5,
@@ -204,7 +193,7 @@ public class DigestMD5SASLMechanismHandler
   public void processSASLBind(BindOperation bindOperation)
   {
     DigestMD5SASLMechanismHandlerCfg config = currentConfig;
-    IdentityMapper identityMapper = this.identityMapper;
+    IdentityMapper<?> identityMapper = this.identityMapper;
     String realm = config.getRealm();
 
 
@@ -1584,23 +1573,7 @@ public class DigestMD5SASLMechanismHandler
                       DigestMD5SASLMechanismHandlerCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper newIdentityMapper =
-         DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (newIdentityMapper == null)
-    {
-      unacceptableReasons.add(ERR_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER.get(
-              String.valueOf(identityMapperDN),
-              String.valueOf(cfgEntryDN)));
-      configAcceptable = false;
-    }
-
-
-    return configAcceptable;
+    return true;
   }
 
 
@@ -1615,32 +1588,12 @@ public class DigestMD5SASLMechanismHandler
     boolean           adminActionRequired = false;
     ArrayList<Message> messages            = new ArrayList<Message>();
 
-
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper newIdentityMapper =
-         DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (newIdentityMapper == null)
-    {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
+    identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+    currentConfig  = configuration;
 
-      messages.add(ERR_SASLDIGESTMD5_NO_SUCH_IDENTITY_MAPPER.get(
-              String.valueOf(identityMapperDN),
-              String.valueOf(configEntryDN)));
-    }
-
-
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      identityMapper = newIdentityMapper;
-      currentConfig  = configuration;
-    }
-
-
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

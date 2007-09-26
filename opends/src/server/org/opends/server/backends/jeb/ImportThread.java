@@ -180,7 +180,7 @@ public class ImportThread extends DirectoryThread
     for (AttributeIndex attrIndex : entryContainer.getAttributeIndexes())
     {
       int indexEntryLimit =
-          importContext.getConfig().getBackendIndexEntryLimit();
+          importContext.getConfig().getIndexEntryLimit();
       if(attrIndex.getConfiguration().getIndexEntryLimit() != null)
       {
         indexEntryLimit = attrIndex.getConfiguration().getIndexEntryLimit();
@@ -243,7 +243,7 @@ public class ImportThread extends DirectoryThread
     Index id2Children = entryContainer.getID2Children();
     AttributeIndexBuilder attributeIndexBuilder =
          new AttributeIndexBuilder(importContext, id2Children,
-                          importContext.getConfig().getBackendIndexEntryLimit(),
+                          importContext.getConfig().getIndexEntryLimit(),
                           indexBufferSize);
     builders.add(attributeIndexBuilder);
 
@@ -251,7 +251,7 @@ public class ImportThread extends DirectoryThread
     Index id2Subtree = entryContainer.getID2Subtree();
     attributeIndexBuilder =
          new AttributeIndexBuilder(importContext, id2Subtree,
-                          importContext.getConfig().getBackendIndexEntryLimit(),
+                          importContext.getConfig().getIndexEntryLimit(),
                           indexBufferSize);
     builders.add(attributeIndexBuilder);
 

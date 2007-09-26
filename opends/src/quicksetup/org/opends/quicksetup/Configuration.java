@@ -95,18 +95,6 @@ public class Configuration {
   }
 
   /**
-   * Provides the LDAP secure port as is specified in the config.ldif file.
-   *
-   * @return the LDAP secure port specified in the config.ldif file.
-   * @throws IOException if there were problems reading the information from
-   * the configuration file.
-   */
-  public int getSecurePort() throws IOException {
-    // TODO find out which is the attribute for this port.
-    return getLDAPPort("ds-cfg-listen-secure-port");
-  }
-
-  /**
    * Tells whether this server is configured as a replication server or not.
    * @return <CODE>true</CODE> if the server is configured as a Replication
    * Server and <CODE>false</CODE> otherwise.
@@ -132,7 +120,7 @@ public class Configuration {
     int index = contents.indexOf("cn=replication server");
 
     if (index != -1) {
-      String attrWithPoints = "ds-cfg-replication-server-port:";
+      String attrWithPoints = "ds-cfg-replication-port:";
       int index1 = contents.indexOf(attrWithPoints, index);
       if (index1 != -1) {
         int index2 =
@@ -283,7 +271,7 @@ public class Configuration {
    * @throws IOException if there is a problem reading the config file.
    */
   public Set<String> getDatabasePaths() throws IOException {
-    return getConfigurationValues("ds-cfg-backend-directory");
+    return getConfigurationValues("ds-cfg-db-directory");
   }
 
   /**
@@ -293,7 +281,7 @@ public class Configuration {
    * @throws IOException if there is a problem reading the config file.
    */
   public Set<String> getBaseDNs() throws IOException {
-    return getConfigurationValues("ds-cfg-backend-base-dn");
+    return getConfigurationValues("ds-cfg-base-dn");
   }
 
   /**

@@ -500,8 +500,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'create-key-manager' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'create-key-manager-provider' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     :  customKeyMgr ,
           'optionsString'  :  '--type file-based --set enabled:true --set key-store-file:config/keystore --set key-store-pin:%s --set key-store-type:JKS' % keystorePin,
           'expectedRC'     : 0 
@@ -515,8 +515,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'set-key-manager-prop' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'set-key-manager-provider-prop' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     : keystoreType,
           'optionsString'  : '--set key-store-file:config/keystore --reset key-store-pin-file --set key-store-pin:%s --set enabled:true' % keystorePin,
           'expectedRC'     : 0 
@@ -538,10 +538,10 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'create-trust-manager' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'create-trust-manager-provider' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     :  customTrustMgr ,
-          'optionsString'  :  '--type blind --set enabled:true --set java-implementation-class:org.opends.server.extensions.BlindTrustManagerProvider' ,
+          'optionsString'  :  '--type blind --set enabled:true --set java-class:org.opends.server.extensions.BlindTrustManagerProvider' ,
           'expectedRC'     : 0 
         }
       </call>
@@ -553,8 +553,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'set-trust-manager-prop' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'set-trust-manager-provider-prop' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:true' ,
           'expectedRC'     : 0
@@ -572,13 +572,13 @@
       <script>
         option1='--set ssl-cert-nickname:%s' % certAlias
         if customTrustMgr:
-          option2='--set trust-manager-provider-dn:"cn=%s,cn=Trust Manager Providers,cn=config"' % (customTrustMgr)
+          option2='--set trust-manager-provider:"%s"' % (customTrustMgr)
         else:
-          option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config"'
+          option2='--set trust-manager-provider:"Blind Trust"'
         if customKeyMgr:
-          option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (customKeyMgr)
+          option3='--set key-manager-provider:"%s"' % (customKeyMgr)
         else:
-          option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
+          option3='--set key-manager-provider:"%s"' % (keystoreType)
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
         option5='--set enabled:true' 
         optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)     
@@ -683,8 +683,8 @@
           'dsInstancePort'  : dsInstancePort,
           'dsInstanceDn'    : dsInstanceDn,
           'dsInstancePswd'  : dsInstancePswd,
-          'subcommand'      : 'set-key-manager-prop',
-          'objectType'      : 'manager-name',
+          'subcommand'      : 'set-key-manager-provider-prop',
+          'objectType'      : 'provider-name',
           'objectName'      : keystoreType,
           'optionsString'   : '--set key-store-file:config/keystore --reset key-store-pin-file --set key-store-pin:%s --set enabled:true' % keystorePin,
           'expectedRC'      : 0
@@ -704,8 +704,8 @@
           'dsInstancePort' : dsInstancePort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     : 'set-trust-manager-prop',
-          'objectType'     : 'manager-name',
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:true',
           'expectedRC'     : 0
@@ -719,8 +719,8 @@
       
       <script>
         option1='--set ssl-cert-nickname:%s' % certAlias
-        option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config" '
-        option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
+        option2='--set trust-manager-provider:"Blind Trust" '
+        option3='--set key-manager-provider:"%s"' % (keystoreType)
         option4='--set allow-start-tls:true' 
         optionsString='%s %s %s %s' % (option1,option2,option3,option4)    
       </script>
@@ -824,8 +824,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   :  dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     :  'set-key-manager-prop' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     :  'set-key-manager-provider-prop' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     : keystoreType,
           'optionsString'  :  '--set key-store-file:config/keystore --reset key-store-pin-file  --set key-store-pin:%s --set enabled:true' % keystorePin,
           'expectedRC'     : 0
@@ -844,8 +844,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   :  dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     :  'set-trust-manager-prop' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     :  'set-trust-manager-provider-prop' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:true' ,
           'expectedRC'     : 0 
@@ -860,8 +860,8 @@
       
       <script>
         option1='--set ssl-cert-nickname:%s' % certAlias
-        option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config"'
-        option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
+        option2='--set trust-manager-provider:"Blind Trust"'
+        option3='--set key-manager-provider:"%s"' % (keystoreType)
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
         option5='--set enabled:true'
         optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)
@@ -889,8 +889,8 @@
       
       <script>
         option1='--set ssl-cert-nickname:%s' % certAlias
-        option2='--set trust-manager-provider-dn:"cn=Blind Trust,cn=Trust Manager Providers,cn=config" '
-        option3='--set key-manager-provider-dn:"cn=%s,cn=Key Manager Providers,cn=config"' % (keystoreType)
+        option2='--set trust-manager-provider:"Blind Trust" '
+        option3='--set key-manager-provider:"%s"' % (keystoreType)
         option4='--set allow-start-tls:true' 
         optionsString='%s %s %s %s' % (option1,option2,option3,option4)    
       </script>
@@ -999,7 +999,7 @@
           'objectType'     : 'handler-name' ,
           'objectName'     : 'LDAPS Connection Handler',
           'optionsString'  : '--set enabled:false',
-          'expectedRC'     : 0 
+          'expectedRC'     : 0
         }
       </call>
       
@@ -1013,7 +1013,7 @@
           'subcommand'     : 'set-connection-handler-prop' ,
           'objectType'     : 'handler-name' ,
           'objectName'     : 'LDAPS Connection Handler',
-          'optionsString'  : '--reset key-manager-provider-dn --reset trust-manager-provider-dn --reset ssl-cert-nickname',
+          'optionsString'  : '--reset key-manager-provider --reset trust-manager-provider --reset ssl-cert-nickname',
           'expectedRC'     : 0 
         }
       </call>
@@ -1030,8 +1030,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'delete-trust-manager' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'delete-trust-manager-provider' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     :  customTrustMgr ,
           'expectedRC'     : 0 
         }
@@ -1044,8 +1044,8 @@
           'dsInstancePort' : dsInstancePort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     : 'set-trust-manager-prop',
-          'objectType'     : 'manager-name',
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:false',
           'expectedRC'     : 0
@@ -1067,8 +1067,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'delete-key-manager' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'delete-key-manager-provider' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     :  customKeyMgr ,
           'expectedRC'     : 0 
         }
@@ -1081,8 +1081,8 @@
           'dsInstancePort' : dsInstancePort ,
           'dsInstanceDn'   : dsInstanceDn ,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'set-key-manager-prop' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'set-key-manager-provider-prop' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     : keystoreType,
           'optionsString'  : '--set enabled:false',
           'expectedRC'     : 0 
@@ -1183,8 +1183,8 @@
           'dsInstancePort' : dsInstancePort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     : 'set-trust-manager-prop',
-          'objectType'     : 'manager-name',
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:false',
           'expectedRC'     : 0 
@@ -1203,8 +1203,8 @@
           'dsInstancePort' : dsInstancePort,
           'dsInstanceDn'   :  dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     :  'set-key-manager-prop',
-          'objectType'     : 'manager-name',
+          'subcommand'     :  'set-key-manager-provider-prop',
+          'objectType'     : 'provider-name',
           'objectName'     : keystoreType,
           'optionsString'  :  '--set enabled:false',
           'expectedRC'     : 0 
@@ -1323,8 +1323,8 @@
           'dsInstancePort' : dsInstancePort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd ,
-          'subcommand'     : 'set-trust-manager-prop' ,
-          'objectType'     : 'manager-name' ,
+          'subcommand'     : 'set-trust-manager-provider-prop' ,
+          'objectType'     : 'provider-name' ,
           'objectName'     : 'Blind Trust',
           'optionsString'  : '--set enabled:false' ,
           'expectedRC'     : 0
@@ -1343,8 +1343,8 @@
           'dsInstancePort' : dsInstancePort,
           'dsInstanceDn'   : dsInstanceDn,
           'dsInstancePswd' : dsInstancePswd,
-          'subcommand'     : 'set-key-manager-prop',
-          'objectType'     : 'manager-name',
+          'subcommand'     : 'set-key-manager-provider-prop',
+          'objectType'     : 'provider-name',
           'objectName'     : keystoreType,
           'optionsString'  : '--set enabled:false',
           'expectedRC'     : 0 

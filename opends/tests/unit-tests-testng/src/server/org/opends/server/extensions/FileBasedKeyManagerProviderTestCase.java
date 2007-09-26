@@ -39,8 +39,8 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.FileBasedKeyManagerCfgDefn;
-import org.opends.server.admin.std.server.FileBasedKeyManagerCfg;
+import org.opends.server.admin.std.meta.FileBasedKeyManagerProviderCfgDefn;
+import org.opends.server.admin.std.server.FileBasedKeyManagerProviderCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -102,9 +102,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin: password",
          "",
@@ -113,9 +113,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-file: config/server.pin",
          "",
@@ -124,9 +124,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-property: org.opends.server.KeyStorePIN",
          "",
@@ -135,9 +135,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin: password",
          "ds-cfg-key-store-type: JKS",
@@ -147,9 +147,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server-cert.p12",
          "ds-cfg-key-store-pin: password",
          "ds-cfg-key-store-type: PKCS12");
@@ -178,9 +178,9 @@ public class FileBasedKeyManagerProviderTestCase
   public void testVvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedKeyManagerCfg configuration =
+    FileBasedKeyManagerProviderCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              FileBasedKeyManagerCfgDefn.getInstance(), e);
+              FileBasedKeyManagerProviderCfgDefn.getInstance(), e);
 
     FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();
     provider.initializeKeyManagerProvider(configuration);
@@ -205,9 +205,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-pin: password",
          "",
          "dn: cn=Nonexistent Key Store File,cn=SSL,cn=config",
@@ -215,9 +215,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/nosuchfile",
          "ds-cfg-key-store-pin: password",
          "",
@@ -226,9 +226,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "",
          "dn: cn=Nonexistent Key Store PIN File,cn=SSL,cn=config",
@@ -236,9 +236,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-file: config/nosuchfile",
          "",
@@ -247,9 +247,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-file: config/empty",
          "",
@@ -258,9 +258,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-property: nosuchproperty",
          "",
@@ -269,9 +269,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin-environment-variable: nosuchenv",
          "",
@@ -280,9 +280,9 @@ public class FileBasedKeyManagerProviderTestCase
          "objectClass: ds-cfg-key-manager-provider",
          "objectClass: ds-cfg-file-based-key-manager-provider",
          "cn: Key Manager Provider",
-         "ds-cfg-key-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedKeyManagerProvider",
-         "ds-cfg-key-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server.keystore",
          "ds-cfg-key-store-pin: password",
          "ds-cfg-key-store-type: invalid");
@@ -313,9 +313,9 @@ public class FileBasedKeyManagerProviderTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedKeyManagerCfg configuration =
+    FileBasedKeyManagerProviderCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              FileBasedKeyManagerCfgDefn.getInstance(), e);
+              FileBasedKeyManagerProviderCfgDefn.getInstance(), e);
 
 
     FileBasedKeyManagerProvider provider = new FileBasedKeyManagerProvider();

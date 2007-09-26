@@ -1441,8 +1441,8 @@ public class LDIFBackend
       currentConfig = (LDIFBackendCfg) config;
       currentConfig.addLDIFChangeListener(this);
 
-      baseDNs = new DN[currentConfig.getBackendBaseDN().size()];
-      currentConfig.getBackendBaseDN().toArray(baseDNs);
+      baseDNs = new DN[currentConfig.getBaseDN().size()];
+      currentConfig.getBaseDN().toArray(baseDNs);
       if (baseDNs.length != 1)
       {
         throw new ConfigException(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(
@@ -1475,7 +1475,7 @@ public class LDIFBackend
     boolean configAcceptable = true;
 
     // Make sure that there is only a single base DN.
-    if (configuration.getBackendBaseDN().size() != 1)
+    if (configuration.getBaseDN().size() != 1)
     {
       unacceptableReasons.add(ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(
                                    configuration.dn().toString()));
@@ -1512,7 +1512,7 @@ public class LDIFBackend
 
     if (baseDNSet != null)
     {
-      if (! baseDNSet.equals(configuration.getBackendBaseDN()))
+      if (! baseDNSet.equals(configuration.getBaseDN()))
       {
         messages.add(INFO_LDIF_BACKEND_BASE_DN_CHANGED.get());
         adminActionRequired = true;

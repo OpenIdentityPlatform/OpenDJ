@@ -39,8 +39,8 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.KeyManagerCfgDefn;
-import org.opends.server.admin.std.server.KeyManagerCfg;
+import org.opends.server.admin.std.meta.KeyManagerProviderCfgDefn;
+import org.opends.server.admin.std.server.KeyManagerProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.KeyManagerProvider;
@@ -64,10 +64,10 @@ import static org.opends.server.util.StaticUtils.*;
  * additions, removals, or modifications to any key manager providers while
  * the server is running.
  */
-public class KeyManagerProviderConfigManager
-       implements ConfigurationChangeListener<KeyManagerCfg>,
-                  ConfigurationAddListener<KeyManagerCfg>,
-                  ConfigurationDeleteListener<KeyManagerCfg>
+public class  KeyManagerProviderConfigManager
+       implements ConfigurationChangeListener<KeyManagerProviderCfg>,
+                  ConfigurationAddListener<KeyManagerProviderCfg>,
+                  ConfigurationDeleteListener<KeyManagerProviderCfg>
 
 {
   // A mapping between the DNs of the config entries and the associated key
@@ -110,19 +110,20 @@ public class KeyManagerProviderConfigManager
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any key manager provider entries are added or removed.
-    rootConfiguration.addKeyManagerAddListener(this);
-    rootConfiguration.addKeyManagerDeleteListener(this);
+    rootConfiguration.addKeyManagerProviderAddListener(this);
+    rootConfiguration.addKeyManagerProviderDeleteListener(this);
 
 
     //Initialize the existing key manager providers.
-    for (String name : rootConfiguration.listKeyManagers())
+    for (String name : rootConfiguration.listKeyManagerProviders())
     {
-      KeyManagerCfg providerConfig = rootConfiguration.getKeyManager(name);
+      KeyManagerProviderCfg providerConfig =
+              rootConfiguration.getKeyManagerProvider(name);
       providerConfig.addChangeListener(this);
 
       if (providerConfig.isEnabled())
       {
-        String className = providerConfig.getJavaImplementationClass();
+        String className = providerConfig.getJavaClass();
         try
         {
           KeyManagerProvider provider =
@@ -145,14 +146,15 @@ public class KeyManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationAddAcceptable(KeyManagerCfg configuration,
-                                              List<Message> unacceptableReasons)
+  public boolean isConfigurationAddAcceptable(
+          KeyManagerProviderCfg configuration,
+          List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
       // Get the name of the class and make sure we can instantiate it as a
       // key manager provider.
-      String className = configuration.getJavaImplementationClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadProvider(className, configuration, false);
@@ -173,7 +175,8 @@ public class KeyManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(KeyManagerCfg configuration)
+  public ConfigChangeResult applyConfigurationAdd(
+          KeyManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -190,7 +193,7 @@ public class KeyManagerProviderConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a key
     // manager provider.
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     try
     {
       provider = loadProvider(className, configuration, true);
@@ -219,7 +222,8 @@ public class KeyManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationDeleteAcceptable(KeyManagerCfg configuration,
+  public boolean isConfigurationDeleteAcceptable(
+                      KeyManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
@@ -233,7 +237,7 @@ public class KeyManagerProviderConfigManager
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationDelete(
-                                 KeyManagerCfg configuration)
+                                 KeyManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -255,14 +259,15 @@ public class KeyManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(KeyManagerCfg configuration,
+  public boolean isConfigurationChangeAcceptable(
+                      KeyManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
       // Get the name of the class and make sure we can instantiate it as a key
       // manager provider.
-      String className = configuration.getJavaImplementationClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadProvider(className, configuration, false);
@@ -284,7 +289,7 @@ public class KeyManagerProviderConfigManager
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-                                 KeyManagerCfg configuration)
+                                 KeyManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -319,7 +324,7 @@ public class KeyManagerProviderConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the provider is disabled, then instantiate the class and
     // initialize and register it as a key manager provider.
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     if (existingProvider != null)
     {
       if (! className.equals(existingProvider.getClass().getName()))
@@ -376,15 +381,16 @@ public class KeyManagerProviderConfigManager
    *                                   configuration.
    */
   private KeyManagerProvider loadProvider(String className,
-                                          KeyManagerCfg configuration,
+                                          KeyManagerProviderCfg configuration,
                                           boolean initialize)
           throws InitializationException
   {
     try
     {
-      KeyManagerCfgDefn definition = KeyManagerCfgDefn.getInstance();
+      KeyManagerProviderCfgDefn definition =
+              KeyManagerProviderCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getJavaImplementationClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends KeyManagerProvider> providerClass =
            propertyDefinition.loadClass(className, KeyManagerProvider.class);
       KeyManagerProvider provider = providerClass.newInstance();
@@ -401,7 +407,8 @@ public class KeyManagerProviderConfigManager
       {
         Method method =
              provider.getClass().getMethod("isConfigurationAcceptable",
-                                           KeyManagerCfg.class, List.class);
+                                           KeyManagerProviderCfg.class,
+                                           List.class);
 
         List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,

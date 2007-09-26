@@ -120,7 +120,7 @@ public class MonitorConfigManager
 
       if (monitorConfig.isEnabled())
       {
-        String className = monitorConfig.getMonitorClass();
+        String className = monitorConfig.getJavaClass();
         try
         {
           MonitorProvider<? extends MonitorProviderCfg> monitor =
@@ -154,7 +154,7 @@ public class MonitorConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // monitor provider.
-      String className = configuration.getMonitorClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMonitor(className, null);
@@ -193,7 +193,7 @@ public class MonitorConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a
     // monitor provider.
-    String className = configuration.getMonitorClass();
+    String className = configuration.getJavaClass();
     try
     {
       monitor = loadMonitor(className, configuration);
@@ -270,7 +270,7 @@ public class MonitorConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // monitor provider.
-      String className = configuration.getMonitorClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMonitor(className, null);
@@ -329,7 +329,7 @@ public class MonitorConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the monitor is disabled, then instantiate the class and
     // initialize and register it as a monitor provider.
-    String className = configuration.getMonitorClass();
+    String className = configuration.getJavaClass();
     if (existingMonitor != null)
     {
       if (! className.equals(existingMonitor.getClass().getName()))
@@ -394,7 +394,7 @@ public class MonitorConfigManager
       MonitorProviderCfgDefn definition =
            MonitorProviderCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getMonitorClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends MonitorProvider> providerClass =
            propertyDefinition.loadClass(className, MonitorProvider.class);
       MonitorProvider monitor = providerClass.newInstance();

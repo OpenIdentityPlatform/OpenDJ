@@ -41,13 +41,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.84</ldap:oid>
       <ldap:name>ds-cfg-subject-dn-to-user-attribute-certificate-mapper</ldap:name>
       <ldap:superior>ds-cfg-certificate-mapper</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="mapper-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -70,8 +69,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.312</ldap:oid>
-        <ldap:name>ds-cfg-certificate-subject-attribute-type</ldap:name>
+        <ldap:name>ds-cfg-subject-attribute</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -97,8 +95,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.313</ldap:oid>
-        <ldap:name>ds-cfg-certificate-user-base-dn</ldap:name>
+        <ldap:name>ds-cfg-user-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

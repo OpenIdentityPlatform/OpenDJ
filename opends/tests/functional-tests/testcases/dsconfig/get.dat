@@ -1,186 +1,186 @@
-get-account-status-notification-handler-prop:handler-name:Error Log Handler:account-status-notification-type:notification-handler-class:
+get-account-status-notification-handler-prop:handler-name:Error Log Handler:account-status-notification-type:java-class:
 get-alert-handler-prop:handler-name:JMX Alert Handler:disabled-alert-type:enabled-alert-type:
-get-attribute-syntax-prop:syntax-name:Absolute Subtree Specification:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Attribute Type Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Authentication Password:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Binary:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Bit String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Boolean:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Certificate:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Certificate List:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Certificate Pair:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Country String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Delivery Method:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Directory String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Distinguished Name:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:DIT Content Rule Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:DIT Structure Rule Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Enhanced Guide:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Facsimile Telephone Number:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Fax:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Generalized Time:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Guide:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:IA5 String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Integer:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:JPEG:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:LDAP Syntax Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Matching Rule Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Matching Rule Use Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Name and Optional UID:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Name Form Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Numeric String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Object Class Description:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Object Identifier:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Octet String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Other Mailbox:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Postal Address:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Presentation Address:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Printable String:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Protocol Information:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Relative Subtree Specification:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Substring Assertion:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Subtree Specification:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Sun-defined Access Control Information:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Supported Algorithm:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Telephone Number:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Teletex Terminal Identifier:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:Telex Number:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:User Password:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:UTC Time:enabled:syntax-class:
-get-attribute-syntax-prop:syntax-name:UUID:enabled:syntax-class:
-get-backend-prop:backend-name:backup:backend-base-dn:backend-class:
-get-backend-prop:backend-name:config:backend-base-dn:backend-class:
-get-backend-prop:backend-name:monitor:backend-base-dn:backend-class:
-get-backend-prop:backend-name:schema:backend-base-dn:backend-class:
-get-backend-prop:backend-name:tasks:backend-base-dn:backend-class:
-get-backend-prop:backend-name:userroot:backend-base-dn:backend-class:
+get-attribute-syntax-prop:syntax-name:Absolute Subtree Specification:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Attribute Type Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Authentication Password:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Binary:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Bit String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Boolean:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Certificate:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Certificate List:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Certificate Pair:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Country String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Delivery Method:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Directory String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Distinguished Name:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:DIT Content Rule Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:DIT Structure Rule Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Enhanced Guide:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Facsimile Telephone Number:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Fax:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Generalized Time:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Guide:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:IA5 String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Integer:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:JPEG:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:LDAP Syntax Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Matching Rule Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Matching Rule Use Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Name and Optional UID:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Name Form Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Numeric String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Object Class Description:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Object Identifier:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Octet String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Other Mailbox:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Postal Address:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Presentation Address:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Printable String:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Protocol Information:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Relative Subtree Specification:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Substring Assertion:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Subtree Specification:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Sun-defined Access Control Information:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Supported Algorithm:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Telephone Number:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Teletex Terminal Identifier:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:Telex Number:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:User Password:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:UTC Time:enabled:java-class:
+get-attribute-syntax-prop:syntax-name:UUID:enabled:java-class:
+get-backend-prop:backend-name:backup:base-dn:java-class:
+get-backend-prop:backend-name:config:base-dn:java-class:
+get-backend-prop:backend-name:monitor:base-dn:java-class:
+get-backend-prop:backend-name:schema:base-dn:java-class:
+get-backend-prop:backend-name:tasks:base-dn:java-class:
+get-backend-prop:backend-name:userroot:base-dn:java-class:
 get-certificate-mapper-prop:mapper-name:Fingerprint Mapper:fingerprint-algorithm:fingerprint-attribute:
 get-certificate-mapper-prop:mapper-name:Subject Attribute to User Attribute:subject-attribute-mapping:user-base-dn:
 get-certificate-mapper-prop:mapper-name:Subject Attribute to User Attribute:subject-attribute:user-base-dn:
-get-certificate-mapper-prop:mapper-name:Subject Equals DN:enabled:mapper-class:
-get-connection-handler-prop:handler-name:JMX Connection Handler:allowed-clients:denied-clients:
-get-connection-handler-prop:handler-name:LDAP Connection Handler:allowed-clients:denied-clients:
-get-connection-handler-prop:handler-name:LDAPS Connection Handler:allowed-clients:denied-clients:
-get-extended-operation-handler-prop:handler-name:Cancel:enabled:java-implementation-class:
-get-extended-operation-handler-prop:handler-name:Get Connection ID:enabled:java-implementation-class:
-get-extended-operation-handler-prop:handler-name:Password Modify:enabled:java-implementation-class:
-get-extended-operation-handler-prop:handler-name:Password Policy State:enabled:java-implementation-class:
-get-extended-operation-handler-prop:handler-name:StartTLS:enabled:java-implementation-class:
-get-extended-operation-handler-prop:handler-name:Who Am I:enabled:java-implementation-class:
-get-group-implementation-prop:implementation-name:Static:enabled:group-class:
-get-group-implementation-prop:implementation-name:Dynamic:enabled:group-class:
-get-group-implementation-prop:implementation-name:Virtual Static:enabled:group-class:
+get-certificate-mapper-prop:mapper-name:Subject Equals DN:enabled:java-class:
+get-connection-handler-prop:handler-name:JMX Connection Handler:allowed-client:denied-client:
+get-connection-handler-prop:handler-name:LDAP Connection Handler:allowed-client:denied-client:
+get-connection-handler-prop:handler-name:LDAPS Connection Handler:allowed-client:denied-client:
+get-extended-operation-handler-prop:handler-name:Cancel:enabled:java-class:
+get-extended-operation-handler-prop:handler-name:Get Connection ID:enabled:java-class:
+get-extended-operation-handler-prop:handler-name:Password Modify:enabled:java-class:
+get-extended-operation-handler-prop:handler-name:Password Policy State:enabled:java-class:
+get-extended-operation-handler-prop:handler-name:StartTLS:enabled:java-class:
+get-extended-operation-handler-prop:handler-name:Who Am I:enabled:java-class:
+get-group-implementation-prop:implementation-name:Static:enabled:java-class:
+get-group-implementation-prop:implementation-name:Dynamic:enabled:java-class:
+get-group-implementation-prop:implementation-name:Virtual Static:enabled:java-class:
 get-identity-mapper-prop:mapper-name:Exact Match:match-attribute:match-base-dn:
-get-je-index-prop:index-name:aci:index-attribute:index-type:
-get-je-index-prop:index-name:cn:index-attribute:index-type:
-get-je-index-prop:index-name:ds-sync-hist:index-attribute:index-type:
-get-je-index-prop:index-name:entryuuid:index-attribute:index-type:
-get-je-index-prop:index-name:givenName:index-attribute:index-type:
-get-je-index-prop:index-name:mail:index-attribute:index-type:
-get-je-index-prop:index-name:member:index-attribute:index-type:
-get-je-index-prop:index-name:objectClass:index-attribute:index-type:
-get-je-index-prop:index-name:sn:index-attribute:index-type:
-get-je-index-prop:index-name:telephoneNumber:index-attribute:index-type:
-get-je-index-prop:index-name:uid:index-attribute:index-type:
-get-key-manager-prop:manager-name:JKS:key-store-pin:key-store-file:
-get-key-manager-prop:manager-name:PKCS12:key-store-pin:key-store-file:
-get-key-manager-prop:manager-name:PKCS11:key-store-pin:key-store-pin-file:
+get-local-db-index-prop:index-name:aci:attribute:index-type:
+get-local-db-index-prop:index-name:cn:attribute:index-type:
+get-local-db-index-prop:index-name:ds-sync-hist:attribute:index-type:
+get-local-db-index-prop:index-name:entryuuid:attribute:index-type:
+get-local-db-index-prop:index-name:givenName:attribute:index-type:
+get-local-db-index-prop:index-name:mail:attribute:index-type:
+get-local-db-index-prop:index-name:member:attribute:index-type:
+get-local-db-index-prop:index-name:objectClass:attribute:index-type:
+get-local-db-index-prop:index-name:sn:attribute:index-type:
+get-local-db-index-prop:index-name:telephoneNumber:attribute:index-type:
+get-local-db-index-prop:index-name:uid:attribute:index-type:
+get-key-manager-provider-prop:provider-name:JKS:key-store-pin:key-store-file:
+get-key-manager-provider-prop:provider-name:PKCS12:key-store-pin:key-store-file:
+get-key-manager-provider-prop:provider-name:PKCS11:key-store-pin:key-store-pin-file:
 get-log-publisher-prop:publisher-name:File-Based Access Logger:buffer-size:log-file:
 get-log-publisher-prop:publisher-name:File-Based Audit Logger:buffer-size:log-file:
 get-log-publisher-prop:publisher-name:File-Based Debug Logger:buffer-size:log-file:
 get-log-publisher-prop:publisher-name:File-Based Error Logger:buffer-size:log-file:
-get-log-retention-policy-prop:policy-name:File Count Retention Policy:java-implementation-class:number-of-files:
-get-log-retention-policy-prop:policy-name:Free Disk Space Retention Policy:java-implementation-class:free-disk-space:
-get-log-retention-policy-prop:policy-name:Size Limit Retention Policy:java-implementation-class:disk-space-used:
-get-log-rotation-policy-prop:policy-name:24 Hours Time Limit Rotation Policy:java-implementation-class:rotation-interval:
-get-log-rotation-policy-prop:policy-name:24 Hours Time Limit Rotation Policy:java-implementation-class:rotation-interval:
-get-log-rotation-policy-prop:policy-name:Fixed Time Rotation Policy:java-implementation-class:time-of-day:
-get-log-rotation-policy-prop:policy-name:Size Limit Rotation Policy:java-implementation-class:file-size-limit:
-get-matching-rule-prop:rule-name:Auth Password Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Auth Password Exact Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Bit String Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Boolean Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Exact Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Exact IA5 Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Exact IA5 Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Exact Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Exact Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore IA5 Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore IA5 Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore List Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore List Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Case Ignore Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Directory String First Component Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Distinguished Name Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Double Metaphone Approximate Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Generalized Time Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Generalized Time Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Historical CSN Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Integer Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Integer First Component Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Integer Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Keyword Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Numeric String Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Numeric String Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Numeric String Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Object Identifier Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Object Identifier First Component Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Octet String Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Octet String Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Octet String Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Presentation Address Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Protocol Information Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Telephone Number Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Telephone Number Substring Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Unique Member Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:User Password Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:User Password Exact Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:UUID Equality Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:UUID Ordering Matching Rule:enabled:matching-rule-class:
-get-matching-rule-prop:rule-name:Word Equality Matching Rule:enabled:matching-rule-class:
-get-monitor-provider-prop:provider-name:Client Connections:enabled:monitor-class:
-get-monitor-provider-prop:provider-name:JVM Stack Trace:enabled:monitor-class:
-get-monitor-provider-prop:provider-name:System Info:enabled:monitor-class:
-get-monitor-provider-prop:provider-name:Version:enabled:monitor-class:
+get-log-retention-policy-prop:policy-name:File Count Retention Policy:java-class:number-of-files:
+get-log-retention-policy-prop:policy-name:Free Disk Space Retention Policy:java-class:free-disk-space:
+get-log-retention-policy-prop:policy-name:Size Limit Retention Policy:java-class:disk-space-used:
+get-log-rotation-policy-prop:policy-name:24 Hours Time Limit Rotation Policy:java-class:rotation-interval:
+get-log-rotation-policy-prop:policy-name:24 Hours Time Limit Rotation Policy:java-class:rotation-interval:
+get-log-rotation-policy-prop:policy-name:Fixed Time Rotation Policy:java-class:time-of-day:
+get-log-rotation-policy-prop:policy-name:Size Limit Rotation Policy:java-class:file-size-limit:
+get-matching-rule-prop:rule-name:Auth Password Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Auth Password Exact Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Bit String Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Boolean Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Exact Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Exact IA5 Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Exact IA5 Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Exact Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Exact Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore IA5 Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore IA5 Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore List Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore List Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Case Ignore Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Directory String First Component Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Distinguished Name Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Double Metaphone Approximate Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Generalized Time Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Generalized Time Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Historical CSN Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Integer Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Integer First Component Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Integer Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Keyword Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Numeric String Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Numeric String Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Numeric String Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Object Identifier Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Object Identifier First Component Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Octet String Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Octet String Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Octet String Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Presentation Address Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Protocol Information Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Telephone Number Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Telephone Number Substring Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Unique Member Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:User Password Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:User Password Exact Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:UUID Equality Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:UUID Ordering Matching Rule:enabled:java-class:
+get-matching-rule-prop:rule-name:Word Equality Matching Rule:enabled:java-class:
+get-monitor-provider-prop:provider-name:Client Connections:enabled:java-class:
+get-monitor-provider-prop:provider-name:JVM Stack Trace:enabled:java-class:
+get-monitor-provider-prop:provider-name:System Info:enabled:java-class:
+get-monitor-provider-prop:provider-name:Version:enabled:java-class:
 get-password-generator-prop:generator-name:Random Password Generator:password-character-set:password-format:
 get-password-policy-prop:policy-name:Default Password Policy:default-password-storage-scheme:grace-login-count:
 get-password-policy-prop:policy-name:Root Password Policy:default-password-storage-scheme:grace-login-count:
-get-password-storage-scheme-prop:scheme-name:BASE64:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:CLEAR:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:CRYPT:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:MD5:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:Salted MD5:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:Salted SHA-1:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:Salted SHA-256:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:Salted SHA-384:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:Salted SHA-512:enabled:scheme-class:
-get-password-storage-scheme-prop:scheme-name:SHA-1:enabled:scheme-class:
+get-password-storage-scheme-prop:scheme-name:BASE64:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:CLEAR:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:CRYPT:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:MD5:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:Salted MD5:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:Salted SHA-1:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:Salted SHA-256:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:Salted SHA-384:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:Salted SHA-512:enabled:java-class:
+get-password-storage-scheme-prop:scheme-name:SHA-1:enabled:java-class:
 get-password-validator-prop:validator-name:Attribute Value:enabled:match-attribute:
 get-password-validator-prop:validator-name:Character Set:enabled:character-set:
 get-password-validator-prop:validator-name:Dictionary:enabled:dictionary-file:
-get-password-validator-prop:validator-name:Length-Based Password Validator:enabled:maximum-password-length:
-get-password-validator-prop:validator-name:Repeated Characters:enabled:maximum-consecutive-length:
-get-password-validator-prop:validator-name:Similarity-Based Password Validator:enabled:minimum-password-difference:
-get-password-validator-prop:validator-name:Unique Characters:enabled:minimum-unique-characters:
+get-password-validator-prop:validator-name:Length-Based Password Validator:enabled:max-password-length:
+get-password-validator-prop:validator-name:Repeated Characters:enabled:max-consecutive-length:
+get-password-validator-prop:validator-name:Similarity-Based Password Validator:enabled:min-password-difference:
+get-password-validator-prop:validator-name:Unique Characters:enabled:min-unique-characters:
 get-plugin-prop:plugin-name:Entry UUID:enabled:plugin-type:
 get-plugin-prop:plugin-name:LastMod:enabled:plugin-type:
 get-plugin-prop:plugin-name:LDAP Attribute Description List:enabled:plugin-type:
 get-plugin-prop:plugin-name:Password Policy Import:enabled:plugin-type:
 get-plugin-prop:plugin-name:Profiler:enabled:plugin-type:
-get-sasl-mechanism-handler-prop:handler-name:ANONYMOUS:enabled:handler-class:
-get-sasl-mechanism-handler-prop:handler-name:CRAM-MD5:enabled:handler-class:
-get-sasl-mechanism-handler-prop:handler-name:DIGEST-MD5:enabled:handler-class:
-get-sasl-mechanism-handler-prop:handler-name:EXTERNAL:enabled:handler-class:
-get-sasl-mechanism-handler-prop:handler-name:GSSAPI:enabled:handler-class:
-get-sasl-mechanism-handler-prop:handler-name:PLAIN:enabled:handler-class:
-get-trust-manager-prop:manager-name:Blind Trust:enabled:java-implementation-class:
-get-trust-manager-prop:manager-name:JKS:enabled:java-implementation-class:
-get-trust-manager-prop:manager-name:PKCS12:enabled:java-implementation-class:
-get-virtual-attribute-prop:attribute-name:entryDN:enabled:provider-class:
-get-virtual-attribute-prop:attribute-name:entryUUID:enabled:provider-class:
-get-virtual-attribute-prop:attribute-name:isMemberOf:enabled:provider-class:
-get-virtual-attribute-prop:attribute-name:subschemaSubentry:enabled:provider-class:
-get-virtual-attribute-prop:attribute-name:Virtual Static member:enabled:provider-class:
-get-virtual-attribute-prop:attribute-name:Virtual Static uniqueMember:enabled:provider-class:
+get-sasl-mechanism-handler-prop:handler-name:ANONYMOUS:enabled:java-class:
+get-sasl-mechanism-handler-prop:handler-name:CRAM-MD5:enabled:java-class:
+get-sasl-mechanism-handler-prop:handler-name:DIGEST-MD5:enabled:java-class:
+get-sasl-mechanism-handler-prop:handler-name:EXTERNAL:enabled:java-class:
+get-sasl-mechanism-handler-prop:handler-name:GSSAPI:enabled:java-class:
+get-sasl-mechanism-handler-prop:handler-name:PLAIN:enabled:java-class:
+get-trust-manager-provider-prop:provider-name:Blind Trust:enabled:java-class:
+get-trust-manager-provider-prop:provider-name:JKS:enabled:java-class:
+get-trust-manager-provider-prop:provider-name:PKCS12:enabled:java-class:
+get-virtual-attribute-prop:attribute-name:entryDN:enabled:java-class:
+get-virtual-attribute-prop:attribute-name:entryUUID:enabled:java-class:
+get-virtual-attribute-prop:attribute-name:isMemberOf:enabled:java-class:
+get-virtual-attribute-prop:attribute-name:subschemaSubentry:enabled:java-class:
+get-virtual-attribute-prop:attribute-name:Virtual Static member:enabled:java-class:
+get-virtual-attribute-prop:attribute-name:Virtual Static uniqueMember:enabled:java-class:

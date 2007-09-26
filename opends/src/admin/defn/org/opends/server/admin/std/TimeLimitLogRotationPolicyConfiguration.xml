@@ -40,13 +40,12 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.108</ldap:oid>
       <ldap:name>ds-cfg-time-limit-log-rotation-policy</ldap:name>
       <ldap:superior>ds-cfg-log-rotation-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="java-implementation-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -65,7 +64,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.39</ldap:oid>
         <ldap:name>ds-cfg-rotation-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>

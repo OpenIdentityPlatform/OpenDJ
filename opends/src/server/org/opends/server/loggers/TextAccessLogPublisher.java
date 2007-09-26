@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.*;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
@@ -107,7 +106,7 @@ public class TextAccessLogPublisher
     try
     {
       FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFileMode());
+          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
 
       LogPublisherErrorHandler errorHandler =
           new LogPublisherErrorHandler(config.dn());
@@ -128,33 +127,14 @@ public class TextAccessLogPublisher
                                   (int)config.getBufferSize());
 
       // Validate retention and rotation policies.
-      for(DN dn : config.getRotationPolicyDN())
+      for(DN dn : config.getRotationPolicyDNs())
       {
-        RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
-        if(policy != null)
-        {
-          writer.addRotationPolicy(policy);
-        }
-        else
-        {
-          Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
-              dn.toString(), config.dn().toString());
-          throw new ConfigException(message);
-        }
+        writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
-      for(DN dn: config.getRetentionPolicyDN())
+
+      for(DN dn: config.getRetentionPolicyDNs())
       {
-        RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
-        if(policy != null)
-        {
-          writer.addRetentionPolicy(policy);
-        }
-        else
-        {
-          Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
-              dn.toString(), config.dn().toString());
-          throw new ConfigException(message);
-        }
+        writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
 
       if(config.isAsynchronous())
@@ -198,55 +178,16 @@ public class TextAccessLogPublisher
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
-                                           List<Message> unacceptableReasons)
-  {
-    FileBasedAccessLogPublisherCfg config =
-         (FileBasedAccessLogPublisherCfg) configuration;
-
-     // Validate retention and rotation policies.
-     for(DN dn : config.getRotationPolicyDN())
-     {
-       RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
-       if(policy == null)
-       {
-         Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
-                 dn.toString(),
-                 config.dn().toString());
-         unacceptableReasons.add(message);
-         return false;
-       }
-     }
-     for(DN dn: config.getRetentionPolicyDN())
-     {
-       RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
-       if(policy == null)
-       {
-         Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
-                 dn.toString(),
-                 config.dn().toString());
-         unacceptableReasons.add(message);
-         return false;
-       }
-     }
-
-     return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean isConfigurationChangeAcceptable(
        FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
    {
      // Make sure the permission is valid.
      try
      {
-       if(!currentConfig.getLogFileMode().equalsIgnoreCase(
-           config.getLogFileMode()))
+       if(!currentConfig.getLogFilePermissions().equalsIgnoreCase(
+           config.getLogFilePermissions()))
        {
-         FilePermission.decodeUNIXMode(config.getLogFileMode());
+         FilePermission.decodeUNIXMode(config.getLogFilePermissions());
        }
        if(!currentConfig.getLogFile().equalsIgnoreCase(config.getLogFile()))
        {
@@ -290,7 +231,7 @@ public class TextAccessLogPublisher
      try
      {
        FilePermission perm =
-           FilePermission.decodeUNIXMode(config.getLogFileMode());
+           FilePermission.decodeUNIXMode(config.getLogFilePermissions());
 
        boolean writerAutoFlush =
           config.isAutoFlush() && !config.isAsynchronous();
@@ -321,39 +262,15 @@ public class TextAccessLogPublisher
          mfWriter.removeAllRetentionPolicies();
          mfWriter.removeAllRotationPolicies();
 
-         for(DN dn : config.getRotationPolicyDN())
+         for(DN dn : config.getRotationPolicyDNs())
          {
-           RotationPolicy policy = DirectoryServer.getRotationPolicy(dn);
-           if(policy != null)
-           {
-             mfWriter.addRotationPolicy(policy);
-           }
-           else
-           {
-             Message message = ERR_CONFIG_LOGGER_INVALID_ROTATION_POLICY.get(
-                     dn.toString(),
-                     config.dn().toString());
-             resultCode = DirectoryServer.getServerErrorResultCode();
-             messages.add(message);
-           }
-         }
-         for(DN dn: config.getRetentionPolicyDN())
-         {
-           RetentionPolicy policy = DirectoryServer.getRetentionPolicy(dn);
-           if(policy != null)
-           {
-             mfWriter.addRetentionPolicy(policy);
-           }
-           else
-           {
-             Message message = WARN_CONFIG_LOGGER_INVALID_RETENTION_POLICY.get(
-                     dn.toString(),
-                     config.dn().toString());
-             resultCode = DirectoryServer.getServerErrorResultCode();
-             messages.add(message);
-           }
+           mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
          }
 
+         for(DN dn: config.getRetentionPolicyDNs())
+         {
+           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+         }
 
          if(writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
          {

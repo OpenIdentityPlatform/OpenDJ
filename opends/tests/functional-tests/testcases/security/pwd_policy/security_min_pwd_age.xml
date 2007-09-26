@@ -38,7 +38,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Min Pwd Age: Preamble Check: Checking existence of ds-cfg-minimum-password-age'
+               'Security: Min Pwd Age: Preamble Check: Checking existence of ds-cfg-min-password-age'
             </message>
 
             <call function="'compareEntry'">
@@ -46,7 +46,7 @@
                 'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'    : 'ds-cfg-minimum-password-age:0 seconds',
+                'attrToBeCompared'    : 'ds-cfg-min-password-age:0 seconds',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
@@ -69,7 +69,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'minimum-password-age' ,
+                    'attributeName'          : 'min-password-age' ,
                     'attributeValue'         : '24 h' }
             </call>
             
@@ -124,7 +124,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'minimum-password-age' ,
+                    'attributeName'          : 'min-password-age' ,
                     'attributeValue'         : '0 s' }
             </call>
             

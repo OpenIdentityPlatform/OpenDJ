@@ -41,7 +41,6 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.101</ldap:oid>
       <ldap:name>ds-cfg-debug-target</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -69,9 +68,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>
-          1.3.6.1.4.1.26027.1.1.351
-        </ldap:oid>
         <ldap:name>
           ds-cfg-debug-scope
         </ldap:name>
@@ -119,7 +115,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.352</ldap:oid>
         <ldap:name>ds-cfg-debug-level</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -188,7 +183,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.353</ldap:oid>
         <ldap:name>ds-cfg-debug-category</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -211,7 +205,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.354</ldap:oid>
         <ldap:name>ds-cfg-omit-method-entry-arguments</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -234,7 +227,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.355</ldap:oid>
         <ldap:name>ds-cfg-omit-method-return-value</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -257,7 +249,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.356</ldap:oid>
         <ldap:name>ds-cfg-include-throwable-cause</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -280,7 +271,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.357</ldap:oid>
         <ldap:name>ds-cfg-throwable-stack-frames</ldap:name>
       </ldap:attribute>
     </adm:profile>

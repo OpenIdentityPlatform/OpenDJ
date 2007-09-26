@@ -43,7 +43,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.114</ldap:oid>
       <ldap:name>ds-cfg-plugin-root</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -86,7 +85,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.384</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-startup</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -114,7 +112,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.385</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-shutdown</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -142,7 +139,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.386</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-connect</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -170,7 +166,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.387</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-disconnect</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -198,7 +193,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.388</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-ldif-import</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -226,7 +220,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.389</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-ldif-export</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -254,7 +247,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.390</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-abandon</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -282,7 +274,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.391</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-add</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -310,7 +301,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.392</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-bind</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -338,7 +328,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.393</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-compare</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -366,7 +355,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.394</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-delete</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -394,7 +382,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.395</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-extended</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -422,7 +409,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.396</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-modify</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -450,7 +436,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.397</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-modify-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -478,7 +463,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.398</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-search</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -506,7 +490,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.399</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-parse-unbind</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -534,7 +517,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.400</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-add</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -562,7 +544,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.401</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-bind</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -590,7 +571,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.402</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-compare</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -618,7 +598,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.403</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-delete</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -646,7 +625,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.404</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-extended</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -674,7 +652,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.405</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-modify</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -702,7 +679,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.406</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-modify-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -730,7 +706,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.407</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-pre-operation-search</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -758,7 +733,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.408</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-abandon</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -786,7 +760,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.409</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-add</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -814,7 +787,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.410</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-bind</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -842,7 +814,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.411</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-compare</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -870,7 +841,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.412</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-delete</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -898,7 +868,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.413</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-extended</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -926,7 +895,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.414</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-modify</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -954,7 +922,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.415</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-modify-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -982,7 +949,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.416</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-search</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1010,7 +976,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.417</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-operation-unbind</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1038,8 +1003,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.418</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-add</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-add</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1066,8 +1030,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.419</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-bind</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-bind</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1094,8 +1057,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.420</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-compare</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-compare</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1122,8 +1084,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.421</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-delete</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-delete</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1150,8 +1111,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.422</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-extended</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-extended</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1178,8 +1138,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.423</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-modify</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-modify</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1206,8 +1165,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.424</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-modify-dn</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-modify-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1234,7 +1192,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.491</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-synchronization-add</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1263,7 +1220,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.492</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-synchronization-delete</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1292,7 +1248,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.493</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-post-synchronization-modify</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1321,7 +1276,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.494</ldap:oid>
         <ldap:name>
           ds-cfg-plugin-order-post-synchronization-modify-dn
         </ldap:name>
@@ -1351,8 +1305,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.425</ldap:oid>
-        <ldap:name>ds-cfg-plugin-order-post-operation-search</ldap:name>
+        <ldap:name>ds-cfg-plugin-order-post-response-search</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1379,7 +1332,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.426</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-search-result-entry</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1407,7 +1359,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.427</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-search-result-reference</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1435,7 +1386,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.466</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-subordinate-modify-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -1463,7 +1413,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.428</ldap:oid>
         <ldap:name>ds-cfg-plugin-order-intermediate-response</ldap:name>
       </ldap:attribute>
     </adm:profile>

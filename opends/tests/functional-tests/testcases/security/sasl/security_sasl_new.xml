@@ -123,7 +123,7 @@
               'subcommand'           : 'create-sasl-mechanism-handler' ,    
               'objectType'           : 'handler-name' ,
               'objectName'           : 'PLAIN',
-              'optionsString'        : '--type plain --set enabled:true --set "identity-mapper-dn:cn=Exact Match,cn=Identity Mappers,cn=config" ',
+              'optionsString'        : '--type plain --set enabled:true --set "identity-mapper:Exact Match" ',
               'expectedRC'           : 0 } 
             </call>          
             

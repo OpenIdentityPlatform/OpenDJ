@@ -25,5 +25,5 @@
 
 dn: cn=Default Password Policy,cn=Password Policies,cn=config
 changetype: modify
-replace: ds-cfg-maximum-password-reset-age
-ds-cfg-maximum-password-reset-age: 30 minutes
+replace: ds-cfg-max-password-reset-age
+ds-cfg-max-password-reset-age: 30 minutes

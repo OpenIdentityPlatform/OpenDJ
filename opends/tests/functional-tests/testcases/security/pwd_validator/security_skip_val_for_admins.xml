@@ -50,8 +50,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Length-Based Password Validator' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -169,7 +169,7 @@
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
                     'propertyName'           : 'Length-Based Password Validator' ,
-                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '4' }
             </call>
             
@@ -286,7 +286,7 @@
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
                     'propertyName'           : 'Length-Based Password Validator' ,
-                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '6' }
             </call>
             <!--

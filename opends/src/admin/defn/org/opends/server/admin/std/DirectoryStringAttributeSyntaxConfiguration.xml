@@ -40,13 +40,12 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.53</ldap:oid>
       <ldap:name>ds-cfg-directory-string-attribute-syntax</ldap:name>
       <ldap:superior>ds-cfg-attribute-syntax</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="syntax-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -73,7 +72,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.140</ldap:oid>
         <ldap:name>ds-cfg-allow-zero-length-values</ldap:name>
       </ldap:attribute>
     </adm:profile>

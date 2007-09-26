@@ -40,11 +40,9 @@ import org.opends.server.admin.std.meta.GlobalCfgDefn;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.api.IdentityMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
@@ -151,7 +149,7 @@ public class CoreConfigManager
     DirectoryServer.setCheckSchema(globalConfig.isCheckSchema());
 
     DirectoryServer.setDefaultPasswordPolicyDN(
-         globalConfig.getDefaultPasswordPolicy());
+         globalConfig.getDefaultPasswordPolicyDN());
 
     DirectoryServer.setAddMissingRDNAttributes(
          globalConfig.isAddMissingRDNAttributes());
@@ -351,31 +349,6 @@ public class CoreConfigManager
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
-
-    // Make sure that the default password policy DN is valid.
-    DN policyDN = configuration.getDefaultPasswordPolicy();
-    PasswordPolicy policy = DirectoryServer.getPasswordPolicy(policyDN);
-    if (policy == null)
-    {
-      Message message = ERR_CONFIG_CORE_NO_SUCH_PWPOLICY.get(
-              String.valueOf(policyDN));
-      unacceptableReasons.add(message);
-
-      configAcceptable = false;
-    }
-
-    // Make sure that the proxied auth identity mapper is valid.
-    DN mapperDN = configuration.getProxiedAuthorizationIdentityMapperDN();
-    IdentityMapper mapper = DirectoryServer.getIdentityMapper(mapperDN);
-    if (mapper == null)
-    {
-      Message message = ERR_CONFIG_CORE_NO_PROXY_MAPPER_FOR_DN.get(
-              String.valueOf(mapperDN),
-              String.valueOf(configuration.dn()));
-      unacceptableReasons.add(message);
-
-      configAcceptable = false;
-    }
 
     Set<String> smtpServers = configuration.getSMTPServer();
     if (smtpServers != null)

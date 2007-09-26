@@ -58,12 +58,6 @@ public class ConfigurationTest extends QuickSetupTestCase {
   }
 
   @Test(enabled = false)
-  public void testGetSecurePort() throws IOException {
-    // TODO: something more useful
-    config.getSecurePort();
-  }
-
-  @Test(enabled = false)
   public void testGetLogPaths() throws IOException {
     // TODO: something more useful
     config.getLogPaths();

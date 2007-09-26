@@ -151,7 +151,7 @@ public class AttributeTypeSyntax
 
     currentConfig = configuration;
     currentConfig.addAttributeTypeDescriptionChangeListener(this);
-    stripMinimumUpperBound=configuration.isStripSyntaxMinimumUpperBound();
+    stripMinimumUpperBound=configuration.isStripSyntaxMinUpperBound();
   }
 
 
@@ -1443,7 +1443,7 @@ public class AttributeTypeSyntax
               AttributeTypeDescriptionAttributeSyntaxCfg configuration)
   {
     currentConfig = configuration;
-    stripMinimumUpperBound = configuration.isStripSyntaxMinimumUpperBound();
+    stripMinimumUpperBound = configuration.isStripSyntaxMinUpperBound();
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }

@@ -29,8 +29,8 @@ package org.opends.server.backends.jeb;
 import java.util.*;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -858,7 +858,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<ASN1OctetString>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
-                   index.getConfiguration().getIndexSubstringLength());
+                   index.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
@@ -957,7 +957,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<ASN1OctetString>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
-                                              index.getConfiguration().getIndexSubstringLength());
+                                              index.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
@@ -1132,7 +1132,7 @@ public class TestBackendImpl extends JebTestCase {
 
       addKeys = new HashSet<ASN1OctetString>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
-                   index.getConfiguration().getIndexSubstringLength());
+                   index.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
@@ -1243,19 +1243,19 @@ public class TestBackendImpl extends JebTestCase {
         "dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "objectClass: top",
         "objectClass: ds-cfg-backend",
-        "objectClass: ds-cfg-je-backend",
-        "ds-cfg-backend-base-dn: dc=test,dc=com",
-        "ds-cfg-backend-base-dn: dc=newsuffix,dc=com",
-        "ds-cfg-backend-enabled: true",
-        "ds-cfg-backend-writability-mode: enabled",
-        "ds-cfg-backend-class: org.opends.server.backends.jeb.BackendImpl",
+        "objectClass: ds-cfg-local-db-backend",
+        "ds-cfg-base-dn: dc=test,dc=com",
+        "ds-cfg-base-dn: dc=newsuffix,dc=com",
+        "ds-cfg-enabled: true",
+        "ds-cfg-writability-mode: enabled",
+        "ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl",
         "ds-cfg-backend-id: indexRoot",
-        "ds-cfg-backend-directory:: " +
+        "ds-cfg-db-directory:: " +
             Base64.encode(homeDirName.getBytes()),
-        "ds-cfg-backend-import-temp-directory: importTmp");
+        "ds-cfg-import-temp-directory: importTmp");
 
-    JEBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
-         JEBackendCfgDefn.getInstance(), configEntry);
+    LocalDBBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
+         LocalDBBackendCfgDefn.getInstance(), configEntry);
 
     backend.applyConfigurationChange(cfg);
 
@@ -1274,7 +1274,7 @@ public class TestBackendImpl extends JebTestCase {
       "testModifyDNNewSuperior", "testMatchedDN"})
   public void testApplyIndexConfig() throws Exception {
     int resultCode = TestCaseUtils.applyModifications(
-        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+        "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
         "replace: ds-cfg-index-type",
@@ -1355,7 +1355,7 @@ public class TestBackendImpl extends JebTestCase {
     assertTrue(debugString.contains("NOT-INDEXED"));
 
     resultCode = TestCaseUtils.applyModifications(
-        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+        "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
         "replace: ds-cfg-index-type",
@@ -1409,7 +1409,7 @@ public class TestBackendImpl extends JebTestCase {
 
     // Delete the entries attribute index.
     resultCode = TestCaseUtils.applyModifications(
-        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+        "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: delete");
 
@@ -1426,12 +1426,12 @@ public class TestBackendImpl extends JebTestCase {
 
     // Add it back
     resultCode = TestCaseUtils.applyModifications(
-        "dn: ds-cfg-index-attribute=givenName,cn=Index," +
+        "dn: ds-cfg-attribute=givenName,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: add",
         "objectClass: top",
-        "objectClass: ds-cfg-je-index",
-        "ds-cfg-index-attribute: givenName",
+        "objectClass: ds-cfg-local-db-index",
+        "ds-cfg-attribute: givenName",
         "ds-cfg-index-type: equality",
         "ds-cfg-index-type: presence",
         "ds-cfg-index-type: ordering",
@@ -1480,7 +1480,7 @@ public class TestBackendImpl extends JebTestCase {
     // Make sure changing the index entry limit on an index where the limit
     // is already exceeded causes warnings.
     resultCode = TestCaseUtils.applyModifications(
-        "dn: ds-cfg-index-attribute=mail,cn=Index," +
+        "dn: ds-cfg-attribute=mail,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
         "replace: ds-cfg-index-entry-limit",
@@ -1491,7 +1491,7 @@ public class TestBackendImpl extends JebTestCase {
     // Make sure removing a index entry limit for an index makes it use the
     // backend wide setting.
     resultCode = TestCaseUtils.applyModifications(
-        "dn: ds-cfg-index-attribute=mail,cn=Index," +
+        "dn: ds-cfg-attribute=mail,cn=Index," +
             "ds-cfg-backend-id=indexRoot,cn=Backends,cn=config",
         "changetype: modify",
         "delete: ds-cfg-index-entry-limit");

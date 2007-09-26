@@ -25,6 +25,6 @@
 
 dn: cn=Entry Cache,cn=config
 changetype: modify
-replace: ds-cfg-entry-cache-enabled
-ds-cfg-entry-cache-enabled: true
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
 

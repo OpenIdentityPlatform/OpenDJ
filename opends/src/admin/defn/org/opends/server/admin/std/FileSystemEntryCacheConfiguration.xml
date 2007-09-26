@@ -71,7 +71,6 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.110</ldap:oid>
       <ldap:name>ds-cfg-file-system-entry-cache</ldap:name>
       <ldap:superior>ds-cfg-entry-cache</ldap:superior>
     </ldap:object-class>
@@ -92,7 +91,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.58</ldap:oid>
         <ldap:name>ds-cfg-lock-timeout</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -112,7 +110,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.362</ldap:oid>
         <ldap:name>ds-cfg-max-memory-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -132,7 +129,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.65</ldap:oid>
         <ldap:name>ds-cfg-max-entries</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -167,7 +163,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.363</ldap:oid>
         <ldap:name>ds-cfg-cache-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -191,7 +186,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.364</ldap:oid>
         <ldap:name>ds-cfg-cache-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -211,13 +205,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.365</ldap:oid>
         <ldap:name>ds-cfg-persistent-cache</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="backend-compact-encoding">
+  <adm:property name="compact-encoding">
     <adm:synopsis>
       Indicates whether the cache should use a compact form when encoding
       cache entries by compressing the attribute descriptions and object
@@ -243,13 +236,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.471</ldap:oid>
-        <ldap:name>ds-cfg-backend-compact-encoding</ldap:name>
+        <ldap:name>ds-cfg-compact-encoding</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="database-cache-percent">
+  <adm:property name="db-cache-percent">
     <adm:synopsis>
       The maximum memory usage for the internal JE cache as a percentage
       of the total JVM memory.
@@ -264,13 +256,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.25</ldap:oid>
-        <ldap:name>ds-cfg-database-cache-percent</ldap:name>
+        <ldap:name>ds-cfg-db-cache-percent</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="database-cache-size">
+  <adm:property name="db-cache-size">
     <adm:synopsis>
       The maximum JVM memory usage in bytes for the internal JE cache.
     </adm:synopsis>
@@ -284,8 +275,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.27</ldap:oid>
-        <ldap:name>ds-cfg-database-cache-size</ldap:name>
+        <ldap:name>ds-cfg-db-cache-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -319,7 +309,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.452</ldap:oid>
         <ldap:name>ds-cfg-je-property</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -328,7 +317,7 @@
   <adm:property-reference name="include-filter"/>
   <adm:property-reference name="exclude-filter"/>
 
-  <adm:property-override name="entry-cache-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

@@ -62,9 +62,9 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
         "objectClass: top",
         "objectClass: ds-cfg-telephone-number-attribute-syntax",
         "objectClass: ds-cfg-attribute-syntax",
-        "ds-cfg-strict-telephone-number-format: true",
-        "ds-cfg-syntax-enabled: true",
-        "ds-cfg-syntax-class: org.opends.server.schema.TelephoneNumberSyntax",
+        "ds-cfg-strict-format: true",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSyntax",
         "cn: Telephone Number"
          ), null);
 
@@ -73,9 +73,9 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
         "objectClass: top",
         "objectClass: ds-cfg-telephone-number-attribute-syntax",
         "objectClass: ds-cfg-attribute-syntax",
-        "ds-cfg-strict-telephone-number-format: false",
-        "ds-cfg-syntax-enabled: true",
-        "ds-cfg-syntax-class: org.opends.server.schema.TelephoneNumberSyntax",
+        "ds-cfg-strict-format: false",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.schema.TelephoneNumberSyntax",
         "cn: Telephone Number"
          ), null);
 

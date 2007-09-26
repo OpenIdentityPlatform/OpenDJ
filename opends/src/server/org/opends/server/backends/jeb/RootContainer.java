@@ -44,7 +44,7 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 import org.opends.server.api.Backend;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
@@ -66,7 +66,7 @@ import static org.opends.messages.ConfigMessages.*;
  * of the entry containers.
  */
 public class RootContainer
-     implements ConfigurationChangeListener<JEBackendCfg>
+     implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -82,7 +82,7 @@ public class RootContainer
   /**
    * The backend configuration.
    */
-  private JEBackendCfg config;
+  private LocalDBBackendCfg config;
 
   /**
    * The backend to which this entry root container belongs.
@@ -119,7 +119,7 @@ public class RootContainer
    * @param backend A reference to the JE back end that is creating this
    *                root container.
    */
-  public RootContainer(Backend backend, JEBackendCfg config)
+  public RootContainer(Backend backend, LocalDBBackendCfg config)
   {
     this.env = null;
     this.monitor = null;
@@ -128,7 +128,7 @@ public class RootContainer
     this.config = config;
     this.compressedSchema = null;
 
-    config.addJEChangeListener(this);
+    config.addLocalDBChangeListener(this);
   }
 
   /**
@@ -143,7 +143,7 @@ public class RootContainer
       throws DatabaseException, ConfigException
   {
     // Determine the backend database directory.
-    File backendDirectory = getFileForPath(config.getBackendDirectory());
+    File backendDirectory = getFileForPath(config.getDBDirectory());
 
     //Make sure the directory is valid.
     if (!backendDirectory.isDirectory())
@@ -157,7 +157,7 @@ public class RootContainer
     try
     {
       backendPermission =
-          FilePermission.decodeUNIXMode(config.getBackendMode());
+          FilePermission.decodeUNIXMode(config.getDBDirectoryPermissions());
     }
     catch(Exception e)
     {
@@ -226,7 +226,7 @@ public class RootContainer
     }
 
     compressedSchema = new JECompressedSchema(env);
-    openAndRegisterEntryContainers(config.getBackendBaseDN());
+    openAndRegisterEntryContainers(config.getBaseDN());
   }
 
   /**
@@ -520,7 +520,7 @@ public class RootContainer
       env = null;
     }
 
-    config.removeJEChangeListener(this);
+    config.removeLocalDBChangeListener(this);
   }
 
   /**
@@ -632,7 +632,7 @@ public class RootContainer
    *
    * @return The JE backend configuration used by this root container.
    */
-  public JEBackendCfg getConfiguration()
+  public LocalDBBackendCfg getConfiguration()
   {
     return config;
   }
@@ -708,12 +708,12 @@ public class RootContainer
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      JEBackendCfg cfg,
+      LocalDBBackendCfg cfg,
       List<Message> unacceptableReasons)
   {
     boolean acceptable = true;
 
-    File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+    File backendDirectory = getFileForPath(cfg.getDBDirectory());
     //Make sure the directory is valid.
     if (!backendDirectory.isDirectory())
     {
@@ -726,7 +726,7 @@ public class RootContainer
     try
     {
       FilePermission newBackendPermission =
-          FilePermission.decodeUNIXMode(cfg.getBackendMode());
+          FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
 
       //Make sure the mode will allow the server itself access to
       //the database
@@ -765,7 +765,7 @@ public class RootContainer
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(JEBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;

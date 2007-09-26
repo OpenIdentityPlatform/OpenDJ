@@ -355,7 +355,7 @@ public class PluginConfigManager
       try
       {
         DirectoryServerPlugin<? extends PluginCfg> plugin =
-             loadPlugin(pluginConfiguration.getPluginClass(), initTypes,
+             loadPlugin(pluginConfiguration.getJavaClass(), initTypes,
                         pluginConfiguration, true);
         registerPlugin(plugin, pluginConfiguration.dn(), initTypes);
       }
@@ -402,7 +402,7 @@ public class PluginConfigManager
       PluginCfgDefn definition =
            PluginCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getPluginClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends DirectoryServerPlugin> pluginClass =
            propertyDefinition.loadClass(className, DirectoryServerPlugin.class);
       DirectoryServerPlugin<? extends PluginCfg> plugin =
@@ -5261,7 +5261,7 @@ public class PluginConfigManager
 
       // Get the name of the class and make sure we can instantiate it as a
       // plugin.
-      String className = configuration.getPluginClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadPlugin(className, pluginTypes, configuration, false);
@@ -5307,7 +5307,7 @@ public class PluginConfigManager
     // Get the name of the class and make sure we can instantiate it as a
     // plugin.
     DirectoryServerPlugin<? extends PluginCfg> plugin = null;
-    String className = configuration.getPluginClass();
+    String className = configuration.getJavaClass();
     try
     {
       plugin = loadPlugin(className, pluginTypes, configuration, true);
@@ -5381,7 +5381,7 @@ public class PluginConfigManager
 
       // Get the name of the class and make sure we can instantiate it as a
       // plugin.
-      String className = configuration.getPluginClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadPlugin(className, pluginTypes, configuration, false);
@@ -5434,7 +5434,7 @@ public class PluginConfigManager
     // required.  If the mapper is disabled, then instantiate the class and
     // initialize and register it as an identity mapper.  Also, update the
     // plugin to indicate whether it should be invoked for internal operations.
-    String className = configuration.getPluginClass();
+    String className = configuration.getJavaClass();
     if (existingPlugin != null)
     {
       if (! className.equals(existingPlugin.getClass().getName()))

@@ -97,7 +97,7 @@
                 'subcommand'     : 'set-log-publisher-prop',
                 'objectType'     : 'publisher-name',
                 'objectName'     :  'File-Based Access Logger',
-                'optionsString'  : '--add retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
+                'optionsString'  : '--add retention-policy:"my file count retention policy"',
                 'expectedRC'     : 0
               }
             </call>
@@ -127,7 +127,7 @@
                 'subcommand'     : 'set-log-publisher-prop',
                 'objectType'     : 'publisher-name',
                 'objectName'     :  'File-Based Access Logger',
-                'optionsString'  : '--add rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+                'optionsString'  : '--add rotation-policy:"my size Limit Rotation Policy"',
                 'expectedRC'     : 0
               }
             </call>
@@ -260,7 +260,7 @@
                 'subcommand'     : 'set-log-publisher-prop',
                 'objectType'     : 'publisher-name',
                 'objectName'     : 'File-Based Access Logger',
-                'optionsString'  : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+                'optionsString'  : '--remove rotation-policy:"my size Limit Rotation Policy"',
                 'expectedRC'     : 0
               }
             </call>
@@ -276,7 +276,7 @@
                 'subcommand'     : 'set-log-publisher-prop',
                 'objectType'     : 'publisher-name',
                 'objectName'     : 'File-Based Access Logger',
-                'optionsString'  : '--remove retention-policy-dn:"cn=my file count retention policy,cn=Log Retention Policies,cn=config"',
+                'optionsString'  : '--remove retention-policy:"my file count retention policy"',
                 'expectedRC'     : 0
               } 
             </call>

@@ -41,7 +41,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.RunRecoveryException;
 
-import org.opends.server.admin.std.meta.JEIndexCfgDefn;
+import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
@@ -64,7 +64,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 
@@ -74,7 +74,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
  */
 public class BackendImpl
     extends Backend
-    implements ConfigurationChangeListener<JEBackendCfg>, AlertGenerator
+    implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator
 {
   /**
    * The tracer object for the debug logger.
@@ -92,7 +92,7 @@ public class BackendImpl
   /**
    * The configuration of this JE backend.
    */
-  private JEBackendCfg cfg;
+  private LocalDBBackendCfg cfg;
 
   /**
    * The root JE container to use for this backend.
@@ -219,7 +219,7 @@ public class BackendImpl
    */
   private long checksumDbEnv() {
 
-    File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+    File backendDirectory = getFileForPath(cfg.getDBDirectory());
     List<File> jdbFiles = new ArrayList<File>();
     if(backendDirectory.isDirectory())
     {
@@ -300,11 +300,11 @@ public class BackendImpl
       throws ConfigException
   {
     Validator.ensureNotNull(cfg);
-    Validator.ensureTrue(cfg instanceof JEBackendCfg);
+    Validator.ensureTrue(cfg instanceof LocalDBBackendCfg);
 
-    this.cfg = (JEBackendCfg)cfg;
+    this.cfg = (LocalDBBackendCfg)cfg;
 
-    Set<DN> dnSet = this.cfg.getBackendBaseDN();
+    Set<DN> dnSet = this.cfg.getBaseDN();
     baseDNs = new DN[dnSet.size()];
     dnSet.toArray(baseDNs);
   }
@@ -331,7 +331,7 @@ public class BackendImpl
     }
 
     // Preload the database cache.
-    rootContainer.preload(cfg.getBackendPreloadTimeLimit());
+    rootContainer.preload(cfg.getPreloadTimeLimit());
 
     try
     {
@@ -352,7 +352,7 @@ public class BackendImpl
                                         message, databaseException);
     }
 
-    for (DN dn : cfg.getBackendBaseDN())
+    for (DN dn : cfg.getBaseDN())
     {
       try
       {
@@ -380,7 +380,7 @@ public class BackendImpl
     //Register as an AlertGenerator.
     DirectoryServer.registerAlertGenerator(this);
     // Register this backend as a change listener.
-    cfg.addJEChangeListener(this);
+    cfg.addLocalDBChangeListener(this);
   }
 
 
@@ -392,7 +392,7 @@ public class BackendImpl
   public void finalizeBackend()
   {
     // Deregister as a change listener.
-    cfg.removeJEChangeListener(this);
+    cfg.removeLocalDBChangeListener(this);
 
     // Deregister our base DNs.
     for (DN dn : rootContainer.getBaseDNs())
@@ -479,28 +479,28 @@ public class BackendImpl
         return false;
       }
 
-      Set<JEIndexCfgDefn.IndexType> indexTypes =
+      Set<LocalDBIndexCfgDefn.IndexType> indexTypes =
            ai.getConfiguration().getIndexType();
       switch (indexType)
       {
         case PRESENCE:
-          return indexTypes.contains(JEIndexCfgDefn.IndexType.PRESENCE);
+          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.PRESENCE);
 
         case EQUALITY:
-          return indexTypes.contains(JEIndexCfgDefn.IndexType.EQUALITY);
+          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.EQUALITY);
 
         case SUBSTRING:
         case SUBINITIAL:
         case SUBANY:
         case SUBFINAL:
-          return indexTypes.contains(JEIndexCfgDefn.IndexType.SUBSTRING);
+          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING);
 
         case GREATER_OR_EQUAL:
         case LESS_OR_EQUAL:
-          return indexTypes.contains(JEIndexCfgDefn.IndexType.ORDERING);
+          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.ORDERING);
 
         case APPROXIMATE:
-          return indexTypes.contains(JEIndexCfgDefn.IndexType.APPROXIMATE);
+          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE);
 
         default:
           return false;
@@ -1192,14 +1192,14 @@ public class BackendImpl
         envConfig.setConfigParam("je.env.isLocking", "true");
         envConfig.setConfigParam("je.env.runCheckpointer", "false");
       }
-      else if(importConfig.clearBackend() || cfg.getBackendBaseDN().size() <= 1)
+      else if(importConfig.clearBackend() || cfg.getBaseDN().size() <= 1)
       {
         // We have the writer lock on the environment, now delete the
         // environment and re-open it. Only do this when we are
         // importing to all the base DNs in the backend or if the backend only
         // have one base DN.
 
-        File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+        File backendDirectory = getFileForPath(cfg.getDBDirectory());
         EnvManager.removeFiles(backendDirectory.getPath());
         envConfig.setReadOnly(false);
         envConfig.setAllowCreate(true);
@@ -1499,7 +1499,7 @@ public class BackendImpl
   public boolean isConfigurationAcceptable(Configuration configuration,
                                            List<Message> unacceptableReasons)
   {
-    JEBackendCfg config = (JEBackendCfg) configuration;
+    LocalDBBackendCfg config = (LocalDBBackendCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
@@ -1509,11 +1509,11 @@ public class BackendImpl
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      JEBackendCfg cfg,
+      LocalDBBackendCfg cfg,
       List<Message> unacceptableReasons)
   {
     // Make sure that the logging level value is acceptable.
-    String loggingLevel = cfg.getDatabaseLoggingLevel();
+    String loggingLevel = cfg.getDBLoggingLevel();
     if (! (loggingLevel.equals("OFF") ||
            loggingLevel.equals("SEVERE") ||
            loggingLevel.equals("WARNING") ||
@@ -1526,7 +1526,7 @@ public class BackendImpl
     {
 
       Message message = ERR_JEB_INVALID_LOGGING_LEVEL.get(
-              String.valueOf(cfg.getDatabaseLoggingLevel()),
+              String.valueOf(cfg.getDBLoggingLevel()),
               String.valueOf(cfg.dn()));
       unacceptableReasons.add(message);
       return false;
@@ -1540,7 +1540,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(JEBackendCfg newCfg)
+  public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
   {
     ConfigChangeResult ccr;
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -1551,11 +1551,11 @@ public class BackendImpl
     {
       if(rootContainer != null)
       {
-        DN[] newBaseDNs = new DN[newCfg.getBackendBaseDN().size()];
-        newBaseDNs = newCfg.getBackendBaseDN().toArray(newBaseDNs);
+        DN[] newBaseDNs = new DN[newCfg.getBaseDN().size()];
+        newBaseDNs = newCfg.getBaseDN().toArray(newBaseDNs);
 
         // Check for changes to the base DNs.
-        for (DN baseDN : cfg.getBackendBaseDN())
+        for (DN baseDN : cfg.getBaseDN())
         {
           boolean found = false;
           for (DN dn : newBaseDNs)
@@ -1675,7 +1675,7 @@ public class BackendImpl
       throws ConfigException, JebException
   {
     // Determine the backend database directory.
-    File backendDirectory = getFileForPath(cfg.getBackendDirectory());
+    File backendDirectory = getFileForPath(cfg.getDBDirectory());
     EnvManager.removeFiles(backendDirectory.getPath());
   }
 

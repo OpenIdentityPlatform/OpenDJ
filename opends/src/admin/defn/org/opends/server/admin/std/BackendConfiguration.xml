@@ -42,12 +42,11 @@
   <adm:tag name="database"/>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.5</ldap:oid>
       <ldap:name>ds-cfg-backend</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="backend-enabled"
+  <adm:property name="enabled"
     mandatory="true"
     multi-valued="false">
     <adm:synopsis>
@@ -62,12 +61,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.13</ldap:oid>
-        <ldap:name>ds-cfg-backend-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-class"
+  <adm:property name="java-class"
     mandatory="true"
     multi-valued="false">
     <adm:synopsis>
@@ -89,8 +87,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.11</ldap:oid>
-        <ldap:name>ds-cfg-backend-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -108,12 +105,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.14</ldap:oid>
         <ldap:name>ds-cfg-backend-id</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-writability-mode"
+  <adm:property name="writability-mode"
     mandatory="true"
     multi-valued="false">
     <adm:synopsis>
@@ -151,12 +147,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.162</ldap:oid>
-        <ldap:name>ds-cfg-backend-writability-mode</ldap:name>
+        <ldap:name>ds-cfg-writability-mode</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-base-dn"
+  <adm:property name="base-dn"
     mandatory="true"
     multi-valued="true">
     <adm:synopsis>
@@ -185,8 +180,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.10</ldap:oid>
-        <ldap:name>ds-cfg-backend-base-dn</ldap:name>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

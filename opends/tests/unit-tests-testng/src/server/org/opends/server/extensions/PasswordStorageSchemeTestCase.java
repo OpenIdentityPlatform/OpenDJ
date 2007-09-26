@@ -329,7 +329,7 @@ public abstract class PasswordStorageSchemeTestCase
       p = DirectoryServer.getPasswordPolicy(dn);
       assertEquals(p.allowPreEncodedPasswords(), allowPreencoded);
     } catch (Exception e) {
-      System.err.println("Failed to set ds-cfg-allow-pre-encoded-password " +
+      System.err.println("Failed to set ds-cfg-allow-pre-encoded-passwords " +
                          " to " + allowPreencoded);
       e.printStackTrace();
       throw e;

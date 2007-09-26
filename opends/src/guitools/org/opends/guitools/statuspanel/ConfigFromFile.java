@@ -70,11 +70,11 @@ public class ConfigFromFile
   private final ObjectClass backendOc =
     DirectoryServer.getObjectClass("ds-cfg-backend", true);
   private final ObjectClass administrativeUserOc =
-    DirectoryServer.getObjectClass("ds-cfg-root-dn", true);
+    DirectoryServer.getObjectClass("ds-cfg-root-dn-user", true);
   private final ObjectClass syncProviderOc =
     DirectoryServer.getObjectClass("ds-cfg-synchronization-provider", true);
   private final ObjectClass replicationConfigOc =
-    DirectoryServer.getObjectClass("ds-cfg-replication-domain-config", true);
+    DirectoryServer.getObjectClass("ds-cfg-replication-domain", true);
   private DN replicationDomainDN;
 
   private HashSet<ListenerDescriptor> listeners =
@@ -482,7 +482,7 @@ public class ConfigFromFile
         protocol = ListenerDescriptor.Protocol.LDAP;
       }
       boolean enabled = "true".equalsIgnoreCase(
-          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+          getFirstValue(entry, "ds-cfg-enabled"));
       if (enabled)
       {
         state = ListenerDescriptor.State.ENABLED;
@@ -506,7 +506,7 @@ public class ConfigFromFile
         protocol = ListenerDescriptor.Protocol.JMX;
       }
       boolean enabled = "true".equalsIgnoreCase(
-          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+          getFirstValue(entry, "ds-cfg-enabled"));
       if (enabled)
       {
         state = ListenerDescriptor.State.ENABLED;
@@ -585,7 +585,7 @@ public class ConfigFromFile
 
     if (!isConfigBackend(id))
     {
-      Set<String> baseDns = getValues(entry, "ds-cfg-backend-base-dn");
+      Set<String> baseDns = getValues(entry, "ds-cfg-base-dn");
       TreeSet<BaseDNDescriptor> replicas = new TreeSet<BaseDNDescriptor>();
 
       DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
@@ -618,7 +618,7 @@ public class ConfigFromFile
   private void updateConfigWithSyncProviderEntry(Entry entry)
   {
     if ("true".equalsIgnoreCase(getFirstValue(entry,
-        "ds-cfg-synchronization-provider-enabled")))
+        "ds-cfg-enabled")))
     {
       replicationConfigured = true;
     }
@@ -686,7 +686,7 @@ public class ConfigFromFile
     }
     if (entry.getDN().isDescendantOf(replicationDomainDN))
     {
-      replicatedSuffixes.addAll(getValues(entry, "ds-cfg-replication-dn"));
+      replicatedSuffixes.addAll(getValues(entry, "ds-cfg-base-dn"));
     }
   }
 

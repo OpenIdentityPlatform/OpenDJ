@@ -167,8 +167,8 @@ public class TaskBackend
 
     TaskBackendCfg cfg = (TaskBackendCfg)config;
 
-    DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
-    cfg.getBackendBaseDN().toArray(baseDNs);
+    DN[] baseDNs = new DN[cfg.getBaseDN().size()];
+    cfg.getBaseDN().toArray(baseDNs);
 
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 

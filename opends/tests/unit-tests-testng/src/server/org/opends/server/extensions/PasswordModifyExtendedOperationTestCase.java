@@ -103,29 +103,29 @@ public class PasswordModifyExtendedOperationTestCase
          "objectClass: ds-cfg-extended-operation-handler",
          "objectClass: ds-cfg-password-modify-extended-operation-handler",
          "cn: Password Modify",
-         "ds-cfg-extended-operation-handler-class: org.opends.server." +
+         "ds-cfg-java-class: org.opends.server." +
               "extensions.PasswordModifyExtendedOperation",
-         "ds-cfg-extended-operation-handler-enabled: true",
+         "ds-cfg-enabled: true",
          "",
          "dn: cn=Password Modify,cn=Extended Operations,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-extended-operation-handler",
          "objectClass: ds-cfg-password-modify-extended-operation-handler",
          "cn: Password Modify",
-         "ds-cfg-extended-operation-handler-class: org.opends.server." +
+         "ds-cfg-java-class: org.opends.server." +
               "extensions.PasswordModifyExtendedOperation",
-         "ds-cfg-extended-operation-handler-enabled: true",
-         "ds-cfg-identity-mapper-dn: invaliddn",
+         "ds-cfg-enabled: true",
+         "ds-cfg-identity-mapper: invaliddn",
          "",
          "dn: cn=Password Modify,cn=Extended Operations,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-extended-operation-handler",
          "objectClass: ds-cfg-password-modify-extended-operation-handler",
          "cn: Password Modify",
-         "ds-cfg-extended-operation-handler-class: org.opends.server." +
+         "ds-cfg-java-class: org.opends.server." +
               "extensions.PasswordModifyExtendedOperation",
-         "ds-cfg-extended-operation-handler-enabled: true",
-         "ds-cfg-identity-mapper-dn: cn=nonexistent,cn=config");
+         "ds-cfg-enabled: true",
+         "ds-cfg-identity-mapper: cn=nonexistent,cn=config");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -1741,7 +1741,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-minimum-password-age";
+    String attr  = "ds-cfg-min-password-age";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute(attr, "24 hours")));
@@ -1807,7 +1807,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr  = "ds-cfg-minimum-password-age";
+    String attr  = "ds-cfg-min-password-age";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute(attr, "24 hours")));
@@ -1876,7 +1876,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr1 = "ds-cfg-maximum-password-age";
+    String attr1 = "ds-cfg-max-password-age";
     String attr2 = "ds-cfg-expire-passwords-without-warning";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
@@ -1957,7 +1957,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr1 = "ds-cfg-maximum-password-age";
+    String attr1 = "ds-cfg-max-password-age";
     String attr2 = "ds-cfg-expire-passwords-without-warning";
     String attr3 = "ds-cfg-allow-expired-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -2044,7 +2044,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr = "ds-cfg-password-generator-dn";
+    String attr = "ds-cfg-password-generator";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                       new Attribute(DirectoryServer.getAttributeType(attr))));
@@ -2113,7 +2113,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr = "ds-cfg-password-generator-dn";
+    String attr = "ds-cfg-password-generator";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                       new Attribute(DirectoryServer.getAttributeType(attr))));
@@ -2181,7 +2181,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr = "ds-cfg-password-validator-dn";
+    String attr = "ds-cfg-password-validator";
     String valDN =
          "cn=Length-Based Password Validator,cn=Password Validators,cn=config";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -2250,7 +2250,7 @@ public class PasswordModifyExtendedOperationTestCase
 
 
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
-    String attr = "ds-cfg-password-validator-dn";
+    String attr = "ds-cfg-password-validator";
     String valDN =
          "cn=Length-Based Password Validator,cn=Password Validators,cn=config";
     ArrayList<Modification> mods = new ArrayList<Modification>();

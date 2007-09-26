@@ -1730,7 +1730,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-acl-handler-enabled' ,
+                    'attributeName'          : 'ds-cfg-enabled' ,
                     'newAttributeValue'      : 'false' ,
                     'changetype'             : 'replace' }
                 </call>
@@ -1779,7 +1779,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-acl-handler-enabled' ,
+                    'attributeName'          : 'ds-cfg-enabled' ,
                     'newAttributeValue'      : 'true' ,
                     'changetype'             : 'replace' }
                 </call>
@@ -1934,7 +1934,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-acl-handler-enabled' ,
+                    'attributeName'          : 'ds-cfg-enabled' ,
                     'newAttributeValue'      : 'false' ,
                     'changetype'             : 'replace' }
                 </call>
@@ -1983,7 +1983,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
-                    'attributeName'          : 'ds-cfg-acl-handler-enabled' ,
+                    'attributeName'          : 'ds-cfg-enabled' ,
                     'newAttributeValue'      : 'true' ,
                     'changetype'             : 'replace' }
                 </call>

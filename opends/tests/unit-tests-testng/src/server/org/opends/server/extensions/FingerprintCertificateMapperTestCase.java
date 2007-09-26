@@ -99,31 +99,31 @@ public class FingerprintCertificateMapperTestCase
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-fingerprint-certificate-mapper",
       "cn: No Fingerprint Attr",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "FingerprintCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-fingerprint-algorithm: MD5",
+      "ds-cfg-enabled: true",
+      "ds-cfg-fingerprint-algorithm: MD5",
       "",
       "dn: cn=Undefined Fingerprint Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-fingerprint-certificate-mapper",
       "cn: Undefined Fingerprint Attr",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "FingerprintCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-fingerprint-attribute-type: undefined",
-      "ds-cfg-certificate-fingerprint-algorithm: MD5",
+      "ds-cfg-enabled: true",
+      "ds-cfg-fingerprint-attribute: undefined",
+      "ds-cfg-fingerprint-algorithm: MD5",
       "",
       "dn: cn=No Fingerprint Algorithm,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-fingerprint-certificate-mapper",
       "cn: No Fingerprint Algorithm",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "FingerprintCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-fingerprint-attribute-type: " +
+      "ds-cfg-enabled: true",
+      "ds-cfg-fingerprint-attribute: " +
            "ds-certificate-fingerprint",
       "",
       "dn: cn=Invalid Fingerprint Algorithm,cn=Certificate Mappers,cn=config",
@@ -131,25 +131,25 @@ public class FingerprintCertificateMapperTestCase
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-fingerprint-certificate-mapper",
       "cn: Invalid Fingerprint Algorithm",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "FingerprintCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-fingerprint-attribute-type: " +
+      "ds-cfg-enabled: true",
+      "ds-cfg-fingerprint-attribute: " +
            "ds-certificate-fingerprint",
-      "ds-cfg-certificate-fingerprint-algorithm: invalid",
+      "ds-cfg-fingerprint-algorithm: invalid",
       "",
       "dn: cn=Invalid Base DN,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-fingerprint-certificate-mapper",
       "cn: Invalid Base DN",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "FingerprintCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-fingerprint-attribute-type: " +
+      "ds-cfg-enabled: true",
+      "ds-cfg-fingerprint-attribute: " +
            "ds-certificate-fingerprint",
-      "ds-cfg-certificate-fingerprint-algorithm: MD5",
-      "ds-cfg-certificate-user-base-dn: invalid");
+      "ds-cfg-fingerprint-algorithm: MD5",
+      "ds-cfg-user-base-dn: invalid");
 
 
     Object[][] configEntries = new Object[entries.size()][1];
@@ -452,7 +452,7 @@ public class FingerprintCertificateMapperTestCase
 
     Attribute a =
          new Attribute(DirectoryServer.getAttributeType(
-                            "ds-cfg-certificate-fingerprint-attribute-type"));
+                            "ds-cfg-fingerprint-attribute"));
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE, a));
@@ -480,7 +480,7 @@ public class FingerprintCertificateMapperTestCase
 
     Attribute a =
          new Attribute(DirectoryServer.getAttributeType(
-                            "ds-cfg-certificate-fingerprint-algorithm"));
+                            "ds-cfg-fingerprint-algorithm"));
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE, a));
@@ -552,7 +552,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-certificate-mapper-dn",
+                              new Attribute("ds-cfg-certificate-mapper",
                                             mapperDN)));
 
     InternalClientConnection conn =
@@ -578,7 +578,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-certificate-mapper-dn",
+                              new Attribute("ds-cfg-certificate-mapper",
                                             mapperDN)));
 
     InternalClientConnection conn =
@@ -606,7 +606,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-         new Attribute("ds-cfg-certificate-fingerprint-attribute-type",
+         new Attribute("ds-cfg-fingerprint-attribute",
                        attrName)));
 
     InternalClientConnection conn =
@@ -633,7 +633,7 @@ public class FingerprintCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute("ds-cfg-certificate-fingerprint-algorithm",
+                      new Attribute("ds-cfg-fingerprint-algorithm",
                                     algorithm)));
 
     InternalClientConnection conn =
@@ -661,7 +661,7 @@ public class FingerprintCertificateMapperTestCase
     String mapperDN = "cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config";
 
     AttributeType attrType =
-         DirectoryServer.getAttributeType("ds-cfg-certificate-user-base-dn");
+         DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
     if (baseDNs != null)

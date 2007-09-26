@@ -26,7 +26,7 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="je-index" plural-name="je-indexes"
+<adm:managed-object name="local-db-index" plural-name="local-db-indexes"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
@@ -43,12 +43,11 @@
   <adm:tag name="database" />
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.8</ldap:oid>
-      <ldap:name>ds-cfg-je-index</ldap:name>
+      <ldap:name>ds-cfg-local-db-index</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="index-attribute"
+  <adm:property name="attribute"
                 mandatory="true"
                 multi-valued="false"
                 read-only="true">
@@ -61,8 +60,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.40</ldap:oid>
-        <ldap:name>ds-cfg-index-attribute</ldap:name>
+        <ldap:name>ds-cfg-attribute</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -93,8 +91,8 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:inherited>
-        <adm:relative property-name="backend-index-entry-limit"
-                      offset="1" managed-object-name="je-backend" />
+        <adm:relative property-name="index-entry-limit"
+                      offset="1" managed-object-name="local-db-backend" />
       </adm:inherited>
     </adm:default-behavior>
     <adm:syntax>
@@ -106,7 +104,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.41</ldap:oid>
         <ldap:name>ds-cfg-index-entry-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -169,12 +166,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.42</ldap:oid>
         <ldap:name>ds-cfg-index-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="index-substring-length"
+  <adm:property name="substring-length"
                 mandatory="false"
                 multi-valued="false">
     <adm:synopsis>
@@ -198,8 +194,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.380</ldap:oid>
-        <ldap:name>ds-cfg-index-substring-length</ldap:name>
+        <ldap:name>ds-cfg-substring-length</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

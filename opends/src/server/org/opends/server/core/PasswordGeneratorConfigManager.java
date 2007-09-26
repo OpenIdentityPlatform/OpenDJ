@@ -121,7 +121,7 @@ public class PasswordGeneratorConfigManager
 
       if (generatorConfiguration.isEnabled())
       {
-        String className = generatorConfiguration.getGeneratorClass();
+        String className = generatorConfiguration.getJavaClass();
         try
         {
           PasswordGenerator<? extends PasswordGeneratorCfg>
@@ -151,7 +151,7 @@ public class PasswordGeneratorConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // password generator.
-      String className = configuration.getGeneratorClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadGenerator(className, configuration, false);
@@ -209,7 +209,7 @@ public class PasswordGeneratorConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the generator is disabled, then instantiate the class
     // and initialize and register it as a password generator.
-    String className = configuration.getGeneratorClass();
+    String className = configuration.getJavaClass();
     if (existingGenerator != null)
     {
       if (! className.equals(existingGenerator.getClass().getName()))
@@ -256,7 +256,7 @@ public class PasswordGeneratorConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // password generator.
-      String className = configuration.getGeneratorClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadGenerator(className, configuration, false);
@@ -295,7 +295,7 @@ public class PasswordGeneratorConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a
     // password generator.
-    String className = configuration.getGeneratorClass();
+    String className = configuration.getJavaClass();
     try
     {
       passwordGenerator = loadGenerator(className, configuration, true);
@@ -383,7 +383,7 @@ public class PasswordGeneratorConfigManager
       PasswordGeneratorCfgDefn definition =
            PasswordGeneratorCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getGeneratorClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends PasswordGenerator> generatorClass =
            propertyDefinition.loadClass(className, PasswordGenerator.class);
       PasswordGenerator<? extends PasswordGeneratorCfg> generator =

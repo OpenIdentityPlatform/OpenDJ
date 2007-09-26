@@ -47,8 +47,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Unique Characters,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Unique Characters' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -187,7 +187,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Unique Characters' ,
-                    'attributeName'          : 'minimum-unique-characters' ,
+                    'attributeName'          : 'min-unique-characters' ,
                     'attributeValue'         : '3' ,
                     'modifyType'             : 'set' }
             </call>
@@ -248,7 +248,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Unique Characters' ,
-                    'attributeName'          : 'minimum-unique-characters' ,
+                    'attributeName'          : 'min-unique-characters' ,
                     'attributeValue'         : '5' ,
                     'modifyType'             : 'set' }
             </call>
@@ -372,8 +372,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Unique Characters,cn=Password Validators,cn=config' ,
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Unique Characters' ,
                     'modifyType'             : 'remove' }
             </call>
             

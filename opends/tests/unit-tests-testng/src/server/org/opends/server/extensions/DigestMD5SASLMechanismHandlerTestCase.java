@@ -98,29 +98,29 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-digest-md5-sasl-mechanism-handler",
          "cn: DIGEST-MD5",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DigestMD5SASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
+         "ds-cfg-enabled: true",
          "",
          "dn: cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-digest-md5-sasl-mechanism-handler",
          "cn: DIGEST-MD5",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DigestMD5SASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
-         "ds-cfg-identity-mapper-dn: not a DN",
+         "ds-cfg-enabled: true",
+         "ds-cfg-identity-mapper: not a DN",
          "",
          "dn: cn=DIGEST-MD5,cn=SASL Mechanisms,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-digest-md5-sasl-mechanism-handler",
          "cn: DIGEST-MD5",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DigestMD5SASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
-         "ds-cfg-identity-mapper-dn: cn=does not exist");
+         "ds-cfg-enabled: true",
+         "ds-cfg-identity-mapper: cn=does not exist");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -822,7 +822,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "objectClass: person",
          "objectClass: organizationalPerson",
          "objectClass: inetOrgPerson",
-         "objectClass: ds-cfg-root-dn",
+         "objectClass: ds-cfg-root-dn-user",
          "givenName: Second",
          "sn: Root DN",
          "cn: Second Root DN",

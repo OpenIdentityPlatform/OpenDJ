@@ -217,8 +217,8 @@ public class PersistentServerState extends ServerState
     {
       SearchFilter filter =
         SearchFilter.createFilterFromString(
-            "(&(objectclass=ds-cfg-replication-domain-config)"
-            +"(ds-cfg-replication-dn="+baseDn+"))");
+            "(&(objectclass=ds-cfg-replication-domain)"
+            +"(ds-cfg-base-dn="+baseDn+"))");
 
       LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
       attributes.add(REPLICATION_STATE);

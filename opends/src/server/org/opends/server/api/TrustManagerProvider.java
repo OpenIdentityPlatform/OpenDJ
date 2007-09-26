@@ -32,7 +32,7 @@ import org.opends.messages.Message;
 import java.util.List;
 import javax.net.ssl.TrustManager;
 
-import org.opends.server.admin.std.server.TrustManagerCfg;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -52,7 +52,8 @@ import org.opends.server.types.InitializationException;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=true)
-public abstract class TrustManagerProvider<T extends TrustManagerCfg>
+public abstract class TrustManagerProvider<T extends
+        TrustManagerProviderCfg>
 {
   /**
    * Initializes this trust manager provider based on the information
@@ -100,7 +101,7 @@ public abstract class TrustManagerProvider<T extends TrustManagerCfg>
    *          not.
    */
   public boolean isConfigurationAcceptable(
-                      TrustManagerCfg configuration,
+                      TrustManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special

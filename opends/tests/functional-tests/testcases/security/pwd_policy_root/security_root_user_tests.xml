@@ -48,7 +48,7 @@
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
               'dsBaseDN'         : 'cn=Root Password Policy,cn=Password Policies,cn=config' ,
               'dsFilter'         : 'objectclass=*'  ,
-              'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
+              'attributes'       : 'ds-cfg-default-password-storage-scheme' }
           </call>
 
           <script> 
@@ -65,12 +65,12 @@
         </sequence>
       </testcase>
 
-      <!--- Check Existence of ds-cfg-password-generator-dn Attr -->
+      <!--- Check Existence of ds-cfg-password-generator Attr -->
       <testcase name="getTestCaseName('No Default Pwd Generator')">
         <sequence>
           <call function="'testCase_Preamble'"/>
           <message>
-             'Security: Pwd Policy Root: Checking for ds-cfg-password-generator-dn'
+             'Security: Pwd Policy Root: Checking for ds-cfg-password-generator'
           </message>
 
           <call function="'compareEntry'">
@@ -78,7 +78,7 @@
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'attrToBeCompared'   : 'ds-cfg-password-generator-dn:cn=anything',
+              'attrToBeCompared'   : 'ds-cfg-password-generator:cn=anything',
               'entryToBeCompared'   : 'cn=Root Password Policy,cn=Password Policies,cn=config',
               'expectedRC'         : 16 }
           </call>

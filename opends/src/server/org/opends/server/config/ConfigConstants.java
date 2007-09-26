@@ -99,7 +99,7 @@ public final class ConfigConstants
    * when accepting new connections.
    */
   public static final String ATTR_ACCEPT_BACKLOG =
-       NAME_PREFIX_CFG + "accept-backlog";
+       "ds-cfg-accept-backlog";
 
 
 
@@ -115,7 +115,7 @@ public final class ConfigConstants
    * for the account status notification handler class.
    */
   public static final String ATTR_ACCT_NOTIFICATION_HANDLER_CLASS =
-       NAME_PREFIX_CFG + "account-status-notification-handler-class";
+       "ds-cfg-java-class";
 
 
 
@@ -124,7 +124,7 @@ public final class ConfigConstants
    * status notification handler is enabled.
    */
   public static final String ATTR_ACCT_NOTIFICATION_HANDLER_ENABLED =
-       NAME_PREFIX_CFG + "account-status-notification-handler-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -133,7 +133,7 @@ public final class ConfigConstants
    * status notification types that should trigger notifications.
    */
   public static final String ATTR_ACCT_NOTIFICATION_TYPE =
-       NAME_PREFIX_CFG + "account-status-notification-type";
+       "ds-cfg-account-status-notification-type";
 
 
 
@@ -143,7 +143,7 @@ public final class ConfigConstants
    * the client.
    */
   public static final String ATTR_ADD_MISSING_RDN_ATTRS =
-       NAME_PREFIX_CFG + "add-missing-rdn-attributes";
+       "ds-cfg-add-missing-rdn-attributes";
 
 
 
@@ -152,7 +152,7 @@ public final class ConfigConstants
    * be used for an alert handler.
    */
   public static final String ATTR_ALERT_HANDLER_CLASS =
-       NAME_PREFIX_CFG + "alert-handler-class";
+       "ds-cfg-java-class";
 
 
 
@@ -161,7 +161,7 @@ public final class ConfigConstants
    * handler is enabled.
    */
   public static final String ATTR_ALERT_HANDLER_ENABLED =
-       NAME_PREFIX_CFG + "alert-handler-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -170,7 +170,7 @@ public final class ConfigConstants
    * possible to allow exceptions to the strict attribute naming restrictions.
    */
   public static final String ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS =
-       NAME_PREFIX_CFG + "allow-attribute-name-exceptions";
+       "ds-cfg-allow-attribute-name-exceptions";
 
 
 
@@ -179,7 +179,7 @@ public final class ConfigConstants
    * should be allowed to establish connections.
    */
   public static final String ATTR_ALLOWED_CLIENT =
-       NAME_PREFIX_CFG + "allowed-client";
+       "ds-cfg-allowed-client";
 
 
 
@@ -188,7 +188,7 @@ public final class ConfigConstants
    * clients will be allowed to access the server.
    */
   public static final String ATTR_ALLOW_LDAPV2 =
-       NAME_PREFIX_CFG + "allow-ldapv2";
+       "ds-cfg-allow-ldap-v2";
 
 
 
@@ -205,7 +205,7 @@ public final class ConfigConstants
    * socket should have the SO_REUSEADDR socket option set.
    */
   public static final String ATTR_ALLOW_REUSE_ADDRESS =
-       NAME_PREFIX_CFG + "allow-tcp-reuse-address";
+       "ds-cfg-allow-tcp-reuse-address";
 
 
 
@@ -222,7 +222,7 @@ public final class ConfigConstants
    * alternate bind DNs for a root user.
    */
   public static final String ATTR_ROOTDN_ALTERNATE_BIND_DN =
-       NAME_PREFIX_CFG + "alternate-bind-dn";
+       "ds-cfg-alternate-bind-dn";
 
 
 
@@ -232,7 +232,7 @@ public final class ConfigConstants
    * as per their definition in the schema.
    */
   public static final String ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES =
-       NAME_PREFIX_CFG + "show-all-attributes";
+       "ds-cfg-show-all-attributes";
 
 
 
@@ -250,7 +250,7 @@ public final class ConfigConstants
    * should treat them as per their definition in the schema.
    */
   public static final String ATTR_SCHEMA_SHOW_ALL_ATTRIBUTES =
-       NAME_PREFIX_CFG + "show-all-attributes";
+       "ds-cfg-show-all-attributes";
 
 
 
@@ -267,7 +267,7 @@ public final class ConfigConstants
    * clients to use the startTLS extended operation.
    */
   public static final String ATTR_ALLOW_STARTTLS =
-       NAME_PREFIX_CFG + "allow-start-tls";
+       "ds-cfg-allow-start-tls";
 
 
 
@@ -284,7 +284,7 @@ public final class ConfigConstants
    * use of zero-length values in attributes with the directory string syntax.
    */
   public static final String ATTR_ALLOW_ZEROLENGTH_DIRECTORYSTRINGS =
-       NAME_PREFIX_CFG + "allow-zero-length-values";
+       "ds-cfg-allow-zero-length-values";
 
 
 
@@ -317,7 +317,7 @@ public final class ConfigConstants
    * backend.
    */
   public static final String ATTR_BACKEND_BASE_DN =
-       NAME_PREFIX_CFG + "backend-base-dn";
+       "ds-cfg-base-dn";
 
 
 
@@ -326,7 +326,7 @@ public final class ConfigConstants
    * of the Java class for a backend implementation.
    */
   public static final String ATTR_BACKEND_CLASS =
-       NAME_PREFIX_CFG + "backend-class";
+       "ds-cfg-java-class";
 
 
 
@@ -335,7 +335,7 @@ public final class ConfigConstants
    * backend is enabled.
    */
   public static final String ATTR_BACKEND_ENABLED =
-       NAME_PREFIX_CFG + "backend-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -343,7 +343,7 @@ public final class ConfigConstants
    * The name of the configuration attribute that specifies the unique ID for a
    * backend.
    */
-  public static final String ATTR_BACKEND_ID = NAME_PREFIX_CFG + "backend-id";
+  public static final String ATTR_BACKEND_ID = "ds-cfg-backend-id";
 
 
 
@@ -352,7 +352,7 @@ public final class ConfigConstants
    * for a backend.
    */
   public static final String ATTR_BACKEND_WRITABILITY_MODE =
-       NAME_PREFIX_CFG + "backend-writability-mode";
+       "ds-cfg-writability-mode";
 
 
 
@@ -396,7 +396,7 @@ public final class ConfigConstants
    * backup directories to search when using the backup backend.
    */
   public static final String ATTR_BACKUP_DIR_LIST =
-       NAME_PREFIX_CFG + "backup-directory";
+       "ds-cfg-backup-directory";
 
 
 
@@ -457,7 +457,7 @@ public final class ConfigConstants
    * containing a DN must also contain a password.
    */
   public static final String ATTR_BIND_WITH_DN_REQUIRES_PW =
-       NAME_PREFIX_CFG + "bind-with-dn-requires-password";
+       "ds-cfg-bind-with-dn-requires-password";
 
 
 
@@ -474,7 +474,7 @@ public final class ConfigConstants
    * unauthenticated request should be rejected.
    */
   public static final String ATTR_REJECT_UNAUTHENTICATED_REQ =
-       NAME_PREFIX_CFG + "reject-unauthenticated-requests";
+       "ds-cfg-reject-unauthenticated-requests";
 
 
   /**
@@ -490,7 +490,7 @@ public final class ConfigConstants
    * to a user entry.
    */
   public static final String ATTR_CERTIFICATE_FINGERPRINT_ATTR =
-       "ds-cfg-certificate-fingerprint-attribute-type";
+       "ds-cfg-fingerprint-attribute";
 
 
 
@@ -499,7 +499,7 @@ public final class ConfigConstants
    * algorithm that should be used to generate the certificate fingerprint.
    */
   public static final String ATTR_CERTIFICATE_FINGERPRINT_ALGORITHM =
-       "ds-cfg-certificate-fingerprint-algorithm";
+       "ds-cfg-fingerprint-algorithm";
 
 
 
@@ -509,7 +509,7 @@ public final class ConfigConstants
    * user entry.
    */
   public static final String ATTR_CERTIFICATE_SUBJECT_ATTR =
-       "ds-cfg-certificate-subject-attribute-type";
+       "ds-cfg-subject-attribute";
 
 
 
@@ -519,7 +519,7 @@ public final class ConfigConstants
    * subject to a user entry.
    */
   public static final String ATTR_CERTIFICATE_SUBJECT_ATTR_MAP =
-       "ds-cfg-certificate-subject-attribute-mapping";
+       "ds-cfg-subject-attribute-mapping";
 
 
 
@@ -529,7 +529,7 @@ public final class ConfigConstants
    * user entry.
    */
   public static final String ATTR_CERTIFICATE_SUBJECT_BASEDN =
-       "ds-cfg-certificate-user-base-dn";
+       "ds-cfg-user-base-dn";
 
 
 
@@ -538,7 +538,7 @@ public final class ConfigConstants
    * of the Java class for the certificate mapper implementation.
    */
   public static final String ATTR_CERTMAPPER_CLASS =
-       NAME_PREFIX_CFG + "certificate-mapper-class";
+       "ds-cfg-java-class";
 
 
 
@@ -547,7 +547,7 @@ public final class ConfigConstants
    * mapper configuration entry.
    */
   public static final String ATTR_CERTMAPPER_DN =
-       NAME_PREFIX_CFG + "certificate-mapper-dn";
+       "ds-cfg-certificate-mapper";
 
 
 
@@ -556,7 +556,7 @@ public final class ConfigConstants
    * certificate mapper is enabled.
    */
   public static final String ATTR_CERTMAPPER_ENABLED =
-       NAME_PREFIX_CFG + "certificate-mapper-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -565,7 +565,7 @@ public final class ConfigConstants
    * checking should be enabled in the server.
    */
   public static final String ATTR_CHECK_SCHEMA =
-       NAME_PREFIX_CFG + "check-schema";
+       "ds-cfg-check-schema";
 
 
 
@@ -575,7 +575,7 @@ public final class ConfigConstants
    * corresponding user's entry during SASL EXTERNAL authentication.
    */
   public static final String ATTR_CLIENT_CERT_VALIDATION_POLICY =
-       NAME_PREFIX_CFG + "client-certificate-validation-policy";
+       "ds-cfg-certificate-validation-policy";
 
 
 
@@ -584,7 +584,7 @@ public final class ConfigConstants
    * of the Java class for the connection handler implementation.
    */
   public static final String ATTR_CONNECTION_HANDLER_CLASS =
-       NAME_PREFIX_CFG + "connection-handler-class";
+       "ds-cfg-java-class";
 
 
 
@@ -593,7 +593,7 @@ public final class ConfigConstants
    * connection handler is enabled.
    */
   public static final String ATTR_CONNECTION_HANDLER_ENABLED =
-       NAME_PREFIX_CFG + "connection-handler-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -602,7 +602,7 @@ public final class ConfigConstants
    * default password policy for the Directory Server.
    */
   public static final String ATTR_DEFAULT_PWPOLICY_DN =
-       NAME_PREFIX_CFG + "default-password-policy";
+       "ds-cfg-default-password-policy";
 
 
 
@@ -611,7 +611,7 @@ public final class ConfigConstants
    * privileges that root users should automatically be granted in the server.
    */
   public static final String ATTR_DEFAULT_ROOT_PRIVILEGE_NAME =
-       NAME_PREFIX_CFG + "default-root-privilege-name";
+       "ds-cfg-default-root-privilege-name";
 
 
 
@@ -620,7 +620,7 @@ public final class ConfigConstants
    * should not be allowed to establish connections.
    */
   public static final String ATTR_DENIED_CLIENT =
-       NAME_PREFIX_CFG + "denied-client";
+       "ds-cfg-denied-client";
 
 
 
@@ -628,7 +628,7 @@ public final class ConfigConstants
    * The name of the configuration attribute that specifies the realm that
    * should be used for DIGEST-MD5 authentication.
    */
-  public static final String ATTR_DIGESTMD5_REALM = NAME_PREFIX_CFG + "realm";
+  public static final String ATTR_DIGESTMD5_REALM = "ds-cfg-realm";
 
 
 
@@ -669,7 +669,7 @@ public final class ConfigConstants
    * of the Java class for the entry cache implementation.
    */
   public static final String ATTR_ENTRYCACHE_CLASS =
-       NAME_PREFIX_CFG + "entry-cache-class";
+       "ds-cfg-java-class";
 
 
 
@@ -678,7 +678,7 @@ public final class ConfigConstants
    * cache is enabled.
    */
   public static final String ATTR_ENTRYCACHE_ENABLED =
-       NAME_PREFIX_CFG + "entry-cache-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -687,7 +687,7 @@ public final class ConfigConstants
    * for the extended operation handler class.
    */
   public static final String ATTR_EXTOP_CLASS =
-       NAME_PREFIX_CFG + "extended-operation-handler-class";
+       "ds-cfg-java-class";
 
 
 
@@ -696,7 +696,7 @@ public final class ConfigConstants
    * operation handler should be enabled.
    */
   public static final String ATTR_EXTOP_ENABLED =
-       NAME_PREFIX_CFG + "extended-operation-handler-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -706,7 +706,7 @@ public final class ConfigConstants
    * cache.
    */
   public static final String ATTR_FIFOCACHE_EXCLUDE_FILTER =
-       NAME_PREFIX_CFG + "exclude-filter";
+       "ds-cfg-exclude-filter";
 
 
 
@@ -715,7 +715,7 @@ public final class ConfigConstants
    * filters to use to determine which entries should be included in the cache.
    */
   public static final String ATTR_FIFOCACHE_INCLUDE_FILTER =
-       NAME_PREFIX_CFG + "include-filter";
+       "ds-cfg-include-filter";
 
 
 
@@ -725,7 +725,7 @@ public final class ConfigConstants
    * the cache.
    */
   public static final String ATTR_FIFOCACHE_LOCK_TIMEOUT =
-       NAME_PREFIX_CFG + "lock-timeout";
+       "ds-cfg-lock-timeout";
 
 
 
@@ -742,7 +742,7 @@ public final class ConfigConstants
    * of entries that the FIFO entry cache will be allowed to hold.
    */
   public static final String ATTR_FIFOCACHE_MAX_ENTRIES =
-       NAME_PREFIX_CFG + "max-entries";
+       "ds-cfg-max-entries";
 
 
 
@@ -760,7 +760,7 @@ public final class ConfigConstants
    * allowed to consume.
    */
   public static final String ATTR_FIFOCACHE_MAX_MEMORY_PCT =
-       NAME_PREFIX_CFG + "max-memory-percent";
+       "ds-cfg-max-memory-percent";
 
 
 
@@ -777,14 +777,14 @@ public final class ConfigConstants
    * cache.
    */
   public static final String ATTR_FSCACHE_EXCLUDE_FILTER =
-       NAME_PREFIX_CFG + "exclude-filter";
+       "ds-cfg-exclude-filter";
 
   /**
    * The name of the configuration attribute that contains a set of search
    * filters to use to determine which entries should be included in the cache.
    */
   public static final String ATTR_FSCACHE_INCLUDE_FILTER =
-       NAME_PREFIX_CFG + "include-filter";
+       "ds-cfg-include-filter";
 
   /**
    * The name of the configuration attribute that indicates the maximum length
@@ -792,7 +792,7 @@ public final class ConfigConstants
    * the cache.
    */
   public static final String ATTR_FSCACHE_LOCK_TIMEOUT =
-       NAME_PREFIX_CFG + "lock-timeout";
+       "ds-cfg-lock-timeout";
 
   /**
    * The default value for the entry cache lockout timeout that will be used if
@@ -805,7 +805,7 @@ public final class ConfigConstants
    * of entries that the FIFO entry cache will be allowed to hold.
    */
   public static final String ATTR_FSCACHE_MAX_ENTRIES =
-       NAME_PREFIX_CFG + "max-entries";
+       "ds-cfg-max-entries";
 
   /**
    * The default value for the entry cache max entries that will be used if no
@@ -818,14 +818,14 @@ public final class ConfigConstants
    * memory size of the FS entry cache.
    */
   public static final String ATTR_FSCACHE_MAX_MEMORY_SIZE =
-       NAME_PREFIX_CFG + "max-memory-size";
+       "ds-cfg-max-memory-size";
 
   /**
    * The name of the configuration attribute that specifies the entry cache JE
    * environment home.
    */
   public static final String ATTR_FSCACHE_HOME =
-      NAME_PREFIX_CFG + "cache-directory";
+      "ds-cfg-cache-directory";
 
   /**
    * The default value for the entry cache JE environment home that will be used
@@ -839,7 +839,7 @@ public final class ConfigConstants
    * allowed to consume.
    */
   public static final String ATTR_FSCACHE_JE_CACHE_SIZE =
-       NAME_PREFIX_CFG + "database-cache-size";
+       "ds-cfg-db-cache-size";
 
   /**
    * The default value for the JE cache size in bytes that will be used
@@ -852,7 +852,7 @@ public final class ConfigConstants
    * available memory percent that JE cache can consume.
    */
   public static final String ATTR_FSCACHE_JE_CACHE_PCT =
-       NAME_PREFIX_CFG + "database-cache-percent";
+       "ds-cfg-db-cache-percent";
 
   /**
    * The default value for the JE cache size percent that will be used
@@ -865,7 +865,7 @@ public final class ConfigConstants
    * file system entry cache is configured as persistent or not.
    */
   public static final String ATTR_FSCACHE_IS_PERSISTENT =
-       NAME_PREFIX_CFG + "persistent-cache";
+       "ds-cfg-persistent-cache";
 
   /**
    * The default value to indicate whether the cache is persistent or not.
@@ -882,14 +882,14 @@ public final class ConfigConstants
    * cache type will be used.
    */
   public static final String ATTR_FSCACHE_TYPE =
-       NAME_PREFIX_CFG + "cache-type";
+       "ds-cfg-cache-type";
 
   /**
    * The name of the configuration attribute that specifies the fully-qualified
    * class name for a group implementation.
    */
   public static final String ATTR_GROUP_IMPLEMENTATION_CLASS =
-       NAME_PREFIX_CFG + "group-implementation-class";
+       "ds-cfg-java-class";
 
 
 
@@ -898,7 +898,7 @@ public final class ConfigConstants
    * implementation should be enabled for use in the server.
    */
   public static final String ATTR_GROUP_IMPLEMENTATION_ENABLED =
-       NAME_PREFIX_CFG + "group-implementation-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -906,7 +906,7 @@ public final class ConfigConstants
    * The name of the configuration attribute that holds the address of the KDC
    * to use when processing SASL GSSAPI binds.
    */
-  public static final String ATTR_GSSAPI_KDC = NAME_PREFIX_CFG + "kdc-address";
+  public static final String ATTR_GSSAPI_KDC = "ds-cfg-kdc-address";
 
 
 
@@ -915,7 +915,7 @@ public final class ConfigConstants
    * keytab file to use when processing SASL GSSAPI binds.
    */
   public static final String ATTR_GSSAPI_KEYTAB_FILE =
-       NAME_PREFIX_CFG + "keytab";
+       "ds-cfg-keytab";
 
 
 
@@ -923,7 +923,7 @@ public final class ConfigConstants
    * The name of the configuration attribute that holds the default Kerberos
    * realm to use when processing SASL GSSAPI binds.
    */
-  public static final String ATTR_GSSAPI_REALM = NAME_PREFIX_CFG + "realm";
+  public static final String ATTR_GSSAPI_REALM = "ds-cfg-realm";
 
 
 
@@ -932,7 +932,7 @@ public final class ConfigConstants
    * of an identity mapper class.
    */
   public static final String ATTR_IDMAPPER_CLASS =
-       NAME_PREFIX_CFG + "identity-mapper-class";
+       "ds-cfg-java-class";
 
 
 
@@ -941,7 +941,7 @@ public final class ConfigConstants
    * mapper configuration entry.
    */
   public static final String ATTR_IDMAPPER_DN =
-       NAME_PREFIX_CFG + "identity-mapper-dn";
+       "ds-cfg-identity-mapper";
 
 
 
@@ -950,7 +950,7 @@ public final class ConfigConstants
    * mapper is enabled.
    */
   public static final String ATTR_IDMAPPER_ENABLED =
-       NAME_PREFIX_CFG + "identity-mapper-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -960,7 +960,7 @@ public final class ConfigConstants
    * associated attribute syntax.
    */
   public static final String ATTR_INVALID_SYNTAX_BEHAVIOR =
-       NAME_PREFIX_CFG + "invalid-attribute-syntax-behavior";
+       "ds-cfg-invalid-attribute-syntax-behavior";
 
 
 
@@ -970,7 +970,7 @@ public final class ConfigConstants
    * exactly one structural objectclass.
    */
   public static final String ATTR_SINGLE_STRUCTURAL_CLASS_BEHAVIOR =
-       NAME_PREFIX_CFG + "single-structural-objectclass-behavior";
+       "ds-cfg-single-structural-objectclass-behavior";
 
 
 
@@ -995,7 +995,7 @@ public final class ConfigConstants
    * connection handler should keep statistical information.
    */
   public static final String ATTR_KEEP_LDAP_STATS =
-       NAME_PREFIX_CFG + "keep-stats";
+       "ds-cfg-keep-stats";
 
 
 
@@ -1012,7 +1012,7 @@ public final class ConfigConstants
    * name of the class to use as the key manager provider.
    */
   public static final String ATTR_KEYMANAGER_CLASS =
-       NAME_PREFIX_CFG + "key-manager-provider-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1021,7 +1021,7 @@ public final class ConfigConstants
    * configuration entry for the key manager provider.
    */
   public static final String ATTR_KEYMANAGER_DN =
-       NAME_PREFIX_CFG + "key-manager-provider-dn";
+       "ds-cfg-key-manager-provider";
 
 
 
@@ -1030,7 +1030,7 @@ public final class ConfigConstants
    * manager provider should be enabled.
    */
   public static final String ATTR_KEYMANAGER_ENABLED =
-       NAME_PREFIX_CFG + "key-manager-provider-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1039,7 +1039,7 @@ public final class ConfigConstants
    * keystore file.
    */
   public static final String ATTR_KEYSTORE_FILE =
-       NAME_PREFIX_CFG + "key-store-file";
+       "ds-cfg-key-store-file";
 
 
 
@@ -1048,7 +1048,7 @@ public final class ConfigConstants
    * access the keystore.
    */
   public static final String ATTR_KEYSTORE_PIN =
-       NAME_PREFIX_CFG + "key-store-pin";
+       "ds-cfg-key-store-pin";
 
 
 
@@ -1057,7 +1057,7 @@ public final class ConfigConstants
    * environment variable containing the PIN needed to access the keystore.
    */
   public static final String ATTR_KEYSTORE_PIN_ENVAR =
-       NAME_PREFIX_CFG + "key-store-pin-environment-variable";
+       "ds-cfg-key-store-pin-environment-variable";
 
 
 
@@ -1066,7 +1066,7 @@ public final class ConfigConstants
    * containing the PIN needed to access the keystore.
    */
   public static final String ATTR_KEYSTORE_PIN_FILE =
-       NAME_PREFIX_CFG + "key-store-pin-file";
+       "ds-cfg-key-store-pin-file";
 
 
 
@@ -1075,7 +1075,7 @@ public final class ConfigConstants
    * property containing the PIN needed to access the keystore.
    */
   public static final String ATTR_KEYSTORE_PIN_PROPERTY =
-  NAME_PREFIX_CFG + "key-store-pin-property";
+  "ds-cfg-key-store-pin-property";
 
 
 
@@ -1084,7 +1084,7 @@ public final class ConfigConstants
    * data in the keystore file.
    */
   public static final String ATTR_KEYSTORE_TYPE =
-       NAME_PREFIX_CFG + "key-store-type";
+       "ds-cfg-key-store-type";
 
 
 
@@ -1093,7 +1093,7 @@ public final class ConfigConstants
    * name of the class to use as the trust manager provider.
    */
   public static final String ATTR_TRUSTMANAGER_CLASS =
-       NAME_PREFIX_CFG + "trust-manager-provider-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1102,7 +1102,7 @@ public final class ConfigConstants
    * configuration entry for the trust manager provider.
    */
   public static final String ATTR_TRUSTMANAGER_DN =
-       NAME_PREFIX_CFG + "trust-manager-provider-dn";
+       "ds-cfg-trust-manager-provider";
 
 
 
@@ -1111,7 +1111,7 @@ public final class ConfigConstants
    * manager provider should be enabled.
    */
   public static final String ATTR_TRUSTMANAGER_ENABLED =
-       NAME_PREFIX_CFG + "trust-manager-provider-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1120,7 +1120,7 @@ public final class ConfigConstants
    * trust store file.
    */
   public static final String ATTR_TRUSTSTORE_FILE =
-       NAME_PREFIX_CFG + "trust-store-file";
+       "ds-cfg-trust-store-file";
 
 
 
@@ -1129,7 +1129,7 @@ public final class ConfigConstants
    * access the trust store.
    */
   public static final String ATTR_TRUSTSTORE_PIN =
-       NAME_PREFIX_CFG + "trust-store-pin";
+       "ds-cfg-trust-store-pin";
 
 
 
@@ -1138,7 +1138,7 @@ public final class ConfigConstants
    * environment variable containing the PIN needed to access the trust store.
    */
   public static final String ATTR_TRUSTSTORE_PIN_ENVAR =
-       NAME_PREFIX_CFG + "trust-store-pin-environment-variable";
+       "ds-cfg-trust-store-pin-environment-variable";
 
 
 
@@ -1147,7 +1147,7 @@ public final class ConfigConstants
    * containing the PIN needed to access the trust store.
    */
   public static final String ATTR_TRUSTSTORE_PIN_FILE =
-       NAME_PREFIX_CFG + "trust-store-pin-file";
+       "ds-cfg-trust-store-pin-file";
 
 
 
@@ -1156,7 +1156,7 @@ public final class ConfigConstants
    * property containing the PIN needed to access the trust store.
    */
   public static final String ATTR_TRUSTSTORE_PIN_PROPERTY =
-       NAME_PREFIX_CFG + "trust-store-pin-property";
+       "ds-cfg-trust-store-pin-property";
 
 
 
@@ -1165,7 +1165,7 @@ public final class ConfigConstants
    * data in the trust store file.
    */
   public static final String ATTR_TRUSTSTORE_TYPE =
-       NAME_PREFIX_CFG + "trust-store-type";
+       "ds-cfg-trust-store-type";
 
 
 
@@ -1174,7 +1174,7 @@ public final class ConfigConstants
    * of addresses on which a connection handler should listen.
    */
   public static final String ATTR_LISTEN_ADDRESS =
-       NAME_PREFIX_CFG + "listen-address";
+       "ds-cfg-listen-address";
 
 
 
@@ -1182,66 +1182,59 @@ public final class ConfigConstants
    * The name of the configuration attribute that specifies the port or set of
    * ports on which a connection handler should listen.
    */
-  public static final String ATTR_LISTEN_PORT = NAME_PREFIX_CFG + "listen-port";
+  public static final String ATTR_LISTEN_PORT = "ds-cfg-listen-port";
 
   /**
    * The attribute that specifies if internal operations should be logged
    * or not.
    */
   public static final String ATTR_LOGGER_SUPPRESS_INTERNAL_OPERATIONS =
-       NAME_PREFIX_CFG + "suppress-internal-operations";
+       "ds-cfg-suppress-internal-operations";
 
 
   /**
    * The policy type for rotating log files.
    */
   public static final String ATTR_LOGGER_ROTATION_POLICY =
-       NAME_PREFIX_CFG + "rotation-policy";
+       "ds-cfg-rotation-policy";
 
   /**
    * The policy type for retaining log files.
    */
   public static final String ATTR_LOGGER_RETENTION_POLICY =
-       NAME_PREFIX_CFG + "retention-policy";
+       "ds-cfg-retention-policy";
 
   /**
    * The number of files to retain attribute type.
    */
   public static final String ATTR_LOGGER_RETENTION_NUMBER_OF_FILES =
-       NAME_PREFIX_CFG + "number-of-files";
+       "ds-cfg-number-of-files";
 
   /**
    * The disk space used attribute.
    */
   public static final String ATTR_LOGGER_RETENTION_DISK_SPACE_USED =
-       NAME_PREFIX_CFG + "disk-space-used";
+       "ds-cfg-disk-space-used";
 
   /**
    * The free disk space attribute.
    */
   public static final String ATTR_LOGGER_RETENTION_FREE_DISK_SPACE =
-       NAME_PREFIX_CFG + "free-disk-space";
+       "ds-cfg-free-disk-space";
 
 
   /**
    * The size limit for the size based rotation policy.
    */
   public static final String ATTR_LOGGER_ROTATION_SIZE_LIMIT =
-       NAME_PREFIX_CFG + "size-limit";
-
-
-  /**
-   * The time limit for the fixed time interval based rotation policy.
-   */
-  public static final String ATTR_LOGGER_ROTATION_FIXED_TIME_LIMIT =
-       NAME_PREFIX_CFG + "fixed-time-limit";
+       "ds-cfg-size-limit";
 
 
   /**
    * The time of day for the time of day based rotation policy.
    */
   public static final String ATTR_LOGGER_ROTATION_TIME_OF_DAY =
-       NAME_PREFIX_CFG + "time-of-day";
+       "ds-cfg-time-of-day";
 
 
 
@@ -1249,21 +1242,21 @@ public final class ConfigConstants
    * The action to be taken at the time of rotation.
    */
   public static final String ATTR_LOGGER_ROTATION_ACTION =
-       NAME_PREFIX_CFG + "rotation-action";
+       "ds-cfg-rotation-action";
 
 
   /**
    * The time interval for the logger thread to sleep.
    */
   public static final String ATTR_LOGGER_THREAD_INTERVAL =
-       NAME_PREFIX_CFG + "thread-time-interval";
+       "ds-cfg-time-interval";
 
 
   /**
    * The time interval for the logger thread to sleep.
    */
   public static final String ATTR_LOGGER_BUFFER_SIZE =
-       NAME_PREFIX_CFG + "buffer-size";
+       "ds-cfg-buffer-size";
 
 
 
@@ -1272,7 +1265,7 @@ public final class ConfigConstants
    * for the logger class.
    */
   public static final String ATTR_LOGGER_CLASS =
-       NAME_PREFIX_CFG + "logger-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1281,7 +1274,7 @@ public final class ConfigConstants
    * Server logger should be enabled.
    */
   public static final String ATTR_LOGGER_ENABLED =
-       NAME_PREFIX_CFG + "logger-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1291,7 +1284,7 @@ public final class ConfigConstants
    * a user entry.
    */
   public static final String ATTR_MATCH_ATTRIBUTE =
-       NAME_PREFIX_CFG + "match-attribute";
+       "ds-cfg-match-attribute";
 
 
 
@@ -1300,7 +1293,7 @@ public final class ConfigConstants
    * should be used when attempting to map an ID string to a user entry.
    */
   public static final String ATTR_MATCH_BASE =
-       NAME_PREFIX_CFG + "match-base-dn";
+       "ds-cfg-match-base-dn";
 
 
 
@@ -1360,7 +1353,7 @@ public final class ConfigConstants
    * name of the Java class that defines a Directory Server matching rule.
    */
   public static final String ATTR_MATCHING_RULE_CLASS =
-       NAME_PREFIX_CFG + "matching-rule-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1369,7 +1362,7 @@ public final class ConfigConstants
    * rule should be enabled.
    */
   public static final String ATTR_MATCHING_RULE_ENABLED =
-       NAME_PREFIX_CFG + "matching-rule-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1378,7 +1371,7 @@ public final class ConfigConstants
    * of client connections that may be established at any given time.
    */
   public static final String ATTR_MAX_ALLOWED_CONNS =
-       NAME_PREFIX_CFG + "max-allowed-client-connections";
+       "ds-cfg-max-allowed-client-connections";
 
 
 
@@ -1387,7 +1380,7 @@ public final class ConfigConstants
    * size of a request in bytes.
    */
   public static final String ATTR_MAX_REQUEST_SIZE =
-       NAME_PREFIX_CFG + "max-request-size";
+       "ds-cfg-max-request-size";
 
 
 
@@ -1396,7 +1389,7 @@ public final class ConfigConstants
    * of pending operations that may be in the work queue at any given time.
    */
   public static final String ATTR_MAX_WORK_QUEUE_CAPACITY =
-       NAME_PREFIX_CFG + "max-work-queue-capacity";
+       "ds-cfg-max-work-queue-capacity";
 
 
 
@@ -1413,7 +1406,7 @@ public final class ConfigConstants
    * for the monitor provider class.
    */
   public static final String ATTR_MONITOR_CLASS =
-       NAME_PREFIX_CFG + "monitor-provider-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1422,7 +1415,7 @@ public final class ConfigConstants
    * provider should be enabled.
    */
   public static final String ATTR_MONITOR_ENABLED =
-       NAME_PREFIX_CFG + "monitor-provider-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1447,7 +1440,7 @@ public final class ConfigConstants
    * response to operations that have been abandoned.
    */
   public static final String ATTR_NOTIFY_ABANDONED_OPS =
-       NAME_PREFIX_CFG + "notify-abandoned-operations";
+       "ds-cfg-notify-abandoned-operations";
 
 
 
@@ -1456,7 +1449,7 @@ public final class ConfigConstants
    * request handlers that should be used to read requests from clients.
    */
   public static final String ATTR_NUM_REQUEST_HANDLERS =
-       NAME_PREFIX_CFG + "num-request-handlers";
+       "ds-cfg-num-request-handlers";
 
 
 
@@ -1473,7 +1466,7 @@ public final class ConfigConstants
    * threads that should be used to process requests.
    */
   public static final String ATTR_NUM_WORKER_THREADS =
-       NAME_PREFIX_CFG + "num-worker-threads";
+       "ds-cfg-num-worker-threads";
 
 
 
@@ -1514,7 +1507,7 @@ public final class ConfigConstants
    * can be used with a password.
    */
   public static final String ATTR_PASSWORD_CHARSET =
-       NAME_PREFIX_CFG + "password-character-set";
+       "ds-cfg-password-character-set";
 
 
 
@@ -1523,7 +1516,7 @@ public final class ConfigConstants
    * should be used for generating a password.
    */
   public static final String ATTR_PASSWORD_FORMAT =
-       NAME_PREFIX_CFG + "password-format";
+       "ds-cfg-password-format";
 
 
 
@@ -1532,7 +1525,7 @@ public final class ConfigConstants
    * length for a password.
    */
   public static final String ATTR_PASSWORD_MAX_LENGTH =
-       NAME_PREFIX_CFG + "maximum-password-length";
+       "ds-cfg-max-password-length";
 
 
 
@@ -1541,14 +1534,14 @@ public final class ConfigConstants
    * length for a password.
    */
   public static final String ATTR_PASSWORD_MIN_LENGTH =
-       NAME_PREFIX_CFG + "minimum-password-length";
+       "ds-cfg-min-password-length";
 
   /**
    * The name of the configuration attribute that specifies the minimum allowed
    * difference for a password.
    */
   public static final String ATTR_PASSWORD_MIN_DIFFERENCE =
-       NAME_PREFIX_CFG + "minimum-password-difference";
+       "ds-cfg-min-password-difference";
 
 
   /**
@@ -1556,7 +1549,7 @@ public final class ConfigConstants
    * of the Java class for a plugin implementation.
    */
   public static final String ATTR_PLUGIN_CLASS =
-       NAME_PREFIX_CFG + "plugin-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1565,7 +1558,7 @@ public final class ConfigConstants
    * plugin is enabled.
    */
   public static final String ATTR_PLUGIN_ENABLED =
-       NAME_PREFIX_CFG + "plugin-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1574,7 +1567,7 @@ public final class ConfigConstants
    * plugin will be used.
    */
   public static final String ATTR_PLUGIN_TYPE =
-       NAME_PREFIX_CFG + "plugin-type";
+       "ds-cfg-plugin-type";
 
 
 
@@ -1584,7 +1577,7 @@ public final class ConfigConstants
    * collection).
    */
   public static final String ATTR_PROFILE_ACTION =
-      NAME_PREFIX_CFG + "profile-action";
+      "ds-cfg-profile-action";
 
 
 
@@ -1594,7 +1587,7 @@ public final class ConfigConstants
    * server is starting.
    */
   public static final String ATTR_PROFILE_AUTOSTART =
-       NAME_PREFIX_CFG + "enable-profiling-on-startup";
+       "ds-cfg-enable-profiling-on-startup";
 
 
 
@@ -1603,7 +1596,7 @@ public final class ConfigConstants
    * directory into which profile information will be written.
    */
   public static final String ATTR_PROFILE_DIR =
-       NAME_PREFIX_CFG + "profile-directory";
+       "ds-cfg-profile-directory";
 
 
 
@@ -1612,7 +1605,7 @@ public final class ConfigConstants
    * interval in milliseconds.
    */
   public static final String ATTR_PROFILE_INTERVAL =
-       NAME_PREFIX_CFG + "profile-sample-interval";
+       "ds-cfg-profile-sample-interval";
 
 
 
@@ -1629,7 +1622,7 @@ public final class ConfigConstants
    * state of the profiler.
    */
   public static final String ATTR_PROFILE_STATE =
-       NAME_PREFIX_CFG + "profiler-state";
+       "ds-cfg-profiler-state";
 
 
 
@@ -1639,7 +1632,7 @@ public final class ConfigConstants
    * control.
    */
   public static final String ATTR_PROXY_MAPPER_DN =
-       NAME_PREFIX_CFG + "proxied-authorization-identity-mapper-dn";
+       "ds-cfg-proxied-authorization-identity-mapper";
 
 
 
@@ -1648,7 +1641,7 @@ public final class ConfigConstants
    * for the password generator class.
    */
   public static final String ATTR_PWGENERATOR_CLASS =
-       NAME_PREFIX_CFG + "password-generator-class";
+       "ds-cfg-java-class";
 
 
 
@@ -1657,7 +1650,7 @@ public final class ConfigConstants
    * generator is enabled.
    */
   public static final String ATTR_PWGENERATOR_ENABLED =
-       NAME_PREFIX_CFG + "password-generator-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -1666,7 +1659,7 @@ public final class ConfigConstants
    * be allowed to change their password even if it is expired.
    */
   public static final String ATTR_PWPOLICY_ALLOW_EXPIRED_CHANGES =
-       NAME_PREFIX_CFG + "allow-expired-password-changes";
+       "ds-cfg-allow-expired-password-changes";
 
 
 
@@ -1683,7 +1676,7 @@ public final class ConfigConstants
    * provide a pre-encoded password.
    */
   public static final String ATTR_PWPOLICY_ALLOW_PRE_ENCODED_PASSWORDS =
-       NAME_PREFIX_CFG + "allow-pre-encoded-passwords";
+       "ds-cfg-allow-pre-encoded-passwords";
 
 
 
@@ -1700,7 +1693,7 @@ public final class ConfigConstants
    * will be allowed to have multiple values for the password attribute.
    */
   public static final String ATTR_PWPOLICY_ALLOW_MULTIPLE_PW_VALUES =
-       NAME_PREFIX_CFG + "allow-multiple-password-values";
+       "ds-cfg-allow-multiple-password-values";
 
 
 
@@ -1717,7 +1710,7 @@ public final class ConfigConstants
    * be allowed to change their own passwords.
    */
   public static final String ATTR_PWPOLICY_ALLOW_USER_CHANGE =
-       NAME_PREFIX_CFG + "allow-user-password-changes";
+       "ds-cfg-allow-user-password-changes";
 
 
 
@@ -1733,16 +1726,7 @@ public final class ConfigConstants
    * storage schemes for a password policy.
    */
   public static final String ATTR_PWPOLICY_DEFAULT_SCHEME =
-       NAME_PREFIX_CFG + "default-password-storage-scheme";
-
-
-
-  /**
-   * The name of the configuration attribute that specifies the deprecated
-   * password storage schemes for a password policy.
-   */
-  public static final String ATTR_PWPOLICY_DEPRECATED_SCHEME =
-       NAME_PREFIX_CFG + "deprecated-password-storage-scheme";
+       "ds-cfg-default-password-storage-scheme";
 
 
 
@@ -1752,7 +1736,7 @@ public final class ConfigConstants
    * notification.
    */
   public static final String ATTR_PWPOLICY_EXPIRE_WITHOUT_WARNING =
-       NAME_PREFIX_CFG + "expire-passwords-without-warning";
+       "ds-cfg-expire-passwords-without-warning";
 
 
 
@@ -1770,7 +1754,7 @@ public final class ConfigConstants
    * created.
    */
   public static final String ATTR_PWPOLICY_FORCE_CHANGE_ON_ADD =
-       NAME_PREFIX_CFG + "force-change-on-add";
+       "ds-cfg-force-change-on-add";
 
 
 
@@ -1786,7 +1770,7 @@ public final class ConfigConstants
    * change their password after it is reset by an administrator.
    */
   public static final String ATTR_PWPOLICY_FORCE_CHANGE_ON_RESET =
-       NAME_PREFIX_CFG + "force-change-on-reset";
+       "ds-cfg-force-change-on-reset";
 
 
 
@@ -1802,7 +1786,7 @@ public final class ConfigConstants
    * grace login attempts that a user will have.
    */
   public static final String ATTR_PWPOLICY_GRACE_LOGIN_COUNT =
-       NAME_PREFIX_CFG + "grace-login-count";
+       "ds-cfg-grace-login-count";
 
 
 
@@ -1833,7 +1817,7 @@ public final class ConfigConstants
    * of time an account may remain idle.
    */
   public static final String ATTR_PWPOLICY_IDLE_LOCKOUT_INTERVAL =
-       NAME_PREFIX_CFG + "idle-lockout-interval";
+       "ds-cfg-idle-lockout-interval";
 
 
 
@@ -1849,7 +1833,7 @@ public final class ConfigConstants
    * to hold the last login time.
    */
   public static final String ATTR_PWPOLICY_LAST_LOGIN_TIME_ATTRIBUTE =
-       NAME_PREFIX_CFG + "last-login-time-attribute";
+       "ds-cfg-last-login-time-attribute";
 
 
 
@@ -1858,7 +1842,7 @@ public final class ConfigConstants
    * used to generate the last login time.
    */
   public static final String ATTR_PWPOLICY_LAST_LOGIN_TIME_FORMAT =
-       NAME_PREFIX_CFG + "last-login-time-format";
+       "ds-cfg-last-login-time-format";
 
 
 
@@ -1867,7 +1851,7 @@ public final class ConfigConstants
    * that a user will remain locked out.
    */
   public static final String ATTR_PWPOLICY_LOCKOUT_DURATION =
-       NAME_PREFIX_CFG + "lockout-duration";
+       "ds-cfg-lockout-duration";
 
 
 
@@ -1883,7 +1867,7 @@ public final class ConfigConstants
    * authentication failures required to lock out a user account.
    */
   public static final String ATTR_PWPOLICY_LOCKOUT_FAILURE_COUNT =
-       NAME_PREFIX_CFG + "lockout-failure-count";
+       "ds-cfg-lockout-failure-count";
 
 
 
@@ -1900,7 +1884,7 @@ public final class ConfigConstants
    * for lockout purposes.
    */
   public static final String ATTR_PWPOLICY_LOCKOUT_FAILURE_EXPIRATION_INTERVAL =
-       NAME_PREFIX_CFG + "lockout-failure-expiration-interval";
+       "ds-cfg-lockout-failure-expiration-interval";
 
 
 
@@ -1918,7 +1902,7 @@ public final class ConfigConstants
    * of time allowed between password changes.
    */
   public static final String ATTR_PWPOLICY_MAXIMUM_PASSWORD_AGE =
-       NAME_PREFIX_CFG + "maximum-password-age";
+       "ds-cfg-max-password-age";
 
 
 
@@ -1935,7 +1919,7 @@ public final class ConfigConstants
    * administratively reset.
    */
   public static final String ATTR_PWPOLICY_MAXIMUM_PASSWORD_RESET_AGE =
-       NAME_PREFIX_CFG + "maximum-password-reset-age";
+       "ds-cfg-max-password-reset-age";
 
 
 
@@ -1951,7 +1935,7 @@ public final class ConfigConstants
    * of time allowed between password changes.
    */
   public static final String ATTR_PWPOLICY_MINIMUM_PASSWORD_AGE =
-       NAME_PREFIX_CFG + "minimum-password-age";
+       "ds-cfg-min-password-age";
 
 
 
@@ -1968,7 +1952,7 @@ public final class ConfigConstants
    * with the password policy.
    */
   public static final String ATTR_PWPOLICY_NOTIFICATION_HANDLER =
-       NAME_PREFIX_CFG + "account-status-notification-handler-dn";
+       "ds-cfg-account-status-notification-handler";
 
 
 
@@ -1977,7 +1961,7 @@ public final class ConfigConstants
    * to hold user passwords.
    */
   public static final String ATTR_PWPOLICY_PASSWORD_ATTRIBUTE =
-       NAME_PREFIX_CFG + "password-attribute";
+       "ds-cfg-password-attribute";
 
 
 
@@ -1987,7 +1971,7 @@ public final class ConfigConstants
    * policy.
    */
   public static final String ATTR_PWPOLICY_PASSWORD_GENERATOR =
-       NAME_PREFIX_CFG + "password-generator-dn";
+       "ds-cfg-password-generator";
 
 
 
@@ -1997,7 +1981,7 @@ public final class ConfigConstants
    * the password policy.
    */
   public static final String ATTR_PWPOLICY_PASSWORD_VALIDATOR =
-       NAME_PREFIX_CFG + "password-validator-dn";
+       "ds-cfg-password-validator";
 
 
 
@@ -2006,7 +1990,7 @@ public final class ConfigConstants
    * that may have been used in the past to generate last login time values.
    */
   public static final String ATTR_PWPOLICY_PREVIOUS_LAST_LOGIN_TIME_FORMAT =
-       NAME_PREFIX_CFG + "previous-last-login-time-format";
+       "ds-cfg-previous-last-login-time-format";
 
 
 
@@ -2015,7 +1999,7 @@ public final class ConfigConstants
    * users must have changed their passwords.
    */
   public static final String ATTR_PWPOLICY_REQUIRE_CHANGE_BY_TIME =
-       NAME_PREFIX_CFG + "require-change-by-time";
+       "ds-cfg-require-change-by-time";
 
 
 
@@ -2025,7 +2009,7 @@ public final class ConfigConstants
    * password.
    */
   public static final String ATTR_PWPOLICY_REQUIRE_CURRENT_PASSWORD =
-       NAME_PREFIX_CFG + "password-change-requires-current-password";
+       "ds-cfg-password-change-requires-current-password";
 
 
 
@@ -2042,7 +2026,7 @@ public final class ConfigConstants
    * be required to authenticate using a secure mechanism.
    */
   public static final String ATTR_PWPOLICY_REQUIRE_SECURE_AUTHENTICATION =
-       NAME_PREFIX_CFG + "require-secure-authentication";
+       "ds-cfg-require-secure-authentication";
 
 
 
@@ -2060,7 +2044,7 @@ public final class ConfigConstants
    * be required to change their passwords using a secure mechanism.
    */
   public static final String ATTR_PWPOLICY_REQUIRE_SECURE_PASSWORD_CHANGES =
-       NAME_PREFIX_CFG + "require-secure-password-changes";
+       "ds-cfg-require-secure-password-changes";
 
 
 
@@ -2078,7 +2062,7 @@ public final class ConfigConstants
    * should perform validation on passwords set by administrators.
    */
   public static final String ATTR_PWPOLICY_SKIP_ADMIN_VALIDATION =
-       NAME_PREFIX_CFG + "skip-validation-for-administrators";
+       "ds-cfg-skip-validation-for-administrators";
 
 
 
@@ -2096,7 +2080,7 @@ public final class ConfigConstants
    * notifications.
    */
   public static final String ATTR_PWPOLICY_WARNING_INTERVAL =
-       NAME_PREFIX_CFG + "password-expiration-warning-interval";
+       "ds-cfg-password-expiration-warning-interval";
 
 
 
@@ -2113,7 +2097,7 @@ public final class ConfigConstants
    * for the password storage scheme class.
    */
   public static final String ATTR_PWSCHEME_CLASS =
-       NAME_PREFIX_CFG + "password-storage-scheme-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2122,7 +2106,7 @@ public final class ConfigConstants
    * storage scheme is enabled.
    */
   public static final String ATTR_PWSCHEME_ENABLED =
-       NAME_PREFIX_CFG + "password-storage-scheme-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -2131,7 +2115,7 @@ public final class ConfigConstants
    * for the password validator class.
    */
   public static final String ATTR_PWVALIDATOR_CLASS =
-       NAME_PREFIX_CFG + "password-validator-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2140,7 +2124,7 @@ public final class ConfigConstants
    * validator is enabled.
    */
   public static final String ATTR_PWVALIDATOR_ENABLED =
-       NAME_PREFIX_CFG + "password-validator-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -2177,7 +2161,7 @@ public final class ConfigConstants
    * against the root DSE.
    */
   public static final String ATTR_ROOT_DSE_SUBORDINATE_BASE_DN =
-       NAME_PREFIX_CFG + "subordinate-base-dn";
+       "ds-cfg-subordinate-base-dn";
 
 
 
@@ -2186,7 +2170,7 @@ public final class ConfigConstants
    * for the SASL mechanism handler class.
    */
   public static final String ATTR_SASL_CLASS =
-       NAME_PREFIX_CFG + "sasl-mechanism-handler-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2195,7 +2179,7 @@ public final class ConfigConstants
    * mechanism handler should be enabled.
    */
   public static final String ATTR_SASL_ENABLED =
-       NAME_PREFIX_CFG + "sasl-mechanism-handler-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -2204,7 +2188,7 @@ public final class ConfigConstants
    * the entries used to publish the Directory Server schema information.
    */
   public static final String ATTR_SCHEMA_ENTRY_DN =
-       NAME_PREFIX_CFG + "schema-entry-dn";
+       "ds-cfg-schema-entry-dn";
 
 
 
@@ -2214,7 +2198,7 @@ public final class ConfigConstants
    * connection was not accepted.
    */
   public static final String ATTR_SEND_REJECTION_NOTICE =
-       NAME_PREFIX_CFG + "send-rejection-notice";
+       "ds-cfg-send-rejection-notice";
 
 
 
@@ -2232,7 +2216,7 @@ public final class ConfigConstants
    * internal server error.
    */
   public static final String ATTR_SERVER_ERROR_RESULT_CODE =
-       NAME_PREFIX_CFG + "server-error-result-code";
+       "ds-cfg-server-error-result-code";
 
 
 
@@ -2241,7 +2225,7 @@ public final class ConfigConstants
    * domain name that should be used by the server when that information is
    * needed.
    */
-  public static final String ATTR_SERVER_FQDN = NAME_PREFIX_CFG + "server-fqdn";
+  public static final String ATTR_SERVER_FQDN = "ds-cfg-server-fqdn";
 
 
 
@@ -2267,7 +2251,7 @@ public final class ConfigConstants
   /**
    * The name of the configuration attribute that holds the server size limit.
    */
-  public static final String ATTR_SIZE_LIMIT = NAME_PREFIX_CFG + "size-limit";
+  public static final String ATTR_SIZE_LIMIT = "ds-cfg-size-limit";
 
 
 
@@ -2282,7 +2266,7 @@ public final class ConfigConstants
    * limit.
    */
   public static final String ATTR_LOOKTHROUGH_LIMIT =
-        NAME_PREFIX_CFG + "lookthrough-limit";
+        "ds-cfg-lookthrough-limit";
 
 
 
@@ -2300,7 +2284,7 @@ public final class ConfigConstants
    * cache.
    */
   public static final String ATTR_SOFTREFCACHE_EXCLUDE_FILTER =
-       NAME_PREFIX_CFG + "exclude-filter";
+       "ds-cfg-exclude-filter";
 
 
 
@@ -2309,7 +2293,7 @@ public final class ConfigConstants
    * filters to use to determine which entries should be included in the cache.
    */
   public static final String ATTR_SOFTREFCACHE_INCLUDE_FILTER =
-       NAME_PREFIX_CFG + "include-filter";
+       "ds-cfg-include-filter";
 
 
 
@@ -2319,7 +2303,7 @@ public final class ConfigConstants
    * the cache.
    */
   public static final String ATTR_SOFTREFCACHE_LOCK_TIMEOUT =
-       NAME_PREFIX_CFG + "lock-timeout";
+       "ds-cfg-lock-timeout";
 
 
 
@@ -2329,7 +2313,7 @@ public final class ConfigConstants
    * authentication.
    */
   public static final String ATTR_SSL_CLIENT_AUTH_POLICY =
-       NAME_PREFIX_CFG + "ssl-client-auth-policy";
+       "ds-cfg-ssl-client-auth-policy";
 
 
 
@@ -2347,7 +2331,7 @@ public final class ConfigConstants
    * certificate that should be used for accepting SSL/TLS connections.
    */
   public static final String ATTR_SSL_CERT_NICKNAME =
-       NAME_PREFIX_CFG + "ssl-cert-nickname";
+       "ds-cfg-ssl-cert-nickname";
 
 
 
@@ -2364,7 +2348,7 @@ public final class ConfigConstants
    * cipher suites that should be allowed for use in SSL/TLS sessions.
    */
   public static final String ATTR_SSL_CIPHERS =
-       NAME_PREFIX_CFG + "ssl-cipher-suites";
+       "ds-cfg-ssl-cipher-suite";
 
 
 
@@ -2373,7 +2357,7 @@ public final class ConfigConstants
    * protocols that should be allowed for use in SSL/TLS sessions.
    */
   public static final String ATTR_SSL_PROTOCOLS =
-       NAME_PREFIX_CFG + "ssl-protocols";
+       "ds-cfg-ssl-protocol";
 
 
 
@@ -2383,7 +2367,7 @@ public final class ConfigConstants
    * provider.
    */
   public static final String ATTR_SYNCHRONIZATION_PROVIDER_CLASS =
-       NAME_PREFIX_CFG + "synchronization-provider-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2392,7 +2376,7 @@ public final class ConfigConstants
    * synchronization provider should be enabled.
    */
   public static final String ATTR_SYNCHRONIZATION_PROVIDER_ENABLED =
-       NAME_PREFIX_CFG + "synchronization-provider-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -2402,7 +2386,7 @@ public final class ConfigConstants
    * Server access control handler.
    */
   public static final String ATTR_AUTHZ_HANDLER_CLASS =
-       NAME_PREFIX_CFG + "acl-handler-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2411,7 +2395,7 @@ public final class ConfigConstants
    * access control should be enabled.
    */
   public static final String ATTR_AUTHZ_HANDLER_ENABLED =
-       NAME_PREFIX_CFG + "acl-handler-enabled";
+       "ds-cfg-enabled";
 
 
     /**
@@ -2419,7 +2403,7 @@ public final class ConfigConstants
      * attribute access control instruction.
      */
     public static final String ATTR_AUTHZ_GLOBAL_ACI =
-        NAME_PREFIX_CFG + "global-aci";
+        "ds-cfg-global-aci";
 
 
   /**
@@ -2427,7 +2411,7 @@ public final class ConfigConstants
    * name of the Java class that defines a Directory Server attribute syntax.
    */
   public static final String ATTR_SYNTAX_CLASS =
-       NAME_PREFIX_CFG + "syntax-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2436,7 +2420,7 @@ public final class ConfigConstants
    * syntax should be enabled.
    */
   public static final String ATTR_SYNTAX_ENABLED =
-       NAME_PREFIX_CFG + "syntax-enabled";
+       "ds-cfg-enabled";
 
 
 
@@ -2454,7 +2438,7 @@ public final class ConfigConstants
    * file for task information.
    */
   public static final String ATTR_TASK_BACKING_FILE =
-       NAME_PREFIX_CFG + "task-backing-file";
+       "ds-cfg-task-backing-file";
 
 
 
@@ -2527,7 +2511,7 @@ public final class ConfigConstants
    * task has completed.
    */
   public static final String ATTR_TASK_RETENTION_TIME =
-       NAME_PREFIX_CFG + "task-retention-time";
+       "ds-cfg-task-retention-time";
 
 
 
@@ -2568,14 +2552,14 @@ public final class ConfigConstants
    * determining whether a value is acceptable.
    */
   public static final String ATTR_TELEPHONE_STRICT_MODE =
-       NAME_PREFIX_CFG + "strict-telephone-number-format";
+       "ds-cfg-strict-format";
 
 
 
   /**
    * The name of the configuration attribute that holds the server time limit.
    */
-  public static final String ATTR_TIME_LIMIT = NAME_PREFIX_CFG + "time-limit";
+  public static final String ATTR_TIME_LIMIT = "ds-cfg-time-limit";
 
 
 
@@ -2592,7 +2576,7 @@ public final class ConfigConstants
    * search base when trying to find entries that match a provided username.
    */
   public static final String ATTR_USER_BASE_DN =
-       NAME_PREFIX_CFG + "user-base-dn";
+       "ds-cfg-user-base-dn";
 
 
 
@@ -2601,7 +2585,7 @@ public final class ConfigConstants
    * should be used to map usernames to their corresponding entries.
    */
   public static final String ATTR_USERNAME_ATTRIBUTE =
-       NAME_PREFIX_CFG + "user-name-attribute";
+       "ds-cfg-user-name-attribute";
 
 
 
@@ -2617,7 +2601,7 @@ public final class ConfigConstants
    * The name of the configuration attribute that indicates whether to use SSL
    * when accepting client connections.
    */
-  public static final String ATTR_USE_SSL = NAME_PREFIX_CFG + "use-ssl";
+  public static final String ATTR_USE_SSL = "ds-cfg-use-ssl";
 
 
 
@@ -2634,7 +2618,7 @@ public final class ConfigConstants
    * to clients should use the TCP_KEEPALIVE socket option.
    */
   public static final String ATTR_USE_TCP_KEEPALIVE =
-       NAME_PREFIX_CFG + "use-tcp-keepalive";
+       "ds-cfg-use-tcp-keep-alive";
 
 
 
@@ -2651,7 +2635,7 @@ public final class ConfigConstants
    * to clients should use the TCP_NODELAY socket option.
    */
   public static final String ATTR_USE_TCP_NODELAY =
-       NAME_PREFIX_CFG + "use-tcp-nodelay";
+       "ds-cfg-use-tcp-no-delay";
 
 
 
@@ -2669,7 +2653,7 @@ public final class ConfigConstants
    * validation.
    */
   public static final String ATTR_VALIDATION_CERT_ATTRIBUTE =
-       NAME_PREFIX_CFG + "certificate-attribute";
+       "ds-cfg-certificate-attribute";
 
 
 
@@ -2687,7 +2671,7 @@ public final class ConfigConstants
    * the logic for the work queue implementation.
    */
   public static final String ATTR_WORKQ_CLASS =
-       NAME_PREFIX_CFG + "work-queue-class";
+       "ds-cfg-java-class";
 
 
 
@@ -2696,7 +2680,7 @@ public final class ConfigConstants
    * for the Directory Server.
    */
   public static final String ATTR_WRITABILITY_MODE =
-       NAME_PREFIX_CFG + "writability-mode";
+       "ds-cfg-writability-mode";
 
 
 
@@ -2891,7 +2875,7 @@ public final class ConfigConstants
   /**
    * The name of the attribute that holds a server certificate alias.
    */
-  public static final String ATTR_CERT_ALIAS = NAME_PREFIX_CFG + "key-id";
+  public static final String ATTR_CERT_ALIAS = "ds-cfg-key-id";
 
 
 
@@ -2900,7 +2884,7 @@ public final class ConfigConstants
    * certificate entry.
    */
   public static final String OC_INSTANCE_KEY =
-       NAME_PREFIX_CFG + "instance-key";
+       "ds-cfg-instance-key";
 
 
 
@@ -2909,7 +2893,7 @@ public final class ConfigConstants
    * certificate request.
    */
   public static final String OC_SELF_SIGNED_CERT_REQUEST =
-       NAME_PREFIX_CFG + "self-signed-cert-request";
+       "ds-cfg-self-signed-cert-request";
 
 
 
@@ -2918,7 +2902,7 @@ public final class ConfigConstants
    * instance key.
    */
   public static final String ATTR_ADS_CERTIFICATE =
-       NAME_PREFIX_CFG + "public-key-certificate";
+       "ds-cfg-public-key-certificate";
 
 
   /**
@@ -3154,7 +3138,7 @@ public final class ConfigConstants
    * access logger.
    */
   public static final String OC_ACCESS_LOGGER =
-       NAME_PREFIX_CFG + "access-logger";
+       "ds-cfg-access-log-publisher";
 
 
 
@@ -3163,7 +3147,7 @@ public final class ConfigConstants
    * account status notification handler.
    */
   public static final String OC_ACCT_NOTIFICATION_HANDLER =
-       NAME_PREFIX_CFG + "account-status-notification-handler";
+       "ds-cfg-account-status-notification-handler";
 
 
 
@@ -3172,7 +3156,7 @@ public final class ConfigConstants
    * handler.
    */
   public static final String OC_ALERT_HANDLER =
-       NAME_PREFIX_CFG + "alert-handler";
+       "ds-cfg-alert-handler";
 
 
 
@@ -3181,7 +3165,7 @@ public final class ConfigConstants
    * attribute syntaxes.
    */
   public static final String OC_ATTRIBUTE_SYNTAX =
-       NAME_PREFIX_CFG + "attribute-syntax";
+       "ds-cfg-attribute-syntax";
 
 
 
@@ -3189,7 +3173,7 @@ public final class ConfigConstants
    * The name of the objectclass that will be used for a Directory Server
    * backend.
    */
-  public static final String OC_BACKEND = NAME_PREFIX_CFG + "backend";
+  public static final String OC_BACKEND = "ds-cfg-backend";
 
 
 
@@ -3215,7 +3199,7 @@ public final class ConfigConstants
    * certificate mapper.
    */
   public static final String OC_CERTIFICATE_MAPPER =
-       NAME_PREFIX_CFG + "certificate-mapper";
+       "ds-cfg-certificate-mapper";
 
 
 
@@ -3224,7 +3208,7 @@ public final class ConfigConstants
    * connection handler.
    */
   public static final String OC_CONNECTION_HANDLER =
-       NAME_PREFIX_CFG + "connection-handler";
+       "ds-cfg-connection-handler";
 
 
 
@@ -3232,7 +3216,7 @@ public final class ConfigConstants
    * The name of the objectclass that will be used for a Directory Server
    * debug logger.
    */
-  public static final String OC_DEBUG_LOGGER = NAME_PREFIX_CFG + "debug-logger";
+  public static final String OC_DEBUG_LOGGER = "ds-cfg-debug-log-publisher";
 
 
 
@@ -3240,7 +3224,7 @@ public final class ConfigConstants
    * The name of the objectclass that will be used for a Directory Server
    * error logger.
    */
-  public static final String OC_ERROR_LOGGER = NAME_PREFIX_CFG + "error-logger";
+  public static final String OC_ERROR_LOGGER = "ds-cfg-error-log-publisher";
 
 
 
@@ -3249,7 +3233,7 @@ public final class ConfigConstants
    * extended operation handler.
    */
   public static final String OC_EXTENDED_OPERATION_HANDLER =
-       NAME_PREFIX_CFG + "extended-operation-handler";
+       "ds-cfg-extended-operation-handler";
 
 
 
@@ -3258,7 +3242,7 @@ public final class ConfigConstants
    * implementation.
    */
   public static final String OC_GROUP_IMPLEMENTATION =
-       NAME_PREFIX_CFG + "group-implementation";
+       "ds-cfg-group-implementation";
 
 
 
@@ -3267,7 +3251,7 @@ public final class ConfigConstants
    * identity mapper.
    */
   public static final String OC_IDENTITY_MAPPER =
-       NAME_PREFIX_CFG + "identity-mapper";
+       "ds-cfg-identity-mapper";
 
 
 
@@ -3276,7 +3260,7 @@ public final class ConfigConstants
    * manager provider.
    */
   public static final String OC_KEY_MANAGER_PROVIDER =
-       NAME_PREFIX_CFG + "key-manager-provider";
+       "ds-cfg-key-manager-provider";
 
 
 
@@ -3285,7 +3269,7 @@ public final class ConfigConstants
    * matching rules.
    */
   public static final String OC_MATCHING_RULE =
-       NAME_PREFIX_CFG + "matching-rule";
+       "ds-cfg-matching-rule";
 
 
 
@@ -3294,7 +3278,7 @@ public final class ConfigConstants
    * monitor provider.
    */
   public static final String OC_MONITOR_PROVIDER =
-       NAME_PREFIX_CFG + "monitor-provider";
+       "ds-cfg-monitor-provider";
 
 
 
@@ -3303,7 +3287,7 @@ public final class ConfigConstants
    * password generator.
    */
   public static final String OC_PASSWORD_GENERATOR =
-       NAME_PREFIX_CFG + "password-generator";
+       "ds-cfg-password-generator";
 
 
 
@@ -3312,7 +3296,7 @@ public final class ConfigConstants
    * password policy.
    */
   public static final String OC_PASSWORD_POLICY =
-       NAME_PREFIX_CFG + "password-policy";
+       "ds-cfg-password-policy";
 
 
 
@@ -3321,7 +3305,7 @@ public final class ConfigConstants
    * password storage scheme.
    */
   public static final String OC_PASSWORD_STORAGE_SCHEME =
-       NAME_PREFIX_CFG + "password-storage-scheme";
+       "ds-cfg-password-storage-scheme";
 
 
 
@@ -3330,7 +3314,7 @@ public final class ConfigConstants
    * password validator.
    */
   public static final String OC_PASSWORD_VALIDATOR =
-       NAME_PREFIX_CFG + "password-validator";
+       "ds-cfg-password-validator";
 
 
 
@@ -3338,7 +3322,7 @@ public final class ConfigConstants
    * The name of the objectclass that will be used for a Directory Server
    * plugin.
    */
-  public static final String OC_PLUGIN = NAME_PREFIX_CFG + "plugin";
+  public static final String OC_PLUGIN = "ds-cfg-plugin";
 
 
 
@@ -3354,7 +3338,7 @@ public final class ConfigConstants
    * The name of the objectclass that will be used for a Directory Server root
    * DN configuration entry.
    */
-  public static final String OC_ROOT_DN = NAME_PREFIX_CFG + "root-dn";
+  public static final String OC_ROOT_DN = "ds-cfg-root-dn-user";
 
 
 
@@ -3363,7 +3347,7 @@ public final class ConfigConstants
    * mechanism handler.
    */
   public static final String OC_SASL_MECHANISM_HANDLER =
-       NAME_PREFIX_CFG + "sasl-mechanism-handler";
+       "ds-cfg-sasl-mechanism-handler";
 
 
 
@@ -3372,7 +3356,7 @@ public final class ConfigConstants
    * synchronization provider.
    */
   public static final String OC_SYNCHRONIZATION_PROVIDER =
-       NAME_PREFIX_CFG + "synchronization-provider";
+       "ds-cfg-synchronization-provider";
 
 
 
@@ -3381,7 +3365,7 @@ public final class ConfigConstants
    * access control configuration.
    */
   public static final String OC_AUTHZ_HANDLER_CONFIG =
-       NAME_PREFIX_CFG + "access-control-handler";
+       "ds-cfg-access-control-handler";
 
 
 
@@ -3398,7 +3382,7 @@ public final class ConfigConstants
    * manager provider.
    */
   public static final String OC_TRUST_MANAGER_PROVIDER =
-       NAME_PREFIX_CFG + "trust-manager-provider";
+       "ds-cfg-trust-manager-provider";
 
 
 
@@ -3700,7 +3684,7 @@ public final class ConfigConstants
    * where the loggers will log the information.
    */
   public static final String ATTR_LOGGER_FILE =
-         NAME_PREFIX_CFG + "log-file";
+         "ds-cfg-log-file";
 
 
 
@@ -3709,7 +3693,7 @@ public final class ConfigConstants
    * severity levels for the logger.
    */
   public static final String ATTR_LOGGER_DEFAULT_SEVERITY =
-        NAME_PREFIX_CFG + "default-severity";
+        "ds-cfg-default-severity";
 
 
 
@@ -3718,7 +3702,7 @@ public final class ConfigConstants
    * severity levels for the logger.
    */
   public static final String ATTR_LOGGER_OVERRIDE_SEVERITY =
-        NAME_PREFIX_CFG + "override-severity";
+        "ds-cfg-override-severity";
 
 
   /**
@@ -3726,7 +3710,7 @@ public final class ConfigConstants
    * location on disk.
    */
   public static final String ATTR_BACKEND_DIRECTORY =
-       NAME_PREFIX_CFG + "backend-directory";
+       "ds-cfg-db-directory";
 
 
 
@@ -3735,7 +3719,7 @@ public final class ConfigConstants
    * for the database direction.
    */
   public static final String ATTR_BACKEND_MODE =
-      ConfigConstants.NAME_PREFIX_CFG + "backend-mode";
+      "ds-cfg-db-directory-permissions";
 
 
 

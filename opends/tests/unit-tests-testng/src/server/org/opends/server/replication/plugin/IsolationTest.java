@@ -39,7 +39,7 @@ import java.util.UUID;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.IsolationPolicy;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;

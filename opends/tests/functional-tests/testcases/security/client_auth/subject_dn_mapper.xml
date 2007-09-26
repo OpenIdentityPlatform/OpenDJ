@@ -40,7 +40,7 @@
   #@TestPurpose            Set the SASL EXTERNAL mechanism to Subject DN to User Attribute
   #@TestPreamble           none
   #@TestStep                  Set the SASL EXTERNAL mechanism to Subject DN to User Attribute
-  #@TestStep                  keep the default ds-cfg-certificate-subject-attribute-type which is ds-certificate-subject-dn
+  #@TestStep                  keep the default ds-cfg-subject-attribute which is ds-certificate-subject-dn
   #@TestPostamble          none
   #@TestResult                Success if OpenDS returns 0 for all operations
       -->
@@ -61,7 +61,7 @@
              'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
              'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-mapper-dn',
+             'attributeName'        : 'ds-cfg-certificate-mapper',
              'newAttributeValue'  : 'cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
              'expectedRC'           :  0 }      
@@ -294,7 +294,7 @@
     'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
     'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
     'DNToModify'        : 'cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config',  
-    'attributeName'      : 'ds-cfg-certificate-subject-attribute-type',
+    'attributeName'      : 'ds-cfg-subject-attribute',
     'newAttributeValue'  : 'description',
     'changetype' : 'replace',
     'expectedRC'           :  0 }  

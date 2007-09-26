@@ -161,8 +161,8 @@ public class CryptoManager
 
     sslCertNickname = cfg.getSSLCertNickname();
     sslEncryption   = cfg.isSSLEncryption();
-    sslProtocols    = cfg.getSSLProtocols();
-    sslCipherSuites = cfg.getSSLCipherSuites();
+    sslProtocols    = cfg.getSSLProtocol();
+    sslCipherSuites = cfg.getSSLCipherSuite();
 
     // Make sure that we can create instances of the preferred digest,
     // MAC, and cipher algorithms.

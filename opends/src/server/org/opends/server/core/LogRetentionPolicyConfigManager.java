@@ -207,7 +207,7 @@ public class LogRetentionPolicyConfigManager implements
 
     RetentionPolicy policy =
         DirectoryServer.getRetentionPolicy(configuration.dn());
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     if(!className.equals(policy.getClass().getName()))
     {
       adminActionRequired = true;
@@ -219,10 +219,10 @@ public class LogRetentionPolicyConfigManager implements
   private boolean isJavaClassAcceptable(LogRetentionPolicyCfg config,
                                         List<Message> unacceptableReasons)
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     LogRetentionPolicyCfgDefn d = LogRetentionPolicyCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a RetentionPolicy.
     Class<? extends RetentionPolicy> theClass;
     try {
@@ -255,10 +255,10 @@ public class LogRetentionPolicyConfigManager implements
 
   private RetentionPolicy getRetentionPolicy(LogRetentionPolicyCfg config)
       throws ConfigException {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     LogRetentionPolicyCfgDefn d = LogRetentionPolicyCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a RetentionPolicy.
     Class<? extends RetentionPolicy> theClass;
     RetentionPolicy RetentionPolicy;

@@ -80,7 +80,7 @@
               'subcommand'     : 'set-log-publisher-prop',
               'objectType'     : 'publisher-name',
               'objectName'     : 'File-Based Access Logger',
-              'optionsString'  : '--add rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+              'optionsString'  : '--add rotation-policy:"my size Limit Rotation Policy"',
               'expectedRC'     : 0
             }
           </call>
@@ -106,7 +106,7 @@
               'objectName'     : 'log-publisher',
               'propertyType'   : 'publisher',
               'propertyName'   : 'File-Based Access Logger',
-              'attributeName'  : 'rotation-policy-dn'
+              'attributeName'  : 'rotation-policy'
             }
           </call>
           
@@ -152,7 +152,7 @@
                   'objectName'     : 'log-publisher',
                   'propertyType'   : 'publisher',
                   'propertyName'   : 'File-Based Access Logger',
-                  'attributeName'  : 'rotation-policy-dn'
+                  'attributeName'  : 'rotation-policy'
                 }
               </call>
               
@@ -262,7 +262,7 @@
               'subcommand'     : 'set-log-publisher-prop',
               'objectType'     : 'publisher-name',
               'objectName'     :  'File-Based Access Logger',
-              'optionsString'  : '--remove rotation-policy-dn:"cn=my size Limit Rotation Policy,cn=Log Rotation Policies,cn=config"',
+              'optionsString'  : '--remove rotation-policy:"my size Limit Rotation Policy"',
               'expectedRC'     : 0
             }
           </call>

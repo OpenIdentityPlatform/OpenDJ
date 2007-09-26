@@ -95,10 +95,10 @@ public final class TestCfg {
       String ocd = "( 1.3.6.1.4.1.26027.1.2.4455114401 "
           + "NAME 'ds-cfg-test-parent-dummy' "
           + "SUP top STRUCTURAL "
-          + "MUST ( cn $ ds-cfg-virtual-attribute-class $ "
-          + "ds-cfg-virtual-attribute-enabled $ ds-cfg-virtual-attribute-type ) "
-          + "MAY ( ds-cfg-virtual-attribute-base-dn $ ds-cfg-virtual-attribute-group-dn $ "
-          + "ds-cfg-virtual-attribute-filter $ ds-cfg-virtual-attribute-conflict-behavior ) "
+          + "MUST ( cn $ ds-cfg-java-class $ "
+          + "ds-cfg-enabled $ ds-cfg-attribute-type ) "
+          + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
+          + "ds-cfg-filter $ ds-cfg-conflict-behavior ) "
           + "X-ORIGIN 'OpenDS Directory Server' )";
       ByteString b = ByteStringFactory.create(ocd);
 
@@ -110,11 +110,11 @@ public final class TestCfg {
       String ocd = "( 1.3.6.1.4.1.26027.1.2.4455114402 "
           + "NAME 'ds-cfg-test-child-dummy' "
           + "SUP top STRUCTURAL "
-          + "MUST ( cn $ ds-cfg-virtual-attribute-class $ "
-          + "ds-cfg-virtual-attribute-enabled $ ds-cfg-virtual-attribute-type ) "
-          + "MAY ( ds-cfg-virtual-attribute-base-dn $ ds-cfg-virtual-attribute-group-dn $ "
-          + "ds-cfg-virtual-attribute-filter $ ds-cfg-virtual-attribute-conflict-behavior $"
-          + "ds-cfg-backend-base-dn) " + "X-ORIGIN 'OpenDS Directory Server' )";
+          + "MUST ( cn $ ds-cfg-java-class $ "
+          + "ds-cfg-enabled $ ds-cfg-attribute-type ) "
+          + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
+          + "ds-cfg-filter $ ds-cfg-conflict-behavior $"
+          + "ds-cfg-rotation-policy) " + "X-ORIGIN 'OpenDS Directory Server' )";
       ByteString b = ByteStringFactory.create(ocd);
 
       TEST_CHILD_OCD = ObjectClassSyntax.decodeObjectClass(b, DirectoryServer
@@ -127,6 +127,7 @@ public final class TestCfg {
 
       // Register the test parent resource bundle.
       TestParentCfgDefn d = TestParentCfgDefn.getInstance();
+      d.registerInParent();
       d.initialize();
       String baseName = d.getClass().getName();
       ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
@@ -140,6 +141,7 @@ public final class TestCfg {
 
       // Register the test child resource bundle.
       TestChildCfgDefn d = TestChildCfgDefn.getInstance();
+      d.registerInParent();
       d.initialize();
       String baseName = d.getClass().getName();
       ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
@@ -166,19 +168,21 @@ public final class TestCfg {
     LDAPProfile.getInstance().popWrapper();
 
     {
-      RootCfgDefn.getInstance().deregisterRelationDefinition(
-          RD_TEST_ONE_TO_MANY_PARENT);
-      RootCfgDefn.getInstance().deregisterRelationDefinition(
-          RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT);
+      AbstractManagedObjectDefinition<?, ?> root = RootCfgDefn.getInstance();
+      root.deregisterRelationDefinition(RD_TEST_ONE_TO_MANY_PARENT);
+      root.deregisterRelationDefinition(RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT);
+
       DirectoryServer.deregisterObjectClass(TEST_PARENT_OCD);
       TestParentCfgDefn d = TestParentCfgDefn.getInstance();
       ManagedObjectDefinitionI18NResource.getInstance().removeResourceBundle(d);
+      d.deregisterFromParent();
     }
 
     {
       DirectoryServer.deregisterObjectClass(TEST_CHILD_OCD);
       TestChildCfgDefn d = TestChildCfgDefn.getInstance();
       ManagedObjectDefinitionI18NResource.getInstance().removeResourceBundle(d);
+      d.deregisterFromParent();
     }
 
   }

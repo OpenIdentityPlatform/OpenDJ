@@ -26,7 +26,7 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="je-backend" plural-name="je-backends"
+<adm:managed-object name="local-db-backend" plural-name="local-db-backends"
   package="org.opends.server.admin.std"
   extends="backend"
   xmlns:adm="http://www.opends.org/admin"
@@ -44,17 +44,16 @@
     based on different kinds of criteria.
     The org.opends.server.backends.jeb.BackendImpl class provides the
     implementation for this backend, and therefore should be used as the
-    value of the ds-cfg-backend-class-name property.
+    value of the java-class property.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.6</ldap:oid>
-      <ldap:name>ds-cfg-je-backend</ldap:name>
+      <ldap:name>ds-cfg-local-db-backend</ldap:name>
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:relation name="je-index">
-    <adm:one-to-many naming-property="index-attribute"/>
+  <adm:relation name="local-db-index">
+    <adm:one-to-many naming-property="attribute"/>
      <adm:profile name="ldap">
       <ldap:rdn-sequence>
         cn=Index
@@ -66,8 +65,8 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="vlv-je-index">
-    <adm:one-to-many naming-property="vlv-index-name"/>
+  <adm:relation name="local-db-vlv-index">
+    <adm:one-to-many naming-property="name"/>
      <adm:profile name="ldap">
       <ldap:rdn-sequence>
         cn=VLV Index
@@ -75,14 +74,14 @@
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
-        <cli:default-property name="vlv-index-base-dn" />
-        <cli:default-property name="vlv-index-scope" />
-        <cli:default-property name="vlv-index-filter" />
-        <cli:default-property name="vlv-index-sort-order" />
+        <cli:default-property name="base-dn" />
+        <cli:default-property name="scope" />
+        <cli:default-property name="filter" />
+        <cli:default-property name="sort-order" />
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:property-override name="backend-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -91,7 +90,7 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="backend-deadlock-retry-limit"
+  <adm:property name="deadlock-retry-limit"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -112,12 +111,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.267</ldap:oid>
-        <ldap:name>ds-cfg-backend-deadlock-retry-limit</ldap:name>
+        <ldap:name>ds-cfg-deadlock-retry-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-directory"
+  <adm:property name="db-directory"
     mandatory="true"
     multi-valued="false">
     <adm:synopsis>
@@ -140,12 +138,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.12</ldap:oid>
-        <ldap:name>ds-cfg-backend-directory</ldap:name>
+        <ldap:name>ds-cfg-db-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-compact-encoding"
+  <adm:property name="compact-encoding"
                 mandatory="false"
                 multi-valued="false">
     <adm:synopsis>
@@ -175,12 +172,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.471</ldap:oid>
-        <ldap:name>ds-cfg-backend-compact-encoding</ldap:name>
+        <ldap:name>ds-cfg-compact-encoding</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-entries-compressed"
+  <adm:property name="entries-compressed"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -211,12 +207,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.266</ldap:oid>
-        <ldap:name>ds-cfg-backend-entries-compressed</ldap:name>
+        <ldap:name>ds-cfg-entries-compressed</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-import-buffer-size"
+  <adm:property name="import-buffer-size"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -241,12 +236,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.263</ldap:oid>
-        <ldap:name>ds-cfg-backend-import-buffer-size</ldap:name>
+        <ldap:name>ds-cfg-import-buffer-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-import-pass-size"
+  <adm:property name="import-pass-size"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -281,12 +275,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.277</ldap:oid>
-        <ldap:name>ds-cfg-backend-import-pass-size</ldap:name>
+        <ldap:name>ds-cfg-import-pass-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-import-queue-size"
+  <adm:property name="import-queue-size"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -311,12 +304,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.264</ldap:oid>
-        <ldap:name>ds-cfg-backend-import-queue-size</ldap:name>
+        <ldap:name>ds-cfg-import-queue-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-import-temp-directory"
+  <adm:property name="import-temp-directory"
     mandatory="true"
     multi-valued="false">
     <adm:synopsis>
@@ -346,12 +338,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.262</ldap:oid>
-        <ldap:name>ds-cfg-backend-import-temp-directory</ldap:name>
+        <ldap:name>ds-cfg-import-temp-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-import-thread-count"
+  <adm:property name="import-thread-count"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -381,12 +372,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.265</ldap:oid>
-        <ldap:name>ds-cfg-backend-import-thread-count</ldap:name>
+        <ldap:name>ds-cfg-import-thread-count</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-index-entry-limit"
+  <adm:property name="index-entry-limit"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -419,12 +409,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.15</ldap:oid>
-        <ldap:name>ds-cfg-backend-index-entry-limit</ldap:name>
+        <ldap:name>ds-cfg-index-entry-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-mode"
+  <adm:property name="db-directory-permissions"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -464,12 +453,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.287</ldap:oid>
-        <ldap:name>ds-cfg-backend-mode</ldap:name>
+        <ldap:name>ds-cfg-db-directory-permissions</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-preload-time-limit"
+  <adm:property name="preload-time-limit"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -491,12 +479,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.261</ldap:oid>
-        <ldap:name>ds-cfg-backend-preload-time-limit</ldap:name>
+        <ldap:name>ds-cfg-preload-time-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-subtree-delete-size-limit"
+  <adm:property name="subtree-delete-size-limit"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -518,12 +505,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.16</ldap:oid>
-        <ldap:name>ds-cfg-backend-subtree-delete-size-limit</ldap:name>
+        <ldap:name>ds-cfg-subtree-delete-size-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="backend-subtree-delete-batch-size"
+  <adm:property name="subtree-delete-batch-size"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -545,12 +531,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.381</ldap:oid>
-        <ldap:name>ds-cfg-backend-subtree-delete-batch-size</ldap:name>
+        <ldap:name>ds-cfg-subtree-delete-batch-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-cache-percent"
+  <adm:property name="db-cache-percent"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -559,7 +544,7 @@
     <adm:description>
       Specifies the percentage of memory available to the JVM that should
       be used for caching database contents. Note that this will only be used
-      if the value of the database-cache-size property is set to "0 MB".
+      if the value of the db-cache-size property is set to "0 MB".
       Otherwise, the value of that property will be used instead to control
       the cache size configuration.
     </adm:description>
@@ -573,12 +558,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.25</ldap:oid>
-        <ldap:name>ds-cfg-database-cache-percent</ldap:name>
+        <ldap:name>ds-cfg-db-cache-percent</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-cache-size"
+  <adm:property name="db-cache-size"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -586,7 +570,7 @@
     </adm:synopsis>
     <adm:description>
       Specifies the amount of memory that should be used for caching database
-      contents. A value of "0 MB" indicates that the database-cache-percent
+      contents. A value of "0 MB" indicates that the db-cache-percent
       property should be used instead to specify the cache size.
     </adm:description>
     <adm:default-behavior>
@@ -599,12 +583,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.27</ldap:oid>
-        <ldap:name>ds-cfg-database-cache-size</ldap:name>
+        <ldap:name>ds-cfg-db-cache-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-cleaner-min-utilization"
+  <adm:property name="db-cleaner-min-utilization"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -627,12 +610,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.26</ldap:oid>
-        <ldap:name>ds-cfg-database-cleaner-min-utilization</ldap:name>
+        <ldap:name>ds-cfg-db-cleaner-min-utilization</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-run-cleaner"
+  <adm:property name="db-run-cleaner"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -641,7 +623,7 @@
     <adm:description>
       The cleaner threads will be used to periodically compact the database by
       identifying database files with a low (i.e., less than the amount
-      specified by the database-cleaner-min-utilization property)
+      specified by the db-cleaner-min-utilization property)
       percentage of live data, moving the remaining live data to the end of the
       log and deleting that file.
     </adm:description>
@@ -655,12 +637,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.28</ldap:oid>
-        <ldap:name>ds-cfg-database-run-cleaner</ldap:name>
+        <ldap:name>ds-cfg-db-run-cleaner</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-evictor-lru-only"
+  <adm:property name="db-evictor-lru-only"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -688,12 +669,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.268</ldap:oid>
-        <ldap:name>ds-cfg-database-evictor-lru-only</ldap:name>
+        <ldap:name>ds-cfg-db-evictor-lru-only</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-evictor-nodes-per-scan"
+  <adm:property name="db-evictor-nodes-per-scan"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -704,7 +684,7 @@
     <adm:description>
       Changes to this property do not take effect until the backend is
       restarted.  It is recommended that you also change this property when you
-      set database-evictor-lru-only to false. This setting controls the number
+      set db-evictor-lru-only to false. This setting controls the number
       of Btree nodes that are considered, or sampled, each time a node is
       evicted. A setting of 100 often produces good results, but this may vary
       from application to application. The larger the nodesPerScan, the more
@@ -726,12 +706,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.269</ldap:oid>
-        <ldap:name>ds-cfg-database-evictor-nodes-per-scan</ldap:name>
+        <ldap:name>ds-cfg-db-evictor-nodes-per-scan</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-log-file-max"
+  <adm:property name="db-log-file-max"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -750,12 +729,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.270</ldap:oid>
-        <ldap:name>ds-cfg-database-log-file-max</ldap:name>
+        <ldap:name>ds-cfg-db-log-file-max</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-logging-file-handler-on"
+  <adm:property name="db-logging-file-handler-on"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -777,12 +755,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.271</ldap:oid>
-        <ldap:name>ds-cfg-database-logging-file-handler-on</ldap:name>
+        <ldap:name>ds-cfg-db-logging-file-handler-on</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-logging-level"
+  <adm:property name="db-logging-level"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -806,12 +783,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.272</ldap:oid>
-        <ldap:name>ds-cfg-database-logging-level</ldap:name>
+        <ldap:name>ds-cfg-db-logging-level</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-checkpointer-bytes-interval"
+  <adm:property name="db-checkpointer-bytes-interval"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -838,12 +814,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.273</ldap:oid>
-        <ldap:name>ds-cfg-database-checkpointer-bytes-interval</ldap:name>
+        <ldap:name>ds-cfg-db-checkpointer-bytes-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-checkpointer-wakeup-interval"
+  <adm:property name="db-checkpointer-wakeup-interval"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -866,12 +841,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.274</ldap:oid>
-        <ldap:name>ds-cfg-database-checkpointer-wakeup-interval</ldap:name>
+        <ldap:name>ds-cfg-db-checkpointer-wakeup-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-lock-num-lock-tables"
+  <adm:property name="db-num-lock-tables"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -898,12 +872,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.275</ldap:oid>
-        <ldap:name>ds-cfg-database-lock-num-lock-tables</ldap:name>
+        <ldap:name>ds-cfg-db-num-lock-tables</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-cleaner-num-threads"
+  <adm:property name="db-num-cleaner-threads"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -924,12 +897,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.284</ldap:oid>
-        <ldap:name>ds-cfg-database-cleaner-num-threads</ldap:name>
+        <ldap:name>ds-cfg-db-num-cleaner-threads</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-txn-no-sync"
+  <adm:property name="db-txn-no-sync"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -954,12 +926,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.29</ldap:oid>
-        <ldap:name>ds-cfg-database-txn-no-sync</ldap:name>
+        <ldap:name>ds-cfg-db-txn-no-sync</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="database-txn-write-no-sync"
+  <adm:property name="db-txn-write-no-sync"
     mandatory="false"
     multi-valued="false">
     <adm:synopsis>
@@ -986,8 +957,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.30</ldap:oid>
-        <ldap:name>ds-cfg-database-txn-write-no-sync</ldap:name>
+        <ldap:name>ds-cfg-db-txn-write-no-sync</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -1014,7 +984,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.452</ldap:oid>
         <ldap:name>ds-cfg-je-property</ldap:name>
       </ldap:attribute>
     </adm:profile>

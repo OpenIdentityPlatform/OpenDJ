@@ -685,8 +685,7 @@ public class CompareOperationTestCase extends OperationTestCase
       // wait for the server to become idle before kicking off the next request
       // to ensure that any remaining post-response processing from the previous
       // operation has completed.
-      assertTrue(DirectoryServer.getWorkQueue().waitUntilIdle(10000));
-
+      TestCaseUtils.quiesceServer();
 
       Lock writeLock = LockManager.lockWrite(entry.getDN());
       assertNotNull(writeLock);

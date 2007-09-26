@@ -120,7 +120,7 @@ public class AlertHandlerConfigManager
 
       if (configuration.isEnabled())
       {
-        String className = configuration.getAlertHandlerClass();
+        String className = configuration.getJavaClass();
         try
         {
           AlertHandler handler = loadHandler(className, configuration, true);
@@ -148,7 +148,7 @@ public class AlertHandlerConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // alert handler.
-      String className = configuration.getAlertHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadHandler(className, configuration, false);
@@ -186,7 +186,7 @@ public class AlertHandlerConfigManager
 
     // Get the name of the class and make sure we can instantiate it as an alert
     // handler.
-    String className = configuration.getAlertHandlerClass();
+    String className = configuration.getJavaClass();
     try
     {
       alertHandler = loadHandler(className, configuration, true);
@@ -258,7 +258,7 @@ public class AlertHandlerConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // alert handler.
-      String className = configuration.getAlertHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadHandler(className, configuration, false);
@@ -315,7 +315,7 @@ public class AlertHandlerConfigManager
     // then we'll at least need to indicate that administrative action is
     // required.  If the handler is disabled, then instantiate the class and
     // initialize and register it as an alert handler.
-    String className = configuration.getAlertHandlerClass();
+    String className = configuration.getJavaClass();
     if (existingHandler != null)
     {
       if (! className.equals(existingHandler.getClass().getName()))
@@ -377,7 +377,7 @@ public class AlertHandlerConfigManager
     {
       AlertHandlerCfgDefn definition = AlertHandlerCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getAlertHandlerClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends AlertHandler> handlerClass =
            propertyDefinition.loadClass(className, AlertHandler.class);
       AlertHandler handler = handlerClass.newInstance();

@@ -276,7 +276,7 @@ public class DebugLogger implements
         // applied dynamically, so if the class name did change then
         // indicate that administrative action is required for that
         // change to take effect.
-        String className = config.getJavaImplementationClass();
+        String className = config.getJavaClass();
         if(!className.equals(debugLogPublisher.getClass().getName()))
         {
           adminActionRequired = true;
@@ -347,10 +347,10 @@ public class DebugLogger implements
   private boolean isJavaClassAcceptable(DebugLogPublisherCfg config,
                                         List<Message> unacceptableReasons)
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a DebugLogPublisher.
     DebugLogPublisher publisher = null;
     Class<? extends DebugLogPublisher> theClass;
@@ -394,10 +394,10 @@ public class DebugLogger implements
 
   private DebugLogPublisher getDebugPublisher(DebugLogPublisherCfg config)
       throws ConfigException {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     DebugLogPublisherCfgDefn d = DebugLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a DebugLogPublisher.
     Class<? extends DebugLogPublisher> theClass;
     DebugLogPublisher debugLogPublisher;

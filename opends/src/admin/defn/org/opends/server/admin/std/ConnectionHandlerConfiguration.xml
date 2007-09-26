@@ -43,7 +43,6 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.13</ldap:oid>
       <ldap:name>ds-cfg-connection-handler</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -60,13 +59,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.24</ldap:oid>
-        <ldap:name>ds-cfg-connection-handler-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="java-implementation-class" mandatory="true" advanced="true">
+  <adm:property name="java-class" mandatory="true" advanced="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
@@ -81,13 +79,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.23</ldap:oid>
-        <ldap:name>ds-cfg-connection-handler-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="allowed-clients" multi-valued="true">
+  <adm:property name="allowed-client" multi-valued="true">
     <adm:synopsis>
       This property specifies a set of address masks that may be used to
       determine the addresses of the clients that are allowed to
@@ -112,13 +109,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.6</ldap:oid>
         <ldap:name>ds-cfg-allowed-client</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="denied-clients" multi-valued="true">
+  <adm:property name="denied-client" multi-valued="true">
     <adm:synopsis>
       This property specifies a set of address masks that may be used to
       determine the addresses of the clients that are not allowed to
@@ -146,7 +142,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.32</ldap:oid>
         <ldap:name>ds-cfg-denied-client</ldap:name>
       </ldap:attribute>
     </adm:profile>

@@ -43,13 +43,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.106</ldap:oid>
       <ldap:name>ds-cfg-log-rotation-policy</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property name="java-implementation-class" mandatory="true">
+  <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
@@ -64,8 +63,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.363</ldap:oid>
-        <ldap:name>ds-cfg-rotation-policy-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

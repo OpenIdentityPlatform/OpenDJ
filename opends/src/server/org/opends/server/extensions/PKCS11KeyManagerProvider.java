@@ -40,7 +40,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.PKCS11KeyManagerCfg;
+import org.opends.server.admin.std.server.PKCS11KeyManagerProviderCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -65,8 +65,8 @@ import static org.opends.server.util.StaticUtils.*;
  * configured on the underlying system.
  */
 public class PKCS11KeyManagerProvider
-    extends KeyManagerProvider<PKCS11KeyManagerCfg>
-    implements ConfigurationChangeListener<PKCS11KeyManagerCfg>
+    extends KeyManagerProvider<PKCS11KeyManagerProviderCfg>
+    implements ConfigurationChangeListener<PKCS11KeyManagerProviderCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -89,7 +89,7 @@ public class PKCS11KeyManagerProvider
   private char[] keyStorePIN;
 
   // The current configuration for this key manager provider.
-  private PKCS11KeyManagerCfg currentConfig;
+  private PKCS11KeyManagerProviderCfg currentConfig;
 
 
 
@@ -109,7 +109,8 @@ public class PKCS11KeyManagerProvider
    * {@inheritDoc}
    */
   @Override
-  public void initializeKeyManagerProvider(PKCS11KeyManagerCfg configuration)
+  public void initializeKeyManagerProvider(
+                    PKCS11KeyManagerProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // Store the DN of the configuration entry and register to be notified of
@@ -272,8 +273,9 @@ public class PKCS11KeyManagerProvider
    * {@inheritDoc}
    */
   @Override()
-  public boolean isConfigurationAcceptable(PKCS11KeyManagerCfg configuration,
-                                           List<Message> unacceptableReasons)
+  public boolean isConfigurationAcceptable(
+                        PKCS11KeyManagerProviderCfg configuration,
+                          List<Message> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -284,7 +286,7 @@ public class PKCS11KeyManagerProvider
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-                      PKCS11KeyManagerCfg configuration,
+                      PKCS11KeyManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
@@ -396,7 +398,7 @@ public class PKCS11KeyManagerProvider
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-                                 PKCS11KeyManagerCfg configuration)
+                                 PKCS11KeyManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

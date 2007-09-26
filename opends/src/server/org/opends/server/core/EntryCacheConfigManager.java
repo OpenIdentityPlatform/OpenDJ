@@ -172,7 +172,7 @@ public class EntryCacheConfigManager
     {
       // Load the entry cache implementation class and install the entry
       // cache with the server.
-      String className = configuration.getEntryCacheClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadAndInstallEntryCache (className);
@@ -198,7 +198,7 @@ public class EntryCacheConfigManager
 
     // Get the name of the class and make sure we can instantiate it as an
     // entry cache.
-    String className = configuration.getEntryCacheClass();
+    String className = configuration.getJavaClass();
     try {
       // Load the class but don't initialize it.
       loadEntryCache(className, configuration, false);
@@ -242,7 +242,7 @@ public class EntryCacheConfigManager
     // If the current entry cache is already enabled then we don't do
     // anything unless the class has changed in which case we should
     // indicate that administrative action is required.
-    String newClassName = configuration.getEntryCacheClass();
+    String newClassName = configuration.getJavaClass();
     if (_entryCache !=null)
     {
       String curClassName = _entryCache.getClass().getName();
@@ -286,7 +286,7 @@ public class EntryCacheConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as
       // an entry cache.
-      String className = configuration.getEntryCacheClass();
+      String className = configuration.getJavaClass();
       try
       {
         // Load the class but don't initialize it.
@@ -322,7 +322,7 @@ public class EntryCacheConfigManager
     if (configuration.isEnabled())
     {
       // Instantiate the class as an entry cache and initialize it.
-      String className = configuration.getEntryCacheClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadAndInstallEntryCache (className);
@@ -456,7 +456,7 @@ public class EntryCacheConfigManager
       EntryCache<? extends EntryCacheCfg> cache;
 
       definition = EntryCacheCfgDefn.getInstance();
-      propertyDefinition = definition.getEntryCacheClassPropertyDefinition();
+      propertyDefinition = definition.getJavaClassPropertyDefinition();
       cacheClass = propertyDefinition.loadClass(className, EntryCache.class);
 
       // If there is some entry cache instance already initialized work with

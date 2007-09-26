@@ -93,9 +93,9 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
       "",
       // Parent 2 - overrides default values for
       // optional-multi-valued-dn-property.
@@ -103,11 +103,11 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 2",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value p2v1,dc=com",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value p2v2,dc=com",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-base-dn: dc=default value p2v1,dc=com",
+      "ds-cfg-base-dn: dc=default value p2v2,dc=com",
       "",
       // Parent 3 - overrides default values for
       // optional-multi-valued-dn-property.
@@ -115,11 +115,11 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 3",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value p3v1,dc=com",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value p3v2,dc=com",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-base-dn: dc=default value p3v1,dc=com",
+      "ds-cfg-base-dn: dc=default value p3v2,dc=com",
       "",
       // Child base entries.
       "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
@@ -139,9 +139,9 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
       "",
       // Child 2 inherits defaults for
       // optional-multi-valued-dn-property2.
@@ -149,11 +149,11 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 2",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value c2v1,dc=com",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value c2v2,dc=com",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-base-dn: dc=default value c2v1,dc=com",
+      "ds-cfg-base-dn: dc=default value c2v2,dc=com",
       "",
       // Child 3 overrides defaults for
       // optional-multi-valued-dn-property1 and
@@ -162,13 +162,13 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 3",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value c3v1,dc=com",
-      "ds-cfg-virtual-attribute-base-dn: dc=default value c3v2,dc=com",
-      "ds-cfg-virtual-attribute-group-dn: dc=default value c3v3,dc=com",
-      "ds-cfg-virtual-attribute-group-dn: dc=default value c3v4,dc=com",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-base-dn: dc=default value c3v1,dc=com",
+      "ds-cfg-base-dn: dc=default value c3v2,dc=com",
+      "ds-cfg-group-dn: dc=default value c3v3,dc=com",
+      "ds-cfg-group-dn: dc=default value c3v4,dc=com",
       "",
       // Child 4 inherits overridden defaults for both
       // optional-multi-valued-dn-property1 and
@@ -177,9 +177,9 @@ public final class LDAPClientTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
       "",
   };
 
@@ -299,10 +299,10 @@ public final class LDAPClientTest extends AdminTestCase {
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+    c.addExpectedAttribute("ds-cfg-enabled", "true");
+    c.addExpectedAttribute("ds-cfg-java-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+    c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
@@ -370,10 +370,10 @@ public final class LDAPClientTest extends AdminTestCase {
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test parent new");
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-parent-dummy");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+    c.addExpectedAttribute("ds-cfg-enabled", "true");
+    c.addExpectedAttribute("ds-cfg-java-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+    c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = createTestParent(ctx, "test parent new");
@@ -536,10 +536,10 @@ public final class LDAPClientTest extends AdminTestCase {
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+    c.addExpectedAttribute("ds-cfg-enabled", "true");
+    c.addExpectedAttribute("ds-cfg-java-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+    c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
@@ -581,10 +581,10 @@ public final class LDAPClientTest extends AdminTestCase {
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+    c.addExpectedAttribute("ds-cfg-enabled", "true");
+    c.addExpectedAttribute("ds-cfg-java-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+    c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 2");
@@ -704,7 +704,7 @@ public final class LDAPClientTest extends AdminTestCase {
     ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
         "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
-    c.addExpectedModification("ds-cfg-virtual-attribute-base-dn");
+    c.addExpectedModification("ds-cfg-base-dn");
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
     TestChildCfgClient child = parent.getTestChild("test child 2");
@@ -745,8 +745,8 @@ public final class LDAPClientTest extends AdminTestCase {
     ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
         "cn=test parent 1,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
-    c.addExpectedModification("ds-cfg-virtual-attribute-enabled", "false");
-    c.addExpectedModification("ds-cfg-virtual-attribute-base-dn",
+    c.addExpectedModification("ds-cfg-enabled", "false");
+    c.addExpectedModification("ds-cfg-base-dn",
         "dc=mod1,dc=com", "dc=mod2,dc=com");
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
     TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
@@ -814,10 +814,10 @@ public final class LDAPClientTest extends AdminTestCase {
       c.importLDIF(TEST_LDIF);
       c.addExpectedAttribute("cn", "test child new");
       c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
-      c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-      c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+      c.addExpectedAttribute("ds-cfg-enabled", "true");
+      c.addExpectedAttribute("ds-cfg-java-class",
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-      c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+      c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
       ManagementContext ctx = LDAPManagementContext.createFromContext(c);
       TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
@@ -855,10 +855,10 @@ public final class LDAPClientTest extends AdminTestCase {
       c.importLDIF(TEST_LDIF);
       c.addExpectedAttribute("cn", "test child new");
       c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
-      c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-      c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+      c.addExpectedAttribute("ds-cfg-enabled", "true");
+      c.addExpectedAttribute("ds-cfg-java-class",
           "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-      c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
+      c.addExpectedAttribute("ds-cfg-attribute-type", "description");
 
       ManagementContext ctx = LDAPManagementContext.createFromContext(c);
       TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
@@ -949,7 +949,7 @@ public final class LDAPClientTest extends AdminTestCase {
       ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
           "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
       c.importLDIF(TEST_LDIF);
-      c.addExpectedModification("ds-cfg-virtual-attribute-base-dn");
+      c.addExpectedModification("ds-cfg-base-dn");
       ManagementContext ctx = LDAPManagementContext.createFromContext(c);
       TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
       TestChildCfgClient child = parent.getTestChild("test child 2");
@@ -980,7 +980,7 @@ public final class LDAPClientTest extends AdminTestCase {
       ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
           "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
       c.importLDIF(TEST_LDIF);
-      c.addExpectedModification("ds-cfg-virtual-attribute-base-dn");
+      c.addExpectedModification("ds-cfg-base-dn");
       ManagementContext ctx = LDAPManagementContext.createFromContext(c);
       TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
       TestChildCfgClient child = parent.getTestChild("test child 2");

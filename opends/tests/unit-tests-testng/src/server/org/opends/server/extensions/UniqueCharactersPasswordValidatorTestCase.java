@@ -99,10 +99,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false",
          "",
          "dn: cn=Unique Characters,cn=Password Validators,cn=config",
@@ -110,10 +110,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: true",
          "",
          "dn: cn=Unique Characters,cn=Password Validators,cn=config",
@@ -121,10 +121,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 0",
          "ds-cfg-case-sensitive-validation: false");
 
     Object[][] array = new Object[entries.size()][1];
@@ -177,9 +177,9 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-case-sensitive-validation: false",
          "",
          // Missing case-sensitive validation
@@ -188,10 +188,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "",
          // Non-numeric minimum unique characters
          "dn: cn=Unique Characters,cn=Password Validators,cn=config",
@@ -199,10 +199,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: non-numeric",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: non-numeric",
          "ds-cfg-case-sensitive-validation: false",
          "",
          // Non-boolean case-sensitive validation
@@ -211,10 +211,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: non-boolean",
          "",
          // Minimum unique characters out of range.
@@ -223,10 +223,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: -1",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: -1",
          "ds-cfg-case-sensitive-validation: false");
 
     Object[][] array = new Object[entries.size()][1];
@@ -294,10 +294,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false");
 
     UniqueCharactersPasswordValidatorCfg configuration =
@@ -363,10 +363,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false");
 
     UniqueCharactersPasswordValidatorCfg configuration =
@@ -431,10 +431,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: true");
 
     UniqueCharactersPasswordValidatorCfg configuration =
@@ -500,10 +500,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: false");
 
     UniqueCharactersPasswordValidatorCfg configuration =
@@ -567,10 +567,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 0",
          "ds-cfg-case-sensitive-validation: true");
 
     UniqueCharactersPasswordValidatorCfg configuration =
@@ -635,10 +635,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 0",
          "ds-cfg-case-sensitive-validation: true");
 
     UniqueCharactersPasswordValidatorCfg configuration =
@@ -675,10 +675,10 @@ public class UniqueCharactersPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-unique-characters-password-validator",
          "cn: Unique Characters",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "UniqueCharactersPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-unique-characters: 5",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-unique-characters: 5",
          "ds-cfg-case-sensitive-validation: true");
 
     UniqueCharactersPasswordValidatorCfg updatedConfiguration =

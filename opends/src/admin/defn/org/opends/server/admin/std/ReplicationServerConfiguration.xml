@@ -39,9 +39,8 @@
   <adm:tag name="replication"/>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.65</ldap:oid>
       <ldap:name>
-        ds-cfg-replication-server-config
+        ds-cfg-replication-server
       </ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -75,7 +74,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.160</ldap:oid>
         <ldap:name>ds-cfg-replication-server</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -96,7 +94,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.278</ldap:oid>
         <ldap:name>ds-cfg-replication-server-id</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -117,7 +114,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.288</ldap:oid>
         <ldap:name>ds-cfg-window-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -138,8 +134,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.290</ldap:oid>
-        <ldap:name>ds-cfg-replication-max-queue-size</ldap:name>
+        <ldap:name>ds-cfg-queue-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -158,7 +153,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.306</ldap:oid>
         <ldap:name>ds-cfg-replication-db-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -179,7 +173,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.319</ldap:oid>
         <ldap:name>ds-cfg-replication-purge-delay</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -200,8 +193,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.158</ldap:oid>
-        <ldap:name>ds-cfg-replication-server-port</ldap:name>
+        <ldap:name>ds-cfg-replication-port</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -40,13 +40,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.87</ldap:oid>
-      <ldap:name>ds-cfg-dseecompat-access-control-handler</ldap:name>
+      <ldap:name>ds-cfg-dsee-compat-access-control-handler</ldap:name>
       <ldap:superior>ds-cfg-access-control-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="acl-handler-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -79,7 +78,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.320</ldap:oid>
         <ldap:name>ds-cfg-global-aci</ldap:name>
       </ldap:attribute>
     </adm:profile>

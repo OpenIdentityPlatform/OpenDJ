@@ -155,7 +155,7 @@ public class AttributeIndexBuilder implements IndexBuilder
   {
     // Clean up any work files left over from a previous run.
     File tempDir = getFileForPath(
-        importContext.getConfig().getBackendImportTempDirectory());
+        importContext.getConfig().getImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
     if (files != null)
     {
@@ -305,7 +305,7 @@ public class AttributeIndexBuilder implements IndexBuilder
     fileNumber++;
     String fileName = fileNamePrefix + String.valueOf(fileNumber);
     File file = new File(getFileForPath(
-        importContext.getConfig().getBackendImportTempDirectory()),
+        importContext.getConfig().getImportTempDirectory()),
                          fileName);
     BufferedOutputStream bufferedStream =
          new BufferedOutputStream(new FileOutputStream(file));

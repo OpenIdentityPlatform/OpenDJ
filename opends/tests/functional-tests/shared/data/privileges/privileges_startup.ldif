@@ -27,7 +27,7 @@ dn: cn=Aroot Manager,cn=Root DNs,cn=config
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
-objectClass: ds-cfg-root-dn
+objectClass: ds-cfg-root-dn-user
 objectClass: top
 ds-cfg-alternate-bind-dn: cn=Aroot
 givenName: Aroot

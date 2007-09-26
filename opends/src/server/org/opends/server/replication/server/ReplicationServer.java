@@ -161,7 +161,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       replicationServers = new ArrayList<String>();
     queueSize = configuration.getQueueSize();
     trimAge = configuration.getReplicationPurgeDelay();
-    dbDirname = configuration.getReplicationDbDirectory();
+    dbDirname = configuration.getReplicationDBDirectory();
     rcvWindow = configuration.getWindowSize();
     if (dbDirname == null)
     {
@@ -668,8 +668,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-    if ((configuration.getReplicationDbDirectory() != null) &&
-        (!dbDirname.equals(configuration.getReplicationDbDirectory())))
+    if ((configuration.getReplicationDBDirectory() != null) &&
+        (!dbDirname.equals(configuration.getReplicationDBDirectory())))
     {
       return new ConfigChangeResult(ResultCode.SUCCESS, true);
     }
@@ -815,15 +815,15 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           "dn: ds-cfg-backend-id="+backendId+",cn=Backends,cn=config",
           "objectClass: top",
           "objectClass: ds-cfg-backend",
-          "objectClass: ds-cfg-je-backend",
-          "ds-cfg-backend-base-dn: dc="+backendId,
-          "ds-cfg-backend-enabled: true",
-          "ds-cfg-backend-writability-mode: enabled",
-          "ds-cfg-backend-class: " +
+          "objectClass: ds-cfg-local-db-backend",
+          "ds-cfg-base-dn: dc="+backendId,
+          "ds-cfg-enabled: true",
+          "ds-cfg-writability-mode: enabled",
+          "ds-cfg-java-class: " +
             "org.opends.server.replication.server.ReplicationBackend",
           "ds-cfg-backend-id: " + backendId,
-          "ds-cfg-backend-import-temp-directory: importTmp",
-          "ds-cfg-backend-directory: " + getFileForPath(dbDirname));
+          "ds-cfg-import-temp-directory: importTmp",
+          "ds-cfg-db-directory: " + getFileForPath(dbDirname));
 
       LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
           new StringReader(ldif));

@@ -79,9 +79,9 @@ public class HistoricalTest
     String replServerStringDN = "cn=Replication Server, " + synchroPluginStringDN;
     String replServerLdif = "dn: " + replServerStringDN + "\n"
          + "objectClass: top\n"
-         + "objectClass: ds-cfg-replication-server-config\n"
+         + "objectClass: ds-cfg-replication-server\n"
          + "cn: replication Server\n"
-         + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+         + "ds-cfg-replication-port: " + replServerPort + "\n"
          + "ds-cfg-replication-server-id: 1\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
@@ -89,11 +89,11 @@ public class HistoricalTest
     String synchroServerStringDN = "o=test, cn=domains, " + synchroPluginStringDN;
     String synchroServerLdif = "dn: " + synchroServerStringDN + "\n"
          + "objectClass: top\n"
-         + "objectClass: ds-cfg-replication-domain-config\n"
+         + "objectClass: ds-cfg-replication-domain\n"
          + "cn: example\n"
-         + "ds-cfg-replication-dn: o=test\n"
+         + "ds-cfg-base-dn: o=test\n"
          + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
-         + "ds-cfg-directory-server-id: 1\n"
+         + "ds-cfg-server-id: 1\n"
          + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 

@@ -91,9 +91,6 @@ public class ExternalSASLMechanismHandler
   // client with a certificate in the user's entry.
   private CertificateValidationPolicy validationPolicy;
 
-  // The DN of the configuration entry for this SASL mechanism handler.
-  private DN configEntryDN;
-
   // The current configuration for this SASL mechanism handler.
   private ExternalSASLMechanismHandlerCfg currentConfig;
 
@@ -120,10 +117,7 @@ public class ExternalSASLMechanismHandler
          throws ConfigException, InitializationException
   {
     configuration.addExternalChangeListener(this);
-
     currentConfig = configuration;
-    configEntryDN = configuration.dn();
-
 
     // See if we should attempt to validate client certificates against those in
     // the corresponding user's entry.
@@ -149,19 +143,6 @@ public class ExternalSASLMechanismHandler
       certificateAttributeType =
            DirectoryServer.getAttributeType(DEFAULT_VALIDATION_CERT_ATTRIBUTE,
                                             true);
-    }
-
-
-    // Make sure that the configured certificate mapper is valid.
-    CertificateMapper certificateMapper =
-         DirectoryServer.getCertificateMapper(
-              configuration.getCertificateMapperDN());
-    if (certificateMapper == null)
-    {
-      Message message = ERR_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN.
-          get(String.valueOf(configEntryDN),
-              String.valueOf(configuration.getCertificateMapperDN()));
-      throw new ConfigException(message);
     }
 
 
@@ -250,18 +231,8 @@ public class ExternalSASLMechanismHandler
 
     // Get the certificate mapper to use to map the certificate to a user entry.
     DN certificateMapperDN = config.getCertificateMapperDN();
-    CertificateMapper certificateMapper =
+    CertificateMapper<?> certificateMapper =
          DirectoryServer.getCertificateMapper(certificateMapperDN);
-    if (certificateMapper == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN.get(
-              String.valueOf(configEntryDN),
-              String.valueOf(certificateMapperDN));
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
 
 
     // Use the Directory Server certificate mapper to map the client certificate
@@ -469,23 +440,7 @@ public class ExternalSASLMechanismHandler
                       ExternalSASLMechanismHandlerCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Make sure that the configured certificate mapper is valid.
-    CertificateMapper certificateMapper =
-         DirectoryServer.getCertificateMapper(
-              configuration.getCertificateMapperDN());
-    if (certificateMapper == null)
-    {
-      unacceptableReasons.add(ERR_SASLEXTERNAL_INVALID_CERTIFICATE_MAPPER_DN
-              .get(String.valueOf(cfgEntryDN),
-                   String.valueOf(configuration.getCertificateMapperDN())));
-      configAcceptable = false;
-    }
-
-
-    return configAcceptable;
+    return true;
   }
 
 

@@ -29,8 +29,8 @@ Manual test for Issue 1269, Generate an alert when enabling/disabling access con
 
 dn: cn=Access Control Handler,cn=config
 changetype: modify
-replace: ds-cfg-acl-handler-enabled
-ds-cfg-acl-handler-enabled: false
+replace: ds-cfg-enabled
+ds-cfg-enabled: false
 
 The access control handler is now disabled.
 
@@ -43,8 +43,8 @@ The access control handler is now disabled.
 
 dn: cn=Access Control Handler,cn=config
 changetype: modify
-replace: ds-cfg-acl-handler-enabled
-ds-cfg-acl-handler-enabled: true
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
 
 The access control handler is now enabled.
 

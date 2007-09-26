@@ -30,7 +30,7 @@ package org.opends.server.extensions;
 
 import javax.net.ssl.KeyManager;
 
-import org.opends.server.admin.std.server.KeyManagerCfg;
+import org.opends.server.admin.std.server.KeyManagerProviderCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
@@ -45,7 +45,7 @@ import org.opends.server.types.InitializationException;
  * other key manager provider has been defined in the server configuration.
  */
 public class NullKeyManagerProvider
-       extends KeyManagerProvider<KeyManagerCfg>{
+       extends KeyManagerProvider<KeyManagerProviderCfg>{
 
 
 
@@ -66,7 +66,7 @@ public class NullKeyManagerProvider
    */
   @Override
   public void initializeKeyManagerProvider(
-      KeyManagerCfg configuration) throws ConfigException,
+      KeyManagerProviderCfg configuration) throws ConfigException,
       InitializationException {
     // No implementation is required.
   }

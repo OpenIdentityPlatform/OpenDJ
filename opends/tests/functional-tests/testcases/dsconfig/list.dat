@@ -7,8 +7,8 @@ list-connection-handlers:LDAP Connection Handler:LDAPS Connection Handler:
 list-extended-operation-handlers:Get Connection ID:Password Policy State:
 list-group-implementations:Dynamic:Static:
 list-identity-mappers:Exact Match:Regular Expression:
-list-je-indexes:entryUUID:givenName:
-list-key-managers:JKS:PKCS12:
+list-local-db-indexes:entryUUID:givenName:
+list-key-manager-providers:JKS:PKCS12:
 list-log-publishers:File-Based Audit Logger:File-Based Error Logger:
 list-log-retention-policies:File Count Retention Policy:Free Disk Space Retention Policy:
 list-log-rotation-policies:24 Hours Time Limit Rotation Policy:7 Days Time Limit Rotation Policy:
@@ -21,5 +21,5 @@ list-password-validators:Attribute Value:Character Set:
 list-plugins:Entry UUID:Password Policy Import:
 list-sasl-mechanism-handlers:CRAM-MD5:GSSAPI:
 list-synchronization-providers:Synchronization Provider:Type:
-list-trust-managers:Blind Trust:JKS:
+list-trust-manager-providers:Blind Trust:JKS:
 list-virtual-attributes:entryUUID:isMemberOf:

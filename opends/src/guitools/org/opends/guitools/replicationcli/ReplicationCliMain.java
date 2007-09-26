@@ -1884,8 +1884,8 @@ public class ReplicationCliMain extends CliApplicationHelper
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
 
-      MultimasterSynchronizationProviderCfgClient sync = null;
-      sync = (MultimasterSynchronizationProviderCfgClient)
+      ReplicationSynchronizationProviderCfgClient sync = null;
+      sync = (ReplicationSynchronizationProviderCfgClient)
       root.getSynchronizationProvider("Multimaster Synchronization");
       /*
        * Configure the replication server.
@@ -4255,10 +4255,10 @@ public class ReplicationCliMain extends CliApplicationHelper
     /*
      * Configure Synchronization plugin.
      */
-    MultimasterSynchronizationProviderCfgClient sync = null;
+    ReplicationSynchronizationProviderCfgClient sync = null;
     try
     {
-      sync = (MultimasterSynchronizationProviderCfgClient)
+      sync = (ReplicationSynchronizationProviderCfgClient)
       root.getSynchronizationProvider("Multimaster Synchronization");
     }
     catch (ManagedObjectNotFoundException monfe)
@@ -4268,12 +4268,12 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     if (sync == null)
     {
-      MultimasterSynchronizationProviderCfgDefn provider =
-        MultimasterSynchronizationProviderCfgDefn.getInstance();
+      ReplicationSynchronizationProviderCfgDefn provider =
+        ReplicationSynchronizationProviderCfgDefn.getInstance();
       sync = root.createSynchronizationProvider(provider,
           "Multimaster Synchronization",
           new ArrayList<DefaultBehaviorException>());
-      sync.setJavaImplementationClass(
+      sync.setJavaClass(
           org.opends.server.replication.plugin.MultimasterReplication.class.
           getName());
       sync.setEnabled(Boolean.TRUE);
@@ -4353,8 +4353,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         JNDIDirContextAdaptor.adapt(ctx));
     RootCfgClient root = mCtx.getRootConfiguration();
 
-    MultimasterSynchronizationProviderCfgClient sync =
-      (MultimasterSynchronizationProviderCfgClient)
+    ReplicationSynchronizationProviderCfgClient sync =
+      (ReplicationSynchronizationProviderCfgClient)
     root.getSynchronizationProvider("Multimaster Synchronization");
     boolean mustCommit = false;
     ReplicationServerCfgClient replicationServer = sync.getReplicationServer();
@@ -4447,26 +4447,26 @@ public class ReplicationCliMain extends CliApplicationHelper
         JNDIDirContextAdaptor.adapt(ctx));
     RootCfgClient root = mCtx.getRootConfiguration();
 
-    MultimasterSynchronizationProviderCfgClient sync =
-      (MultimasterSynchronizationProviderCfgClient)
+    ReplicationSynchronizationProviderCfgClient sync =
+      (ReplicationSynchronizationProviderCfgClient)
       root.getSynchronizationProvider("Multimaster Synchronization");
 
-    String[] domainNames = sync.listMultimasterDomains();
+    String[] domainNames = sync.listReplicationDomains();
     if (domainNames == null)
     {
       domainNames = new String[]{};
     }
-    MultimasterDomainCfgClient[] domains =
-      new MultimasterDomainCfgClient[domainNames.length];
+    ReplicationDomainCfgClient[] domains =
+      new ReplicationDomainCfgClient[domainNames.length];
     for (int i=0; i<domains.length; i++)
     {
-      domains[i] = sync.getMultimasterDomain(domainNames[i]);
+      domains[i] = sync.getReplicationDomain(domainNames[i]);
     }
-    MultimasterDomainCfgClient domain = null;
+    ReplicationDomainCfgClient domain = null;
     String domainName = null;
     for (int i=0; i<domains.length && (domain == null); i++)
     {
-      if (Utils.areDnsEqual(baseDN, domains[i].getReplicationDN().toString()))
+      if (Utils.areDnsEqual(baseDN, domains[i].getBaseDN().toString()))
       {
         domain = domains[i];
         domainName = domainNames[i];
@@ -4478,11 +4478,11 @@ public class ReplicationCliMain extends CliApplicationHelper
       int domainId = InstallerHelper.getReplicationId(usedReplicationDomainIds);
       usedReplicationDomainIds.add(domainId);
       domainName = InstallerHelper.getDomainName(domainNames, domainId);
-      domain = sync.createMultimasterDomain(
-          MultimasterDomainCfgDefn.getInstance(), domainName,
+      domain = sync.createReplicationDomain(
+          ReplicationDomainCfgDefn.getInstance(), domainName,
           new ArrayList<DefaultBehaviorException>());
       domain.setServerId(domainId);
-      domain.setReplicationDN(DN.decode(baseDN));
+      domain.setBaseDN(DN.decode(baseDN));
       domain.setReplicationServer(replicationServers);
       mustCommit = true;
     }
@@ -4779,10 +4779,10 @@ public class ReplicationCliMain extends CliApplicationHelper
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      MultimasterSynchronizationProviderCfgClient sync = null;
+      ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
-        sync = (MultimasterSynchronizationProviderCfgClient)
+        sync = (ReplicationSynchronizationProviderCfgClient)
         root.getSynchronizationProvider("Multimaster Synchronization");
       }
       catch (ManagedObjectNotFoundException monfe)
@@ -4793,17 +4793,17 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (sync != null)
       {
-        String[] domainNames = sync.listMultimasterDomains();
+        String[] domainNames = sync.listReplicationDomains();
         if (domainNames != null)
         {
           for (int i=0; i<domainNames.length; i++)
           {
-            MultimasterDomainCfgClient domain =
-              sync.getMultimasterDomain(domainNames[i]);
+            ReplicationDomainCfgClient domain =
+              sync.getReplicationDomain(domainNames[i]);
             for (String baseDN : baseDNs)
             {
               lastBaseDN = baseDN;
-              if (Utils.areDnsEqual(domain.getReplicationDN().toString(),
+              if (Utils.areDnsEqual(domain.getBaseDN().toString(),
                   baseDN))
               {
                 printProgressMessage(formatter.getFormattedWithPoints(
@@ -4824,7 +4824,7 @@ public class ReplicationCliMain extends CliApplicationHelper
                   if (replServer != null)
                   {
                     LOG.log(Level.INFO, "Updating references in domain " +
-                        domain.getReplicationDN()+" on " + hostPort + ".");
+                        domain.getBaseDN()+" on " + hostPort + ".");
                     replServers.remove(replServer);
                     if (replServers.size() > 0)
                     {
@@ -4833,7 +4833,7 @@ public class ReplicationCliMain extends CliApplicationHelper
                     }
                     else
                     {
-                      sync.removeMultimasterDomain(domainNames[i]);
+                      sync.removeReplicationDomain(domainNames[i]);
                       sync.commit();
                     }
                   }
@@ -4900,10 +4900,10 @@ public class ReplicationCliMain extends CliApplicationHelper
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
-      MultimasterSynchronizationProviderCfgClient sync = null;
+      ReplicationSynchronizationProviderCfgClient sync = null;
       try
       {
-        sync = (MultimasterSynchronizationProviderCfgClient)
+        sync = (ReplicationSynchronizationProviderCfgClient)
         root.getSynchronizationProvider("Multimaster Synchronization");
       }
       catch (ManagedObjectNotFoundException monfe)
@@ -4914,19 +4914,19 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (sync != null)
       {
-        String[] domainNames = sync.listMultimasterDomains();
+        String[] domainNames = sync.listReplicationDomains();
         if (domainNames != null)
         {
           for (int i=0; i<domainNames.length; i++)
           {
-            MultimasterDomainCfgClient domain =
-              sync.getMultimasterDomain(domainNames[i]);
-            if (Utils.areDnsEqual(domain.getReplicationDN().toString(), baseDN))
+            ReplicationDomainCfgClient domain =
+              sync.getReplicationDomain(domainNames[i]);
+            if (Utils.areDnsEqual(domain.getBaseDN().toString(), baseDN))
             {
               printProgressMessage(formatter.getFormattedWithPoints(
                   INFO_REPLICATION_DISABLING_BASEDN.get(baseDN,
                       hostPort)));
-              sync.removeMultimasterDomain(domainNames[i]);
+              sync.removeReplicationDomain(domainNames[i]);
               sync.commit();
 
               printProgressMessage(formatter.getFormattedDone());

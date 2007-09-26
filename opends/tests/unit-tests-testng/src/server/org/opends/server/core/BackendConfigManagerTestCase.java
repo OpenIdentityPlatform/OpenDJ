@@ -247,7 +247,7 @@ public class BackendConfigManagerTestCase
     // Modify the backend to enable it.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-backend-enabled", "true")));
+                              new Attribute("ds-cfg-enabled", "true")));
     ModifyOperation modifyOperation =
          conn.processModify(backendEntry.getDN(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -271,7 +271,7 @@ public class BackendConfigManagerTestCase
     // Modify the backend to disable it.
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-backend-enabled", "false")));
+                              new Attribute("ds-cfg-enabled", "false")));
     modifyOperation =
          conn.processModify(backendEntry.getDN(), mods);
     assertNull(DirectoryServer.getBackend(backendID));
@@ -613,7 +613,7 @@ public class BackendConfigManagerTestCase
     // Disable the intermediate (child) backend.  This should be allowed.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-backend-enabled",
+                              new Attribute("ds-cfg-enabled",
                                             "false")));
     ModifyOperation modifyOperation =
          conn.processModify(childBackendEntry.getDN(), mods);
@@ -632,7 +632,7 @@ public class BackendConfigManagerTestCase
     // Re-enable the intermediate backend.
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-backend-enabled", "true")));
+                              new Attribute("ds-cfg-enabled", "true")));
     modifyOperation = conn.processModify(childBackendEntry.getDN(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -728,13 +728,13 @@ public class BackendConfigManagerTestCase
     lines.add("objectClass: ds-cfg-backend");
     lines.add("objectClass: ds-cfg-memory-backend");
     lines.add("ds-cfg-backend-id: " + backendID);
-    lines.add("ds-cfg-backend-class: org.opends.server.backends.MemoryBackend");
-    lines.add("ds-cfg-backend-enabled: " + String.valueOf(enabled));
-    lines.add("ds-cfg-backend-writability-mode: enabled");
+    lines.add("ds-cfg-java-class: org.opends.server.backends.MemoryBackend");
+    lines.add("ds-cfg-enabled: " + String.valueOf(enabled));
+    lines.add("ds-cfg-writability-mode: enabled");
 
     for (DN dn : baseDNs)
     {
-      lines.add("ds-cfg-backend-base-dn: " + dn.toString());
+      lines.add("ds-cfg-base-dn: " + dn.toString());
     }
 
     String[] lineArray = new String[lines.size()];

@@ -39,7 +39,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
-import org.opends.server.tools.dsconfig.DSConfig;
 
 import static org.testng.Assert.*;
 
@@ -285,8 +284,7 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--add", "password-validator-dn:cn=Length-Based Password Validator," +
-           "cn=Password Validators,cn=config");
+      "--add", "password-validator:Length-Based Password Validator");
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
@@ -349,8 +347,7 @@ public class PasswordPolicyControlTestCase
       TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--remove", "password-validator-dn:cn=Length-Based Password " +
-             "Validator,cn=Password Validators,cn=config");
+        "--remove", "password-validator:Length-Based Password Validator");
 
       try
       {
@@ -1074,7 +1071,7 @@ public class PasswordPolicyControlTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "minimum-password-age:24 hours");
+      "--set", "min-password-age:24 hours");
 
     TestCaseUtils.addEntry(
       "dn: uid=test.user,o=test",
@@ -1148,7 +1145,7 @@ public class PasswordPolicyControlTestCase
       TestCaseUtils.dsconfig(
         "set-password-policy-prop",
         "--policy-name", "Default Password Policy",
-        "--set", "minimum-password-age:0 seconds");
+        "--set", "min-password-age:0 seconds");
 
       try
       {

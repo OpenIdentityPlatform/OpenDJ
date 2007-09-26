@@ -94,9 +94,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "ds-cfg-character-set: 1:0123456789",
@@ -108,9 +108,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -119,9 +119,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
          "ds-cfg-character-set: 1:0123456789",
@@ -178,9 +178,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: malformed",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -190,9 +190,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: :malformed",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -202,9 +202,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -214,9 +214,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: noninteger:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -226,9 +226,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 0:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -238,9 +238,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: -1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -251,9 +251,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyza",
          "ds-cfg-allow-unclassified-characters: true",
          "",
@@ -264,9 +264,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYz",
          "ds-cfg-allow-unclassified-characters: true",
@@ -277,9 +277,9 @@ public class CharacterSetPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-character-set-password-validator",
          "cn: Character Set",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CharacterSetPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
          "ds-cfg-allow-unclassified-characters: malformed");
 
@@ -349,9 +349,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
              "ds-cfg-character-set: 1:0123456789",
@@ -371,9 +371,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
              "ds-cfg-character-set: 1:0123456789",
@@ -393,9 +393,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
              "ds-cfg-character-set: 1:0123456789",
@@ -415,9 +415,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-allow-unclassified-characters: true"),
         "password",
@@ -434,9 +434,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 6:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-allow-unclassified-characters: true"),
         "short",
@@ -453,9 +453,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-allow-unclassified-characters: true"),
         "PaS$w0rD",
@@ -472,9 +472,9 @@ public class CharacterSetPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-character-set-password-validator",
              "cn: Character Set",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "CharacterSetPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
              "ds-cfg-allow-unclassified-characters: false"),
         "PaS$w0rD",

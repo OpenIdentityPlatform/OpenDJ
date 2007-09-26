@@ -42,8 +42,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.22</ldap:oid>
-      <ldap:name>ds-cfg-logger</ldap:name>
+      <ldap:name>ds-cfg-log-publisher</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -59,8 +58,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.61</ldap:oid>
-        <ldap:name>ds-cfg-logger-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -169,7 +169,7 @@ public class GroupManager
 
       if (groupConfiguration.isEnabled())
       {
-        String className = groupConfiguration.getGroupClass();
+        String className = groupConfiguration.getJavaClass();
         try
         {
           Group group = loadGroup(className, groupConfiguration, true);
@@ -197,7 +197,7 @@ public class GroupManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // group implementation.
-      String className = configuration.getGroupClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadGroup(className, configuration, false);
@@ -236,7 +236,7 @@ public class GroupManager
 
     // Get the name of the class and make sure we can instantiate it as a group
     // implementation.
-    String className = configuration.getGroupClass();
+    String className = configuration.getJavaClass();
     try
     {
       group = loadGroup(className, configuration, true);
@@ -320,7 +320,7 @@ public class GroupManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // group implementation.
-      String className = configuration.getGroupClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadGroup(className, configuration, false);
@@ -385,7 +385,7 @@ public class GroupManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the group implementation is disabled, then instantiate
     // the class and initialize and register it as a group implementation.
-    String className = configuration.getGroupClass();
+    String className = configuration.getJavaClass();
     if (existingGroup != null)
     {
       if (! className.equals(existingGroup.getClass().getName()))
@@ -450,7 +450,7 @@ public class GroupManager
       GroupImplementationCfgDefn definition =
            GroupImplementationCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getGroupClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends Group> groupClass =
            propertyDefinition.loadClass(className, Group.class);
       Group group = groupClass.newInstance();

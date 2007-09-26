@@ -218,9 +218,9 @@ public class StressTest extends ReplicationTestCase
     String replServerLdif =
       "dn: cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-server-config\n"
+        + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
-        + "ds-cfg-replication-server-port: " + replServerPort + "\n"
+        + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-server-id: 1\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
@@ -228,11 +228,11 @@ public class StressTest extends ReplicationTestCase
     String synchroServerLdif =
       "dn: " + "cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-domain-config\n"
+        + "objectClass: ds-cfg-replication-domain\n"
         + "cn: example\n"
-        + "ds-cfg-replication-dn: ou=People,dc=example,dc=com\n"
+        + "ds-cfg-base-dn: ou=People,dc=example,dc=com\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
-        + "ds-cfg-directory-server-id: 1\n" + "ds-cfg-receive-status: true\n";
+        + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"

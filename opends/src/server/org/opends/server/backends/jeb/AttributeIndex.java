@@ -43,8 +43,8 @@ import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-import org.opends.server.admin.std.server.JEIndexCfg;
-import org.opends.server.admin.std.meta.JEIndexCfgDefn;
+import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.config.ConfigException;
 import static org.opends.messages.JebMessages.*;
@@ -65,7 +65,7 @@ import org.opends.server.util.StaticUtils;
  * then we would not need a separate ordering index.
  */
 public class AttributeIndex
-    implements ConfigurationChangeListener<JEIndexCfg>
+    implements ConfigurationChangeListener<LocalDBIndexCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -90,7 +90,7 @@ public class AttributeIndex
   /**
    * The attribute index configuration.
    */
-  private JEIndexCfg indexConfig;
+  private LocalDBIndexCfg indexConfig;
 
   /**
    * The index database for attribute equality.
@@ -130,7 +130,8 @@ public class AttributeIndex
    * @throws DatabaseException if a JE database error occurs.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(JEIndexCfg indexConfig, State state, Environment env,
+  public AttributeIndex(LocalDBIndexCfg indexConfig, State state,
+                        Environment env,
                         EntryContainer entryContainer)
       throws DatabaseException, ConfigException
   {
@@ -139,12 +140,13 @@ public class AttributeIndex
     this.indexConfig = indexConfig;
     this.state = state;
 
-    AttributeType attrType = indexConfig.getIndexAttribute();
+    AttributeType attrType = indexConfig.getAttribute();
     String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
     int indexEntryLimit = indexConfig.getIndexEntryLimit();
 
-    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
+    if (indexConfig.getIndexType().contains(
+            LocalDBIndexCfgDefn.IndexType.EQUALITY))
     {
       if (attrType.getEqualityMatchingRule() == null)
       {
@@ -163,7 +165,8 @@ public class AttributeIndex
                                      entryContainer);
     }
 
-    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.PRESENCE))
+    if (indexConfig.getIndexType().contains(
+            LocalDBIndexCfgDefn.IndexType.PRESENCE))
     {
       Indexer presenceIndexer = new PresenceIndexer(attrType);
       this.presenceIndex = new Index(name + ".presence",
@@ -175,7 +178,8 @@ public class AttributeIndex
                                      entryContainer);
     }
 
-    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.SUBSTRING))
+    if (indexConfig.getIndexType().contains(
+            LocalDBIndexCfgDefn.IndexType.SUBSTRING))
     {
       if (attrType.getSubstringMatchingRule() == null)
       {
@@ -185,7 +189,7 @@ public class AttributeIndex
       }
 
       Indexer substringIndexer = new SubstringIndexer(attrType,
-                                         indexConfig.getIndexSubstringLength());
+                                         indexConfig.getSubstringLength());
       this.substringIndex = new Index(name + ".substring",
                                      substringIndexer,
                                      state,
@@ -195,7 +199,8 @@ public class AttributeIndex
                                      entryContainer);
     }
 
-    if (indexConfig.getIndexType().contains(JEIndexCfgDefn.IndexType.ORDERING))
+    if (indexConfig.getIndexType().contains(
+            LocalDBIndexCfgDefn.IndexType.ORDERING))
     {
       if (attrType.getOrderingMatchingRule() == null)
       {
@@ -214,7 +219,7 @@ public class AttributeIndex
                                      entryContainer);
     }
     if (indexConfig.getIndexType().contains(
-        JEIndexCfgDefn.IndexType.APPROXIMATE))
+        LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
     {
       if (attrType.getApproximateMatchingRule() == null)
       {
@@ -313,14 +318,14 @@ public class AttributeIndex
    */
   public AttributeType getAttributeType()
   {
-    return indexConfig.getIndexAttribute();
+    return indexConfig.getAttribute();
   }
 
   /**
    * Get the JE index configuration used by this index.
    * @return The configuration in effect.
    */
-  public JEIndexCfg getConfiguration()
+  public LocalDBIndexCfg getConfiguration()
   {
     return indexConfig;
   }
@@ -501,7 +506,7 @@ public class AttributeIndex
     // concurrent writers.
     Set<ByteString> set = new HashSet<ByteString>();
 
-    int substrLength = indexConfig.getIndexSubstringLength();
+    int substrLength = indexConfig.getSubstringLength();
     byte[] keyBytes;
 
     // Example: The value is ABCDE and the substring length is 3.
@@ -527,7 +532,7 @@ public class AttributeIndex
    */
   private EntryIDSet matchSubstring(byte[] bytes)
   {
-    int substrLength = indexConfig.getIndexSubstringLength();
+    int substrLength = indexConfig.getSubstringLength();
 
     // There are two cases, depending on whether the user-provided
     // substring is smaller than the configured index substring length or not.
@@ -669,7 +674,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
         debugBuffer.append(".");
         debugBuffer.append("equality]");
       }
@@ -708,7 +713,7 @@ public class AttributeIndex
     if(debugBuffer != null)
     {
       debugBuffer.append("[INDEX:");
-      debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+      debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
       debugBuffer.append(".");
       debugBuffer.append("presence]");
     }
@@ -751,7 +756,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
         debugBuffer.append(".");
         debugBuffer.append("ordering]");
       }
@@ -803,7 +808,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
         debugBuffer.append(".");
         debugBuffer.append("ordering]");
       }
@@ -861,7 +866,7 @@ public class AttributeIndex
             if(debugBuffer != null)
             {
               debugBuffer.append("[INDEX:");
-              debugBuffer.append(indexConfig.getIndexAttribute().
+              debugBuffer.append(indexConfig.getAttribute().
                   getNameOrOID());
               debugBuffer.append(".");
               debugBuffer.append("equality]");
@@ -915,7 +920,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
         debugBuffer.append(".");
         debugBuffer.append("substring]");
       }
@@ -1051,7 +1056,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getIndexAttribute().getNameOrOID());
+        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
         debugBuffer.append(".");
         debugBuffer.append("approximate]");
       }
@@ -1153,12 +1158,12 @@ public class AttributeIndex
    * {@inheritDoc}
    */
   public synchronized boolean isConfigurationChangeAcceptable(
-      JEIndexCfg cfg,
+      LocalDBIndexCfg cfg,
       List<Message> unacceptableReasons)
   {
-    AttributeType attrType = cfg.getIndexAttribute();
+    AttributeType attrType = cfg.getAttribute();
 
-    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
     {
       if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
       {
@@ -1169,7 +1174,7 @@ public class AttributeIndex
       }
     }
 
-    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.SUBSTRING))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
     {
       if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
       {
@@ -1181,7 +1186,7 @@ public class AttributeIndex
 
     }
 
-    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.ORDERING))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
     {
       if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
       {
@@ -1191,7 +1196,7 @@ public class AttributeIndex
         return false;
       }
     }
-    if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.APPROXIMATE))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
     {
       if (approximateIndex == null &&
           attrType.getApproximateMatchingRule() == null)
@@ -1210,19 +1215,19 @@ public class AttributeIndex
    * {@inheritDoc}
    */
   public synchronized ConfigChangeResult applyConfigurationChange(
-      JEIndexCfg cfg)
+      LocalDBIndexCfg cfg)
   {
     ConfigChangeResult ccr;
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
     try
     {
-      AttributeType attrType = cfg.getIndexAttribute();
+      AttributeType attrType = cfg.getAttribute();
       String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
       int indexEntryLimit = cfg.getIndexEntryLimit();
 
-      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.EQUALITY))
+      if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
       {
         if (equalityIndex == null)
         {
@@ -1282,7 +1287,7 @@ public class AttributeIndex
         }
       }
 
-      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.PRESENCE))
+      if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.PRESENCE))
       {
         if(presenceIndex == null)
         {
@@ -1340,12 +1345,12 @@ public class AttributeIndex
         }
       }
 
-      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.SUBSTRING))
+      if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
       {
         if(substringIndex == null)
         {
           Indexer substringIndexer = new SubstringIndexer(
-              attrType, cfg.getIndexSubstringLength());
+              attrType, cfg.getSubstringLength());
           substringIndex = new Index(name + ".substring",
                                      substringIndexer,
                                      state,
@@ -1371,11 +1376,11 @@ public class AttributeIndex
             messages.add(message);
           }
 
-          if(indexConfig.getIndexSubstringLength() !=
-              cfg.getIndexSubstringLength())
+          if(indexConfig.getSubstringLength() !=
+              cfg.getSubstringLength())
           {
             Indexer substringIndexer = new SubstringIndexer(
-                attrType, cfg.getIndexSubstringLength());
+                attrType, cfg.getSubstringLength());
             this.substringIndex.setIndexer(substringIndexer);
           }
         }
@@ -1405,7 +1410,7 @@ public class AttributeIndex
         }
       }
 
-      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.ORDERING))
+      if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
       {
         if(orderingIndex == null)
         {
@@ -1462,7 +1467,8 @@ public class AttributeIndex
         }
       }
 
-      if (cfg.getIndexType().contains(JEIndexCfgDefn.IndexType.APPROXIMATE))
+      if (cfg.getIndexType().contains(
+              LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
       {
         if(approximateIndex == null)
         {
@@ -1615,7 +1621,7 @@ public class AttributeIndex
     StringBuilder builder = new StringBuilder();
     builder.append(entryContainer.getDatabasePrefix());
     builder.append("_");
-    builder.append(indexConfig.getIndexAttribute().getNameOrOID());
+    builder.append(indexConfig.getAttribute().getNameOrOID());
     return builder.toString();
   }
 }

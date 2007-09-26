@@ -111,7 +111,7 @@ public class UniqueCharactersPasswordValidator
     // Get a handle to the current configuration and see if we need to count
     // the number of unique characters in the password.
     UniqueCharactersPasswordValidatorCfg config = currentConfig;
-    int minUniqueCharacters = config.getMinimumUniqueCharacters();
+    int minUniqueCharacters = config.getMinUniqueCharacters();
     if (minUniqueCharacters <= 0)
     {
       // We don't need to check anything, so the password will be acceptable.

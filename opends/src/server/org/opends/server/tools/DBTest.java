@@ -49,7 +49,7 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.config.ConfigException;
 import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -485,7 +485,7 @@ public class DBTest
 
   private int listRootContainers()
   {
-    TreeMap<JEBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     int count = 0;
 
     // Create a table of their properties.
@@ -494,11 +494,12 @@ public class DBTest
     builder.appendHeading(INFO_LABEL_DBTEST_BACKEND_ID.get());
     builder.appendHeading(INFO_LABEL_DBTEST_DB_DIRECTORY.get());
 
-    for(Map.Entry<JEBackendCfg, BackendImpl> backend : jeBackends.entrySet())
+    for(Map.Entry<LocalDBBackendCfg, BackendImpl> backend :
+        jeBackends.entrySet())
     {
       builder.startRow();
       builder.appendCell(backend.getValue().getBackendID());
-      builder.appendCell(backend.getKey().getBackendDirectory());
+      builder.appendCell(backend.getKey().getDBDirectory());
       count++;
     }
 
@@ -511,7 +512,7 @@ public class DBTest
 
   private int listEntryContainers(Argument backendID)
   {
-    TreeMap<JEBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
 
     for(BackendImpl b : jeBackends.values())
@@ -632,7 +633,7 @@ public class DBTest
   private int listDatabaseContainers(Argument backendID,
                                      Argument baseDN)
   {
-    TreeMap<JEBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
     DN base = null;
 
@@ -807,7 +808,7 @@ public class DBTest
   private int listIndexStatus(Argument backendID,
                               Argument baseDN)
   {
-    TreeMap<JEBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
     DN base = null;
 
@@ -971,7 +972,7 @@ public class DBTest
                                     Argument maxDataSize,
                                     Argument minDataSize)
   {
-    TreeMap<JEBackendCfg, BackendImpl> jeBackends = getJEBackends();
+    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
     BackendImpl backend = null;
     DN base = null;
 
@@ -1570,7 +1571,7 @@ public class DBTest
     }
   }
 
-  private TreeMap<JEBackendCfg, BackendImpl> getJEBackends()
+  private TreeMap<LocalDBBackendCfg, BackendImpl> getJEBackends()
   {
     ArrayList<Backend> backendList = new ArrayList<Backend>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
@@ -1578,14 +1579,15 @@ public class DBTest
     int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
     // TODO: Throw error if return code is not 0
 
-    TreeMap<JEBackendCfg, BackendImpl> jeBackends =
-        new TreeMap<JEBackendCfg, BackendImpl>();
+    TreeMap<LocalDBBackendCfg, BackendImpl> jeBackends =
+        new TreeMap<LocalDBBackendCfg, BackendImpl>();
     for(int i = 0; i < backendList.size(); i++)
     {
       Backend backend = backendList.get(i);
       if(backend instanceof BackendImpl)
       {
-        jeBackends.put((JEBackendCfg)entryList.get(i), (BackendImpl)backend);
+        jeBackends.put((LocalDBBackendCfg)entryList.get(i),
+                       (BackendImpl)backend);
       }
     }
 

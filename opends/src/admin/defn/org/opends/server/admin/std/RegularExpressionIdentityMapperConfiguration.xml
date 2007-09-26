@@ -49,13 +49,12 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.121</ldap:oid>
       <ldap:name>ds-cfg-regular-expression-identity-mapper</ldap:name>
       <ldap:superior>ds-cfg-identity-mapper</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="mapper-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -83,7 +82,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.146</ldap:oid>
         <ldap:name>ds-cfg-match-attribute</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -110,7 +108,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.147</ldap:oid>
         <ldap:name>ds-cfg-match-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -139,7 +136,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.469</ldap:oid>
         <ldap:name>ds-cfg-match-pattern</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -173,7 +169,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.470</ldap:oid>
         <ldap:name>ds-cfg-replace-pattern</ldap:name>
       </ldap:attribute>
     </adm:profile>

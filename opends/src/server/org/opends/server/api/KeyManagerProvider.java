@@ -32,7 +32,7 @@ import org.opends.messages.Message;
 import java.util.List;
 import javax.net.ssl.KeyManager;
 
-import org.opends.server.admin.std.server.KeyManagerCfg;
+import org.opends.server.admin.std.server.KeyManagerProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -54,7 +54,7 @@ import org.opends.server.types.InitializationException;
      mayExtend=true,
      mayInvoke=true)
 public abstract class KeyManagerProvider
-    <T extends KeyManagerCfg>
+    <T extends KeyManagerProviderCfg>
 {
   /**
    * Initializes this key manager provider based on the information in

@@ -52,6 +52,7 @@
               or $value = 'md5' or $value = 'sha1' or $value = 'sha256'
               or $value = 'sha384' or $value = 'sha512' or $value = 'tls'
               or $value = 'des' or $value = 'aes' or $value = 'rc4'
+              or $value = 'db'
              "/>
   </xsl:template>
 </xsl:stylesheet>

@@ -12,7 +12,7 @@
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="plugin-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>com.example.opends.ExamplePlugin</adm:value>

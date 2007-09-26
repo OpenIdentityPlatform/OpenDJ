@@ -41,13 +41,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.120</ldap:oid>
       <ldap:name>ds-cfg-unique-attribute-plugin</ldap:name>
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="plugin-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -70,16 +69,16 @@
     </adm:default-behavior>
   </adm:property-override>
 
-  <adm:property name="unique-attribute-type" mandatory="true"
+  <adm:property name="type" mandatory="true"
                 multi-valued="true">
     <adm:synopsis>
       Specifies the attribute type to check for value uniqueness.
     </adm:synopsis>
     <adm:description>
       Specifies the attribute type to check for value uniqueness. The
-      values for each ds-cfg-unique-attribute-type attribute must be unique
+      values for each ds-cfg-type attribute must be unique
       within each base DN specified in the configuration's
-      ds-cfg-unique-attribute-base-dn attribute or within all of the server's
+      ds-cfg-base-dn attribute or within all of the server's
       public naming contexts if no base DNs were specified in the configuration.
     </adm:description>
     <adm:default-behavior>
@@ -94,13 +93,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.467</ldap:oid>
-        <ldap:name>ds-cfg-unique-attribute-type</ldap:name>
+        <ldap:name>ds-cfg-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="unique-attribute-base-dn" mandatory="false"
+  <adm:property name="base-dn" mandatory="false"
                  multi-valued="true">
     <adm:synopsis>
       Specifies a base DN that the attribute must be unique within.
@@ -121,8 +119,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.468</ldap:oid>
-        <ldap:name>ds-cfg-unique-attribute-base-dn</ldap:name>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -75,7 +75,7 @@
                   'subcommand'     : 'create-log-publisher',
                   'objectType'     : 'publisher-name',
                   'objectName'     :  'File-Based Access Logger',
-                  'optionsString'  : '--type file-based-access --set asynchronous:false --set log-file-mode:555 --set log-file:logs/access --set enabled:true ',
+                  'optionsString'  : '--type file-based-access --set asynchronous:false --set log-file-permissions:555 --set log-file:logs/access --set enabled:true ',
                   'expectedRC'     : 0
                 }
               </call>
@@ -264,8 +264,8 @@
             }
           </call>
           
-          <!--   log-file-mode  -->                         
-          <message>'------  set log-file-mode  to 777  --' </message>
+          <!--   log-file-permissions  -->                         
+          <message>'------  set log-file-permissions  to 777  --' </message>
           <call function="'dsconfig'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -274,11 +274,11 @@
               'subcommand'     : 'set-log-publisher-prop',
               'objectType'     : 'publisher-name',
               'objectName'     : 'File-Based Access Logger',
-              'optionsString'  : '--set log-file-mode:777',
+              'optionsString'  : '--set log-file-permissions:777',
               'expectedRC'     : 0
             } 
           </call>
-          <message>'------  get log-file-mode --' </message>
+          <message>'------  get log-file-permissions --' </message>
           <call function="'dsconfigGet'">
             { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
               'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
@@ -287,7 +287,7 @@
               'objectName'             : 'log-publisher',
               'propertyType'           : 'publisher',
               'propertyName'           : 'File-Based Access Logger',
-              'attributeName'          : 'log-file-mode',
+              'attributeName'          : 'log-file-permissions',
               'expectedAttributeValue' : '777'
             }
           </call>

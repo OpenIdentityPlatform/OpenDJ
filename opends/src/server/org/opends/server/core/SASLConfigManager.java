@@ -126,7 +126,7 @@ public class SASLConfigManager implements
 
       if (handlerConfiguration.isEnabled())
       {
-        String className = handlerConfiguration.getHandlerClass();
+        String className = handlerConfiguration.getJavaClass();
         try
         {
           SASLMechanismHandler handler = loadHandler(className,
@@ -156,7 +156,7 @@ public class SASLConfigManager implements
     {
       // Get the name of the class and make sure we can instantiate it as a SASL
       // mechanism handler.
-      String className = configuration.getHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadHandler(className, configuration, false);
@@ -195,7 +195,7 @@ public class SASLConfigManager implements
 
     // Get the name of the class and make sure we can instantiate it as a SASL
     // mechanism handler.
-    String className = configuration.getHandlerClass();
+    String className = configuration.getJavaClass();
     try
     {
       handler = loadHandler(className, configuration, true);
@@ -266,7 +266,7 @@ public class SASLConfigManager implements
     {
       // Get the name of the class and make sure we can instantiate it as a SASL
       // mechanism handler.
-      String className = configuration.getHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadHandler(className, configuration, false);
@@ -321,7 +321,7 @@ public class SASLConfigManager implements
     // then we'll at least need to indicate that administrative action is
     // required.  If the handler is disabled, then instantiate the class and
     // initialize and register it as a SASL mechanism handler.
-    String className = configuration.getHandlerClass();
+    String className = configuration.getJavaClass();
     if (existingHandler != null)
     {
       if (! className.equals(existingHandler.getClass().getName()))
@@ -384,7 +384,7 @@ public class SASLConfigManager implements
       SASLMechanismHandlerCfgDefn definition =
            SASLMechanismHandlerCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getHandlerClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends SASLMechanismHandler> handlerClass =
            propertyDefinition.loadClass(className, SASLMechanismHandler.class);
       SASLMechanismHandler handler = handlerClass.newInstance();

@@ -262,7 +262,7 @@ public class ErrorLogger implements
         // applied dynamically, so if the class name did change then
         // indicate that administrative action is required for that
         // change to take effect.
-        String className = config.getJavaImplementationClass();
+        String className = config.getJavaClass();
         if(!className.equals(errorLogPublisher.getClass().getName()))
         {
           adminActionRequired = true;
@@ -335,10 +335,10 @@ public class ErrorLogger implements
   private boolean isJavaClassAcceptable(ErrorLogPublisherCfg config,
                                         List<Message> unacceptableReasons)
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a DebugLogPublisher.
     ErrorLogPublisher publisher = null;
     Class<? extends ErrorLogPublisher> theClass;
@@ -382,10 +382,10 @@ public class ErrorLogger implements
 
   private ErrorLogPublisher getErrorPublisher(ErrorLogPublisherCfg config)
       throws ConfigException {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     ErrorLogPublisherCfgDefn d = ErrorLogPublisherCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-        d.getJavaImplementationClassPropertyDefinition();
+        d.getJavaClassPropertyDefinition();
     // Load the class and cast it to a ErrorLogPublisher.
     Class<? extends ErrorLogPublisher> theClass;
     ErrorLogPublisher errorLogPublisher;

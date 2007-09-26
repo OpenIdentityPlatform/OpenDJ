@@ -93,10 +93,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: 6",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: 6",
          "",
          "dn: cn=Similarity-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -104,10 +104,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: 3",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: 3",
          "",
          "dn: cn=Similarity-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -115,10 +115,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: 0"
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: 0"
          );
 
     Object[][] array = new Object[entries.size()][1];
@@ -170,10 +170,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: -1",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: -1",
          "",
 
          "dn: cn=Similarity-Based Password Validator,cn=Password Validators," +
@@ -182,10 +182,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         // "ds-cfg-minimum-password-difference: -1", // error here
+         "ds-cfg-enabled: true",
+         // "ds-cfg-min-password-difference: -1", // error here
          "",
          
          "dn: cn=Similarity-Based Password Validator,cn=Password Validators," +
@@ -194,10 +194,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: notNumeric");
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: notNumeric");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -264,10 +264,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: 0"
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: 0"
          );
 
     SimilarityBasedPasswordValidatorCfg configuration =
@@ -338,10 +338,10 @@ public class SimilarityBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-similarity-based-password-validator",
          "cn: Similarity-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "SimilarityBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-difference: 3"
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-difference: 3"
          );
 
     SimilarityBasedPasswordValidatorCfg configuration =

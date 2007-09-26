@@ -60,7 +60,7 @@
              'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
              'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-mapper-dn',
+             'attributeName'        : 'ds-cfg-certificate-mapper',
              'newAttributeValue'  : 'cn=Subject Equals DN,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
              'expectedRC'           :  0 }      

@@ -152,10 +152,10 @@ public final class ConstraintTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real"
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real"
   };
 
   // Test LDIF.
@@ -172,10 +172,10 @@ public final class ConstraintTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
       "",
       // Child base entries.
       "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
@@ -458,20 +458,20 @@ public final class ConstraintTest extends AdminTestCase {
       TestChildCfg child = parent.getTestChild("test child 1");
 
       TestCfg.addConstraint(constraint);
-      ChangeListener listener = new ChangeListener();
+      ChangeListener listener = new ChangeListener();            
       child.addChangeListener(listener);
 
       // Now modify it.
       String[] changes = new String[] {
           "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
           "changetype: modify",
-          "replace: ds-cfg-virtual-attribute-base-dn",
-          "ds-cfg-virtual-attribute-base-dn: dc=new value 1,dc=com",
-          "ds-cfg-virtual-attribute-base-dn: dc=new value 2,dc=com",
+          "replace: ds-cfg-base-dn",
+          "ds-cfg-base-dn: dc=new value 1,dc=com",
+          "ds-cfg-base-dn: dc=new value 2,dc=com",
           "-",
-          "replace: ds-cfg-virtual-attribute-group-dn",
-          "ds-cfg-virtual-attribute-group-dn: dc=new value 3,dc=com",
-          "ds-cfg-virtual-attribute-group-dn: dc=new value 4,dc=com"
+          "replace: ds-cfg-group-dn",
+          "ds-cfg-group-dn: dc=new value 3,dc=com",
+          "ds-cfg-group-dn: dc=new value 4,dc=com"
       };
 
       int result = TestCaseUtils.applyModifications(changes);
@@ -512,13 +512,13 @@ public final class ConstraintTest extends AdminTestCase {
       String[] changes = new String[] {
           "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
           "changetype: modify",
-          "replace: ds-cfg-virtual-attribute-base-dn",
-          "ds-cfg-virtual-attribute-base-dn: dc=new value 1,dc=com",
-          "ds-cfg-virtual-attribute-base-dn: dc=new value 2,dc=com",
+          "replace: ds-cfg-base-dn",
+          "ds-cfg-base-dn: dc=new value 1,dc=com",
+          "ds-cfg-base-dn: dc=new value 2,dc=com",
           "-",
-          "replace: ds-cfg-virtual-attribute-group-dn",
-          "ds-cfg-virtual-attribute-group-dn: dc=new value 3,dc=com",
-          "ds-cfg-virtual-attribute-group-dn: dc=new value 4,dc=com"
+          "replace: ds-cfg-group-dn",
+          "ds-cfg-group-dn: dc=new value 3,dc=com",
+          "ds-cfg-group-dn: dc=new value 4,dc=com"
       };
 
       int result = TestCaseUtils.applyModifications(changes);

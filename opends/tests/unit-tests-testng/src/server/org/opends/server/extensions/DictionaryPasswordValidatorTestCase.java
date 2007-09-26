@@ -122,9 +122,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true",
@@ -134,9 +134,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: true",
          "ds-cfg-test-reversed-password: true",
@@ -146,9 +146,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true");
@@ -203,9 +203,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: invalid",
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true",
@@ -216,9 +216,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: config",
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true",
@@ -229,9 +229,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: invalid",
          "ds-cfg-test-reversed-password: true",
@@ -242,9 +242,9 @@ public class DictionaryPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-dictionary-password-validator",
          "cn: Dictionary",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "DictionaryPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: invalid");
@@ -307,9 +307,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
              "ds-cfg-test-reversed-password: true"),
@@ -326,9 +326,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
              "ds-cfg-test-reversed-password: true"),
@@ -346,9 +346,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
              "ds-cfg-test-reversed-password: true"),
@@ -366,9 +366,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: true",
              "ds-cfg-test-reversed-password: true"),
@@ -386,9 +386,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
              "ds-cfg-test-reversed-password: true"),
@@ -406,9 +406,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
              "ds-cfg-test-reversed-password: false"),
@@ -426,9 +426,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
              "ds-cfg-test-reversed-password: true"),
@@ -446,9 +446,9 @@ public class DictionaryPasswordValidatorTestCase
              "objectClass: ds-cfg-password-validator",
              "objectClass: ds-cfg-dictionary-password-validator",
              "cn: Dictionary",
-             "ds-cfg-password-validator-class: org.opends.server.extensions." +
+             "ds-cfg-java-class: org.opends.server.extensions." +
                   "DictionaryPasswordValidator",
-             "ds-cfg-password-validator-enabled: true",
+             "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: true",
              "ds-cfg-test-reversed-password: true"),
