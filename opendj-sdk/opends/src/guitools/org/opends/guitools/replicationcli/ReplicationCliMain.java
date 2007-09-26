@@ -2449,7 +2449,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           returnValue = rce.getErrorCode();
           printLineBreak();
-          printErrorMessage(rce.getMessageObject());
+          printErrorMessage(getCriticalExceptionMessage(rce));
           LOG.log(Level.SEVERE, "Complete error stack:", rce);
         }
       }
@@ -2542,7 +2542,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           returnValue = rce.getErrorCode();
           printLineBreak();
-          printErrorMessage(rce.getMessageObject());
+          printErrorMessage(getCriticalExceptionMessage(rce));
           LOG.log(Level.SEVERE, "Complete error stack:", rce);
         }
       }
@@ -2610,7 +2610,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         returnValue = rce.getErrorCode();
         printLineBreak();
-        printErrorMessage(rce.getMessageObject());
+        printErrorMessage(getCriticalExceptionMessage(rce));
         LOG.log(Level.SEVERE, "Complete error stack:", rce);
       }
     }
@@ -2701,7 +2701,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           catch (ReplicationCliException rce)
           {
             printLineBreak();
-            printErrorMessage(rce.getMessageObject());
+            printErrorMessage(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
             LOG.log(Level.SEVERE, "Complete error stack:", rce);
           }
@@ -5160,5 +5160,44 @@ public class ReplicationCliMain extends CliApplicationHelper
       c1.add(s.toLowerCase());
     }
     return c1;
+  }
+
+  /**
+   * Returns the message that must be displayed to the user for a given
+   * exception.  This is assumed to be a critical exception that stops all
+   * the processing.
+   * @param rce the ReplicationCliException.
+   * @return a message to be displayed to the user.
+   */
+  private Message getCriticalExceptionMessage(ReplicationCliException rce)
+  {
+    MessageBuilder mb = new MessageBuilder();
+    mb.append(rce.getMessageObject());
+    File logFile = QuickSetupLog.getLogFile();
+    if (logFile != null)
+    {
+      mb.append(Constants.LINE_SEPARATOR);
+      mb.append(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
+    }
+    // Check if the cause has already been included in the message
+    Throwable c = rce.getCause();
+    if (c != null)
+    {
+      String s;
+      if (c instanceof NamingException)
+      {
+        s = ((NamingException)c).toString(true);
+      }
+      else
+      {
+        s = c.toString();
+      }
+      if (mb.toString().indexOf(s) == -1)
+      {
+        mb.append(Constants.LINE_SEPARATOR);
+        mb.append(INFO_REPLICATION_CRITICAL_ERROR_DETAILS.get(s));
+      }
+    }
+    return mb.toMessage();
   }
 }
