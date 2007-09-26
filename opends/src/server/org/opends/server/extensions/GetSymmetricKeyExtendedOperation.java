@@ -27,7 +27,8 @@
 
 package org.opends.server.extensions;
 
-import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
+import org.opends.server.admin.std.server.
+            GetSymmetricKeyExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.debug.DebugLogger;
@@ -54,7 +55,8 @@ import java.util.ArrayList;
  * servers.
  */
 public class GetSymmetricKeyExtendedOperation
-     extends ExtendedOperationHandler<ExtendedOperationHandlerCfg>
+     extends ExtendedOperationHandler<
+                  GetSymmetricKeyExtendedOperationHandlerCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -100,7 +102,7 @@ public class GetSymmetricKeyExtendedOperation
    * {@inheritDoc}
    */
   public void initializeExtendedOperationHandler(
-       ExtendedOperationHandlerCfg config)
+       GetSymmetricKeyExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
     supportedControlOIDs = new HashSet<String>();
