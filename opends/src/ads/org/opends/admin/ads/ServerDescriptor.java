@@ -113,6 +113,10 @@ public class ServerDescriptor
      */
     IS_REPLICATION_ENABLED,
     /**
+     * The associated value is a Boolean.
+     */
+    IS_REPLICATION_SECURE,
+    /**
      * List of servers specified in the Replication Server configuration.
      * This is a Set of String.
      */
@@ -242,6 +246,27 @@ public class ServerDescriptor
           ServerProperty.REPLICATION_SERVER_PORT);
     }
     return port;
+  }
+
+  /**
+   * Returns whether the communication with the replication port on the server
+   * is encrypted or not.
+   * @return <CODE>true</CODE> if the communication with the replication port on
+   * the server is encrypted and <CODE>false</CODE> otherwise.
+   */
+  public boolean isReplicationSecure()
+  {
+    boolean isReplicationSecure;
+    if (isReplicationServer())
+    {
+      isReplicationSecure = Boolean.TRUE.equals(serverProperties.get(
+          ServerProperty.IS_REPLICATION_SECURE));
+    }
+    else
+    {
+      isReplicationSecure = false;
+    }
+    return isReplicationSecure;
   }
 
   /**
@@ -873,6 +898,30 @@ public class ServerDescriptor
       {
       }
     }
+
+    boolean replicationSecure = false;
+    if (replicationEnabled)
+    {
+      ctls = new SearchControls();
+      ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+      ctls.setReturningAttributes(
+      new String[] {"ds-cfg-ssl-encryption"});
+      filter = "(objectclass=ds-cfg-crypto-manager)";
+
+      jndiName = new LdapName("cn=Crypto Manager,cn=config");
+
+      NamingEnumeration entries = ctx.search(jndiName, filter, ctls);
+
+      while(entries.hasMore())
+      {
+        SearchResult sr = (SearchResult)entries.next();
+
+        String v = getFirstValue(sr, "ds-cfg-ssl-encryption");
+        replicationSecure = "true".equalsIgnoreCase(v);
+      }
+    }
+    desc.serverProperties.put(ServerProperty.IS_REPLICATION_SECURE,
+        replicationSecure ? Boolean.TRUE : Boolean.FALSE);
   }
 
   /**

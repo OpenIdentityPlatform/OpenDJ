@@ -1400,12 +1400,12 @@ public abstract class Installer extends GuiApplication {
         for (ReplicaDescriptor replica : suffix.getReplicas())
         {
           ServerDescriptor server = replica.getServer();
-          Integer replicationPort
+          AuthenticationData repPort
                   = getUserData().getRemoteWithNoReplicationPort().get(server);
-          if (replicationPort != null)
+          if (repPort != null)
           {
-            h.add(server.getHostName()+":"+replicationPort);
-            adsServers.add(server.getHostName()+":"+replicationPort);
+            h.add(server.getHostName()+":"+repPort.getPort());
+            adsServers.add(server.getHostName()+":"+repPort.getPort());
           }
         }
         replicationServers.put(suffix.getDN(), h);
@@ -1422,6 +1422,7 @@ public abstract class Installer extends GuiApplication {
       ctx = createLocalContext();
       helper.configureReplication(ctx, dns, replicationServers,
           getUserData().getReplicationOptions().getReplicationPort(),
+          getUserData().getReplicationOptions().useSecureReplication(),
           getLocalHostPort(),
           knownReplicationServerIds, knownServerIds);
     }
@@ -1480,14 +1481,28 @@ public abstract class Installer extends GuiApplication {
         Integer v = (Integer)server.getServerProperties().get(
             ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT);
         int replicationPort;
+        boolean enableSecureReplication;
         if (v != null)
         {
           replicationPort = v;
+          enableSecureReplication = false;
         }
         else
         {
-          replicationPort =
+          AuthenticationData authData =
             getUserData().getRemoteWithNoReplicationPort().get(server);
+          if (authData != null)
+          {
+            replicationPort = authData.getPort();
+            enableSecureReplication = authData.useSecureConnection();
+          }
+          else
+          {
+            replicationPort = Constants.DEFAULT_REPLICATION_PORT;
+            enableSecureReplication = false;
+            LOG.log(Level.WARNING, "Could not find replication port for: "+
+                server.getHostPort(true));
+          }
         }
         dns = new HashSet<String>();
         for (ReplicaDescriptor replica : hm.get(server))
@@ -1499,8 +1514,9 @@ public abstract class Installer extends GuiApplication {
         ctx = getRemoteConnection(server, getTrustManager());
         ConfiguredReplication repl =
           helper.configureReplication(ctx, dns, replicationServers,
-              replicationPort, server.getHostPort(true),
-              knownReplicationServerIds, knownServerIds);
+              replicationPort, enableSecureReplication,
+              server.getHostPort(true), knownReplicationServerIds,
+              knownServerIds);
         hmConfiguredRemoteReplication.put(server, repl);
 
         try
@@ -2610,6 +2626,7 @@ public abstract class Installer extends GuiApplication {
       throws UserDataException {
     boolean hasGlobalAdministrators = false;
     Integer replicationPort = -1;
+    boolean secureReplication = false;
     String host = null;
     Integer port = null;
     String dn = null;
@@ -2628,6 +2645,8 @@ public abstract class Installer extends GuiApplication {
     {
       // Check replication port
       replicationPort = checkReplicationPort(qs, errorMsgs);
+      secureReplication =
+        (Boolean)qs.getFieldValue(FieldName.REPLICATION_SECURE);
     }
 
     UserDataConfirmationException confirmEx = null;
@@ -2693,8 +2712,30 @@ public abstract class Installer extends GuiApplication {
       auth.setPwd(pwd);
       auth.setUseSecureConnection(isSecure);
 
-      DataReplicationOptions repl = new DataReplicationOptions(type,
-          auth, replicationPort);
+      DataReplicationOptions repl;
+      switch (type)
+      {
+      case IN_EXISTING_TOPOLOGY:
+      {
+        repl = DataReplicationOptions.createInExistingTopology(auth,
+            replicationPort, secureReplication);
+        break;
+      }
+      case STANDALONE:
+      {
+        repl = DataReplicationOptions.createStandalone();
+        break;
+      }
+      case FIRST_IN_TOPOLOGY:
+      {
+        repl = DataReplicationOptions.createFirstInTopology(replicationPort,
+            secureReplication);
+        break;
+      }
+      default:
+        throw new IllegalStateException("Do not know what to do with type: "+
+            type);
+      }
       getUserData().setReplicationOptions(repl);
 
       getUserData().createAdministrator(!hasGlobalAdministrators &&
@@ -3205,13 +3246,15 @@ public abstract class Installer extends GuiApplication {
       throws UserDataException
   {
     ArrayList<Message> errorMsgs = new ArrayList<Message>();
-    Map<ServerDescriptor, Integer> servers =
+    Map<ServerDescriptor, AuthenticationData> servers =
       getUserData().getRemoteWithNoReplicationPort();
     Map hm = (Map) qs.getFieldValue(FieldName.REMOTE_REPLICATION_PORT);
+    Map hmSecure = (Map) qs.getFieldValue(FieldName.REMOTE_REPLICATION_SECURE);
     for (ServerDescriptor server : servers.keySet())
     {
       String hostName = server.getHostName();
       int replicationPort = -1;
+      boolean secureReplication = (Boolean)hmSecure.get(server.getId());
       String sPort = (String)hm.get(server.getId());
       try
       {
@@ -3242,7 +3285,10 @@ public abstract class Installer extends GuiApplication {
                           .get(server.getHostPort(true)));
           }
         }
-        servers.put(server, replicationPort);
+        AuthenticationData authData = new AuthenticationData();
+        authData.setPort(replicationPort);
+        authData.setUseSecureConnection(secureReplication);
+        servers.put(server, authData);
       } catch (NumberFormatException nfe)
       {
         errorMsgs.add(INFO_INVALID_REMOTE_REPLICATION_PORT_VALUE_RANGE.get(
@@ -3656,11 +3702,11 @@ public abstract class Installer extends GuiApplication {
     return generatedChar;
   }
 
-  private Map<ServerDescriptor, Integer> getRemoteWithNoReplicationPort(
-      UserData userData)
+  private Map<ServerDescriptor, AuthenticationData>
+  getRemoteWithNoReplicationPort(UserData userData)
   {
-    Map<ServerDescriptor, Integer> servers =
-      new HashMap<ServerDescriptor, Integer>();
+    Map<ServerDescriptor, AuthenticationData> servers =
+      new HashMap<ServerDescriptor, AuthenticationData>();
     Set<SuffixDescriptor> suffixes =
       userData.getSuffixesToReplicateOptions().getSuffixes();
     for (SuffixDescriptor suffix : suffixes)
@@ -3672,7 +3718,10 @@ public abstract class Installer extends GuiApplication {
             ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
         if (!Boolean.TRUE.equals(v))
         {
-          servers.put(server, 8989);
+          AuthenticationData authData = new AuthenticationData();
+          authData.setPort(Constants.DEFAULT_REPLICATION_PORT);
+          authData.setUseSecureConnection(false);
+          servers.put(server, authData);
         }
       }
     }
@@ -4101,9 +4150,7 @@ public abstract class Installer extends GuiApplication {
             "ds-task-log-message",
             "ds-task-state"
         });
-    Message lastDisplayedMsg = null;
     String lastLogMsg = null;
-    long lastTimeMsgDisplayed = -1;
     while (!isOver)
     {
       try

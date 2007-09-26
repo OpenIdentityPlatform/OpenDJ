@@ -72,6 +72,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
 
   private JRadioButton rbStandalone;
   private JRadioButton rbReplicated;
+  private JCheckBox cbSecureReplication;
   private JCheckBox cbTopologyExists;
   private JCheckBox cbRemoteServerPortSecure;
   private HashMap<FieldName, JLabel> hmLabels =
@@ -120,6 +121,17 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     else if (fieldName == FieldName.REMOTE_SERVER_IS_SECURE_PORT)
     {
       if (cbRemoteServerPortSecure.isSelected())
+      {
+        value = Boolean.TRUE;
+      }
+      else
+      {
+        value = Boolean.FALSE;
+      }
+    }
+    else if (fieldName == FieldName.REPLICATION_SECURE)
+    {
+      if (cbSecureReplication.isSelected())
       {
         value = Boolean.TRUE;
       }
@@ -187,17 +199,22 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     panel.add(auxPanel, gbc);
     panel.add(cbTopologyExists, gbc);
     gbc.insets = UIFactory.getEmptyInsets();
-    gbc.gridwidth = 3;
+    gbc.gridwidth = 4;
     gbc.weightx = 0.0;
     gbc.insets.left = 0;
     gbc.anchor = GridBagConstraints.WEST;
     auxPanel.add(getLabel(FieldName.REPLICATION_PORT), gbc);
 
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.gridwidth--;
     gbc.insets.left = UIFactory.LEFT_INSET_SECONDARY_FIELD;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.weightx = 0.0;
     auxPanel.add(getField(FieldName.REPLICATION_PORT), gbc);
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 0.0;
+    auxPanel.add(cbSecureReplication, gbc);
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
     gbc.insets.left = 0;
@@ -482,6 +499,12 @@ public class DataReplicationPanel extends QuickSetupStepPanel
       DataReplicationOptions.Type.STANDALONE);
     rbReplicated.setSelected(type !=
       DataReplicationOptions.Type.STANDALONE);
+    cbSecureReplication = UIFactory.makeJCheckBox(
+        INFO_SECURE_REPLICATION_LABEL.get(),
+        INFO_SECURE_REPLICATION_TOOLTIP.get(),
+        UIFactory.TextStyle.SECONDARY_FIELD_VALID);
+    cbSecureReplication.setSelected(
+        defaultUserData.getReplicationOptions().useSecureReplication());
     cbTopologyExists.setSelected(type ==
       DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY);
     cbRemoteServerPortSecure = UIFactory.makeJCheckBox(
@@ -564,6 +587,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     rbReplicated.addFocusListener(l);
     rbStandalone.addFocusListener(l);
     cbTopologyExists.addFocusListener(l);
+    cbSecureReplication.addFocusListener(l);
 
     lastFocusComponent = rbStandalone;
   }
@@ -619,6 +643,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     cbTopologyExists.setEnabled(rbReplicated.isSelected());
     getLabel(FieldName.REPLICATION_PORT).setEnabled(rbReplicated.isSelected());
     getField(FieldName.REPLICATION_PORT).setEnabled(rbReplicated.isSelected());
+    cbSecureReplication.setEnabled(rbReplicated.isSelected());
     cbRemoteServerPortSecure.setEnabled(enableFields);
   }
 

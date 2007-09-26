@@ -42,6 +42,7 @@ class EnableReplicationUserData extends ReplicationUserData
   private boolean useStartTLS1;
   private boolean useSSL1;
   private int replicationPort1;
+  private boolean secureReplication1;
   private String hostName2;
   private int port2;
   private String pwd2;
@@ -49,6 +50,7 @@ class EnableReplicationUserData extends ReplicationUserData
   private boolean useStartTLS2;
   private boolean useSSL2;
   private int replicationPort2;
+  private boolean secureReplication2;
   private boolean replicateSchema = true;
 
   /**
@@ -342,5 +344,49 @@ class EnableReplicationUserData extends ReplicationUserData
   public void setReplicateSchema(boolean replicateSchema)
   {
     this.replicateSchema = replicateSchema;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the user asked to have secure replication
+   * communication with the first server and <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the user asked to have secure replication
+   * communication with the first server and <CODE>false</CODE> otherwise.
+   */
+  public boolean isSecureReplication1()
+  {
+    return secureReplication1;
+  }
+
+  /**
+   * Sets whether to have secure replication communication with the first server
+   * or not.
+   * @param secureReplication1 whether to have secure replication communication
+   * with the first server or not.
+   */
+  public void setSecureReplication1(boolean secureReplication1)
+  {
+    this.secureReplication1 = secureReplication1;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the user asked to have secure replication
+   * communication with the second server and <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the user asked to have secure replication
+   * communication with the second server and <CODE>false</CODE> otherwise.
+   */
+  public boolean isSecureReplication2()
+  {
+    return secureReplication2;
+  }
+
+  /**
+   * Sets whether to have secure replication communication with the second
+   * server or not.
+   * @param secureReplication2 whether to have secure replication communication
+   * with the second server or not.
+   */
+  public void setSecureReplication2(boolean secureReplication2)
+  {
+    this.secureReplication2 = secureReplication2;
   }
 }

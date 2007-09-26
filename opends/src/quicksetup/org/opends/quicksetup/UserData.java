@@ -80,7 +80,7 @@ public class UserData
 
   private SuffixesToReplicateOptions suffixesToReplicateOptions;
 
-  private Map<ServerDescriptor, Integer> remoteWithNoReplicationPort;
+  private Map<ServerDescriptor, AuthenticationData> remoteWithNoReplicationPort;
 
   private boolean quiet;
 
@@ -119,12 +119,7 @@ public class UserData
     setDirectoryManagerDn(Constants.DIRECTORY_MANAGER_DN);
 
     setNewSuffixOptions(defaultNewSuffixOptions);
-    AuthenticationData data = new AuthenticationData();
-    data.setDn(Constants.DIRECTORY_MANAGER_DN);
-    data.setPort(389);
-    DataReplicationOptions repl = new DataReplicationOptions(
-        DataReplicationOptions.Type.STANDALONE, data,
-        getDefaultReplicationPort());
+    DataReplicationOptions repl = DataReplicationOptions.createStandalone();
     setReplicationOptions(repl);
     setGlobalAdministratorUID(Constants.GLOBAL_ADMIN_UID);
 
@@ -138,7 +133,8 @@ public class UserData
     sec.setSslPort(getDefaultSslPort());
     setSecurityOptions(sec);
 
-    remoteWithNoReplicationPort = new HashMap<ServerDescriptor, Integer>();
+    remoteWithNoReplicationPort =
+      new HashMap<ServerDescriptor, AuthenticationData>();
   }
 
   /**
@@ -596,29 +592,6 @@ public class UserData
   }
 
   /**
-   * Provides the port that will be proposed to the user in the replication
-   * options panel of the installation wizard. It will check whether we can use
-   * ports of type X989 and if not it will return -1.
-   *
-   * @return the free port of type X989 if it is available and we can use and -1
-   * if not.
-   */
-  static int getDefaultReplicationPort()
-  {
-    int defaultPort = -1;
-
-    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
-    {
-      int port = i + 8989;
-      if (Utils.canUseAsPort(port))
-      {
-        defaultPort = port;
-      }
-    }
-    return defaultPort;
-  }
-
-  /**
    * Provides the default host name that will be displayed.
    */
   private String getDefaultHostName()
@@ -639,13 +612,15 @@ public class UserData
    * corresponding to the Replication Port chosen by the user.
    *
    * Only the servers that have no replication port appear on this map.
-   * @return a Map containing as key a ServerDescriptor and as value an Integer
-   * corresponding to the Replication Port chosen by the user.
+   * @return a Map containing as key a ServerDescriptor and as value an
+   * AuthenticationData corresponding to the Replication Port chosen by the
+   * user.
    */
-  public Map<ServerDescriptor, Integer> getRemoteWithNoReplicationPort()
+  public Map<ServerDescriptor, AuthenticationData>
+  getRemoteWithNoReplicationPort()
   {
-    HashMap<ServerDescriptor, Integer> copy =
-      new HashMap<ServerDescriptor, Integer>();
+    HashMap<ServerDescriptor, AuthenticationData> copy =
+      new HashMap<ServerDescriptor, AuthenticationData>();
     copy.putAll(remoteWithNoReplicationPort);
     return copy;
   }
@@ -653,11 +628,11 @@ public class UserData
   /**
    * Sets a the Replication Ports chosen by the user in the remote servers.
    * @param remoteWithNoReplicationPort the Map containing as key a
-   * ServerDescriptor and as value an Integer corresponding to the Replication
-   * Port chosen by the user.
+   * ServerDescriptor and as value an AuthenticationData corresponding to the
+   * Replication Port chosen by the user.
    */
   public void setRemoteWithNoReplicationPort(
-      Map<ServerDescriptor, Integer> remoteWithNoReplicationPort)
+      Map<ServerDescriptor, AuthenticationData> remoteWithNoReplicationPort)
   {
     this.remoteWithNoReplicationPort.clear();
     this.remoteWithNoReplicationPort.putAll(remoteWithNoReplicationPort);

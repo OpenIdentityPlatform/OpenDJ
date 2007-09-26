@@ -91,4 +91,6 @@ public class Constants {
   /** The cli java system property. */
   public static final String CLI_JAVA_PROPERTY = "org.opends.quicksetup.cli";
 
+  /** The default replication port. */
+  public static final int DEFAULT_REPLICATION_PORT = 8989;
 }

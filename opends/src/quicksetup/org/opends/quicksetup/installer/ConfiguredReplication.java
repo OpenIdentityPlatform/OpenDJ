@@ -39,6 +39,7 @@ class ConfiguredReplication
 {
   private boolean synchProviderCreated;
   private boolean synchProviderEnabled;
+  private boolean secureReplicationEnabled;
   private boolean replicationServerCreated;
   private Set<String> newReplicationServers;
   private Set<ConfiguredDomain> domainsConf;
@@ -49,6 +50,8 @@ class ConfiguredReplication
    * created or not.
    * @param synchProviderEnabled whether the synchronization provider was
    * enabled or not.
+   * @param secureReplicationEnabled whether we enabled security for
+   * replication.
    * @param replicationServerCreated whether the replication server was
    * created or not.
    * @param newReplicationServers the set of replication servers added to
@@ -58,11 +61,13 @@ class ConfiguredReplication
    */
   ConfiguredReplication(boolean synchProviderCreated,
       boolean synchProviderEnabled, boolean replicationServerCreated,
-      Set<String> newReplicationServers, Set<ConfiguredDomain> domainsConf)
+      boolean secureReplicationEnabled, Set<String> newReplicationServers,
+      Set<ConfiguredDomain> domainsConf)
   {
     this.synchProviderCreated = synchProviderCreated;
     this.synchProviderEnabled = synchProviderEnabled;
     this.replicationServerCreated = replicationServerCreated;
+    this.secureReplicationEnabled = secureReplicationEnabled;
     this.newReplicationServers = new HashSet<String>();
     this.newReplicationServers.addAll(newReplicationServers);
     this.domainsConf = new HashSet<ConfiguredDomain>();
@@ -101,6 +106,17 @@ class ConfiguredReplication
   boolean isReplicationServerCreated()
   {
     return replicationServerCreated;
+  }
+
+  /**
+   * Returns <CODE>true</CODE> if the Security was enabled for replication and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the Security was enabled for replication and
+   * <CODE>false</CODE> otherwise.
+   */
+  boolean isSecureReplicationEnabled()
+  {
+    return secureReplicationEnabled;
   }
 
   /**

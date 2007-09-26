@@ -218,6 +218,8 @@ public class InstallerHelper {
    * the value is the list of replication servers for that base dn (or domain).
    * @param replicationPort the replicationPort of the server that is being
    * configured (it might not exist and the user specified it in the setup).
+   * @param useSecureReplication whether to encrypt connections with the
+   * replication port or not.
    * @param serverDisplay the server display.
    * @param usedReplicationServerIds the list of replication server ids that
    * are already used.
@@ -229,13 +231,14 @@ public class InstallerHelper {
   public ConfiguredReplication configureReplication(
       InitialLdapContext remoteCtx, Set<String> dns,
       Map<String,Set<String>> replicationServers,
-      int replicationPort, String serverDisplay,
+      int replicationPort, boolean useSecureReplication, String serverDisplay,
       Set<Integer> usedReplicationServerIds, Set<Integer> usedServerIds)
   throws ApplicationException
   {
     boolean synchProviderCreated;
     boolean synchProviderEnabled;
     boolean replicationServerCreated;
+    boolean secureReplicationEnabled;
     try
     {
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
@@ -291,6 +294,25 @@ public class InstallerHelper {
 
       if (!sync.hasReplicationServer())
       {
+        if (useSecureReplication)
+        {
+         CryptoManagerCfgClient crypto = root.getCryptoManager();
+         if (!crypto.isSSLEncryption())
+         {
+           crypto.setSSLEncryption(true);
+           crypto.commit();
+           secureReplicationEnabled = true;
+         }
+         else
+         {
+           // Only mark as true if we actually change the configuration
+           secureReplicationEnabled = false;
+         }
+        }
+        else
+        {
+          secureReplicationEnabled = false;
+        }
         int id = getReplicationId(usedReplicationServerIds);
         usedReplicationServerIds.add(id);
         replicationServer = sync.createReplicationServer(
@@ -302,6 +324,7 @@ public class InstallerHelper {
       }
       else
       {
+        secureReplicationEnabled = false;
         replicationServer = sync.getReplicationServer();
         usedReplicationServerIds.add(
             replicationServer.getReplicationServerId());
@@ -390,7 +413,8 @@ public class InstallerHelper {
         domainsConf.add(domainConf);
       }
       return new ConfiguredReplication(synchProviderCreated,
-          synchProviderEnabled, replicationServerCreated, newReplicationServers,
+          synchProviderEnabled, replicationServerCreated,
+          secureReplicationEnabled, newReplicationServers,
           domainsConf);
     }
     catch (Throwable t)
@@ -494,6 +518,15 @@ public class InstallerHelper {
         catch (ManagedObjectNotFoundException monfe)
         {
           // It does not exist.
+        }
+      }
+      if (replConf.isSecureReplicationEnabled())
+      {
+        CryptoManagerCfgClient crypto = root.getCryptoManager();
+        if (crypto.isSSLEncryption())
+        {
+          crypto.setSSLEncryption(false);
+          crypto.commit();
         }
       }
     }

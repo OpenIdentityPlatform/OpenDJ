@@ -104,6 +104,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private IntegerArgument replicationPort1Arg = null;
 
   /**
+   * The 'secureReplication' argument for the first server.
+   */
+  private BooleanArgument secureReplication1Arg = null;
+
+  /**
    * The 'hostName' argument for the second server.
    */
   private StringArgument hostName2Arg = null;
@@ -142,6 +147,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * The 'replicationPort' argument for the second server.
    */
   private IntegerArgument replicationPort2Arg = null;
+
+  /**
+   * The 'secureReplication' argument for the second server.
+   */
+  private BooleanArgument secureReplication2Arg = null;
 
   /**
    * The 'skipPortCheckArg' argument to not check replication ports.
@@ -471,6 +481,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "replicationPort1", false, false, true, OPTION_VALUE_PORT, 8989, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
 
+    secureReplication1Arg = new BooleanArgument("secureReplication1", null,
+        "secureReplication1",
+        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
+
     hostName2Arg = new StringArgument("host2", 'O',
         "host2", false, false, true, OPTION_VALUE_HOST, "localhost",
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
@@ -505,6 +519,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "replicationPort2", false, false, true, OPTION_VALUE_PORT, 8989, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
 
+    secureReplication2Arg = new BooleanArgument("secureReplication2", null,
+        "secureReplication2",
+        INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION2.get());
+
     skipPortCheckArg = new BooleanArgument(
         "skipportcheck", 'S', "skipPortCheck",
         INFO_DESCRIPTION_ENABLE_REPLICATION_SKIPPORT.get());
@@ -520,8 +538,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     Argument[] argsToAdd = {
         hostName1Arg, port1Arg, bindDn1Arg, bindPassword1Arg,
         bindPasswordFile1Arg, useStartTLS1Arg, useSSL1Arg, replicationPort1Arg,
+        secureReplication1Arg,
         hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
         bindPasswordFile2Arg, useStartTLS2Arg, useSSL2Arg, replicationPort2Arg,
+        secureReplication2Arg,
         skipPortCheckArg, noSchemaReplicationArg
     };
     for (int i=0; i<argsToAdd.length; i++)
@@ -1030,6 +1050,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns whether the user asked to have replication communication with the
+   * first server or not.
+   * @return <CODE>true</CODE> the user asked to have replication communication
+   * with the first server and <CODE>false</CODE> otherwise.
+   */
+  public boolean isSecureReplication1()
+  {
+    return secureReplication1Arg.isPresent();
+  }
+
+  /**
    * Returns the second host name explicitly provided in the enable replication
    * subcommand.
    * @return the second host name explicitly provided in the enable replication
@@ -1116,6 +1147,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public int getDefaultReplicationPort2()
   {
     return getDefaultValue(replicationPort2Arg);
+  }
+
+  /**
+   * Returns whether the user asked to have replication communication with the
+   * second server or not.
+   * @return <CODE>true</CODE> the user asked to have replication communication
+   * with the second server and <CODE>false</CODE> otherwise.
+   */
+  public boolean isSecureReplication2()
+  {
+    return secureReplication2Arg.isPresent();
   }
 
   /**

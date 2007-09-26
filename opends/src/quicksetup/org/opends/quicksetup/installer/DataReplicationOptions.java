@@ -28,6 +28,9 @@
 
 package org.opends.quicksetup.installer;
 
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.util.Utils;
+
 /**
  * This class is used to provide a data model for the Data Replication
  * Options panel of the installer.
@@ -57,41 +60,67 @@ public class DataReplicationOptions
   }
 
   private Type type;
-  private int replicationPort;
-  private AuthenticationData authenticationData;
+  private int replicationPort = getDefaultReplicationPort();
+  private boolean secureReplication;
+  private AuthenticationData authenticationData = new AuthenticationData();
+  {
+    authenticationData.setDn(Constants.DIRECTORY_MANAGER_DN);
+    authenticationData.setPort(389);
+  };
 
   /**
-   * Constructor for the DataReplicationOptions object.
-   *
-   * If the Data Replication Options is STANDALONE or FIRST_IN_TOPOLOGY no
-   * args are considered.
-   *
-   * If the Data Options is IN_EXISTING_TOPOLOGY the args is the authentication
-   * data on the remote server (AuthenticationData object).
-   *
-   * @param type the Type of DataReplicationOptions.
-   * @param args the different argument objects (depending on the Type
-   * specified)
+   * Private constructor for the DataReplicationOptions object.
    */
-  public DataReplicationOptions(Type type, Object... args)
+  private DataReplicationOptions()
   {
-    this.type = type;
+  }
 
-    switch (type)
-    {
-    case IN_EXISTING_TOPOLOGY:
-      authenticationData = (AuthenticationData)args[0];
-      replicationPort = (Integer)args[1];
-      break;
+  /**
+   * Construct an FIRST_IN_TOPOLOGY object.
+   * @param replicationPort the replication port.
+   * @param secureReplication whether servers must encrypt data for the
+   * replication communication with this server.
+   * @return the FIRST_IN_TOPOLOGY object.
+   */
+  public static DataReplicationOptions createFirstInTopology(
+      int replicationPort, boolean secureReplication)
+  {
+    DataReplicationOptions options = new DataReplicationOptions();
+    options.type = Type.FIRST_IN_TOPOLOGY;
+    options.replicationPort = replicationPort;
+    options.secureReplication = secureReplication;
+    return options;
+  }
 
-    default:
-      // If there is something put it.
-      if ((args != null) && (args.length > 0))
-      {
-        authenticationData = (AuthenticationData)args[0];
-        replicationPort = (Integer)args[1];
-      }
-    }
+  /**
+   * Construct an STANDALONE object.
+   * @return the STANDALONE object.
+   */
+  public static DataReplicationOptions createStandalone()
+  {
+    DataReplicationOptions options = new DataReplicationOptions();
+    options.type = Type.STANDALONE;
+    return options;
+  }
+
+  /**
+   * Construct an IN_EXISTING_TOPOLOGY object.
+   * @param authenticationData the authentication data.
+   * @param replicationPort the replication port.
+   * @param secureReplication whether servers must encrypt data for the
+   * replication communication with this server.
+   * @return the IN_EXISTING_TOPOLOGY object.
+   */
+  public static DataReplicationOptions createInExistingTopology(
+      AuthenticationData authenticationData, int replicationPort,
+      boolean secureReplication)
+  {
+    DataReplicationOptions options = new DataReplicationOptions();
+    options.type = Type.IN_EXISTING_TOPOLOGY;
+    options.authenticationData = authenticationData;
+    options.replicationPort = replicationPort;
+    options.secureReplication = secureReplication;
+    return options;
   }
 
   /**
@@ -124,6 +153,41 @@ public class DataReplicationOptions
   public int getReplicationPort()
   {
     return replicationPort;
+  }
+
+  /**
+   * Returns whether servers must encrypt data for the replication communication
+   * with this server.
+   *
+   * @return <CODE>true</CODE> if the servers must encrypt data for the
+   * replication communication and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSecureReplication()
+  {
+    return secureReplication;
+  }
+
+  /**
+   * Provides the port that will be proposed to the user in the replication
+   * options panel of the installation wizard. It will check whether we can use
+   * ports of type X989 and if not it will return -1.
+   *
+   * @return the free port of type X989 if it is available and we can use and -1
+   * if not.
+   */
+  static int getDefaultReplicationPort()
+  {
+    int defaultPort = -1;
+
+    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    {
+      int port = i + Constants.DEFAULT_REPLICATION_PORT;
+      if (Utils.canUseAsPort(port))
+      {
+        defaultPort = port;
+      }
+    }
+    return defaultPort;
   }
 }
 

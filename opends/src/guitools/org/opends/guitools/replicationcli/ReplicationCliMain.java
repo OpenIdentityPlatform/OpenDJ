@@ -599,6 +599,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       uData.setUseStartTLS1(useStartTLS1);
     }
     int replicationPort1 = -1;
+    boolean secureReplication1 = argParser.isSecureReplication1();
     if (ctx1 != null)
     {
       // Try to get the replication port for server 1 only if it is required.
@@ -642,6 +643,12 @@ public class ReplicationCliMain extends CliApplicationHelper
             }
           }
         }
+        if (!secureReplication1)
+        {
+          secureReplication1 =
+            confirm(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(
+                String.valueOf(replicationPort1)), false);
+        }
       }
       // If the server contains an ADS. Try to load it and only load it: if
       // there are issues with the ADS they will be encountered in the
@@ -657,6 +664,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
     }
     uData.setReplicationPort1(replicationPort1);
+    uData.setSecureReplication1(secureReplication1);
 
     /*
      * Prompt for information on the second server.
@@ -802,6 +810,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       uData.setUseStartTLS2(useStartTLS2);
     }
     int replicationPort2 = -1;
+    boolean secureReplication2 = argParser.isSecureReplication2();
     if (ctx2 != null)
     {
       if (!hasReplicationPort(ctx2))
@@ -845,15 +854,22 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           if (host1.equalsIgnoreCase(host2))
           {
-            if (replicationPort1 == replicationPort2)
+            if ((replicationPort1 > 0) &&
+                (replicationPort1 == replicationPort2))
             {
               printLineBreak();
               printErrorMessage(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
-                      String.valueOf(replicationPort1), host1));
+                      String.valueOf(replicationPort2), host1));
               printLineBreak();
               replicationPort2 = -1;
             }
           }
+        }
+        if (!secureReplication2)
+        {
+          secureReplication2 =
+            confirm(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
+                String.valueOf(replicationPort2)), false);
         }
       }
       // If the server contains an ADS. Try to load it and only load it: if
@@ -869,6 +885,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
     }
     uData.setReplicationPort2(replicationPort2);
+    uData.setSecureReplication2(secureReplication2);
 
     // If the adminUid and adminPwd are not set in the EnableReplicationUserData
     // object, that means that there are no administrators and that they
@@ -1721,6 +1738,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     int replicationPort1 = getValue(argParser.getReplicationPort1(),
         argParser.getDefaultReplicationPort1());
     uData.setReplicationPort1(replicationPort1);
+    uData.setSecureReplication1(argParser.isSecureReplication1());
 
     String host2Name = getValue(argParser.getHostName2(),
         argParser.getDefaultHostName2());
@@ -1760,6 +1778,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     int replicationPort2 = getValue(argParser.getReplicationPort2(),
         argParser.getDefaultReplicationPort2());
     uData.setReplicationPort2(replicationPort2);
+    uData.setSecureReplication2(argParser.isSecureReplication2());
     uData.setReplicateSchema(!argParser.noSchemaReplication());
   }
 
@@ -1887,9 +1906,6 @@ public class ReplicationCliMain extends CliApplicationHelper
       ReplicationSynchronizationProviderCfgClient sync = null;
       sync = (ReplicationSynchronizationProviderCfgClient)
       root.getSynchronizationProvider("Multimaster Synchronization");
-      /*
-       * Configure the replication server.
-       */
       if (sync.hasReplicationServer())
       {
         ReplicationServerCfgClient replicationServer =
@@ -3482,7 +3498,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       try
       {
         configureAsReplicationServer(ctx1, uData.getReplicationPort1(),
-          allRepServers, usedReplicationServerIds);
+            uData.isSecureReplication1(), allRepServers,
+            usedReplicationServerIds);
       }
       catch (OpenDsException ode)
       {
@@ -3512,7 +3529,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       try
       {
         configureAsReplicationServer(ctx2, uData.getReplicationPort2(),
-            allRepServers, usedReplicationServerIds);
+            uData.isSecureReplication2(), allRepServers,
+            usedReplicationServerIds);
       }
       catch (OpenDsException ode)
       {
@@ -3897,27 +3915,28 @@ public class ReplicationCliMain extends CliApplicationHelper
         }
       }
     }
-    int nCols;
     final int SERVERPORT = 0;
     final int NUMBER_ENTRIES = 1;
     final int MISSING_CHANGES = 2;
     final int AGE_OF_OLDEST_MISSING_CHANGE = 3;
+    final int REPLICATION_PORT = 4;
+    final int SECURE = 5;
     Message[] headers;
     if (scriptFriendly)
     {
       if (isReplicated)
       {
-        nCols = 4;
         headers = new Message[] {
             INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
             INFO_REPLICATION_STATUS_LABEL_NUMBER_ENTRIES.get(),
             INFO_REPLICATION_STATUS_LABEL_MISSING_CHANGES.get(),
-            INFO_REPLICATION_STATUS_LABEL_AGE_OF_OLDEST_MISSING_CHANGE.get()
+            INFO_REPLICATION_STATUS_LABEL_AGE_OF_OLDEST_MISSING_CHANGE.get(),
+            INFO_REPLICATION_STATUS_LABEL_REPLICATION_PORT.get(),
+            INFO_REPLICATION_STATUS_LABEL_SECURE.get()
         };
       }
       else
       {
-        nCols = 2;
         headers = new Message[] {
             INFO_REPLICATION_STATUS_LABEL_SERVERPORT.get(),
             INFO_REPLICATION_STATUS_LABEL_NUMBER_ENTRIES.get()
@@ -3928,26 +3947,26 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       if (isReplicated)
       {
-        nCols = 4;
         headers = new Message[] {
             INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
             INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get(),
             INFO_REPLICATION_STATUS_HEADER_MISSING_CHANGES.get(),
-            INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get()
+            INFO_REPLICATION_STATUS_HEADER_AGE_OF_OLDEST_MISSING_CHANGE.get(),
+            INFO_REPLICATION_STATUS_HEADER_REPLICATION_PORT.get(),
+            INFO_REPLICATION_STATUS_HEADER_SECURE.get()
         };
       }
       else
       {
-        nCols = 2;
         headers = new Message[] {
             INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get(),
             INFO_REPLICATION_STATUS_HEADER_NUMBER_ENTRIES.get()
         };
       }
     }
-    Message[][] values = new Message[orderedReplicas.size()][nCols];
+    Message[][] values = new Message[orderedReplicas.size()][headers.length];
 
-    int[] maxWidths = new int[nCols];
+    int[] maxWidths = new int[headers.length];
     int i;
     for (i=0; i<maxWidths.length; i++)
     {
@@ -3958,7 +3977,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     for (ReplicaDescriptor replica : orderedReplicas)
     {
       Message v;
-      for (int j=0; j<nCols; j++)
+      for (int j=0; j<headers.length; j++)
       {
         switch (j)
         {
@@ -3973,7 +3992,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           else
           {
-            v = INFO_NOT_AVAILABLE_LABEL.get();
+            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
           }
           break;
         case MISSING_CHANGES:
@@ -3984,7 +4003,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           else
           {
-            v = INFO_NOT_AVAILABLE_LABEL.get();
+            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
           }
           break;
         case AGE_OF_OLDEST_MISSING_CHANGE:
@@ -3995,7 +4014,28 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           else
           {
-            v = INFO_NOT_AVAILABLE_LABEL.get();
+            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
+          }
+          break;
+        case REPLICATION_PORT:
+          int replicationPort = replica.getServer().getReplicationServerPort();
+          if (replicationPort >= 0)
+          {
+            v = Message.raw(String.valueOf(replicationPort));
+          }
+          else
+          {
+            v = INFO_NOT_AVAILABLE_SHORT_LABEL.get();
+          }
+          break;
+        case SECURE:
+          if (replica.getServer().isReplicationSecure())
+          {
+            v = INFO_REPLICATION_STATUS_SECURITY_ENABLED.get();
+          }
+          else
+          {
+            v = INFO_REPLICATION_STATUS_SECURITY_DISABLED.get();
           }
           break;
         default:
@@ -4031,7 +4071,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       };
       for (i=0; i<labels.length; i++)
       {
-        printProgressMessage(labels[i]+": "+vs[i]);
+        printProgressMessage(labels[i]+" "+vs[i]);
         printProgressLineBreak();
       }
 
@@ -4041,7 +4081,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         printProgressLineBreak();
         for (int j=0; j<values[i].length; j++)
         {
-          printProgressMessage(headers[j]+": "+values[i][j]);
+          printProgressMessage(headers[j]+" "+values[i][j]);
           printProgressLineBreak();
         }
       }
@@ -4050,13 +4090,13 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       if (isReplicated)
       {
-        printProgressMessage(
+        printProgressMessageNoWrap(
             INFO_REPLICATION_STATUS_REPLICATED.get(dn));
         printProgressLineBreak();
       }
       else
       {
-        printProgressMessage(
+        printProgressMessageNoWrap(
             INFO_REPLICATION_STATUS_NOT_REPLICATED.get(dn));
         printProgressLineBreak();
       }
@@ -4077,16 +4117,16 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         builder.append("=");
       }
-      printProgressMessage(builder.toString());
+      printProgressMessageNoWrap(builder.toString());
       printProgressLineBreak();
-      printProgressMessage(headerLine.toMessage());
+      printProgressMessageNoWrap(headerLine.toMessage());
       printProgressLineBreak();
       builder = new StringBuilder();
       for (i=0; i<headerLine.length(); i++)
       {
         builder.append("-");
       }
-      printProgressMessage(builder.toString());
+      printProgressMessageNoWrap(builder.toString());
       printProgressLineBreak();
 
       for (i=0; i<values.length; i++)
@@ -4102,7 +4142,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             line.append(" ");
           }
         }
-        printProgressMessage(line.toMessage());
+        printProgressMessageNoWrap(line.toMessage());
         printProgressLineBreak();
       }
     }
@@ -4233,6 +4273,8 @@ public class ReplicationCliMain extends CliApplicationHelper
    * port.
    * @param ctx the context connected to the server that we want to configure.
    * @param replicationPort the replication port of the replication server.
+   * @param useSecureReplication whether to have encrypted communication with
+   * the replication port or not.
    * @param replicationServers the list of replication servers to which the
    * replication server will communicate with.
    * @param usedReplicationServerIds the set of replication server IDs that
@@ -4241,7 +4283,8 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @throws OpenDsException if there is an error updating the configuration.
    */
   private void configureAsReplicationServer(InitialLdapContext ctx,
-      int replicationPort, LinkedHashSet<String> replicationServers,
+      int replicationPort, boolean useSecureReplication,
+      LinkedHashSet<String> replicationServers,
       Set<Integer> usedReplicationServerIds) throws OpenDsException
   {
     printProgressMessage(formatter.getFormattedWithPoints(
@@ -4296,6 +4339,12 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     if (!sync.hasReplicationServer())
     {
+      CryptoManagerCfgClient crypto = root.getCryptoManager();
+      if (useSecureReplication != crypto.isSSLEncryption())
+      {
+        crypto.setSSLEncryption(useSecureReplication);
+        crypto.commit();
+      }
       int id = InstallerHelper.getReplicationId(usedReplicationServerIds);
       usedReplicationServerIds.add(id);
       replicationServer = sync.createReplicationServer(
