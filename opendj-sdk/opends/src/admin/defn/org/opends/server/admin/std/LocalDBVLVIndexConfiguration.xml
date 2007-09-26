@@ -26,7 +26,7 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="vlv-je-index" plural-name="vlv-je-indexes"
+<adm:managed-object name="local-db-vlv-index" plural-name="local-db-vlv-indexes"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
@@ -44,12 +44,11 @@
   <adm:tag name="database" />
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.117</ldap:oid>
-      <ldap:name>ds-cfg-vlv-je-index</ldap:name>
+      <ldap:name>ds-cfg-local-db-vlv-index</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="vlv-index-base-dn"
+  <adm:property name="base-dn"
                 mandatory="true"
                 multi-valued="false">
     <adm:synopsis>
@@ -68,12 +67,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.437</ldap:oid>
-        <ldap:name>ds-cfg-vlv-je-index-base-dn</ldap:name>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="vlv-index-scope"
+  <adm:property name="scope"
                 mandatory="true"
                 multi-valued="false">
     <adm:synopsis>
@@ -116,12 +114,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.438</ldap:oid>
-        <ldap:name>ds-cfg-vlv-je-index-scope </ldap:name>
+        <ldap:name>ds-cfg-scope </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="vlv-index-filter"
+  <adm:property name="filter"
                 mandatory="true"
                 multi-valued="false">
     <adm:synopsis>
@@ -140,12 +137,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.439</ldap:oid>
-        <ldap:name>ds-cfg-vlv-je-index-filter</ldap:name>
+        <ldap:name>ds-cfg-filter</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="vlv-index-sort-order"
+  <adm:property name="sort-order"
                 mandatory="true"
                 multi-valued="false">
     <adm:synopsis>
@@ -165,12 +161,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.440</ldap:oid>
-        <ldap:name>ds-cfg-vlv-je-index-sort-order</ldap:name>
+        <ldap:name>ds-cfg-sort-order</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="vlv-index-name"
+  <adm:property name="name"
                 mandatory="true"
                 multi-valued="false"
                 read-only="true">
@@ -182,12 +177,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.441</ldap:oid>
-        <ldap:name>ds-cfg-vlv-je-index-name</ldap:name>
+        <ldap:name>ds-cfg-name</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="vlv-index-maximum-block-size"
+  <adm:property name="max-block-size"
                 mandatory="false"
                 multi-valued="false"
                 read-only="true">
@@ -211,8 +205,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.442</ldap:oid>
-        <ldap:name>ds-cfg-vlv-je-index-maximum-block-size</ldap:name>
+        <ldap:name>ds-cfg-max-block-size</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -408,7 +408,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
       "objectClass: person",
       "objectClass: organizationalPerson",
       "objectClass: inetOrgPerson",
-      "objectClass: ds-cfg-root-dn",
+      "objectClass: ds-cfg-root-dn-user",
       "cn: Admin Root",
       "givenName: Administrator",
       "sn: Admin",

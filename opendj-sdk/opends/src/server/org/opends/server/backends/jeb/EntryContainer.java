@@ -61,9 +61,9 @@ import org.opends.messages.MessageBuilder;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.server.JEIndexCfg;
-import org.opends.server.admin.std.server.VLVJEIndexCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -75,7 +75,7 @@ import org.opends.server.config.ConfigException;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
-    implements ConfigurationChangeListener<JEBackendCfg>
+    implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -146,7 +146,7 @@ public class EntryContainer
   /**
    * The backend configuration.
    */
-  private JEBackendCfg config;
+  private LocalDBBackendCfg config;
 
   /**
    * The JE database environment.
@@ -210,14 +210,14 @@ public class EntryContainer
    * indexes used within this entry container.
    */
   public class AttributeJEIndexCfgManager implements
-      ConfigurationAddListener<JEIndexCfg>,
-      ConfigurationDeleteListener<JEIndexCfg>
+      ConfigurationAddListener<LocalDBIndexCfg>,
+      ConfigurationDeleteListener<LocalDBIndexCfg>
   {
     /**
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(
-            JEIndexCfg cfg,
+            LocalDBIndexCfg cfg,
             List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
@@ -227,7 +227,7 @@ public class EntryContainer
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationAdd(JEIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationAdd(LocalDBIndexCfg cfg)
     {
       ConfigChangeResult ccr;
       boolean adminActionRequired = false;
@@ -238,7 +238,7 @@ public class EntryContainer
         AttributeIndex index =
             new AttributeIndex(cfg, state, env, EntryContainer.this);
         index.open();
-        attrIndexMap.put(cfg.getIndexAttribute(), index);
+        attrIndexMap.put(cfg.getAttribute(), index);
       }
       catch(Exception e)
       {
@@ -251,7 +251,7 @@ public class EntryContainer
 
       adminActionRequired = true;
       messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getIndexAttribute().getNameOrOID()));
+              cfg.getAttribute().getNameOrOID()));
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
                                     messages);
     }
@@ -260,7 +260,7 @@ public class EntryContainer
      * {@inheritDoc}
      */
     public synchronized boolean isConfigurationDeleteAcceptable(
-        JEIndexCfg cfg, List<Message> unacceptableReasons)
+        LocalDBIndexCfg cfg, List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -269,7 +269,7 @@ public class EntryContainer
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationDelete(JEIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationDelete(LocalDBIndexCfg cfg)
     {
       ConfigChangeResult ccr;
       boolean adminActionRequired = false;
@@ -278,9 +278,9 @@ public class EntryContainer
       exclusiveLock.lock();
       try
       {
-        AttributeIndex index = attrIndexMap.get(cfg.getIndexAttribute());
+        AttributeIndex index = attrIndexMap.get(cfg.getAttribute());
         deleteAttributeIndex(index);
-        attrIndexMap.remove(cfg.getIndexAttribute());
+        attrIndexMap.remove(cfg.getAttribute());
       }
       catch(DatabaseException de)
       {
@@ -305,14 +305,14 @@ public class EntryContainer
    * used within this entry container.
    */
   public class VLVJEIndexCfgManager implements
-      ConfigurationAddListener<VLVJEIndexCfg>,
-      ConfigurationDeleteListener<VLVJEIndexCfg>
+      ConfigurationAddListener<LocalDBVLVIndexCfg>,
+      ConfigurationDeleteListener<LocalDBVLVIndexCfg>
   {
     /**
      * {@inheritDoc}
      */
     public boolean isConfigurationAddAcceptable(
-        VLVJEIndexCfg cfg, List<Message> unacceptableReasons)
+        LocalDBVLVIndexCfg cfg, List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -321,7 +321,7 @@ public class EntryContainer
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationAdd(VLVJEIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationAdd(LocalDBVLVIndexCfg cfg)
     {
       ConfigChangeResult ccr;
       boolean adminActionRequired = false;
@@ -331,7 +331,7 @@ public class EntryContainer
       {
         VLVIndex vlvIndex = new VLVIndex(cfg, state, env, EntryContainer.this);
         vlvIndex.open();
-        vlvIndexMap.put(cfg.getVLVIndexName().toLowerCase(), vlvIndex);
+        vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
       }
       catch(Exception e)
       {
@@ -345,7 +345,7 @@ public class EntryContainer
       adminActionRequired = true;
 
       messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getVLVIndexName()));
+              cfg.getName()));
       return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
                                     messages);
     }
@@ -354,7 +354,7 @@ public class EntryContainer
      * {@inheritDoc}
      */
     public boolean isConfigurationDeleteAcceptable(
-            VLVJEIndexCfg cfg,
+            LocalDBVLVIndexCfg cfg,
             List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
@@ -364,7 +364,7 @@ public class EntryContainer
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationDelete(VLVJEIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationDelete(LocalDBVLVIndexCfg cfg)
     {
       ConfigChangeResult ccr;
       boolean adminActionRequired = false;
@@ -374,10 +374,10 @@ public class EntryContainer
       try
       {
         VLVIndex vlvIndex =
-            vlvIndexMap.get(cfg.getVLVIndexName().toLowerCase());
+            vlvIndexMap.get(cfg.getName().toLowerCase());
         vlvIndex.close();
         deleteDatabase(vlvIndex);
-        vlvIndexMap.remove(cfg.getVLVIndexName());
+        vlvIndexMap.remove(cfg.getName());
       }
       catch(DatabaseException de)
       {
@@ -421,7 +421,7 @@ public class EntryContainer
    * @throws ConfigException if a configuration related error occurs.
    */
   public EntryContainer(DN baseDN, String databasePrefix, Backend backend,
-                        JEBackendCfg config, Environment env,
+                        LocalDBBackendCfg config, Environment env,
                         RootContainer rootContainer)
       throws ConfigException
   {
@@ -446,10 +446,10 @@ public class EntryContainer
     }
     this.databasePrefix = builder.toString();
 
-    this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
-    this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
-    this.subtreeDeleteBatchSize = config.getBackendSubtreeDeleteBatchSize();
-    this.indexEntryLimit = config.getBackendIndexEntryLimit();
+    this.deadlockRetryLimit = config.getDeadlockRetryLimit();
+    this.subtreeDeleteSizeLimit = config.getSubtreeDeleteSizeLimit();
+    this.subtreeDeleteBatchSize = config.getSubtreeDeleteBatchSize();
+    this.indexEntryLimit = config.getIndexEntryLimit();
 
     // Instantiate the attribute indexes.
     attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
@@ -457,17 +457,17 @@ public class EntryContainer
     // Instantiate the VLV indexes.
     vlvIndexMap = new HashMap<String, VLVIndex>();
 
-    config.addJEChangeListener(this);
+    config.addLocalDBChangeListener(this);
 
     attributeJEIndexCfgManager =
         new AttributeJEIndexCfgManager();
-    config.addJEIndexAddListener(attributeJEIndexCfgManager);
-    config.addJEIndexDeleteListener(attributeJEIndexCfgManager);
+    config.addLocalDBIndexAddListener(attributeJEIndexCfgManager);
+    config.addLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
 
     vlvJEIndexCfgManager =
         new VLVJEIndexCfgManager();
-    config.addVLVJEIndexAddListener(vlvJEIndexCfgManager);
-    config.addVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
+    config.addLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
+    config.addLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
   /**
@@ -482,8 +482,8 @@ public class EntryContainer
     try
     {
       DataConfig entryDataConfig =
-          new DataConfig(config.isBackendEntriesCompressed(),
-                         config.isBackendCompactEncoding(),
+          new DataConfig(config.isEntriesCompressed(),
+                         config.isCompactEncoding(),
                          rootContainer.getCompressedSchema());
 
       id2entry = new ID2Entry(databasePrefix + "_" + ID2ENTRY_DATABASE_NAME,
@@ -511,25 +511,25 @@ public class EntryContainer
                           env, this);
       dn2uri.open();
 
-      for (String idx : config.listJEIndexes())
+      for (String idx : config.listLocalDBIndexes())
       {
-        JEIndexCfg indexCfg = config.getJEIndex(idx);
+        LocalDBIndexCfg indexCfg = config.getLocalDBIndex(idx);
 
         //TODO: When issue 1793 is fixed, use inherited default values in
         //admin framework instead for the entry limit.
         AttributeIndex index =
             new AttributeIndex(indexCfg, state, env, this);
         index.open();
-        attrIndexMap.put(indexCfg.getIndexAttribute(), index);
+        attrIndexMap.put(indexCfg.getAttribute(), index);
       }
 
-      for(String idx : config.listVLVJEIndexes())
+      for(String idx : config.listLocalDBVLVIndexes())
       {
-        VLVJEIndexCfg vlvIndexCfg = config.getVLVJEIndex(idx);
+        LocalDBVLVIndexCfg vlvIndexCfg = config.getLocalDBVLVIndex(idx);
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, env, this);
         vlvIndex.open();
-        vlvIndexMap.put(vlvIndexCfg.getVLVIndexName().toLowerCase(), vlvIndex);
+        vlvIndexMap.put(vlvIndexCfg.getName().toLowerCase(), vlvIndex);
       }
     }
     catch (DatabaseException de)
@@ -558,11 +558,11 @@ public class EntryContainer
       db.close();
     }
 
-    config.removeJEChangeListener(this);
-    config.removeJEIndexAddListener(attributeJEIndexCfgManager);
-    config.removeJEIndexDeleteListener(attributeJEIndexCfgManager);
-    config.removeVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
-    config.removeVLVJEIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removeLocalDBChangeListener(this);
+    config.removeLocalDBIndexAddListener(attributeJEIndexCfgManager);
+    config.removeLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
+    config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
   /**
@@ -4244,7 +4244,7 @@ public class EntryContainer
    * {@inheritDoc}
    */
   public synchronized boolean isConfigurationChangeAcceptable(
-      JEBackendCfg cfg, List<Message> unacceptableReasons)
+      LocalDBBackendCfg cfg, List<Message> unacceptableReasons)
   {
     // This is always true because only all config attributes used
     // by the entry container should be validated by the admin framework.
@@ -4255,14 +4255,14 @@ public class EntryContainer
    * {@inheritDoc}
    */
   public synchronized ConfigChangeResult applyConfigurationChange(
-      JEBackendCfg cfg)
+      LocalDBBackendCfg cfg)
   {
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
-    if(config.getBackendIndexEntryLimit() != cfg.getBackendIndexEntryLimit())
+    if(config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
     {
-      if(id2children.setIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
+      if(id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
         adminActionRequired = true;
         Message message =
@@ -4271,7 +4271,7 @@ public class EntryContainer
         messages.add(message);
       }
 
-      if(id2subtree.setIndexEntryLimit(cfg.getBackendIndexEntryLimit()))
+      if(id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
         adminActionRequired = true;
         Message message =
@@ -4282,16 +4282,16 @@ public class EntryContainer
     }
 
     DataConfig entryDataConfig =
-        new DataConfig(cfg.isBackendEntriesCompressed(),
-                       cfg.isBackendCompactEncoding(),
+        new DataConfig(cfg.isEntriesCompressed(),
+                       cfg.isCompactEncoding(),
                        rootContainer.getCompressedSchema());
     id2entry.setDataConfig(entryDataConfig);
 
     this.config = cfg;
-    this.deadlockRetryLimit = config.getBackendDeadlockRetryLimit();
-    this.subtreeDeleteSizeLimit = config.getBackendSubtreeDeleteSizeLimit();
-    this.subtreeDeleteBatchSize = config.getBackendSubtreeDeleteBatchSize();
-    this.indexEntryLimit = config.getBackendIndexEntryLimit();
+    this.deadlockRetryLimit = config.getDeadlockRetryLimit();
+    this.subtreeDeleteSizeLimit = config.getSubtreeDeleteSizeLimit();
+    this.subtreeDeleteBatchSize = config.getSubtreeDeleteBatchSize();
+    this.indexEntryLimit = config.getIndexEntryLimit();
     return new ConfigChangeResult(ResultCode.SUCCESS,
                                   adminActionRequired, messages);
   }

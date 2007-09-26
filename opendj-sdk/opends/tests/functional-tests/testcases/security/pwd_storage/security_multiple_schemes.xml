@@ -102,8 +102,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=Custom Salted SHA-1,cn=Password Storage Schemes,cn=config' }
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Custom Salted SHA-1' }
             </call>
             
             <message>
@@ -116,8 +116,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=SHA-1,cn=Password Storage Schemes,cn=config' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'SHA-1' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -131,8 +131,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=Base64,cn=Password Storage Schemes,cn=config' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Base64' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -151,7 +151,7 @@
             #@TestPurpose               Test for the default SSHA scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
-                                        ds-cfg-default-password-storage-scheme-dn.
+                                        ds-cfg-default-password-storage-scheme.
             #@TestPostamble             none
             #@TestResult                Success if the string, "SSHA", 
                                         is part of the return string.
@@ -170,7 +170,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme' }
             </call>
 
             <script> 
@@ -197,7 +197,7 @@
             #@TestPurpose               Test for the BASE64 scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
-                                        ds-cfg-default-password-storage-scheme-dn.
+                                        ds-cfg-default-password-storage-scheme.
             #@TestPostamble             none
             #@TestResult                Success if the string, "BASE64", 
                                         is part of the return string.
@@ -216,7 +216,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme' }
             </call>
 
             <script> 
@@ -243,7 +243,7 @@
             #@TestPurpose               Test for the SHA-1 scheme in the password policy
             #@TestPreamble              none
             #@TestStep                  Admin retrieve the value for 
-                                        ds-cfg-default-password-storage-scheme-dn.
+                                        ds-cfg-default-password-storage-scheme.
             #@TestPostamble             none
             #@TestResult                Success if the string, "SHA-1", 
                                         is part of the return string.
@@ -262,7 +262,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
                 'dsFilter'         : 'objectclass=*'  ,
-                'attributes'       : 'ds-cfg-default-password-storage-scheme-dn' }
+                'attributes'       : 'ds-cfg-default-password-storage-scheme' }
             </call>
 
             <script> 
@@ -530,8 +530,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=Salted SHA-1,cn=Password Storage Schemes,cn=config' }
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Salted SHA-1' }
             </call>
             
             <message>

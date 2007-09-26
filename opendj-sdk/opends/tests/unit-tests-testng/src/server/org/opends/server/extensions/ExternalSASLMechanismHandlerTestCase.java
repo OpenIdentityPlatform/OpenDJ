@@ -107,10 +107,10 @@ public class ExternalSASLMechanismHandlerTestCase
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-external-sasl-mechanism-handler",
          "cn: EXTERNAL",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "ExternalSASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
-         "ds-cfg-client-certificate-validation-policy: invalid",
+         "ds-cfg-enabled: true",
+         "ds-cfg-certificate-validation-policy: invalid",
          "ds-cfg-certificate-attribute: userCertificate",
          "",
          "dn: cn=EXTERNAL,cn=SASL Mechanisms,cn=config",
@@ -118,10 +118,10 @@ public class ExternalSASLMechanismHandlerTestCase
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-external-sasl-mechanism-handler",
          "cn: EXTERNAL",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "ExternalSASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
-         "ds-cfg-client-certificate-validation-policy: ifpresent",
+         "ds-cfg-enabled: true",
+         "ds-cfg-certificate-validation-policy: ifpresent",
          "ds-cfg-certificate-attribute: invalid");
 
 
@@ -398,7 +398,7 @@ public class ExternalSASLMechanismHandlerTestCase
 
 
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
-    String attrName = "ds-cfg-client-certificate-validation-policy";
+    String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute(attrName, "always")));
@@ -595,7 +595,7 @@ public class ExternalSASLMechanismHandlerTestCase
 
 
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
-    String attrName = "ds-cfg-client-certificate-validation-policy";
+    String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute(attrName, "always")));
@@ -664,7 +664,7 @@ public class ExternalSASLMechanismHandlerTestCase
 
 
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
-    String attrName = "ds-cfg-client-certificate-validation-policy";
+    String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
                               new Attribute(attrName, "always")));

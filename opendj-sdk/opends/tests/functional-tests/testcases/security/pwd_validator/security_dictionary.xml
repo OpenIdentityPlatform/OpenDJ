@@ -62,8 +62,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Dictionary,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Dictionary' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -231,8 +231,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Dictionary,cn=Password Validators,cn=config' ,
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Dictionary' ,
                     'modifyType'             : 'remove' }
             </call>
             

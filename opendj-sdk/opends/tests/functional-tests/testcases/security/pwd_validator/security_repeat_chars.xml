@@ -47,8 +47,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Repeated Characters,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Repeated Characters' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -147,7 +147,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Repeated Characters' ,
-                    'attributeName'          : 'maximum-consecutive-length' ,
+                    'attributeName'          : 'max-consecutive-length' ,
                     'attributeValue'         : '3' ,
                     'modifyType'             : 'set' }
             </call>
@@ -208,7 +208,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Repeated Characters' ,
-                    'attributeName'          : 'maximum-consecutive-length' ,
+                    'attributeName'          : 'max-consecutive-length' ,
                     'attributeValue'         : '2' ,
                     'modifyType'             : 'set' }
             </call>
@@ -331,8 +331,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Repeated Characters,cn=Password Validators,cn=config' ,
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Repeated Characters' ,
                     'modifyType'             : 'remove' }
             </call>
             

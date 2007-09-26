@@ -212,7 +212,7 @@ public class SynchronizationProviderConfigManager
           }
 
           messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-                  String.valueOf(configuration.getJavaImplementationClass()),
+                  String.valueOf(configuration.getJavaClass()),
                   String.valueOf(configuration.dn())));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
@@ -227,7 +227,7 @@ public class SynchronizationProviderConfigManager
         // applied dynamically, so if the class name did change then
         // indicate that administrative action is required for that
         // change to take effect.
-        String className = configuration.getJavaImplementationClass();
+        String className = configuration.getJavaClass();
         if (!className.equals(provider.getClass().getName()))
         {
           adminActionRequired = true;
@@ -319,7 +319,7 @@ public class SynchronizationProviderConfigManager
         }
 
         messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
-                String.valueOf(configuration.getJavaImplementationClass()),
+                String.valueOf(configuration.getJavaClass()),
                            String.valueOf(configuration.dn())));
         resultCode = DirectoryServer.getServerErrorResultCode();
       }
@@ -365,11 +365,11 @@ public class SynchronizationProviderConfigManager
     getSynchronizationProvider(SynchronizationProviderCfg configuration)
     throws ConfigException
   {
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     SynchronizationProviderCfgDefn d =
       SynchronizationProviderCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-      d.getJavaImplementationClassPropertyDefinition();
+      d.getJavaClassPropertyDefinition();
 
     // Load the class
     Class<? extends SynchronizationProvider> theClass;
@@ -426,11 +426,11 @@ public class SynchronizationProviderConfigManager
       SynchronizationProviderCfg configuration,
       List<Message> unacceptableReasons)
   {
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     SynchronizationProviderCfgDefn d =
       SynchronizationProviderCfgDefn.getInstance();
     ClassPropertyDefinition pd =
-      d.getJavaImplementationClassPropertyDefinition();
+      d.getJavaClassPropertyDefinition();
 
     // Load the class and cast it to a synchronizationProvider.
     SynchronizationProvider provider = null;

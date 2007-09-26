@@ -42,7 +42,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.FileBasedKeyManagerCfg;
+import org.opends.server.admin.std.server.FileBasedKeyManagerProviderCfg;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -66,8 +66,8 @@ import static org.opends.server.util.StaticUtils.*;
  * file located on the Directory Server filesystem.
  */
 public class FileBasedKeyManagerProvider
-       extends KeyManagerProvider<FileBasedKeyManagerCfg>
-       implements ConfigurationChangeListener<FileBasedKeyManagerCfg>
+       extends KeyManagerProvider<FileBasedKeyManagerProviderCfg>
+       implements ConfigurationChangeListener<FileBasedKeyManagerProviderCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -83,7 +83,7 @@ public class FileBasedKeyManagerProvider
   private char[] keyStorePIN;
 
   // The configuration for this key manager provider.
-  private FileBasedKeyManagerCfg currentConfig;
+  private FileBasedKeyManagerProviderCfg currentConfig;
 
   // The path to the key store backing file.
   private String keyStoreFile;
@@ -110,7 +110,7 @@ public class FileBasedKeyManagerProvider
    */
   @Override
   public void initializeKeyManagerProvider(
-      FileBasedKeyManagerCfg configuration)
+      FileBasedKeyManagerProviderCfg configuration)
       throws ConfigException, InitializationException {
     // Store the DN of the configuration entry and register as a change
     // listener.
@@ -314,8 +314,9 @@ public class FileBasedKeyManagerProvider
    * {@inheritDoc}
    */
   @Override()
-  public boolean isConfigurationAcceptable(FileBasedKeyManagerCfg configuration,
-                                           List<Message> unacceptableReasons)
+  public boolean isConfigurationAcceptable(
+                        FileBasedKeyManagerProviderCfg configuration,
+                        List<Message> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
@@ -326,7 +327,7 @@ public class FileBasedKeyManagerProvider
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-                      FileBasedKeyManagerCfg configuration,
+                      FileBasedKeyManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
@@ -483,7 +484,7 @@ public class FileBasedKeyManagerProvider
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-                                 FileBasedKeyManagerCfg configuration)
+                                 FileBasedKeyManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;

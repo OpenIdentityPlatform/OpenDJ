@@ -40,13 +40,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.175</ldap:oid>
       <ldap:name>ds-cfg-ldif-backend</ldap:name>
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="backend-class">
+  <adm:property-override name="java-class">
     <adm:requires-admin-action>
       <adm:component-restart />
     </adm:requires-admin-action>
@@ -72,7 +71,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.496</ldap:oid>
         <ldap:name>ds-cfg-ldif-file</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -98,7 +96,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.497</ldap:oid>
         <ldap:name>ds-cfg-is-private-backend</ldap:name>
       </ldap:attribute>
     </adm:profile>

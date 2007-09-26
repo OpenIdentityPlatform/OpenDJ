@@ -85,7 +85,7 @@ public class GSSAPISASLMechanismHandler
 
   // The identity mapper that will be used to map the Kerberos principal to a
   // directory user.
-  private IdentityMapper identityMapper;
+  private IdentityMapper<?> identityMapper;
 
   // The fully-qualified domain name for the server system.
   private String serverFQDN;
@@ -121,12 +121,6 @@ public class GSSAPISASLMechanismHandler
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (identityMapper == null)
-    {
-      Message message = ERR_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER.get(
-          String.valueOf(identityMapperDN), String.valueOf(configEntryDN));
-      throw new ConfigException(message);
-    }
 
 
     // Determine the fully-qualified hostname for this system.  It may be
@@ -394,24 +388,7 @@ public class GSSAPISASLMechanismHandler
                       GSSAPISASLMechanismHandlerCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper newIdentityMapper =
-         DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (newIdentityMapper == null)
-    {
-
-      unacceptableReasons.add(ERR_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER.get(
-              String.valueOf(identityMapperDN),
-              String.valueOf(cfgEntryDN)));
-      configAcceptable = false;
-    }
-
-
-    return configAcceptable;
+    return true;
   }
 
 
@@ -429,20 +406,8 @@ public class GSSAPISASLMechanismHandler
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper newIdentityMapper =
+    IdentityMapper<?> newIdentityMapper =
          DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (newIdentityMapper == null)
-    {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
-
-
-      messages.add(ERR_SASLGSSAPI_NO_SUCH_IDENTITY_MAPPER.get(
-              String.valueOf(identityMapperDN),
-              String.valueOf(configEntryDN)));
-    }
 
 
     // Determine the fully-qualified hostname for this system.  It may be

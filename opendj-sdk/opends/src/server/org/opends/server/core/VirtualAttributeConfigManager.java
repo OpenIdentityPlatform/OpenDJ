@@ -138,7 +138,7 @@ public class VirtualAttributeConfigManager
 
       if (cfg.isEnabled())
       {
-        String className = cfg.getProviderClass();
+        String className = cfg.getJavaClass();
         try
         {
           VirtualAttributeProvider<? extends VirtualAttributeCfg> provider =
@@ -215,7 +215,7 @@ public class VirtualAttributeConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // virtual attribute provider.
-      String className = configuration.getProviderClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadProvider(className, configuration, false);
@@ -308,7 +308,7 @@ public class VirtualAttributeConfigManager
     VirtualAttributeProvider<? extends VirtualAttributeCfg> provider = null;
     if (resultCode == ResultCode.SUCCESS)
     {
-      String className = configuration.getProviderClass();
+      String className = configuration.getJavaClass();
       try
       {
         provider = loadProvider(className, configuration, true);
@@ -384,7 +384,7 @@ public class VirtualAttributeConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // virtual attribute provider.
-      String className = configuration.getProviderClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadProvider(className, configuration, false);
@@ -489,7 +489,7 @@ public class VirtualAttributeConfigManager
     VirtualAttributeProvider<? extends VirtualAttributeCfg> provider = null;
     if (resultCode == ResultCode.SUCCESS)
     {
-      String className = configuration.getProviderClass();
+      String className = configuration.getJavaClass();
       try
       {
         provider = loadProvider(className, configuration, true);
@@ -554,7 +554,7 @@ public class VirtualAttributeConfigManager
       VirtualAttributeCfgDefn definition =
            VirtualAttributeCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getProviderClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends VirtualAttributeProvider> providerClass =
            propertyDefinition.loadClass(className,
                                         VirtualAttributeProvider.class);

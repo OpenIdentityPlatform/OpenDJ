@@ -165,8 +165,8 @@ public final class PasswordPolicyImportPlugin
     // attributes.
     PasswordPolicy defaultPolicy = DirectoryServer.getDefaultPasswordPolicy();
     Set<DN> authSchemeDNs =
-         configuration.getDefaultAuthPasswordStorageSchemeDN();
-    if ((authSchemeDNs == null) || authSchemeDNs.isEmpty())
+         configuration.getDefaultAuthPasswordStorageSchemeDNs();
+    if (authSchemeDNs.isEmpty())
     {
       if (defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -221,8 +221,8 @@ public final class PasswordPolicyImportPlugin
     // Get the set of default password storage schemes for user password
     // attributes.
     Set<DN> userSchemeDNs =
-         configuration.getDefaultUserPasswordStorageSchemeDN();
-    if ((userSchemeDNs == null) || userSchemeDNs.isEmpty())
+         configuration.getDefaultUserPasswordStorageSchemeDNs();
+    if (userSchemeDNs.isEmpty())
     {
       if (! defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -642,8 +642,8 @@ policyLoop:
     // Get the set of default password storage schemes for auth password
     // attributes.
     Set<DN> authSchemeDNs =
-         configuration.getDefaultAuthPasswordStorageSchemeDN();
-    if ((authSchemeDNs == null) || authSchemeDNs.isEmpty())
+         configuration.getDefaultAuthPasswordStorageSchemeDNs();
+    if (authSchemeDNs.isEmpty())
     {
       PasswordStorageScheme[] defaultAuthSchemes = new PasswordStorageScheme[1];
       defaultAuthSchemes[0] =
@@ -690,8 +690,8 @@ policyLoop:
     // Get the set of default password storage schemes for user password
     // attributes.
     Set<DN> userSchemeDNs =
-         configuration.getDefaultUserPasswordStorageSchemeDN();
-    if ((userSchemeDNs == null) || userSchemeDNs.isEmpty())
+         configuration.getDefaultUserPasswordStorageSchemeDNs();
+    if (userSchemeDNs.isEmpty())
     {
       PasswordStorageScheme[] defaultUserSchemes = new PasswordStorageScheme[1];
       defaultUserSchemes[0] =
@@ -747,8 +747,8 @@ policyLoop:
     PasswordPolicy defaultPolicy = DirectoryServer.getDefaultPasswordPolicy();
     PasswordStorageScheme[] defaultAuthSchemes;
     Set<DN> authSchemeDNs =
-         configuration.getDefaultAuthPasswordStorageSchemeDN();
-    if ((authSchemeDNs == null) || authSchemeDNs.isEmpty())
+         configuration.getDefaultAuthPasswordStorageSchemeDNs();
+    if (authSchemeDNs.isEmpty())
     {
       if (defaultPolicy.usesAuthPasswordSyntax())
       {
@@ -806,8 +806,8 @@ policyLoop:
     // attributes.
     PasswordStorageScheme[] defaultUserSchemes;
     Set<DN> userSchemeDNs =
-         configuration.getDefaultUserPasswordStorageSchemeDN();
-    if ((userSchemeDNs == null) || userSchemeDNs.isEmpty())
+         configuration.getDefaultUserPasswordStorageSchemeDNs();
+    if (userSchemeDNs.isEmpty())
     {
       if (! defaultPolicy.usesAuthPasswordSyntax())
       {

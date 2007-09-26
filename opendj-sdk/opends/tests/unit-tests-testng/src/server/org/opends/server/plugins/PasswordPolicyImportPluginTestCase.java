@@ -88,9 +88,9 @@ public class PasswordPolicyImportPluginTestCase
          "objectClass: ds-cfg-plugin",
          "objectClass: ds-cfg-password-policy-import-plugin",
          "cn: Password Policy Import",
-         "ds-cfg-plugin-class: org.opends.server.plugins." +
+         "ds-cfg-java-class: org.opends.server.plugins." +
               "PasswordPolicyImportPlugin",
-         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
@@ -98,11 +98,11 @@ public class PasswordPolicyImportPluginTestCase
          "objectClass: ds-cfg-plugin",
          "objectClass: ds-cfg-password-policy-import-plugin",
          "cn: Password Policy Import",
-         "ds-cfg-plugin-class: org.opends.server.plugins." +
+         "ds-cfg-java-class: org.opends.server.plugins." +
               "PasswordPolicyImportPlugin",
-         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-user-password-storage-scheme-dn: " +
+         "ds-cfg-default-user-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
@@ -110,13 +110,13 @@ public class PasswordPolicyImportPluginTestCase
          "objectClass: ds-cfg-plugin",
          "objectClass: ds-cfg-password-policy-import-plugin",
          "cn: Password Policy Import",
-         "ds-cfg-plugin-class: org.opends.server.plugins." +
+         "ds-cfg-java-class: org.opends.server.plugins." +
               "PasswordPolicyImportPlugin",
-         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-user-password-storage-scheme-dn: " +
+         "ds-cfg-default-user-password-storage-scheme: " +
               "cn=CRYPT,cn=Password Storage Schemes,cn=config",
-         "ds-cfg-default-user-password-storage-scheme-dn: " +
+         "ds-cfg-default-user-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
@@ -124,11 +124,11 @@ public class PasswordPolicyImportPluginTestCase
          "objectClass: ds-cfg-plugin",
          "objectClass: ds-cfg-password-policy-import-plugin",
          "cn: Password Policy Import",
-         "ds-cfg-plugin-class: org.opends.server.plugins." +
+         "ds-cfg-java-class: org.opends.server.plugins." +
               "PasswordPolicyImportPlugin",
-         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-auth-password-storage-scheme-dn: " +
+         "ds-cfg-default-auth-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "",
          "dn: cn=Password Policy Import,cn=Plugins,cn=config",
@@ -136,13 +136,13 @@ public class PasswordPolicyImportPluginTestCase
          "objectClass: ds-cfg-plugin",
          "objectClass: ds-cfg-password-policy-import-plugin",
          "cn: Password Policy Import",
-         "ds-cfg-plugin-class: org.opends.server.plugins." +
+         "ds-cfg-java-class: org.opends.server.plugins." +
               "PasswordPolicyImportPlugin",
-         "ds-cfg-plugin-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-plugin-type: ldifImport",
-         "ds-cfg-default-user-password-storage-scheme-dn: " +
+         "ds-cfg-default-user-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
-         "ds-cfg-default-auth-password-storage-scheme-dn: " +
+         "ds-cfg-default-auth-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config"
     );
 
@@ -212,9 +212,9 @@ public class PasswordPolicyImportPluginTestCase
            "objectClass: ds-cfg-plugin",
            "objectClass: ds-cfg-password-policy-import-plugin",
            "cn: Password Policy Import",
-           "ds-cfg-plugin-class: org.opends.server.plugins." +
+           "ds-cfg-java-class: org.opends.server.plugins." +
                 "PasswordPolicyImportPlugin",
-           "ds-cfg-plugin-enabled: true",
+           "ds-cfg-enabled: true",
            "ds-cfg-plugin-type: " + s);
       entries.add(e);
     }

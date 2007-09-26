@@ -55,14 +55,14 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
       TestParentCfgDefn td = TestParentCfgDefn.getInstance();
 
       if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-enabled";
+        return "ds-cfg-enabled";
       } else if (pd == (PropertyDefinition<?>)td.getMandatoryClassPropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-class";
+        return "ds-cfg-java-class";
       } else if (pd == (PropertyDefinition<?>)td
           .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-type";
+        return "ds-cfg-attribute-type";
       } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNPropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-base-dn";
+        return "ds-cfg-base-dn";
       } else {
         throw new RuntimeException("Unexpected test-parent property"
             + pd.getName());
@@ -71,18 +71,18 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
       TestChildCfgDefn td = TestChildCfgDefn.getInstance();
 
       if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-enabled";
+        return "ds-cfg-enabled";
       } else if (pd == (PropertyDefinition<?>)td.getMandatoryClassPropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-class";
+        return "ds-cfg-java-class";
       } else if (pd == (PropertyDefinition<?>)td
           .getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-type";
+        return "ds-cfg-attribute-type";
       } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty1PropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-base-dn";
+        return "ds-cfg-base-dn";
       } else if (pd == (PropertyDefinition<?>)td.getOptionalMultiValuedDNProperty2PropertyDefinition()) {
-        return "ds-cfg-virtual-attribute-group-dn";
+        return "ds-cfg-group-dn";
       } else if (pd.getName().equals("aggregation-property")) {
-        return "ds-cfg-backend-base-dn";
+        return "ds-cfg-rotation-policy";
       } else {
         throw new RuntimeException("Unexpected test-child property"
             + pd.getName());

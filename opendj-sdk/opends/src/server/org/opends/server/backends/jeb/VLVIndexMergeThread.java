@@ -32,7 +32,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import static org.opends.server.util.StaticUtils.getFileForPath;
@@ -67,7 +67,7 @@ public class VLVIndexMergeThread extends DirectoryThread
   /**
    * The configuration of the JE backend containing the vlvIndex.
    */
-  JEBackendCfg config;
+  LocalDBBackendCfg config;
 
   /**
    * The LDIF import configuration, which indicates whether we are
@@ -121,7 +121,7 @@ public class VLVIndexMergeThread extends DirectoryThread
    * whether we are appending to existing data.
    * @param vlvIndex The vlvIndex database to be written.
    */
-  VLVIndexMergeThread(JEBackendCfg config,
+  VLVIndexMergeThread(LocalDBBackendCfg config,
                       LDIFImportConfig ldifImportConfig,
                       VLVIndex vlvIndex)
   {
@@ -170,7 +170,7 @@ public class VLVIndexMergeThread extends DirectoryThread
   public void merge() throws Exception
   {
     // Open all the files.
-    File tempDir = getFileForPath(config.getBackendImportTempDirectory());
+    File tempDir = getFileForPath(config.getImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
 
     if (files == null || files.length == 0)

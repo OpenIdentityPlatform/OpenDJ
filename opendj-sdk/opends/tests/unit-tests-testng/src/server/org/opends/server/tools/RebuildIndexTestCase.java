@@ -75,7 +75,7 @@ public class RebuildIndexTestCase
       InternalClientConnection.getRootConnection();
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-                      new Attribute("ds-cfg-backend-base-dn", "o=airius.com")));
+                      new Attribute("ds-cfg-base-dn", "o=airius.com")));
     String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(userRootDN), mods);
@@ -97,7 +97,7 @@ public class RebuildIndexTestCase
       InternalClientConnection.getRootConnection();
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
-                      new Attribute("ds-cfg-backend-base-dn", "o=airius.com")));
+                      new Attribute("ds-cfg-base-dn", "o=airius.com")));
     String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
     ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(userRootDN), mods);

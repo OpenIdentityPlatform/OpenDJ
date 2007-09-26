@@ -120,16 +120,16 @@
 <!---
 #@TestMarker       Plugin uniqueness
 #@TestName         Plugin uniqueness
-#@TestIssue        Check the plugin uniqueness  with the unique-attribute-type  uid
+#@TestIssue        Check the plugin uniqueness  with the type  uid
 #@TestPreamble     none
-#@TestStep         Keep the default configuration ( ie, unique-attribute-type = uid )
+#@TestStep         Keep the default configuration ( ie, type = uid )
 #@TestStep          Check we can't add an entry with the same uid as the user entry reference
 #@TestPostamble    none
 #@TestResult       The test is passed if  the  creation is refused
 -->  
    
     
- <testcase name="getTestCaseName('Enabled with unique-attribute-type defined to uid')">
+ <testcase name="getTestCaseName('Enabled with type defined to uid')">
   <sequence>
     <call function="'testCase_Preamble'"/>
     
@@ -170,23 +170,23 @@
 <!---
 #@TestMarker        Plugin uniqueness
 #@TestName          Plugin uniqueness
-#@TestIssue         Check the plugin uniqueness with the unique-attribute-type mail
+#@TestIssue         Check the plugin uniqueness with the type mail
 #@TestPreamble      none
-#@TestStep          set the unique-attribute-type to mail
+#@TestStep          set the type to mail
 #@TestStep          Check we can't add an entry with the same mail as the user entry reference
 #@TestPostamble     none
 #@TestResult        The test is passed if  the  creation is refused
 -->  
    
     
- <testcase name="getTestCaseName('Enabled with unique-attribute-type defined to mail')">
+ <testcase name="getTestCaseName('Enabled with type defined to mail')">
   <sequence>
     <call function="'testCase_Preamble'"/>
 
     
  
 
-    <message>'######  Set the unique-attribute-type to mail  ###### '</message>
+    <message>'######  Set the type to mail  ###### '</message>
     <message>' '</message>        
        
     <call function="'dsconfig'">
@@ -197,7 +197,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set unique-attribute-type:mail',
+        'optionsString'          : '--set type:mail',
         'expectedRC'           : 0 } 
     </call>	        
 
@@ -238,21 +238,21 @@
 <!---
 #@TestMarker        Plugin uniqueness
 #@TestName          Plugin uniqueness
-#@TestIssue         Check the plugin uniqueness with several unique-attribute-type
+#@TestIssue         Check the plugin uniqueness with several type
 #@TestPreamble      none
-#@TestStep          set the unique-attribute-type to mail and telephonenumber
+#@TestStep          set the type to mail and telephonenumber
 #@TestStep          Check we can't add an entry with the same mail as the user entry reference
 #@TestStep          Check we can't add an entry with the same telephonenumber as the user entry reference    
 #@TestPostamble     none
 #@TestResult        The test is passed if  the  creation is refused
 -->  
    
- <testcase name="getTestCaseName('Enabled with unique-attribute-type defined to mail and telephoneNumber')">
+ <testcase name="getTestCaseName('Enabled with type defined to mail and telephoneNumber')">
   <sequence>
     <call function="'testCase_Preamble'"/>
     
 
-    <message>'######  Set the unique-attribute-type to mail  and telephoneNumber ###### '</message>
+    <message>'######  Set the type to mail  and telephoneNumber ###### '</message>
     <message>' '</message>        
        
     <call function="'dsconfig'">
@@ -263,7 +263,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set unique-attribute-type:mail --set unique-attribute-type:telephoneNumber',
+        'optionsString'          : '--set type:mail --set type:telephoneNumber',
         'expectedRC'           : 0 } 
     </call>	        
                 
@@ -375,7 +375,7 @@
 #@TestName           Plugin uniqueness
 #@TestIssue          Check the plugin ensures the uniqueness of the attributes multi  valued
 #@TestPreamble       none
-#@TestStep           set the unique-attribute-type to description         
+#@TestStep           set the type to description
 #@TestStep          Check we can't add an entry with the same description as the user entry reference   
 #@TestStep           the attribute description is multi-valued 
 #@TestPostamble      none
@@ -387,7 +387,7 @@
     <call function="'testCase_Preamble'"/>
     
 
-    <message>'######  Set the unique-attribute-type to description ###### '</message>
+    <message>'######  Set the type to description ###### '</message>
     <message>' '</message>        
        
     <call function="'dsconfig'">
@@ -398,7 +398,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set unique-attribute-type:description',
+        'optionsString'          : '--set type:description',
         'expectedRC'           : 0 } 
     </call>	        
 
@@ -482,8 +482,8 @@
 #@TestName          Plugin uniqueness
 #@TestIssue         Check the plugin uniqueness matchs the scope configured
 #@TestPreamble      none
-#@TestStep          set the unique-attribute-type to description
-#@TestStep          set the unique-attribute-base-dn 
+#@TestStep          set the type to description
+#@TestStep          set the base-dn
 #@TestStep          Check we can't add an entry under the restricted scope
 #@TestStep          Check we can add an entry outside the restricted scope
 #@TestPostamble     none
@@ -494,7 +494,7 @@
   <sequence>
     <call function="'testCase_Preamble'"/>
     
-    <message>'######  Set the unique-attribute-base-dn  to dc=example,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
+    <message>'######  Set the base-dn  to dc=example,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
     <message>' '</message>        
        
     <call function="'dsconfig'">
@@ -505,7 +505,7 @@
         'subcommand'          : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
         'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set unique-attribute-type:description  --set unique-attribute-base-dn:dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+        'optionsString'          : '--set type:description  --set base-dn:dc=example,%s' % DIRECTORY_INSTANCE_SFX,
         'expectedRC'           : 0 } 
     </call>	        
                 
@@ -589,14 +589,14 @@
 #@TestName              Plugin uniqueness
 #@TestIssue             Disable  the plugin uniqueness  with the uniqu
 #@TestStep              Disable the plugin uniqueness
-#@TestStep              Keep the default configuration ( ie, unique-attribute-type = uid )
+#@TestStep              Keep the default configuration ( ie, type = uid )
 #@TestStep              Add an entry  containing a uid value already present in the DIT
 #@TestPostamble         none
 #@TestResult            The test is passed if  the  creation is accepted
 -->  
     
     
- <testcase name="getTestCaseName('Disabled with unique-attribute-type defined to uid')">
+ <testcase name="getTestCaseName('Disabled with type defined to uid')">
   <sequence>
     <call function="'testCase_Preamble'"/>
 

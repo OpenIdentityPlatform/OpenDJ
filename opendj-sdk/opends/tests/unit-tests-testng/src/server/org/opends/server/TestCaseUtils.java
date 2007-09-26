@@ -209,187 +209,200 @@ public final class TestCaseUtils {
          throws IOException, InitializationException, ConfigException,
                 DirectoryException
   {
-    if (SERVER_STARTED)
-    {
-      return;
-    }
-
-    InvocationCounterPlugin.resetStartupCalled();
-
-    // Get the build root and use it to create a test package directory.
-    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
-    File   buildDir  = new File(buildRoot, "build");
-    File   unitRoot  = new File(buildDir, "unit-tests");
-    File   testRoot  = new File(unitRoot, "package");
-    File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
-                                  File.separator + "unit-tests-testng");
-
-    if (testRoot.exists())
-    {
-      deleteDirectory(testRoot);
-    }
-    testRoot.mkdirs();
-    //db_verify is second jeb backend used by the jeb verify test cases
-    //db_rebuild is the third jeb backend used by the jeb rebuild test cases
-    //db_unindexed is the forth backend used by the unindexed search privilege
-    //test cases
-    String[] subDirectories = { "adminDb", "bak", "bin", "changelogDb", "classes",
-                                "config", "db", "db_verify", "ldif", "lib",
-                                "locks", "logs", "db_rebuild", "db_unindexed",
-                                "db_index_test", "db_import_test"};
-    for (String s : subDirectories)
-    {
-      new File(testRoot, s).mkdir();
-    }
-
-
-    // Copy the configuration, schema, and MakeLDIF resources into the
-    // appropriate place under the test package.
-    File serverClassesDir = new File(buildDir, "classes");
-    File unitClassesDir   = new File(unitRoot, "classes");
-    File libDir           = new File(buildRoot, "lib");
-    File resourceDir      = new File(buildRoot, "resource");
-    File testResourceDir  = new File(testSrcRoot, "resource");
-    File testConfigDir    = new File(testRoot, "config");
-    File testClassesDir   = new File(testRoot, "classes");
-    File testLibDir       = new File(testRoot, "lib");
-    File testBinDir       = new File(testRoot, "bin");
-
-    if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG)) {
-      copyDirectory(serverClassesDir, testClassesDir);
-      copyDirectory(unitClassesDir, testClassesDir);
-    }
-
-    copyDirectory(libDir, testLibDir);
-    copyDirectory(new File(resourceDir, "bin"), testBinDir);
-    copyDirectory(new File(resourceDir, "config"), testConfigDir);
-    copyDirectory(new File(resourceDir, "schema"),
-                  new File(testConfigDir, "schema"));
-    copyDirectory(new File(resourceDir, "MakeLDIF"),
-                  new File(testConfigDir, "MakeLDIF"));
-    copyFile(new File(testResourceDir, "server.keystore"),
-             new File(testConfigDir, "server.keystore"));
-    copyFile(new File(testResourceDir, "server.truststore"),
-             new File(testConfigDir, "server.truststore"));
-    copyFile(new File(testResourceDir, "client.keystore"),
-             new File(testConfigDir, "client.keystore"));
-    copyFile(new File(testResourceDir, "client.truststore"),
-             new File(testConfigDir, "client.truststore"));
-    copyFile(new File(testResourceDir, "server-cert.p12"),
-             new File(testConfigDir, "server-cert.p12"));
-    copyFile(new File(testResourceDir, "client-cert.p12"),
-             new File(testConfigDir, "client-cert.p12"));
-
-    for (File f : testBinDir.listFiles())
-    {
-      try
+    try {
+      if (SERVER_STARTED)
       {
-        FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
-      } catch (Exception e) {}
-    }
+        return;
+      }
 
+      InvocationCounterPlugin.resetStartupCalled();
 
-    // Make the shell scripts in the bin directory executable, if possible.
-    OperatingSystem os = DirectoryServer.getOperatingSystem();
-    if ((os != null) && OperatingSystem.isUNIXBased(os) &&
-        FilePermission.canSetPermissions())
-    {
-      try
+      // Get the build root and use it to create a test package directory.
+      String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+      File   buildDir  = new File(buildRoot, "build");
+      File   unitRoot  = new File(buildDir, "unit-tests");
+      File   testRoot  = new File(unitRoot, "package");
+      File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
+                                    File.separator + "unit-tests-testng");
+
+      if (testRoot.exists())
       {
-        FilePermission perm = FilePermission.decodeUNIXMode("755");
-        for (File f : testBinDir.listFiles())
+        deleteDirectory(testRoot);
+      }
+      testRoot.mkdirs();
+      //db_verify is second jeb backend used by the jeb verify test cases
+      //db_rebuild is the third jeb backend used by the jeb rebuild test cases
+      //db_unindexed is the forth backend used by the unindexed search privilege
+      //test cases
+      String[] subDirectories = { "adminDb", "bak", "bin", "changelogDb", "classes",
+                                  "config", "db", "db_verify", "ldif", "lib",
+                                  "locks", "logs", "db_rebuild", "db_unindexed",
+                                  "db_index_test", "db_import_test"};
+      for (String s : subDirectories)
+      {
+        new File(testRoot, s).mkdir();
+      }
+
+      // Copy the configuration, schema, and MakeLDIF resources into the
+      // appropriate place under the test package.
+      File serverClassesDir = new File(buildDir, "classes");
+      File unitClassesDir   = new File(unitRoot, "classes");
+      File libDir           = new File(buildRoot, "lib");
+      File resourceDir      = new File(buildRoot, "resource");
+      File testResourceDir  = new File(testSrcRoot, "resource");
+      File testConfigDir    = new File(testRoot, "config");
+      File testClassesDir   = new File(testRoot, "classes");
+      File testLibDir       = new File(testRoot, "lib");
+      File testBinDir       = new File(testRoot, "bin");
+
+      if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG)) {
+        copyDirectory(serverClassesDir, testClassesDir);
+        copyDirectory(unitClassesDir, testClassesDir);
+      }
+
+      copyDirectory(libDir, testLibDir);
+      copyDirectory(new File(resourceDir, "bin"), testBinDir);
+      copyDirectory(new File(resourceDir, "config"), testConfigDir);
+      copyDirectory(new File(resourceDir, "schema"),
+                    new File(testConfigDir, "schema"));
+      copyDirectory(new File(resourceDir, "MakeLDIF"),
+                    new File(testConfigDir, "MakeLDIF"));
+      copyFile(new File(testResourceDir, "server.keystore"),
+               new File(testConfigDir, "server.keystore"));
+      copyFile(new File(testResourceDir, "server.truststore"),
+               new File(testConfigDir, "server.truststore"));
+      copyFile(new File(testResourceDir, "client.keystore"),
+               new File(testConfigDir, "client.keystore"));
+      copyFile(new File(testResourceDir, "client.truststore"),
+               new File(testConfigDir, "client.truststore"));
+      copyFile(new File(testResourceDir, "server-cert.p12"),
+               new File(testConfigDir, "server-cert.p12"));
+      copyFile(new File(testResourceDir, "client-cert.p12"),
+               new File(testConfigDir, "client-cert.p12"));
+
+      for (File f : testBinDir.listFiles())
+      {
+        try
         {
-          if (f.getName().endsWith(".sh"))
+          FilePermission.setPermissions(f, FilePermission.decodeUNIXMode("755"));
+        } catch (Exception e) {}
+      }
+
+      // Make the shell scripts in the bin directory executable, if possible.
+      OperatingSystem os = DirectoryServer.getOperatingSystem();
+      if ((os != null) && OperatingSystem.isUNIXBased(os) &&
+          FilePermission.canSetPermissions())
+      {
+        try
+        {
+          FilePermission perm = FilePermission.decodeUNIXMode("755");
+          for (File f : testBinDir.listFiles())
           {
-            FilePermission.setPermissions(f, perm);
+            if (f.getName().endsWith(".sh"))
+            {
+              FilePermission.setPermissions(f, perm);
+            }
           }
-        }
-      } catch (Exception e) {}
-    }
+        } catch (Exception e) {}
+      }
 
+      // Find some free ports for the listeners and write them to the
+      // config-chamges.ldif file.
+      ServerSocket serverLdapSocket  = null;
+      ServerSocket serverJmxSocket   = null;
+      ServerSocket serverLdapsSocket = null;
 
-    // Find some free ports for the listeners and write them to the
-    // config-chamges.ldif file.
-    ServerSocket serverLdapSocket  = null;
-    ServerSocket serverJmxSocket   = null;
-    ServerSocket serverLdapsSocket = null;
+      String ldapPort = System.getProperty(PROPERTY_LDAP_PORT);
+      if (ldapPort == null)
+      {
+        serverLdapSocket = bindFreePort();
+        serverLdapPort = serverLdapSocket.getLocalPort();
+      }
+      else
+      {
+        serverLdapPort = Integer.valueOf(ldapPort);
+        serverLdapSocket = bindPort(serverLdapPort);
+      }
 
-    String ldapPort = System.getProperty(PROPERTY_LDAP_PORT);
-    if (ldapPort == null)
-    {
-      serverLdapSocket = bindFreePort();
-      serverLdapPort = serverLdapSocket.getLocalPort();
-    }
-    else
-    {
-      serverLdapPort = Integer.valueOf(ldapPort);
-      serverLdapSocket = bindPort(serverLdapPort);
-    }
+      serverJmxSocket = bindFreePort();
+      serverJmxPort = serverJmxSocket.getLocalPort();
 
-    serverJmxSocket = bindFreePort();
-    serverJmxPort = serverJmxSocket.getLocalPort();
+      serverLdapsSocket = bindFreePort();
+      serverLdapsPort = serverLdapsSocket.getLocalPort();
 
-    serverLdapsSocket = bindFreePort();
-    serverLdapsPort = serverLdapsSocket.getLocalPort();
+      BufferedReader reader = new BufferedReader(new FileReader(
+                                                 new File(testResourceDir,
+                                                          "config-changes.ldif")
+                                                ));
+      FileOutputStream outFile = new FileOutputStream(
+          new File(testConfigDir, "config-changes.ldif"));
+      PrintStream writer = new PrintStream(outFile);
 
-    BufferedReader reader = new BufferedReader(new FileReader(
-                                               new File(testResourceDir,
-                                                        "config-changes.ldif")
-                                              ));
-    FileOutputStream outFile = new FileOutputStream(
-        new File(testConfigDir, "config-changes.ldif"));
-    PrintStream writer = new PrintStream(outFile);
+      String line = reader.readLine();
 
-    String line = reader.readLine();
+      while(line != null)
+      {
+        line = line.replaceAll("#ldapport#", String.valueOf(serverLdapPort));
+        line = line.replaceAll("#jmxport#", String.valueOf(serverJmxPort));
+        line = line.replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
 
-    while(line != null)
-    {
-      line = line.replaceAll("#ldapport#", String.valueOf(serverLdapPort));
-      line = line.replaceAll("#jmxport#", String.valueOf(serverJmxPort));
-      line = line.replaceAll("#ldapsport#", String.valueOf(serverLdapsPort));
+        writer.println(line);
+        line = reader.readLine();
+      }
 
-      writer.println(line);
-      line = reader.readLine();
-    }
+      writer.close();
+      outFile.close();
+      reader.close();
 
-    writer.close();
-    outFile.close();
-    reader.close();
+      serverLdapSocket.close();
+      serverJmxSocket.close();
+      serverLdapsSocket.close();
 
-    serverLdapSocket.close();
-    serverJmxSocket.close();
-    serverLdapsSocket.close();
+      // Create a configuration for the server.
+      DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
+      config.setServerRoot(testRoot);
+      config.setForceDaemonThreads(true);
+      config.setConfigClass(ConfigFileHandler.class);
+      config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-
-    // Create a configuration for the server.
-    DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
-    config.setServerRoot(testRoot);
-    config.setForceDaemonThreads(true);
-    config.setConfigClass(ConfigFileHandler.class);
-    config.setConfigFile(new File(testConfigDir, "config.ldif"));
-
-    config.addAccessLogger(
+      config.addAccessLogger(
           TextAccessLogPublisher.getStartupTextAccessPublisher(
               ACCESS_TEXT_WRITER, false));
 
-    config.addErrorLogger(
+      config.addErrorLogger(
          TextErrorLogPublisher.getStartupTextErrorPublisher(
               ERROR_TEXT_WRITER));
 
-    config.addDebugLogger(
+      config.addDebugLogger(
          TextDebugLogPublisher.getStartupTextDebugPublisher(
               DEBUG_TEXT_WRITER));
 
-    EmbeddedUtils.startServer(config);
+      EmbeddedUtils.startServer(config);
 
-    assertTrue(InvocationCounterPlugin.startupCalled());
+      assertTrue(InvocationCounterPlugin.startupCalled());
 
-    // Save config.ldif for when we restart the server
-    backupServerConfigLdif();
+      // Save config.ldif for when we restart the server
+      backupServerConfigLdif();
 
-    SERVER_STARTED = true;
+      SERVER_STARTED = true;
 
-    initializeTestBackend(true);
+      initializeTestBackend(true);
+    } catch (IOException e) {
+      e.printStackTrace(originalSystemErr);
+      throw e;
+    } catch (NumberFormatException e) {
+      e.printStackTrace(originalSystemErr);
+      throw e;
+    } catch (InitializationException e) {
+      e.printStackTrace(originalSystemErr);
+      throw e;
+    } catch (ConfigException e) {
+      e.printStackTrace(originalSystemErr);
+      throw e;
+    } catch (DirectoryException e) {
+      e.printStackTrace(originalSystemErr);
+      throw e;
+    }
   }
 
   /**
@@ -417,25 +430,30 @@ public final class TestCaseUtils {
       return;
     }
 
-    long startMs = System.currentTimeMillis();
+    try {
+      long startMs = System.currentTimeMillis();
 
-    clearLoggersContents();
+      clearLoggersContents();
 
-    clearJEBackends();
-    restoreServerConfigLdif();
-    memoryBackend = null;  // We need it to be recreated and reregistered
+      clearJEBackends();
+      restoreServerConfigLdif();
+      memoryBackend = null;  // We need it to be recreated and reregistered
 
-    EmbeddedUtils.restartServer(null, null, DirectoryServer.getEnvironmentConfig());
-    initializeTestBackend(true);
+      EmbeddedUtils.restartServer(null, null, DirectoryServer.getEnvironmentConfig());
+      initializeTestBackend(true);
 
-    // This generates too much noise, so it's disabled by default.
-    // outputLogContentsIfError("Potential problem during in-core restart.  You be the judge.");
+      // This generates too much noise, so it's disabled by default.
+      // outputLogContentsIfError("Potential problem during in-core restart.  You be the judge.");
 
-    // Keep track of these so we can report how long they took in the test summary
-    long durationMs = System.currentTimeMillis() - startMs;
-    restartTimesMs.add(durationMs);
+      // Keep track of these so we can report how long they took in the test summary
+      long durationMs = System.currentTimeMillis() - startMs;
+      restartTimesMs.add(durationMs);
 
-    serverRestarts++;
+      serverRestarts++;
+    } catch (Exception e) {
+      e.printStackTrace(originalSystemErr);
+      throw e;
+    }
   }
 
   public static List<Long> restartTimesMs = new ArrayList<Long>();
@@ -474,6 +492,12 @@ public final class TestCaseUtils {
     File   unitRoot  = new File(buildDir, "unit-tests");
     File   testRoot  = new File(unitRoot, "package");
     return new File(testRoot, "config");
+  }
+
+  public static File getBuildRoot()
+  {
+    String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+    return new File(buildRoot);
   }
 
   private static void backupServerConfigLdif() throws IOException

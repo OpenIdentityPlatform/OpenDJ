@@ -58,8 +58,8 @@ import java.util.zip.Adler32;
 import java.io.OutputStream;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.*;
-import org.opends.server.admin.std.server.MultimasterDomainCfg;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.*;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
@@ -130,7 +130,7 @@ import org.opends.server.workflowelement.localbackend.*;
  *  handle protocol messages from the replicationServer.
  */
 public class ReplicationDomain extends DirectoryThread
-       implements ConfigurationChangeListener<MultimasterDomainCfg>,
+       implements ConfigurationChangeListener<ReplicationDomainCfg>,
                   AlertGenerator
 {
   /**
@@ -339,7 +339,7 @@ public class ReplicationDomain extends DirectoryThread
    * @param configuration    The configuration of this ReplicationDomain.
    * @throws ConfigException In case of invalid configuration.
    */
-  public ReplicationDomain(MultimasterDomainCfg configuration)
+  public ReplicationDomain(ReplicationDomainCfg configuration)
     throws ConfigException
   {
     super("replication flush");
@@ -347,7 +347,7 @@ public class ReplicationDomain extends DirectoryThread
     // Read the configuration parameters.
     replicationServers = configuration.getReplicationServer();
     serverId = (short) configuration.getServerId();
-    baseDN = configuration.getReplicationDN();
+    baseDN = configuration.getBaseDN();
     maxReceiveQueue = configuration.getMaxReceiveQueue();
     maxReceiveDelay = (int) configuration.getMaxReceiveDelay();
     maxSendQueue = configuration.getMaxSendQueue();
@@ -3310,10 +3310,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return true if the configuration is acceptable, false other wise.
    */
   public static boolean isConfigurationAcceptable(
-      MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
+      ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     // Check that there is not already a domain with the same DN
-    DN dn = configuration.getReplicationDN();
+    DN dn = configuration.getBaseDN();
     if (MultimasterReplication.findDomain(dn,null) != null)
     {
       Message message = ERR_SYNC_INVALID_DN.get();
@@ -3335,7 +3335,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-         MultimasterDomainCfg configuration)
+         ReplicationDomainCfg configuration)
   {
     // server id and base dn are readonly.
     // isolationPolicy can be set immediately and will apply
@@ -3360,7 +3360,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-         MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
+         ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
   }

@@ -76,7 +76,7 @@
                     'Getting component %s, %s, %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2], componentList[componentNumber][3], componentList[componentNumber][4])
                 </message>
                 
-                <if expr="componentList[componentNumber][0] == 'get-je-index-prop'">
+                <if expr="componentList[componentNumber][0] == 'get-local-db-index-prop'">
                   <call function="'dsconfig'">
                   {   'location'       :  location ,
                       'dsPath'         :  dsPath ,

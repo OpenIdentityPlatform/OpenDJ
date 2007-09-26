@@ -97,29 +97,29 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-cram-md5-sasl-mechanism-handler",
          "cn: CRAM-MD5",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CRAMMD5SASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
+         "ds-cfg-enabled: true",
          "",
          "dn: cn=CRAM-MD5,cn=SASL Mechanisms,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-cram-md5-sasl-mechanism-handler",
          "cn: CRAM-MD5",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CRAMMD5SASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
-         "ds-cfg-identity-mapper-dn: not a DN",
+         "ds-cfg-enabled: true",
+         "ds-cfg-identity-mapper: not a DN",
          "",
          "dn: cn=CRAM-MD5,cn=SASL Mechanisms,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-sasl-mechanism-handler",
          "objectClass: ds-cfg-cram-md5-sasl-mechanism-handler",
          "cn: CRAM-MD5",
-         "ds-cfg-sasl-mechanism-handler-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "CRAMMD5SASLMechanismHandler",
-         "ds-cfg-sasl-mechanism-handler-enabled: true",
-         "ds-cfg-identity-mapper-dn: cn=does not exist");
+         "ds-cfg-enabled: true",
+         "ds-cfg-identity-mapper: cn=does not exist");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)

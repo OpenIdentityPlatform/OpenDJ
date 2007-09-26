@@ -108,9 +108,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: :-(",
          "ds-cfg-replace-pattern: $1");
@@ -146,9 +146,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: unknown",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
@@ -185,9 +185,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
@@ -249,9 +249,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: cn",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
@@ -314,9 +314,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=test",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
@@ -379,9 +379,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: dc=example,dc=com",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
@@ -442,9 +442,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: dc=example,dc=com",
          "ds-cfg-match-base-dn: o=nonexistent",
@@ -509,9 +509,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
          "ds-cfg-replace-pattern: $1");
@@ -572,9 +572,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: @.+$");
 
@@ -634,9 +634,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-pattern: ^(.*)$",
          "ds-cfg-replace-pattern: $1@example.com");
@@ -697,9 +697,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: sn",
          "ds-cfg-match-pattern: ^([^@]+)@.+$",
@@ -774,9 +774,9 @@ public class RegularExpressionIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-regular-expression-identity-mapper",
          "cn: Regular Expression",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.RegularExpressionIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: sn",
          "ds-cfg-match-base-dn: ou=Users 1,o=test",

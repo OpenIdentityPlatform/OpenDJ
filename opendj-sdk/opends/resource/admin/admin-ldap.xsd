@@ -14,15 +14,6 @@
       schema.
     </xsd:documentation>
   </xsd:annotation>
-  <xsd:simpleType name="oid-type">
-    <xsd:annotation>
-      <xsd:documentation>A numeric OID.</xsd:documentation>
-    </xsd:annotation>
-    <xsd:restriction base="xsd:token">
-      <xsd:pattern
-        value="([0-9]+(\.[0-9]+)*)|([a-zA-Z][a-zA-Z0-9\-_]*-oid)" />
-    </xsd:restriction>
-  </xsd:simpleType>
   <xsd:simpleType name="name-type">
     <xsd:annotation>
       <xsd:documentation>
@@ -42,13 +33,6 @@
     </xsd:annotation>
     <xsd:complexType>
       <xsd:sequence>
-        <xsd:element name="oid" type="tns:oid-type">
-          <xsd:annotation>
-            <xsd:documentation>
-              The numeric OID of the LDAP object class.
-            </xsd:documentation>
-          </xsd:annotation>
-        </xsd:element>
         <xsd:element name="name" type="tns:name-type">
           <xsd:annotation>
             <xsd:documentation>
@@ -75,13 +59,6 @@
     </xsd:annotation>
     <xsd:complexType>
       <xsd:sequence>
-        <xsd:element name="oid" type="tns:oid-type">
-          <xsd:annotation>
-            <xsd:documentation>
-              The numeric OID of the LDAP attribute.
-            </xsd:documentation>
-          </xsd:annotation>
-        </xsd:element>
         <xsd:element name="name" type="tns:name-type">
           <xsd:annotation>
             <xsd:documentation>

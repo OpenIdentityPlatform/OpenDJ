@@ -172,8 +172,8 @@ public class MemoryBackend
     {
       Validator.ensureTrue(config instanceof MemoryBackendCfg);
       MemoryBackendCfg cfg = (MemoryBackendCfg)config;
-      DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
-      cfg.getBackendBaseDN().toArray(baseDNs);
+      DN[] baseDNs = new DN[cfg.getBaseDN().size()];
+      cfg.getBaseDN().toArray(baseDNs);
       setBaseDNs(baseDNs);
     }
   }

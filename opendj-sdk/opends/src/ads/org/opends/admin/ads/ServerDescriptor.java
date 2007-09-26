@@ -534,7 +534,7 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-connection-handler-enabled",
+            "ds-cfg-enabled",
             "ds-cfg-listen-address",
             "ds-cfg-listen-port",
             "ds-cfg-use-ssl",
@@ -565,7 +565,7 @@ public class ServerDescriptor
           getFirstValue(sr, "ds-cfg-use-ssl"));
 
       boolean enabled = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-connection-handler-enabled"));
+            getFirstValue(sr, "ds-cfg-enabled"));
       if (isSecure)
       {
         ldapsPorts.add(new Integer(port));
@@ -586,7 +586,7 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-connection-handler-enabled",
+            "ds-cfg-enabled",
             "ds-cfg-listen-address",
             "ds-cfg-listen-port",
             "ds-cfg-use-ssl",
@@ -617,7 +617,7 @@ public class ServerDescriptor
           getFirstValue(sr, "ds-cfg-use-ssl"));
 
       boolean enabled = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-connection-handler-enabled"));
+            getFirstValue(sr, "ds-cfg-enabled"));
       if (isSecure)
       {
         jmxsPorts.add(new Integer(port));
@@ -638,7 +638,7 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-backend-base-dn",
+            "ds-cfg-base-dn",
             "ds-cfg-backend-id"
         });
     String filter = "(objectclass=ds-cfg-backend)";
@@ -654,7 +654,7 @@ public class ServerDescriptor
 
       if (!isConfigBackend(id) || isSchemaBackend(id))
       {
-        Set<String> baseDns = getValues(sr, "ds-cfg-backend-base-dn");
+        Set<String> baseDns = getValues(sr, "ds-cfg-base-dn");
 
         int nEntries = getEntryCount(ctx, id);
 
@@ -694,7 +694,7 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-synchronization-provider-enabled"
+            "ds-cfg-enabled"
         });
     String filter = "(objectclass=ds-cfg-synchronization-provider)";
 
@@ -710,7 +710,7 @@ public class ServerDescriptor
         SearchResult sr = (SearchResult)syncProviders.next();
 
         if ("true".equalsIgnoreCase(getFirstValue(sr,
-          "ds-cfg-synchronization-provider-enabled")))
+          "ds-cfg-enabled")))
         {
           replicationEnabled = true;
         }
@@ -727,11 +727,11 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-replication-dn",
+            "ds-cfg-base-dn",
             "ds-cfg-replication-server",
-            "ds-cfg-directory-server-id"
+            "ds-cfg-server-id"
         });
-    filter = "(objectclass=ds-cfg-replication-domain-config)";
+    filter = "(objectclass=ds-cfg-replication-domain)";
 
     jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
@@ -745,10 +745,10 @@ public class ServerDescriptor
         SearchResult sr = (SearchResult)syncProviders.next();
 
         int id = Integer.parseInt(
-            getFirstValue(sr, "ds-cfg-directory-server-id"));
+            getFirstValue(sr, "ds-cfg-server-id"));
         Set<String> replicationServers = getValues(sr,
             "ds-cfg-replication-server");
-        Set<String> dns = getValues(sr, "ds-cfg-replication-dn");
+        Set<String> dns = getValues(sr, "ds-cfg-base-dn");
         oneDomainReplicated = dns.size() > 0;
         for (String dn : dns)
         {
@@ -779,10 +779,10 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
     new String[] {
-      "ds-cfg-replication-server-port", "ds-cfg-replication-server",
+      "ds-cfg-replication-port", "ds-cfg-replication-server",
       "ds-cfg-replication-server-id"
     });
-    filter = "(objectclass=ds-cfg-replication-server-config)";
+    filter = "(objectclass=ds-cfg-replication-server)";
 
     jndiName = new LdapName("cn=Replication Server,cn=Multimaster "+
         "Synchronization,cn=Synchronization Providers,cn=config");
@@ -799,7 +799,7 @@ public class ServerDescriptor
 
         desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER,
             Boolean.TRUE);
-        String v = getFirstValue(sr, "ds-cfg-replication-server-port");
+        String v = getFirstValue(sr, "ds-cfg-replication-port");
         desc.serverProperties.put(ServerProperty.REPLICATION_SERVER_PORT,
             Integer.parseInt(v));
         v = getFirstValue(sr, "ds-cfg-replication-server-id");

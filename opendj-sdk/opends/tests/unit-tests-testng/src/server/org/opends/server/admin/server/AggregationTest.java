@@ -142,10 +142,10 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real"
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real"
   };
 
   // Test child 2 LDIF.
@@ -154,11 +154,11 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 2",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
   };
 
   // Test child 3 LDIF (invalid reference).
@@ -167,11 +167,11 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 3",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=bad rdn, cn=config"
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=bad rdn, cn=config"
   };
 
   // Test child 4 LDIF.
@@ -180,12 +180,12 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 4",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
-      "ds-cfg-backend-base-dn: cn=LDAPS Connection Handler, cn=connection handlers, cn=config"
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
+      "ds-cfg-rotation-policy: cn=LDAPS Connection Handler, cn=connection handlers, cn=config"
   };
 
   // Test child 5 LDIF.
@@ -194,13 +194,13 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 5",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-backend-base-dn: cn=BAD Connection Handler 1, cn=connection handlers, cn=config",
-      "ds-cfg-backend-base-dn: cn=BAD Connection Handler 2, cn=connection handlers, cn=config",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-rotation-policy: cn=BAD Connection Handler 1, cn=connection handlers, cn=config",
+      "ds-cfg-rotation-policy: cn=BAD Connection Handler 2, cn=connection handlers, cn=config",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
   };
 
   // Test child 6 LDIF.
@@ -209,11 +209,11 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 6",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-backend-base-dn: cn=" + TEST_CONNECTION_HANDLER_NAME
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-rotation-policy: cn=" + TEST_CONNECTION_HANDLER_NAME
           + ", cn=connection handlers, cn=config"
   };
 
@@ -223,11 +223,11 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 7",
-      "ds-cfg-virtual-attribute-enabled: false",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-backend-base-dn: cn=" + TEST_CONNECTION_HANDLER_NAME
+      "ds-cfg-enabled: false",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-rotation-policy: cn=" + TEST_CONNECTION_HANDLER_NAME
           + ", cn=connection handlers, cn=config"
   };
 
@@ -244,10 +244,10 @@ public final class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
       "",
       // Child base entries.
       "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",

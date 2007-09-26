@@ -39,8 +39,8 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.FileBasedTrustManagerCfgDefn;
-import org.opends.server.admin.std.server.FileBasedTrustManagerCfg;
+import org.opends.server.admin.std.meta.FileBasedTrustManagerProviderCfgDefn;
+import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -102,9 +102,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "",
          "dn: cn=Trust Manager Provider,cn=SSL,cn=config",
@@ -112,9 +112,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin: password",
          "",
@@ -123,9 +123,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin-file: config/server.pin",
          "",
@@ -134,9 +134,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin-property: org.opends.server.trustStorePIN",
          "",
@@ -145,9 +145,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin: password",
          "ds-cfg-trust-store-type: JKS");
@@ -176,9 +176,9 @@ public class FileBasedTrustManagerProviderTestCase
   public void testVvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedTrustManagerCfg configuration =
+    FileBasedTrustManagerProviderCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              FileBasedTrustManagerCfgDefn.getInstance(), e);
+              FileBasedTrustManagerProviderCfgDefn.getInstance(), e);
 
     FileBasedTrustManagerProvider provider = new FileBasedTrustManagerProvider();
     provider.initializeTrustManagerProvider(configuration);
@@ -203,9 +203,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-pin: password",
          "",
          "dn: cn=Trust Manager Provider,cn=SSL,cn=config",
@@ -213,9 +213,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/nosuchfile",
          "ds-cfg-trust-store-pin: password",
          "",
@@ -224,9 +224,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin-file: config/nosuchfile",
          "",
@@ -235,9 +235,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin-file: config/empty",
          "",
@@ -246,9 +246,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin-property: nosuchproperty",
          "",
@@ -257,9 +257,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin-environment-variable: nosuchenv",
          "",
@@ -268,9 +268,9 @@ public class FileBasedTrustManagerProviderTestCase
          "objectClass: ds-cfg-trust-manager-provider",
          "objectClass: ds-cfg-file-based-trust-manager-provider",
          "cn: Trust Manager Provider",
-         "ds-cfg-trust-manager-provider-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "FileBasedTrustManagerProvider",
-         "ds-cfg-trust-manager-provider-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-trust-store-file: config/server.truststore",
          "ds-cfg-trust-store-pin: password",
          "ds-cfg-trust-store-type: invalid");
@@ -301,9 +301,9 @@ public class FileBasedTrustManagerProviderTestCase
   public void testInvalidConfigs(Entry e)
          throws Exception
   {
-    FileBasedTrustManagerCfg configuration =
+    FileBasedTrustManagerProviderCfg configuration =
          AdminTestCaseUtils.getConfiguration(
-              FileBasedTrustManagerCfgDefn.getInstance(), e);
+              FileBasedTrustManagerProviderCfgDefn.getInstance(), e);
 
     FileBasedTrustManagerProvider provider =
          new FileBasedTrustManagerProvider();

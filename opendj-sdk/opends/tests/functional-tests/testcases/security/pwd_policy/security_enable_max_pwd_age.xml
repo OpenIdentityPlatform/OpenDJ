@@ -33,12 +33,12 @@
 
       <sequence>
 
-        <!--- Test Case : Check Existence of ds-cfg-maximum-password-age -->
-        <testcase name="getTestCaseName('Check Existence of ds-cfg-maximum-password-age')">
+        <!--- Test Case : Check Existence of ds-cfg-max-password-age -->
+        <testcase name="getTestCaseName('Check Existence of ds-cfg-max-password-age')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Change: Checking existence of ds-cfg-maximum-password-age'
+               'Security: Pwd Change: Checking existence of ds-cfg-max-password-age'
             </message>
 
             <call function="'compareEntry'">
@@ -46,7 +46,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-maximum-password-age:0 seconds',
+                'attrToBeCompared'   : 'ds-cfg-max-password-age:0 seconds',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 

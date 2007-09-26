@@ -36,8 +36,8 @@ import java.util.Map;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.MultimasterDomainCfg;
-import org.opends.server.admin.std.server.MultimasterSynchronizationProviderCfg;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.ExportTaskListener;
@@ -79,9 +79,9 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
  * as pre-op, conflictRsolution, and post-op.
  */
 public class MultimasterReplication
-       extends SynchronizationProvider<MultimasterSynchronizationProviderCfg>
-       implements ConfigurationAddListener<MultimasterDomainCfg>,
-                  ConfigurationDeleteListener<MultimasterDomainCfg>,
+       extends SynchronizationProvider<ReplicationSynchronizationProviderCfg>
+       implements ConfigurationAddListener<ReplicationDomainCfg>,
+                  ConfigurationDeleteListener<ReplicationDomainCfg>,
                   BackupTaskListener, RestoreTaskListener, ImportTaskListener,
                   ExportTaskListener
 {
@@ -163,7 +163,7 @@ public class MultimasterReplication
    * @throws ConfigException When the configuration is not valid.
    */
   public static ReplicationDomain createNewDomain(
-      MultimasterDomainCfg configuration)
+      ReplicationDomainCfg configuration)
       throws ConfigException
   {
     ReplicationDomain domain;
@@ -189,7 +189,7 @@ public class MultimasterReplication
    */
   @Override
   public void initializeSynchronizationProvider(
-      MultimasterSynchronizationProviderCfg configuration)
+      ReplicationSynchronizationProviderCfg configuration)
   throws ConfigException
   {
     domains.clear();
@@ -197,13 +197,13 @@ public class MultimasterReplication
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if Multimaster domain entries are added or removed.
-    configuration.addMultimasterDomainAddListener(this);
-    configuration.addMultimasterDomainDeleteListener(this);
+    configuration.addReplicationDomainAddListener(this);
+    configuration.addReplicationDomainDeleteListener(this);
 
     //  Create the list of domains that are already defined.
-    for (String name : configuration.listMultimasterDomains())
+    for (String name : configuration.listReplicationDomains())
     {
-      MultimasterDomainCfg domain = configuration.getMultimasterDomain(name);
+      ReplicationDomainCfg domain = configuration.getReplicationDomain(name);
       createNewDomain(domain);
     }
 
@@ -231,7 +231,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   public boolean isConfigurationAddAcceptable(
-      MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
+      ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return ReplicationDomain.isConfigurationAcceptable(
       configuration, unacceptableReasons);
@@ -241,7 +241,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationAdd(
-     MultimasterDomainCfg configuration)
+     ReplicationDomainCfg configuration)
   {
     try
     {
@@ -579,9 +579,9 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationDelete(
-      MultimasterDomainCfg configuration)
+      ReplicationDomainCfg configuration)
   {
-    deleteDomain(configuration.getReplicationDN());
+    deleteDomain(configuration.getBaseDN());
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
@@ -590,7 +590,7 @@ public class MultimasterReplication
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      MultimasterDomainCfg configuration, List<Message> unacceptableReasons)
+      ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     return true;
   }

@@ -137,7 +137,7 @@ public class ConnectionHandlerConfigManager implements
 
 
         messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-                String.valueOf(configuration.getJavaImplementationClass()),
+                String.valueOf(configuration.getJavaClass()),
                 String.valueOf(dn),
             stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
@@ -200,7 +200,7 @@ public class ConnectionHandlerConfigManager implements
 
           messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
                   String.valueOf(configuration
-              .getJavaImplementationClass()), String.valueOf(dn),
+              .getJavaClass()), String.valueOf(dn),
               stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
         }
@@ -212,7 +212,7 @@ public class ConnectionHandlerConfigManager implements
         // applied dynamically, so if the class name did change then
         // indicate that administrative action is required for that
         // change to take effect.
-        String className = configuration.getJavaImplementationClass();
+        String className = configuration.getJavaClass();
         if (!className.equals(connectionHandler.getClass().getName())) {
           adminActionRequired = true;
         }
@@ -374,11 +374,11 @@ public class ConnectionHandlerConfigManager implements
                getConnectionHandler(ConnectionHandlerCfg config)
           throws ConfigException
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     ConnectionHandlerCfgDefn d =
       ConnectionHandlerCfgDefn.getInstance();
     ClassPropertyDefinition pd = d
-        .getJavaImplementationClassPropertyDefinition();
+        .getJavaClassPropertyDefinition();
 
     // Load the class and cast it to a connection handler.
     Class<? extends ConnectionHandler> theClass;
@@ -434,11 +434,11 @@ public class ConnectionHandlerConfigManager implements
   private boolean isJavaClassAcceptable(
       ConnectionHandlerCfg config,
       List<Message> unacceptableReasons) {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     ConnectionHandlerCfgDefn d =
       ConnectionHandlerCfgDefn.getInstance();
     ClassPropertyDefinition pd = d
-        .getJavaImplementationClassPropertyDefinition();
+        .getJavaClassPropertyDefinition();
 
     // Load the class and cast it to a connection handler.
     ConnectionHandler connectionHandler = null;

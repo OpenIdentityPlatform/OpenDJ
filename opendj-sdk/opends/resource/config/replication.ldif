@@ -11,19 +11,19 @@
 
 dn: cn=example,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
-objectClass: ds-cfg-replication-domain-config
+objectClass: ds-cfg-replication-domain
 cn: example
-ds-cfg-replication-dn: dc=example,dc=com
+ds-cfg-base-dn: dc=example,dc=com
 ds-cfg-replication-server: localhost:8989
 ds-cfg-replication-server: localhost:8990
-ds-cfg-directory-server-id: 1
+ds-cfg-server-id: 1
 ds-cfg-receive-status: true
 
 dn: cn=Replication Server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
-objectClass: ds-cfg-replication-server-config
+objectClass: ds-cfg-replication-server
 cn: Replication Server
-ds-cfg-replication-server-port: 8989
+ds-cfg-replication-port: 8989
 ds-cfg-replication-server: localhost:8989
 ds-cfg-replication-server: localhost:8990
 ds-cfg-replication-server-id: 1

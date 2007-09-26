@@ -26,9 +26,9 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="pkcs11-key-manager"
-  plural-name="pkcs11-key-managers"
-  package="org.opends.server.admin.std" extends="key-manager"
+<adm:managed-object name="pkcs11-key-manager-provider"
+  plural-name="pkcs11-key-manager-providers"
+  package="org.opends.server.admin.std" extends="key-manager-provider"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:TODO>
@@ -49,12 +49,11 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.21</ldap:oid>
       <ldap:name>ds-cfg-pkcs11-key-manager-provider</ldap:name>
       <ldap:superior>ds-cfg-key-manager-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-implementation-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

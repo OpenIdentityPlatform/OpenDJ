@@ -113,12 +113,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual",
-      "ds-cfg-virtual-attribute-value: single value");
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: real-overrides-virtual",
+      "ds-cfg-value: single value");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -174,13 +174,13 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual",
-      "ds-cfg-virtual-attribute-value: first value",
-      "ds-cfg-virtual-attribute-value: second value");
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: real-overrides-virtual",
+      "ds-cfg-value: first value",
+      "ds-cfg-value: second value");
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -241,12 +241,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual",
-      "ds-cfg-virtual-attribute-value: " + value,
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: real-overrides-virtual",
+      "ds-cfg-value: " + value,
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -304,13 +304,13 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual",
-      "ds-cfg-virtual-attribute-value: " + value1,
-      "ds-cfg-virtual-attribute-value: " + value2,
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: real-overrides-virtual",
+      "ds-cfg-value: " + value1,
+      "ds-cfg-value: " + value2,
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -369,12 +369,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: real-overrides-virtual",
-      "ds-cfg-virtual-attribute-value: " + virtualValue,
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: real-overrides-virtual",
+      "ds-cfg-value: " + virtualValue,
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -433,12 +433,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: virtual-overrides-real",
-      "ds-cfg-virtual-attribute-value: " + virtualValue,
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: virtual-overrides-real",
+      "ds-cfg-value: " + virtualValue,
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -498,12 +498,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-virtual-attribute-conflict-behavior: merge-real-and-virtual",
-      "ds-cfg-virtual-attribute-value: " + virtualValue,
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-conflict-behavior: merge-real-and-virtual",
+      "ds-cfg-value: " + virtualValue,
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -569,7 +569,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-password-policy",
       "cn: Test Policy",
       "ds-cfg-password-attribute: userPassword",
-      "ds-cfg-default-password-storage-scheme-dn: " +
+      "ds-cfg-default-password-storage-scheme: " +
            "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
       "ds-cfg-allow-expired-password-changes: false",
       "ds-cfg-allow-multiple-password-values: false",
@@ -583,12 +583,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "ds-cfg-lockout-failure-count: 0",
       "ds-cfg-lockout-duration: 0 seconds",
       "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-      "ds-cfg-minimum-password-age: 0 seconds",
-      "ds-cfg-maximum-password-age: 0 seconds",
-      "ds-cfg-maximum-password-reset-age: 0 seconds",
+      "ds-cfg-min-password-age: 0 seconds",
+      "ds-cfg-max-password-age: 0 seconds",
+      "ds-cfg-max-password-reset-age: 0 seconds",
       "ds-cfg-password-expiration-warning-interval: 5 days",
       "ds-cfg-password-change-requires-current-password: true",
-      "ds-cfg-password-validator-dn: cn=Length-Based Password Validator," +
+      "ds-cfg-password-validator: cn=Length-Based Password Validator," +
            "cn=Password Validators,cn=config",
       "ds-cfg-require-secure-authentication: false",
       "ds-cfg-require-secure-password-changes: false",
@@ -599,12 +599,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-type: ds-pwp-password-policy-dn",
-      "ds-cfg-virtual-attribute-conflict-behavior: merge-real-and-virtual",
-      "ds-cfg-virtual-attribute-value: " + policyDN,
+      "ds-cfg-enabled: true",
+      "ds-cfg-attribute-type: ds-pwp-password-policy-dn",
+      "ds-cfg-conflict-behavior: merge-real-and-virtual",
+      "ds-cfg-value: " + policyDN,
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -639,8 +639,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
     String path2 = TestCaseUtils.createTempFile(
       "dn: " + ruleDN,
       "changetype: modify",
-      "replace: ds-cfg-virtual-attribute-enabled",
-      "ds-cfg-virtual-attribute-enabled: false");
+      "replace: ds-cfg-enabled",
+      "ds-cfg-enabled: false");
 
     String[] args2 = new String[]
     {
@@ -690,12 +690,12 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "objectClass: ds-cfg-virtual-attribute",
       "objectClass: ds-cfg-user-defined-virtual-attribute",
       "cn: User-Defined Test",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-enabled: false",
-      "ds-cfg-virtual-attribute-type: ds-privilege-name",
-      "ds-cfg-virtual-attribute-conflict-behavior: merge-real-and-virtual",
-      "ds-cfg-virtual-attribute-value: bypass-acl",
+      "ds-cfg-enabled: false",
+      "ds-cfg-attribute-type: ds-privilege-name",
+      "ds-cfg-conflict-behavior: merge-real-and-virtual",
+      "ds-cfg-value: bypass-acl",
       "",
       "dn: " + userDN,
       "objectClass: top",
@@ -730,8 +730,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
     String path2 = TestCaseUtils.createTempFile(
       "dn: " + ruleDN,
       "changetype: modify",
-      "replace: ds-cfg-virtual-attribute-enabled",
-      "ds-cfg-virtual-attribute-enabled: true");
+      "replace: ds-cfg-enabled",
+      "ds-cfg-enabled: true");
 
     String[] args2 = new String[]
     {

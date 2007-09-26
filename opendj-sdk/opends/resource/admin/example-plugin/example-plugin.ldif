@@ -3,8 +3,8 @@ objectClass: top
 objectClass: ds-cfg-plugin
 objectClass: ds-cfg-example-plugin
 cn: Example Plugin
-ds-cfg-plugin-enabled: true
-ds-cfg-plugin-class: com.example.opends.ExamplePlugin
+ds-cfg-enabled: true
+ds-cfg-java-class: com.example.opends.ExamplePlugin
 ds-cfg-plugin-type: startup
 ds-cfg-example-plugin-message: Hello World
 

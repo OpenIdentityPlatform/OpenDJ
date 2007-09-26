@@ -86,11 +86,8 @@ public class PlainSASLMechanismHandler
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The DN of the configuration entry for this SASL mechanism handler.
-  private DN configEntryDN;
-
   // The identity mapper that will be used to map ID strings to user entries.
-  private IdentityMapper identityMapper;
+  private IdentityMapper<?> identityMapper;
 
   // The current configuration for this SASL mechanism handler.
   private PlainSASLMechanismHandlerCfg currentConfig;
@@ -118,20 +115,12 @@ public class PlainSASLMechanismHandler
          throws ConfigException, InitializationException
   {
     configuration.addPlainChangeListener(this);
-
     currentConfig = configuration;
-    configEntryDN = configuration.dn();
 
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (identityMapper == null)
-    {
-      Message message = ERR_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER.get(
-          String.valueOf(identityMapperDN), String.valueOf(configEntryDN));
-      throw new ConfigException(message);
-    }
 
 
     DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_PLAIN, this);
@@ -158,7 +147,7 @@ public class PlainSASLMechanismHandler
   @Override()
   public void processSASLBind(BindOperation bindOperation)
   {
-    IdentityMapper identityMapper = this.identityMapper;
+    IdentityMapper<?> identityMapper = this.identityMapper;
 
     // Get the SASL credentials provided by the user and decode them.
     String authzID  = null;
@@ -606,23 +595,7 @@ public class PlainSASLMechanismHandler
                       PlainSASLMechanismHandlerCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    DN cfgEntryDN = configuration.dn();
-
-    // Get the identity mapper that should be used to find users.
-    DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper newIdentityMapper =
-         DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (newIdentityMapper == null)
-    {
-      unacceptableReasons.add(ERR_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER.get(
-              String.valueOf(identityMapperDN),
-              String.valueOf(cfgEntryDN)));
-      configAcceptable = false;
-    }
-
-
-    return configAcceptable;
+    return true;
   }
 
 
@@ -640,29 +613,11 @@ public class PlainSASLMechanismHandler
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
-    IdentityMapper newIdentityMapper =
-         DirectoryServer.getIdentityMapper(identityMapperDN);
-    if (newIdentityMapper == null)
-    {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      }
-
-      messages.add(ERR_SASLPLAIN_NO_SUCH_IDENTITY_MAPPER.get(
-              String.valueOf(identityMapperDN),
-              String.valueOf(configEntryDN)));
-    }
+    identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
+    currentConfig  = configuration;
 
 
-    if (resultCode == ResultCode.SUCCESS)
-    {
-      identityMapper = newIdentityMapper;
-      currentConfig  = configuration;
-    }
-
-
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }
 

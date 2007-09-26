@@ -71,7 +71,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.JEBackendCfg;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 
 /**
  * A backup manager for JE backends.
@@ -143,7 +143,7 @@ public class BackupManager
    * @param  backupConfig  The configuration to use when performing the backup.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void createBackup(JEBackendCfg cfg, BackupConfig backupConfig)
+  public void createBackup(LocalDBBackendCfg cfg, BackupConfig backupConfig)
        throws DirectoryException
   {
     // Get the properties to use for the backup.
@@ -225,7 +225,7 @@ public class BackupManager
     // If this is an incremental, determine the base backup for this backup.
     HashSet<String> dependencies = new HashSet<String>();
     BackupInfo baseBackup = null;
-    File backendDir = getFileForPath(cfg.getBackendDirectory());
+    File backendDir = getFileForPath(cfg.getDBDirectory());
 /*
     FilenameFilter backupTagFilter = new FilenameFilter()
     {
@@ -714,7 +714,7 @@ public class BackupManager
    * @param  restoreConfig The configuration to use when performing the restore.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void restoreBackup(JEBackendCfg cfg,
+  public void restoreBackup(LocalDBBackendCfg cfg,
                             RestoreConfig restoreConfig)
        throws DirectoryException
   {
@@ -727,7 +727,7 @@ public class BackupManager
 
     // Create a restore directory with a different name to the backend
     // directory.
-    File currentDir = getFileForPath(cfg.getBackendDirectory());
+    File currentDir = getFileForPath(cfg.getDBDirectory());
     File restoreDir = new File(currentDir.getPath() + "-restore-" + backupID);
     if (!verifyOnly)
     {

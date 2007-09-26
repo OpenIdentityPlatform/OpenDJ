@@ -31,9 +31,9 @@ import java.util.SortedSet;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.client.MultimasterDomainCfgClient;
-import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn.IsolationPolicy;
-import org.opends.server.admin.std.server.MultimasterDomainCfg;
+import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
@@ -41,7 +41,7 @@ import org.opends.server.types.DirectoryException;
  * This class implement a configuration object for the MultimasterDomain
  * that can be used in unit tests to instantiate ReplicationDomain.
  */
-public class DomainFakeCfg implements MultimasterDomainCfg
+public class DomainFakeCfg implements ReplicationDomainCfg
 {
   private DN baseDn;
   private int serverId;
@@ -63,7 +63,7 @@ public class DomainFakeCfg implements MultimasterDomainCfg
    * {@inheritDoc}
    */
   public void addChangeListener(
-      ConfigurationChangeListener<MultimasterDomainCfg> listener)
+      ConfigurationChangeListener<ReplicationDomainCfg> listener)
   {
 
   }
@@ -71,8 +71,8 @@ public class DomainFakeCfg implements MultimasterDomainCfg
   /**
    * {@inheritDoc}
    */
-  public ManagedObjectDefinition<? extends MultimasterDomainCfgClient,
-      ? extends MultimasterDomainCfg> definition()
+  public ManagedObjectDefinition<? extends ReplicationDomainCfgClient,
+      ? extends ReplicationDomainCfg> definition()
   {
     return null;
   }
@@ -120,7 +120,7 @@ public class DomainFakeCfg implements MultimasterDomainCfg
   /**
    * {@inheritDoc}
    */
-  public DN getReplicationDN()
+  public DN getBaseDN()
   {
     return baseDn;
   }
@@ -153,7 +153,7 @@ public class DomainFakeCfg implements MultimasterDomainCfg
    * {@inheritDoc}
    */
   public void removeChangeListener(
-      ConfigurationChangeListener<MultimasterDomainCfg> listener)
+      ConfigurationChangeListener<ReplicationDomainCfg> listener)
   {
   }
 

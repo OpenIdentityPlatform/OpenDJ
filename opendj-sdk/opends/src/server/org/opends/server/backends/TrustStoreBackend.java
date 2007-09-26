@@ -190,7 +190,7 @@ public class TrustStoreBackend
 
     // Create the set of base DNs that we will handle.  In this case, it's just
     // the DN of the base trust store entry.
-    SortedSet<DN> baseDNSet = configuration.getBackendBaseDN();
+    SortedSet<DN> baseDNSet = configuration.getBaseDN();
     if (baseDNSet.size() != 1)
     {
       Message message = ERR_TRUSTSTORE_REQUIRES_ONE_BASE_DN.get(

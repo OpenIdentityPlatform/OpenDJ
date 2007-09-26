@@ -41,9 +41,8 @@ xmlns:cli="http://www.opends.org/admin-cli">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.25</ldap:oid>
-      <ldap:name>ds-cfg-debug-logger</ldap:name>
-      <ldap:superior>ds-cfg-logger</ldap:superior>
+      <ldap:name>ds-cfg-debug-log-publisher</ldap:name>
+      <ldap:superior>ds-cfg-log-publisher</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
@@ -60,7 +59,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:profile>
   </adm:relation>
 
-  <adm:property name="java-implementation-class" mandatory="true">
+  <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
@@ -75,8 +74,7 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.60</ldap:oid>
-        <ldap:name>ds-cfg-logger-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -124,7 +122,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.345</ldap:oid>
         <ldap:name>ds-cfg-default-debug-level</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -176,7 +173,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.346</ldap:oid>
         <ldap:name>ds-cfg-default-debug-category</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -197,7 +193,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.347</ldap:oid>
         <ldap:name>
           ds-cfg-default-omit-method-entry-arguments
         </ldap:name>
@@ -220,7 +215,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.348</ldap:oid>
         <ldap:name>ds-cfg-default-omit-method-return-value</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -241,7 +235,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.349</ldap:oid>
         <ldap:name>ds-cfg-default-include-throwable-cause</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -262,7 +255,6 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.350</ldap:oid>
         <ldap:name>ds-cfg-default-throwable-stack-frames</ldap:name>
       </ldap:attribute>
     </adm:profile>

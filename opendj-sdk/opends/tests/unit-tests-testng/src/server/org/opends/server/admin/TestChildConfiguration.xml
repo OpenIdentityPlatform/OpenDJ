@@ -49,7 +49,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.326</ldap:oid>
-        <ldap:name>ds-cfg-virtual-attribute-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -77,7 +77,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.325</ldap:oid>
-        <ldap:name>ds-cfg-virtual-attribute-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -92,7 +92,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.327</ldap:oid>
-        <ldap:name>ds-cfg-virtual-attribute-type</ldap:name>
+        <ldap:name>ds-cfg-attribute-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -114,7 +114,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.328</ldap:oid>
-        <ldap:name>ds-cfg-virtual-attribute-base-dn</ldap:name>
+        <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -136,7 +136,7 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:oid>1.3.6.1.4.1.26027.1.1.329</ldap:oid>
-        <ldap:name>ds-cfg-virtual-attribute-group-dn</ldap:name>
+        <ldap:name>ds-cfg-group-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

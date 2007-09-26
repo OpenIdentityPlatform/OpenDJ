@@ -44,7 +44,6 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.37</ldap:oid>
       <ldap:name>ds-cfg-plugin</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -61,13 +60,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.80</ldap:oid>
-        <ldap:name>ds-cfg-plugin-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-class" mandatory="true">
+  <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
@@ -82,8 +79,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.79</ldap:oid>
-        <ldap:name>ds-cfg-plugin-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -368,7 +364,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.81</ldap:oid>
         <ldap:name>ds-cfg-plugin-type</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -391,7 +386,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.495</ldap:oid>
         <ldap:name>ds-cfg-invoke-for-internal-operations</ldap:name>
       </ldap:attribute>
     </adm:profile>

@@ -137,10 +137,10 @@ public class FileSystemEntryCacheTestCase
 
     // Create dummy JE backend for this test.
     TestCaseUtils.dsconfig("create-backend", "--backend-name", "cacheTest",
-      "--type", "je", "--set", "backend-directory:" + jeDir, "--set",
-      "backend-base-dn:o=cachetest", "--set",
-      "backend-import-temp-directory:importTmp", "--set",
-      "backend-writability-mode:enabled", "--set", "backend-enabled:true");
+      "--type", "local-db", "--set", "db-directory:" + jeDir, "--set",
+      "base-dn:o=cachetest", "--set",
+      "import-temp-directory:importTmp", "--set",
+      "writability-mode:enabled", "--set", "enabled:true");
 
     // Finalize this cache so it can be reconfigured.
     super.cache.finalizeEntryCache();
@@ -205,9 +205,9 @@ public class FileSystemEntryCacheTestCase
       "objectClass: ds-cfg-entry-cache",
       "objectClass: top",
       "cn: Entry Cache",
-      "ds-cfg-entry-cache-class: " +
+      "ds-cfg-java-class: " +
       "org.opends.server.extensions.FileSystemEntryCache",
-      "ds-cfg-entry-cache-enabled: true",
+      "ds-cfg-enabled: true",
       "ds-cfg-max-entries: " + Integer.toString(super.MAXENTRIES));
     super.configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), cacheConfigEntry);

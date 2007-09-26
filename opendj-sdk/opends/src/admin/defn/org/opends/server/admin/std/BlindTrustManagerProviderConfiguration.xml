@@ -26,9 +26,9 @@
 !      Portions Copyright 2007 Sun Microsystems, Inc.
 ! -->
 
-<adm:managed-object name="blind-trust-manager"
-  plural-name="blind-trust-managers"
-  package="org.opends.server.admin.std" extends="trust-manager"
+<adm:managed-object name="blind-trust-manager-provider"
+  plural-name="blind-trust-manager-providers"
+  package="org.opends.server.admin.std" extends="trust-manager-provider"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
 
@@ -42,13 +42,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.154</ldap:oid>
       <ldap:name>ds-cfg-blind-trust-manager-provider</ldap:name>
       <ldap:superior>ds-cfg-trust-manager-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="java-implementation-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

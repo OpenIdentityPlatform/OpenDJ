@@ -84,9 +84,9 @@ public class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-parent-dummy",
       "cn: test parent 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
       "",
       // Child base entry.
       "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
@@ -99,40 +99,40 @@ public class AggregationTest extends AdminTestCase {
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 1",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
       "",
       // Child 2 has a single valid reference.
       "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 2",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
       "",
       // Child 3 has a multiple valid references.
       "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 3",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
-      "ds-cfg-backend-base-dn: cn=LDAPS Connection Handler, cn=connection handlers, cn=config",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config",
+      "ds-cfg-rotation-policy: cn=LDAPS Connection Handler, cn=connection handlers, cn=config",
       "",
       // Child 4 has a single bad reference.
       "dn: cn=test child 4,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
       "objectclass: ds-cfg-test-child-dummy",
       "cn: test child 4",
-      "ds-cfg-virtual-attribute-enabled: true",
-      "ds-cfg-virtual-attribute-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-      "ds-cfg-virtual-attribute-type: description",
-      "ds-cfg-backend-base-dn: cn=LDAP Connection Handler, cn=bad rdn, cn=config",
+      "ds-cfg-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+      "ds-cfg-attribute-type: description",
+      "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=bad rdn, cn=config",
       "",
       "dn: cn=Connection Handlers,cn=config",
       "objectClass: top",
@@ -144,8 +144,8 @@ public class AggregationTest extends AdminTestCase {
       "objectClass: ds-cfg-connection-handler",
       "objectClass: ds-cfg-ldap-connection-handler",
       "cn: LDAP Connection Handler",
-      "ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
-      "ds-cfg-connection-handler-enabled: true",
+      "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+      "ds-cfg-enabled: true",
       "ds-cfg-listen-address: 0.0.0.0",
       "ds-cfg-listen-port: 389",
       "",
@@ -154,23 +154,23 @@ public class AggregationTest extends AdminTestCase {
       "objectClass: ds-cfg-connection-handler",
       "objectClass: ds-cfg-ldap-connection-handler",
       "cn: LDAPS Connection Handler",
-      "ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
-      "ds-cfg-connection-handler-enabled: false",
+      "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+      "ds-cfg-enabled: false",
       "ds-cfg-listen-address: 0.0.0.0",
       "ds-cfg-listen-port: 636",
       "ds-cfg-use-ssl: true",
       "ds-cfg-ssl-client-auth-policy: optional",
       "ds-cfg-ssl-cert-nickname: server-cert",
-      "ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config",
-      "ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config",
+      "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
+      "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config",
       "",
       "dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-connection-handler",
       "objectClass: ds-cfg-jmx-connection-handler",
       "cn: JMX Connection Handler",
-      "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-      "ds-cfg-connection-handler-enabled: false",
+      "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+      "ds-cfg-enabled: false",
       "ds-cfg-listen-port: 1689",
       ""
   };
@@ -318,11 +318,11 @@ public class AggregationTest extends AdminTestCase {
     c.importLDIF(TEST_LDIF);
     c.addExpectedAttribute("cn", "test child new");
     c.addExpectedAttribute("objectclass", "top", "ds-cfg-test-child-dummy");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-enabled", "true");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-class",
+    c.addExpectedAttribute("ds-cfg-enabled", "true");
+    c.addExpectedAttribute("ds-cfg-java-class",
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-    c.addExpectedAttribute("ds-cfg-virtual-attribute-type", "description");
-    c.addExpectedAttribute("ds-cfg-backend-base-dn",
+    c.addExpectedAttribute("ds-cfg-attribute-type", "description");
+    c.addExpectedAttribute("ds-cfg-rotation-policy",
         "cn=LDAP Connection Handler,cn=connection handlers,cn=config");
 
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);
@@ -353,7 +353,7 @@ public class AggregationTest extends AdminTestCase {
     ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
         "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
     c.importLDIF(TEST_LDIF);
-    c.addExpectedModification("ds-cfg-backend-base-dn",
+    c.addExpectedModification("ds-cfg-rotation-policy",
         "cn=LDAPS Connection Handler,cn=connection handlers,cn=config",
         "cn=JMX Connection Handler,cn=connection handlers,cn=config");
     ManagementContext ctx = LDAPManagementContext.createFromContext(c);

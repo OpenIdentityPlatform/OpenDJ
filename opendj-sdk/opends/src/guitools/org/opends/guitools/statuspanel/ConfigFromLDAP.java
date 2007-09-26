@@ -439,7 +439,7 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-connection-handler-enabled",
+            "ds-cfg-enabled",
             "ds-cfg-listen-address",
             "ds-cfg-listen-port",
             "ds-cfg-use-ssl",
@@ -472,7 +472,7 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-synchronization-provider-enabled"
+            "ds-cfg-enabled"
         });
     String filter = "(objectclass=ds-cfg-synchronization-provider)";
 
@@ -488,7 +488,7 @@ public class ConfigFromLDAP
         SearchResult sr = (SearchResult)syncProviders.next();
 
         if ("true".equalsIgnoreCase(getFirstValue(sr,
-          "ds-cfg-synchronization-provider-enabled")))
+          "ds-cfg-enabled")))
         {
           replicationConfigured = true;
         }
@@ -502,9 +502,9 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-replication-dn"
+            "ds-cfg-base-dn"
         });
-    filter = "(objectclass=ds-cfg-replication-domain-config)";
+    filter = "(objectclass=ds-cfg-replication-domain)";
 
     jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
@@ -517,7 +517,7 @@ public class ConfigFromLDAP
       {
         SearchResult sr = (SearchResult)syncProviders.next();
 
-        replicatedSuffixes.addAll(getValues(sr, "ds-cfg-replication-dn"));
+        replicatedSuffixes.addAll(getValues(sr, "ds-cfg-base-dn"));
       }
     }
     catch (NameNotFoundException nse)
@@ -589,7 +589,7 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-backend-base-dn",
+            "ds-cfg-base-dn",
             "ds-cfg-backend-id"
         });
     String filter = "(objectclass=ds-cfg-backend)";
@@ -621,7 +621,7 @@ public class ConfigFromLDAP
         new String[] {
             "ds-cfg-alternate-bind-dn"
         });
-    String filter = "(objectclass=ds-cfg-root-dn)";
+    String filter = "(objectclass=ds-cfg-root-dn-user)";
 
     LdapName jndiName = new LdapName("cn=config");
     NamingEnumeration users = ctx.search(jndiName, filter, ctls);
@@ -836,7 +836,7 @@ public class ConfigFromLDAP
         protocol = ListenerDescriptor.Protocol.LDAP;
       }
       boolean enabled = "true".equalsIgnoreCase(
-          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+          getFirstValue(entry, "ds-cfg-enabled"));
       if (enabled)
       {
         state = ListenerDescriptor.State.ENABLED;
@@ -860,7 +860,7 @@ public class ConfigFromLDAP
         protocol = ListenerDescriptor.Protocol.JMX;
       }
       boolean enabled = "true".equalsIgnoreCase(
-          getFirstValue(entry, "ds-cfg-connection-handler-enabled"));
+          getFirstValue(entry, "ds-cfg-enabled"));
       if (enabled)
       {
         state = ListenerDescriptor.State.ENABLED;
@@ -929,7 +929,7 @@ public class ConfigFromLDAP
 
     if (!isConfigBackend(id))
     {
-      Set<String> baseDns = getValues(entry, "ds-cfg-backend-base-dn");
+      Set<String> baseDns = getValues(entry, "ds-cfg-base-dn");
       TreeSet<BaseDNDescriptor> replicas = new TreeSet<BaseDNDescriptor>();
       int nEntries = getEntryCount(ctx, id);
 

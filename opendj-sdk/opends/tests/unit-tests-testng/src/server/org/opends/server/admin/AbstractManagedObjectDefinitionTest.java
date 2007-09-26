@@ -39,6 +39,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -96,6 +97,16 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
+  }
+
+
+
+  /**
+   * Tears down test environment.
+   */
+  @AfterClass
+  public void tearDown() {
+    top.deregisterFromParent();
   }
 
 
@@ -243,14 +254,14 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
    * <p>
    * Check that the generic connection handler definition does not
    * have a default behavior defined for the
-   * java-implementation-class.
+   * java-class.
    */
   @Test
   public void testPropertyOverride1() {
     AbstractManagedObjectDefinition<?, ?> d = ConnectionHandlerCfgDefn
         .getInstance();
     PropertyDefinition<?> pd = d
-        .getPropertyDefinition("java-implementation-class");
+        .getPropertyDefinition("java-class");
     DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
     assertEquals(dbp.getClass(), UndefinedDefaultBehaviorProvider.class);
   }
@@ -262,14 +273,14 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
    * use Connection Handlers - should define our own definitions.
    * <p>
    * Check that the LDAP connection handler definition does have a
-   * default behavior defined for the java-implementation-class.
+   * default behavior defined for the java-class.
    */
   @Test
   public void testPropertyOverride2() {
     AbstractManagedObjectDefinition<?, ?> d = LDAPConnectionHandlerCfgDefn
         .getInstance();
     PropertyDefinition<?> pd = d
-        .getPropertyDefinition("java-implementation-class");
+        .getPropertyDefinition("java-class");
     DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
     assertEquals(dbp.getClass(), DefinedDefaultBehaviorProvider.class);
 
@@ -285,14 +296,14 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
    * use Connection Handlers - should define our own definitions.
    * <p>
    * Check that the JMX connection handler definition does have a
-   * default behavior defined for the java-implementation-class.
+   * default behavior defined for the java-class.
    */
   @Test
   public void testPropertyOverride3() {
     AbstractManagedObjectDefinition<?, ?> d = JMXConnectionHandlerCfgDefn
         .getInstance();
     PropertyDefinition<?> pd = d
-        .getPropertyDefinition("java-implementation-class");
+        .getPropertyDefinition("java-class");
     DefaultBehaviorProvider<?> dbp = pd.getDefaultBehaviorProvider();
     assertEquals(dbp.getClass(), DefinedDefaultBehaviorProvider.class);
 

@@ -26,7 +26,7 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
  ! -->
 
-<adm:managed-object name="key-manager" plural-name="key-managers"
+<adm:managed-object name="key-manager-provider" plural-name="key-manager-providers"
   package="org.opends.server.admin.std" abstract="false"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
@@ -38,7 +38,6 @@
   <adm:tag name="security"/>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.19</ldap:oid>
       <ldap:name>ds-cfg-key-manager-provider</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -54,12 +53,11 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.49</ldap:oid>
-        <ldap:name>ds-cfg-key-manager-provider-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="java-implementation-class" mandatory="true">
+  <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that should to provide
       the
@@ -75,8 +73,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.48</ldap:oid>
-        <ldap:name>ds-cfg-key-manager-provider-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

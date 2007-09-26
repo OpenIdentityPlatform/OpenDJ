@@ -104,9 +104,9 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
          "objectClass: ds-cfg-account-status-notification-handler",
          "objectClass: ds-cfg-error-log-account-status-notification-handler",
          "cn: Error Log Handler",
-         "ds-cfg-account-status-notification-handler-class: org.opends." +
+         "ds-cfg-java-class: org.opends." +
               "server.extensions.ErrorLogAccountStatusNotificationHandler",
-         "ds-cfg-account-status-notification-handler-enabled: true",
+         "ds-cfg-enabled: true",
          "",
          "dn: cn=Error Log Handler,cn=Account Status Notification Handlers," +
               "cn=config",
@@ -114,9 +114,9 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
          "objectClass: ds-cfg-account-status-notification-handler",
          "objectClass: ds-cfg-error-log-account-status-notification-handler",
          "cn: Error Log Handler",
-         "ds-cfg-account-status-notification-handler-class: org.opends." +
+         "ds-cfg-java-class: org.opends." +
               "server.extensions.ErrorLogAccountStatusNotificationHandler",
-         "ds-cfg-account-status-notification-handler-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-account-status-notification-type: invalid",
          "",
          "dn: cn=Error Log Handler,cn=Account Status Notification Handlers," +
@@ -125,9 +125,9 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
          "objectClass: ds-cfg-account-status-notification-handler",
          "objectClass: ds-cfg-error-log-account-status-notification-handler",
          "cn: Error Log Handler",
-         "ds-cfg-account-status-notification-handler-class: org.opends." +
+         "ds-cfg-java-class: org.opends." +
               "server.extensions.ErrorLogAccountStatusNotificationHandler",
-         "ds-cfg-account-status-notification-handler-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-account-status-notification-type: password-reset",
          "ds-cfg-account-status-notification-type: invalid");
 

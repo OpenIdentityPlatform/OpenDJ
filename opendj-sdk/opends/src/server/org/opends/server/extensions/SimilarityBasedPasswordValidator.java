@@ -105,7 +105,7 @@ public class SimilarityBasedPasswordValidator extends
                                       Operation operation, Entry userEntry,
                                       MessageBuilder invalidReason)  {
 
-    int minDifference = currentConfig.getMinimumPasswordDifference();
+    int minDifference = currentConfig.getMinPasswordDifference();
     ByteString passwd = newPassword == null
                         ? ByteStringFactory.create("")
                         : newPassword;

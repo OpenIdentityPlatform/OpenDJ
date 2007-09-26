@@ -73,7 +73,7 @@
                     'Listing component %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2])
                 </message>
                 
-                <if expr="componentList[componentNumber][0] == 'list-je-indexes'">
+                <if expr="componentList[componentNumber][0] == 'list-local-db-indexes'">
                   <call function="'dsconfig'">
                   {   'location'       :  location ,
                       'dsPath'         :  dsPath ,

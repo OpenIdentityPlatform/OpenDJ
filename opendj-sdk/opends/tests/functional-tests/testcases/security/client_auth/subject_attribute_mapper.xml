@@ -60,7 +60,7 @@
              'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
              'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-mapper-dn',
+             'attributeName'        : 'ds-cfg-certificate-mapper',
              'newAttributeValue'  : 'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
              'expectedRC'           :  0 }        
@@ -72,8 +72,8 @@
       </message>  
      <script>
              listAttr = []  
-             listAttr.append('cn=ds-cfg-certificate-subject-attribute-mapping:cn:cn')
-             listAttr.append('cn=ds-cfg-certificate-subject-attribute-mapping:e:mail')     
+             listAttr.append('cn=ds-cfg-subject-attribute-mapping:cn:cn')
+             listAttr.append('cn=ds-cfg-subject-attribute-mapping:e:mail')     
       </script>             
 
       <call function="'testCase_Postamble'"/>
@@ -113,7 +113,7 @@
              'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
              'DNToModify'          :  'cn=Subject Attribute to User Attribute,cn=Certificate Mappers,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-subject-attribute-mapping',
+             'attributeName'        : 'ds-cfg-subject-attribute-mapping',
              'newAttributeValue'  : 'uid:description',
              'changetype' : 'replace',
              'expectedRC'           :  0 }        

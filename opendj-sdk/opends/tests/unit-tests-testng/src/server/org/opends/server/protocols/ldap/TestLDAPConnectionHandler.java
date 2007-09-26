@@ -83,14 +83,14 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-ldap-connection-handler",
         "cn: LDAP Connection Handler",
-        "ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
-        "ds-cfg-connection-handler-enabled: true",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0",
         "ds-cfg-accept-backlog: 128",
-        "ds-cfg-allow-ldapv2: false",
+        "ds-cfg-allow-ldap-v2: false",
         "ds-cfg-keep-stats: false",
-        "ds-cfg-use-tcp-keepalive: true",
-        "ds-cfg-use-tcp-nodelay: true",
+        "ds-cfg-use-tcp-keep-alive: true",
+        "ds-cfg-use-tcp-no-delay: true",
         "ds-cfg-allow-tcp-reuse-address: true",
         "ds-cfg-send-rejection-notice: true",
         "ds-cfg-max-request-size: 5 megabytes",
@@ -99,8 +99,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-use-ssl: false",
         "ds-cfg-ssl-client-auth-policy: optional",
         "ds-cfg-ssl-cert-nickname: server-cert",
-        "ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config",
-        "ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config");
+        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
+        "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
     LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(LDAPHandlerEntry);
     LDAPConnHandler.allowLDAPv2();
     LDAPConnHandler.allowStartTLS();
@@ -151,14 +151,14 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-ldap-connection-handler",
         "cn: LDAP Connection Handler",
-        "ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
-        "ds-cfg-connection-handler-enabled: true",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0",
         "ds-cfg-accept-backlog: 128",
-        "ds-cfg-allow-ldapv2: false",
+        "ds-cfg-allow-ldap-v2: false",
         "ds-cfg-keep-stats: false",
-        "ds-cfg-use-tcp-keepalive: true",
-        "ds-cfg-use-tcp-nodelay: true",
+        "ds-cfg-use-tcp-keep-alive: true",
+        "ds-cfg-use-tcp-no-delay: true",
         "ds-cfg-allow-tcp-reuse-address: true",
         "ds-cfg-send-rejection-notice: true",
         "ds-cfg-max-request-size: 5 megabytes",
@@ -167,8 +167,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-use-ssl: false",
         "ds-cfg-ssl-client-auth-policy: optional",
         "ds-cfg-ssl-cert-nickname: server-cert",
-        "ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config",
-        "ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config");
+        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
+        "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
 
     // Add some invalid attrs and some duplicate attrs
     Attribute a2=new Attribute(ATTR_LISTEN_PORT, String.valueOf(389));
@@ -221,14 +221,14 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "objectClass: ds-cfg-connection-handler",
         "objectClass: ds-cfg-ldap-connection-handler",
         "cn: LDAP Connection Handler",
-        "ds-cfg-connection-handler-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
-        "ds-cfg-connection-handler-enabled: true",
+        "ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler",
+        "ds-cfg-enabled: true",
         "ds-cfg-listen-address: 0.0.0.0",
         "ds-cfg-accept-backlog: 128",
-        "ds-cfg-allow-ldapv2: false",
+        "ds-cfg-allow-ldap-v2: false",
         "ds-cfg-keep-stats: false",
-        "ds-cfg-use-tcp-keepalive: true",
-        "ds-cfg-use-tcp-nodelay: true",
+        "ds-cfg-use-tcp-keep-alive: true",
+        "ds-cfg-use-tcp-no-delay: true",
         "ds-cfg-allow-tcp-reuse-address: true",
         "ds-cfg-send-rejection-notice: true",
         "ds-cfg-max-request-size: 5 megabytes",
@@ -237,8 +237,8 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
         "ds-cfg-use-ssl: true",
         "ds-cfg-ssl-client-auth-policy: optional",
         "ds-cfg-ssl-cert-nickname: server-cert",
-        "ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config",
-        "ds-cfg-trust-manager-provider-dn: cn=JKS,cn=Trust Manager Providers,cn=config");
+        "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
+        "ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config");
     LDAPConnectionHandler LDAPConnHandler=getLDAPHandlerInstance(GoodHandlerEntry);
     //Make attrTypes to remove
     AttributeType at0=DirectoryServer.getAttributeType(ATTR_LISTEN_PORT, true);

@@ -168,7 +168,7 @@ public class BackendConfigManager implements
       backendCfg.addChangeListener(this);
 
       // Ignore this handler if it is disabled.
-      if (backendCfg.isBackendEnabled())
+      if (backendCfg.isEnabled())
       {
         // If there is already a backend registered with the specified ID,
         // then log an error and skip it.
@@ -186,7 +186,7 @@ public class BackendConfigManager implements
         // attribute, the specified class cannot be loaded, or it does not
         // contain a valid backend implementation, then log an error and skip
         // it.
-        String className = backendCfg.getBackendClass();
+        String className = backendCfg.getJavaClass();
         Class backendClass;
 
         Backend backend;
@@ -222,8 +222,8 @@ public class BackendConfigManager implements
         // See if the entry contains an attribute that specifies the writability
         // mode.
         WritabilityMode writabilityMode = WritabilityMode.ENABLED;
-        BackendCfgDefn.BackendWritabilityMode bwm =
-             backendCfg.getBackendWritabilityMode();
+        BackendCfgDefn.WritabilityMode bwm =
+             backendCfg.getWritabilityMode();
         switch (bwm)
         {
           case DISABLED:
@@ -373,7 +373,7 @@ public class BackendConfigManager implements
     DN backendDN = configEntry.dn();
 
 
-    Set<DN> baseDNs = configEntry.getBackendBaseDN();
+    Set<DN> baseDNs = configEntry.getBaseDN();
 
     // See if the backend is registered with the server.  If it is, then
     // see what's changed and whether those changes are acceptable.
@@ -448,7 +448,7 @@ public class BackendConfigManager implements
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className = configEntry.getBackendClass();
+    String className = configEntry.getJavaClass();
     try
     {
       Class backendClass = DirectoryServer.loadClass(className);
@@ -506,7 +506,7 @@ public class BackendConfigManager implements
     boolean needToEnable = false;
     try
     {
-      if (cfg.isBackendEnabled())
+      if (cfg.isEnabled())
       {
         // The backend is marked as enabled.  See if that is already true.
         if (backend == null)
@@ -593,8 +593,8 @@ public class BackendConfigManager implements
     // See if the entry contains an attribute that specifies the writability
     // mode.
     WritabilityMode writabilityMode = WritabilityMode.ENABLED;
-    BackendCfgDefn.BackendWritabilityMode bwm =
-         cfg.getBackendWritabilityMode();
+    BackendCfgDefn.WritabilityMode bwm =
+         cfg.getWritabilityMode();
     switch (bwm)
     {
       case DISABLED:
@@ -611,7 +611,7 @@ public class BackendConfigManager implements
 
     // See if the entry contains an attribute that specifies the base DNs for
     // the backend.
-    Set<DN> baseList = cfg.getBackendBaseDN();
+    Set<DN> baseList = cfg.getBaseDN();
     DN[] baseDNs = new DN[baseList.size()];
     baseList.toArray(baseDNs);
 
@@ -621,7 +621,7 @@ public class BackendConfigManager implements
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className = cfg.getBackendClass();
+    String className = cfg.getJavaClass();
 
 
     // See if this backend is currently active and if so if the name of the
@@ -867,7 +867,7 @@ public class BackendConfigManager implements
 
     // See if the entry contains an attribute that specifies the set of base DNs
     // for the backend.  If it does not, then skip it.
-    Set<DN> baseList = configEntry.getBackendBaseDN();
+    Set<DN> baseList = configEntry.getBaseDN();
     DN[] baseDNs = new DN[baseList.size()];
     baseList.toArray(baseDNs);
 
@@ -877,7 +877,7 @@ public class BackendConfigManager implements
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className = configEntry.getBackendClass();
+    String className = configEntry.getJavaClass();
 
     Backend backend;
     try
@@ -948,7 +948,7 @@ public class BackendConfigManager implements
     // See if the entry contains an attribute that indicates whether the
     // backend should be enabled.  If it does not, or if it is not set to
     // "true", then skip it.
-    if (!cfg.isBackendEnabled())
+    if (!cfg.isEnabled())
     {
       // The backend is explicitly disabled.  We will log a message to
       // indicate that it won't be enabled and return.
@@ -979,8 +979,8 @@ public class BackendConfigManager implements
     // See if the entry contains an attribute that specifies the writability
     // mode.
     WritabilityMode writabilityMode = WritabilityMode.ENABLED;
-    BackendCfgDefn.BackendWritabilityMode bwm =
-         cfg.getBackendWritabilityMode();
+    BackendCfgDefn.WritabilityMode bwm =
+         cfg.getWritabilityMode();
     switch (bwm)
     {
       case DISABLED:
@@ -997,7 +997,7 @@ public class BackendConfigManager implements
 
     // See if the entry contains an attribute that specifies the base DNs for
     // the entry.  If it does not, then skip it.
-    Set<DN> dnList = cfg.getBackendBaseDN();
+    Set<DN> dnList = cfg.getBaseDN();
     DN[] baseDNs = new DN[dnList.size()];
     dnList.toArray(baseDNs);
 
@@ -1007,7 +1007,7 @@ public class BackendConfigManager implements
     // that it's a valid backend implementation.  There is no such attribute,
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
-    String className = cfg.getBackendClass();
+    String className = cfg.getJavaClass();
     Class backendClass;
 
     Backend backend;

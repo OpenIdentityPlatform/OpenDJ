@@ -39,8 +39,8 @@ import org.opends.server.admin.std.client.LDAPConnectionHandlerCfgClient;
 import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
-import org.opends.server.admin.std.meta.MultimasterDomainCfgDefn;
-import org.opends.server.admin.std.meta.MultimasterSynchronizationProviderCfgDefn;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn;
+import org.opends.server.admin.std.meta.ReplicationSynchronizationProviderCfgDefn;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.GlobalCfg;
@@ -249,26 +249,26 @@ public class ManagedObjectPathTest extends DirectoryServerTestCase {
     ManagedObjectPath<?, ?> root = ManagedObjectPath.emptyPath();
     ManagedObjectPath<?, ?> mmr = root.child(RootCfgDefn.getInstance()
         .getSynchronizationProvidersRelationDefinition(),
-        MultimasterSynchronizationProviderCfgDefn.getInstance(), "MMR");
+        ReplicationSynchronizationProviderCfgDefn.getInstance(), "MMR");
     ManagedObjectPath<?, ?> domain = mmr.child(
-        MultimasterSynchronizationProviderCfgDefn.getInstance()
-            .getMultimasterDomainsRelationDefinition(), "Domain");
+        ReplicationSynchronizationProviderCfgDefn.getInstance()
+            .getReplicationDomainsRelationDefinition(), "Domain");
     assertFalse(domain.isEmpty());
     assertEquals(domain.size(), 2);
     assertEquals(domain.parent(), mmr);
     assertEquals(domain.parent(2), root);
-    assertEquals(domain.getManagedObjectDefinition(), MultimasterDomainCfgDefn
+    assertEquals(domain.getManagedObjectDefinition(), ReplicationDomainCfgDefn
         .getInstance());
     assertEquals(domain.getRelationDefinition(),
-        MultimasterSynchronizationProviderCfgDefn.getInstance()
-            .getMultimasterDomainsRelationDefinition());
+        ReplicationSynchronizationProviderCfgDefn.getInstance()
+            .getReplicationDomainsRelationDefinition());
     assertEquals(
         domain.toString(),
-        "/relation=synchronization-provider+type=multimaster-synchronization-provider+name=MMR/relation=multimaster-domain+name=Domain");
+        "/relation=synchronization-provider+type=replication-synchronization-provider+name=MMR/relation=replication-domain+name=Domain");
     assertEquals(
         domain,
         ManagedObjectPath
-            .valueOf("/relation=synchronization-provider+type=multimaster-synchronization-provider+name=MMR/relation=multimaster-domain+name=Domain"));
+            .valueOf("/relation=synchronization-provider+type=replication-synchronization-provider+name=MMR/relation=replication-domain+name=Domain"));
   }
 
   /**

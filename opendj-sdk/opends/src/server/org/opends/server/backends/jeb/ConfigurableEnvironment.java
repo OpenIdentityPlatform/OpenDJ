@@ -38,11 +38,14 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
+import java.util.List;
+import java.util.Arrays;
+
 import org.opends.messages.Message;
 
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.PropertyDefinition;
@@ -65,63 +68,63 @@ public class ConfigurableEnvironment
    * percentage of Java VM heap size.
    */
   public static final String ATTR_DATABASE_CACHE_PERCENT =
-       ConfigConstants.NAME_PREFIX_CFG + "database-cache-percent";
+       ConfigConstants.NAME_PREFIX_CFG + "db-cache-percent";
 
   /**
    * The name of the attribute which configures the database cache size as an
    * approximate number of bytes.
    */
   public static final String ATTR_DATABASE_CACHE_SIZE =
-       ConfigConstants.NAME_PREFIX_CFG + "database-cache-size";
+       ConfigConstants.NAME_PREFIX_CFG + "db-cache-size";
 
   /**
    * The name of the attribute which configures whether data updated by a
    * database transaction is forced to disk.
    */
   public static final String ATTR_DATABASE_TXN_NO_SYNC =
-       ConfigConstants.NAME_PREFIX_CFG + "database-txn-no-sync";
+       ConfigConstants.NAME_PREFIX_CFG + "db-txn-no-sync";
 
   /**
    * The name of the attribute which configures whether data updated by a
    * database transaction is written from the Java VM to the O/S.
    */
   public static final String ATTR_DATABASE_TXN_WRITE_NO_SYNC =
-       ConfigConstants.NAME_PREFIX_CFG + "database-txn-write-no-sync";
+       ConfigConstants.NAME_PREFIX_CFG + "db-txn-write-no-sync";
 
   /**
    * The name of the attribute which configures whether the database background
    * cleaner thread runs.
    */
   public static final String ATTR_DATABASE_RUN_CLEANER =
-       ConfigConstants.NAME_PREFIX_CFG + "database-run-cleaner";
+       ConfigConstants.NAME_PREFIX_CFG + "db-run-cleaner";
 
   /**
    * The name of the attribute which configures the minimum percentage of log
    * space that must be used in log files.
    */
   public static final String ATTR_CLEANER_MIN_UTILIZATION =
-       ConfigConstants.NAME_PREFIX_CFG + "database-cleaner-min-utilization";
+       ConfigConstants.NAME_PREFIX_CFG + "db-cleaner-min-utilization";
 
   /**
    * The name of the attribute which configures the maximum size of each
    * individual JE log file, in bytes.
    */
   public static final String ATTR_DATABASE_LOG_FILE_MAX =
-       ConfigConstants.NAME_PREFIX_CFG + "database-log-file-max";
+       ConfigConstants.NAME_PREFIX_CFG + "db-log-file-max";
 
   /**
    * The name of the attribute which configures the database cache eviction
    * algorithm.
    */
   public static final String ATTR_EVICTOR_LRU_ONLY =
-       ConfigConstants.NAME_PREFIX_CFG + "database-evictor-lru-only";
+       ConfigConstants.NAME_PREFIX_CFG + "db-evictor-lru-only";
 
   /**
    * The name of the attribute which configures the number of nodes in one scan
    * of the database cache evictor.
    */
   public static final String ATTR_EVICTOR_NODES_PER_SCAN =
-       ConfigConstants.NAME_PREFIX_CFG + "database-evictor-nodes-per-scan";
+       ConfigConstants.NAME_PREFIX_CFG + "db-evictor-nodes-per-scan";
 
 
   /**
@@ -129,14 +132,14 @@ public class ConfigurableEnvironment
    * handler will be on or off.
    */
   public static final String ATTR_LOGGING_FILE_HANDLER_ON =
-       ConfigConstants.NAME_PREFIX_CFG + "database-logging-file-handler-on";
+       ConfigConstants.NAME_PREFIX_CFG + "db-logging-file-handler-on";
 
 
   /**
    * The name of the attribute which configures the trace logging message level.
    */
   public static final String ATTR_LOGGING_LEVEL =
-       ConfigConstants.NAME_PREFIX_CFG + "database-logging-level";
+       ConfigConstants.NAME_PREFIX_CFG + "db-logging-level";
 
 
   /**
@@ -144,7 +147,7 @@ public class ConfigurableEnvironment
    * the log before the checkpointer runs.
    */
   public static final String ATTR_CHECKPOINTER_BYTES_INTERVAL =
-       ConfigConstants.NAME_PREFIX_CFG + "database-checkpointer-bytes-interval";
+       ConfigConstants.NAME_PREFIX_CFG + "db-checkpointer-bytes-interval";
 
 
   /**
@@ -153,14 +156,14 @@ public class ConfigurableEnvironment
    */
   public static final String ATTR_CHECKPOINTER_WAKEUP_INTERVAL =
        ConfigConstants.NAME_PREFIX_CFG +
-       "database-checkpointer-wakeup-interval";
+       "db-checkpointer-wakeup-interval";
 
 
   /**
    * The name of the attribute which configures the number of lock tables.
    */
   public static final String ATTR_NUM_LOCK_TABLES =
-       ConfigConstants.NAME_PREFIX_CFG + "database-lock-num-lock-tables";
+       ConfigConstants.NAME_PREFIX_CFG + "db-num-lock-tables";
 
 
   /**
@@ -168,7 +171,7 @@ public class ConfigurableEnvironment
    * allocated by the cleaner for log file processing.
    */
   public static final String ATTR_NUM_CLEANER_THREADS =
-       ConfigConstants.NAME_PREFIX_CFG + "database-cleaner-num-threads";
+       ConfigConstants.NAME_PREFIX_CFG + "db-num-cleaner-threads";
 
 
   /**
@@ -199,6 +202,32 @@ public class ConfigurableEnvironment
        new HashMap<String, PropertyDefinition>();
 
 
+  // Pulled from resource/admin/ABBREVIATIONS.xsl.  db is mose common.
+  private static final List<String> ABBREVIATIONS = Arrays.asList(new String[]
+          {"aci", "ip", "ssl", "dn", "rdn", "jmx", "smtp", "http",
+           "https", "ldap", "ldaps", "ldif", "jdbc", "tcp", "tls",
+           "pkcs11", "sasl", "gssapi", "md5", "je", "dse", "fifo",
+           "vlv", "uuid", "md5", "sha1", "sha256", "sha384", "sha512",
+           "tls", "db"});
+
+  /*
+   * e.g. db-cache-percent -> DBCachePercent
+   */
+  private static String propNametoCamlCase(String hyphenated)
+  {
+    String[] components = hyphenated.split("\\-");
+    StringBuilder buffer = new StringBuilder();
+    for (String component: components) {
+      if (ABBREVIATIONS.contains(component)) {
+        buffer.append(component.toUpperCase());
+      } else {
+        buffer.append(component.substring(0, 1).toUpperCase() +
+                component.substring(1));
+      }
+    }
+    return buffer.toString();
+  }
+
 
   /**
    * Register a JE property and its corresponding configuration attribute.
@@ -214,35 +243,11 @@ public class ConfigurableEnvironment
     // Strip off NAME_PREFIX_CFG.
     String baseName = attrName.substring(7);
 
+    String methodBaseName = propNametoCamlCase(baseName);
 
-    // Convert hyphenated to camel case.
-    StringBuilder builder = new StringBuilder();
-    boolean capitalize = true;
-    for (int i = 0; i < baseName.length(); i++)
-    {
-      char c = baseName.charAt(i);
-      if (c == '-')
-      {
-        capitalize = true;
-      }
-      else
-      {
-        if (capitalize)
-        {
-          builder.append(Character.toUpperCase(c));
-        }
-        else
-        {
-          builder.append(c);
-        }
-        capitalize = false;
-      }
-    }
-    String methodBaseName = builder.toString();
-
-    Class<JEBackendCfg> configClass = JEBackendCfg.class;
-    JEBackendCfgDefn defn = JEBackendCfgDefn.getInstance();
-    Class<? extends JEBackendCfgDefn> defClass = defn.getClass();
+    Class<LocalDBBackendCfg> configClass = LocalDBBackendCfg.class;
+    LocalDBBackendCfgDefn defn = LocalDBBackendCfgDefn.getInstance();
+    Class<? extends LocalDBBackendCfgDefn> defClass = defn.getClass();
 
     PropertyDefinition propDefn =
          (PropertyDefinition)defClass.getMethod("get" + methodBaseName +
@@ -280,7 +285,7 @@ public class ConfigurableEnvironment
    * @param attrName The conriguration attribute type name.
    * @return The string value of the JE property.
    */
-  private static String getPropertyValue(JEBackendCfg cfg, String attrName)
+  private static String getPropertyValue(LocalDBBackendCfg cfg, String attrName)
   {
     try
     {
@@ -385,14 +390,14 @@ public class ConfigurableEnvironment
    * @throws ConfigException If there is an error in the provided configuration
    * entry.
    */
-  public static EnvironmentConfig parseConfigEntry(JEBackendCfg cfg)
+  public static EnvironmentConfig parseConfigEntry(LocalDBBackendCfg cfg)
        throws ConfigException
   {
     EnvironmentConfig envConfig = defaultConfig();
 
     // Handle the attributes that do not have a JE property.
-    envConfig.setTxnNoSync(cfg.isDatabaseTxnNoSync());
-    envConfig.setTxnWriteNoSync(cfg.isDatabaseTxnWriteNoSync());
+    envConfig.setTxnNoSync(cfg.isDBTxnNoSync());
+    envConfig.setTxnWriteNoSync(cfg.isDBTxnWriteNoSync());
 
     // Iterate through the config attributes associated with a JE property.
     for (Map.Entry<String, String> mapEntry : attrMap.entrySet())

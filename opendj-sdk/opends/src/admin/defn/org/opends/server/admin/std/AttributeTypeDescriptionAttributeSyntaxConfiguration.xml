@@ -39,13 +39,12 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>11.3.6.1.4.1.26027.1.2.116</ldap:oid>
       <ldap:name>ds-cfg-attribute-type-description-attribute-syntax</ldap:name>
       <ldap:superior>ds-cfg-attribute-syntax</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="syntax-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -55,7 +54,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:default-behavior>
   </adm:property-override>
 
-  <adm:property name="strip-syntax-minimum-upper-bound" mandatory="false">
+  <adm:property name="strip-syntax-min-upper-bound" mandatory="false">
     <adm:synopsis>
       Indicate whether the suggested minimum upper bound appended
     to an attribute's syntax OID in it's schema definition Attribute Type
@@ -74,8 +73,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.435</ldap:oid>
-        <ldap:name>ds-cfg-strip-syntax-minimum-upper-bound</ldap:name>
+        <ldap:name>ds-cfg-strip-syntax-min-upper-bound</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

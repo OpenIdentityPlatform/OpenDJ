@@ -28,7 +28,7 @@
 package org.opends.server.replication.protocol;
 
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.admin.std.server.MultimasterDomainCfg;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.config.ConfigException;
@@ -146,7 +146,7 @@ public class ReplSessionSecurity
    *
    * @throws ConfigException If the supplied configuration was not valid.
    */
-  public ReplSessionSecurity(MultimasterDomainCfg multimasterDomainCfg)
+  public ReplSessionSecurity(ReplicationDomainCfg multimasterDomainCfg)
        throws ConfigException
   {
     // Currently use global settings from the crypto manager.

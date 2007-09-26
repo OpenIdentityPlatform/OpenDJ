@@ -42,8 +42,7 @@
   <adm:tag name="database"/>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.42</ldap:oid>
-      <ldap:name>ds-cfg-root-dse</ldap:name>
+      <ldap:name>ds-cfg-root-dse-backend</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -64,7 +63,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.122</ldap:oid>
         <ldap:name>ds-cfg-subordinate-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -82,7 +80,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.141</ldap:oid>
         <ldap:name>ds-cfg-show-all-attributes</ldap:name>
       </ldap:attribute>
     </adm:profile>

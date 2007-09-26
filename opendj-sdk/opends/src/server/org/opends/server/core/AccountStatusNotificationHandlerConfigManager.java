@@ -133,7 +133,7 @@ public class AccountStatusNotificationHandlerConfigManager
       if (config.isEnabled())
       {
         // Load the notification handler implementation class.
-        String className = config.getNotificationHandlerClass();
+        String className = config.getJavaClass();
         loadAndInstallNotificationHandler (className, config);
       }
     }
@@ -156,7 +156,7 @@ public class AccountStatusNotificationHandlerConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // entry cache.
-      String className = configuration.getNotificationHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         // Load the class but don't initialize it.
@@ -208,7 +208,7 @@ public class AccountStatusNotificationHandlerConfigManager
     // If the current notification handler is already enabled then we
     // don't do anything unless the class has changed in which case we
     // should indicate that administrative action is required.
-    String newClassName = configuration.getNotificationHandlerClass();
+    String newClassName = configuration.getJavaClass();
     if (handler != null)
     {
       String curClassName = handler.getClass().getName();
@@ -264,7 +264,7 @@ public class AccountStatusNotificationHandlerConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as
       // an entry cache.
-      String className = configuration.getNotificationHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         // Load the class but don't initialize it.
@@ -301,7 +301,7 @@ public class AccountStatusNotificationHandlerConfigManager
     if (configuration.isEnabled())
     {
       // Instantiate the class as an entry cache and initialize it.
-      String className = configuration.getNotificationHandlerClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadAndInstallNotificationHandler (className, configuration);
@@ -421,7 +421,7 @@ public class AccountStatusNotificationHandlerConfigManager
 
       definition = AccountStatusNotificationHandlerCfgDefn.getInstance();
       propertyDefinition =
-          definition.getNotificationHandlerClassPropertyDefinition();
+          definition.getJavaClassPropertyDefinition();
       handlerClass = propertyDefinition.loadClass(
           className,
           AccountStatusNotificationHandler.class

@@ -61,9 +61,7 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
-import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.plugin.PostConnectPluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -271,20 +269,20 @@ public final class LDAPConnectionHandler extends
     // Apply the changes.
     currentConfig = config;
     enabled = config.isEnabled();
-    allowedClients = config.getAllowedClients().toArray(
+    allowedClients = config.getAllowedClient().toArray(
         new AddressMask[0]);
-    deniedClients = config.getDeniedClients().toArray(
+    deniedClients = config.getDeniedClient().toArray(
         new AddressMask[0]);
 
     // Get the supported SSL ciphers and protocols.
-    Set<String> ciphers = config.getSSLCipherSuites();
+    Set<String> ciphers = config.getSSLCipherSuite();
     if (ciphers.isEmpty()) {
       enabledSSLCipherSuites = null;
     } else {
       enabledSSLCipherSuites = ciphers.toArray(new String[0]);
     }
 
-    Set<String> protocols = config.getSSLProtocols();
+    Set<String> protocols = config.getSSLProtocol();
     if (protocols.isEmpty()) {
       enabledSSLProtocols = null;
     } else {
@@ -601,38 +599,18 @@ public final class LDAPConnectionHandler extends
 
     if (config.isAllowStartTLS() || config.isUseSSL())
     {
-      // Validate the key manager provider DN.
-      DN keyManagerProviderDN = config.getKeyManagerProviderDN();
-      if (keyManagerProviderDN == null) {
+      // Validate the key manager provider.
+      if (config.getKeyManagerProvider() == null) {
         Message message = ERR_LDAP_CONNHANDLER_NO_KEYMANAGER_DN.get(
             String.valueOf(config.dn()));
         throw new ConfigException(message);
-      } else {
-        KeyManagerProvider provider = DirectoryServer
-            .getKeyManagerProvider(keyManagerProviderDN);
-        if (provider == null) {
-          Message message = ERR_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN.
-              get(String.valueOf(config.dn()),
-                  String.valueOf(keyManagerProviderDN));
-          throw new ConfigException(message);
-        }
       }
 
-      // Validate the trust manager provider DN.
-      DN trustManagerProviderDN = config.getTrustManagerProviderDN();
-      if (trustManagerProviderDN == null) {
+      // Validate the trust manager provider.
+      if (config.getTrustManagerProvider() == null) {
         Message message = ERR_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN.get(
             String.valueOf(config.dn()));
         throw new ConfigException(message);
-      } else {
-        TrustManagerProvider provider = DirectoryServer
-            .getTrustManagerProvider(trustManagerProviderDN);
-        if (provider == null) {
-          Message message = ERR_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN.
-              get(String.valueOf(config.dn()),
-                  String.valueOf(trustManagerProviderDN));
-          throw new ConfigException(message);
-        }
       }
     }
 
@@ -664,14 +642,14 @@ public final class LDAPConnectionHandler extends
     }
 
     // Get the supported SSL ciphers and protocols.
-    Set<String> ciphers = config.getSSLCipherSuites();
+    Set<String> ciphers = config.getSSLCipherSuite();
     if (ciphers.isEmpty()) {
       enabledSSLCipherSuites = null;
     } else {
       enabledSSLCipherSuites = ciphers.toArray(new String[0]);
     }
 
-    Set<String> protocols = config.getSSLProtocols();
+    Set<String> protocols = config.getSSLProtocol();
     if (protocols.isEmpty()) {
       enabledSSLProtocols = null;
     } else {
@@ -700,15 +678,15 @@ public final class LDAPConnectionHandler extends
     currentConfig = config;
     enabled = config.isEnabled();
     requestHandlerIndex = 0;
-    allowedClients = config.getAllowedClients().toArray(
+    allowedClients = config.getAllowedClient().toArray(
         new AddressMask[0]);
-    deniedClients = config.getDeniedClients().toArray(
+    deniedClients = config.getDeniedClient().toArray(
         new AddressMask[0]);
 
     // Save properties that cannot be dynamically modified.
     allowReuseAddress = config.isAllowTCPReuseAddress();
     backlog = config.getAcceptBacklog();
-    listenAddresses = config.getListenAddresses();
+    listenAddresses = config.getListenAddress();
     listenPort = config.getListenPort();
     numRequestHandlers = config.getNumRequestHandlers();
 
@@ -828,44 +806,20 @@ public final class LDAPConnectionHandler extends
 
     if (config.isAllowStartTLS() || config.isUseSSL())
     {
-      // Validate the key manager provider DN.
-      DN keyManagerProviderDN = config.getKeyManagerProviderDN();
-      if (keyManagerProviderDN == null) {
+      // Validate the key manager provider.
+      if (config.getKeyManagerProvider() == null) {
         Message message = ERR_LDAP_CONNHANDLER_NO_KEYMANAGER_DN.get(
                 String.valueOf(config.dn()));
         unacceptableReasons.add(message);
         isAcceptable = false;
-      } else {
-        KeyManagerProvider provider = DirectoryServer
-            .getKeyManagerProvider(keyManagerProviderDN);
-        if (provider == null) {
-
-          unacceptableReasons.add(
-                  ERR_LDAP_CONNHANDLER_INVALID_KEYMANAGER_DN.get(
-                          String.valueOf(config.dn()),
-                          String.valueOf(keyManagerProviderDN)));
-          isAcceptable = false;
-        }
       }
 
       // Validate the trust manager provider DN.
-      DN trustManagerProviderDN = config.getTrustManagerProviderDN();
-      if (trustManagerProviderDN == null) {
+      if (config.getTrustManagerProvider() == null) {
         Message message = ERR_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN.get(
                 String.valueOf(config.dn()));
         unacceptableReasons.add(message);
         isAcceptable = false;
-      } else {
-        TrustManagerProvider provider = DirectoryServer
-            .getTrustManagerProvider(trustManagerProviderDN);
-        if (provider == null) {
-
-          unacceptableReasons.add(
-                  ERR_LDAP_CONNHANDLER_INVALID_TRUSTMANAGER_DN.get(
-                          String.valueOf(config.dn()),
-                          String.valueOf(trustManagerProviderDN)));
-          isAcceptable = false;
-        }
       }
     }
 

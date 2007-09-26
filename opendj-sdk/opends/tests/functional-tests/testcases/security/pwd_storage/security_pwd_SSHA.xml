@@ -66,7 +66,7 @@
                 'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'    : 'ds-cfg-default-password-storage-scheme-dn:cn=Salted SHA-1,cn=Password Storage Schemes,cn=config',
+                'attrToBeCompared'    : 'ds-cfg-default-password-storage-scheme:cn=Salted SHA-1,cn=Password Storage Schemes,cn=config',
                 'entryToBeCompared'   : 'cn=Default Password Policy,cn=Password Policies,cn=config' }
             </call>
 
@@ -223,8 +223,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=BAD,cn=Password Storage Schemes,cn=config' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'BAD' ,
                     'expectedRC'             : 1 }
             </call>
             

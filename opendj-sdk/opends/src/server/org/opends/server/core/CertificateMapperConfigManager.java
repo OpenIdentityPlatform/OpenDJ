@@ -123,7 +123,7 @@ public class CertificateMapperConfigManager
 
       if (mapperConfiguration.isEnabled())
       {
-        String className = mapperConfiguration.getMapperClass();
+        String className = mapperConfiguration.getJavaClass();
         try
         {
           CertificateMapper mapper = loadMapper(className, mapperConfiguration,
@@ -154,7 +154,7 @@ public class CertificateMapperConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // certificate mapper.
-      String className = configuration.getMapperClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMapper(className, configuration, false);
@@ -193,7 +193,7 @@ public class CertificateMapperConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a
     // certificate mapper.
-    String className = configuration.getMapperClass();
+    String className = configuration.getJavaClass();
     try
     {
       certificateMapper = loadMapper(className, configuration, true);
@@ -269,7 +269,7 @@ public class CertificateMapperConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // certificate mapper.
-      String className = configuration.getMapperClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMapper(className, configuration, false);
@@ -328,7 +328,7 @@ public class CertificateMapperConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the mapper is disabled, then instantiate the class and
     // initialize and register it as a certificate mapper.
-    String className = configuration.getMapperClass();
+    String className = configuration.getJavaClass();
     if (existingMapper != null)
     {
       if (! className.equals(existingMapper.getClass().getName()))
@@ -392,7 +392,7 @@ public class CertificateMapperConfigManager
       CertificateMapperCfgDefn definition =
            CertificateMapperCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getMapperClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends CertificateMapper> mapperClass =
            propertyDefinition.loadClass(className, CertificateMapper.class);
       CertificateMapper mapper = mapperClass.newInstance();

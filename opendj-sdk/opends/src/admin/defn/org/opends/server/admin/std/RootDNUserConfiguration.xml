@@ -41,8 +41,7 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.41</ldap:oid>
-      <ldap:name>ds-cfg-root-dn</ldap:name>
+      <ldap:name>ds-cfg-root-dn-user</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
@@ -65,7 +64,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.17</ldap:oid>
         <ldap:name>ds-cfg-alternate-bind-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>

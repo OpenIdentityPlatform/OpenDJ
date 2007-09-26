@@ -84,9 +84,9 @@ public class ReSyncTest extends ReplicationTestCase
     String replServerLdif =
       "dn: " + "cn=Replication Server, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-server-config\n"
+        + "objectClass: ds-cfg-replication-server\n"
         + "cn: Replication Server\n"
-        + "ds-cfg-replication-server-port:" + replServerPort + "\n"
+        + "ds-cfg-replication-port:" + replServerPort + "\n"
         + "ds-cfg-replication-server-id: 1\n";
     replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
@@ -94,11 +94,11 @@ public class ReSyncTest extends ReplicationTestCase
     String domainLdif =
       "dn: cn=example, cn=domains, " + synchroPluginStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-replication-domain-config\n"
+        + "objectClass: ds-cfg-replication-domain\n"
         + "cn: example\n"
-        + "ds-cfg-replication-dn: dc=example,dc=com\n"
+        + "ds-cfg-base-dn: dc=example,dc=com\n"
         + "ds-cfg-replication-server: localhost:"+ replServerPort + "\n"
-        + "ds-cfg-directory-server-id: 123\n";
+        + "ds-cfg-server-id: 123\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(domainLdif);
 
     configureReplication();

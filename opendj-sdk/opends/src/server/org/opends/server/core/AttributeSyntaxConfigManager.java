@@ -125,7 +125,7 @@ public class AttributeSyntaxConfigManager
 
       if (syntaxConfiguration.isEnabled())
       {
-        String className = syntaxConfiguration.getSyntaxClass();
+        String className = syntaxConfiguration.getJavaClass();
         try
         {
           AttributeSyntax syntax = loadSyntax(className, syntaxConfiguration,
@@ -166,7 +166,7 @@ public class AttributeSyntaxConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // attribute syntax.
-      String className = configuration.getSyntaxClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadSyntax(className, configuration, false);
@@ -205,7 +205,7 @@ public class AttributeSyntaxConfigManager
 
     // Get the name of the class and make sure we can instantiate it as an
     // attribute syntax.
-    String className = configuration.getSyntaxClass();
+    String className = configuration.getJavaClass();
     try
     {
       syntax = loadSyntax(className, configuration, true);
@@ -308,7 +308,7 @@ public class AttributeSyntaxConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // attribute syntax.
-      String className = configuration.getSyntaxClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadSyntax(className, configuration, false);
@@ -387,7 +387,7 @@ public class AttributeSyntaxConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the syntax is disabled, then instantiate the class and
     // initialize and register it as an attribute syntax.
-    String className = configuration.getSyntaxClass();
+    String className = configuration.getJavaClass();
     if (existingSyntax != null)
     {
       if (! className.equals(existingSyntax.getClass().getName()))
@@ -462,7 +462,7 @@ public class AttributeSyntaxConfigManager
       AttributeSyntaxCfgDefn definition =
            AttributeSyntaxCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getSyntaxClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends AttributeSyntax> syntaxClass =
            propertyDefinition.loadClass(className, AttributeSyntax.class);
       AttributeSyntax syntax = syntaxClass.newInstance();

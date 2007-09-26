@@ -336,8 +336,8 @@ public class SchemaBackend
 
     configEntryDN = configEntry.getDN();
 
-    DN[] baseDNs = new DN[cfg.getBackendBaseDN().size()];
-    cfg.getBackendBaseDN().toArray(baseDNs);
+    DN[] baseDNs = new DN[cfg.getBaseDN().size()];
+    cfg.getBaseDN().toArray(baseDNs);
     this.baseDNs = baseDNs;
 
     creatorsName  = new AttributeValue(creatorsNameType, baseDNs[0].toString());

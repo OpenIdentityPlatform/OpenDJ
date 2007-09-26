@@ -28,7 +28,6 @@ package org.opends.server.core;
 
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -44,16 +43,11 @@ import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.testng.Assert.*;
@@ -98,7 +92,7 @@ public class PasswordPolicyTestCase
          "objectClass: top",
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -112,11 +106,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -128,7 +122,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: invalid",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -142,11 +136,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -158,7 +152,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: cn",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -172,11 +166,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -189,7 +183,7 @@ public class PasswordPolicyTestCase
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
          "ds-cfg-last-login-time-attribute: invalid",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -203,11 +197,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -219,7 +213,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: invalid",
          "ds-cfg-allow-multiple-password-values: false",
@@ -233,11 +227,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -249,7 +243,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: invalid",
@@ -263,11 +257,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -279,7 +273,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -293,11 +287,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -309,7 +303,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -323,11 +317,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -339,7 +333,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -353,11 +347,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -369,7 +363,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -383,11 +377,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -399,7 +393,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -413,11 +407,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -429,7 +423,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -443,11 +437,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: invalid",
          "ds-cfg-require-secure-authentication: false",
@@ -459,7 +453,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -473,11 +467,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: invalid",
@@ -489,7 +483,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -503,11 +497,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -519,7 +513,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -533,11 +527,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -549,7 +543,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -563,11 +557,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -579,7 +573,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -593,11 +587,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -609,7 +603,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -623,11 +617,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -639,7 +633,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -653,11 +647,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -669,7 +663,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -683,11 +677,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -699,7 +693,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -713,11 +707,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -729,7 +723,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -743,11 +737,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -759,7 +753,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -773,11 +767,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: -1 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -789,7 +783,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -803,11 +797,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: notnumeric seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -819,7 +813,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -833,11 +827,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: -1 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -849,7 +843,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -863,11 +857,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 invalid",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -879,7 +873,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -893,11 +887,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: invalid",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -909,7 +903,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -923,11 +917,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: -1",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -939,7 +933,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -953,11 +947,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: notnumeric",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -969,7 +963,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -983,11 +977,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: -1 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -999,7 +993,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1013,11 +1007,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: notnumeric seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1029,7 +1023,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1043,11 +1037,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1059,7 +1053,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1073,11 +1067,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 invalid",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1089,7 +1083,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1103,11 +1097,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: invalid",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1119,7 +1113,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1133,11 +1127,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: -1 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: -1 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1149,7 +1143,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1163,11 +1157,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: invalid seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: invalid seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1179,7 +1173,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1193,11 +1187,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1209,7 +1203,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1223,11 +1217,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 invalid",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 invalid",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1239,7 +1233,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1253,11 +1247,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: invalid",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: invalid",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1269,7 +1263,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1283,11 +1277,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: -1 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: -1 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1299,7 +1293,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1313,11 +1307,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: invalid seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: invalid seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1329,7 +1323,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1343,11 +1337,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1359,7 +1353,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1373,11 +1367,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 invalid",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 invalid",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1389,7 +1383,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1403,11 +1397,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: invalid",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: invalid",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1419,7 +1413,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1433,11 +1427,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: -1 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: -1 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1449,7 +1443,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1463,11 +1457,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: invalid seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: invalid seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1479,7 +1473,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1493,11 +1487,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1509,7 +1503,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1523,11 +1517,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 invalid",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 invalid",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1539,7 +1533,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1553,11 +1547,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: invalid",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: invalid",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1569,7 +1563,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1583,11 +1577,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 0 seconds",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1599,7 +1593,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1613,11 +1607,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: -1 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1629,7 +1623,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1643,11 +1637,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: invalid days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1659,7 +1653,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1673,11 +1667,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1689,7 +1683,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1703,11 +1697,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 invalid",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1719,7 +1713,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1733,11 +1727,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: invalid",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1749,7 +1743,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1763,11 +1757,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1780,7 +1774,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1794,11 +1788,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1811,7 +1805,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1825,11 +1819,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: invalid",
+         "ds-cfg-password-generator: invalid",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
          "ds-cfg-require-secure-password-changes: false",
@@ -1840,7 +1834,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1854,11 +1848,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=nonexistent," +
+         "ds-cfg-password-generator: cn=nonexistent," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1870,7 +1864,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1884,24 +1878,24 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
          "ds-cfg-require-secure-password-changes: false",
          "ds-cfg-skip-validation-for-administrators: false",
-         "ds-cfg-account-status-notification-handler-dn: invalid",
+         "ds-cfg-account-status-notification-handler: invalid",
          "",
          "dn: cn=Default Password Policy 61,cn=Password Policies,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1915,17 +1909,17 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
          "ds-cfg-require-secure-password-changes: false",
          "ds-cfg-skip-validation-for-administrators: false",
-         "ds-cfg-account-status-notification-handler-dn: cn=nonexistent," +
+         "ds-cfg-account-status-notification-handler: cn=nonexistent," +
               "cn=Account Status Notification Handlers,cn=config",
          "",
          "dn: cn=Default Password Policy 62,cn=Password Policies,cn=config",
@@ -1945,11 +1939,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1961,7 +1955,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Undefined,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -1975,11 +1969,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -1991,7 +1985,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: invalid",
+         "ds-cfg-default-password-storage-scheme: invalid",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
          "ds-cfg-allow-pre-encoded-passwords: false",
@@ -2004,11 +1998,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -2020,7 +2014,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -2034,24 +2028,24 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
          "ds-cfg-require-secure-password-changes: false",
          "ds-cfg-skip-validation-for-administrators: false",
-         "ds-cfg-password-validator-dn: invalid",
+         "ds-cfg-password-validator: invalid",
          "",
          "dn: cn=Default Password Policy 66,cn=Password Policies,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -2065,17 +2059,17 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
          "ds-cfg-require-secure-password-changes: false",
          "ds-cfg-skip-validation-for-administrators: false",
-         "ds-cfg-password-validator-dn: cn=nonexistent," +
+         "ds-cfg-password-validator: cn=nonexistent," +
               "cn=Password Validators,cn=config",
          "",
          "dn: cn=Default Password Policy 67,cn=Password Policies,cn=config",
@@ -2083,7 +2077,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-allow-expired-password-changes: false",
          "ds-cfg-allow-multiple-password-values: false",
@@ -2097,11 +2091,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -2118,7 +2112,7 @@ public class PasswordPolicyTestCase
          "objectClass: ds-cfg-password-policy",
          "cn: Default Password Policy",
          "ds-cfg-password-attribute: userPassword",
-         "ds-cfg-default-password-storage-scheme-dn: " +
+         "ds-cfg-default-password-storage-scheme: " +
               "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config",
          "ds-cfg-deprecated-password-storage-scheme: " +
               "cn=BASE64,cn=Password Storage Schemes,cn=config",
@@ -2134,11 +2128,11 @@ public class PasswordPolicyTestCase
          "ds-cfg-lockout-failure-count: 0",
          "ds-cfg-lockout-duration: 0 seconds",
          "ds-cfg-lockout-failure-expiration-interval: 0 seconds",
-         "ds-cfg-minimum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-age: 0 seconds",
-         "ds-cfg-maximum-password-reset-age: 0 seconds",
+         "ds-cfg-min-password-age: 0 seconds",
+         "ds-cfg-max-password-age: 0 seconds",
+         "ds-cfg-max-password-reset-age: 0 seconds",
          "ds-cfg-password-expiration-warning-interval: 5 days",
-         "ds-cfg-password-generator-dn: cn=Random Password Generator," +
+         "ds-cfg-password-generator: cn=Random Password Generator," +
               "cn=Password Generators,cn=config",
          "ds-cfg-password-change-requires-current-password: false",
          "ds-cfg-require-secure-authentication: false",
@@ -2148,7 +2142,7 @@ public class PasswordPolicyTestCase
          "ds-cfg-last-login-time-attribute: ds-pwp-last-login-time",
          "ds-cfg-last-login-time-format: yyyyMMdd",
          "ds-cfg-previous-last-login-time-format: yyyyMMddHHmmss",
-         "ds-cfg-account-status-notification-handler-dn: " +
+         "ds-cfg-account-status-notification-handler: " +
               "cn=Error Log Handler,cn=Account Status Notification Handlers," +
               "cn=config");
 
@@ -2274,8 +2268,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Base64,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Base64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     defaultSchemes = p.getDefaultStorageSchemes();
@@ -2286,8 +2279,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Salted SHA-1");
   }
 
 
@@ -2313,8 +2305,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Salted MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     defaultSchemes = p.getDefaultStorageSchemes();
@@ -2325,8 +2316,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Salted SHA-1");
   }
 
 
@@ -2348,8 +2338,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=BASE64,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDefaultStorageScheme("BASE64"));
@@ -2359,8 +2348,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Salted SHA-1");
   }
 
 
@@ -2384,8 +2372,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Salted MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDefaultStorageScheme("MD5"));
@@ -2395,8 +2382,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "default-password-storage-scheme-dn:" +
-                    "cn=Salted SHA-1,cn=Password Storage Schemes,cn=config");
+      "--set", "default-password-storage-scheme:Salted SHA-1");
   }
 
 
@@ -2420,8 +2406,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "deprecated-password-storage-scheme-dn:" +
-                    "cn=BASE64,cn=Password Storage Schemes,cn=config");
+      "--set", "deprecated-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
@@ -2432,8 +2417,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "deprecated-password-storage-scheme-dn:" +
-                       "cn=BASE64,cn=Password Storage Schemes,cn=config");
+      "--remove", "deprecated-password-storage-scheme:BASE64");
   }
 
 
@@ -2459,8 +2443,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "deprecated-password-storage-scheme-dn:" +
-                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
+      "--set", "deprecated-password-storage-scheme:Salted MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     deprecatedSchemes = p.getDeprecatedStorageSchemes();
@@ -2471,8 +2454,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "deprecated-password-storage-scheme-dn:" +
-                       "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
+      "--remove", "deprecated-password-storage-scheme:Salted MD5");
   }
 
 
@@ -2493,8 +2475,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "deprecated-password-storage-scheme-dn:" +
-                    "cn=BASE64,cn=Password Storage Schemes,cn=config");
+      "--set", "deprecated-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertTrue(p.isDeprecatedStorageScheme("BASE64"));
@@ -2503,8 +2484,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "deprecated-password-storage-scheme-dn:" +
-                       "cn=BASE64,cn=Password Storage Schemes,cn=config");
+      "--remove", "deprecated-password-storage-scheme:BASE64");
   }
 
 
@@ -2527,8 +2507,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "deprecated-password-storage-scheme-dn:" +
-                    "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
+      "--set", "deprecated-password-storage-scheme:Salted MD5");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertTrue(p.isDeprecatedStorageScheme("MD5"));
@@ -2537,8 +2516,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "deprecated-password-storage-scheme-dn:" +
-                       "cn=Salted MD5,cn=Password Storage Schemes,cn=config");
+      "--remove", "deprecated-password-storage-scheme:Salted MD5");
   }
 
 
@@ -2557,12 +2535,10 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
 
-    String valDN = "cn=Length-Based Password Validator," +
-                   "cn=Password Validators,cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--add", "password-validator-dn:"+valDN);
+      "--add", "password-validator:Length-Based Password Validator");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordValidators());
@@ -2572,7 +2548,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "password-validator-dn:"+valDN);
+      "--remove", "password-validator:Length-Based Password Validator");
   }
 
 
@@ -2593,12 +2569,10 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
 
-    String valDN = "cn=Length-Based Password Validator," +
-                   "cn=Password Validators,cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--add", "password-validator-dn:"+valDN);
+      "--add", "password-validator:Length-Based Password Validator");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordValidators());
@@ -2608,7 +2582,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "password-validator-dn:"+valDN);
+      "--remove", "password-validator:Length-Based Password Validator");
   }
 
 
@@ -2627,12 +2601,10 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertTrue(p.getAccountStatusNotificationHandlers().isEmpty());
 
-    String notDN = "cn=Error Log Handler," +
-                   "cn=Account Status Notification Handlers,cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--add", "account-status-notification-handler-dn:"+notDN);
+      "--add", "account-status-notification-handler:Error Log Handler");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getAccountStatusNotificationHandlers());
@@ -2642,7 +2614,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "account-status-notification-handler-dn:"+notDN);
+      "--remove", "account-status-notification-handler:Error Log Handler");
   }
 
 
@@ -2663,12 +2635,10 @@ public class PasswordPolicyTestCase
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertTrue(p.getAccountStatusNotificationHandlers().isEmpty());
 
-    String notDN = "cn=Error Log Handler," +
-                   "cn=Account Status Notification Handlers,cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--add", "account-status-notification-handler-dn:"+notDN);
+      "--add", "account-status-notification-handler:Error Log Handler");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getAccountStatusNotificationHandlers());
@@ -2678,7 +2648,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "account-status-notification-handler-dn:"+notDN);
+      "--remove", "account-status-notification-handler:Error Log Handler");
   }
 
 
@@ -2994,7 +2964,7 @@ public class PasswordPolicyTestCase
 
 
   /**
-   * Tests the <CODE>getPasswordGeneratorDN</CODE> method for the default
+   * Tests the <CODE>getPasswordGenerator</CODE> method for the default
    * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3004,29 +2974,27 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertNotNull(p.getPasswordGeneratorDN());
+    assertNotNull(p.getPasswordGenerator());
 
-    String genDN = "cn=Random Password Generator,cn=Password Generators," +
-                   "cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "password-generator-dn:"+genDN);
+      "--remove", "password-generator:Random Password Generator");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertNull(p.getPasswordGeneratorDN());
+    assertNull(p.getPasswordGenerator());
     p.toString();
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "password-generator-dn:"+genDN);
+      "--set", "password-generator:Random Password Generator");
   }
 
 
 
   /**
-   * Tests the <CODE>getPasswordGeneratorDN</CODE> method for a password policy
+   * Tests the <CODE>getPasswordGenerator</CODE> method for a password policy
    * using the authentication password syntax.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3038,23 +3006,21 @@ public class PasswordPolicyTestCase
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertNotNull(p.getPasswordGeneratorDN());
+    assertNotNull(p.getPasswordGenerator());
 
-    String genDN = "cn=Random Password Generator,cn=Password Generators," +
-                   "cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "password-generator-dn:"+genDN);
+      "--remove", "password-generator:Random Password Generator");
 
     p = DirectoryServer.getPasswordPolicy(dn);
-    assertNull(p.getPasswordGeneratorDN());
+    assertNull(p.getPasswordGenerator());
     p.toString();
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "password-generator-dn:"+genDN);
+      "--set", "password-generator:Random Password Generator");
   }
 
 
@@ -3072,12 +3038,10 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.getPasswordGenerator());
 
-    String genDN = "cn=Random Password Generator,cn=Password Generators," +
-                   "cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--remove", "password-generator-dn:"+genDN);
+      "--remove", "password-generator:Random Password Generator");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertNull(p.getPasswordGenerator());
@@ -3086,7 +3050,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "password-generator-dn:"+genDN);
+      "--set", "password-generator:Random Password Generator");
   }
 
 
@@ -3106,12 +3070,10 @@ public class PasswordPolicyTestCase
     PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
     assertNotNull(p.getPasswordGenerator());
 
-    String genDN = "cn=Random Password Generator,cn=Password Generators," +
-                   "cn=config";
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--remove", "password-generator-dn:"+genDN);
+      "--remove", "password-generator:Random Password Generator");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertNull(p.getPasswordGenerator());
@@ -3120,7 +3082,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "password-generator-dn:"+genDN);
+      "--set", "password-generator:Random Password Generator");
   }
 
 
@@ -3374,7 +3336,7 @@ public class PasswordPolicyTestCase
 
 
   /**
-   * Tests the <CODE>getMinimumPasswordAge</CODE> method for the default
+   * Tests the <CODE>getMinPasswordAge</CODE> method for the default
    * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3389,7 +3351,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "minimum-password-age:24 hours");
+      "--set", "min-password-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMinimumPasswordAge(), (24*60*60));
@@ -3398,13 +3360,13 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "minimum-password-age:0 seconds");
+      "--set", "min-password-age:0 seconds");
   }
 
 
 
   /**
-   * Tests the <CODE>getMinimumPasswordAge</CODE> method for a password policy
+   * Tests the <CODE>getMinPasswordAge</CODE> method for a password policy
    * using the authentication password syntax.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3421,7 +3383,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "minimum-password-age:24 hours");
+      "--set", "min-password-age:24 hours");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMinimumPasswordAge(), (24*60*60));
@@ -3430,13 +3392,13 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "minimum-password-age:0 seconds");
+      "--set", "min-password-age:0 seconds");
   }
 
 
 
   /**
-   * Tests the <CODE>getMaximumPasswordAge</CODE> method for the default
+   * Tests the <CODE>getMaxPasswordAge</CODE> method for the default
    * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3451,7 +3413,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "maximum-password-age:90 days");
+      "--set", "max-password-age:90 days");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
@@ -3460,13 +3422,13 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "maximum-password-age:0 seconds");
+      "--set", "max-password-age:0 seconds");
   }
 
 
 
   /**
-   * Tests the <CODE>getMaximumPasswordAge</CODE> method for a password policy
+   * Tests the <CODE>getMaxPasswordAge</CODE> method for a password policy
    * using the authentication password syntax.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3483,7 +3445,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "maximum-password-age:90 days");
+      "--set", "max-password-age:90 days");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
@@ -3492,13 +3454,13 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "maximum-password-age:0 seconds");
+      "--set", "max-password-age:0 seconds");
   }
 
 
 
   /**
-   * Tests the <CODE>getMaximumPasswordResetAge</CODE> method for the default
+   * Tests the <CODE>getMaxPasswordResetAge</CODE> method for the default
    * password policy.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3513,7 +3475,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "maximum-password-reset-age:24 hours");
+      "--set", "max-password-reset-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
     assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
@@ -3522,13 +3484,13 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "Default Password Policy",
-      "--set", "maximum-password-reset-age:0 seconds");
+      "--set", "max-password-reset-age:0 seconds");
   }
 
 
 
   /**
-   * Tests the <CODE>getMaximumPasswordResetAge</CODE> method for a password
+   * Tests the <CODE>getMaxPasswordResetAge</CODE> method for a password
    * policy using the authentication password syntax.
    *
    * @throws  Exception  If an unexpected problem occurs.
@@ -3545,7 +3507,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "maximum-password-reset-age:24 hours");
+      "--set", "max-password-reset-age:24 hours");
 
     p = DirectoryServer.getPasswordPolicy(dn);
     assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
@@ -3554,7 +3516,7 @@ public class PasswordPolicyTestCase
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
-      "--set", "maximum-password-reset-age:0 seconds");
+      "--set", "max-password-reset-age:0 seconds");
   }
 
 
@@ -4708,8 +4670,8 @@ public class PasswordPolicyTestCase
     String path = TestCaseUtils.createTempFile(
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
-      "replace: ds-cfg-maximum-password-age",
-      "ds-cfg-maximum-password-age: 5 days",
+      "replace: ds-cfg-max-password-age",
+      "ds-cfg-max-password-age: 5 days",
       "-",
       "replace: ds-cfg-password-expiration-warning-interval",
       "ds-cfg-password-expiration-warning-interval: 10 days");
@@ -4743,11 +4705,11 @@ public class PasswordPolicyTestCase
     String path = TestCaseUtils.createTempFile(
       "dn: cn=Default Password Policy,cn=Password Policies,cn=config",
       "changetype: modify",
-      "replace: ds-cfg-maximum-password-age",
-      "ds-cfg-maximum-password-age: 5 days",
+      "replace: ds-cfg-max-password-age",
+      "ds-cfg-max-password-age: 5 days",
       "-",
-      "replace: ds-cfg-minimum-password-age",
-      "ds-cfg-minimum-password-age: 3 days",
+      "replace: ds-cfg-min-password-age",
+      "ds-cfg-min-password-age: 3 days",
       "-",
       "replace: ds-cfg-password-expiration-warning-interval",
       "ds-cfg-password-expiration-warning-interval: 3 days");

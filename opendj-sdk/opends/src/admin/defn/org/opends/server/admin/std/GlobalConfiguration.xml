@@ -47,7 +47,6 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.13</ldap:oid>
       <ldap:name>ds-cfg-root-config</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -70,7 +69,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.24</ldap:oid>
         <ldap:name>ds-cfg-check-schema</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -78,18 +76,15 @@
 
   <adm:property name="default-password-policy" mandatory="true">
     <adm:synopsis>
-      Specifies the DN of the configuration entry for the password policy that
-      will be in effect for users whose entries do not specify an alternate
-      password policy (either via a real or virtual attribute).
+      Specifies the name of the password policy that will be in effect
+      for users whose entries do not specify an alternate password
+      policy (either via a real or virtual attribute).
     </adm:synopsis>
     <adm:syntax>
-      <adm:dn>
-        <adm:base>cn=Password Policies,cn=config</adm:base>
-      </adm:dn>
+      <adm:aggregation relation-name="password-policy" parent-path="/" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.202</ldap:oid>
         <ldap:name>ds-cfg-default-password-policy</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -113,7 +108,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.142</ldap:oid>
         <ldap:name>ds-cfg-add-missing-rdn-attributes</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -137,7 +131,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.5</ldap:oid>
         <ldap:name>ds-cfg-allow-attribute-name-exceptions</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -183,7 +176,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.44</ldap:oid>
         <ldap:name>ds-cfg-invalid-attribute-syntax-behavior</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -206,7 +198,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.143</ldap:oid>
         <ldap:name>ds-cfg-server-error-result-code</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -254,7 +245,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.117</ldap:oid>
         <ldap:name>ds-cfg-single-structural-objectclass-behavior</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -280,7 +270,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.71</ldap:oid>
         <ldap:name>ds-cfg-notify-abandoned-operations</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -306,7 +295,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.118</ldap:oid>
         <ldap:name>ds-cfg-size-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -332,28 +320,27 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.150</ldap:oid>
         <ldap:name>ds-cfg-time-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="proxied-authorization-identity-mapper-dn"
+  <adm:property name="proxied-authorization-identity-mapper"
     mandatory="true">
     <adm:synopsis>
-      Specifies the DN of the configuration entry for the identity mapper that
-      will be used to map authorization ID values (using the "u:" form) provided
-      in the proxied authorization control to the corresponding user entry.
+      Specifies the name of the identity mapper that will be used to map
+      authorization ID values (using the "u:" form) provided in the
+      proxied authorization control to the corresponding user entry.
     </adm:synopsis>
     <adm:syntax>
-      <adm:dn>
-        <adm:base>cn=Identity Mappers,cn=config</adm:base>
-      </adm:dn>
+      <adm:aggregation relation-name="identity-mapper"
+        parent-path="/">
+        <adm:target-enabled-property-name name="enabled" />
+      </adm:aggregation>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.149</ldap:oid>
-        <ldap:name>ds-cfg-proxied-authorization-identity-mapper-dn</ldap:name>
+        <ldap:name>ds-cfg-proxied-authorization-identity-mapper</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -395,7 +382,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.161</ldap:oid>
         <ldap:name>ds-cfg-writability-mode</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -420,7 +406,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.301</ldap:oid>
         <ldap:name>ds-cfg-reject-unauthenticated-requests</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -447,7 +432,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.163</ldap:oid>
         <ldap:name>ds-cfg-bind-with-dn-requires-password</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -476,7 +460,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.285</ldap:oid>
         <ldap:name>ds-cfg-lookthrough-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -502,7 +485,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.446</ldap:oid>
         <ldap:name>ds-cfg-smtp-server</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -527,7 +509,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.456</ldap:oid>
         <ldap:name>ds-cfg-allowed-task</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -668,7 +649,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.457</ldap:oid>
         <ldap:name>ds-cfg-disabled-privilege</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -694,7 +674,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.458</ldap:oid>
         <ldap:name>ds-cfg-return-bind-error-messages</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -716,7 +695,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.463</ldap:oid>
         <ldap:name>ds-cfg-idle-time-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -740,7 +718,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.485</ldap:oid>
         <ldap:name>ds-cfg-save-config-on-successful-startup</ldap:name>
       </ldap:attribute>
     </adm:profile>

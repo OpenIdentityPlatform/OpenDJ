@@ -85,8 +85,8 @@ public class LDAPv2TestCase
     TestCaseUtils.applyModifications(
       "dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
       "changetype: modify",
-      "replace: ds-cfg-allow-ldapv2",
-      "ds-cfg-allow-ldapv2: false");
+      "replace: ds-cfg-allow-ldap-v2",
+      "ds-cfg-allow-ldap-v2: false");
 
     Socket     s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     ASN1Reader r = new ASN1Reader(s);
@@ -111,8 +111,8 @@ public class LDAPv2TestCase
       TestCaseUtils.applyModifications(
         "dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config",
         "changetype: modify",
-        "replace: ds-cfg-allow-ldapv2",
-        "ds-cfg-allow-ldapv2: true");
+        "replace: ds-cfg-allow-ldap-v2",
+        "ds-cfg-allow-ldap-v2: true");
 
       try
       {

@@ -46,7 +46,6 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.75</ldap:oid>
       <ldap:name>ds-cfg-account-status-notification-handler</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
@@ -63,13 +62,12 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.282</ldap:oid>
-        <ldap:name>ds-cfg-account-status-notification-handler-enabled</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
 
-  <adm:property name="notification-handler-class" mandatory="true">
+  <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
@@ -84,8 +82,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.281</ldap:oid>
-        <ldap:name>ds-cfg-account-status-notification-handler-class</ldap:name>
+        <ldap:name>ds-cfg-java-class</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -217,7 +217,7 @@ public class JmxConnectTest extends JmxTestCase {
     // not working at the moment see issue 655
     // {"cn=JE
     // Database,ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
-    // "ds-cfg-database-cache-percent", 10},
+    // "ds-cfg-db-cache-percent", 10},
     };
   }
 
@@ -306,8 +306,8 @@ public class JmxConnectTest extends JmxTestCase {
             "objectClass: ds-cfg-connection-handler",
             "objectClass: ds-cfg-jmx-connection-handler",
             "ds-cfg-ssl-cert-nickname: server-cert",
-            "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-            "ds-cfg-connection-handler-enabled: true",
+            "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+            "ds-cfg-enabled: true",
             "ds-cfg-use-ssl: false", "ds-cfg-listen-port: "
                 + serverJmxPort, "cn: JMX Connection Handler");
     InternalClientConnection connection =
@@ -392,8 +392,8 @@ public class JmxConnectTest extends JmxTestCase {
                 "objectClass: ds-cfg-connection-handler",
                 "objectClass: ds-cfg-jmx-connection-handler",
                 "ds-cfg-ssl-cert-nickname: server-cert",
-                "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-                "ds-cfg-connection-handler-enabled: true",
+                "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+                "ds-cfg-enabled: true",
                 "ds-cfg-use-ssl: false", "ds-cfg-listen-port: "
                     + serverJmxPort, "cn: JMX Connection Handler");
     serverJmxSocket.close();
@@ -416,8 +416,8 @@ public class JmxConnectTest extends JmxTestCase {
                 "objectClass: ds-cfg-connection-handler",
                 "objectClass: ds-cfg-jmx-connection-handler",
                 "ds-cfg-ssl-cert-nickname: server-cert",
-                "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-                "ds-cfg-connection-handler-enabled: true",
+                "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+                "ds-cfg-enabled: true",
                 "ds-cfg-use-ssl: false", "ds-cfg-listen-port: "
                     + initJmxPort, "cn: JMX Connection Handler");
 
@@ -450,11 +450,11 @@ public class JmxConnectTest extends JmxTestCase {
             "objectClass: ds-cfg-connection-handler",
             "objectClass: ds-cfg-jmx-connection-handler",
             "ds-cfg-ssl-cert-nickname: server-cert",
-            "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-            "ds-cfg-connection-handler-enabled: true",
+            "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+            "ds-cfg-enabled: true",
             "ds-cfg-use-ssl: true",
             "ds-cfg-listen-port: " + initJmxPort,
-            "ds-cfg-key-manager-provider-dn: cn=JKS,cn=Key Manager Providers,cn=config",
+            "ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config",
             "cn: JMX Connection Handler");
 
     configureJmx(entry);
@@ -474,8 +474,8 @@ public class JmxConnectTest extends JmxTestCase {
                 "objectClass: ds-cfg-connection-handler",
                 "objectClass: ds-cfg-jmx-connection-handler",
                 "ds-cfg-ssl-cert-nickname: server-cert",
-                "ds-cfg-connection-handler-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
-                "ds-cfg-connection-handler-enabled: true",
+                "ds-cfg-java-class: org.opends.server.protocols.jmx.JmxConnectionHandler",
+                "ds-cfg-enabled: true",
                 "ds-cfg-use-ssl: false", "ds-cfg-listen-port: "
                     + initJmxPort, "cn: JMX Connection Handler");
     try {
@@ -631,14 +631,14 @@ public class JmxConnectTest extends JmxTestCase {
     String jmxName = JMXMBean.getJmxName(testedConnector);
     ObjectName name = ObjectName.getInstance(jmxName);
     Attribute status = (Attribute) mbsc.getAttribute(name,
-        "ds-cfg-connection-handler-enabled");
+        "ds-cfg-enabled");
     if (status != null)
       status.getValue();
     Attribute attr = new Attribute(
-        "ds-cfg-connection-handler-enabled", enabled);
+        "ds-cfg-enabled", enabled);
     mbsc.setAttribute(name, attr);
     status = (Attribute) mbsc.getAttribute(name,
-        "ds-cfg-connection-handler-enabled");
+        "ds-cfg-enabled");
 
     status = null;
   }

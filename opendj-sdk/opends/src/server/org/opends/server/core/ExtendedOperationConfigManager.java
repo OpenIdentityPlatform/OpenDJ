@@ -222,7 +222,7 @@ public class ExtendedOperationConfigManager implements
           }
 
           messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
-                  String.valueOf(configuration.getJavaImplementationClass()),
+                  String.valueOf(configuration.getJavaClass()),
                   String.valueOf(dn),
                   stackTraceToSingleLineString(e)));
           resultCode = DirectoryServer.getServerErrorResultCode();
@@ -235,7 +235,7 @@ public class ExtendedOperationConfigManager implements
         // applied dynamically, so if the class name did change then
         // indicate that administrative action is required for that
         // change to take effect.
-        String className = configuration.getJavaImplementationClass();
+        String className = configuration.getJavaClass();
         if (!className.equals(handler.getClass().getName())) {
           adminActionRequired = true;
         }
@@ -310,7 +310,7 @@ public class ExtendedOperationConfigManager implements
         }
 
         messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
-                String.valueOf(configuration.getJavaImplementationClass()),
+                String.valueOf(configuration.getJavaClass()),
                 String.valueOf(dn),
                 stackTraceToSingleLineString(e)));
         resultCode = DirectoryServer.getServerErrorResultCode();
@@ -337,11 +337,11 @@ public class ExtendedOperationConfigManager implements
   private ExtendedOperationHandler getHandler(
       ExtendedOperationHandlerCfg config) throws ConfigException
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     ExtendedOperationHandlerCfgDefn d =
       ExtendedOperationHandlerCfgDefn.getInstance();
     ClassPropertyDefinition pd = d
-        .getJavaImplementationClassPropertyDefinition();
+        .getJavaClassPropertyDefinition();
 
     // Load the class and cast it to an extended operation handler.
     Class<? extends ExtendedOperationHandler> theClass;
@@ -385,11 +385,11 @@ public class ExtendedOperationConfigManager implements
   private boolean isJavaClassAcceptable(ExtendedOperationHandlerCfg config,
                                         List<Message> unacceptableReasons)
   {
-    String className = config.getJavaImplementationClass();
+    String className = config.getJavaClass();
     ExtendedOperationHandlerCfgDefn d =
       ExtendedOperationHandlerCfgDefn.getInstance();
     ClassPropertyDefinition pd = d
-        .getJavaImplementationClassPropertyDefinition();
+        .getJavaClassPropertyDefinition();
 
     // Load the class and cast it to an extended operation handler.
     Class<? extends ExtendedOperationHandler> theClass;

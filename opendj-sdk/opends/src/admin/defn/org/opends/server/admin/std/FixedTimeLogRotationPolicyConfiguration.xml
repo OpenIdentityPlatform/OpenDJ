@@ -40,13 +40,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.109</ldap:oid>
       <ldap:name>ds-cfg-fixed-time-log-rotation-policy</ldap:name>
       <ldap:superior>ds-cfg-log-rotation-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="java-implementation-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -75,7 +74,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.126</ldap:oid>
         <ldap:name>ds-cfg-time-of-day</ldap:name>
       </ldap:attribute>
     </adm:profile>

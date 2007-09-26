@@ -123,7 +123,7 @@ public class PasswordValidatorConfigManager
 
       if (validatorConfiguration.isEnabled())
       {
-        String className = validatorConfiguration.getValidatorClass();
+        String className = validatorConfiguration.getJavaClass();
         try
         {
           PasswordValidator<? extends PasswordValidatorCfg>
@@ -155,7 +155,7 @@ public class PasswordValidatorConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // password validator.
-      String className = configuration.getValidatorClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadValidator(className, configuration, false);
@@ -195,7 +195,7 @@ public class PasswordValidatorConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a
     // password validator.
-    String className = configuration.getValidatorClass();
+    String className = configuration.getJavaClass();
     try
     {
       passwordValidator = loadValidator(className, configuration, true);
@@ -271,7 +271,7 @@ public class PasswordValidatorConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as a
       // password validator.
-      String className = configuration.getValidatorClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadValidator(className, configuration, false);
@@ -330,7 +330,7 @@ public class PasswordValidatorConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the validator is disabled, then instantiate the class
     // and initialize and register it as a password validator.
-    String className = configuration.getValidatorClass();
+    String className = configuration.getJavaClass();
     if (existingValidator != null)
     {
       if (! className.equals(existingValidator.getClass().getName()))
@@ -396,7 +396,7 @@ public class PasswordValidatorConfigManager
       PasswordValidatorCfgDefn definition =
            PasswordValidatorCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getValidatorClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends PasswordValidator> validatorClass =
            propertyDefinition.loadClass(className, PasswordValidator.class);
       PasswordValidator<? extends PasswordValidatorCfg> validator =

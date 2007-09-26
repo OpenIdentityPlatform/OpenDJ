@@ -30,7 +30,7 @@ package org.opends.server.extensions;
 
 import javax.net.ssl.TrustManager;
 
-import org.opends.server.admin.std.server.TrustManagerCfg;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DirectoryException;
@@ -46,7 +46,7 @@ import org.opends.server.types.InitializationException;
  * configuration.
  */
 public class NullTrustManagerProvider
-       extends TrustManagerProvider<TrustManagerCfg>
+       extends TrustManagerProvider<TrustManagerProviderCfg>
 {
   /**
    * Creates a new instance of this null trust manager provider.  The
@@ -63,7 +63,8 @@ public class NullTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  public void initializeTrustManagerProvider(TrustManagerCfg configuration)
+  public void initializeTrustManagerProvider(
+                     TrustManagerProviderCfg configuration)
          throws ConfigException, InitializationException
   {
     // No implementation is required.

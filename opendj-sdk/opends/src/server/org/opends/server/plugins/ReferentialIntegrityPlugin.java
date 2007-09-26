@@ -191,7 +191,7 @@ public class ReferentialIntegrityPlugin
       }
     }
 
-    Set<DN> cfgBaseDNs = pluginCfg.getReferentialIntegrityBaseDN();
+    Set<DN> cfgBaseDNs = pluginCfg.getBaseDN();
     if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
@@ -204,7 +204,7 @@ public class ReferentialIntegrityPlugin
     // Iterate through all of the defined attribute types and ensure that they
     // have acceptable syntaxes and that they are indexed for equality below all
     // base DNs.
-    for (AttributeType type : pluginCfg.getReferentialIntegrityAttributeType())
+    for (AttributeType type : pluginCfg.getAttributeType())
     {
       if (! isAttributeSyntaxValid(type))
       {
@@ -232,8 +232,8 @@ public class ReferentialIntegrityPlugin
 
     // Set up log file. Note: it is not allowed to change once the plugin is
     // active.
-    setUpLogFile(pluginCfg.getReferentialIntegrityLogFile());
-    interval=pluginCfg.getReferentialIntegrityUpdateInterval();
+    setUpLogFile(pluginCfg.getLogFile());
+    interval=pluginCfg.getUpdateInterval();
 
     //Set up background processing if interval > 0.
     if(interval > 0)
@@ -256,7 +256,7 @@ public class ReferentialIntegrityPlugin
 
     //Load base DNs from new configuration.
     LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>();
-    for(DN baseDN : newConfiguration.getReferentialIntegrityBaseDN())
+    for(DN baseDN : newConfiguration.getBaseDN())
     {
       newConfiguredBaseDNs.add(baseDN);
     }
@@ -264,15 +264,14 @@ public class ReferentialIntegrityPlugin
     //Load attribute types from new configuration.
     LinkedHashSet<AttributeType> newAttributeTypes =
             new LinkedHashSet<AttributeType>();
-    for(AttributeType type :
-            newConfiguration.getReferentialIntegrityAttributeType())
+    for (AttributeType type : newConfiguration.getAttributeType())
     {
       newAttributeTypes.add(type);
     }
 
     //User is not allowed to change the logfile name, append a message that the
     //server needs restarting for change to take effect.
-    String newLogFileName=newConfiguration.getReferentialIntegrityLogFile();
+    String newLogFileName=newConfiguration.getLogFile();
     if(!logFileName.equals(newLogFileName))
     {
       adminActionRequired=true;
@@ -287,7 +286,7 @@ public class ReferentialIntegrityPlugin
 
     //If the plugin is enabled and the interval has changed, process that
     //change. The change might start or stop the background processing thread.
-    long newInterval=newConfiguration.getReferentialIntegrityUpdateInterval();
+    long newInterval=newConfiguration.getUpdateInterval();
     if(newConfiguration.isEnabled() && newInterval != interval)
       processIntervalChange(newInterval, messages);
 
@@ -335,7 +334,7 @@ public class ReferentialIntegrityPlugin
 
     // Iterate through the set of base DNs that we will check and ensure that
     // the corresponding backend is indexed appropriately.
-    Set<DN> cfgBaseDNs = configuration.getReferentialIntegrityBaseDN();
+    Set<DN> cfgBaseDNs = configuration.getBaseDN();
     if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
@@ -346,8 +345,7 @@ public class ReferentialIntegrityPlugin
     }
 
     //Iterate through attributes and check that each has a valid syntax
-    for (AttributeType type :
-         configuration.getReferentialIntegrityAttributeType())
+    for (AttributeType type : configuration.getAttributeType())
     {
       if (!isAttributeSyntaxValid(type))
       {
@@ -1027,4 +1025,3 @@ public class ReferentialIntegrityPlugin
     }
   }
 }
-

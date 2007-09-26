@@ -123,7 +123,7 @@ public class IdentityMapperConfigManager
 
       if (mapperConfiguration.isEnabled())
       {
-        String className = mapperConfiguration.getMapperClass();
+        String className = mapperConfiguration.getJavaClass();
         try
         {
           IdentityMapper mapper = loadMapper(className, mapperConfiguration,
@@ -169,7 +169,7 @@ public class IdentityMapperConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // identity mapper.
-      String className = configuration.getMapperClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMapper(className, configuration, false);
@@ -208,7 +208,7 @@ public class IdentityMapperConfigManager
 
     // Get the name of the class and make sure we can instantiate it as an
     // identity mapper.
-    String className = configuration.getMapperClass();
+    String className = configuration.getJavaClass();
     try
     {
       identityMapper = loadMapper(className, configuration, true);
@@ -283,7 +283,7 @@ public class IdentityMapperConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as an
       // identity mapper.
-      String className = configuration.getMapperClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadMapper(className, configuration, false);
@@ -341,7 +341,7 @@ public class IdentityMapperConfigManager
     // then we'll at least need to indicate that administrative action is
     // required.  If the mapper is disabled, then instantiate the class and
     // initialize and register it as an identity mapper.
-    String className = configuration.getMapperClass();
+    String className = configuration.getJavaClass();
     if (existingMapper != null)
     {
       if (! className.equals(existingMapper.getClass().getName()))
@@ -405,7 +405,7 @@ public class IdentityMapperConfigManager
       IdentityMapperCfgDefn definition =
            IdentityMapperCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getMapperClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends IdentityMapper> mapperClass =
            propertyDefinition.loadClass(className, IdentityMapper.class);
       IdentityMapper mapper = mapperClass.newInstance();

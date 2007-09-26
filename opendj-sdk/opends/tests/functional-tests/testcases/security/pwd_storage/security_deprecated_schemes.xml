@@ -70,8 +70,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=MD5,cn=Password Storage Schemes,cn=config' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'MD5' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -81,8 +81,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=Base64,cn=Password Storage Schemes,cn=config' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Base64' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -92,8 +92,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=Salted SHA-256,cn=Password Storage Schemes,cn=config' ,
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Salted SHA-256' ,
                     'modifyType'             : 'add' }
             </call>
             
@@ -168,8 +168,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'deprecated-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=MD5,cn=Password Storage Schemes,cn=config' }
+                    'attributeName'          : 'deprecated-password-storage-scheme' ,
+                    'attributeValue'         : 'MD5' }
             </call>
             
             <message>
@@ -182,7 +182,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'DNToModify'             : 'cn=Default Password Policy,cn=Password Policies,cn=config' ,
-                    'attributeName'          : 'ds-cfg-default-password-storage-scheme-dn' ,
+                    'attributeName'          : 'ds-cfg-default-password-storage-scheme' ,
                     'newAttributeValue'      : 'cn=MD5,cn=Password Storage Schemes,cn=config' ,
                     'changetype'             : 'delete' }
             </call>
@@ -388,8 +388,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'default-password-storage-scheme-dn' ,
-                    'attributeValue'         : 'cn=Salted SHA-1,cn=Password Storage Schemes,cn=config' }
+                    'attributeName'          : 'default-password-storage-scheme' ,
+                    'attributeValue'         : 'Salted SHA-1' }
             </call>
             
             <call function="'testCase_Postamble'"/>

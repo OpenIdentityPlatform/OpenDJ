@@ -455,7 +455,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'maximum-password-reset-age' ,
+                    'attributeName'          : 'max-password-reset-age' ,
                     'attributeValue'         : '30 m' }
             </call>
             
@@ -537,7 +537,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'maximum-password-reset-age' ,
+                    'attributeName'          : 'max-password-reset-age' ,
                     'attributeValue'         : '8 s' }
             </call>
             
@@ -629,7 +629,7 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'maximum-password-reset-age' ,
+                    'attributeName'          : 'max-password-reset-age' ,
                     'attributeValue'         : '0 s' }
             </call>
             

@@ -267,7 +267,7 @@ public class AccessLogger implements
          // applied dynamically, so if the class name did change then
          // indicate that administrative action is required for that
          // change to take effect.
-         String className = config.getJavaImplementationClass();
+         String className = config.getJavaClass();
          if(!className.equals(accessLogPublisher.getClass().getName()))
          {
            adminActionRequired = true;
@@ -341,10 +341,10 @@ public class AccessLogger implements
    private boolean isJavaClassAcceptable(AccessLogPublisherCfg config,
                                          List<Message> unacceptableReasons)
    {
-     String className = config.getJavaImplementationClass();
+     String className = config.getJavaClass();
      AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
      ClassPropertyDefinition pd =
-         d.getJavaImplementationClassPropertyDefinition();
+         d.getJavaClassPropertyDefinition();
      // Load the class and cast it to a DebugLogPublisher.
      AccessLogPublisher publisher = null;
      Class<? extends AccessLogPublisher> theClass;
@@ -388,10 +388,10 @@ public class AccessLogger implements
 
    private AccessLogPublisher getAccessPublisher(AccessLogPublisherCfg config)
        throws ConfigException {
-     String className = config.getJavaImplementationClass();
+     String className = config.getJavaClass();
      AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
      ClassPropertyDefinition pd =
-         d.getJavaImplementationClassPropertyDefinition();
+         d.getJavaClassPropertyDefinition();
      // Load the class and cast it to a AccessLogPublisher.
      Class<? extends AccessLogPublisher> theClass;
      AccessLogPublisher AccessLogPublisher;

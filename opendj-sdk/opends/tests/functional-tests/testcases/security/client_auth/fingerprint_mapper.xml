@@ -40,7 +40,7 @@
   #@TestPurpose            Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
   #@TestPreamble           none
   #@TestStep                  Set the SASL EXTERNAL mechanism to fingerprint certificate mapper
-  #@TestStep                  keep the default ds-cfg-certificate-subject-attribute-type which is ds-certificate-subject-dn
+  #@TestStep                  keep the default ds-cfg-subject-attribute which is ds-certificate-subject-dn
   #@TestPostamble          none
   #@TestResult                Success if OpenDS returns 0 for all operations
       -->
@@ -61,7 +61,7 @@
              'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
              'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-mapper-dn',
+             'attributeName'        : 'ds-cfg-certificate-mapper',
              'newAttributeValue'  : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
              'changetype' : 'replace',
              'expectedRC'           :  0 }    
@@ -147,8 +147,8 @@
   <!--   Configure the mapper to map MD5 -->        
      <script>
             listAttr = []   
-            listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:ds-certificate-fingerprint')
-            listAttr.append('ds-cfg-certificate-fingerprint-algorithm:MD5')
+            listAttr.append('ds-cfg-fingerprint-attribute:ds-certificate-fingerprint')
+            listAttr.append('ds-cfg-fingerprint-algorithm:MD5')
      </script>    
 
     <message>'----- Configure the mapper to map MD5 fingerprint '</message>       
@@ -302,8 +302,8 @@
    <message>'----- Configure the mapper to map SHA1 fingerprint '</message>       
        <script>
             listAttr = []   
-            listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:ds-certificate-fingerprint')
-            listAttr.append('ds-cfg-certificate-fingerprint-algorithm:SHA1')
+            listAttr.append('ds-cfg-fingerprint-attribute:ds-certificate-fingerprint')
+            listAttr.append('ds-cfg-fingerprint-algorithm:SHA1')
       </script>      
         
  
@@ -532,8 +532,8 @@
   <!--   Configure the mapper to map MD5 -->        
      <script>
             listAttr = []   
-            listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:description')
-            listAttr.append('ds-cfg-certificate-fingerprint-algorithm:MD5')
+            listAttr.append('ds-cfg-fingerprint-attribute:description')
+            listAttr.append('ds-cfg-fingerprint-algorithm:MD5')
      </script>    
 
             
@@ -686,8 +686,8 @@
    <message>'----- Configure the mapper to map SHA1 fingerprint  on the attributes description'</message>       
        <script>
             listAttr = []   
-            listAttr.append('ds-cfg-certificate-fingerprint-attribute-type:description')
-            listAttr.append('ds-cfg-certificate-fingerprint-algorithm:SHA1')
+            listAttr.append('ds-cfg-fingerprint-attribute:description')
+            listAttr.append('ds-cfg-fingerprint-algorithm:SHA1')
       </script>      
         
  

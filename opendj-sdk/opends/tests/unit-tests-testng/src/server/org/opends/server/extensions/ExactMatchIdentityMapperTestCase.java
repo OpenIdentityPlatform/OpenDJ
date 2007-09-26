@@ -103,9 +103,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "",
          "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
@@ -113,9 +113,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: ",
          "",
@@ -124,9 +124,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=test",
          "",
@@ -135,9 +135,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: sn",
          "ds-cfg-match-base-dn: o=test"
@@ -150,9 +150,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid");
 
     AttributeType t = DirectoryServer.getAttributeType("ds-cfg-match-base-dn");
@@ -213,9 +213,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: undefinedAttribute",
          "",
          "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
@@ -223,9 +223,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: invalidDN",
          "",
@@ -234,9 +234,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: ",
          "ds-cfg-match-base-dn: o=test",
          "",
@@ -245,9 +245,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-base-dn: o=test"
       );
 
@@ -258,9 +258,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true");
+         "ds-cfg-enabled: true");
 
     AttributeType t =
          DirectoryServer.getAttributeType("ds-cfg-match-attribute");
@@ -339,9 +339,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid");
 
     ExactMatchIdentityMapperCfg configuration =
@@ -404,9 +404,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=test");
 
@@ -471,9 +471,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=notdefined");
 
@@ -534,9 +534,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: o=test");
 
@@ -597,9 +597,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: cn",
          "ds-cfg-match-base-dn: o=test");
 
@@ -682,9 +682,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn");
 
@@ -748,9 +748,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn");
 
@@ -814,9 +814,9 @@ public class ExactMatchIdentityMapperTestCase
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
          "cn: Exact Match",
-         "ds-cfg-identity-mapper-class: " +
+         "ds-cfg-java-class: " +
               "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-identity-mapper-enabled: true",
+         "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-attribute: cn");
 

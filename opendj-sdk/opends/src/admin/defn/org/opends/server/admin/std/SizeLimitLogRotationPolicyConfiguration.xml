@@ -40,13 +40,12 @@
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.107</ldap:oid>
       <ldap:name>ds-cfg-size-limit-log-rotation-policy</ldap:name>
       <ldap:superior>ds-cfg-log-rotation-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
 
-  <adm:property-override name="java-implementation-class">
+  <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -65,7 +64,6 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.379</ldap:oid>
         <ldap:name>ds-cfg-file-size-limit</ldap:name>
       </ldap:attribute>
     </adm:profile>

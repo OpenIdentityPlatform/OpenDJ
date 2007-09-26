@@ -99,11 +99,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 6",
-         "ds-cfg-maximum-password-length: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 6",
+         "ds-cfg-max-password-length: 0",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -111,11 +111,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 6",
-         "ds-cfg-maximum-password-length: 10",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 6",
+         "ds-cfg-max-password-length: 10",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -123,11 +123,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 0",
-         "ds-cfg-maximum-password-length: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 0",
+         "ds-cfg-max-password-length: 0",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -135,11 +135,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 6",
-         "ds-cfg-maximum-password-length: 6",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 6",
+         "ds-cfg-max-password-length: 6",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -147,10 +147,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 6",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 6",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -158,10 +158,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 0",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 0",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -169,10 +169,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-password-length: 10",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-password-length: 10",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -180,9 +180,9 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true");
+         "ds-cfg-enabled: true");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -233,10 +233,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: -1",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: -1",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -244,10 +244,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: notNumeric",
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: notNumeric",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -255,10 +255,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-password-length: -1",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-password-length: -1",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -266,10 +266,10 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-maximum-password-length: notNumeric",
+         "ds-cfg-enabled: true",
+         "ds-cfg-max-password-length: notNumeric",
          "",
          "dn: cn=Length-Based Password Validator,cn=Password Validators," +
               "cn=config",
@@ -277,11 +277,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 6",
-         "ds-cfg-maximum-password-length: 5");
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 6",
+         "ds-cfg-max-password-length: 5");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -348,11 +348,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 0",
-         "ds-cfg-maximum-password-length: 0");
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 0",
+         "ds-cfg-max-password-length: 0");
 
     LengthBasedPasswordValidatorCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -421,11 +421,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 10",
-         "ds-cfg-maximum-password-length: 0");
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 10",
+         "ds-cfg-max-password-length: 0");
 
     LengthBasedPasswordValidatorCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -496,11 +496,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 0",
-         "ds-cfg-maximum-password-length: 10");
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 0",
+         "ds-cfg-max-password-length: 10");
 
     LengthBasedPasswordValidatorCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -571,11 +571,11 @@ public class LengthBasedPasswordValidatorTestCase
          "objectClass: ds-cfg-password-validator",
          "objectClass: ds-cfg-length-based-password-validator",
          "cn: Length-Based Password Validator",
-         "ds-cfg-password-validator-class: org.opends.server.extensions." +
+         "ds-cfg-java-class: org.opends.server.extensions." +
               "LengthBasedPasswordValidator",
-         "ds-cfg-password-validator-enabled: true",
-         "ds-cfg-minimum-password-length: 6",
-         "ds-cfg-maximum-password-length: 10");
+         "ds-cfg-enabled: true",
+         "ds-cfg-min-password-length: 6",
+         "ds-cfg-max-password-length: 10");
 
     LengthBasedPasswordValidatorCfg configuration =
          AdminTestCaseUtils.getConfiguration(

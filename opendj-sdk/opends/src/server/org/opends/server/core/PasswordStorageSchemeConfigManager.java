@@ -125,7 +125,7 @@ public class PasswordStorageSchemeConfigManager
       if (config.isEnabled())
       {
         // Load the password storage scheme implementation class.
-        String className = config.getSchemeClass();
+        String className = config.getJavaClass();
         loadAndInstallPasswordStorageScheme (className, config);
       }
     }
@@ -148,7 +148,7 @@ public class PasswordStorageSchemeConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as
       // a password storage scheme.
-      String className = configuration.getSchemeClass();
+      String className = configuration.getJavaClass();
       try
       {
         // Load the class but don't initialize it.
@@ -201,7 +201,7 @@ public class PasswordStorageSchemeConfigManager
     // If the current password storage scheme is already enabled then we
     // don't do anything unless the class has changed in which case we
     // should indicate that administrative action is required.
-    String newClassName = configuration.getSchemeClass();
+    String newClassName = configuration.getJavaClass();
     if (storageScheme != null)
     {
       String curClassName = storageScheme.getClass().getName();
@@ -257,7 +257,7 @@ public class PasswordStorageSchemeConfigManager
     {
       // Get the name of the class and make sure we can instantiate it as
       // an entry cache.
-      String className = configuration.getSchemeClass();
+      String className = configuration.getJavaClass();
       try
       {
         // Load the class but don't initialize it.
@@ -295,7 +295,7 @@ public class PasswordStorageSchemeConfigManager
     {
       // Instantiate the class as password storage scheme
       // and initialize it.
-      String className = configuration.getSchemeClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadAndInstallPasswordStorageScheme (className, configuration);
@@ -410,7 +410,7 @@ public class PasswordStorageSchemeConfigManager
           passwordStorageScheme;
 
       definition = PasswordStorageSchemeCfgDefn.getInstance();
-      propertyDefinition = definition.getSchemeClassPropertyDefinition();
+      propertyDefinition = definition.getJavaClassPropertyDefinition();
       schemeClass = propertyDefinition.loadClass(
           className,
           PasswordStorageScheme.class

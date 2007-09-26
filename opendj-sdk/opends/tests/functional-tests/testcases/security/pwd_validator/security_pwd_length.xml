@@ -39,7 +39,7 @@
             <call function="'testCase_Preamble'"/>
             
             <message>
-               'Security: Pwd Validator: Pwd Length Min: Preamble Step 1. Checking existence of ds-cfg-minimum-password-length'
+               'Security: Pwd Validator: Pwd Length Min: Preamble Step 1. Checking existence of ds-cfg-min-password-length'
             </message>
 
             <call function="'compareEntry'">
@@ -47,7 +47,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-minimum-password-length:6',
+                'attrToBeCompared'   : 'ds-cfg-min-password-length:6',
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
@@ -62,8 +62,8 @@
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
                     'propertyName'           : 'Default Password Policy' ,
-                    'attributeName'          : 'password-validator-dn' ,
-                    'attributeValue'         : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
+                    'attributeName'          : 'password-validator' ,
+                    'attributeValue'         : 'Length-Based Password Validator' }
             </call>
             
             <call function="'testCase_Postamble'"/>
@@ -128,7 +128,7 @@
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
                     'propertyName'           : 'Length-Based Password Validator' ,
-                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '4' }
             </call>
             
@@ -233,7 +233,7 @@
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
                     'propertyName'           : 'Length-Based Password Validator' ,
-                    'attributeName'          : 'minimum-password-length' ,
+                    'attributeName'          : 'min-password-length' ,
                     'attributeValue'         : '6' }
             </call>
             
@@ -246,7 +246,7 @@
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Validator: Pwd Length Max: Preamble Step 1. Checking existence of ds-cfg-maximum-password-length'
+               'Security: Pwd Validator: Pwd Length Max: Preamble Step 1. Checking existence of ds-cfg-max-password-length'
             </message>
 
             <call function="'compareEntry'">
@@ -254,7 +254,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                'attrToBeCompared'   : 'ds-cfg-maximum-password-length:0',
+                'attrToBeCompared'   : 'ds-cfg-max-password-length:0',
                 'entryToBeCompared'   : 'cn=Length-Based Password Validator,cn=Password Validators,cn=config' }
             </call>
 
@@ -271,7 +271,7 @@
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
                     'propertyName'           : 'Length-Based Password Validator' ,
-                    'attributeName'          : 'maximum-password-length' ,
+                    'attributeName'          : 'max-password-length' ,
                     'attributeValue'         : '10' }
             </call>
             
@@ -376,7 +376,7 @@
                     'objectName'             : 'password-validator' ,
                     'propertyType'           : 'validator' ,
                     'propertyName'           : 'Length-Based Password Validator' ,
-                    'attributeName'          : 'maximum-password-length' ,
+                    'attributeName'          : 'max-password-length' ,
                     'attributeValue'         : '0' }
             </call>
             

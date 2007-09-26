@@ -499,7 +499,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     String suffix  = "dc=example,dc=com";
     String suffix2 = "o=networkgroup suffix";
-    String backendBaseDNName = "ds-cfg-backend-base-dn";
+    String backendBaseDNName = "ds-cfg-base-dn";
 
     // Initialize a backend with a base entry.
     TestCaseUtils.clearJEBackend(true, "userRoot", suffix);

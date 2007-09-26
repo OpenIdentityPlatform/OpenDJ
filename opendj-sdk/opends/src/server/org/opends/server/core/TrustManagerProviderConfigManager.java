@@ -39,8 +39,8 @@ import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.TrustManagerCfgDefn;
-import org.opends.server.admin.std.server.TrustManagerCfg;
+import org.opends.server.admin.std.meta.TrustManagerProviderCfgDefn;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.TrustManagerProvider;
@@ -66,9 +66,9 @@ import org.opends.server.loggers.ErrorLogger;
  * the server is running.
  */
 public class TrustManagerProviderConfigManager
-       implements ConfigurationChangeListener<TrustManagerCfg>,
-                  ConfigurationAddListener<TrustManagerCfg>,
-                  ConfigurationDeleteListener<TrustManagerCfg>
+       implements ConfigurationChangeListener<TrustManagerProviderCfg>,
+                  ConfigurationAddListener<TrustManagerProviderCfg>,
+                  ConfigurationDeleteListener<TrustManagerProviderCfg>
 
 {
   // A mapping between the DNs of the config entries and the associated trust
@@ -112,19 +112,20 @@ public class TrustManagerProviderConfigManager
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any trust manager provider entries are added or
     // removed.
-    rootConfiguration.addTrustManagerAddListener(this);
-    rootConfiguration.addTrustManagerDeleteListener(this);
+    rootConfiguration.addTrustManagerProviderAddListener(this);
+    rootConfiguration.addTrustManagerProviderDeleteListener(this);
 
 
     //Initialize the existing trust manager providers.
-    for (String name : rootConfiguration.listTrustManagers())
+    for (String name : rootConfiguration.listTrustManagerProviders())
     {
-      TrustManagerCfg providerConfig = rootConfiguration.getTrustManager(name);
+      TrustManagerProviderCfg providerConfig =
+              rootConfiguration.getTrustManagerProvider(name);
       providerConfig.addChangeListener(this);
 
       if (providerConfig.isEnabled())
       {
-        String className = providerConfig.getJavaImplementationClass();
+        String className = providerConfig.getJavaClass();
         try
         {
           TrustManagerProvider provider =
@@ -147,14 +148,15 @@ public class TrustManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationAddAcceptable(TrustManagerCfg configuration,
-                                              List<Message> unacceptableReasons)
+  public boolean isConfigurationAddAcceptable(
+          TrustManagerProviderCfg configuration,
+          List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
       // Get the name of the class and make sure we can instantiate it as a
       // trust manager provider.
-      String className = configuration.getJavaImplementationClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadProvider(className, configuration, false);
@@ -175,7 +177,8 @@ public class TrustManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationAdd(TrustManagerCfg configuration)
+  public ConfigChangeResult applyConfigurationAdd(
+                                  TrustManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -192,7 +195,7 @@ public class TrustManagerProviderConfigManager
 
     // Get the name of the class and make sure we can instantiate it as a trust
     // manager provider.
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     try
     {
       provider = loadProvider(className, configuration, true);
@@ -222,7 +225,8 @@ public class TrustManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationDeleteAcceptable(TrustManagerCfg configuration,
+  public boolean isConfigurationDeleteAcceptable(
+                      TrustManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     // FIXME -- We should try to perform some check to determine whether the
@@ -236,7 +240,7 @@ public class TrustManagerProviderConfigManager
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationDelete(
-                                 TrustManagerCfg configuration)
+                                 TrustManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -258,14 +262,15 @@ public class TrustManagerProviderConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationChangeAcceptable(TrustManagerCfg configuration,
+  public boolean isConfigurationChangeAcceptable(
+                      TrustManagerProviderCfg configuration,
                       List<Message> unacceptableReasons)
   {
     if (configuration.isEnabled())
     {
       // Get the name of the class and make sure we can instantiate it as a
       // trust manager provider.
-      String className = configuration.getJavaImplementationClass();
+      String className = configuration.getJavaClass();
       try
       {
         loadProvider(className, configuration, false);
@@ -287,7 +292,7 @@ public class TrustManagerProviderConfigManager
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-                                 TrustManagerCfg configuration)
+                                 TrustManagerProviderCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
@@ -322,7 +327,7 @@ public class TrustManagerProviderConfigManager
     // changed then we'll at least need to indicate that administrative action
     // is required.  If the provider is disabled, then instantiate the class and
     // initialize and register it as a trust manager provider.
-    String className = configuration.getJavaImplementationClass();
+    String className = configuration.getJavaClass();
     if (existingProvider != null)
     {
       if (! className.equals(existingProvider.getClass().getName()))
@@ -376,16 +381,18 @@ public class TrustManagerProviderConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the trust manager provider.
    */
-  private TrustManagerProvider loadProvider(String className,
-                                            TrustManagerCfg configuration,
-                                            boolean initialize)
+  private TrustManagerProvider loadProvider(
+                                   String className,
+                                   TrustManagerProviderCfg configuration,
+                                   boolean initialize)
           throws InitializationException
   {
     try
     {
-      TrustManagerCfgDefn definition = TrustManagerCfgDefn.getInstance();
+      TrustManagerProviderCfgDefn definition =
+              TrustManagerProviderCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
-           definition.getJavaImplementationClassPropertyDefinition();
+           definition.getJavaClassPropertyDefinition();
       Class<? extends TrustManagerProvider> providerClass =
            propertyDefinition.loadClass(className, TrustManagerProvider.class);
       TrustManagerProvider provider = providerClass.newInstance();
@@ -401,7 +408,8 @@ public class TrustManagerProviderConfigManager
       {
         Method method =
              provider.getClass().getMethod("isConfigurationAcceptable",
-                                           TrustManagerCfg.class, List.class);
+                                           TrustManagerProviderCfg.class,
+                                           List.class);
 
         List<Message> unacceptableReasons = new ArrayList<Message>();
         Boolean acceptable = (Boolean) method.invoke(provider, configuration,

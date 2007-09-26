@@ -146,10 +146,10 @@ def write_replication_conf_ldif_file(path, server):
   ldifLines.append('dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
   ldifLines.append('objectClass: top')
   ldifLines.append('objectClass: ds-cfg-synchronization-provider')
-  ldifLines.append('objectClass: ds-cfg-multimaster-synchronization-provider')  
+  ldifLines.append('objectClass: ds-cfg-replication-synchronization-provider')  
   ldifLines.append('cn: Multimaster Synchronization')  
-  ldifLines.append('ds-cfg-synchronization-provider-enabled: true')
-  ldifLines.append('ds-cfg-synchronization-provider-class: org.opends.server.replication.plugin.MultimasterReplication')
+  ldifLines.append('ds-cfg-enabled: true')
+  ldifLines.append('ds-cfg-java-class: org.opends.server.replication.plugin.MultimasterReplication')
 
 
   # if server is a changelog server, write its corresponding configuration
@@ -162,9 +162,9 @@ def write_replication_conf_ldif_file(path, server):
     ldifLines.append('')
     ldifLines.append('dn: cn=Replication Server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config')
     ldifLines.append('objectClass: top')
-    ldifLines.append('objectClass: ds-cfg-replication-server-config')
+    ldifLines.append('objectClass: ds-cfg-replication-server')
     ldifLines.append('cn: Replication Server')
-    ldifLines.append('ds-cfg-replication-server-port: %s' % port)
+    ldifLines.append('ds-cfg-replication-port: %s' % port)
     
     for chglgServer in list:
       ldifLines.append('ds-cfg-replication-server: %s' % chglgServer)
@@ -191,14 +191,14 @@ def write_replication_conf_ldif_file(path, server):
     ldifLines.append('')
     ldifLines.append('dn: cn=%s,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config' % name)
     ldifLines.append('objectClass: top')
-    ldifLines.append('objectClass: ds-cfg-replication-domain-config')
+    ldifLines.append('objectClass: ds-cfg-replication-domain')
     ldifLines.append('cn: %s' % name)
-    ldifLines.append('ds-cfg-replication-dn: %s' % dn)
+    ldifLines.append('ds-cfg-base-dn: %s' % dn)
 	
     for chglgServer in list:
       ldifLines.append('ds-cfg-replication-server: %s' % chglgServer)
 
-    ldifLines.append('ds-cfg-directory-server-id: %s' % id)
+    ldifLines.append('ds-cfg-server-id: %s' % id)
     ldifLines.append('ds-cfg-receive-status: true')	
 
 

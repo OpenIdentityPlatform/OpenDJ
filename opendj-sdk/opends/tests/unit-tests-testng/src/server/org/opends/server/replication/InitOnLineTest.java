@@ -631,10 +631,10 @@ public class InitOnLineTest extends ReplicationTestCase
       + "objectClass: top\n"
       + "objectClass: ds-cfg-synchronization-provider-config\n"
       + "cn: example\n"
-      + "ds-cfg-synchronization-dn: dc=example,dc=com\n"
+      + "ds-cfg-base-dn: dc=example,dc=com\n"
       + "ds-cfg-changelog-server: localhost:"
       + getChangelogPort(changelogID)+"\n"
-      + "ds-cfg-directory-server-id: " + server1ID + "\n"
+      + "ds-cfg-server-id: " + server1ID + "\n"
       + "ds-cfg-receive-status: true\n"
 //    + "ds-cfg-heartbeat-interval: 0 ms\n"
       + "ds-cfg-window-size: " + WINDOW_SIZE;

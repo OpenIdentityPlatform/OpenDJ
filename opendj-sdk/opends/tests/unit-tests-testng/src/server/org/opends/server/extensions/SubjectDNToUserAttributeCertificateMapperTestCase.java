@@ -99,30 +99,30 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-subject-dn-to-user-attribute-certificate-mapper",
       "cn: No Subject Attr",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "SubjectDNToUserAttributeCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
+      "ds-cfg-enabled: true",
       "",
       "dn: cn=Undefined Subject Attr,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-subject-dn-to-user-attribute-certificate-mapper",
       "cn: Undefined Subject Attr",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "SubjectDNToUserAttributeCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-subject-attribute-type: undefined",
+      "ds-cfg-enabled: true",
+      "ds-cfg-subject-attribute: undefined",
       "",
       "dn: cn=Invalid Base DN,cn=Certificate Mappers,cn=config",
       "objectClass: top",
       "objectClass: ds-cfg-certificate-mapper",
       "objectClass: ds-cfg-subject-dn-to-user-attribute-certificate-mapper",
       "cn: Invalid Base DN",
-      "ds-cfg-certificate-mapper-class: org.opends.server.extensions." +
+      "ds-cfg-java-class: org.opends.server.extensions." +
            "SubjectDNToUserAttributeCertificateMapper",
-      "ds-cfg-certificate-mapper-enabled: true",
-      "ds-cfg-certificate-subject-attribute-type: ds-certificate-subject-dn",
-      "ds-cfg-certificate-user-base-dn: invalid");
+      "ds-cfg-enabled: true",
+      "ds-cfg-subject-attribute: ds-certificate-subject-dn",
+      "ds-cfg-user-base-dn: invalid");
 
 
     Object[][] configEntries = new Object[entries.size()][1];
@@ -548,7 +548,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
     Attribute a =
          new Attribute(DirectoryServer.getAttributeType(
-                            "ds-cfg-certificate-subject-attribute-type"));
+                            "ds-cfg-subject-attribute"));
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE, a));
@@ -606,7 +606,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-certificate-mapper-dn",
+                              new Attribute("ds-cfg-certificate-mapper",
                                             mapperDN)));
 
     InternalClientConnection conn =
@@ -632,7 +632,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                              new Attribute("ds-cfg-certificate-mapper-dn",
+                              new Attribute("ds-cfg-certificate-mapper",
                                             mapperDN)));
 
     InternalClientConnection conn =
@@ -661,7 +661,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
-                      new Attribute("ds-cfg-certificate-subject-attribute-type",
+                      new Attribute("ds-cfg-subject-attribute",
                                     attrName)));
 
     InternalClientConnection conn =
@@ -690,7 +690,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
          "cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config";
 
     AttributeType attrType =
-         DirectoryServer.getAttributeType("ds-cfg-certificate-user-base-dn");
+         DirectoryServer.getAttributeType("ds-cfg-user-base-dn");
 
     LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
     if (baseDNs != null)

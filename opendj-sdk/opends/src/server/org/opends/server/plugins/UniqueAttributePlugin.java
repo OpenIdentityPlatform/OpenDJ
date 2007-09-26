@@ -160,13 +160,13 @@ public class UniqueAttributePlugin
       }
     }
 
-    Set<DN> cfgBaseDNs = configuration.getUniqueAttributeBaseDN();
+    Set<DN> cfgBaseDNs = configuration.getBaseDN();
     if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
-    for (AttributeType t : configuration.getUniqueAttributeType())
+    for (AttributeType t : configuration.getType())
     {
       for (DN baseDN : cfgBaseDNs)
       {
@@ -213,7 +213,7 @@ public class UniqueAttributePlugin
       return PreOperationPluginResult.SUCCESS;
     }
 
-    for (AttributeType t : config.getUniqueAttributeType())
+    for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
       if (attrList != null)
@@ -282,7 +282,7 @@ public class UniqueAttributePlugin
     {
       Attribute a = m.getAttribute();
       AttributeType t = a.getAttributeType();
-      if (! config.getUniqueAttributeType().contains(t))
+      if (! config.getType().contains(t))
       {
         // This modification isn't for a unique attribute.
         continue;
@@ -412,7 +412,7 @@ public class UniqueAttributePlugin
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
       AttributeType t = newRDN.getAttributeType(i);
-      if (! config.getUniqueAttributeType().contains(t))
+      if (! config.getType().contains(t))
       {
         // We aren't interested in this attribute type.
         continue;
@@ -472,7 +472,7 @@ public class UniqueAttributePlugin
       return;
     }
 
-    for (AttributeType t : config.getUniqueAttributeType())
+    for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
       if (attrList != null)
@@ -543,7 +543,7 @@ public class UniqueAttributePlugin
     {
       Attribute a = m.getAttribute();
       AttributeType t = a.getAttributeType();
-      if (! config.getUniqueAttributeType().contains(t))
+      if (! config.getType().contains(t))
       {
         // This modification isn't for a unique attribute.
         continue;
@@ -681,7 +681,7 @@ public class UniqueAttributePlugin
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
       AttributeType t = newRDN.getAttributeType(i);
-      if (! config.getUniqueAttributeType().contains(t))
+      if (! config.getType().contains(t))
       {
         // We aren't interested in this attribute type.
         continue;
@@ -738,7 +738,7 @@ public class UniqueAttributePlugin
    */
   private Set<DN> getBaseDNs(UniqueAttributePluginCfg config, DN entryDN)
   {
-    Set<DN> baseDNs = config.getUniqueAttributeBaseDN();
+    Set<DN> baseDNs = config.getBaseDN();
     if ((baseDNs == null) || baseDNs.isEmpty())
     {
       baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
@@ -782,7 +782,7 @@ public class UniqueAttributePlugin
           throws DirectoryException
   {
     SearchFilter filter;
-    Set<AttributeType> attrTypes = config.getUniqueAttributeType();
+    Set<AttributeType> attrTypes = config.getType();
     if (attrTypes.size() == 1)
     {
       filter = SearchFilter.createEqualityFilter(attrTypes.iterator().next(),
@@ -881,13 +881,13 @@ public class UniqueAttributePlugin
       }
     }
 
-    Set<DN> cfgBaseDNs = configuration.getUniqueAttributeBaseDN();
+    Set<DN> cfgBaseDNs = configuration.getBaseDN();
     if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
     }
 
-    for (AttributeType t : configuration.getUniqueAttributeType())
+    for (AttributeType t : configuration.getType())
     {
       for (DN baseDN : cfgBaseDNs)
       {

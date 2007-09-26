@@ -73,8 +73,8 @@ public class FIFOEntryCacheTestCase
       "objectClass: ds-cfg-entry-cache",
       "objectClass: top",
       "cn: Entry Cache",
-      "ds-cfg-entry-cache-class: org.opends.server.extensions.FIFOEntryCache",
-      "ds-cfg-entry-cache-enabled: true",
+      "ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache",
+      "ds-cfg-enabled: true",
       "ds-cfg-max-entries: " + Integer.toString(super.MAXENTRIES));
     super.configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), cacheConfigEntry);

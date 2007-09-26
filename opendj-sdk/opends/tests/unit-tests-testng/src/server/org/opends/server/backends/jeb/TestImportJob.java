@@ -28,8 +28,8 @@ package org.opends.server.backends.jeb;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tasks.TaskUtils;
-import org.opends.server.admin.std.server.JEBackendCfg;
-import org.opends.server.admin.std.meta.JEBackendCfgDefn;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigEntry;

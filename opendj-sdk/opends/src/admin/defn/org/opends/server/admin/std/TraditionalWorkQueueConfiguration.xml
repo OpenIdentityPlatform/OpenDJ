@@ -40,7 +40,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
 
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:oid>1.3.6.1.4.1.26027.1.2.73</ldap:oid>
       <ldap:name>ds-cfg-traditional-work-queue</ldap:name>
       <ldap:superior>ds-cfg-work-queue</ldap:superior>
     </ldap:object-class>
@@ -56,7 +55,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.73</ldap:oid>
         <ldap:name>ds-cfg-num-worker-threads</ldap:name>
       </ldap:attribute>
     </adm:profile>
@@ -81,7 +79,6 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:oid>1.3.6.1.4.1.26027.1.1.68</ldap:oid>
         <ldap:name>ds-cfg-max-work-queue-capacity</ldap:name>
       </ldap:attribute>
     </adm:profile>
