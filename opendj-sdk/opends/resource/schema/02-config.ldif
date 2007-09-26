@@ -2318,4 +2318,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.174
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.175 NAME 'ds-cfg-ldif-backend'
   SUP ds-cfg-backend STRUCTURAL MUST ds-cfg-ldif-file
   MAY ds-cfg-is-private-backend X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.176
+  NAME 'ds-cfg-get-symmetric-key-extended-operation-handler'
+  SUP ds-cfg-extended-operation-handler STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
 
