@@ -69,7 +69,7 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'entryToBeAdded'   : '%s/security/pwd_policy/add_entry_preencoded_pwd.ldif' % logsRemoteDataDir ,
-                'expectedRC'       : 19 }
+                'expectedRC'       : 53 }
             </call>
 
              <call function="'SearchObject'">

@@ -228,15 +228,6 @@
                     'expectedRC'             : 1 }
             </call>
             
-            <script> 
-                 returnString = STAXReason[0][1]
-            </script> 
-    
-            <call function="'checktestString'">
-                    { 'returnString'       : returnString ,
-                      'expectedString'     : 'error code 53' }
-            </call>
-                
             <call function="'testCase_Postamble'"/>
             
           </sequence>

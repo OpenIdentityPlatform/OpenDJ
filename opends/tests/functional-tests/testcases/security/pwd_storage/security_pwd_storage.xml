@@ -94,11 +94,11 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_CRYPT.xml' % (TESTS_DIR)"/>
           <call function="'pwd_CRYPT'" />
-  
+          <!--
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_multiple_schemes.xml' % (TESTS_DIR)"/>
           <call function="'multiple_schemes'" />
-  
+          -->
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
           <call function="'deprecated_schemes'" />
