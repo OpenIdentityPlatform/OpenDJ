@@ -25,7 +25,6 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -36,10 +35,13 @@ import javax.security.auth.x500.X500Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -53,15 +55,15 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -129,6 +131,27 @@ public class FingerprintCertificateMapper
       case SHA1:
         fingerprintAlgorithm = "SHA1";
         break;
+    }
+
+
+    // Make sure that the fingerprint attribute is configured for equality in
+    // all appropriate backends.
+    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    AttributeType t = configuration.getFingerprintAttribute();
+    for (DN baseDN : cfgBaseDNs)
+    {
+      Backend b = DirectoryServer.getBackend(baseDN);
+      if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+      {
+        throw new ConfigException(ERR_FCM_ATTR_UNINDEXED.get(
+                                       configuration.dn().toString(),
+                                       t.getNameOrOID(), b.getBackendID()));
+      }
     }
   }
 
@@ -276,9 +299,29 @@ public class FingerprintCertificateMapper
                       FingerprintCertificateMapperCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // If we've gotten to this point, then the configuration should be
-    // acceptable.
     boolean configAcceptable = true;
+
+    // Make sure that the fingerprint attribute is configured for equality in
+    // all appropriate backends.
+    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    AttributeType t = configuration.getFingerprintAttribute();
+    for (DN baseDN : cfgBaseDNs)
+    {
+      Backend b = DirectoryServer.getBackend(baseDN);
+      if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+      {
+        configAcceptable = false;
+        unacceptableReasons.add(ERR_FCM_ATTR_UNINDEXED.get(
+                                     configuration.dn().toString(),
+                                     t.getNameOrOID(), b.getBackendID()));
+      }
+    }
+
     return configAcceptable;
   }
 

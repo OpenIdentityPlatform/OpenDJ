@@ -453,6 +453,34 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: employeeNumber
 ds-cfg-index-type: equality
 
+dn: ds-cfg-index-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=manager,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=o,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: o
+ds-cfg-index-type: equality
+
 dn: ds-cfg-index-attribute=seeAlso,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -519,6 +547,34 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: employeeNumber
 ds-cfg-index-type: equality
 
+dn: ds-cfg-index-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=manager,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=o,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: o
+ds-cfg-index-type: equality
+
 dn: ds-cfg-index-attribute=seeAlso,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -545,6 +601,13 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: pager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: cn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
@@ -660,6 +723,34 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: employeeNumber
 ds-cfg-index-type: equality
 
+dn: ds-cfg-index-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=manager,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=o,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: o
+ds-cfg-index-type: equality
+
 dn: ds-cfg-index-attribute=seeAlso,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -693,6 +784,13 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: cn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
@@ -798,6 +896,34 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: mail
 ds-cfg-index-type: equality
 
+dn: ds-cfg-index-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=manager,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=o,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: o
+ds-cfg-index-type: equality
+
 dn: ds-cfg-index-attribute=seeAlso,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -824,6 +950,13 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: pager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=cn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: cn
 ds-cfg-index-type: equality
 
 dn: ds-cfg-index-attribute=sn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
@@ -1009,6 +1142,34 @@ objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: employeeNumber
 ds-cfg-index-type: equality
 
+dn: ds-cfg-index-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=manager,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=o,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: o
+ds-cfg-index-type: equality
+
 dn: ds-cfg-index-attribute=seeAlso,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
@@ -1190,6 +1351,34 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-je-index
 ds-cfg-index-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=manager,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-index-attribute=o,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-je-index
+ds-cfg-index-attribute: o
 ds-cfg-index-type: equality
 
 dn: ds-cfg-index-attribute=seeAlso,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config

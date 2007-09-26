@@ -37,8 +37,7 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            ExactMatchIdentityMapperCfgDefn;
+import org.opends.server.admin.std.meta.ExactMatchIdentityMapperCfgDefn;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.config.ConfigEntry;
