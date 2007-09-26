@@ -40,6 +40,7 @@ import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.UniqueAttributePluginCfg;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PreOperationPluginResult;
@@ -57,6 +58,7 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
@@ -155,6 +157,27 @@ public class UniqueAttributePlugin
                   ERR_PLUGIN_UNIQUEATTR_INVALID_PLUGIN_TYPE.get(t.toString());
           throw new ConfigException(message);
 
+      }
+    }
+
+    Set<DN> cfgBaseDNs = configuration.getUniqueAttributeBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (AttributeType t : configuration.getUniqueAttributeType())
+    {
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        {
+          throw new ConfigException(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
+                                         configuration.dn().toString(),
+                                         t.getNameOrOID(),
+                                         b.getBackendID()));
+        }
       }
     }
   }
@@ -836,6 +859,7 @@ public class UniqueAttributePlugin
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
+
     for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
     {
       switch (pluginType)
@@ -856,6 +880,28 @@ public class UniqueAttributePlugin
           configAcceptable = false;
       }
     }
+
+    Set<DN> cfgBaseDNs = configuration.getUniqueAttributeBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (AttributeType t : configuration.getUniqueAttributeType())
+    {
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        {
+          unacceptableReasons.add(ERR_PLUGIN_UNIQUEATTR_ATTR_UNINDEXED.get(
+                                       configuration.dn().toString(),
+                                       t.getNameOrOID(), b.getBackendID()));
+          configAcceptable = false;
+        }
+      }
+    }
+
     return configAcceptable;
   }
 

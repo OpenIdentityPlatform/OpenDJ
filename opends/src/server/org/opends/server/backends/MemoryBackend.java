@@ -28,7 +28,11 @@ package org.opends.server.backends;
 
 
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
@@ -42,6 +46,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.ConditionResult;
@@ -50,6 +55,7 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
@@ -62,7 +68,6 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
-
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -108,6 +113,8 @@ public class MemoryBackend
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
 
   // The base DNs for this backend.
   private DN[] baseDNs;
@@ -157,7 +164,9 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public void configureBackend(Configuration config) throws ConfigException
+  @Override()
+  public void configureBackend(Configuration config)
+         throws ConfigException
   {
     if (config != null)
     {
@@ -172,6 +181,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void initializeBackend()
        throws ConfigException, InitializationException
   {
@@ -235,6 +245,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void finalizeBackend()
   {
     clearMemoryBackend();
@@ -260,6 +271,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public DN[] getBaseDNs()
   {
     return baseDNs;
@@ -270,6 +282,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized long getEntryCount()
   {
     if (entryMap != null)
@@ -285,16 +298,33 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  @Override()
+  public boolean isIndexed(AttributeType attributeType, IndexType indexType)
+  {
+    // All searches in this backend will always be considered indexed.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public synchronized ConditionResult hasSubordinates(DN entryDN)
+         throws DirectoryException
   {
     long ret = numSubordinates(entryDN);
     if(ret < 0)
@@ -314,7 +344,9 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public long numSubordinates(DN entryDN) throws DirectoryException
+  @Override()
+  public synchronized long numSubordinates(DN entryDN)
+         throws DirectoryException
   {
     // Try to look up the immediate children for the DN
     Set<DN> children = childDNs.get(entryDN);
@@ -334,6 +366,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized Entry getEntry(DN entryDN)
   {
     Entry entry = entryMap.get(entryDN);
@@ -350,6 +383,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized boolean entryExists(DN entryDN)
   {
     return entryMap.containsKey(entryDN);
@@ -360,6 +394,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -414,6 +449,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void deleteEntry(DN entryDN,
                                        DeleteOperation deleteOperation)
          throws DirectoryException
@@ -503,6 +539,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void replaceEntry(Entry entry,
                                         ModifyOperation modifyOperation)
          throws DirectoryException
@@ -528,6 +565,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void renameEntry(DN currentDN, Entry entry,
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -609,6 +647,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -673,6 +712,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
@@ -683,6 +723,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedFeatures()
   {
     return supportedFeatures;
@@ -693,6 +734,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFExport()
   {
     return true;
@@ -703,6 +745,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -764,6 +807,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFImport()
   {
     return true;
@@ -774,6 +818,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -858,6 +903,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup()
   {
     // This backend does not provide a backup/restore mechanism.
@@ -869,6 +915,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -881,6 +928,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -893,6 +941,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -906,6 +955,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsRestore()
   {
     // This backend does not provide a backup/restore mechanism.
@@ -917,6 +967,7 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {

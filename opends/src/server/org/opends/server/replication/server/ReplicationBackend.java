@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
@@ -84,6 +84,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
@@ -188,9 +189,11 @@ public class ReplicationBackend
   }
 
 
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void configureBackend(Configuration config) throws ConfigException
   {
     if (config != null)
@@ -205,9 +208,12 @@ public class ReplicationBackend
     }
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void initializeBackend()
        throws ConfigException, InitializationException
   {
@@ -232,7 +238,7 @@ public class ReplicationBackend
     {
       try
       {
-        DirectoryServer.registerBaseDN(dn, this, false);
+        DirectoryServer.registerBaseDN(dn, this, true);
       }
       catch (Exception e)
       {
@@ -251,18 +257,9 @@ public class ReplicationBackend
 
 
   /**
-   * Removes any data that may have been stored in this backend.
-   */
-  public synchronized void clearMemoryBackend()
-  {
-    childDNs.clear();
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void finalizeBackend()
   {
     for (DN dn : baseDNs)
@@ -281,49 +278,79 @@ public class ReplicationBackend
     }
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized long getEntryCount()
   {
     return -1;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean isLocal()
   {
     return true;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isIndexed(AttributeType attributeType, IndexType indexType)
+  {
+    // This needs to be updated when the backend implementation is complete.
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public synchronized Entry getEntry(DN entryDN)
   {
     return null;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized boolean entryExists(DN entryDN)
   {
     return false;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -331,9 +358,12 @@ public class ReplicationBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void deleteEntry(DN entryDN,
                                        DeleteOperation deleteOperation)
          throws DirectoryException
@@ -342,9 +372,12 @@ public class ReplicationBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void replaceEntry(Entry entry,
                                         ModifyOperation modifyOperation)
          throws DirectoryException
@@ -353,9 +386,12 @@ public class ReplicationBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void renameEntry(DN currentDN, Entry entry,
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -364,33 +400,45 @@ public class ReplicationBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedFeatures()
   {
     return supportedFeatures;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFExport()
   {
     return true;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void exportLDIF(LDIFExportConfig exportConfig)
   throws DirectoryException
   {
@@ -784,17 +832,23 @@ public class ReplicationBackend
     }
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFImport()
   {
     return false;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -806,6 +860,7 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup()
   {
     // This backend does not provide a backup/restore mechanism.
@@ -817,15 +872,19 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
     return true;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -839,6 +898,7 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -848,17 +908,23 @@ public class ReplicationBackend
     backupManager.removeBackup(this.backendDirectory, backupID);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsRestore()
   {
     return true;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -867,44 +933,30 @@ public class ReplicationBackend
     backupManager.restoreBackup(cfg, restoreConfig);
   }
 
+
+
   /**
-   * Retrieves the number of subordinates for the requested entry.
-   *
-   * @param entryDN The distinguished name of the entry.
-   *
-   * @return The number of subordinate entries for the requested entry
-   *         or -1 if it can not be determined.
-   *
-   * @throws DirectoryException  If a problem occurs while trying to
-   *                              retrieve the entry.
+   * {@inheritDoc}
    */
+  @Override()
   public long numSubordinates(DN entryDN)
       throws DirectoryException
   {
-    Message message = WARN_ROOTDSE_GET_ENTRY_NONROOT.
-    get(entryDN.toNormalizedString());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                 ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
+
+
   /**
-   * Indicates whether the requested entry has any subordinates.
-   *
-   * @param entryDN The distinguished name of the entry.
-   *
-   * @return {@code ConditionResult.TRUE} if the entry has one or more
-   *         subordinates or {@code ConditionResult.FALSE} otherwise
-   *         or {@code ConditionResult.UNDEFINED} if it can not be
-   *         determined.
-   *
-   * @throws DirectoryException  If a problem occurs while trying to
-   *                              retrieve the entry.
+   * {@inheritDoc}
    */
+  @Override()
   public ConditionResult hasSubordinates(DN entryDN)
         throws DirectoryException
   {
-    Message message = WARN_ROOTDSE_GET_ENTRY_NONROOT.
-      get(entryDN.toNormalizedString());
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                 ERR_HAS_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
   /**
@@ -966,9 +1018,12 @@ public class ReplicationBackend
     }
   };
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public synchronized void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -1161,3 +1216,4 @@ public class ReplicationBackend
     }
   }
 }
+

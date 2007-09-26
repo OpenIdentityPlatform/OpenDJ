@@ -41,6 +41,7 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.RunRecoveryException;
 
+import org.opends.server.admin.std.meta.JEIndexCfgDefn;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
@@ -115,9 +116,19 @@ public class BackendImpl
       new ArrayList<MonitorProvider>();
 
   /**
+   * The base DNs defined for this backend instance.
+   */
+  private DN[] baseDNs;
+
+  /**
    * The controls supported by this backend.
    */
   private static HashSet<String> supportedControls;
+
+  /**
+   * The features supported by this backend.
+   */
+  private static HashSet<String> supportedFeatures = new HashSet<String>(0);
 
 
 
@@ -292,6 +303,10 @@ public class BackendImpl
     Validator.ensureTrue(cfg instanceof JEBackendCfg);
 
     this.cfg = (JEBackendCfg)cfg;
+
+    Set<DN> dnSet = this.cfg.getBackendBaseDN();
+    baseDNs = new DN[dnSet.size()];
+    dnSet.toArray(baseDNs);
   }
 
 
@@ -299,6 +314,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void initializeBackend()
       throws ConfigException, InitializationException
   {
@@ -367,15 +383,12 @@ public class BackendImpl
     cfg.addJEChangeListener(this);
   }
 
+
+
   /**
-   * Performs any necessary work to finalize this backend, including closing any
-   * underlying databases or connections and deregistering any suffixes that it
-   * manages with the Directory Server.  This may be called during the Directory
-   * Server shutdown process or if a backend is disabled with the server online.
-   * It must not return until the backend is closed. <BR><BR> This method may
-   * not throw any exceptions.  If any problems are encountered, then they may
-   * be logged but the closure should progress as completely as possible.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizeBackend()
   {
     // Deregister as a change listener.
@@ -441,14 +454,9 @@ public class BackendImpl
 
 
   /**
-   * Indicates whether the data associated with this backend may be considered
-   * local (i.e., in a repository managed by the Directory Server) rather than
-   * remote (i.e., in an external repository accessed by the Directory Server
-   * but managed through some other means).
-   *
-   * @return <CODE>true</CODE> if the data associated with this backend may be
-   *         considered local, or <CODE>false</CODE> if it is remote.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isLocal()
   {
     return true;
@@ -457,12 +465,64 @@ public class BackendImpl
 
 
   /**
-   * Indicates whether this backend provides a mechanism to export the data it
-   * contains to an LDIF file.
-   *
-   * @return <CODE>true</CODE> if this backend provides an LDIF export
-   *         mechanism, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
+  public boolean isIndexed(AttributeType attributeType, IndexType indexType)
+  {
+    try
+    {
+      EntryContainer ec = rootContainer.getEntryContainer(baseDNs[0]);
+      AttributeIndex ai = ec.getAttributeIndex(attributeType);
+      if (ai == null)
+      {
+        return false;
+      }
+
+      Set<JEIndexCfgDefn.IndexType> indexTypes =
+           ai.getConfiguration().getIndexType();
+      switch (indexType)
+      {
+        case PRESENCE:
+          return indexTypes.contains(JEIndexCfgDefn.IndexType.PRESENCE);
+
+        case EQUALITY:
+          return indexTypes.contains(JEIndexCfgDefn.IndexType.EQUALITY);
+
+        case SUBSTRING:
+        case SUBINITIAL:
+        case SUBANY:
+        case SUBFINAL:
+          return indexTypes.contains(JEIndexCfgDefn.IndexType.SUBSTRING);
+
+        case GREATER_OR_EQUAL:
+        case LESS_OR_EQUAL:
+          return indexTypes.contains(JEIndexCfgDefn.IndexType.ORDERING);
+
+        case APPROXIMATE:
+          return indexTypes.contains(JEIndexCfgDefn.IndexType.APPROXIMATE);
+
+        default:
+          return false;
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      return false;
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public boolean supportsLDIFExport()
   {
     return true;
@@ -471,12 +531,9 @@ public class BackendImpl
 
 
   /**
-   * Indicates whether this backend provides a mechanism to import its data from
-   * an LDIF file.
-   *
-   * @return <CODE>true</CODE> if this backend provides an LDIF import
-   *         mechanism, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFImport()
   {
     return true;
@@ -485,16 +542,9 @@ public class BackendImpl
 
 
   /**
-   * Indicates whether this backend provides a backup mechanism of any kind.
-   * This method is used by the backup process when backing up all backends to
-   * determine whether this backend is one that should be skipped.  It should
-   * only return <CODE>true</CODE> for backends that it is not possible to
-   * archive directly (e.g., those that don't store their data locally, but
-   * rather pass through requests to some other repository).
-   *
-   * @return <CODE>true</CODE> if this backend provides any kind of backup
-   *         mechanism, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup()
   {
     return true;
@@ -503,19 +553,9 @@ public class BackendImpl
 
 
   /**
-   * Indicates whether this backend provides a mechanism to perform a backup of
-   * its contents in a form that can be restored later, based on the provided
-   * configuration.
-   *
-   * @param backupConfig      The configuration of the backup for which to make
-   *                          the determination.
-   * @param unsupportedReason A buffer to which a message can be appended
-   *                          explaining why the requested backup is not
-   *                          supported.
-   * @return <CODE>true</CODE> if this backend provides a mechanism for
-   *         performing backups with the provided configuration, or
-   *         <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -525,11 +565,9 @@ public class BackendImpl
 
 
   /**
-   * Indicates whether this backend provides a mechanism to restore a backup.
-   *
-   * @return <CODE>true</CODE> if this backend provides a mechanism for
-   *         restoring backups, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsRestore()
   {
     return true;
@@ -538,10 +576,9 @@ public class BackendImpl
 
 
   /**
-   * Retrieves the OIDs of the features that may be supported by this backend.
-   *
-   * @return The OIDs of the features that may be supported by this backend.
+   * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedFeatures()
   {
     return new HashSet<String>();  //NYI
@@ -550,10 +587,9 @@ public class BackendImpl
 
 
   /**
-   * Retrieves the OIDs of the controls that may be supported by this backend.
-   *
-   * @return The OIDs of the controls that may be supported by this backend.
+   * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
@@ -562,15 +598,12 @@ public class BackendImpl
 
 
   /**
-   * Retrieves the set of base-level DNs that may be used within this backend.
-   *
-   * @return The set of base-level DNs that may be used within this backend.
+   * {@inheritDoc}
    */
+  @Override()
   public DN[] getBaseDNs()
   {
-    Set<DN> dnSet = cfg.getBackendBaseDN();
-    DN[] baseDNs = new DN[dnSet.size()];
-    return dnSet.toArray(baseDNs);
+    return baseDNs;
   }
 
 
@@ -578,6 +611,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public long getEntryCount()
   {
     if (rootContainer != null)
@@ -598,10 +632,14 @@ public class BackendImpl
     return -1;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
-  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
+  @Override()
+  public ConditionResult hasSubordinates(DN entryDN)
+         throws DirectoryException
   {
     long ret = numSubordinates(entryDN);
     if(ret < 0)
@@ -618,9 +656,12 @@ public class BackendImpl
     }
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public long numSubordinates(DN entryDN) throws DirectoryException
   {
     EntryContainer ec;
@@ -667,16 +708,12 @@ public class BackendImpl
     }
   }
 
+
+
   /**
-   * Retrieves the requested entry from this backend.  Note that the caller must
-   * hold a read or write lock on the specified DN.
-   *
-   * @param entryDN The distinguished name of the entry to retrieve.
-   * @return The requested entry, or <CODE>null</CODE> if the entry does not
-   *         exist.
-   * @throws DirectoryException If a problem occurs while trying to retrieve the
-   *                            entry.
+   * {@inheritDoc}
    */
+  @Override()
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     readerBegin();
@@ -728,17 +765,9 @@ public class BackendImpl
 
 
   /**
-   * Adds the provided entry to this backend.  This method must ensure that the
-   * entry is appropriate for the backend and that no entry already exists with
-   * the same DN.
-   *
-   * @param entry        The entry to add to this backend.
-   * @param addOperation The add operation with which the new entry is
-   *                     associated.  This may be <CODE>null</CODE> for adds
-   *                     performed internally.
-   * @throws DirectoryException If a problem occurs while trying to add the
-   *                            entry.
+   * {@inheritDoc}
    */
+  @Override()
   public void addEntry(Entry entry, AddOperation addOperation)
       throws DirectoryException
   {
@@ -789,18 +818,9 @@ public class BackendImpl
 
 
   /**
-   * Removes the specified entry from this backend.  This method must ensure
-   * that the entry exists and that it does not have any subordinate entries
-   * (unless the backend supports a subtree delete operation and the client
-   * included the appropriate information in the request).
-   *
-   * @param entryDN         The DN of the entry to remove from this backend.
-   * @param deleteOperation The delete operation with which this action is
-   *                        associated.  This may be <CODE>null</CODE> for
-   *                        deletes performed internally.
-   * @throws DirectoryException If a problem occurs while trying to remove the
-   *                            entry.
+   * {@inheritDoc}
    */
+  @Override()
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException
   {
@@ -850,18 +870,9 @@ public class BackendImpl
 
 
   /**
-   * Replaces the specified entry with the provided entry in this backend.  The
-   * backend must ensure that an entry already exists with the same DN as the
-   * provided entry.
-   *
-   * @param entry           The new entry to use in place of the existing entry
-   *                        with the same DN.
-   * @param modifyOperation The modify operation with which this action is
-   *                        associated.  This may be <CODE>null</CODE> for
-   *                        modifications performed internally.
-   * @throws DirectoryException If a problem occurs while trying to replace the
-   *                            entry.
+   * {@inheritDoc}
    */
+  @Override()
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
       throws DirectoryException
   {
@@ -913,23 +924,9 @@ public class BackendImpl
 
 
   /**
-   * Moves and/or renames the provided entry in this backend, altering any
-   * subordinate entries as necessary.  This must ensure that an entry already
-   * exists with the provided current DN, and that no entry exists with the
-   * target DN of the provided entry.  The caller must hold write locks on both
-   * the current DN and the new DN for the entry.
-   *
-   * @param currentDN         The current DN of the entry to be replaced.
-   * @param entry             The new content to use for the entry.
-   * @param modifyDNOperation The modify DN operation with which this action is
-   *                          associated.  This may be <CODE>null</CODE> for
-   *                          modify DN operations performed internally.
-   * @throws org.opends.server.types.DirectoryException
-   *          If a problem occurs while trying to perform the rename.
-   * @throws org.opends.server.types.CancelledOperationException
-   *          If this backend noticed and reacted to a request to cancel or
-   *          abandon the modify DN operation.
+   * {@inheritDoc}
    */
+  @Override()
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
       throws DirectoryException, CancelledOperationException
@@ -991,14 +988,9 @@ public class BackendImpl
 
 
   /**
-   * Processes the specified search in this backend.  Matching entries should be
-   * provided back to the core server using the
-   * <CODE>SearchOperation.returnEntry</CODE> method.
-   *
-   * @param searchOperation The search operation to be processed.
-   * @throws org.opends.server.types.DirectoryException
-   *          If a problem occurs while processing the search.
+   * {@inheritDoc}
    */
+  @Override()
   public void search(SearchOperation searchOperation)
       throws DirectoryException
   {
@@ -1051,6 +1043,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void exportLDIF(LDIFExportConfig exportConfig)
       throws DirectoryException
   {
@@ -1160,6 +1153,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
   {
@@ -1459,6 +1453,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void createBackup(BackupConfig backupConfig)
       throws DirectoryException
   {
@@ -1472,6 +1467,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
   {
@@ -1485,6 +1481,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
       throws DirectoryException
   {
@@ -1554,14 +1551,14 @@ public class BackendImpl
     {
       if(rootContainer != null)
       {
-        DN[] baseDNs = new DN[newCfg.getBackendBaseDN().size()];
-        baseDNs = newCfg.getBackendBaseDN().toArray(baseDNs);
+        DN[] newBaseDNs = new DN[newCfg.getBackendBaseDN().size()];
+        newBaseDNs = newCfg.getBackendBaseDN().toArray(newBaseDNs);
 
         // Check for changes to the base DNs.
         for (DN baseDN : cfg.getBackendBaseDN())
         {
           boolean found = false;
-          for (DN dn : baseDNs)
+          for (DN dn : newBaseDNs)
           {
             if (dn.equals(baseDN))
             {
@@ -1578,7 +1575,7 @@ public class BackendImpl
           }
         }
 
-        for (DN baseDN : baseDNs)
+        for (DN baseDN : newBaseDNs)
         {
           if (!rootContainer.getBaseDNs().contains(baseDN))
           {
@@ -1608,6 +1605,8 @@ public class BackendImpl
             }
           }
         }
+
+        baseDNs = newBaseDNs;
       }
       // Put the new configuration in place.
       this.cfg = newCfg;
@@ -1708,12 +1707,8 @@ public class BackendImpl
     return new DirectoryException(resultCode, message, e);
   }
 
-   /**
-   * Retrieves the fully-qualified name of the Java class for this alert
-   * generator implementation.
-   *
-   * @return  The fully-qualified name of the Java class for this alert
-   *          generator implementation.
+  /**
+   * {@inheritDoc}
    */
   public String getClassName()
   {
@@ -1721,14 +1716,7 @@ public class BackendImpl
   }
 
   /**
-   * Retrieves information about the set of alerts that this generator may
-   * produce.  The map returned should be between the notification type for a
-   * particular notification and the human-readable description for that
-   * notification.  This alert generator must not generate any alerts with types
-   * that are not contained in this list.
-   *
-   * @return  Information about the set of alerts that this generator may
-   *          produce.
+   * {@inheritDoc}
    */
   public LinkedHashMap<String,String> getAlerts()
   {
@@ -1740,11 +1728,7 @@ public class BackendImpl
   }
 
   /**
-   * Retrieves the DN of the configuration entry with which this alert generator
-   * is associated.
-   *
-   * @return  The DN of the configuration entry with which this alert generator
-   *          is associated.
+   * {@inheritDoc}
    */
   public DN getComponentEntryDN()
   {

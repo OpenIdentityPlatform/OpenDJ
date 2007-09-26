@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -36,11 +36,28 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
-import java.util.*;
+import java.net.UnknownHostException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.Key;
+import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.SortedSet;
+import javax.naming.ldap.Rdn;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.TrustStoreBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -49,30 +66,42 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.FilePermission;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
+import org.opends.server.util.CertificateManager;
+import org.opends.server.util.Validator;
 
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.Validator;
-import org.opends.server.util.CertificateManager;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.TrustStoreBackendCfg;
-import org.opends.server.admin.Configuration;
-import org.opends.messages.Message;
-import static org.opends.messages.BackendMessages.*;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.naming.ldap.Rdn;
-import java.security.cert.Certificate;
-import java.net.UnknownHostException;
 
 
 /**
@@ -87,6 +116,8 @@ public class TrustStoreBackend
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+
 
   // The current configuration state.
   private TrustStoreBackendCfg configuration;
@@ -119,6 +150,7 @@ public class TrustStoreBackend
   private CertificateManager certificateManager;
 
 
+
   /**
    * Creates a new backend.  All backend
    * implementations must implement a default constructor that use
@@ -132,9 +164,11 @@ public class TrustStoreBackend
   }
 
 
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void configureBackend(Configuration config) throws ConfigException
   {
     Validator.ensureNotNull(config);
@@ -143,9 +177,12 @@ public class TrustStoreBackend
     configuration = (TrustStoreBackendCfg)config;
   }
 
+
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -387,6 +424,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void finalizeBackend()
   {
     configuration.addTrustStoreChangeListener(this);
@@ -409,6 +447,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public DN[] getBaseDNs()
   {
     return baseDNs;
@@ -419,6 +458,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public long getEntryCount()
   {
     int numEntries = 1;
@@ -447,6 +487,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
@@ -458,6 +499,19 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public boolean isIndexed(AttributeType attributeType, IndexType indexType)
+  {
+    // All searches in this backend will always be considered indexed.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
@@ -599,6 +653,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -637,6 +692,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
@@ -663,6 +719,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
@@ -675,6 +732,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -688,6 +746,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -787,6 +846,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
@@ -797,6 +857,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedFeatures()
   {
     return supportedFeatures;
@@ -807,6 +868,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFExport()
   {
     // We do not support LDIF exports.
@@ -818,6 +880,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -830,6 +893,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFImport()
   {
     // This backend does not support LDIF imports.
@@ -841,6 +905,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -854,6 +919,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup()
   {
     // This backend does not provide a backup/restore mechanism.
@@ -865,6 +931,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -877,6 +944,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void createBackup(BackupConfig backupConfig)
        throws DirectoryException
   {
@@ -890,6 +958,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -904,6 +973,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public boolean supportsRestore()
   {
     // This backend does not provide a backup/restore mechanism.
@@ -915,6 +985,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -924,21 +995,29 @@ public class TrustStoreBackend
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
-  {
-    return ConditionResult.UNDEFINED;
-  }
 
   /**
    * {@inheritDoc}
    */
+  @Override()
+  public ConditionResult hasSubordinates(DN entryDN)
+         throws DirectoryException
+  {
+    return ConditionResult.UNDEFINED;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public long numSubordinates(DN entryDN) throws DirectoryException
   {
     return -1;
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -1082,6 +1161,7 @@ public class TrustStoreBackend
 
     return configAcceptable;
   }
+
 
 
   /**

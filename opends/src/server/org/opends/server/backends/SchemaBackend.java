@@ -53,6 +53,10 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import javax.crypto.Mac;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.std.server.SchemaBackendCfg;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -66,6 +70,9 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -73,27 +80,53 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.BackupInfo;
+import org.opends.server.types.ConditionResult;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ModificationType;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ObjectClassType;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.Schema;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchScope;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
-import org.opends.server.types.*;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.loggers.ErrorLogger;
-import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.SchemaBackendCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.Configuration;
-import static org.opends.messages.ConfigMessages.*;
-import org.opends.messages.Message;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 
 
 /**
@@ -211,8 +244,9 @@ public class SchemaBackend
 
   //Regular expression used to strip minimum upper bound value from
   //syntax Attribute Type Description. The value looks like: {count}.
-
   private String stripMinUpperBoundRegEx = "\\{\\d+\\}";
+
+
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -227,9 +261,11 @@ public class SchemaBackend
   }
 
 
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void configureBackend(Configuration config)
        throws ConfigException
   {
@@ -353,9 +389,11 @@ public class SchemaBackend
   }
 
 
+
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -496,16 +534,9 @@ public class SchemaBackend
 
 
   /**
-   * Performs any necessary work to finalize this backend, including closing any
-   * underlying databases or connections and deregistering any suffixes that it
-   * manages with the Directory Server.  This may be called during the
-   * Directory Server shutdown process or if a backend is disabled with the
-   * server online.  It must not return until the backend is closed.
-   * <BR><BR>
-   * This method may not throw any exceptions.  If any problems are encountered,
-   * then they may be logged but the closure should progress as completely as
-   * possible.
+   * {@inheritDoc}
    */
+  @Override()
   public void finalizeBackend()
   {
     currentConfig.removeSchemaChangeListener(this);
@@ -562,10 +593,9 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves the set of base-level DNs that may be used within this backend.
-   *
-   * @return  The set of base-level DNs that may be used within this backend.
+   * {@inheritDoc}
    */
+  @Override()
   public DN[] getBaseDNs()
   {
     return baseDNs;
@@ -576,6 +606,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public long getEntryCount()
   {
     // There is always only a single entry in this backend.
@@ -585,75 +616,57 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether the data associated with this backend may be considered
-   * local (i.e., in a repository managed by the Directory Server) rather than
-   * remote (i.e., in an external repository accessed by the Directory Server
-   * but managed through some other means).
-   *
-   * @return  <CODE>true</CODE> if the data associated with this backend may be
-   *          considered local, or <CODE>false</CODE> if it is remote.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
-  {
-    long ret = numSubordinates(entryDN);
-    if(ret < 0)
-    {
-      return ConditionResult.UNDEFINED;
-    }
-    else if(ret == 0)
-    {
-      return ConditionResult.FALSE;
-    }
-    else
-    {
-      return ConditionResult.TRUE;
-    }
-  }
+
 
   /**
    * {@inheritDoc}
    */
-  public long numSubordinates(DN entryDN) throws DirectoryException
+  @Override()
+  public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
-    boolean found = false;
-
-    for (DN dn : baseDNs)
-    {
-      if (dn.equals(entryDN))
-      {
-        found = true;
-        break;
-      }
-    }
-
-    if (! found)
-    {
-      return -1;
-    }
-
-    return 0;
+    // All searches in this backend will always be considered indexed.
+    return true;
   }
 
+
+
   /**
-   * Retrieves the requested entry from this backend.
-   *
-   * @param  entryDN  The distinguished name of the entry to retrieve.
-   *
-   * @return  The requested entry, or <CODE>null</CODE> if the entry does not
-   *          exist.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to retrieve
-   *                              the entry.
+   * {@inheritDoc}
    */
+  @Override()
+  public ConditionResult hasSubordinates(DN entryDN)
+         throws DirectoryException
+  {
+    return ConditionResult.FALSE;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public long numSubordinates(DN entryDN)
+         throws DirectoryException
+  {
+    return 0L;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
@@ -970,20 +983,9 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether an entry with the specified DN exists in the backend.
-   * The default implementation obtains a read lock and calls
-   * <CODE>getEntry</CODE>, but backend implementations may override this with a
-   * more efficient version that does not require a lock.  The caller is not
-   * required to hold any locks on the specified DN.
-   *
-   * @param  entryDN  The DN of the entry for which to determine existence.
-   *
-   * @return  <CODE>true</CODE> if the specified entry exists in this backend,
-   *          or <CODE>false</CODE> if it does not.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to make the
-   *                              determination.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
@@ -1003,18 +1005,9 @@ public class SchemaBackend
 
 
   /**
-   * Adds the provided entry to this backend.  This method must ensure that the
-   * entry is appropriate for the backend and that no entry already exists with
-   * the same DN.
-   *
-   * @param  entry         The entry to add to this backend.
-   * @param  addOperation  The add operation with which the new entry is
-   *                       associated.  This may be <CODE>null</CODE> for adds
-   *                       performed internally.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to add the
-   *                              entry.
+   * {@inheritDoc}
    */
+  @Override()
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -1026,19 +1019,9 @@ public class SchemaBackend
 
 
   /**
-   * Removes the specified entry from this backend.  This method must ensure
-   * that the entry exists and that it does not have any subordinate entries
-   * (unless the backend supports a subtree delete operation and the client
-   * included the appropriate information in the request).
-   *
-   * @param  entryDN          The DN of the entry to remove from this backend.
-   * @param  deleteOperation  The delete operation with which this action is
-   *                          associated.  This may be <CODE>null</CODE> for
-   *                          deletes performed internally.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to remove the
-   *                              entry.
+   * {@inheritDoc}
    */
+  @Override()
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
@@ -1050,19 +1033,9 @@ public class SchemaBackend
 
 
   /**
-   * Replaces the specified entry with the provided entry in this backend.  The
-   * backend must ensure that an entry already exists with the same DN as the
-   * provided entry.
-   *
-   * @param  entry            The new entry to use in place of the existing
-   *                          entry with the same DN.
-   * @param  modifyOperation  The modify operation with which this action is
-   *                          associated.  This may be <CODE>null</CODE> for
-   *                          modifications performed internally.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to replace
-   *                              the entry.
+   * {@inheritDoc}
    */
+  @Override()
   public void replaceEntry(Entry entry, ModifyOperation modifyOperation)
          throws DirectoryException
   {
@@ -3914,20 +3887,9 @@ public class SchemaBackend
 
 
   /**
-   * Moves and/or renames the provided entry in this backend, altering any
-   * subordinate entries as necessary.  This must ensure that an entry already
-   * exists with the provided current DN, and that no entry exists with the
-   * target DN of the provided entry.
-   *
-   * @param  currentDN          The current DN of the entry to be replaced.
-   * @param  entry              The new content to use for the entry.
-   * @param  modifyDNOperation  The modify DN operation with which this action
-   *                            is associated.  This may be <CODE>null</CODE>
-   *                            for modify DN operations performed internally.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to perform
-   *                              the rename.
+   * {@inheritDoc}
    */
+  @Override()
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -3940,15 +3902,9 @@ public class SchemaBackend
 
 
   /**
-   * Processes the specified search in this backend.  Matching entries should be
-   * provided back to the core server using the
-   * <CODE>SearchOperation.returnEntry</CODE> method.
-   *
-   * @param  searchOperation  The search operation to be processed.
-   *
-   * @throws  DirectoryException  If a problem occurs while processing the
-   *                              search.
+   * {@inheritDoc}
    */
+  @Override()
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -4002,10 +3958,9 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves the OIDs of the controls that may be supported by this backend.
-   *
-   * @return  The OIDs of the controls that may be supported by this backend.
+   * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedControls()
   {
     return supportedControls;
@@ -4014,10 +3969,9 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves the OIDs of the features that may be supported by this backend.
-   *
-   * @return  The OIDs of the features that may be supported by this backend.
+   * {@inheritDoc}
    */
+  @Override()
   public HashSet<String> getSupportedFeatures()
   {
     return supportedFeatures;
@@ -4026,12 +3980,9 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether this backend provides a mechanism to export the data it
-   * contains to an LDIF file.
-   *
-   * @return  <CODE>true</CODE> if this backend provides an LDIF export
-   *          mechanism, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFExport()
   {
     // We will only export the DSE entry itself.
@@ -4043,6 +3994,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -4103,12 +4055,9 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether this backend provides a mechanism to import its data from
-   * an LDIF file.
-   *
-   * @return  <CODE>true</CODE> if this backend provides an LDIF import
-   *          mechanism, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsLDIFImport()
   {
     // This backend does not support LDIF imports.
@@ -4121,6 +4070,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -4132,16 +4082,9 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether this backend provides a backup mechanism of any kind.
-   * This method is used by the backup process when backing up all backends to
-   * determine whether this backend is one that should be skipped.  It should
-   * only return <CODE>true</CODE> for backends that it is not possible to
-   * archive directly (e.g., those that don't store their data locally, but
-   * rather pass through requests to some other repository).
-   *
-   * @return  <CODE>true</CODE> if this backend provides any kind of backup
-   *          mechanism, or <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup()
   {
     // We do support an online backup mechanism for the schema.
@@ -4151,20 +4094,9 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether this backend provides a mechanism to perform a backup of
-   * its contents in a form that can be restored later, based on the provided
-   * configuration.
-   *
-   * @param  backupConfig       The configuration of the backup for which to
-   *                            make the determination.
-   * @param  unsupportedReason  A buffer to which a message can be appended
-   *                            explaining why the requested backup is not
-   *                            supported.
-   *
-   * @return  <CODE>true</CODE> if this backend provides a mechanism for
-   *          performing backups with the provided configuration, or
-   *          <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -4180,6 +4112,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -4526,17 +4459,9 @@ public class SchemaBackend
 
 
   /**
-   * Removes the specified backup if it is possible to do so.
-   *
-   * @param  backupDirectory  The backup directory structure with which the
-   *                          specified backup is associated.
-   * @param  backupID         The backup ID for the backup to be removed.
-   *
-   * @throws  DirectoryException  If it is not possible to remove the specified
-   *                              backup for some reason (e.g., no such backup
-   *                              exists or there are other backups that are
-   *                              dependent upon it).
+   * {@inheritDoc}
    */
+  @Override()
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -4549,11 +4474,9 @@ public class SchemaBackend
 
 
   /**
-   * Indicates whether this backend provides a mechanism to restore a backup.
-   *
-   * @return  <CODE>true</CODE> if this backend provides a mechanism for
-   *          restoring backups, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
+  @Override()
   public boolean supportsRestore()
   {
     // We will provide a restore, but only for offline operations.
@@ -4565,6 +4488,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -5242,11 +5166,7 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves the DN of the configuration entry with which this alert generator
-   * is associated.
-   *
-   * @return  The DN of the configuration entry with which this alert generator
-   *          is associated.
+   * {@inheritDoc}
    */
   public DN getComponentEntryDN()
   {
@@ -5256,11 +5176,7 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves the fully-qualified name of the Java class for this alert
-   * generator implementation.
-   *
-   * @return  The fully-qualified name of the Java class for this alert
-   *          generator implementation.
+   * {@inheritDoc}
    */
   public String getClassName()
   {
@@ -5270,14 +5186,7 @@ public class SchemaBackend
 
 
   /**
-   * Retrieves information about the set of alerts that this generator may
-   * produce.  The map returned should be between the notification type for a
-   * particular notification and the human-readable description for that
-   * notification.  This alert generator must not generate any alerts with types
-   * that are not contained in this list.
-   *
-   * @return  Information about the set of alerts that this generator may
-   *          produce.
+   * {@inheritDoc}
    */
   public LinkedHashMap<String,String> getAlerts()
   {
@@ -5290,6 +5199,8 @@ public class SchemaBackend
 
     return alerts;
   }
+
+
 
   /**
    * Returns an attribute that has the minimum upper bound value removed from
