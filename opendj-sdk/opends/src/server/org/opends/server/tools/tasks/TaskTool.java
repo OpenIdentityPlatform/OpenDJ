@@ -30,6 +30,7 @@ package org.opends.server.tools.tasks;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.ArgumentGroup;
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
@@ -101,8 +102,14 @@ public abstract class TaskTool implements TaskScheduleInformation {
   protected LDAPConnectionArgumentParser createArgParser(String className,
                                            Message toolDescription)
   {
+    ArgumentGroup ldapGroup = new ArgumentGroup(
+            INFO_DESCRIPTION_TASK_LDAP_ARGS.get(), 1001);
+
     argParser = new LDAPConnectionArgumentParser(className,
-            toolDescription, false);
+            toolDescription, false, ldapGroup);
+
+    ArgumentGroup taskGroup = new ArgumentGroup(
+            INFO_DESCRIPTION_TASK_TASK_ARGS.get(), 1000);
 
     try {
       startArg = new StringArgument(
@@ -112,7 +119,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
               true, OPTION_VALUE_START_DATETIME,
               null, null,
               INFO_DESCRIPTION_START_DATETIME.get());
-      argParser.addArgument(startArg);
+      argParser.addArgument(startArg, taskGroup);
     } catch (ArgumentException e) {
       // should never happen
     }

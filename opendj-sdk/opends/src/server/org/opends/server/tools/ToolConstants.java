@@ -722,6 +722,16 @@ public class ToolConstants
   public static final String OPTION_LONG_NO_PROMPT = "no-prompt";
 
   /**
+   * Long form of script friendly option.
+   */
+  public static final String OPTION_LONG_SCRIPT_FRIENDLY = "script-friendly";
+
+  /**
+   * Short form of script friendly option.
+   */
+  public static final Character OPTION_SHORT_SCRIPT_FRIENDLY = 's';
+
+  /**
    * Value for verbose option short form.
    */
   public static final Character OPTION_SHORT_VERBOSE = 'v';
@@ -752,6 +762,22 @@ public class ToolConstants
   public static final String OPTION_LONG_PROP_FILE_PATH = "propertiesFilePath";
 
   /**
+   * Argument that specifies that an operation be scheduled as a
+   * task but the scheduling utility should not exit until the task
+   * has completed.
+   */
+  public static final String OPTION_LONG_SYNCHRONOUS_TASK_MODE =
+          "synchronousTaskMode";
+
+  /**
+   * Argument that specifies that an operation be scheduled as a
+   * task but the scheduling utility should not exit until the task
+   * has completed.
+   */
+  public static final Character OPTION_SHORT_SYNCHRONOUS_TASK_MODE = 'Y';
+
+
+  /**
    * The placeholder value of propertiesFilePAth that will be
    * displayed in usage information.
    */
@@ -763,5 +789,48 @@ public class ToolConstants
    */
   public static final String OPTION_LONG_NO_PROP_FILE = "noPropertiesFile";
 
+
+  /**
+   * Long form of referenced host name.
+   */
+  public static final String OPTION_LONG_REFERENCED_HOST_NAME =
+          "referencedHostName";
+
+
+  /**
+   * Long form of admin UID.
+   */
+  public static final String OPTION_LONG_ADMIN_UID = "adminUID";
+
+
+  /**
+   * Long form of report authorization ID connection option.
+   */
+  public static final String OPTION_LONG_REPORT_AUTHZ_ID = "reportAuthzID";
+
+
+  /**
+   * Long form of use password policy control connection option.
+   */
+  public static final String OPTION_LONG_USE_PW_POLICY_CTL =
+          "usePasswordPolicyControl";
+
+
+  /**
+   * Long form of use SASL external connection option.
+   */
+  public static final String OPTION_LONG_USE_SASL_EXTERNAL = "useSASLExternal";
+
+
+  /**
+   * Long form of option for the command-line encoding option.
+   */
+  public static final String OPTION_LONG_ENCODING = "encoding";
+
+
+  /**
+   * Long form of option specifying no wrapping of the command-line.
+   */
+  public static final String OPTION_LONG_DONT_WRAP = "dontWrap";
 }
 

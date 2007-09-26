@@ -38,6 +38,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.TreeSet;
+import java.util.Set;
 
 import org.opends.server.core.DirectoryServer;
 
@@ -71,7 +73,7 @@ public class ArgumentParser
    * The argument that will be used to indicate that we'll not look for
    * default properties file.
    */
-  private BooleanArgument NoPropertiesFileArgument;
+  private BooleanArgument noPropertiesFileArgument;
 
   // The argument that will be used to trigger the display of usage information.
   private Argument usageArgument;
@@ -126,6 +128,43 @@ public class ArgumentParser
   // The raw set of command-line arguments that were provided.
   private String[] rawArguments;
 
+  /** Set of argument groups. */
+  protected Set<ArgumentGroup> argumentGroups;
+
+
+  /**
+   * Group for arguments that have not been explicitly grouped.
+   * These will appear at the top of the usage statement without
+   * a header.
+   */
+  protected ArgumentGroup defaultArgGroup = new ArgumentGroup(
+          Message.EMPTY, Integer.MAX_VALUE);
+
+
+  /**
+   * Group for arguments that are related to utility input/output like
+   * verbose, quite, no-prompt etc.  These will appear toward the bottom
+   * of the usage statement.
+   */
+  protected ArgumentGroup ldapArgGroup = new ArgumentGroup(
+          INFO_DESCRIPTION_LDAP_CONNECTION_ARGS.get(), Integer.MIN_VALUE + 2);
+
+
+  /**
+   * Group for arguments that are related to utility input/output like
+   * verbose, quite, no-prompt etc.  These will appear toward the bottom
+   * of the usage statement.
+   */
+  protected ArgumentGroup ioArgGroup = new ArgumentGroup(
+          INFO_DESCRIPTION_IO_ARGS.get(), Integer.MIN_VALUE + 1);
+
+
+  /**
+   * Group for arguments that are general like help, version etc.
+   * These will appear at the end of the usage statement.
+   */
+  protected ArgumentGroup generalArgGroup = new ArgumentGroup(
+          INFO_DESCRIPTION_GENERAL_ARGS.get(), Integer.MIN_VALUE);
 
 
   /**
@@ -162,9 +201,12 @@ public class ArgumentParser
     rawArguments            = null;
     usageArgument           = null;
     filePropertiesPathArgument = null;
-    NoPropertiesFileArgument = null;
+    noPropertiesFileArgument = null;
     usageOutputStream       = System.out;
+    initGroups();
   }
+
+
 
 
 
@@ -222,6 +264,7 @@ public class ArgumentParser
     rawArguments      = null;
     usageArgument     = null;
     usageOutputStream = System.out;
+    initGroups();
   }
 
 
@@ -418,6 +461,50 @@ public class ArgumentParser
 
 
   /**
+   * Sets the usage group description for the default argument group.
+   *
+   * @param description for the default group
+   */
+  public void setDefaultArgumentGroupDescription(Message description)
+  {
+    this.defaultArgGroup.setDescription(description);
+  }
+
+
+  /**
+   * Sets the usage group description for the LDAP argument group.
+   *
+   * @param description for the LDAP group
+   */
+  public void setLdapArgumentGroupDescription(Message description)
+  {
+    this.ldapArgGroup.setDescription(description);
+  }
+
+
+  /**
+   * Sets the usage group description for the input/output argument group.
+   *
+   * @param description for the input/output group
+   */
+  public void setInputOutputArgumentGroupDescription(Message description)
+  {
+    this.ioArgGroup.setDescription(description);
+  }
+
+
+  /**
+   * Sets the usage group description for the general argument group.
+   *
+   * @param description for the general group
+   */
+  public void setGeneralArgumentGroupDescription(Message description)
+  {
+    this.generalArgGroup.setDescription(description);
+  }
+
+
+  /**
    * Adds the provided argument to the set of arguments handled by this parser.
    *
    * @param  argument  The argument to be added.
@@ -428,6 +515,82 @@ public class ArgumentParser
   public void addArgument(Argument argument)
          throws ArgumentException
   {
+    addArgument(argument, null);
+  }
+
+  /**
+   * Adds the provided argument to the set of arguments handled by this parser
+   * and puts the arguement in the default group.
+   *
+   * @param  argument  The argument to be added.
+   *
+   * @throws  ArgumentException  If the provided argument conflicts with another
+   *                             argument that has already been defined.
+   */
+  public void addDefaultArgument(Argument argument)
+         throws ArgumentException
+  {
+    addArgument(argument, defaultArgGroup);
+  }
+
+  /**
+   * Adds the provided argument to the set of arguments handled by this parser
+   * and puts the arguement in the LDAP connection group.
+   *
+   * @param  argument  The argument to be added.
+   *
+   * @throws  ArgumentException  If the provided argument conflicts with another
+   *                             argument that has already been defined.
+   */
+  public void addLdapConnectionArgument(Argument argument)
+         throws ArgumentException
+  {
+    addArgument(argument, ldapArgGroup);
+  }
+
+  /**
+   * Adds the provided argument to the set of arguments handled by this parser
+   * and puts the arguement in the input/output group.
+   *
+   * @param  argument  The argument to be added.
+   *
+   * @throws  ArgumentException  If the provided argument conflicts with another
+   *                             argument that has already been defined.
+   */
+  public void addInputOutputArgument(Argument argument)
+         throws ArgumentException
+  {
+    addArgument(argument, ioArgGroup);
+  }
+
+  /**
+   * Adds the provided argument to the set of arguments handled by this parser
+   * and puts the arguement in the general group.
+   *
+   * @param  argument  The argument to be added.
+   *
+   * @throws  ArgumentException  If the provided argument conflicts with another
+   *                             argument that has already been defined.
+   */
+  public void addGeneralArgument(Argument argument)
+         throws ArgumentException
+  {
+    addArgument(argument, generalArgGroup);
+  }
+
+  /**
+   * Adds the provided argument to the set of arguments handled by this parser.
+   *
+   * @param  argument  The argument to be added.
+   * @param  group     The argument group to which the argument belongs.
+   *
+   * @throws  ArgumentException  If the provided argument conflicts with another
+   *                             argument that has already been defined.
+   */
+  public void addArgument(Argument argument, ArgumentGroup group)
+         throws ArgumentException
+  {
+
     Character shortID = argument.getShortIdentifier();
     if ((shortID != null) && shortIDMap.containsKey(shortID))
     {
@@ -466,6 +629,12 @@ public class ArgumentParser
     }
 
     argumentList.add(argument);
+
+    if (group == null) {
+      group = getStandardGroup(argument);
+    }
+    group.addArgument(argument);
+    argumentGroups.add(group);
   }
 
 
@@ -538,7 +707,7 @@ public class ArgumentParser
    */
   public void setNoPropertiesFileArgument(BooleanArgument argument)
   {
-    NoPropertiesFileArgument= argument;
+    noPropertiesFileArgument = argument;
   }
 
   /**
@@ -691,7 +860,7 @@ public class ArgumentParser
         Argument a = longIDMap.get(argName);
         if (a == null)
         {
-          if (argName.equals("help"))
+          if (argName.equals(OPTION_LONG_HELP))
           {
             // "--help" will always be interpreted as requesting usage
             // information.
@@ -1047,8 +1216,8 @@ public class ArgumentParser
       throws ArgumentException
   {
     // We don't look for properties file.
-    if ((NoPropertiesFileArgument != null)
-        && (NoPropertiesFileArgument.isPresent()))
+    if ((noPropertiesFileArgument != null)
+        && (noPropertiesFileArgument.isPresent()))
     {
       return null;
     }
@@ -1171,6 +1340,7 @@ public class ArgumentParser
     {
       buffer.append(wrapText(toolDescription.toString(), 79));
       buffer.append(EOL);
+      buffer.append(EOL);
     }
 
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
@@ -1202,35 +1372,42 @@ public class ArgumentParser
     buffer.append(EOL);
     buffer.append(INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
     buffer.append(EOL);
-
-    // --version is a builtin option
-    if (! shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
-    {
-      buffer.append("-" + OPTION_SHORT_PRODUCT_VERSION + ", ");
-    }
-    buffer.append("--" + OPTION_LONG_PRODUCT_VERSION);
-    buffer.append(EOL);
-    buffer.append("    ");
-    buffer.append( INFO_DESCRIPTION_PRODUCT_VERSION.get());
     buffer.append(EOL);
 
     Argument helpArgument = null ;
-    for (Argument a : argumentList)
+
+    boolean printHeaders = printUsageGroupHeaders();
+    for (ArgumentGroup argGroup : argumentGroups)
     {
-      // If this argument is hidden, then skip it.
-      if (a.isHidden())
+      if (argGroup.containsArguments() && printHeaders)
       {
-        continue;
+        // Print the groups description if any
+        Message groupDesc = argGroup.getDescription();
+        if (groupDesc != null && !Message.EMPTY.equals(groupDesc)) {
+          buffer.append(EOL);
+          buffer.append(wrapText(groupDesc.toString(), 79));
+          buffer.append(EOL);
+          buffer.append(EOL);
+        }
       }
 
-      // Help argument should be printed at the end
-      if ((usageArgument != null) ? usageArgument.getName().equals(a.getName())
-          : false)
+      for (Argument a : argGroup.getArguments())
       {
-        helpArgument = a ;
-        continue ;
+        // If this argument is hidden, then skip it.
+        if (a.isHidden())
+        {
+          continue;
+        }
+
+        // Help argument should be printed at the end
+        if ((usageArgument != null) &&
+                usageArgument.getName().equals(a.getName()))
+        {
+          helpArgument = a ;
+          continue ;
+        }
+        printArgumentUsage(a, buffer);
       }
-      printArgumentUsage(a, buffer);
     }
     if (helpArgument != null)
     {
@@ -1453,5 +1630,123 @@ public class ArgumentParser
       }
     }
   }
+
+  /**
+   * Given an argument, returns an appropriate group.  Arguments may
+   * be part of one of the special groups or the default group.
+   *
+   * @param argument for which a group is requested
+   * @return argument group appropriate for <code>argument</code>
+   */
+  protected ArgumentGroup getStandardGroup(Argument argument) {
+    ArgumentGroup group;
+    if (isInputOutputArgument(argument)) {
+      group = ioArgGroup;
+    } else if (isGeneralArgument(argument)) {
+      group = generalArgGroup;
+    } else if (isLdapConnectionArgument(argument)) {
+      group = ldapArgGroup;
+    } else {
+      group = defaultArgGroup;
+    }
+    return group;
+  }
+
+  /**
+   * Indicates whether or not argument group description headers
+   * should be printed.
+   *
+   * @return boolean where true means print the descriptions
+   */
+  protected boolean printUsageGroupHeaders() {
+    // If there is only a single group then we won't print them.
+    int groupsContainingArgs = 0;
+    for (ArgumentGroup argGroup : argumentGroups)
+    {
+      if (argGroup.containsNonHiddenArguments())
+      {
+        groupsContainingArgs++;
+      }
+    }
+    return groupsContainingArgs > 1;
+  }
+
+  private void initGroups() {
+    this.argumentGroups = new TreeSet<ArgumentGroup>();
+    this.argumentGroups.add(defaultArgGroup);
+    this.argumentGroups.add(ldapArgGroup);
+    this.argumentGroups.add(generalArgGroup);
+    this.argumentGroups.add(ioArgGroup);
+
+    try {
+      Argument version = new BooleanArgument(
+              OPTION_LONG_PRODUCT_VERSION,
+              OPTION_SHORT_PRODUCT_VERSION,
+              OPTION_LONG_PRODUCT_VERSION,
+              INFO_DESCRIPTION_PRODUCT_VERSION.get());
+      this.generalArgGroup.addArgument(version);
+    } catch (ArgumentException e) {
+      // ignore
+    }
+  }
+
+
+  private boolean isInputOutputArgument(Argument arg) {
+    boolean io = false;
+    if (arg != null) {
+      String longId = arg.getLongIdentifier();
+      io = OPTION_LONG_VERBOSE.equals(longId) ||
+              OPTION_LONG_QUIET.equals(longId) ||
+              OPTION_LONG_NO_PROMPT.equals(longId) ||
+              OPTION_LONG_PROP_FILE_PATH.equals(longId) ||
+              OPTION_LONG_NO_PROP_FILE.equals(longId) ||
+              OPTION_LONG_SCRIPT_FRIENDLY.equals(longId) ||
+              OPTION_LONG_DONT_WRAP.equals(longId) ||
+              OPTION_LONG_ENCODING.equals(longId);
+    }
+    return io;
+  }
+
+  private boolean isLdapConnectionArgument(Argument arg) {
+    boolean ldap = false;
+    if (arg != null) {
+      String longId = arg.getLongIdentifier();
+      ldap = OPTION_LONG_USE_SSL.equals(longId) ||
+              OPTION_LONG_START_TLS.equals(longId) ||
+              OPTION_LONG_HOST.equals(longId) ||
+              OPTION_LONG_PORT.equals(longId) ||
+              OPTION_LONG_BINDDN.equals(longId) ||
+              OPTION_LONG_BINDPWD.equals(longId) ||
+              OPTION_LONG_BINDPWD_FILE.equals(longId) ||
+              OPTION_LONG_SASLOPTION.equals(longId) ||
+              OPTION_LONG_TRUSTALL.equals(longId) ||
+              OPTION_LONG_TRUSTSTOREPATH.equals(longId) ||
+              OPTION_LONG_TRUSTSTORE_PWD.equals(longId) ||
+              OPTION_LONG_TRUSTSTORE_PWD_FILE.equals(longId) ||
+              OPTION_LONG_KEYSTOREPATH.equals(longId) ||
+              OPTION_LONG_KEYSTORE_PWD.equals(longId) ||
+              OPTION_LONG_KEYSTORE_PWD_FILE.equals(longId) ||
+              OPTION_LONG_CERT_NICKNAME.equals(longId) ||
+              OPTION_LONG_REFERENCED_HOST_NAME.equals(longId) ||
+              OPTION_LONG_ADMIN_UID.equals(longId) ||
+              OPTION_LONG_REPORT_AUTHZ_ID.equals(longId) ||
+              OPTION_LONG_USE_PW_POLICY_CTL.equals(longId) ||
+              OPTION_LONG_USE_SASL_EXTERNAL.equals(longId) ||
+              OPTION_LONG_PROTOCOL_VERSION.equals(longId);
+    }
+    return ldap;
+  }
+
+
+  private boolean isGeneralArgument(Argument arg) {
+    boolean general = false;
+    if (arg != null) {
+      String longId = arg.getLongIdentifier();
+      general = OPTION_LONG_HELP.equals(longId) ||
+                    OPTION_LONG_PRODUCT_VERSION.equals(longId);
+    }
+    return general;
+  }
+
 }
 

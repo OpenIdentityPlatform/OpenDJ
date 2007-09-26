@@ -500,7 +500,8 @@ public class LDAPDelete
                                     null, INFO_DESCRIPTION_VERSION.get());
       argParser.addArgument(version);
 
-      encodingStr = new StringArgument("encoding", 'i', "encoding", false,
+      encodingStr = new StringArgument("encoding", 'i',
+                                       OPTION_LONG_ENCODING, false,
                                        false, true, "{encoding}", null,  null,
                                        INFO_DESCRIPTION_ENCODING.get());
       argParser.addArgument(encodingStr);

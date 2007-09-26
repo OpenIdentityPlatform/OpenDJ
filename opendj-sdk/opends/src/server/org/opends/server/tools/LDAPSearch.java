@@ -834,13 +834,13 @@ public class LDAPSearch
       argParser.addArgument(proxyAuthzID);
 
       reportAuthzID = new BooleanArgument(
-              "reportauthzid", 'E', "reportAuthzID",
+              "reportauthzid", 'E', OPTION_LONG_REPORT_AUTHZ_ID,
               INFO_DESCRIPTION_REPORT_AUTHZID.get());
       argParser.addArgument(reportAuthzID);
 
       usePasswordPolicyControl = new BooleanArgument(
               "usepwpolicycontrol", null,
-              "usePasswordPolicyControl",
+              OPTION_LONG_USE_PW_POLICY_CTL,
               INFO_DESCRIPTION_USE_PWP_CONTROL.get());
       argParser.addArgument(usePasswordPolicyControl);
 
@@ -940,7 +940,8 @@ public class LDAPSearch
                                       INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get());
       argParser.addArgument(timeLimit);
 
-      dontWrap = new BooleanArgument("dontwrap", 'T', "dontWrap",
+      dontWrap = new BooleanArgument("dontwrap", 'T',
+                                     "dontWrap",
                                      INFO_DESCRIPTION_DONT_WRAP.get());
       argParser.addArgument(dontWrap);
 

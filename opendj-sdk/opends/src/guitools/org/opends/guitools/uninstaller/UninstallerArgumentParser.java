@@ -180,7 +180,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     args.add(quietArg);
 
     adminUidArg = new StringArgument("adminUID", 'I',
-        "adminUID", false, false, true, "adminUID",
+        OPTION_LONG_ADMIN_UID, false, false, true, "adminUID",
         Constants.GLOBAL_ADMIN_UID, null, INFO_DESCRIPTION_ADMIN_UID.get());
 
     ArrayList<Argument> defaultArgs =
@@ -203,7 +203,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,
-        "referencedHostName", false, false, true,
+        OPTION_LONG_REFERENCED_HOST_NAME, false, false, true,
         ToolConstants.OPTION_VALUE_HOST,
         uData.getHostName(), null, INFO_DESCRIPTION_REFERENCED_HOST.get());
     defaultArgs.add(referencedHostNameArg);

@@ -296,19 +296,19 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
         OPTION_VALUE_KEYSTORE_PWD, null, null,
         INFO_INSTALLDS_DESCRIPTION_KEYSTOREPASSWORD.get());
-    addArgument(keyStorePasswordArg);
+    addDefaultArgument(keyStorePasswordArg);
 
     keyStorePasswordFileArg = new FileBasedArgument("keystorePasswordFile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
         false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
         INFO_INSTALLDS_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
-    addArgument(keyStorePasswordFileArg);
+    addDefaultArgument(keyStorePasswordFileArg);
 
     certNicknameArg = new StringArgument("certnickname",
         OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
         false, false, true, OPTION_VALUE_CERT_NICKNAME, null, null,
         INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get());
-    addArgument(certNicknameArg);
+    addDefaultArgument(certNicknameArg);
 
     showUsageArg = new BooleanArgument("help", OPTION_SHORT_HELP,
         OPTION_LONG_HELP,

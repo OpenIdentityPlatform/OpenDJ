@@ -173,7 +173,7 @@ public class ManageTasks extends ConsoleApplication {
     LDAPConnectionArgumentParser argParser = new LDAPConnectionArgumentParser(
             "org.opends.server.tools.TaskInfo",
             INFO_TASKINFO_TOOL_DESCRIPTION.get(),
-            false);
+            false, null);
 
     // Initialize all the command-line argument types and register them with the
     // parser.
