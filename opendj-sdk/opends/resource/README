@@ -4,7 +4,7 @@ This archive contains the OpenDS Directory Server.  Complete documentation for
 this product may be found online at https://OpenDS.dev.java.net/.
 
 To configure the server, run the setup script on UNIX-based platforms, or the
-setup.bat batch file on Windows.  To start the server, run bin/start-ds.sh on
+setup.bat batch file on Windows.  To start the server, run bin/start-ds on
 UNIX-based platforms, or bat\start-ds.bat on Windows systems.
 
 This product is made available under the Common Development and Distribution
