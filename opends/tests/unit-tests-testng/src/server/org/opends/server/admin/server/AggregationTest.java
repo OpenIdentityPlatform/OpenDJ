@@ -52,6 +52,7 @@ import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
+import org.opends.server.admin.condition.Conditions;
 import org.opends.server.admin.std.client.ConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.LDAPConnectionHandlerCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
@@ -306,7 +307,7 @@ public final class AggregationTest extends AdminTestCase {
         .setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
     builder.setParentPath("/");
     builder.setRelationDefinition("connection-handler");
-    builder.setTargetEnabledPropertyName("enabled");
+    builder.setTargetIsEnabledCondition(Conditions.contains("enabled", "true"));
     aggregationPropertyDefinitionTargetMustBeEnabled = builder.getInstance();
     TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
 
@@ -319,8 +320,8 @@ public final class AggregationTest extends AdminTestCase {
         .setDefaultBehaviorProvider(new UndefinedDefaultBehaviorProvider<String>());
     builder.setParentPath("/");
     builder.setRelationDefinition("connection-handler");
-    builder.setTargetEnabledPropertyName("enabled");
-    builder.addSourceEnabledPropertyName("mandatory-boolean-property");
+    builder.setTargetIsEnabledCondition(Conditions.contains("enabled", "true"));
+    builder.setTargetNeedsEnablingCondition(Conditions.contains("mandatory-boolean-property", "true"));
     aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = builder
         .getInstance();
     TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);

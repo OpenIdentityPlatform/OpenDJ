@@ -26,6 +26,7 @@
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:include href="../conditions.xsl" />
   <!-- 
     Templates for processing aggregation properties.
   -->
@@ -43,6 +44,12 @@
     </xsl:element>
     <xsl:if test="../../@multi-valued = 'true'">
       <import>java.util.TreeSet</import>
+    </xsl:if>
+    <xsl:if test="adm:target-needs-enabling-condition">
+      <import>org.opends.server.admin.condition.Conditions</import>
+    </xsl:if>
+    <xsl:if test="adm:target-is-enabled-condition">
+      <import>org.opends.server.admin.condition.Conditions</import>
     </xsl:if>
     <import>
       org.opends.server.admin.AggregationPropertyDefinition
@@ -79,30 +86,26 @@
           select="concat('No relation-name defined for aggregation property ', ../../@name)" />
       </xsl:message>
     </xsl:if>
-    <xsl:if
-      test="@source-enabled-property-name and not(@target-enabled-property-name)">
-      <xsl:message terminate="yes">
-        <xsl:value-of
-          select="concat('source-enabled-property-name defined but target-enabled-property-name undefined in aggregation property ', ../../@name)" />
-      </xsl:message>
-    </xsl:if>
     <xsl:value-of
       select="concat('      builder.setParentPath(&quot;',
                      normalize-space(@parent-path), '&quot;);&#xa;')" />
     <xsl:value-of
       select="concat('      builder.setRelationDefinition(&quot;',
                      normalize-space(@relation-name), '&quot;);&#xa;')" />
-    <xsl:for-each select="adm:source-enabled-property-name">
-      <xsl:sort select="@name" />
+    <xsl:if test="adm:target-needs-enabling-condition">
       <xsl:value-of
-        select="concat('      builder.addSourceEnabledPropertyName(&quot;',
-                       normalize-space(@name), '&quot;);&#xa;')" />
-    </xsl:for-each>
-    <xsl:if test="source-enabled-property-name"></xsl:if>
-    <xsl:if test="adm:target-enabled-property-name">
+        select="'      builder.setTargetNeedsEnablingCondition('" />
+      <xsl:apply-templates
+        select="adm:target-needs-enabling-condition/*"
+        mode="compile-condition" />
+      <xsl:value-of select="');&#xa;'" />
+    </xsl:if>
+    <xsl:if test="adm:target-is-enabled-condition">
       <xsl:value-of
-        select="concat('      builder.setTargetEnabledPropertyName(&quot;',
-                       normalize-space(adm:target-enabled-property-name/@name), '&quot;);&#xa;')" />
+        select="'      builder.setTargetIsEnabledCondition('" />
+      <xsl:apply-templates select="adm:target-is-enabled-condition/*"
+        mode="compile-condition" />
+      <xsl:value-of select="');&#xa;'" />
     </xsl:if>
   </xsl:template>
   <xsl:template match="adm:aggregation"

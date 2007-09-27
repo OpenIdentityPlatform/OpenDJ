@@ -29,6 +29,7 @@ package org.opends.server.admin;
 
 
 
+import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.types.DN;
 
 
@@ -40,7 +41,7 @@ import org.opends.server.types.DN;
 public interface Configuration {
 
   /**
-   * Get the DN of the LDAP entry associated with this configuration.
+   * Gets the DN of the LDAP entry associated with this configuration.
    *
    * @return Returns the DN of the LDAP entry associated with this
    *         configuration.
@@ -50,7 +51,7 @@ public interface Configuration {
 
 
   /**
-   * Get the configuration definition associated with this
+   * Gets the configuration definition associated with this
    * configuration.
    *
    * @return Returns the configuration definition associated with this
@@ -62,9 +63,11 @@ public interface Configuration {
 
 
   /**
-   * Get a property provider view of this configuration.
+   * Gets the underlying server-side managed object associated with
+   * this configuration.
    *
-   * @return Returns a property provider view of this configuration.
+   * @return Returns the underlying server-side managed object
+   *         associated with this configuration.
    */
-  PropertyProvider properties();
+  ServerManagedObject<? extends Configuration> managedObject();
 }

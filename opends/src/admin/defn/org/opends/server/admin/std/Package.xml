@@ -227,36 +227,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="key-manager-provider">
-    <adm:synopsis>
-      Specifies the name of the key manager that should be used
-      with this <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property will take effect immediately, but
-          only for subsequent attempts to access the key manager
-          provider for associated client connections.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:undefined />
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:aggregation relation-name="key-manager-provider" parent-path="/">
-        <adm:source-enabled-property-name name="enabled" />
-        <adm:source-enabled-property-name name="use-ssl" />
-        <adm:target-enabled-property-name name="enabled" />
-      </adm:aggregation>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-key-manager-provider</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="trust-store-pin">
     <adm:synopsis>
       Specifies the clear-text PIN needed to access the
@@ -371,36 +341,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-trust-store-pin-file</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="trust-manager-provider">
-    <adm:synopsis>
-      Specifies the name of the trust manager that should be used with
-      this <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property will take effect immediately, but
-          only for subsequent attempts to access the trust manager
-          provider for associated client connections.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:undefined />
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:aggregation relation-name="trust-manager-provider" parent-path="/">
-        <adm:source-enabled-property-name name="enabled" />
-        <adm:source-enabled-property-name name="use-ssl" />
-        <adm:target-enabled-property-name name="enabled" />
-      </adm:aggregation>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-trust-manager-provider</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

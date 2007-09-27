@@ -721,7 +721,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
     /**
      * {@inheritDoc}
      */
-    public PropertyProvider properties() {
+    public ServerManagedObject<? extends TestParentCfg> managedObject() {
       return impl;
     }
 
