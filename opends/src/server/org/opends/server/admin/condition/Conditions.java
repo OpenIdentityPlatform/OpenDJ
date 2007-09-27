@@ -149,7 +149,7 @@ public final class Conditions {
    */
   public static Condition contains(String propertyName,
       String propertyStringValue) {
-    return new ContainsValueCondition(propertyName, propertyStringValue);
+    return new ContainsCondition(propertyName, propertyStringValue);
   }
 
 

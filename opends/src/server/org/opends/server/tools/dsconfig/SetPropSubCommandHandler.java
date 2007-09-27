@@ -63,7 +63,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.condition.Condition;
-import org.opends.server.admin.condition.ContainsValueCondition;
+import org.opends.server.admin.condition.ContainsCondition;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
@@ -381,9 +381,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             while (!condition.evaluate(context, ref)) {
               boolean isBadReference = true;
 
-              if (condition instanceof ContainsValueCondition) {
+              if (condition instanceof ContainsCondition) {
                 // Attempt to automatically enable the managed object.
-                ContainsValueCondition cvc = (ContainsValueCondition) condition;
+                ContainsCondition cvc = (ContainsCondition) condition;
                 app.println();
                 if (app.confirmAction(
                     INFO_EDITOR_PROMPT_ENABLED_REFERENCED_COMPONENT.get(rufn,
