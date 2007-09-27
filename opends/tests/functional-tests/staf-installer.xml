@@ -617,6 +617,17 @@ email.server.pwd=${email.server.pwd.input}
         <include name="r*"/>
       </fileset>
     </copy>
+    <delete file="${staf.tmp.dir}/percentage.properties"/>
+    <copy file="${staf.tmp.dir}/my-report.html" tofile="${staf.tmp.dir}/plot.all.percentage">
+      <filterchain>
+        <linecontains>
+         <contains value='font size="+2'/>
+        </linecontains>
+        <tokenfilter>
+          <replaceregex pattern=".*font size=.+2..(\d+)%./font.*" replace="YVALUE=\1"/>
+        </tokenfilter>
+      </filterchain>
+    </copy>
     <echo>You may access the tests report at</echo>
     <echo>${tests.run.dir}/${tests.run.time}/report/my-report.html</echo>
     <antcall target="send-mail"/>
