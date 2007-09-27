@@ -78,31 +78,29 @@
                 
                 <if expr="componentList[componentNumber][0] == 'get-local-db-index-prop'">
                   <call function="'dsconfig'">
-                  {   'location'       :  location ,
-                      'dsPath'         :  dsPath ,
-                      'dsInstanceHost' :  dsInstanceHost ,
-                      'dsInstancePort' :  dsInstancePort ,
-                      'dsInstanceDn'   :  dsInstanceDn ,
-                      'dsInstancePswd' :  dsInstancePswd ,
-                      'subcommand'     :  '%s' % componentList[componentNumber][0] ,
-                      'objectType'     :  '%s' % componentList[componentNumber][1] ,
-                      'objectName'     :  '%s' % componentList[componentNumber][2] ,
-                      'optionsString'  :  '--backend-name userroot' ,
-                      'expectedRC'     : 0 
+                  {   
+                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD , 
+                    'subcommand'     :  '%s' % componentList[componentNumber][0] ,
+                    'objectType'     :  '%s' % componentList[componentNumber][1] ,
+                    'objectName'     :  '%s' % componentList[componentNumber][2] ,
+                    'optionsString'  :  '--backend-name userroot' ,
+                    'expectedRC'     : 0 
                   }
                   </call>
                 <else>
                   <call function="'dsconfig'">
-                  {   'location'       :  location ,
-                      'dsPath'         :  dsPath ,
-                      'dsInstanceHost' :  dsInstanceHost ,
-                      'dsInstancePort' :  dsInstancePort ,
-                      'dsInstanceDn'   :  dsInstanceDn ,
-                      'dsInstancePswd' :  dsInstancePswd ,
-                      'subcommand'     :  '%s' % componentList[componentNumber][0] ,
-                      'objectType'     :  '%s' % componentList[componentNumber][1] ,
-                      'objectName'     :  '%s' % componentList[componentNumber][2] ,
-                      'expectedRC'     : 0 
+                  {                       
+                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD , 
+                    'subcommand'     :  '%s' % componentList[componentNumber][0] ,
+                    'objectType'     :  '%s' % componentList[componentNumber][1] ,
+                    'objectName'     :  '%s' % componentList[componentNumber][2] ,
+                    'expectedRC'     : 0 
                   }
                   </call>
                 </else>

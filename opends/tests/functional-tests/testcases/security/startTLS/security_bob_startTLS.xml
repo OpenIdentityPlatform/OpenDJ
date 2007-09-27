@@ -129,12 +129,11 @@
             </message>
             
             <call function="'dsconfig'">
-              { 'location'       : location,
-              'dsPath'         : dsPath ,
+              {
               'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'   : dsInstanceDn ,
-              'dsInstancePswd' : dsInstancePswd ,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
               'subcommand'     : 'get-connection-handler-prop' ,
               'objectType'     : 'handler-name' ,
               'objectName'     : 'LDAP Connection Handler',
