@@ -231,13 +231,29 @@ public class StopDS
     StringArgument    stopTimeStr;
     StringArgument    trustStoreFile;
     StringArgument    trustStorePW;
+    StringArgument    propertiesFileArgument;
+    BooleanArgument   noPropertiesFileArgument;
 
     try
     {
+      propertiesFileArgument = new StringArgument("propertiesFilePath",
+          null, OPTION_LONG_PROP_FILE_PATH,
+          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      argParser.addArgument(propertiesFileArgument);
+      argParser.setFilePropertiesArgument(propertiesFileArgument);
+
+      noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
+      argParser.addArgument(noPropertiesFileArgument);
+      argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
+
       host = new StringArgument("host", OPTION_SHORT_HOST,
                                 OPTION_LONG_HOST, false, false, true,
                                 OPTION_VALUE_HOST, "127.0.0.1", null,
                                 INFO_STOPDS_DESCRIPTION_HOST.get());
+      host.setPropertyName(OPTION_LONG_HOST);
       argParser.addArgument(host);
 
       port = new IntegerArgument(
@@ -245,23 +261,27 @@ public class StopDS
               OPTION_LONG_PORT, false, false, true,
               OPTION_VALUE_PORT, 389, null, true, 1,
               true, 65535, INFO_STOPDS_DESCRIPTION_PORT.get());
+      port.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(port);
 
       useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
                                    INFO_STOPDS_DESCRIPTION_USESSL.get());
+      useSSL.setPropertyName(OPTION_LONG_USE_SSL);
       argParser.addArgument(useSSL);
 
       useStartTLS = new BooleanArgument(
               "usestarttls", OPTION_SHORT_START_TLS,
               OPTION_LONG_START_TLS,
               INFO_STOPDS_DESCRIPTION_USESTARTTLS.get());
+      useStartTLS.setPropertyName(OPTION_LONG_START_TLS);
       argParser.addArgument(useStartTLS);
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
                                   INFO_STOPDS_DESCRIPTION_BINDDN.get());
+      bindDN.setPropertyName(OPTION_LONG_BINDDN);
       argParser.addArgument(bindDN);
 
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
@@ -269,6 +289,7 @@ public class StopDS
                                   true,
                                   OPTION_VALUE_BINDPWD, null, null,
                                   INFO_STOPDS_DESCRIPTION_BINDPW.get());
+      bindPW.setPropertyName(OPTION_LONG_BINDPWD);
       argParser.addArgument(bindPW);
 
       bindPWFile = new FileBasedArgument(
@@ -279,6 +300,7 @@ public class StopDS
               OPTION_VALUE_BINDPWD_FILE,
               null, null,
               INFO_STOPDS_DESCRIPTION_BINDPWFILE.get());
+      bindPWFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
       argParser.addArgument(bindPWFile);
 
       saslOption = new StringArgument(
@@ -287,6 +309,7 @@ public class StopDS
               true, true,
               OPTION_VALUE_SASLOPTION, null, null,
               INFO_STOPDS_DESCRIPTION_SASLOPTIONS.get());
+      saslOption.setPropertyName(OPTION_LONG_SASLOPTION);
       argParser.addArgument(saslOption);
 
       proxyAuthzID = new StringArgument(
@@ -297,12 +320,14 @@ public class StopDS
               OPTION_VALUE_PROXYAUTHID, null,
               null,
               INFO_STOPDS_DESCRIPTION_PROXYAUTHZID.get());
+      proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
       argParser.addArgument(proxyAuthzID);
 
       stopReason = new StringArgument(
               "stopreason", 'r', "stopReason", false,
               false, true, "{stopReason}", null, null,
               INFO_STOPDS_DESCRIPTION_STOP_REASON.get());
+      stopReason.setPropertyName("stopReason");
       argParser.addArgument(stopReason);
 
       checkStoppability = new BooleanArgument("checkstoppability", null,
@@ -318,15 +343,18 @@ public class StopDS
 
       restart = new BooleanArgument("restart", 'R', "restart",
                                     INFO_STOPDS_DESCRIPTION_RESTART.get());
+      restart.setPropertyName("restart");
       argParser.addArgument(restart);
 
       stopTimeStr = new StringArgument("stoptime", 't', "stopTime", false,
                                        false, true, "{stopTime}", null, null,
                                        INFO_STOPDS_DESCRIPTION_STOP_TIME.get());
+      stopTimeStr.setPropertyName("stopTime");
       argParser.addArgument(stopTimeStr);
 
       trustAll = new BooleanArgument("trustall", 'X', "trustAll",
                                      INFO_STOPDS_DESCRIPTION_TRUST_ALL.get());
+      trustAll.setPropertyName("trustAll");
       argParser.addArgument(trustAll);
 
       keyStoreFile = new StringArgument("keystorefile",
@@ -336,6 +364,7 @@ public class StopDS
                                         OPTION_VALUE_KEYSTOREPATH,
                                         null, null,
                                         INFO_STOPDS_DESCRIPTION_KSFILE.get());
+      keyStoreFile.setPropertyName(OPTION_LONG_KEYSTOREPATH);
       argParser.addArgument(keyStoreFile);
 
       keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
@@ -344,6 +373,7 @@ public class StopDS
                                       OPTION_VALUE_KEYSTORE_PWD,
                                       null, null,
                                       INFO_STOPDS_DESCRIPTION_KSPW.get());
+      keyStorePW.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
       argParser.addArgument(keyStorePW);
 
       keyStorePWFile = new FileBasedArgument(
@@ -354,12 +384,14 @@ public class StopDS
               OPTION_VALUE_KEYSTORE_PWD_FILE,
               null, null,
               INFO_STOPDS_DESCRIPTION_KSPWFILE.get());
+      keyStorePWFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
       argParser.addArgument(keyStorePWFile);
 
       certNickname = new StringArgument(
               "certnickname", 'N', "certNickname",
               false, false, true, "{nickname}", null,
               null, INFO_DESCRIPTION_CERT_NICKNAME.get());
+      certNickname.setPropertyName("certNickname");
       argParser.addArgument(certNickname);
 
       trustStoreFile = new StringArgument("truststorefile",
@@ -369,6 +401,7 @@ public class StopDS
                                           OPTION_VALUE_TRUSTSTOREPATH,
                                           null, null,
                                           INFO_STOPDS_DESCRIPTION_TSFILE.get());
+      trustStoreFile.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
       argParser.addArgument(trustStoreFile);
 
       trustStorePW = new StringArgument(
@@ -377,6 +410,7 @@ public class StopDS
               false, false,
               true, OPTION_VALUE_TRUSTSTORE_PWD, null,
               null, INFO_STOPDS_DESCRIPTION_TSPW.get());
+      trustStorePW.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
       argParser.addArgument(trustStorePW);
 
       trustStorePWFile = new FileBasedArgument("truststorepwfile",
@@ -385,11 +419,13 @@ public class StopDS
                                   false, false,
                                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
                                   INFO_STOPDS_DESCRIPTION_TSPWFILE.get());
+      trustStorePWFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
       argParser.addArgument(trustStorePWFile);
 
       quietMode = new BooleanArgument("quiet", OPTION_SHORT_QUIET,
                                       OPTION_LONG_QUIET,
                                       INFO_DESCRIPTION_QUIET.get());
+      quietMode.setPropertyName(OPTION_LONG_QUIET);
       argParser.addArgument(quietMode);
 
       showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
