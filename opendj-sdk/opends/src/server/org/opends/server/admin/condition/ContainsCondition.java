@@ -47,7 +47,7 @@ import org.opends.server.util.Validator;
  * A condition which evaluates to <code>true</code> if and only if a
  * property contains a particular value.
  */
-public final class ContainsValueCondition implements Condition {
+public final class ContainsCondition implements Condition {
 
   /**
    * The strongly typed underlying implementation.
@@ -134,7 +134,7 @@ public final class ContainsValueCondition implements Condition {
    *          The string representation of the required property
    *          value.
    */
-  public ContainsValueCondition(String propertyName, String stringValue) {
+  public ContainsCondition(String propertyName, String stringValue) {
     Validator.ensureNotNull(propertyName, stringValue);
     this.propertyName = propertyName;
     this.propertyStringValue = stringValue;
