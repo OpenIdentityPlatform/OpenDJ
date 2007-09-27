@@ -442,12 +442,16 @@
     </function-map-args>
 
     <sequence>
-      
-      <stafcmd name="'STAF Command: Log Query for Test Case Log.'">
-        <location>'%s' % location</location>
-        <service>'log'</service>
-        <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (location,logname,startfrom,endat)</request>
-      </stafcmd>
+
+      <block name="'Query Logs'">
+        <timer duration="'60s'">      
+          <stafcmd name="'STAF Command: Log Query for Test Case Log.'">
+            <location>'%s' % location</location>
+            <service>'log'</service>
+            <request>'QUERY ALL MACHINE %s LOGNAME %s FROM %s TO %s' % (location,logname,startfrom,endat)</request>
+          </stafcmd>
+        </timer>
+      </block>
       
     </sequence>
 
