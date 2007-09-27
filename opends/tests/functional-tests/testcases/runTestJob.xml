@@ -29,29 +29,22 @@
 <stax>
   <defaultcall function="start_job"/>
   <function name="start_job">
-    <function-single-arg>
-      <function-optional-arg name="config" default="''"/>
-    </function-single-arg>
 
     <sequence>
       <script>
         STAXLogMessage = 1
       </script>
-
-      <script>
-        if config:
-          import os, sys
-          myconfigpath,myconfigfile=os.path.split(config)
-          sys.path.append("%s" % myconfigpath )
-          from config import *
-        else:
-          myconfigpath='%s/config' % TESTS_DIR
-          myconfigfile='config.py'        
-      </script>
+      
+      <if expr="not STAXJobScriptFiles">
+        <sequence>
+          <message>'No script file (config.py) is specified. Unable to run the tests.'</message>
+          <return></return>
+        </sequence>
+      </if>
 
       <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,TEST_OS_STRING) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
         <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
-        <job-scriptfiles machine="STAF_LOCAL_HOSTNAME">['%s/%s' % (myconfigpath,myconfigfile) ]</job-scriptfiles>
+        <job-scriptfiles machine="STAF_LOCAL_HOSTNAME"> STAXJobScriptFiles </job-scriptfiles>
         <job-action>
           <log>'Started sub-job %s on %s' % (STAXSubJobID,STAF_REMOTE_HOSTNAME)</log>
         </job-action>

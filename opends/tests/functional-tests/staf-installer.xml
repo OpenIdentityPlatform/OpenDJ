@@ -571,7 +571,7 @@ email.server.pwd=${email.server.pwd.input}
   <target name="run-tests"
     depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare,run-my-tests-default-plan" 
     if="run-tests.proceed">
-    <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.config} SCRIPTFILE ${tests.python} WAIT CLEARLOGS"/>
+    <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_Functional_Tests SCRIPTFILE ${tests.config} WAIT CLEARLOGS"/>
     <condition property="tests.replay.script" value="replay.bat" else="replay.sh">
       <os family="windows"/>
     </condition>
