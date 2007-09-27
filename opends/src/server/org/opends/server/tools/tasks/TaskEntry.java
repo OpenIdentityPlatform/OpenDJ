@@ -258,7 +258,7 @@ public class TaskEntry {
   public List<Message> getLogMessages() {
     List<Message> formattedLogs = new ArrayList<Message>();
     for (String aLog : logs) {
-      formattedLogs.add(Message.raw(formatLogMessage(aLog)));
+      formattedLogs.add(Message.raw(aLog));
     }
     return Collections.unmodifiableList(formattedLogs);
   }
@@ -418,22 +418,6 @@ public class TaskEntry {
       name = Message.raw(attrName);
     }
     return name;
-  }
-
-  /**
-   * Formats a log message for appending to the table.
-   * @param msg to format
-   * @return formatted message
-   */
-  private String formatLogMessage(String msg) {
-    // Use this to prepend to log messages.  Since they
-    // are long and usually wrap, without this it is
-    // difficult to tell where one stops and another starts
-    StringBuffer sb = new StringBuffer();
-    sb.append("\u2022");
-    sb.append(" ");
-    sb.append(msg);
-    return sb.toString();
   }
 
   /**
