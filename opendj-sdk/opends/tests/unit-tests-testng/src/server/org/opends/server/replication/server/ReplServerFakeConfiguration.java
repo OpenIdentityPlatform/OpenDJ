@@ -28,9 +28,10 @@ package org.opends.server.replication.server;
 
 import java.util.SortedSet;
 
+import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.std.client.ReplicationServerCfgClient;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.types.DN;
@@ -182,8 +183,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
-  public PropertyProvider properties()
-  {
+  public ServerManagedObject<? extends Configuration> managedObject() {
     return null;
   }
 

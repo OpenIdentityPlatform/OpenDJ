@@ -1036,49 +1036,37 @@
         </xsd:annotation>
         <xsd:complexType>
           <xsd:sequence>
-            <xsd:element name="source-enabled-property-name"
-              minOccurs="0" maxOccurs="unbounded">
-              <xsd:annotation>
-                <xsd:documentation>
-                  The optional boolean "enabled" property in the
-                  aggregating managed object. When this property is
-                  true, the "target-enabled-property-name" in the
-                  aggregated managed objects must also be true. The
-                  "target-enabled-property-name" attribute must be
-                  specified when this attribute is defined.
-                </xsd:documentation>
-              </xsd:annotation>
-              <xsd:complexType>
-                <xsd:attribute name="name" type="tns:name-type"
-                  use="required">
-                  <xsd:annotation>
-                    <xsd:documentation>
-                      The name of the source property.
-                    </xsd:documentation>
-                  </xsd:annotation>
-                </xsd:attribute>
-              </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="target-enabled-property-name"
+            <xsd:element name="target-needs-enabling-condition"
               minOccurs="0">
               <xsd:annotation>
                 <xsd:documentation>
-                  The optional boolean "enabled" property in the
-                  aggregated managed objects. This property must not be
-                  false while the aggregated managed object is
-                  referenced. This attribute must be defined when the
-                  "source-enabled-property-name" attribute is specified.
+                  A condition which indicates whether or not referenced
+                  managed objects must be enabled. The default behavior
+                  is that all referenced managed objects must be
+                  enabled.
                 </xsd:documentation>
               </xsd:annotation>
               <xsd:complexType>
-                <xsd:attribute name="name" type="tns:name-type"
-                  use="required">
-                  <xsd:annotation>
-                    <xsd:documentation>
-                      The name of the target property.
-                    </xsd:documentation>
-                  </xsd:annotation>
-                </xsd:attribute>
+                <xsd:sequence>
+                  <xsd:group ref="tns:condition-group" />
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="target-is-enabled-condition"
+              minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  A condition which indicates whether or not referenced
+                  managed objects are enabled. Managed objects are
+                  assumed to be enabled by default.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:sequence>
+                    <xsd:group ref="tns:condition-group" />
+                  </xsd:sequence>
+                </xsd:sequence>
               </xsd:complexType>
             </xsd:element>
           </xsd:sequence>
@@ -1894,4 +1882,105 @@
       </xsd:attribute>
     </xsd:complexType>
   </xsd:element>
+  <xsd:group name="condition-group">
+    <xsd:choice>
+      <xsd:element name="not">
+        <xsd:annotation>
+          <xsd:documentation>
+            A condition which evaluates to true if the sub-condition is
+            false, or false if the sub-condition is true.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:group ref="tns:condition-group" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="and">
+        <xsd:annotation>
+          <xsd:documentation>
+            A condition which evaluates to true if and only if all of
+            its sub-conditions are true.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:group ref="tns:condition-group" maxOccurs="unbounded" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="or">
+        <xsd:annotation>
+          <xsd:documentation>
+            A condition which evaluates to false if and only if none of
+            its sub-conditions are true.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:group ref="tns:condition-group" maxOccurs="unbounded" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="implies">
+        <xsd:annotation>
+          <xsd:documentation>
+            Creates a condition which evaluates to false if and only if
+            the first sub-condition evaluates to true and the second
+            sub-condition evaluates to false. This can be used to
+            represent if-then relationships.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:group ref="tns:condition-group" />
+            <xsd:group ref="tns:condition-group" />
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="contains">
+        <xsd:annotation>
+          <xsd:documentation>
+            A condition which evaluates to true if and only if a
+            property contains a particular value.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:attribute name="property" type="tns:name-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The name of the property to be tested.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="value" type="xsd:string"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>The property value.</xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="is-present">
+        <xsd:annotation>
+          <xsd:documentation>
+            Creates a condition which evaluates to true if and only if a
+            particular property has any values specified.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:attribute name="property" type="tns:name-type"
+            use="required">
+            <xsd:annotation>
+              <xsd:documentation>
+                The name of the property to be tested.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:choice>
+  </xsd:group>
 </xsd:schema>

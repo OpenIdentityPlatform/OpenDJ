@@ -30,21 +30,18 @@
   package="org.opends.server.admin.std" extends="connection-handler"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The
     <adm:user-friendly-name />
     is used to interact with clients using LDAP. In particular, it
     provides full support for LDAPv3 and limited support for LDAPv2.
   </adm:synopsis>
-
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-ldap-connection-handler</ldap:name>
       <ldap:superior>ds-cfg-connection-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
@@ -54,17 +51,93 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
   <adm:property-reference name="listen-port" />
-
   <adm:property-reference name="use-ssl" />
-
   <adm:property-reference name="ssl-cert-nickname" />
-
-  <adm:property-reference name="key-manager-provider" />
-
-  <adm:property-reference name="trust-manager-provider" />
-
+  <adm:property name="key-manager-provider">
+    <adm:synopsis>
+      Specifies the name of the key manager that should be used with
+      this
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately, but
+          only for subsequent attempts to access the key manager
+          provider for associated client connections.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="key-manager-provider"
+        parent-path="/">
+        <adm:target-needs-enabling-condition>
+          <adm:and>
+            <adm:contains property="enabled" value="true" />
+            <adm:or>
+              <adm:contains property="use-ssl" value="true" />
+              <adm:contains property="allow-start-tls" value="true" />
+            </adm:or>
+          </adm:and>
+        </adm:target-needs-enabling-condition>
+        <adm:target-is-enabled-condition>
+          <adm:contains property="enabled" value="true" />
+        </adm:target-is-enabled-condition>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-key-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="trust-manager-provider">
+    <adm:synopsis>
+      Specifies the name of the trust manager that should be used with
+      this
+      <adm:user-friendly-name />
+      .
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately, but
+          only for subsequent attempts to access the trust manager
+          provider for associated client connections.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="trust-manager-provider"
+        parent-path="/">
+        <adm:target-needs-enabling-condition>
+          <adm:and>
+            <adm:contains property="enabled" value="true" />
+            <adm:or>
+              <adm:contains property="use-ssl" value="true" />
+              <adm:contains property="allow-start-tls" value="true" />
+            </adm:or>
+          </adm:and>
+        </adm:target-needs-enabling-condition>
+        <adm:target-is-enabled-condition>
+          <adm:contains property="enabled" value="true" />
+        </adm:target-is-enabled-condition>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-trust-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="listen-address" multi-valued="true">
     <adm:synopsis>
       Specifies the address or set of addresses on which this
@@ -94,7 +167,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="allow-ldap-v2">
     <adm:synopsis>
       Indicates whether connections from LDAPv2 clients will be allowed.
@@ -120,7 +192,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="keep-stats">
     <adm:synopsis>
       Indicates whether the
@@ -147,7 +218,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="use-tcp-keep-alive">
     <adm:synopsis>
       Indicates whether the
@@ -178,7 +248,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="use-tcp-no-delay">
     <adm:synopsis>
       Indicates whether the
@@ -209,7 +278,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="allow-tcp-reuse-address">
     <adm:synopsis>
       Indicates whether the
@@ -241,7 +309,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="send-rejection-notice">
     <adm:synopsis>
       Indicates whether the
@@ -267,7 +334,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="max-request-size">
     <adm:synopsis>
       Specifies the size of the largest LDAP request message that will
@@ -296,7 +362,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="num-request-handlers">
     <adm:synopsis>
       Specifies the number of request handlers that will be used to read
@@ -329,7 +394,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="allow-start-tls">
     <adm:synopsis>
       Indicates whether clients will be allowed to use StartTLS.
@@ -358,7 +422,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="ssl-client-auth-policy">
     <adm:synopsis>
       Specifies the policy that the
@@ -407,7 +470,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="accept-backlog">
     <adm:synopsis>
       Specifies the maximum number of pending connection attempts that
@@ -441,7 +503,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="ssl-protocol" multi-valued="true">
     <adm:synopsis>
       Specifies the names of the SSL protocols that will be allowed for
@@ -473,7 +534,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="ssl-cipher-suite" multi-valued="true">
     <adm:synopsis>
       Specifies the names of the SSL cipher suites that will be allowed
@@ -505,19 +565,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="max-blocked-write-time-limit" mandatory="false">
     <adm:synopsis>
-      Specifies the maximum length of time that attempts to write data to LDAP
-      clients should be allowed to block.  If an attempt to write data to a
-      client takes longer than this length of time, then the client connection
-      will be terminated.
+      Specifies the maximum length of time that attempts to write data
+      to LDAP clients should be allowed to block. If an attempt to write
+      data to a client takes longer than this length of time, then the
+      client connection will be terminated.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          2 minutes
-        </adm:value>
+        <adm:value>2 minutes</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -529,6 +586,4 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-

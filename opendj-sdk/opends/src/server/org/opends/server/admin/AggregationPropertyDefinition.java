@@ -29,6 +29,7 @@ package org.opends.server.admin;
 
 
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.Validator.*;
 
 import java.util.Collection;
@@ -47,15 +48,21 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
+import org.opends.server.admin.condition.Condition;
+import org.opends.server.admin.condition.Conditions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -126,16 +133,13 @@ public final class AggregationPropertyDefinition
     // contains the aggregated managed objects.
     private String rdName = null;
 
-    // The optional names of boolean "enabled" properties in this
-    // managed object. When all of the properties are true, the
-    // enabled property in the aggregated managed object must also be
-    // true.
-    private List<String> sourceEnabledPropertyNames = new LinkedList<String>();
+    // The condition which is used to determine if a referenced
+    // managed object is enabled.
+    private Condition targetIsEnabledCondition = Conditions.TRUE;
 
-    // The optional name of a boolean "enabled" property in the
-    // aggregated managed object. This property must not be false
-    // while the aggregated managed object is referenced.
-    private String targetEnabledPropertyName = null;
+    // The condition which is used to determine whether or not
+    // referenced managed objects need to be enabled.
+    private Condition targetNeedsEnablingCondition = Conditions.TRUE;
 
 
 
@@ -143,27 +147,6 @@ public final class AggregationPropertyDefinition
     private Builder(AbstractManagedObjectDefinition<?, ?> d,
         String propertyName) {
       super(d, propertyName);
-    }
-
-
-
-    /**
-     * Registers a boolean "enabled" property in this managed object.
-     * When all the registered properties are true, the enabled
-     * property in the aggregated managed object must also be true.
-     * <p>
-     * By default no source properties are defined which indicates
-     * that the target property must always be true. When there is one
-     * or more source properties defined, a target property must also
-     * be defined.
-     *
-     * @param sourceEnabledPropertyName
-     *          The optional boolean "enabled" property in this
-     *          managed object.
-     */
-    public final void addSourceEnabledPropertyName(
-        String sourceEnabledPropertyName) {
-      this.sourceEnabledPropertyNames.add(sourceEnabledPropertyName);
     }
 
 
@@ -204,20 +187,31 @@ public final class AggregationPropertyDefinition
 
 
     /**
-     * Sets the optional boolean "enabled" property in the aggregated
-     * managed object. This property must not be false while the
-     * aggregated managed object is referenced.
-     * <p>
-     * By default no target property is defined. It must be defined,
-     * if the source property is defined.
+     * Sets the condition which is used to determine if a referenced
+     * managed object is enabled. By default referenced managed
+     * objects are assumed to always be enabled.
      *
-     * @param targetEnabledPropertyName
-     *          The optional boolean "enabled" property in the
-     *          aggregated managed object.
+     * @param condition
+     *          The condition which is used to determine if a
+     *          referenced managed object is enabled.
      */
-    public final void setTargetEnabledPropertyName(
-        String targetEnabledPropertyName) {
-      this.targetEnabledPropertyName = targetEnabledPropertyName;
+    public final void setTargetIsEnabledCondition(Condition condition) {
+      this.targetIsEnabledCondition = condition;
+    }
+
+
+
+    /**
+     * Sets the condition which is used to determine whether or not
+     * referenced managed objects need to be enabled. By default
+     * referenced managed objects must always be enabled.
+     *
+     * @param condition
+     *          The condition which is used to determine whether or
+     *          not referenced managed objects need to be enabled.
+     */
+    public final void setTargetNeedsEnablingCondition(Condition condition) {
+      this.targetNeedsEnablingCondition = condition;
     }
 
 
@@ -240,18 +234,9 @@ public final class AggregationPropertyDefinition
         throw new IllegalStateException("Relation definition undefined");
       }
 
-      // Make sure that if a source property is specified then a
-      // target property is also specified.
-      if (!sourceEnabledPropertyNames.isEmpty()
-          && targetEnabledPropertyName == null) {
-        throw new IllegalStateException(
-            "One or more source properties defined but "
-                + "target property is undefined");
-      }
-
       return new AggregationPropertyDefinition<C, S>(d, propertyName, options,
           adminAction, defaultBehavior, parentPathString, rdName,
-          sourceEnabledPropertyNames, targetEnabledPropertyName);
+          targetNeedsEnablingCondition, targetIsEnabledCondition);
     }
 
   }
@@ -287,18 +272,20 @@ public final class AggregationPropertyDefinition
      * {@inheritDoc}
      */
     public ConfigChangeResult applyConfigurationChange(S configuration) {
-      PropertyProvider provider = configuration.properties();
-      Collection<Boolean> values = provider
-          .getPropertyValues(getTargetEnabledPropertyDefinition());
-      if (values.iterator().next() == false) {
-        // This should not happen - the
-        // isConfigurationChangeAcceptable() call-back should have
-        // trapped this.
-        throw new IllegalStateException("Attempting to disable a referenced "
-            + configuration.definition().getUserFriendlyName());
-      } else {
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      ServerManagedObject<?> mo = configuration.managedObject();
+      try {
+        if (targetIsEnabledCondition.evaluate(mo)) {
+          return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        }
+      } catch (ConfigException e) {
+        // This should not happen - ignore it and throw an exception
+        // anyway below.
       }
+
+      // This should not happen - the previous call-back should have
+      // trapped this.
+      throw new IllegalStateException("Attempting to disable a referenced "
+          + configuration.definition().getUserFriendlyName());
     }
 
 
@@ -310,14 +297,27 @@ public final class AggregationPropertyDefinition
         List<Message> unacceptableReasons) {
       // Always prevent the referenced component from being
       // disabled.
-      PropertyProvider provider = configuration.properties();
-      Collection<Boolean> values = provider
-          .getPropertyValues(getTargetEnabledPropertyDefinition());
-      if (values.iterator().next() == false) {
+      ServerManagedObject<?> mo = configuration.managedObject();
+      try {
+        if (!targetIsEnabledCondition.evaluate(mo)) {
+          unacceptableReasons.add(message);
+          return false;
+        } else {
+          return true;
+        }
+      } catch (ConfigException e) {
+        // The condition could not be evaluated.
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
+            .getManagedObjectDefinition().getUserFriendlyName(), String
+            .valueOf(configuration.dn()), StaticUtils.getExceptionMessage(e));
+        ErrorLogger.logError(message);
         unacceptableReasons.add(message);
         return false;
       }
-      return true;
     }
 
 
@@ -407,15 +407,14 @@ public final class AggregationPropertyDefinition
       SortedSet<String> names = managedObject
           .getPropertyValues(AggregationPropertyDefinition.this);
       ServerManagementContext context = ServerManagementContext.getInstance();
-      BooleanPropertyDefinition tpd = getTargetEnabledPropertyDefinition();
-      List<BooleanPropertyDefinition> spdlist =
-        getSourceEnabledPropertyDefinitions();
       Message thisUFN = managedObject.getManagedObjectDefinition()
           .getUserFriendlyName();
       String thisDN = managedObject.getDN().toString();
       Message thatUFN = getRelationDefinition().getUserFriendlyName();
 
       boolean isUsable = true;
+      boolean needsEnabling = targetNeedsEnablingCondition
+          .evaluate(managedObject);
       for (String name : names) {
         ManagedObjectPath<C, S> path = getChildPath(name);
         String thatDN = path.toDN().toString();
@@ -425,35 +424,15 @@ public final class AggregationPropertyDefinition
               getName(), thisUFN, thisDN, thatUFN, thatDN);
           unacceptableReasons.add(msg);
           isUsable = false;
-        } else if (tpd != null) {
-          // Check that the referenced component is enabled.
+        } else if (needsEnabling) {
+          // Check that the referenced component is enabled if
+          // required.
           ServerManagedObject<? extends S> ref = context.getManagedObject(path);
-
-          if (!spdlist.isEmpty()) {
-            // Target must be enabled but only if the source
-            // properties are enabled.
-            boolean isRequired = true;
-            for (BooleanPropertyDefinition spd : spdlist) {
-              if (!managedObject.getPropertyValue(spd)) {
-                isRequired = false;
-                break;
-              }
-            }
-
-            if (isRequired && !ref.getPropertyValue(tpd)) {
-              Message msg = ERR_SERVER_REFINT_SOURCE_ENABLED_TARGET_DISABLED
-                  .get(name, getName(), thisUFN, thisDN, thatUFN, thatDN);
-              unacceptableReasons.add(msg);
-              isUsable = false;
-            }
-          } else {
-            // Target must always be enabled.
-            if (!ref.getPropertyValue(tpd)) {
-              Message msg = ERR_SERVER_REFINT_TARGET_DISABLED.get(name,
-                  getName(), thisUFN, thisDN, thatUFN, thatDN);
-              unacceptableReasons.add(msg);
-              isUsable = false;
-            }
+          if (!targetIsEnabledCondition.evaluate(ref)) {
+            Message msg = ERR_SERVER_REFINT_TARGET_DISABLED.get(name,
+                getName(), thisUFN, thisDN, thatUFN, thatDN);
+            unacceptableReasons.add(msg);
+            isUsable = false;
           }
         }
       }
@@ -478,9 +457,6 @@ public final class AggregationPropertyDefinition
 
       // Add change and delete listeners against all referenced
       // components.
-      BooleanPropertyDefinition tpd = getTargetEnabledPropertyDefinition();
-      List<BooleanPropertyDefinition> spdlist =
-        getSourceEnabledPropertyDefinitions();
       Message thisUFN = managedObject.getManagedObjectDefinition()
           .getUserFriendlyName();
       String thisDN = managedObject.getDN().toString();
@@ -488,18 +464,8 @@ public final class AggregationPropertyDefinition
 
       // Referenced managed objects will only need a change listener
       // if they have can be disabled.
-      boolean needsChangeListeners;
-      if (tpd != null) {
-        needsChangeListeners = true;
-        for (BooleanPropertyDefinition spd : spdlist) {
-          if (!managedObject.getPropertyValue(spd)) {
-            needsChangeListeners = false;
-            break;
-          }
-        }
-      } else {
-        needsChangeListeners = false;
-      }
+      boolean needsChangeListeners = targetNeedsEnablingCondition
+          .evaluate(managedObject);
 
       // Delete listeners need to be registered against the parent
       // entry of the referenced components.
@@ -611,18 +577,12 @@ public final class AggregationPropertyDefinition
         throws AuthorizationException, CommunicationException {
       // If all of this managed object's "enabled" properties are true
       // then any referenced managed objects must also be enabled.
-      boolean needsEnabling = true;
-      for (BooleanPropertyDefinition spd :
-        getSourceEnabledPropertyDefinitions()) {
-        if (!managedObject.getPropertyValue(spd)) {
-          needsEnabling = false;
-        }
-      }
+      boolean needsEnabling = targetNeedsEnablingCondition.evaluate(context,
+          managedObject);
 
       // Check the referenced managed objects exist and, if required,
       // are enabled.
       boolean isAcceptable = true;
-      BooleanPropertyDefinition tpd = getTargetEnabledPropertyDefinition();
       Message ufn = getRelationDefinition().getUserFriendlyName();
       for (String name : managedObject
           .getPropertyValues(AggregationPropertyDefinition.this)) {
@@ -653,8 +613,8 @@ public final class AggregationPropertyDefinition
         }
 
         // Make sure the reference managed object is enabled.
-        if (tpd != null && needsEnabling) {
-          if (!ref.getPropertyValue(tpd)) {
+        if (needsEnabling) {
+          if (!targetIsEnabledCondition.evaluate(context, ref)) {
             Message msg = ERR_CLIENT_REFINT_TARGET_DISABLED.get(ufn, name,
                 getName());
             unacceptableReasons.add(msg);
@@ -849,15 +809,7 @@ public final class AggregationPropertyDefinition
         throws AuthorizationException, CommunicationException {
       // If the modified managed object is disabled and there are some
       // active references then refuse the change.
-      BooleanPropertyDefinition tpd = getTargetEnabledPropertyDefinition();
-
-      // The referenced managed object cannot be disabled: always ok.
-      if (tpd == null) {
-        return true;
-      }
-
-      // The referenced managed object is enabled: always ok.
-      if (managedObject.getPropertyValue(tpd)) {
+      if (targetIsEnabledCondition.evaluate(context, managedObject)) {
         return true;
       }
 
@@ -866,16 +818,7 @@ public final class AggregationPropertyDefinition
       boolean isAcceptable = true;
       for (ManagedObject<?> mo : findReferences(context, managedObject
           .getManagedObjectPath().getName())) {
-        boolean needsEnabling = true;
-        for (BooleanPropertyDefinition spd :
-          getSourceEnabledPropertyDefinitions()) {
-          if (!mo.getPropertyValue(spd)) {
-            needsEnabling = false;
-            break;
-          }
-        }
-
-        if (needsEnabling) {
+        if (targetNeedsEnablingCondition.evaluate(context, mo)) {
           String name = mo.getManagedObjectPath().getName();
           if (name == null) {
             Message msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(
@@ -910,6 +853,11 @@ public final class AggregationPropertyDefinition
     }
   }
 
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
 
 
   /**
@@ -937,14 +885,14 @@ public final class AggregationPropertyDefinition
   // The active server-side referential integrity change listeners
   // associated with this property.
   private final Map<DN, List<ReferentialIntegrityChangeListener>>
-    changeListeners =
-      new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
+    changeListeners = new HashMap<DN,
+      List<ReferentialIntegrityChangeListener>>();
 
   // The active server-side referential integrity delete listeners
   // associated with this property.
   private final Map<DN, List<ReferentialIntegrityDeleteListener>>
-    deleteListeners =
-      new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
+    deleteListeners = new HashMap<DN,
+      List<ReferentialIntegrityDeleteListener>>();
 
   // The name of the managed object which is the parent of the
   // aggregated managed objects.
@@ -962,22 +910,13 @@ public final class AggregationPropertyDefinition
   // aggregated managed objects.
   private InstantiableRelationDefinition<C, S> relationDefinition;
 
-  // The decoded source property definitions.
-  private List<BooleanPropertyDefinition> sourceEnabledProperties;
+  // The condition which is used to determine if a referenced managed
+  // object is enabled.
+  private final Condition targetIsEnabledCondition;
 
-  // The optional names of boolean "enabled" properties in this
-  // managed object. When all of the properties are true or if there
-  // are none defined, the enabled property in the aggregated managed
-  // object must also be true.
-  private final List<String> sourceEnabledPropertyNames;
-
-  // The decoded target property definition.
-  private BooleanPropertyDefinition targetEnabledProperty;
-
-  // The optional name of a boolean "enabled" property in the
-  // aggregated managed object. This property must not be false
-  // while the aggregated managed object is referenced.
-  private final String targetEnabledPropertyName;
+  // The condition which is used to determine whether or not
+  // referenced managed objects need to be enabled.
+  private final Condition targetNeedsEnablingCondition;
 
 
 
@@ -986,14 +925,14 @@ public final class AggregationPropertyDefinition
       AbstractManagedObjectDefinition<?, ?> d, String propertyName,
       EnumSet<PropertyOption> options, AdministratorAction adminAction,
       DefaultBehaviorProvider<String> defaultBehavior, String parentPathString,
-      String rdName, List<String> sourceEnabledPropertyNames,
-      String targetEnabledPropertyName) {
+      String rdName, Condition targetNeedsEnablingCondition,
+      Condition targetIsEnabledCondition) {
     super(d, String.class, propertyName, options, adminAction, defaultBehavior);
 
     this.parentPathString = parentPathString;
     this.rdName = rdName;
-    this.sourceEnabledPropertyNames = sourceEnabledPropertyNames;
-    this.targetEnabledPropertyName = targetEnabledPropertyName;
+    this.targetNeedsEnablingCondition = targetNeedsEnablingCondition;
+    this.targetIsEnabledCondition = targetIsEnabledCondition;
   }
 
 
@@ -1115,32 +1054,27 @@ public final class AggregationPropertyDefinition
 
 
   /**
-   * Gets the optional boolean "enabled" properties in this managed
-   * object. When these properties are all true or if there are no
-   * properties, the enabled property in the aggregated managed object
-   * must also be true.
+   * Gets the condition which is used to determine if a referenced
+   * managed object is enabled.
    *
-   * @return Returns the optional boolean "enabled" properties in this
-   *         managed object, which may be empty.
+   * @return Returns the condition which is used to determine if a
+   *         referenced managed object is enabled.
    */
-  public final List<BooleanPropertyDefinition>
-      getSourceEnabledPropertyDefinitions() {
-    return sourceEnabledProperties;
+  public final Condition getTargetIsEnabledCondition() {
+    return targetIsEnabledCondition;
   }
 
 
 
   /**
-   * Gets the optional boolean "enabled" property in the aggregated
-   * managed object. This property must not be false while the
-   * aggregated managed object is referenced.
+   * Gets the condition which is used to determine whether or not
+   * referenced managed objects need to be enabled.
    *
-   * @return Returns the optional boolean "enabled" property in the
-   *         aggregated managed object, or <code>null</code> if none
-   *         is defined.
+   * @return Returns the condition which is used to determine whether
+   *         or not referenced managed objects need to be enabled.
    */
-  public final BooleanPropertyDefinition getTargetEnabledPropertyDefinition() {
-    return targetEnabledProperty;
+  public final Condition getTargetNeedsEnablingCondition() {
+    return targetNeedsEnablingCondition;
   }
 
 
@@ -1175,22 +1109,11 @@ public final class AggregationPropertyDefinition
     builder.append(" relationDefinition=");
     builder.append(relationDefinition.getName());
 
-    builder.append(" sourceEnabledPropertyName=[");
-    boolean isFirst = true;
-    for (String name : sourceEnabledPropertyNames) {
-      if (!isFirst) {
-        builder.append(", ");
-      } else {
-        isFirst = false;
-      }
-      builder.append(name);
-    }
-    builder.append(']');
+    builder.append(" targetNeedsEnablingCondition=");
+    builder.append(String.valueOf(targetNeedsEnablingCondition));
 
-    if (targetEnabledPropertyName != null) {
-      builder.append(" targetEnabledPropertyName=");
-      builder.append(targetEnabledPropertyName);
-    }
+    builder.append(" targetIsEnabledCondition=");
+    builder.append(String.valueOf(targetIsEnabledCondition));
   }
 
 
@@ -1224,28 +1147,9 @@ public final class AggregationPropertyDefinition
     RelationDefinition<?, ?> rd = parent.getRelationDefinition(rdName);
     relationDefinition = (InstantiableRelationDefinition<C, S>) rd;
 
-    // Now decode the property definitions.
-    AbstractManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
-    sourceEnabledProperties = new LinkedList<BooleanPropertyDefinition>();
-    for (String name : sourceEnabledPropertyNames) {
-      PropertyDefinition<?> pd = d.getPropertyDefinition(name);
-
-      // Runtime cast is required to workaround a
-      // bug in JDK versions prior to 1.5.0_08.
-      sourceEnabledProperties.add(BooleanPropertyDefinition.class.cast(pd));
-    }
-
-    d = relationDefinition.getChildDefinition();
-    if (targetEnabledPropertyName == null) {
-      targetEnabledProperty = null;
-    } else {
-      PropertyDefinition<?> pd = d
-          .getPropertyDefinition(targetEnabledPropertyName);
-
-      // Runtime cast is required to workaround a
-      // bug in JDK versions prior to 1.5.0_08.
-      targetEnabledProperty = BooleanPropertyDefinition.class.cast(pd);
-    }
+    // Now decode the conditions.
+    targetNeedsEnablingCondition.initialize(getManagedObjectDefinition());
+    targetIsEnabledCondition.initialize(rd.getChildDefinition());
 
     // Register a client-side constraint with the referenced
     // definition. This will be used to enforce referential integrity
@@ -1271,7 +1175,7 @@ public final class AggregationPropertyDefinition
 
     };
 
-    d.registerConstraint(constraint);
+    rd.getChildDefinition().registerConstraint(constraint);
   }
 
 }

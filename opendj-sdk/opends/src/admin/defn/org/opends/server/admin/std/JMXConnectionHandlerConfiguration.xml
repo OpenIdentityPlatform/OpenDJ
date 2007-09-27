@@ -54,5 +54,40 @@
   <adm:property-reference name="listen-port" />
   <adm:property-reference name="use-ssl" />
   <adm:property-reference name="ssl-cert-nickname" />
-  <adm:property-reference name="key-manager-provider" />
+  <adm:property name="key-manager-provider">
+    <adm:synopsis>
+      Specifies the name of the key manager that should be used
+      with this <adm:user-friendly-name />.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this property will take effect immediately, but
+          only for subsequent attempts to access the key manager
+          provider for associated client connections.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:aggregation relation-name="key-manager-provider" parent-path="/">
+        <adm:target-needs-enabling-condition>
+          <adm:and>
+            <adm:contains property="enabled" value="true" />
+            <adm:contains property="use-ssl" value="true" />
+          </adm:and>
+        </adm:target-needs-enabling-condition>
+        <adm:target-is-enabled-condition>
+          <adm:contains property="enabled" value="true" />
+        </adm:target-is-enabled-condition>
+      </adm:aggregation>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-key-manager-provider</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

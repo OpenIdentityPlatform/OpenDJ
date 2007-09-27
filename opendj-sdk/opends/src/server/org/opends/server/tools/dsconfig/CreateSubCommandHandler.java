@@ -46,7 +46,6 @@ import java.util.TreeSet;
 import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
-import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefaultBehaviorException;
@@ -74,6 +73,8 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.admin.condition.Condition;
+import org.opends.server.admin.condition.ContainsValueCondition;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
@@ -454,148 +455,141 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     Message ufn = d.getUserFriendlyName();
 
-    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-      if (pd instanceof AggregationPropertyDefinition) {
-        // Runtime cast is required to workaround a
-        // bug in JDK versions prior to 1.5.0_08.
-        AggregationPropertyDefinition<?, ?> apd =
-          AggregationPropertyDefinition.class.cast(pd);
+    try {
+      for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+        if (pd instanceof AggregationPropertyDefinition) {
+          // Runtime cast is required to workaround a
+          // bug in JDK versions prior to 1.5.0_08.
+          AggregationPropertyDefinition<?, ?> apd =
+            AggregationPropertyDefinition.class.cast(pd);
 
-        // Skip this aggregation if it doesn't have an enable
-        // property.
-        BooleanPropertyDefinition tpd = apd
-            .getTargetEnabledPropertyDefinition();
-        if (tpd == null) {
-          continue;
-        }
-
-        // Skip this aggregation if this managed object's enable
-        // properties are not all true.
-        boolean needsEnabling = true;
-        for (BooleanPropertyDefinition bpd : apd
-            .getSourceEnabledPropertyDefinitions()) {
-          if (!mo.getPropertyValue(bpd)) {
-            needsEnabling = false;
-            break;
-          }
-        }
-        if (!needsEnabling) {
-          continue;
-        }
-
-        // The referenced component(s) must be enabled.
-        for (String name : mo.getPropertyValues(apd)) {
-          ManagedObjectPath<?, ?> path = apd.getChildPath(name);
-          Message rufn = path.getManagedObjectDefinition()
-              .getUserFriendlyName();
-          ManagedObject<?> ref;
-          try {
-            ref = context.getManagedObject(path);
-          } catch (AuthorizationException e) {
-            Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-            throw new ClientException(
-                LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
-          } catch (DefinitionDecodingException e) {
-            Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
-            throw new ClientException(LDAPResultCode.OTHER, msg);
-          } catch (ManagedObjectDecodingException e) {
-            // FIXME: should not abort here. Instead, display the
-            // errors (if verbose) and apply the changes to the
-            // partial managed object.
-            Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
-            throw new ClientException(LDAPResultCode.OTHER, msg, e);
-          } catch (CommunicationException e) {
-            Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-            throw new ClientException(LDAPResultCode.OTHER, msg);
-          } catch (ManagedObjectNotFoundException e) {
-            Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
-            throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+          // Skip this aggregation if the referenced managed objects
+          // do not need to be enabled.
+          if (!apd.getTargetNeedsEnablingCondition().evaluate(context, mo)) {
+            continue;
           }
 
-          while (!ref.getPropertyValue(tpd)) {
-            boolean isBadReference = true;
-            app.println();
-            if (app.confirmAction(
-                INFO_EDITOR_PROMPT_ENABLED_REFERENCED_COMPONENT.get(rufn, name,
-                    ufn), true)) {
-              ref.setPropertyValue(tpd, true);
-              try {
-                ref.commit();
-                isBadReference = false;
-              } catch (MissingMandatoryPropertiesException e) {
-                // Give the user the chance to fix the problems.
-                app.println();
-                displayMissingMandatoryPropertyException(app, e);
-                app.println();
-                if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
-                  // FIXME: edit the properties of the referenced
-                  // object.
-                  MenuResult<Void> result = SetPropSubCommandHandler
-                      .modifyManagedObject(app, context, ref);
-                  if (result.isQuit()) {
-                    return result;
-                  } else if (result.isSuccess()) {
-                    // The referenced component was modified
-                    // successfully, but may still be disabled.
-                    isBadReference = false;
-                  }
-                }
-              } catch (AuthorizationException e) {
-                Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-                throw new ClientException(
-                    LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
-              } catch (ConcurrentModificationException e) {
-                Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
-                throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
-                    msg);
-              } catch (OperationRejectedException e) {
-                // Give the user the chance to fix the problems.
-                app.println();
-                displayOperationRejectedException(app, e);
-                app.println();
-                if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
-                  MenuResult<Void> result = SetPropSubCommandHandler
-                      .modifyManagedObject(app, context, ref);
-                  if (result.isQuit()) {
-                    return result;
-                  } else if (result.isSuccess()) {
-                    // The referenced component was modified
-                    // successfully, but may still be disabled.
-                    isBadReference = false;
-                  }
-                }
-              } catch (CommunicationException e) {
-                Message msg = ERR_DSCFG_ERROR_CREATE_CE
-                    .get(ufn, e.getMessage());
-                throw new ClientException(LDAPResultCode.OTHER, msg);
-              } catch (ManagedObjectAlreadyExistsException e) {
-                // Should never happen.
-                throw new IllegalStateException(e);
-              }
+          // The referenced component(s) must be enabled.
+          for (String name : mo.getPropertyValues(apd)) {
+            ManagedObjectPath<?, ?> path = apd.getChildPath(name);
+            Message rufn = path.getManagedObjectDefinition()
+                .getUserFriendlyName();
+            ManagedObject<?> ref;
+            try {
+              ref = context.getManagedObject(path);
+            } catch (DefinitionDecodingException e) {
+              Message msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
+              throw new ClientException(LDAPResultCode.OTHER, msg);
+            } catch (ManagedObjectDecodingException e) {
+              // FIXME: should not abort here. Instead, display the
+              // errors (if verbose) and apply the changes to the
+              // partial managed object.
+              Message msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
+              throw new ClientException(LDAPResultCode.OTHER, msg, e);
+            } catch (ManagedObjectNotFoundException e) {
+              Message msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
+              throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
             }
 
-            // If the referenced component is still disabled because
-            // the user refused to modify it, then give the used the
-            // option of editing the referencing component.
-            if (isBadReference) {
-              app.println();
-              app.println(ERR_SET_REFERENCED_COMPONENT_DISABLED.get(ufn, rufn));
-              app.println();
-              if (app
-                  .confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
-                return MenuResult.again();
+            Condition condition = apd.getTargetIsEnabledCondition();
+            while (!condition.evaluate(context, ref)) {
+              boolean isBadReference = true;
+
+              if (condition instanceof ContainsValueCondition) {
+                // Attempt to automatically enable the managed object.
+                ContainsValueCondition cvc = (ContainsValueCondition) condition;
+                app.println();
+                if (app.confirmAction(
+                    INFO_EDITOR_PROMPT_ENABLED_REFERENCED_COMPONENT.get(rufn,
+                        name, ufn), true)) {
+                  cvc.setPropertyValue(ref);
+                  try {
+                    ref.commit();
+                    isBadReference = false;
+                  } catch (MissingMandatoryPropertiesException e) {
+                    // Give the user the chance to fix the problems.
+                    app.println();
+                    displayMissingMandatoryPropertyException(app, e);
+                    app.println();
+                    if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn),
+                        true)) {
+                      MenuResult<Void> result = SetPropSubCommandHandler
+                          .modifyManagedObject(app, context, ref);
+                      if (result.isQuit()) {
+                        return result;
+                      } else if (result.isSuccess()) {
+                        // The referenced component was modified
+                        // successfully, but may still be disabled.
+                        isBadReference = false;
+                      }
+                    }
+                  } catch (ConcurrentModificationException e) {
+                    Message msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
+                    throw new ClientException(
+                        LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+                  } catch (OperationRejectedException e) {
+                    // Give the user the chance to fix the problems.
+                    app.println();
+                    displayOperationRejectedException(app, e);
+                    app.println();
+                    if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn),
+                        true)) {
+                      MenuResult<Void> result = SetPropSubCommandHandler
+                          .modifyManagedObject(app, context, ref);
+                      if (result.isQuit()) {
+                        return result;
+                      } else if (result.isSuccess()) {
+                        // The referenced component was modified
+                        // successfully, but may still be disabled.
+                        isBadReference = false;
+                      }
+                    }
+                  } catch (ManagedObjectAlreadyExistsException e) {
+                    // Should never happen.
+                    throw new IllegalStateException(e);
+                  }
+                }
               } else {
-                return MenuResult.cancel();
+                app.println();
+                if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_TO_ENABLE.get(
+                    rufn, name, ufn), true)) {
+                  MenuResult<Void> result = SetPropSubCommandHandler
+                      .modifyManagedObject(app, context, ref);
+                  if (result.isQuit()) {
+                    return result;
+                  } else if (result.isSuccess()) {
+                    // The referenced component was modified
+                    // successfully, but may still be disabled.
+                    isBadReference = false;
+                  }
+                }
               }
-            }
 
-            // If the referenced component is now enabled, then drop out.
-            if (ref.getPropertyValue(tpd)) {
-              break;
+              // If the referenced component is still disabled because
+              // the user refused to modify it, then give the used the
+              // option of editing the referencing component.
+              if (isBadReference) {
+                app.println();
+                app.println(ERR_SET_REFERENCED_COMPONENT_DISABLED
+                    .get(ufn, rufn));
+                app.println();
+                if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn),
+                    true)) {
+                  return MenuResult.again();
+                } else {
+                  return MenuResult.cancel();
+                }
+              }
             }
           }
         }
       }
+    } catch (AuthorizationException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
+      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+    } catch (CommunicationException e) {
+      Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+      throw new ClientException(LDAPResultCode.OTHER, msg);
     }
 
     return MenuResult.success();

@@ -28,9 +28,10 @@ package org.opends.server.replication.plugin;
 
 import java.util.SortedSet;
 
+import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
@@ -174,8 +175,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   /**
    * {@inheritDoc}
    */
-  public PropertyProvider properties()
-  {
+  public ServerManagedObject<? extends Configuration> managedObject() {
     return null;
   }
 

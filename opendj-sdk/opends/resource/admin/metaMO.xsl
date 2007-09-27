@@ -580,7 +580,7 @@
                      '      return INSTANCE;&#xa;',
                      '    }&#xa;')" />
     <!--
-      Property provider view.
+      Server managed object getter.
     -->
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -589,7 +589,7 @@
       select="concat('    /**&#xa;',
                      '     * {@inheritDoc}&#xa;',
                      '     */&#xa;',
-                     '    public PropertyProvider properties() {&#xa;',
+                     '    public ServerManagedObject&lt;? extends ', $this-java-class,'Cfg&gt; managedObject() {&#xa;',
                      '      return impl;&#xa;',
                      '    }&#xa;')" />
     <!--
