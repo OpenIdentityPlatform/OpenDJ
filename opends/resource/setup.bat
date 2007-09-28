@@ -39,9 +39,39 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
 set INSTANCE_ROOT=%DIR_HOME%
 
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto noJavaBin
+:checkOpenDSJavaBin
+if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
 goto setClassPath
+
+:checkOpenDSJavaHome
+if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:checkOpenDSJavaHomeFile
+if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
+call "%DIR_HOME%\lib\set-java-home.bat"
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:checkJavaBin
+if "%JAVA_BIN%" == "" goto checkJavaHome
+set OPENDS_JAVA_BIN=%JAVA_BIN%
+goto setClassPath
+
+:checkJavaHome
+if "%JAVA_HOME%" == "" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
+set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:noJavaHome
+echo Error: OPENDS_JAVA_HOME environment variable is not set.
+echo        Please set it to a valid Java 5 (or later) installation.
+pause
+goto end
 
 :invalidPath
 echo Error: The current path contains a %% character.  OpenDS cannot
@@ -49,28 +79,9 @@ echo        be installed on a path containing this character.
 pause
 goto end
 
-
-:noJavaBin
-if "%JAVA_HOME%" == "" goto noJavaHome
-if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noJavaHome
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\lib\set-java-home.bat"
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noSetJavaHome
-echo Error: JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 (or later) installation.
-pause
-goto end
-
 :noValidJavaHome
 echo ERROR:  The detected Java version could not be used.  Please set 
-echo         JAVA_HOME to to a valid Java 5 (or later) installation.
+echo         OPENDS_JAVA_HOME to to a valid Java 5 (or later) installation.
 pause
 goto end
 
@@ -81,18 +92,18 @@ set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
 set PATH=%SystemRoot%
 
 rem Test that the provided JDK is 1.5 compatible.
-"%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
+"%OPENDS_JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
 if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupLauncher
+"%DIR_HOME%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupLauncher
 goto end
 
 :callJava
-"%JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupLauncher %*
+"%OPENDS_JAVA_BIN%" %JAVA_ARGS% org.opends.quicksetup.installer.SetupLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

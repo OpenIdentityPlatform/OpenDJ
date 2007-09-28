@@ -33,31 +33,43 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 set INSTANCE_ROOT=%DIR_HOME%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
-goto checkJavaBin
+goto checkOpenDSJavaBin
 
 :noInvokeClass
 echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
 pause
 goto end
 
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto noJavaBin
+:checkOpenDSJavaBin
+if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
 goto setClassPath
 
-:noJavaBin
+:checkOpenDSJavaHome
+if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:checkOpenDSJavaHomeFile
+if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
+call "%DIR_HOME%\lib\set-java-home.bat"
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:checkJavaBin
+if "%JAVA_BIN%" == "" goto checkJavaHome
+set OPENDS_JAVA_BIN=%JAVA_BIN%
+goto setClassPath
+
+:checkJavaHome
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
+set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\lib\set-java-home.bat"
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noSetJavaHome
-echo Error: JAVA_HOME environment variable is not set.
+echo Error: OPENDS_JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
 pause
 goto end
@@ -67,7 +79,7 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 
 set PATH=%SystemRoot%
 
-"%JAVA_BIN%" %JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
+"%OPENDS_JAVA_BIN%" %JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
 
 
 :end

@@ -39,6 +39,7 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -212,7 +213,11 @@ public class CreateRCScript
     }
     else
     {
-      javaHomeDir = System.getenv("JAVA_HOME");
+      javaHomeDir = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+      if (javaHomeDir == null)
+      {
+        javaHomeDir = System.getenv("JAVA_HOME");
+      }
       if (javaHomeDir == null)
       {
         javaHomeDir = System.getProperty("java.home");
@@ -250,8 +255,8 @@ public class CreateRCScript
       w.println();
 
       w.println("# Specify the path to the Java installation to use");
-      w.println("JAVA_HOME=\"" + javaHomeDir + "\"");
-      w.println("export JAVA_HOME");
+      w.println("OPENDS_JAVA_HOME=\"" + javaHomeDir + "\"");
+      w.println("export OPENDS_JAVA_HOME");
       w.println();
 
       if (javaArgs.isPresent())

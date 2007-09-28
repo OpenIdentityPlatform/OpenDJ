@@ -50,30 +50,42 @@ export INSTANCE_ROOT
 cd "${WORKING_DIR}"
 
 
-# See if JAVA_HOME is set.  If not, then see if there is a java executable in
-# the path and try to figure it out.
-if test -z "${JAVA_BIN}"
+# See if the environment variables are set.  If not, then see if there is a java
+# executable in the path and try to figure it out.
+if test -z "${OPENDS_JAVA_BIN}"
 then
-  if test -z "${JAVA_HOME}"
+  if test -z "${OPENDS_JAVA_HOME}"
   then
     if test -f "${INSTANCE_ROOT}/lib/set-java-home"
     then
       . "${INSTANCE_ROOT}/lib/set-java-home"
-      JAVA_BIN="${JAVA_HOME}/bin/java"
-      export JAVA_BIN
+      OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
+      export OPENDS_JAVA_BIN
     else
-      JAVA_BIN=`which java 2> /dev/null`
-      if test ${?} -eq 0
+      if test -z "${JAVA_BIN}"
       then
-        export JAVA_BIN
+        if test -z "${JAVA_HOME}"
+        then
+          OPENDS_JAVA_BIN=`which java 2> /dev/null`
+          if test ${?} -eq 0
+          then
+            export OPENDS_JAVA_BIN
+          else
+            echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation."
+            exit 1
+          fi
+        else
+          OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
+          export OPENDS_JAVA_BIN
+        fi
       else
-        echo "Please set JAVA_HOME to the root of a Java 5 (or later) installation."
-        exit 1
+        OPENDS_JAVA_BIN="${JAVA_BIN}"
+        export OPENDS_JAVA_BIN
       fi
     fi
   else
-    JAVA_BIN="${JAVA_HOME}/bin/java"
-    export JAVA_BIN
+    OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
+    export OPENDS_JAVA_BIN
   fi
 fi
 
@@ -100,6 +112,6 @@ done
 export CLASSPATH
 
 # Launch the appropriate server utility.
-"${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
+"${OPENDS_JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
      --configClass org.opends.server.extensions.ConfigFileHandler \
      --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"

@@ -142,7 +142,7 @@ public class WebStartInstaller extends Installer {
 
       // Write java home before calling Installation class.  The installation
       // class does a call to start-ds to get information about the build.
-      writeJavaHome();
+      writeOpenDSJavaHome();
       setInstallation(new Installation(getUserData().getServerLocation()));
 
       checkAbort();

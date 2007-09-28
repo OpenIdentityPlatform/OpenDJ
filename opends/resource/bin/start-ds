@@ -41,32 +41,42 @@ export INSTANCE_ROOT
 cd "${WORKING_DIR}"
 
 
-# See if JAVA_HOME is set.  If not, then see if there is a java executable in
-# the path and try to figure it out.
-if test -z "${JAVA_BIN}"
+# See if the environment variables are set.  If not, then see if there is a java
+# executable in the path and try to figure it out.
+if test -z "${OPENDS_JAVA_BIN}"
 then
-  if test -z "${JAVA_HOME}"
+  if test -z "${OPENDS_JAVA_HOME}"
   then
     if test -f "${INSTANCE_ROOT}/lib/set-java-home"
     then
       . "${INSTANCE_ROOT}/lib/set-java-home"
-      JAVA_BIN="${JAVA_HOME}/bin/java"
-      export JAVA_BIN
+      OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
+      export OPENDS_JAVA_BIN
     else
-      JAVA_BIN=`which java 2> /dev/null`
-      if test ${?} -eq 0
+      if test -z "${JAVA_BIN}"
       then
-        export JAVA_BIN
+        if test -z "${JAVA_HOME}"
+        then
+          OPENDS_JAVA_BIN=`which java 2> /dev/null`
+          if test ${?} -eq 0
+          then
+            export OPENDS_JAVA_BIN
+          else
+            echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation."
+            exit 1
+          fi
+        else
+          OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
+          export OPENDS_JAVA_BIN
+        fi
       else
-        echo "ERROR:  No Java installation could be found.  Please set"
-        echo "        JAVA_HOME to the root of a Java 5.0 or higher"
-        echo "        installation."
-        exit 1
+        OPENDS_JAVA_BIN="${JAVA_BIN}"
+        export OPENDS_JAVA_BIN
       fi
     fi
   else
-    JAVA_BIN="${JAVA_HOME}/bin/java"
-    export JAVA_BIN
+    OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
+    export OPENDS_JAVA_BIN
   fi
 fi
 
@@ -108,21 +118,21 @@ export SCRIPT_NAME_ARG
 # Test that the provided JDK is 1.5 compatible.
 if test -z "${JAVA_ARGS}"
 then
-  "${JAVA_BIN}" org.opends.server.tools.InstallDS -t 2> /dev/null
+  "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t 2> /dev/null
   if test ${?} -ne 0
   then
     echo "ERROR:  The detected Java version could not be used.  Please ensure"
-    echo "        that JAVA_HOME is set to the root of a valid Java 5.0 or"
+    echo "        that OPENDS_JAVA_HOME is set to the root of a valid Java 5.0 or"
     echo "        higher installation."
     exit 1
   fi
 else
-  "${JAVA_BIN}" ${JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
+  "${OPENDS_JAVA_BIN}" ${JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
   if test ${?} -ne 0
   then
     echo "ERROR:  The detected Java version could not be used with the"
-    echo "        set of arguments.  Please ensure that JAVA_HOME is set to"
-    echo "        the root of a valid Java 5.0 or higher installation, and"
+    echo "        set of arguments.  Please ensure that OPENDS_JAVA_HOME is"
+    echo "        set to the root of a valid Java 5.0 or higher installation, and"
     echo "        make sure that JAVA_ARGS contains a valid set of arguments"
     echo "        for that JVM."
     exit 1
@@ -135,7 +145,7 @@ fi
 # means that the server is already running and we shouldn't try to start it.
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
-${JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+${OPENDS_JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
@@ -145,24 +155,24 @@ then
   # run detach
   #
   touch "${STARTING_FILE}"
-  nohup "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+  nohup "${OPENDS_JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
   echo $! > "${PID_FILE}"
   if test ${EC} -eq 99
   then
-    "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+    "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}"
   else
-    "${JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
+    "${OPENDS_JAVA_BIN}" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}"
   fi
   EC=${?}
   if test ${EC} -eq 0
   then
     # An exit code of 98 means that the server is already running.
-  	${JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+  	${OPENDS_JAVA_BIN} ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
     EC=${?}
@@ -183,7 +193,7 @@ else
     #
     echo $$ > "${PID_FILE}"
     rm -f "${LOG_FILE}"
-    exec "${JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+    exec "${OPENDS_JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
       org.opends.server.core.DirectoryServer \
       --configClass org.opends.server.extensions.ConfigFileHandler \
       --configFile "${CONFIG_FILE}" "${@}"

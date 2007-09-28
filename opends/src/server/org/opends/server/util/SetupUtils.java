@@ -57,6 +57,11 @@ public class SetupUtils
   public static final String IS_WEBSTART = "org.opends.quicksetup.iswebstart";
 
   /**
+   * Specific environment variable used by the scripts to find java.
+   */
+  public static final String OPENDS_JAVA_HOME = "OPENDS_JAVA_HOME";
+
+  /**
    * Java property used to know which are the jar files that must be downloaded
    * lazily.  The current code in WebStartDownloader that uses this property
    * assumes that the URL are separated with an space.
@@ -221,10 +226,10 @@ public class SetupUtils
 
   /**
    * Write a set-java-home file appropriate for the underlying platform that may
-   * be used to set the JAVA_HOME environment variable in a form suitable for
-   * the underlying operating system.  If a JAVA_HOME environment variable is
-   * currently set, then its value will be used.  Otherwise, it will be
-   * dynamically determined from the JVM properties.
+   * be used to set the OPENDS_JAVA_HOME environment variable in a form suitable
+   * for the underlying operating system.  If a OPENDS_JAVA_HOME environment
+   * variable is currently set, then its value will be used.  Otherwise, it will
+   * be dynamically determined from the JVM properties.
    * <BR><BR>
    * Note that if the target file that would be written already exists, then
    * this method will exit without doing anything and leaving the existing file
@@ -239,10 +244,10 @@ public class SetupUtils
    * @throws  IOException  If a problem occurs while creating or writing to the
    *                       specified file.
    */
-  public static File writeSetJavaHome(String serverRoot)
+  public static File writeSetOpenDSJavaHome(String serverRoot)
          throws IOException
   {
-    String javaHome = System.getenv("JAVA_HOME");
+    String javaHome = System.getenv("OPENDS_JAVA_HOME");
     if ((javaHome == null) || (javaHome.length() == 0))
     {
       javaHome = System.getProperty("java.home");
@@ -262,7 +267,7 @@ public class SetupUtils
 
       BufferedWriter writer =
            new BufferedWriter(new FileWriter(setJavaHomeFile));
-      writer.write("set JAVA_HOME=" + javaHome);
+      writer.write("set OPENDS_JAVA_HOME=" + javaHome);
       writer.newLine();
       writer.close();
     }
@@ -279,9 +284,9 @@ public class SetupUtils
       writer.write("#!/bin/sh");
       writer.newLine();
       writer.newLine();
-      writer.write("JAVA_HOME=" + javaHome);
+      writer.write("OPENDS_JAVA_HOME=" + javaHome);
       writer.newLine();
-      writer.write("export JAVA_HOME");
+      writer.write("export OPENDS_JAVA_HOME");
       writer.newLine();
       writer.close();
     }
