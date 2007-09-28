@@ -32,7 +32,10 @@ import static org.opends.messages.CoreMessages.*;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
 import java.security.*;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.util.*;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
@@ -60,6 +63,7 @@ import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.util.Validator;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.Base64;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 
@@ -93,6 +97,9 @@ public class CryptoManager
   // production.
   private static final Random pseudoRandom
           = new Random(secureRandom.nextLong());
+
+  // The preferred key wrapping transformation
+  private final String preferredKeyWrappingTransformation;
 
   // The preferred message digest algorithm for the Directory Server.
   private final String preferredDigestAlgorithm;
@@ -148,75 +155,107 @@ public class CryptoManager
   public CryptoManager(CryptoManagerCfg cfg)
          throws ConfigException, InitializationException
   {
-    // TODO -- Get the defaults from the configuration rather than
-    // hard-coding them.
+    // TODO -- Get the crypto defaults from the configuration.
+
+    // Preferred digest and validation.
+    preferredDigestAlgorithm = "SHA-1";
+    try{
+      MessageDigest.getInstance(preferredDigestAlgorithm);
+    }
+    catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      throw new InitializationException(
+              // TODO: i18n
+              Message.raw("Cannot get preferred digest:  " +
+                      getExceptionMessage(e).toString()), e);
+    }
+
+    // Preferred MAC engine and validation.
+    preferredMACAlgorithm = "HmacSHA1";
+    preferredMACAlgorithmKeyLengthBits = 128;
+    try {
+      MacKeyEntry.generateKeyEntry(null,
+              preferredMACAlgorithm,
+              preferredMACAlgorithmKeyLengthBits);
+    }
+    catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      throw new InitializationException(
+              // TODO: i18n
+              Message.raw("Cannot get preferred MAC engine:  " +
+                          getExceptionMessage(e).toString()), e);
+    }
+
+    // Preferred encryption cipher and validation.
     preferredCipherTransformation = "AES/CBC/PKCS5Padding";
     preferredCipherTransformationKeyLengthBits = 128;
-    preferredDigestAlgorithm = "SHA-1";
-    preferredMACAlgorithm    = "HmacSHA1";
-    preferredMACAlgorithmKeyLengthBits = 128;
+    try {
+      CipherKeyEntry.generateKeyEntry(null,
+              preferredCipherTransformation,
+              preferredCipherTransformationKeyLengthBits);
+    }
+    catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      throw new InitializationException(
+              // TODO: i18n
+            Message.raw("Cannot get preferred encryption cipher:  " +
+                      getExceptionMessage(e).toString()), e);
+    }
+
+
+    // Preferred secret key wrapping cipher and validation. Depends
+    // on MAC cipher for secret key. Note that the TrustStoreBackend
+    // not available at this point, hence a "dummy" certificate must
+    // be used to validate the choice of secret key wrapping cipher.
+    // TODO: Trying OAEPWITHSHA-512ANDMGF1PADDING throws an exception
+    // "Key too small...".
+    preferredKeyWrappingTransformation
+            = "RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING";
+    try {
+      final String certificateBase64 =
+      "MIIB2jCCAUMCBEb7wpYwDQYJKoZIhvcNAQEEBQAwNDEbMBkGA1UEChMST3B" +
+      "lbkRTIENlcnRpZmljYXRlMRUwEwYDVQQDEwwxMC4wLjI0OC4yNTEwHhcNMD" +
+      "cwOTI3MTQ0NzUwWhcNMjcwOTIyMTQ0NzUwWjA0MRswGQYDVQQKExJPcGVuR" +
+      "FMgQ2VydGlmaWNhdGUxFTATBgNVBAMTDDEwLjAuMjQ4LjI1MTCBnzANBgkq" +
+      "hkiG9w0BAQEFAAOBjQAwgYkCgYEAnIm6ELyuNVbpaacBQ7fzHlHMmQO/CYJ" +
+      "b2gPTdb9n1HLOBqh2lmLLHvt2SgBeN5TSa1PAHW8zJy9LDhpWKZvsUOIdQD" +
+      "8Ula/0d/jvMEByEj/hr00P6yqgLXk+EudPgOkFXHA+IfkkOSghMooWc/L8H" +
+      "nD1REdqeZuxp+ARNU+cc/ECAwEAATANBgkqhkiG9w0BAQQFAAOBgQBemyCU" +
+      "jucN34MZwvzbmFHT/leUu3/cpykbGM9HL2QUX7iKvv2LJVqexhj7CLoXxZP" +
+      "oNL+HHKW0vi5/7W5KwOZsPqKI2SdYV7nDqTZklm5ZP0gmIuNO6mTqBRtC2D" +
+      "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
+      final byte[] certificate = Base64.decode(certificateBase64);
+      final String keyID = StaticUtils.bytesToHexNoSpace(
+              getInstanceKeyID(certificate));
+      final SecretKey macKey = MacKeyEntry.generateKeyEntry(null,
+              preferredMACAlgorithm,
+              preferredMACAlgorithmKeyLengthBits).getSecretKey();
+      encodeSymmetricKeyAttribute(keyID, certificate, macKey);
+    }
+    catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      throw new InitializationException(
+              // TODO: i18n
+           Message.raw("Cannot get preferred key wrapping cipher:  " +
+                      getExceptionMessage(e).toString()), e);
+    }
 
     sslCertNickname = cfg.getSSLCertNickname();
     sslEncryption   = cfg.isSSLEncryption();
     sslProtocols    = cfg.getSSLProtocol();
     sslCipherSuites = cfg.getSSLCipherSuite();
-
-    // Make sure that we can create instances of the preferred digest,
-    // MAC, and cipher algorithms.
-    try
-    {
-      MessageDigest.getInstance(preferredDigestAlgorithm);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // TODO: i18n
-      throw new InitializationException(
-                     Message.raw("Can't get preferred digest:  " +
-                          getExceptionMessage(e).toString()), e);
-    }
-
-    try
-    {
-      MacKeyEntry.generateKeyEntry(null,
-              preferredMACAlgorithm,
-              preferredMACAlgorithmKeyLengthBits);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // TODO: i18n
-      throw new InitializationException(
-                   Message.raw("Can't get preferred MAC provider:  " +
-                          getExceptionMessage(e).toString()), e);
-    }
-
-    try
-    {
-      CipherKeyEntry.generateKeyEntry(null,
-              preferredCipherTransformation,
-              preferredCipherTransformationKeyLengthBits);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      // TODO: i18n
-      throw new InitializationException(
-                     Message.raw("Can't get preferred cipher:  " +
-                     getExceptionMessage(e).toString()), e);
-    }
   }
 
 
@@ -316,6 +355,7 @@ public class CryptoManager
    * Return the identifier of this instance's instance-key. An
    * instance-key identifier is the MD5 hash of an instance's
    * instance-key public-key certificate.
+   * @see #getInstanceKeyID(byte[])
    * @return This instance's instance-key identifier.
    * @throws CryptoManagerException If there is a problem retrieving
    * the instance-key public-key certificate or computing its MD5
@@ -323,6 +363,23 @@ public class CryptoManager
    */
   public byte[] getInstanceKeyID()
           throws CryptoManagerException {
+    return getInstanceKeyID(getInstanceKeyCertificate());
+  }
+
+
+  /**
+   * Return the identifier of an instance's instance key. An
+   * instance-key identifier is the MD5 hash of an instance's
+   * instance-key public-key certificate.
+   * @see #getInstanceKeyID()
+   * @param instanceKeyCertificate The instance key for which to
+   * return an identifier.
+   * @return The identifier of the supplied instance key.
+   * @throws CryptoManagerException If there is a problem computing
+   * the identifier from the instance key.
+   */
+  public byte[] getInstanceKeyID(byte[] instanceKeyCertificate)
+            throws CryptoManagerException {
     MessageDigest md;
     final String mdAlgorithmName = "MD5";
     try {
@@ -334,16 +391,86 @@ public class CryptoManager
             Message.raw("Failed to get MessageDigest instance for %s",
                       mdAlgorithmName), ex);
     }
-    return md.digest(getInstanceKeyCertificate());
+    return md.digest(instanceKeyCertificate);
   }
 
 
-  // The syntax of the ds-cfg-symmetric-key
-  //hexBytes[16]:keyWrappingCipher:wrappedKeyAlgorithm:
-  //    wrappedKeyType:hexifiedwrappedKey
-//  private String encocdeSymmetricKeyAttribute(){
-//    return "hello";
-//  }
+  /**
+   * Encodes a ds-cfg-symmetric-key attribute value using the supplied
+   * arguments.
+   *
+   * The syntax of the ds-cfg-symmetric-key attribute:
+   * <pre>
+   * wrappingKeyID:wrappingTransformation:wrappedKeyAlgorithm:\
+   * wrappedKeyType:hexWrappedKey
+   *
+   * wrappingKeyID ::= hexBytes[16]
+   * wrappingTransformation
+   *                   ::= e.g., RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING
+   * wrappedKeyAlgorithm ::= e.g., DESede
+   * wrappedKeyType ::= SECRET_KEY
+   * hexifiedwrappedKey ::= 0123456789abcdef01...
+   * </pre>
+   *
+   * @param wrappingKeyID The key identifier of the wrapping key. This
+   * parameter is the first field in the encoded value and identifies
+   * the instance that will be able to unwrap the secret key.
+   *
+   * @param wrappingKeyCertificateData The public key certificate used
+   * to derive the wrapping key.
+   *
+   * @param secretKey The secret key value to be wrapped for the
+   * encoded value.
+   *
+   * @return The encoded representation of the ds-cfg-symmetric-key
+   * attribute with the secret key wrapped with the supplied public
+   * key.
+   *
+   * @throws CryptoManagerException  If there is a problem wrapping
+   * the secret key.
+   */
+  private String encodeSymmetricKeyAttribute(
+          final String wrappingKeyID,
+          final byte[] wrappingKeyCertificateData,
+          final SecretKey secretKey)
+          throws CryptoManagerException {
+    // Wrap secret key.
+    final String wrappingTransformationName
+            = preferredKeyWrappingTransformation;
+    String wrappedKeyElement;
+    try {
+      final CertificateFactory cf
+              = CertificateFactory.getInstance("X.509");
+      final Certificate certificate = cf.generateCertificate(
+              new ByteArrayInputStream(wrappingKeyCertificateData));
+      final Cipher wrapper
+              = Cipher.getInstance(wrappingTransformationName);
+      wrapper.init(Cipher.WRAP_MODE, certificate);
+      byte[] wrappedKey = wrapper.wrap(secretKey);
+      wrappedKeyElement = StaticUtils.bytesToHexNoSpace(wrappedKey);
+    }
+    catch (GeneralSecurityException ex) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("Failed to wrap secret key: " +
+              getExceptionMessage(ex)), ex);
+    }
+
+    // Compose ds-cfg-symmetric-key value.
+    StringBuilder symmetricKeyAttribute = new StringBuilder();
+    symmetricKeyAttribute.append(wrappingKeyID);
+    symmetricKeyAttribute.append(":");
+    symmetricKeyAttribute.append(wrappingTransformationName);
+    symmetricKeyAttribute.append(":");
+    symmetricKeyAttribute.append(secretKey.getAlgorithm());
+    symmetricKeyAttribute.append(":");
+    symmetricKeyAttribute.append("SECRET_KEY");
+    symmetricKeyAttribute.append(":");
+    symmetricKeyAttribute.append(wrappedKeyElement);
+
+    return symmetricKeyAttribute.toString();
+  }
+
 
   /**
    * Takes an encoded ds-cfg-symmetric-key attribute value and the
@@ -361,7 +488,7 @@ public class CryptoManager
           final String symmetricKeyAttribute)
           throws CryptoManagerException {
     // Initial decomposition.
-    byte[] keyIDElement;
+    byte[] wrappingKeyIDElement;
     String wrappingTransformationElement;
     String wrappedKeyAlgorithmElement;
     int wrappedKeyTypeElement;
@@ -376,7 +503,8 @@ public class CryptoManager
                 0);
       }
       fieldName = "instance key identifier";
-      keyIDElement = StaticUtils.hexStringToByteArray(elements[0]);
+      wrappingKeyIDElement
+              = StaticUtils.hexStringToByteArray(elements[0]);
       fieldName = "key wrapping transformation";
       wrappingTransformationElement = elements[1];
       fieldName = "wrapped key algorithm";
@@ -403,7 +531,6 @@ public class CryptoManager
               = StaticUtils.hexStringToByteArray(elements[4]);
     }
     catch (ParseException ex) {
-
       throw new CryptoManagerException(((null == fieldName)
               // TODO: i18n
               ? Message.raw("The syntax of the symmetric key" +
@@ -417,7 +544,7 @@ public class CryptoManager
 
     // Confirm key can be unwrapped at this instance.
     final byte[] instanceKeyID = getInstanceKeyID();
-    if (! Arrays.equals(keyIDElement, instanceKeyID)) {
+    if (! Arrays.equals(wrappingKeyIDElement, instanceKeyID)) {
       return null;
     }
 
