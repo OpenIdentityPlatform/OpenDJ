@@ -752,6 +752,10 @@ public abstract class AbstractManagedObjectDefinition
       pd.initialize();
       pd.getDefaultBehaviorProvider().initialize();
     }
+
+    for (Constraint constraint : getAllConstraints()) {
+      constraint.initialize();
+    }
   }
 
 
@@ -830,7 +834,9 @@ public abstract class AbstractManagedObjectDefinition
    *          The constraint to be deregistered.
    */
   final void deregisterConstraint(Constraint constraint) {
-    constraints.remove(constraint);
+    if (!constraints.remove(constraint)) {
+      throw new RuntimeException("Failed to deregister a constraint");
+    }
   }
 
 

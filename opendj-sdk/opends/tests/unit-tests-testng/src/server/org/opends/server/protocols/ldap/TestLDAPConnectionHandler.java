@@ -127,7 +127,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LDAPHandlerEntry.removeAttribute(useSSL, null);
     LDAPHandlerEntry.removeAttribute(startTls, null);
     Attribute useSSL1=new Attribute(ATTR_USE_SSL, String.valueOf(true));
-    Attribute startTls1=new Attribute(ATTR_ALLOW_STARTTLS, String.valueOf(true));
+    Attribute startTls1=new Attribute(ATTR_ALLOW_STARTTLS, String.valueOf(false));
     LDAPHandlerEntry.addAttribute(useSSL1,null);
     LDAPHandlerEntry.addAttribute(startTls1,null);
     LDAPConnectionHandler LDAPSConnHandler = getLDAPHandlerInstance(LDAPHandlerEntry);

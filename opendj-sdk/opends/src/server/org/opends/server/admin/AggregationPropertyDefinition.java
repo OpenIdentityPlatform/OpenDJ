@@ -108,7 +108,7 @@ import org.opends.server.util.StaticUtils;
  */
 public final class AggregationPropertyDefinition
     <C extends ConfigurationClient, S extends Configuration>
-    extends PropertyDefinition<String> implements Constraint {
+    extends PropertyDefinition<String> {
 
   /**
    * An interface for incrementally constructing aggregation property
@@ -910,6 +910,9 @@ public final class AggregationPropertyDefinition
   // aggregated managed objects.
   private InstantiableRelationDefinition<C, S> relationDefinition;
 
+  // The source constraint.
+  private final Constraint sourceConstraint;
+
   // The condition which is used to determine if a referenced managed
   // object is enabled.
   private final Condition targetIsEnabledCondition;
@@ -933,6 +936,26 @@ public final class AggregationPropertyDefinition
     this.rdName = rdName;
     this.targetNeedsEnablingCondition = targetNeedsEnablingCondition;
     this.targetIsEnabledCondition = targetIsEnabledCondition;
+    this.sourceConstraint = new Constraint() {
+
+      /**
+       * {@inheritDoc}
+       */
+      public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
+        ClientConstraintHandler handler = new SourceClientHandler();
+        return Collections.singleton(handler);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
+        ServerConstraintHandler handler = new ServerHandler();
+        return Collections.singleton(handler);
+      }
+    };
   }
 
 
@@ -1008,16 +1031,6 @@ public final class AggregationPropertyDefinition
 
 
   /**
-   * {@inheritDoc}
-   */
-  public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
-    ClientConstraintHandler handler = new SourceClientHandler();
-    return Collections.singleton(handler);
-  }
-
-
-
-  /**
    * Gets the name of the managed object which is the parent of the
    * aggregated managed objects.
    *
@@ -1044,11 +1057,14 @@ public final class AggregationPropertyDefinition
 
 
   /**
-   * {@inheritDoc}
+   * Gets the constraint which should be enforced on the aggregating
+   * managed object.
+   *
+   * @return Returns the constraint which should be enforced on the
+   *         aggregating managed object.
    */
-  public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
-    ServerConstraintHandler handler = new ServerHandler();
-    return Collections.singleton(handler);
+  public Constraint getSourceConstraint() {
+    return sourceConstraint;
   }
 
 
@@ -1137,7 +1153,7 @@ public final class AggregationPropertyDefinition
    */
   @SuppressWarnings("unchecked")
   @Override
-  protected void initialize() throws Exception {
+  public void initialize() throws Exception {
     // Decode the path.
     parentPath = ManagedObjectPath.valueOf(parentPathString);
 
@@ -1172,7 +1188,6 @@ public final class AggregationPropertyDefinition
       public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
         return Collections.emptyList();
       }
-
     };
 
     rd.getChildDefinition().registerConstraint(constraint);

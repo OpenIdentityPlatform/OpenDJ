@@ -114,7 +114,7 @@
     <xsl:call-template name="name-to-java-constant">
       <xsl:with-param name="value" select="../../@name" />
     </xsl:call-template>
-    <xsl:value-of select="');&#xa;'" />
+    <xsl:value-of select="'.getSourceConstraint());&#xa;'" />
   </xsl:template>
   <!--
     Generate property getter declaration(s).

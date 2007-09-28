@@ -309,7 +309,8 @@ public final class AggregationTest extends AdminTestCase {
     builder.setRelationDefinition("connection-handler");
     builder.setTargetIsEnabledCondition(Conditions.contains("enabled", "true"));
     aggregationPropertyDefinitionTargetMustBeEnabled = builder.getInstance();
-    TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
+    TestCfg
+        .initializePropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
 
     builder = AggregationPropertyDefinition.createBuilder(d,
         "aggregation-property");
@@ -321,10 +322,12 @@ public final class AggregationTest extends AdminTestCase {
     builder.setParentPath("/");
     builder.setRelationDefinition("connection-handler");
     builder.setTargetIsEnabledCondition(Conditions.contains("enabled", "true"));
-    builder.setTargetNeedsEnablingCondition(Conditions.contains("mandatory-boolean-property", "true"));
+    builder.setTargetNeedsEnablingCondition(Conditions.contains(
+        "mandatory-boolean-property", "true"));
     aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = builder
         .getInstance();
-    TestCfg.initializePropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+    TestCfg
+        .initializePropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
   }
 
 
@@ -452,10 +455,12 @@ public final class AggregationTest extends AdminTestCase {
     }
 
     // Register the temporary aggregation definition.
-    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault);
+    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault
+        .getSourceConstraint());
     TestCfg
         .addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled);
+    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+        .getSourceConstraint());
 
     try {
       TestParentCfg parent = getParent("test parent 1");
@@ -475,10 +480,11 @@ public final class AggregationTest extends AdminTestCase {
       }
     } finally {
       // Put back the default aggregation definition.
-      TestCfg
-          .removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled);
+      TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+          .getSourceConstraint());
       TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-      TestCfg.addConstraint(aggregationPropertyDefinitionDefault);
+      TestCfg.addConstraint(aggregationPropertyDefinitionDefault
+          .getSourceConstraint());
 
       try {
         deleteSubtree(TEST_CHILD_6_DN);
@@ -510,10 +516,12 @@ public final class AggregationTest extends AdminTestCase {
     }
 
     // Register the temporary aggregation definition.
-    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault);
+    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault
+        .getSourceConstraint());
     TestCfg
         .addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled);
+    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+        .getSourceConstraint());
 
     try {
       TestParentCfg parent = getParent("test parent 1");
@@ -533,10 +541,11 @@ public final class AggregationTest extends AdminTestCase {
       }
     } finally {
       // Put back the default aggregation definition.
-      TestCfg
-          .removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled);
+      TestCfg.removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+          .getSourceConstraint());
       TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-      TestCfg.addConstraint(aggregationPropertyDefinitionDefault);
+      TestCfg.addConstraint(aggregationPropertyDefinitionDefault
+          .getSourceConstraint());
 
       try {
         deleteSubtree(TEST_CHILD_7_DN);
@@ -569,11 +578,13 @@ public final class AggregationTest extends AdminTestCase {
     }
 
     // Register the temporary aggregation definition.
-    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault);
+    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault
+        .getSourceConstraint());
     TestCfg
         .addPropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
     TestCfg
-        .addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+        .addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled
+            .getSourceConstraint());
 
     try {
       TestParentCfg parent = getParent("test parent 1");
@@ -594,9 +605,11 @@ public final class AggregationTest extends AdminTestCase {
     } finally {
       // Put back the default aggregation definition.
       TestCfg
-          .removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+          .removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled
+              .getSourceConstraint());
       TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-      TestCfg.addConstraint(aggregationPropertyDefinitionDefault);
+      TestCfg.addConstraint(aggregationPropertyDefinitionDefault
+          .getSourceConstraint());
 
       try {
         deleteSubtree(TEST_CHILD_6_DN);
@@ -628,11 +641,13 @@ public final class AggregationTest extends AdminTestCase {
     }
 
     // Register the temporary aggregation definition.
-    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault);
+    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault
+        .getSourceConstraint());
     TestCfg
         .addPropertyDefinition(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
     TestCfg
-        .addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+        .addConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled
+            .getSourceConstraint());
 
     try {
       TestParentCfg parent = getParent("test parent 1");
@@ -640,9 +655,11 @@ public final class AggregationTest extends AdminTestCase {
     } finally {
       // Put back the default aggregation definition.
       TestCfg
-          .removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+          .removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled
+              .getSourceConstraint());
       TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-      TestCfg.addConstraint(aggregationPropertyDefinitionDefault);
+      TestCfg.addConstraint(aggregationPropertyDefinitionDefault
+          .getSourceConstraint());
 
       try {
         deleteSubtree(TEST_CHILD_7_DN);
@@ -740,10 +757,12 @@ public final class AggregationTest extends AdminTestCase {
     }
 
     // Register the temporary aggregation definition.
-    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault);
+    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault
+        .getSourceConstraint());
     TestCfg
         .addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled);
+    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+        .getSourceConstraint());
 
     ConfigurationDeleteListener<TestChildCfg> dl = new DummyDeleteListener();
     ConfigurationChangeListener<TestChildCfg> cl = new DummyChangeListener();
@@ -780,9 +799,11 @@ public final class AggregationTest extends AdminTestCase {
 
           // Put back the default aggregation definition.
           TestCfg
-              .removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+              .removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+                  .getSourceConstraint());
           TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-          TestCfg.addConstraint(aggregationPropertyDefinitionDefault);
+          TestCfg.addConstraint(aggregationPropertyDefinitionDefault
+              .getSourceConstraint());
         }
       }
     }
@@ -810,10 +831,12 @@ public final class AggregationTest extends AdminTestCase {
     }
 
     // Register the temporary aggregation definition.
-    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault);
+    TestCfg.removeConstraint(aggregationPropertyDefinitionDefault
+        .getSourceConstraint());
     TestCfg
         .addPropertyDefinition(aggregationPropertyDefinitionTargetMustBeEnabled);
-    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled);
+    TestCfg.addConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+        .getSourceConstraint());
 
     ConfigurationDeleteListener<TestChildCfg> dl = new DummyDeleteListener();
     ConfigurationChangeListener<TestChildCfg> cl = new DummyChangeListener();
@@ -852,9 +875,11 @@ public final class AggregationTest extends AdminTestCase {
 
           // Put back the default aggregation definition.
           TestCfg
-              .removeConstraint(aggregationPropertyDefinitionTargetAndSourceMustBeEnabled);
+              .removeConstraint(aggregationPropertyDefinitionTargetMustBeEnabled
+                  .getSourceConstraint());
           TestCfg.addPropertyDefinition(aggregationPropertyDefinitionDefault);
-          TestCfg.addConstraint(aggregationPropertyDefinitionDefault);
+          TestCfg.addConstraint(aggregationPropertyDefinitionDefault
+              .getSourceConstraint());
         }
       }
     }

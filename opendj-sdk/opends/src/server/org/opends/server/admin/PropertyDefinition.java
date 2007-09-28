@@ -549,11 +549,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>,
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + propertyName + ".synopsis";
-    try {
-      return resource.getMessage(definition, property, locale);
-    } catch (MissingResourceException e) {
-      return null;
-    }
+    return resource.getMessage(definition, property, locale);
   }
 
 

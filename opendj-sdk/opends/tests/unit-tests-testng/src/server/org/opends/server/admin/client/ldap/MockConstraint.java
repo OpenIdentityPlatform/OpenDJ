@@ -47,7 +47,7 @@ import org.opends.server.admin.server.ServerConstraintHandler;
  * A mock constraint which can be configured to refuse various types
  * of operation.
  */
-public final class MockConstraint implements Constraint {
+public final class MockConstraint extends Constraint {
 
   /**
    * Mock client constraint handler.

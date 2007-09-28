@@ -29,6 +29,7 @@ package org.opends.server.admin;
 
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.admin.server.ServerConstraintHandler;
@@ -60,11 +61,22 @@ import org.opends.server.admin.server.ServerConstraintHandler;
  * new managed object is created, changes to a managed object are
  * applied, or an existing managed object is deleted.
  */
-public interface Constraint {
+public abstract class Constraint {
+
+  /**
+   * Creates a new constraint.
+   */
+  protected Constraint() {
+    // No implementation required.
+  }
+
+
 
   /**
    * Gets the client-side constraint handlers which will be used to
-   * enforce this constraint in client applications.
+   * enforce this constraint in client applications. The default
+   * implementation is to return an empty set of client constraint
+   * handlers.
    *
    * @return Returns the client-side constraint handlers which will be
    *         used to enforce this constraint in client applications.
@@ -72,13 +84,17 @@ public interface Constraint {
    *         but maybe empty (indicating that the constraint can only
    *         be enforced on the server-side).
    */
-  Collection<ClientConstraintHandler> getClientConstraintHandlers();
+  public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
+    return Collections.emptySet();
+  }
 
 
 
   /**
    * Gets the server-side constraint handlers which will be used to
-   * enforce this constraint within the server.
+   * enforce this constraint within the server. The default
+   * implementation is to return an empty set of server constraint
+   * handlers.
    *
    * @return Returns the server-side constraint handlers which will be
    *         used to enforce this constraint within the server. The
@@ -86,6 +102,21 @@ public interface Constraint {
    *         must not be empty, since constraints must always be
    *         enforced on the server.
    */
-  Collection<ServerConstraintHandler> getServerConstraintHandlers();
+  public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
+    return Collections.emptySet();
+  }
+
+
+
+  /**
+   * Initializes this constraint. The default implementation is to do
+   * nothing.
+   *
+   * @throws Exception
+   *           If this constraint could not be initialized.
+   */
+  protected void initialize() throws Exception {
+    // Default implementation is to do nothing.
+  }
 
 }

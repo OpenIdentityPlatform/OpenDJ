@@ -72,6 +72,15 @@
       </xsl:for-each>
     </xsl:if>
     <!--
+      Process any constraints associated with this managed object definition.
+    -->
+    <xsl:if test="$this/adm:constraint">
+      <xsl:for-each select="$this/adm:constraint">
+        <xsl:value-of
+          select="concat('constraint.', position(), '.synopsis=', normalize-space(adm:synopsis), '&#xa;')" />
+      </xsl:for-each>
+    </xsl:if>
+    <!--
       Process each property definition.
     -->
     <xsl:for-each select="$this-all-properties">
