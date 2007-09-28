@@ -504,10 +504,12 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_SHORT_QUIET,
           OPTION_LONG_QUIET,
           INFO_DESCRIPTION_QUIET.get());
+      quietArgument.setPropertyName(OPTION_LONG_QUIET);
 
       scriptFriendlyArgument = new BooleanArgument("script-friendly",
           OPTION_SHORT_SCRIPT_FRIENDLY, OPTION_LONG_SCRIPT_FRIENDLY,
           INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+      scriptFriendlyArgument.setPropertyName(OPTION_LONG_SCRIPT_FRIENDLY);
 
       noPromptArgument = new BooleanArgument(
           OPTION_LONG_NO_PROMPT,
@@ -518,6 +520,7 @@ public final class DSConfig extends ConsoleApplication {
       advancedModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
           OPTION_DSCFG_SHORT_ADVANCED, OPTION_DSCFG_LONG_ADVANCED,
           INFO_DSCFG_DESCRIPTION_ADVANCED.get());
+      advancedModeArgument.setPropertyName(OPTION_DSCFG_LONG_ADVANCED);
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
