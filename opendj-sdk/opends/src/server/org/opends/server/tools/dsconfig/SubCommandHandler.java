@@ -1063,6 +1063,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     this.recordModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_RECORD,
         OPTION_DSCFG_SHORT_RECORD, OPTION_DSCFG_LONG_RECORD,
         INFO_DSCFG_DESCRIPTION_RECORD.get());
+    this.recordModeArgument.setPropertyName(OPTION_DSCFG_LONG_RECORD);
     subCommand.addArgument(recordModeArgument);
   }
 
@@ -1081,6 +1082,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     this.unitSizeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_SIZE,
         OPTION_DSCFG_SHORT_UNIT_SIZE, OPTION_DSCFG_LONG_UNIT_SIZE, false, true,
         "{UNIT}", INFO_DSCFG_DESCRIPTION_UNIT_SIZE.get());
+    this.unitSizeArgument.setPropertyName(OPTION_DSCFG_LONG_UNIT_SIZE);
 
     subCommand.addArgument(unitSizeArgument);
   }
@@ -1100,6 +1102,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     this.unitTimeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_TIME,
         OPTION_DSCFG_SHORT_UNIT_TIME, OPTION_DSCFG_LONG_UNIT_TIME, false, true,
         "{UNIT}", INFO_DSCFG_DESCRIPTION_UNIT_TIME.get());
+    this.unitTimeArgument.setPropertyName(OPTION_DSCFG_LONG_UNIT_TIME);
 
     subCommand.addArgument(unitTimeArgument);
   }
