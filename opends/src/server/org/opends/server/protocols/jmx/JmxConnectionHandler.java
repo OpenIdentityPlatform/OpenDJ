@@ -323,15 +323,6 @@ public final class JmxConnectionHandler extends
   public void initializeConnectionHandler(JMXConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // Issue warning if there is not key manager by SSL is enabled.
-    if (config.isUseSSL() && config.getKeyManagerProvider() == null) {
-      // TODO: give a more useful feedback message.
-      Message message = ERR_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL.get(
-          String.valueOf(currentConfig.dn()), "");
-      logError(message);
-      throw new ConfigException(message);
-    }
-
     // Configuration is ok.
     currentConfig = config;
 
@@ -426,16 +417,8 @@ public final class JmxConnectionHandler extends
   public boolean isConfigurationChangeAcceptable(
       JMXConnectionHandlerCfg config,
       List<Message> unacceptableReasons) {
-    boolean isAcceptable = true;
-
-    if (config.isUseSSL() && config.getKeyManagerProvider() == null) {
-      // TODO: give a more useful feedback message.
-      unacceptableReasons.add(ERR_JMX_CONNHANDLER_CANNOT_DETERMINE_USE_SSL.get(
-              String.valueOf(config.dn()), ""));
-      isAcceptable = false;
-    }
-
-    return isAcceptable;
+    // All validation is performed by the admin framework.
+    return true;
   }
 
 

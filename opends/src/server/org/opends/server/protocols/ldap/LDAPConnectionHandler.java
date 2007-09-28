@@ -590,30 +590,6 @@ public final class LDAPConnectionHandler extends
   public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // SSL and StartTLS are mutually exclusive.
-    if (config.isAllowStartTLS() && config.isUseSSL()) {
-      Message message = ERR_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS.get(
-          String.valueOf(config.dn()));
-      logError(message);
-    }
-
-    if (config.isAllowStartTLS() || config.isUseSSL())
-    {
-      // Validate the key manager provider.
-      if (config.getKeyManagerProvider() == null) {
-        Message message = ERR_LDAP_CONNHANDLER_NO_KEYMANAGER_DN.get(
-            String.valueOf(config.dn()));
-        throw new ConfigException(message);
-      }
-
-      // Validate the trust manager provider.
-      if (config.getTrustManagerProvider() == null) {
-        Message message = ERR_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN.get(
-            String.valueOf(config.dn()));
-        throw new ConfigException(message);
-      }
-    }
-
     // Open the selector.
     try {
       selector = Selector.open();
@@ -793,37 +769,8 @@ public final class LDAPConnectionHandler extends
   public boolean isConfigurationChangeAcceptable(
       LDAPConnectionHandlerCfg config,
       List<Message> unacceptableReasons) {
-    boolean isAcceptable = true;
-
-    // SSL and StartTLS are mutually exclusive.
-    if (config.isAllowStartTLS() && config.isUseSSL()) {
-
-      unacceptableReasons.add(
-              ERR_LDAP_CONNHANDLER_CANNOT_HAVE_SSL_AND_STARTTLS.get(
-                      String.valueOf(config.dn())));
-      isAcceptable = false;
-    }
-
-    if (config.isAllowStartTLS() || config.isUseSSL())
-    {
-      // Validate the key manager provider.
-      if (config.getKeyManagerProvider() == null) {
-        Message message = ERR_LDAP_CONNHANDLER_NO_KEYMANAGER_DN.get(
-                String.valueOf(config.dn()));
-        unacceptableReasons.add(message);
-        isAcceptable = false;
-      }
-
-      // Validate the trust manager provider DN.
-      if (config.getTrustManagerProvider() == null) {
-        Message message = ERR_LDAP_CONNHANDLER_NO_TRUSTMANAGER_DN.get(
-                String.valueOf(config.dn()));
-        unacceptableReasons.add(message);
-        isAcceptable = false;
-      }
-    }
-
-    return isAcceptable;
+    // All validation is performed by the admin framework.
+    return true;
   }
 
 

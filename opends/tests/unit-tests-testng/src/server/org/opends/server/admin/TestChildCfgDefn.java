@@ -116,7 +116,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
       builder.setRelationDefinition("connection-handler");
       PD_AGGREGATION_PROPERTY = builder.getInstance();
       INSTANCE.registerPropertyDefinition(PD_AGGREGATION_PROPERTY);
-      INSTANCE.registerConstraint(PD_AGGREGATION_PROPERTY);
+      INSTANCE.registerConstraint(PD_AGGREGATION_PROPERTY.getSourceConstraint());
   }
 
 

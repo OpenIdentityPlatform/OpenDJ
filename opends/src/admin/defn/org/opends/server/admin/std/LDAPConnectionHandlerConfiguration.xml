@@ -36,6 +36,76 @@
     is used to interact with clients using LDAP. In particular, it
     provides full support for LDAPv3 and limited support for LDAPv2.
   </adm:synopsis>
+  <adm:constraint>
+    <adm:synopsis>
+      A Key Manager Provider must be specified when this
+      <adm:user-friendly-name />
+      is configured to use SSL.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="use-ssl" value="true" />
+        <adm:is-present property="key-manager-provider" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+  <adm:constraint>
+    <adm:synopsis>
+      A Key Manager Provider must be specified when this
+      <adm:user-friendly-name />
+      is configured to allow StartTLS.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="allow-start-tls" value="true" />
+        <adm:is-present property="key-manager-provider" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+  <adm:constraint>
+    <adm:synopsis>
+      A Trust Manager Provider must be specified when this
+      <adm:user-friendly-name />
+      is configured to use SSL.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="use-ssl" value="true" />
+        <adm:is-present property="trust-manager-provider" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+  <adm:constraint>
+    <adm:synopsis>
+      A Trust Manager Provider must be specified when this
+      <adm:user-friendly-name />
+      is configured to allow StartTLS.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="allow-start-tls" value="true" />
+        <adm:is-present property="trust-manager-provider" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+  <adm:constraint>
+    <adm:synopsis>
+      A
+      <adm:user-friendly-name />
+      cannot be configured to support SSL and StartTLS at the same time.
+      Either SSL or StartTLS must be disabled in order for this
+      <adm:user-friendly-name />
+      to be used.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:not>
+        <adm:and>
+          <adm:contains property="use-ssl" value="true" />
+          <adm:contains property="allow-start-tls" value="true" />
+        </adm:and>
+      </adm:not>
+    </adm:condition>
+  </adm:constraint>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-ldap-connection-handler</ldap:name>

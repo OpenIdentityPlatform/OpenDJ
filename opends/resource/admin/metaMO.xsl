@@ -170,6 +170,25 @@
       <xsl:value-of select="'  }&#xa;'" />
     </xsl:if>
     <!--
+      Register any constraints associated with this managed object definition.
+    -->
+    <xsl:if test="$this/adm:constraint">
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:value-of
+        select="'  // Register the constraints associated with this managed object definition.&#xa;'" />
+      <xsl:value-of select="'  static {&#xa;'" />
+      <xsl:for-each select="$this/adm:constraint">
+        <xsl:value-of
+          select="concat('    INSTANCE.registerConstraint(new GenericConstraint(INSTANCE, ', position(), ', ')" />
+        <xsl:apply-templates select="adm:condition/*"
+          mode="compile-condition" />
+        <xsl:value-of select="'));&#xa;'" />
+      </xsl:for-each>
+      <xsl:value-of select="'  }&#xa;'" />
+    </xsl:if>
+    <!--
       Configuration definition singleton getter.
     -->
     <xsl:text>&#xa;</xsl:text>
@@ -1630,6 +1649,10 @@
       <xsl:with-param name="imports">
         <xsl:if test="not(boolean($this/@extends))">
           <import>org.opends.server.admin.TopCfgDefn</import>
+        </xsl:if>
+        <xsl:if test="$this/adm:constraint">
+          <import>org.opends.server.admin.GenericConstraint</import>
+          <import>org.opends.server.admin.condition.Conditions</import>
         </xsl:if>
         <xsl:if
           test="$this-local-properties[@multi-valued='true' or

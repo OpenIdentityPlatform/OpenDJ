@@ -182,6 +182,14 @@
         <xsl:with-param name="hierarchy" select="$hierarchy" />
       </xsl:apply-templates>
       <!--
+        Copy constraint elements.
+      -->
+      <xsl:apply-templates select="adm:constraint" mode="pre-process">
+        <xsl:with-param name="moname" select="@name" />
+        <xsl:with-param name="mopackage" select="@package" />
+        <xsl:with-param name="hierarchy" select="$hierarchy" />
+      </xsl:apply-templates>
+      <!--
         Copy profile elements.
       -->
       <xsl:apply-templates select="adm:profile" mode="pre-process">

@@ -120,6 +120,49 @@
           </xsd:attribute>
         </xsd:complexType>
       </xsd:element>
+      <xsd:element name="constraint" minOccurs="0"
+        maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            A constraint on the properties of this managed object. A
+            constraint comprises of a condition which must always
+            evaluate to true before a modification is permitted.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="synopsis"
+              type="tns:rich-description-type">
+              <xsd:annotation>
+                <xsd:documentation>
+                  A brief description of this constraint. The
+                  description should describe, preferably in one
+                  sentence, the purpose the condition associated with
+                  this constraint. The synopsis should be suitable for
+                  use in applications such as tool-tips, CLI help, and
+                  the summary description in Javadoc. It is possible to
+                  embed rich content including XHTML markup (this will
+                  only be used where supported).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The condition associated with this constraint. The
+                  condition must evaluate to true before modifications
+                  are permitted.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:group ref="tns:condition-group" />
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
       <xsd:element name="profile" type="tns:profile-type" minOccurs="0"
         maxOccurs="unbounded">
         <xsd:annotation>

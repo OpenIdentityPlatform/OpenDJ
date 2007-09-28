@@ -36,6 +36,19 @@
     is used to interact with clients using the Java Management
     Extensions (JMX) protocol.
   </adm:synopsis>
+  <adm:constraint>
+    <adm:synopsis>
+      A Key Manager Provider must be specified when this
+      <adm:user-friendly-name />
+      is configured to use SSL.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="use-ssl" value="true" />
+        <adm:is-present property="key-manager-provider" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-jmx-connection-handler</ldap:name>
