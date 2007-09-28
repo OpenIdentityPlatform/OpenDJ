@@ -1654,17 +1654,17 @@ public abstract class Installer extends GuiApplication {
 
   /**
    * Writes the java home that we are using for the setup in a file.
-   * This way we can use this java home even if the user has not set JAVA_HOME
-   * when running the different scripts.
+   * This way we can use this java home even if the user has not set
+   * OPENDS_JAVA_HOME when running the different scripts.
    *
    */
-  protected void writeJavaHome()
+  protected void writeOpenDSJavaHome()
   {
     try
     {
       // This isn't likely to happen, and it's not a serious problem even if
       // it does.
-      SetupUtils.writeSetJavaHome(getInstallationPath());
+      SetupUtils.writeSetOpenDSJavaHome(getInstallationPath());
     } catch (Exception e) {}
   }
 

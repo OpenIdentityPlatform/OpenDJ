@@ -42,33 +42,44 @@ rem This is the template to use for logging.  Make sure to use >>
 rem echo %SCRIPT%: your-message-here >> %LOG%
 echo %SCRIPT%: invoked >> %LOG%
 
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto noJavaBin
+:checkOpenDSJavaBin
+if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
 goto setClassPath
 
-:noJavaBin
+:checkOpenDSJavaHome
+if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:checkOpenDSJavaHomeFile
+if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
+call "%DIR_HOME%\lib\set-java-home.bat"
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto setClassPath
+
+:checkJavaBin
+if "%JAVA_BIN%" == "" goto checkJavaHome
+set OPENDS_JAVA_BIN=%JAVA_BIN%
+goto setClassPath
+
+:checkJavaHome
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
+set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto setClassPath
 
 :noJavaHome
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto noSetJavaHome
-call "%DIR_HOME%\lib\set-java-home.bat"
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noSetJavaHome
-echo Error: JAVA_HOME environment variable is not set.
+echo Error: OPENDS_JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
-echo %SCRIPT%: JAVA_HOME environment variable is not set. >> %LOG%
 pause
 goto end
 
 :noValidJavaHome
-echo %SCRIPT%: The detected Java version could not be used. JAVA_HOME=[%JAVA_HOME%] >> %LOG%
+echo %SCRIPT%: The detected Java version could not be used. OPENDS_JAVA_HOME=[%OPENDS_JAVA_HOME%] >> %LOG%
 echo ERROR:  The detected Java version could not be used.  Please set 
-echo         JAVA_HOME to to a valid Java 5 (or later) installation.
+echo         OPENDS_JAVA_HOME to to a valid Java 5 (or later) installation.
 pause
 goto end
 
@@ -78,10 +89,10 @@ FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
 rem Test that the provided JDK is 1.5 compatible.
-"%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
+"%OPENDS_JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
-"%JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
 
 if %errorlevel% == 98 goto serverAlreadyStopped
 if %errorlevel% == 99 goto startUsingSystemCall
@@ -121,16 +132,16 @@ goto end
 
 :stopAsWindowsService
 echo %SCRIPT%: stop as windows service >> %LOG%
-"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
 goto end
 
 :restartAsWindowsService
 echo %SCRIPT%: restart as windows service, stopping >> %LOG%
-"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StopWindowsService
 if not %errorlevel% == 0 goto end
 echo %SCRIPT%: restart as windows service, starting >> %LOG%
-"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
-"%JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.StartWindowsService
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
 if exist "%DIR_HOME%\logs\winservice.out" type "%DIR_HOME%\logs\winservice.out"
 if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"

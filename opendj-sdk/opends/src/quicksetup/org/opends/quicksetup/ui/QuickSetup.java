@@ -35,6 +35,8 @@ import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
 import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.server.util.SetupUtils;
+
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Message;
@@ -403,11 +405,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
             pb = new ProcessBuilder(cmd);
           }
           Map<String, String> env = pb.environment();
-          env.put("JAVA_HOME", System.getProperty("java.home"));
-          /* Remove JAVA_BIN to be sure that we use the JVM running the
-           * uninstaller JVM to stop the server.
-           */
-          env.remove("JAVA_BIN");
+          env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
           Process process = pb.start();
           /**
            * Wait for 3 seconds.  Assume that if the process has not exited

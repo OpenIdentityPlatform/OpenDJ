@@ -105,7 +105,7 @@ public class OfflineInstaller extends Installer
 
       checkAbort();
 
-      writeJavaHome();
+      writeOpenDSJavaHome();
 
       if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {

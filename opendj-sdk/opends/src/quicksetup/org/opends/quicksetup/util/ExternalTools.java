@@ -29,6 +29,7 @@ package org.opends.quicksetup.util;
 import org.opends.messages.Message;
 
 import org.opends.quicksetup.Installation;
+import org.opends.server.util.SetupUtils;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -113,11 +114,8 @@ public class ExternalTools {
 
     ProcessBuilder pb = new ProcessBuilder(args);
     Map<String, String> env = pb.environment();
-    env.put("JAVA_HOME", System.getProperty("java.home"));
-    /* Remove JAVA_BIN to be sure that we use the JVM running the
-     * uninstaller JVM to run the command.
-     */
-    env.remove("JAVA_BIN");
+    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+
     Process p = pb.start();
 
     BufferedReader out =

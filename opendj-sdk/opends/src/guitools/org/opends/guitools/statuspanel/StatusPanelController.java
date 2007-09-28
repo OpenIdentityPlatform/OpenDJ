@@ -38,6 +38,7 @@ import java.util.Map;
 import javax.swing.SwingUtilities;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.SetupUtils;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.statuspanel.event.ServerStatusChangeEvent;
@@ -565,12 +566,7 @@ public class StatusPanelController implements ServerStatusChangeListener,
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
     Map<String, String> env = pb.environment();
-    env.put("JAVA_HOME", System.getProperty("java.home"));
-    /* Remove JAVA_BIN to be sure that we use the JVM running the installer
-     * JVM to start the server.
-     */
-    env.remove("JAVA_BIN");
-
+    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
     try
     {
       Process process = pb.start();
@@ -683,11 +679,7 @@ public class StatusPanelController implements ServerStatusChangeListener,
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
     Map<String, String> env = pb.environment();
-    env.put("JAVA_HOME", System.getProperty("java.home"));
-    /* Remove JAVA_BIN to be sure that we use the JVM running the uninstaller
-     * JVM to stop the server.
-     */
-    env.remove("JAVA_BIN");
+    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
 
     try
     {

@@ -32,7 +32,7 @@ set INSTANCE_ROOT=%DIR_HOME%
 
 :checkNewVersion
 if exist "upgrade.bat.NEW" goto newVersion
-goto checkJavaBin
+goto checkOpenDSJavaBin
 
 :newVersion
 echo A new version of this script was made available by the last upgrade
@@ -40,38 +40,50 @@ echo operation.  Delete this old version and rename file 'upgrade.bat.NEW'
 echo to 'upgrade.bat' before continuing.
 goto end
 
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto noJavaBin
+:checkOpenDSJavaBin
+if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
 goto callExtractor
 
-:noJavaBin
+:checkOpenDSJavaHome
+if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto callExtractor
+
+:checkOpenDSJavaHomeFile
+if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
+call "%DIR_HOME%\lib\set-java-home.bat"
+if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
+set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+goto callExtractor
+
+:checkJavaBin
+if "%JAVA_BIN%" == "" goto checkJavaHome
+set OPENDS_JAVA_BIN=%JAVA_BIN%
+goto callExtractor
+
+:checkJavaHome
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
+set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto callExtractor
 
 :noJavaHome
-if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto noSetJavaHome
-call "%INSTANCE_ROOT%\lib\set-java-home.bat"
-set JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto callExtractor
-
-:noSetJavaHome
-echo Error: JAVA_HOME environment variable is not set.
+echo Error: OPENDS_JAVA_HOME environment variable is not set.
 echo        Please set it to a valid Java 5 (or later) installation.
 pause
 goto end
 
 :noValidJavaHome
 echo ERROR:  The detected Java version could not be used.  Please set 
-echo         JAVA_HOME to to a valid Java 5 (or later) installation.
+echo         OPENDS_JAVA_HOME to to a valid Java 5 (or later) installation.
 pause
 goto end
 
 set PATH=%SystemRoot%
 
 rem Test that the provided JDK is 1.5 compatible.
-"%JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
+"%OPENDS_JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
 if not %errorlevel% == 0 goto noValidJavaHome
 
 :callExtractor
@@ -79,7 +91,7 @@ if EXIST "%INSTANCE_ROOT%\tmp\upgrade" rd "%INSTANCE_ROOT%\tmp\upgrade" /s /q
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
 set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
-"%JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
+"%OPENDS_JAVA_BIN%" org.opends.quicksetup.upgrader.BuildExtractor %*
 if %errorlevel% == 99 goto upgrader
 if %errorlevel% == 98 goto reverter
 if %errorlevel% == 50 goto version
@@ -89,7 +101,7 @@ goto error
 :upgrader
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-"%JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
+"%OPENDS_JAVA_BIN%" org.opends.quicksetup.upgrader.UpgradeLauncher %*
 goto end
 
 :reverter
@@ -97,7 +109,7 @@ if EXIST "%INSTANCE_ROOT%\tmp\revert" rd "%INSTANCE_ROOT%\tmp\revert" /s /q
 xcopy "%INSTANCE_ROOT%\lib\*.*" "%INSTANCE_ROOT%\tmp\revert\lib\" /E /Q /Y
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\revert\lib\*.jar") DO call "%INSTANCE_ROOT%\lib\setcp.bat" %%x
-"%JAVA_BIN%" org.opends.quicksetup.upgrader.ReversionLauncher %*
+"%OPENDS_JAVA_BIN%" org.opends.quicksetup.upgrader.ReversionLauncher %*
 goto end
 
 :version
