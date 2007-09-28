@@ -313,6 +313,10 @@ public final class LDAPProfile {
       d = d.getParent();
     }
 
+    if (!s.contains("top")) {
+      objectClasses.addFirst("top");
+    }
+
     return objectClasses;
   }
 

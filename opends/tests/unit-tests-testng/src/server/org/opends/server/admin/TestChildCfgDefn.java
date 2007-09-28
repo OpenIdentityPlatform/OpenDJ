@@ -202,7 +202,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
    * Private constructor.
    */
   private TestChildCfgDefn() {
-    super("test-child", TopCfgDefn.getInstance());
+    super("test-child", null);
   }
 
 

@@ -127,7 +127,6 @@ public final class TestCfg {
 
       // Register the test parent resource bundle.
       TestParentCfgDefn d = TestParentCfgDefn.getInstance();
-      d.registerInParent();
       d.initialize();
       String baseName = d.getClass().getName();
       ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
@@ -141,7 +140,6 @@ public final class TestCfg {
 
       // Register the test child resource bundle.
       TestChildCfgDefn d = TestChildCfgDefn.getInstance();
-      d.registerInParent();
       d.initialize();
       String baseName = d.getClass().getName();
       ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
@@ -175,14 +173,12 @@ public final class TestCfg {
       DirectoryServer.deregisterObjectClass(TEST_PARENT_OCD);
       TestParentCfgDefn d = TestParentCfgDefn.getInstance();
       ManagedObjectDefinitionI18NResource.getInstance().removeResourceBundle(d);
-      d.deregisterFromParent();
     }
 
     {
       DirectoryServer.deregisterObjectClass(TEST_CHILD_OCD);
       TestChildCfgDefn d = TestChildCfgDefn.getInstance();
       ManagedObjectDefinitionI18NResource.getInstance().removeResourceBundle(d);
-      d.deregisterFromParent();
     }
 
   }

@@ -34,12 +34,11 @@ import static org.testng.Assert.*;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -72,7 +71,7 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
   }
 
   // Test definitions.
-  private TestDefinition top = new TestDefinition("topmost", TopCfgDefn.getInstance());
+  private TestDefinition top = new TestDefinition("topmost", null);
 
   private TestDefinition middle1 = new TestDefinition("middle1", top);
 
@@ -97,16 +96,6 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
-  }
-
-
-
-  /**
-   * Tears down test environment.
-   */
-  @AfterClass
-  public void tearDown() {
-    top.deregisterFromParent();
   }
 
 
