@@ -43,7 +43,6 @@ import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
-import org.opends.server.util.Validator;
 
 
 
@@ -107,22 +106,11 @@ public abstract class AbstractManagedObjectDefinition
    * @param parent
    *          The parent definition, or <code>null</code> if there
    *          is no parent (only the {@link TopCfgDefn} should have a
-   *          <code>null</code> parent}.
+   *          <code>null</code> parent, unless the definition is
+   *          being used for testing).
    */
   protected AbstractManagedObjectDefinition(String name,
       AbstractManagedObjectDefinition<? super C, ? super S> parent) {
-    // Perform sanity checks.
-    if (this.getClass() == TopCfgDefn.class) {
-      Validator.ensureTrue(name.equals("top"),
-          "TopCfgDefn should have the name 'top'");
-      Validator.ensureTrue(parent == null,
-          "TopCfgDefn should not have a parent");
-    } else {
-      Validator.ensureTrue(!name.equals("top"),
-          "Only the TopCfgDefn should have the name 'top'");
-      Validator.ensureTrue(parent != null, "No parent defined");
-    }
-
     this.name = name;
     this.parent = parent;
     this.constraints = new LinkedList<Constraint>();
@@ -836,20 +824,6 @@ public abstract class AbstractManagedObjectDefinition
   final void deregisterConstraint(Constraint constraint) {
     if (!constraints.remove(constraint)) {
       throw new RuntimeException("Failed to deregister a constraint");
-    }
-  }
-
-
-
-  /**
-   * Deregister this managed object definition from its parent.
-   * <p>
-   * This method <b>must not</b> be called by applications and is
-   * only intended for internal testing.
-   */
-  final void deregisterFromParent() {
-    if (parent != null) {
-      parent.children.remove(name);
     }
   }
 

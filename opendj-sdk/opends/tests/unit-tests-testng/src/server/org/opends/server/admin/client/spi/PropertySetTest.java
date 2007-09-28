@@ -400,7 +400,7 @@ public class PropertySetTest extends AdminTestCase {
   }
 
   private PropertySet createTestPropertySet(PropertyProvider pp) {
-    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", TopCfgDefn.getInstance());
+    ManagedObjectDefinition<?, ?> d = new TestManagedObjectDefinition<ConfigurationClient, Configuration>("test-mod", null);
     PropertySet ps = new PropertySet();
     for (PropertyDefinition<?> pd : d.getPropertyDefinitions()) {
       addProperty(ps, pd, pp);
