@@ -606,9 +606,9 @@ public final class Base64
     else if (subCommand.getName().equals(decodeSubCommand.getName()))
     {
       String dataToDecode = null;
-      if (rawData.isPresent())
+      if (encodedData.isPresent())
       {
-        dataToDecode = rawData.getValue();
+        dataToDecode = encodedData.getValue();
       }
       else
       {
