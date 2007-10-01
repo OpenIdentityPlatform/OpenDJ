@@ -44,6 +44,7 @@ import java.util.StringTokenizer;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
@@ -485,6 +486,7 @@ public final class Base64
                                       INFO_BASE64_HELP_DESCRIPTION.get());
       argParser.addGlobalArgument(showUsage);
       argParser.setUsageGroupArgument(showUsage, subCommandList);
+      argParser.setUsageArgument(showUsage, NullOutputStream.printStream());
     }
     catch (ArgumentException ae)
     {
