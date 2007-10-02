@@ -201,6 +201,7 @@ public class AciHandler
     aciListenerMgr = new AciListenerManager(aciList, configurationDN);
     processGlobalAcis(configuration);
     processConfigAcis();
+    DirectoryServer.registerSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
 
@@ -212,6 +213,7 @@ public class AciHandler
   public void finalizeAccessControlHandler()
   {
     AciEffectiveRights.finalizeOnShutdown();
+    DirectoryServer.deregisterSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
 
