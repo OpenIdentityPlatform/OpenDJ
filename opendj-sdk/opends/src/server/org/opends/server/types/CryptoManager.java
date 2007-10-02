@@ -267,8 +267,7 @@ public class CryptoManager
       "oNL+HHKW0vi5/7W5KwOZsPqKI2SdYV7nDqTZklm5ZP0gmIuNO6mTqBRtC2D" +
       "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
       final byte[] certificate = Base64.decode(certificateBase64);
-      final String keyID = StaticUtils.bytesToHexNoSpace(
-              getInstanceKeyID(certificate));
+      final String keyID = getInstanceKeyID(certificate);
       final SecretKey macKey = MacKeyEntry.generateKeyEntry(null,
               preferredMACAlgorithm,
               preferredMACAlgorithmKeyLengthBits).getSecretKey();
@@ -387,15 +386,15 @@ public class CryptoManager
 
   /**
    * Return the identifier of this instance's instance-key. An
-   * instance-key identifier is the MD5 hash of an instance's
-   * instance-key public-key certificate.
+   * instance-key identifier is a hex string of the MD5 hash of an
+   * instance's instance-key public-key certificate.
    * @see #getInstanceKeyID(byte[])
    * @return This instance's instance-key identifier.
    * @throws CryptoManagerException If there is a problem retrieving
    * the instance-key public-key certificate or computing its MD5
    * hash.
    */
-  public byte[] getInstanceKeyID()
+  public String getInstanceKeyID()
           throws CryptoManagerException {
     return getInstanceKeyID(getInstanceKeyCertificate());
   }
@@ -403,8 +402,8 @@ public class CryptoManager
 
   /**
    * Return the identifier of an instance's instance key. An
-   * instance-key identifier is the MD5 hash of an instance's
-   * instance-key public-key certificate.
+   * instance-key identifier is a hex string of the MD5 hash of an
+   * instance's instance-key public-key certificate.
    * @see #getInstanceKeyID()
    * @param instanceKeyCertificate The instance key for which to
    * return an identifier.
@@ -412,7 +411,7 @@ public class CryptoManager
    * @throws CryptoManagerException If there is a problem computing
    * the identifier from the instance key.
    */
-  public byte[] getInstanceKeyID(byte[] instanceKeyCertificate)
+  public String getInstanceKeyID(byte[] instanceKeyCertificate)
             throws CryptoManagerException {
     MessageDigest md;
     final String mdAlgorithmName = "MD5";
@@ -425,7 +424,8 @@ public class CryptoManager
             Message.raw("Failed to get MessageDigest instance for %s",
                       mdAlgorithmName), ex);
     }
-    return md.digest(instanceKeyCertificate);
+    return StaticUtils.bytesToHexNoSpace(
+         md.digest(instanceKeyCertificate));
   }
 
 
@@ -522,7 +522,7 @@ public class CryptoManager
           final String symmetricKeyAttribute)
           throws CryptoManagerException {
     // Initial decomposition.
-    byte[] wrappingKeyIDElement;
+    String wrappingKeyIDElement;
     String wrappingTransformationElement;
     String wrappedKeyAlgorithmElement;
     int wrappedKeyTypeElement;
@@ -537,8 +537,7 @@ public class CryptoManager
                 0);
       }
       fieldName = "instance key identifier";
-      wrappingKeyIDElement
-              = StaticUtils.hexStringToByteArray(elements[0]);
+      wrappingKeyIDElement = elements[0];
       fieldName = "key wrapping transformation";
       wrappingTransformationElement = elements[1];
       fieldName = "wrapped key algorithm";
@@ -577,8 +576,8 @@ public class CryptoManager
     }
 
     // Confirm key can be unwrapped at this instance.
-    final byte[] instanceKeyID = getInstanceKeyID();
-    if (! Arrays.equals(wrappingKeyIDElement, instanceKeyID)) {
+    final String instanceKeyID = getInstanceKeyID();
+    if (! wrappingKeyIDElement.equals(instanceKeyID)) {
       return null;
     }
 
@@ -637,19 +636,10 @@ public class CryptoManager
    * the supplied symmetric key attribute value or retrieving the
    * requested public key.
    */
-  public byte[] rewrapSymmetricKeyAttribute(
-          final byte[] symmetricKeyAttribute,
-          final byte[] requestedInstanceKeyID)
+  public String rewrapSymmetricKeyAttribute(
+          final String symmetricKeyAttribute,
+          final String requestedInstanceKeyID)
           throws CryptoManagerException {
-//      throw new CryptoManagerException(
-//              // TODO: i18n
-//              Message.raw("The instance-key identifier tag %s of" +
-//                    " the supplied symmetric key attribute value" +
-//                    " does not match this instance's instance-key" +
-//                    " identifier %s, and hence the symmetric key" +
-//                    " cannot be decrypted for processing.",
-//         keyIDElement,
-//         StaticUtils.bytesToHex(instanceKeyID)));
     return symmetricKeyAttribute; // TODO: really unwrap and rewrap
   }
 
