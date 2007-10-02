@@ -29,14 +29,12 @@ package org.opends.server.schema;
 
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.SchemaMessages.*;
@@ -61,6 +59,24 @@ public class BinarySyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
+
+
+
+  /**
+   * A {@code byte[]} attribute value decoder for this syntax.
+   */
+  public static final AttributeValueDecoder<byte[]> DECODER =
+    new AttributeValueDecoder<byte[]>()
+  {
+    /**
+     * {@inheritDoc}
+     */
+    public byte[] decode(AttributeValue value) throws DirectoryException {
+      // Make sure that the value is valid.
+      value.getNormalizedValue();
+      return value.getValueBytes();
+    }
+  };
 
 
 

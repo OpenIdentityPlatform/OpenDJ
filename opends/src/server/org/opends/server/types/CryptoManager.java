@@ -68,6 +68,8 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
+import org.opends.server.schema.BinarySyntax;
+import org.opends.admin.ads.ADSContext;
 
 /**
  * This class provides the interface to the Directory Server
@@ -91,6 +93,18 @@ public class CryptoManager
    */
   private static final DebugTracer TRACER = getTracer();
 
+  // Various schema element references.
+  private final AttributeType attrKeyID;
+  private final AttributeType attrPublicKeyCertificate;
+  private final AttributeType attrTransformation;
+  private final AttributeType attrMacAlgorithm;
+  private final AttributeType attrSymmetricKey;
+  private final AttributeType attrInitVectorLength;
+  private final AttributeType attrKeyLength;
+  private final AttributeType attrCompromisedTime;
+  private final ObjectClass   ocCipherKey;
+  private final ObjectClass   ocMacKey;
+
   // The secure random number generator used for key generation,
   // initialization vector PRNG seed...
   private static final SecureRandom secureRandom = new SecureRandom();
@@ -99,9 +113,6 @@ public class CryptoManager
   // production.
   private static final Random pseudoRandom
           = new Random(secureRandom.nextLong());
-
-  // The preferred key wrapping transformation
-  private final String preferredKeyWrappingTransformation;
 
   // The preferred message digest algorithm for the Directory Server.
   private final String preferredDigestAlgorithm;
@@ -126,6 +137,9 @@ public class CryptoManager
   // The preferred key length for the preferred cipher.
   private final int preferredCipherTransformationKeyLengthBits;
 
+  // The preferred key wrapping transformation
+  private final String preferredKeyWrappingTransformation;
+
   // The name of the local certificate to use for SSL.
   private final String sslCertNickname;
 
@@ -137,17 +151,6 @@ public class CryptoManager
 
   // The set of SSL cipher suites enabled or null for the default set.
   private final SortedSet<String> sslCipherSuites;
-
-  // Various schema element references.
-  private final AttributeType attrKeyID;
-  private final AttributeType attrTransformation;
-  private final AttributeType attrMacAlgorithm;
-  private final AttributeType attrSymmetricKey;
-  private final AttributeType attrInitVectorLength;
-  private final AttributeType attrKeyLength;
-  private final AttributeType attrCompromisedTime;
-  private final ObjectClass   ocCipherKey;
-  private final ObjectClass   ocMacKey;
 
 
   /**
@@ -171,6 +174,8 @@ public class CryptoManager
     // Initialize various schema references.
     attrKeyID = DirectoryServer.getAttributeType(
          ConfigConstants.ATTR_CRYPTO_KEY_ID);
+    attrPublicKeyCertificate = DirectoryServer.getAttributeType(
+                 ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
     attrTransformation = DirectoryServer.getAttributeType(
          ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
     attrMacAlgorithm = DirectoryServer.getAttributeType(
@@ -340,9 +345,8 @@ public class CryptoManager
          final Entry e = searchOp.getSearchEntries().getFirst();
          /* attribute ds-cfg-public-key-certificate is a MUST in the
             schema */
-         final List<Attribute> attrs =
-            e.getAttribute(DirectoryServer.getAttributeType(
-                 ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE));
+         final List<Attribute> attrs
+                 = e.getAttribute(attrPublicKeyCertificate);
          final Attribute a = attrs.get(0);
          final AttributeValue v = a.getValues().iterator().next();
          certificate = v.getValueBytes();
@@ -411,7 +415,7 @@ public class CryptoManager
    * @throws CryptoManagerException If there is a problem computing
    * the identifier from the instance key.
    */
-  public String getInstanceKeyID(byte[] instanceKeyCertificate)
+  public static String getInstanceKeyID(byte[] instanceKeyCertificate)
             throws CryptoManagerException {
     MessageDigest md;
     final String mdAlgorithmName = "MD5";
@@ -426,6 +430,74 @@ public class CryptoManager
     }
     return StaticUtils.bytesToHexNoSpace(
          md.digest(instanceKeyCertificate));
+  }
+
+
+  /**
+   Return the set of valid (i.e., not tagged as compromised) instance
+   key-pair public-key certificate entries in ADS.
+   @return The set of valid (i.e., not tagged as compromised) instance
+   key-pair public-key certificate entries in ADS represented as a Map
+   from ds-cfg-key-id value to ds-cfg-public-key-certificate;binary
+   value. Note that the collection might be empty.
+   @throws CryptoManagerException  In case of a problem with the
+   search operation.
+   @see org.opends.admin.ads.ADSContext#getTrustedCertificates()
+   */
+  private Map<String, byte[]> getTrustedCertificates()
+          throws CryptoManagerException {
+    final Map<String, byte[]> certificateMap
+            = new HashMap<String, byte[]>();
+    final String baseDNStr = ADSContext.getInstanceKeysContainerDN();
+    try {
+      final DN baseDN = DN.decode(baseDNStr);
+      final String FILTER_OC_INSTANCE_KEY
+              = new StringBuilder("(objectclass=")
+              .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
+              .append(")").toString();
+      final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
+             .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
+              .append("=*))").toString();
+      final String searchFilter = new StringBuilder("(&")
+              .append(FILTER_OC_INSTANCE_KEY)
+              .append(FILTER_NOT_COMPROMISED)
+              .append(")").toString();
+      final LinkedHashSet<String> requestedAttributes
+              = new LinkedHashSet<String>();
+      requestedAttributes.add(ConfigConstants.ATTR_CRYPTO_KEY_ID);
+      final String ATTR_INSTANCE_KEY_CERTIFICATE_BINARY
+              = ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE
+              + ";binary";
+      requestedAttributes.add(ATTR_INSTANCE_KEY_CERTIFICATE_BINARY);
+      final InternalClientConnection icc
+              = InternalClientConnection.getRootConnection();
+      InternalSearchOperation searchOp = icc.processSearch(
+              baseDN,
+              SearchScope.SINGLE_LEVEL,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              /* size limit */ 0, /* time limit */ 0,
+              /* types only */ false,
+              SearchFilter.createFilterFromString(searchFilter),
+              requestedAttributes);
+
+      for (Entry e : searchOp.getSearchEntries()) {
+        /* attribute ds-cfg-key-id is the RDN and attribute
+           ds-cfg-public-key-certificate is a MUST in the schema */
+        final String keyID = e.getAttributeValue(
+                attrKeyID, DirectoryStringSyntax.DECODER);
+        final byte[] certificate = e.getAttributeValue(
+                attrPublicKeyCertificate, BinarySyntax.DECODER);
+        certificateMap.put(keyID, certificate);
+      }
+    }
+    catch (DirectoryException ex) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("Error retrieving instance-key public key" +
+                      " certificates from ADS container %s.",
+                      baseDNStr), ex);
+    }
+    return(certificateMap);
   }
 
 
@@ -640,7 +712,12 @@ public class CryptoManager
           final String symmetricKeyAttribute,
           final String requestedInstanceKeyID)
           throws CryptoManagerException {
-    return symmetricKeyAttribute; // TODO: really unwrap and rewrap
+    final SecretKey secretKey
+            = decodeSymmetricKeyAttribute(symmetricKeyAttribute);
+    final byte[] wrappingKeyCert
+            = getTrustedCertificates().get(requestedInstanceKeyID);
+    return encodeSymmetricKeyAttribute(
+            requestedInstanceKeyID, wrappingKeyCert, secretKey);
   }
 
 

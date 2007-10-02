@@ -57,6 +57,9 @@ import javax.naming.ldap.Rdn;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 
+import org.opends.server.types.CryptoManager;
+import org.opends.server.config.ConfigConstants;
+
 /**
  * Class used to update and read the contents of the Administration Data.
  */
@@ -169,13 +172,15 @@ public class ADSContext
     /**
      * The unique name of the instance key public-key certificate.
      */
-    INSTANCE_KEY_ID("ds-cfg-key-id", ADSPropertySyntax.STRING),
+    INSTANCE_KEY_ID(ConfigConstants.ATTR_CRYPTO_KEY_ID,
+            ADSPropertySyntax.STRING),
     /**
      * The instance key-pair public-key certificate. Note: This attribute
      * belongs to an instance key entry, separate from the server entry and
      * named by the ds-cfg-key-id attribute from the server entry.
      */
-    INSTANCE_PUBLIC_KEY_CERTIFICATE("ds-cfg-public-key-certificate"/*;binary*/,
+    INSTANCE_PUBLIC_KEY_CERTIFICATE(
+            ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE/*binary*/,
             ADSPropertySyntax.CERTIFICATE_BINARY);
 
     private String attrName;
@@ -431,7 +436,7 @@ public class ADSContext
       throw new ADSContextException(
           ADSContextException.ErrorType.ALREADY_REGISTERED);
     }
-    catch (NamingException x)
+    catch (Exception x)
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
@@ -476,7 +481,7 @@ public class ADSContext
       throw new ADSContextException(
           ADSContextException.ErrorType.NOT_YET_REGISTERED);
     }
-    catch (NamingException x)
+    catch (Exception x)
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
@@ -2048,7 +2053,7 @@ public class ADSContext
    Returns the parent entry of the server key entries in ADS.
    @return the parent entry of the server key entries in ADS.
    */
-  private static String getInstanceKeysContainerDN()
+  public static String getInstanceKeysContainerDN()
   {
     return "cn=instance keys," + getAdministrationSuffixDN();
   }
@@ -2064,11 +2069,14 @@ public class ADSContext
    the instance key entry belongs.
    @param serverEntryDn The server's ADS entry DN.
    @throws NamingException In case some JNDI operation fails.
+   @throws CryptoManager.CryptoManagerException In case there is a problem
+   getting the instance public key certificate ID.
    */
   private void registerInstanceKeyCertificate(
           Map<ServerProperty, Object> serverProperties,
-          LdapName serverEntryDn) throws NamingException
-  {
+          LdapName serverEntryDn)
+          throws NamingException,
+          CryptoManager.CryptoManagerException {
     assert serverProperties.containsKey(
                                 ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
     if (! serverProperties.containsKey(
@@ -2117,7 +2125,9 @@ public class ADSContext
     else {
       /* create key ID, if it was not supplied in serverProperties */
       if (null == keyID) {
-        keyID = java.util.UUID.randomUUID().toString();
+        keyID = CryptoManager.getInstanceKeyID(
+                (byte[])serverProperties.get(
+                        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE));
         keyAttrs.put(new BasicAttribute(
                 ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
       }
@@ -2142,18 +2152,29 @@ public class ADSContext
    public-key certificate entries in ADS.
    @return The set of valid (i.e., not tagged as compromised) instance key-pair
    public-key certificate entries in ADS represented as a Map from ds-cfg-key-id
-   value to ds-cfg-public-key-certificate;binary value Note that the collection
+   value to ds-cfg-public-key-certificate;binary value. Note that the collection
    might be empty.
    @throws ADSContextException in case of problems with the entry search.
+   @see org.opends.server.types.CryptoManager#getTrustedCertificates
    */
   public Map<String,byte[]> getTrustedCertificates()
           throws ADSContextException
   {
-    Map<String, byte[]> keyEntryMap = new HashMap<String, byte[]>();
+    final Map<String, byte[]> certificateMap = new HashMap<String, byte[]>();
+    final String baseDNStr = getInstanceKeysContainerDN();
     try {
-      final LdapName baseDN = new LdapName(getInstanceKeysContainerDN());
-      final String searchFilter =
-       "(&(objectclass=ds-cfg-instance-key)(!(ds-cfg-key-compromised-time=*)))";
+      final LdapName baseDN = new LdapName(baseDNStr);
+      final String FILTER_OC_INSTANCE_KEY
+           = new StringBuilder("(objectclass=")
+           .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
+           .append(")").toString();
+      final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
+              .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
+              .append("=*))").toString();
+      final String searchFilter = new StringBuilder("(&")
+              .append(FILTER_OC_INSTANCE_KEY)
+              .append(FILTER_NOT_COMPROMISED)
+              .append(")").toString();
       final SearchControls searchControls = new SearchControls();
       searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       final String attrIDs[]= {
@@ -2169,13 +2190,13 @@ public class ADSContext
         final Attribute keyIDAttr = attrs.get(attrIDs[0]);
         final Attribute keyCertAttr = attrs.get(attrIDs[1]);
         if (null == keyIDAttr || null == keyCertAttr) continue; // schema viol.
-        keyEntryMap.put((String)keyIDAttr.get(), (byte[])keyCertAttr.get());
+        certificateMap.put((String)keyIDAttr.get(), (byte[])keyCertAttr.get());
       }
     }
     catch (NamingException x) {
       throw new ADSContextException(
               ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
-    return keyEntryMap;
+    return certificateMap;
   }
 }
