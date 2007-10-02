@@ -1090,8 +1090,8 @@ public class InitOnLineTest extends ReplicationTestCase
     List<String> l2;
     l2 = changelog2.getReplicationCache(baseDn, false).getConnectedLDAPservers();
     assertEquals(l2.size(), 2);
-    assertEquals(l2.get(0), String.valueOf(server3ID));
-    assertEquals(l2.get(1), String.valueOf(server2ID));
+    assertTrue(l2.contains(String.valueOf(server2ID)));
+    assertTrue(l2.contains(String.valueOf(server3ID)));
         
     List<String> l3;
     l3 = changelog3.getReplicationCache(baseDn, false).getConnectedLDAPservers();
