@@ -128,9 +128,6 @@ public class ReplicationBackend
   // The base DNs for this backend.
   private DN[] baseDNs;
 
-  // The mapping between parent DNs and their immediate children.
-  private HashMap<DN,HashSet<DN>> childDNs;
-
   // The base DNs for this backend, in a hash set.
   private HashSet<DN> baseDNSet;
 
@@ -228,8 +225,6 @@ public class ReplicationBackend
     {
       baseDNSet.add(dn);
     }
-
-    childDNs = new HashMap<DN,HashSet<DN>>();
 
     supportedControls = new HashSet<String>();
     supportedFeatures = new HashSet<String>();
@@ -1090,32 +1085,6 @@ public class ReplicationBackend
     }
   }
 
-  /**
-   * Export the changes for a given ReplicationCache.
-   */
-  private void searchContainer2(ReplicationCache rc,
-      SearchOperation searchOperation)
-  throws DirectoryException
-  {
-    // Walk through the servers
-    for (Short serverId : rc.getServers())
-    {
-      ReplicationIterator ri = rc.getChangelogIterator(serverId,
-          null);
-
-      if (ri == null)
-        break;
-
-      // Walk through the changes
-      while (ri.getChange() != null)
-      {
-        UpdateMessage msg = ri.getChange();
-        processChange(msg, null, null, searchOperation);
-        if (!ri.next())
-          break;
-      }
-    }
-  }
 
   /**
    * Retrieves the replication server associated to this backend.
