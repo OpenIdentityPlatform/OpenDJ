@@ -634,10 +634,11 @@ public class InitOnLineTest extends ReplicationTestCase
       String synchroServerLdif =
         "dn: cn=example, cn=domains," + synchroServerStringDN + "\n"
       + "objectClass: top\n"
-      + "objectClass: ds-cfg-synchronization-provider-config\n"
+      + "objectClass: ds-cfg-synchronization-provider\n"
+      + "objectClass: ds-cfg-replication-domain\n"
       + "cn: example\n"
       + "ds-cfg-base-dn: dc=example,dc=com\n"
-      + "ds-cfg-changelog-server: localhost:"
+      + "ds-cfg-replication-server: localhost:"
       + getChangelogPort(changelogID)+"\n"
       + "ds-cfg-server-id: " + server1ID + "\n"
       + "ds-cfg-receive-status: true\n"
