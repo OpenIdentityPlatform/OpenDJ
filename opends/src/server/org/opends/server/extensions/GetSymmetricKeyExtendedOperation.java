@@ -150,8 +150,8 @@ public class GetSymmetricKeyExtendedOperation
   {
     // Initialize the variables associated with components that may be included
     // in the request.
-    byte[] requestSymmetricKey = null;
-    byte[] instanceKeyID       = null;
+    String requestSymmetricKey = null;
+    String instanceKeyID       = null;
 
 
 
@@ -175,11 +175,12 @@ public class GetSymmetricKeyExtendedOperation
         {
           case TYPE_SYMMETRIC_KEY_ELEMENT:
             requestSymmetricKey =
-                 ASN1OctetString.decodeAsOctetString(e).value();
+                 ASN1OctetString.decodeAsOctetString(e).stringValue();
             break;
 
           case TYPE_INSTANCE_KEY_ID_ELEMENT:
-            instanceKeyID = ASN1OctetString.decodeAsOctetString(e).value();
+            instanceKeyID =
+                 ASN1OctetString.decodeAsOctetString(e).stringValue();
             break;
 
           default:
@@ -220,7 +221,7 @@ public class GetSymmetricKeyExtendedOperation
     CryptoManager cm = DirectoryServer.getCryptoManager();
     try
     {
-      byte[] responseSymmetricKey = cm.rewrapSymmetricKeyAttribute(
+      String responseSymmetricKey = cm.rewrapSymmetricKeyAttribute(
            requestSymmetricKey, instanceKeyID);
 
       operation.setResponseOID(
@@ -232,6 +233,11 @@ public class GetSymmetricKeyExtendedOperation
     {
       operation.setResultCode(DirectoryServer.getServerErrorResultCode());
       operation.appendErrorMessage(e.getMessageObject());
+    }
+    catch (Exception e)
+    {
+      operation.setResultCode(DirectoryServer.getServerErrorResultCode());
+      operation.appendErrorMessage(StaticUtils.getExceptionMessage(e));
     }
   }
 
@@ -246,8 +252,8 @@ public class GetSymmetricKeyExtendedOperation
    * @return  An ASN.1 octet string containing the encoded request value.
    */
   public static ASN1OctetString encodeRequestValue(
-       byte[] symmetricKey,
-       byte[] instanceKeyID)
+       String symmetricKey,
+       String instanceKeyID)
   {
     ArrayList<ASN1Element> elements = new ArrayList<ASN1Element>(2);
 

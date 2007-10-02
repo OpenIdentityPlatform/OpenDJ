@@ -40,8 +40,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertEquals;
 
-import java.util.Arrays;
-
 /**
  * A set of test cases for the symmetric key extended operation.
  */
@@ -68,8 +66,8 @@ public class GetSymmetricKeyExtendedOperationTestCase
     CryptoManager cm = DirectoryServer.getCryptoManager();
 
     // TODO use a proper symmetric key value
-    byte[] symmetricKey = cm.getInstanceKeyID();
-    byte[] instanceKeyID =  cm.getInstanceKeyID();
+    String symmetricKey = cm.getInstanceKeyID();
+    String instanceKeyID =  cm.getInstanceKeyID();
 
     ASN1OctetString requestValue =
          GetSymmetricKeyExtendedOperation.encodeRequestValue(
@@ -82,8 +80,8 @@ public class GetSymmetricKeyExtendedOperationTestCase
               ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP, requestValue);
 
     assertEquals(extendedOperation.getResultCode(), ResultCode.SUCCESS);
-    assertTrue(Arrays.equals(
-         extendedOperation.getResponseValue().value(), symmetricKey));
+    assertEquals(extendedOperation.getResponseValue().stringValue(),
+                 symmetricKey);
   }
 
 
@@ -92,9 +90,8 @@ public class GetSymmetricKeyExtendedOperationTestCase
   {
     CryptoManager cm = DirectoryServer.getCryptoManager();
 
-//    byte[] symmetricKey  = new byte[1]; // FIXME causes ArrayOutOfBounds!
-    byte[] symmetricKey  = new byte[16];
-    byte[] instanceKeyID = cm.getInstanceKeyID();
+    String symmetricKey = "1";
+    String instanceKeyID = cm.getInstanceKeyID();
 
     ASN1OctetString requestValue =
          GetSymmetricKeyExtendedOperation.encodeRequestValue(

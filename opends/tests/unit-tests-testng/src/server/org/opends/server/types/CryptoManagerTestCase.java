@@ -27,14 +27,13 @@
 package org.opends.server.types;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.util.StaticUtils;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ConnectionUtils;
 
 import java.io.File;
@@ -116,7 +115,8 @@ public class CryptoManagerTestCase extends TypesTestCase
     // Compare the MD5 hash of the LDAP attribute with the one
     // retrieved from the CryptoManager.
     MessageDigest md = MessageDigest.getInstance("MD5");
-    assertTrue(Arrays.equals(md.digest(ldapCert), cm.getInstanceKeyID()));
+    assertTrue(StaticUtils.bytesToHexNoSpace(
+         md.digest(ldapCert)).equals(cm.getInstanceKeyID()));
   }
 
   @Test
@@ -132,7 +132,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
     final Mac validatingMac = cm.getMacEngine(macKeyID);
     final byte[] calculatedSignature = validatingMac.doFinal(text.getBytes());
-    
+
     assertTrue(Arrays.equals(calculatedSignature, signedHash));
   }
 
