@@ -552,6 +552,11 @@ public class InitOnLineTest extends ReplicationTestCase
           log("Broker " + serverID + " receives and trashes " + msg);
         }
       }
+      catch (SocketTimeoutException e)
+      {
+        log("SocketTimeoutException while waiting fro entries" +
+            stackTraceToSingleLineString(e));
+      }
       catch(Exception e)
       {
         log("receiveUpdatedEntries" + stackTraceToSingleLineString(e));
@@ -645,6 +650,7 @@ public class InitOnLineTest extends ReplicationTestCase
         DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
         assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
         "Unable to add the synchronized server");
+        super.configEntryList.add(synchroServerEntry.getDN());
 
         replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
 
@@ -690,7 +696,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the Initialize task
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeImport() throws Exception
   {
     String testCase = "InitializeImport";
@@ -746,7 +752,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the export side of the Initialize task
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeExport() throws Exception
   {
     String testCase = "Replication/InitializeExport";
@@ -780,7 +786,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeTargetExport() throws Exception
   {
     String testCase = "Replication/InitializeTargetExport";
@@ -820,7 +826,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeTargetExportAll() throws Exception
   {
     String testCase = "Replication/InitializeTargetExportAll";
@@ -840,7 +846,8 @@ public class InitOnLineTest extends ReplicationTestCase
       server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
-    ReplicationBroker server3 = openReplicationSession(DN.decode("dc=example,dc=com"),
+    if (server3==null)
+    server3 = openReplicationSession(DN.decode("dc=example,dc=com"),
         server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
 
     Thread.sleep(1000);
@@ -864,7 +871,7 @@ public class InitOnLineTest extends ReplicationTestCase
  /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeTargetImport() throws Exception
   {
     String testCase = "InitializeTargetImport";
@@ -959,7 +966,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeConfigErrors() throws Exception
   {
     String testCase = "InitializeConfigErrors";
@@ -1047,7 +1054,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * ReplServerInfoMessage(s) exchanged by the replication
    * servers.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void testReplServerInfos() throws Exception
   {
     String testCase = "Replication/TestReplServerInfos";
@@ -1061,7 +1068,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
     // Connects lDAP1 to replServer1
     connectServer1ToChangelog(changelog1ID);
-
+    
     // Connects lDAP2 to replServer2
     ReplicationBroker broker2 = 
       openReplicationSession(DN.decode("dc=example,dc=com"),
@@ -1122,50 +1129,54 @@ public class InitOnLineTest extends ReplicationTestCase
   @Test(enabled=false)
   public void initializeTargetExportMultiSS() throws Exception
   {
-    String testCase = "Replication/InitializeTargetExportMultiSS";
-
-    log("Starting " + testCase);
-
-    // Create 2 changelogs
-    changelog1 = createChangelogServer(changelog1ID);
-
-    changelog2 = createChangelogServer(changelog2ID);
-
-    // Creates config to synchronize suffix
-    connectServer1ToChangelog(changelog1ID);
-
-    // Add in S1 the entries to be exported
-    addTestEntriesToDB();
-
-    // S1 is the server we are running in, S2 is simulated by a broker
-    // connected to changelog2
-    if (server2 == null)
+    try
     {
-      server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
-        server2ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
+      String testCase = "Replication/InitializeTargetExportMultiSS";
+
+      log("Starting " + testCase);
+
+      // Create 2 changelogs
+      changelog1 = createChangelogServer(changelog1ID);
+
+      changelog2 = createChangelogServer(changelog2ID);
+
+      // Creates config to synchronize suffix
+      connectServer1ToChangelog(changelog1ID);
+
+      // Add in S1 the entries to be exported
+      addTestEntriesToDB();
+
+      // S1 is the server we are running in, S2 is simulated by a broker
+      // connected to changelog2
+      if (server2 == null)
+      {
+        server2 = openReplicationSession(DN.decode("dc=example,dc=com"),
+            server2ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
+      }
+
+      Thread.sleep(1000);
+
+      // Launch in S1 the task that will initialize S2
+      addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
+
+      // Wait for task completion
+      waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
+
+      // Tests that entries have been received by S2
+      receiveUpdatedEntries(server2, server2ID, updatedEntries);
+
+      log("Successfully ending " + testCase);
     }
+    finally
+    {
+      afterTest();
 
-    Thread.sleep(1000);
-
-    // Launch in S1 the task that will initialize S2
-    addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
-
-    // Wait for task completion
-    waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
-
-    // Tests that entries have been received by S2
-    receiveUpdatedEntries(server2, server2ID, updatedEntries);
-
-    afterTest();
-
-    changelog2.shutdown();
-    changelog2 = null;
-
-    log("Successfully ending " + testCase);
-
+      changelog2.shutdown();
+      changelog2 = null;
+    }
   }
 
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeExportMultiSS() throws Exception
   {
     String testCase = "Replication/InitializeExportMultiSS";

@@ -358,6 +358,10 @@ public class ReplicationBroker implements InternalSearchListener
                   Message message = ERR_CANNOT_RECOVER_CHANGES.get(
                       baseDn.toNormalizedString());
                   logError(message);
+                  replicationServer = ServerAddr.toString();
+                  maxSendWindow = replServerStartMsg.getWindowSize();
+                  connected = true;
+                  startHeartBeat();
                 }
                 else
                 {
