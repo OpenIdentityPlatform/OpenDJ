@@ -252,12 +252,16 @@ public class ManageTasks extends ConsoleApplication {
 
         } else if (task.isPresent()) {
           println();
-          new PrintTaskInfo(task.getValue()).invoke(this);
+          MenuResult<TaskEntry> r =
+                  new PrintTaskInfo(task.getValue()).invoke(this);
+          if (r.isAgain()) return 1;
         } else if (summary.isPresent()) {
           println();
           printSummaryTable();
         } else if (cancel.isPresent()) {
-          new CancelTask(cancel.getValue()).invoke(this);
+          MenuResult<TaskEntry> r =
+                  new CancelTask(cancel.getValue()).invoke(this);
+          if (r.isAgain()) return 1;
         }
 
       } catch (LDAPConnectionException lce) {
@@ -713,6 +717,7 @@ public class ManageTasks extends ConsoleApplication {
       } catch (Exception e) {
         app.println(ERR_TASKINFO_RETRIEVING_TASK_ENTRY.get(
                     taskId, e.getMessage()));
+        return MenuResult.again();
       }
       return MenuResult.success(taskEntry);
     }
@@ -911,9 +916,15 @@ public class ManageTasks extends ConsoleApplication {
             throws CLIException
     {
       try {
-        TaskEntry entry = app.getTaskClient().cancelTask(taskId);
-        app.println(INFO_TASKINFO_CMD_CANCEL_SUCCESS.get(taskId));
-        return MenuResult.success(entry);
+        TaskEntry entry = app.getTaskClient().getTaskEntry(taskId);
+        if (entry.isCancelable()) {
+          app.getTaskClient().cancelTask(taskId);
+          app.println(INFO_TASKINFO_CMD_CANCEL_SUCCESS.get(taskId));
+          return MenuResult.success(entry);
+        } else {
+          app.println(ERR_TASKINFO_TASK_NOT_CANCELABLE_TASK.get(taskId));
+          return MenuResult.again();
+        }
       } catch (Exception e) {
         app.println(ERR_TASKINFO_CANCELING_TASK.get(
                 taskId, e.getMessage()));
