@@ -2793,6 +2793,7 @@ public class DirectoryServer
     supportedControls.add(OID_PASSWORD_POLICY_CONTROL);
     supportedControls.add(OID_REAL_ATTRS_ONLY);
     supportedControls.add(OID_VIRTUAL_ATTRS_ONLY);
+    supportedControls.add(OID_ACCOUNT_USABLE_CONTROL);
   }
 
 

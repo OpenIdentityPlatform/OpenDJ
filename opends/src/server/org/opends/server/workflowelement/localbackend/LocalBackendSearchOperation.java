@@ -649,6 +649,11 @@ searchProcessing:
         {
           setVirtualAttributesOnly(true);
         }
+        else if (oid.equals(OID_GET_EFFECTIVE_RIGHTS) &&
+          DirectoryServer.isSupportedControl(OID_GET_EFFECTIVE_RIGHTS))
+        {
+          // Do nothing here and let AciHandler deal with it.
+        }
 
         // NYI -- Add support for additional controls.
 
