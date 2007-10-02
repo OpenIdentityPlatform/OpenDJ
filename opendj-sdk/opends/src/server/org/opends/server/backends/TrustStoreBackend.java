@@ -574,7 +574,7 @@ public class TrustStoreBackend
   {
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
-         DirectoryServer.getAttributeType(ATTR_CERT_ALIAS, true);
+         DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
     AttributeValue v = entryDN.getRDN().getAttributeValue(t);
     if (v == null)
     {
@@ -615,8 +615,8 @@ public class TrustStoreBackend
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
 
     ObjectClass objectClass =
-         DirectoryServer.getObjectClass(OC_INSTANCE_KEY, true);
-    ocMap.put(objectClass, OC_INSTANCE_KEY);
+         DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY, true);
+    ocMap.put(objectClass, OC_CRYPTO_INSTANCE_KEY);
 
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>(0);
@@ -632,7 +632,8 @@ public class TrustStoreBackend
     userAttrs.put(t, attrList);
 
 
-    t = DirectoryServer.getAttributeType(ATTR_ADS_CERTIFICATE, true);
+    t = DirectoryServer.getAttributeType(
+         ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
     valueSet = new LinkedHashSet<AttributeValue>(1);
     valueSet.add(new AttributeValue(t,
                           certValue));
@@ -792,7 +793,7 @@ public class TrustStoreBackend
       if ((scope != SearchScope.BASE_OBJECT) && (! (aliases.length == 0) ))
       {
         AttributeType certAliasType =
-             DirectoryServer.getAttributeType(ATTR_CERT_ALIAS, true);
+             DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
         for (String alias : aliases)
         {
           DN certDN = makeChildDN(this.baseDN, certAliasType,
@@ -1570,7 +1571,7 @@ public class TrustStoreBackend
 
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
-         DirectoryServer.getAttributeType(ATTR_CERT_ALIAS, true);
+         DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
     AttributeValue v = entryDN.getRDN().getAttributeValue(t);
     if (v == null)
     {
@@ -1612,12 +1613,14 @@ public class TrustStoreBackend
       }
       else
       {
-        List<Attribute> certAttrs = entry.getAttribute(ATTR_ADS_CERTIFICATE);
+        List<Attribute> certAttrs = entry.getAttribute(
+             ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
         if (certAttrs == null)
         {
           Message message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_ATTR.get(
-                    String.valueOf(entryDN), ATTR_ADS_CERTIFICATE);
+                    String.valueOf(entryDN),
+                    ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message);
         }
@@ -1625,7 +1628,8 @@ public class TrustStoreBackend
         {
           Message message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_ATTRS.get(
-                    String.valueOf(entryDN), ATTR_ADS_CERTIFICATE);
+                    String.valueOf(entryDN),
+                    ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message);
         }
@@ -1635,7 +1639,8 @@ public class TrustStoreBackend
         {
           Message message =
                ERR_TRUSTSTORE_ENTRY_MISSING_CERT_VALUE.get(
-                    String.valueOf(entryDN), ATTR_ADS_CERTIFICATE);
+                    String.valueOf(entryDN),
+                    ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message);
         }
@@ -1643,7 +1648,8 @@ public class TrustStoreBackend
         {
           Message message =
                ERR_TRUSTSTORE_ENTRY_HAS_MULTIPLE_CERT_VALUES.get(
-                    String.valueOf(entryDN), ATTR_ADS_CERTIFICATE);
+                    String.valueOf(entryDN),
+                    ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
           throw new DirectoryException(
                DirectoryServer.getServerErrorResultCode(), message);
         }
@@ -1699,7 +1705,7 @@ public class TrustStoreBackend
   {
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
-         DirectoryServer.getAttributeType(ATTR_CERT_ALIAS, true);
+         DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
     AttributeValue v = entryDN.getRDN().getAttributeValue(t);
     if (v == null)
     {
