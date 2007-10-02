@@ -28,6 +28,7 @@
 package org.opends.server.tools.tasks;
 
 import org.opends.server.types.RawAttribute;
+import org.opends.server.backends.task.FailedDependencyAction;
 
 import java.util.List;
 import java.util.Date;
@@ -40,6 +41,7 @@ import java.util.Date;
  */
 public interface TaskScheduleInformation {
 
+
   /**
    * Adds utility specific attributes to <code>attributes</code> for
    * population of the entry that is added to the task backend.
@@ -47,6 +49,7 @@ public interface TaskScheduleInformation {
    * @param attributes that will be added to the task backend
    */
   void addTaskAttributes(List<RawAttribute> attributes);
+
 
   /**
    * Gets the objectclass used to represent scheduled instances of this
@@ -56,6 +59,7 @@ public interface TaskScheduleInformation {
    */
   String getTaskObjectclass();
 
+
   /**
    * Gets the Class that implements the utility to execute.
    *
@@ -63,10 +67,47 @@ public interface TaskScheduleInformation {
    */
   Class getTaskClass();
 
+
   /**
    * Gets the date at which this task should be scheduled to start.
    *
    * @return date/time at which the task should be scheduled
    */
   Date getStartDateTime();
+
+
+  /**
+   * Gets a list of task IDs upon which this task is dependent.
+   *
+   * @return list of task IDs
+   */
+  List<String> getDependencyIds();
+
+
+  /**
+   * Gets the action to take should one of the dependent task fail.
+   *
+   * @return action to take
+   */
+  FailedDependencyAction getFailedDependencyAction();
+
+
+  /**
+   * Gets a list of email address to which an email will be sent when this
+   * task completes.
+   *
+   * @return list of email addresses
+   */
+  List<String> getNotifyUponCompletionEmailAddresses();
+
+
+  /**
+   * Gets a list of email address to which an email will be sent if this
+   * task encounters an error during execution.
+   *
+   * @return list of email addresses
+   */
+  List<String> getNotifyUponErrorEmailAddresses();
+
+
 }

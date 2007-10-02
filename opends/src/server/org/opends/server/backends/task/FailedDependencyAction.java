@@ -27,7 +27,7 @@
 package org.opends.server.backends.task;
 
 import org.opends.messages.Message;
-import org.opends.messages.TaskMessages;
+import static org.opends.messages.TaskMessages.*;
 
 
 /**
@@ -41,14 +41,14 @@ public enum FailedDependencyAction
    * The action that indicates that the dependent task should be processed
    * anyway.
    */
-  PROCESS(TaskMessages.INFO_FAILED_DEPENDENCY_ACTION_PROCESS.get()),
+  PROCESS(INFO_FAILED_DEPENDENCY_ACTION_PROCESS.get()),
 
 
 
   /**
    * The action that indicates that the dependent task should be canceled.
    */
-  CANCEL(TaskMessages.INFO_FAILED_DEPENDENCY_ACTION_CANCEL.get()),
+  CANCEL(INFO_FAILED_DEPENDENCY_ACTION_CANCEL.get()),
 
 
 
@@ -56,9 +56,17 @@ public enum FailedDependencyAction
    * The action that indicates that the dependent task should be disabled so
    * that an administrator will have to re-enable it before it can start.
    */
-  DISABLE(TaskMessages.INFO_FAILED_DEPENDENCY_ACTION_DISABLE.get());
+  DISABLE(INFO_FAILED_DEPENDENCY_ACTION_DISABLE.get());
 
 
+  /**
+   * Returns the default action.
+   *
+   * @return the default action
+   */
+  public static FailedDependencyAction defaultValue() {
+    return CANCEL;
+  }
 
   /**
    * Retrieves the failed dependency action that corresponds to the provided
@@ -73,15 +81,21 @@ public enum FailedDependencyAction
   public static FailedDependencyAction fromString(String s)
   {
     String lowerString = s.toLowerCase();
-    if (lowerString.equals("process"))
+    if (lowerString.equals("process") ||
+            lowerString.equals(INFO_FAILED_DEPENDENCY_ACTION_PROCESS.get().
+                    toString().toLowerCase()))
     {
       return PROCESS;
     }
-    else if (lowerString.equals("cancel"))
+    else if (lowerString.equals("cancel") ||
+            lowerString.equals(INFO_FAILED_DEPENDENCY_ACTION_CANCEL.get().
+                    toString().toLowerCase()))
     {
       return CANCEL;
     }
-    else if (lowerString.equals("disable"))
+    else if (lowerString.equals("disable") ||
+            lowerString.equals(INFO_FAILED_DEPENDENCY_ACTION_DISABLE.get().
+                    toString().toLowerCase()))
     {
       return DISABLE;
     }

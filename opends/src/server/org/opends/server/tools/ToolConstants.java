@@ -832,5 +832,75 @@ public class ToolConstants
    * Long form of option specifying no wrapping of the command-line.
    */
   public static final String OPTION_LONG_DONT_WRAP = "dontWrap";
+
+
+  /**
+   * Long form of email notification upon completion option.
+   */
+  public static final String OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL =
+          "completionNotify";
+
+  /**
+   * Short form of email notification upon completion option.
+   */
+  public static final Character OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL =
+          null;
+
+
+  /**
+   * Long form of email notification upon error option.
+   */
+  public static final String OPTION_LONG_ERROR_NOTIFICATION_EMAIL =
+          "errorNotify";
+
+
+  /**
+   * Short form of email notification upon error option.
+   */
+  public static final Character OPTION_SHORT_ERROR_NOTIFICATION_EMAIL =
+          null;
+
+
+  /**
+   * Long form of dependency option.
+   */
+  public static final String OPTION_LONG_DEPENDENCY = "dependency";
+
+
+  /**
+   * Short form of dependency option.
+   */
+  public static final Character OPTION_SHORT_DEPENDENCY = null;
+
+
+  /**
+   * Long form of failed dependency action option.
+   */
+  public static final String OPTION_LONG_FAILED_DEPENDENCY_ACTION =
+          "failedDependencyAction";
+
+
+  /**
+   * Short form of failed dependency action option.
+   */
+  public static final Character OPTION_SHORT_FAILED_DEPENDENCY_ACTION = null;
+
+
+  /**
+   * Value placeholder for options taking email addresses.
+   */
+  public static final String OPTION_VALUE_EMAIL_ADDRESS = "{emailAddress}";
+
+
+  /**
+   * Value placeholder for options taking task IDs.
+   */
+  public static final String OPTION_VALUE_TASK_ID = "{taskId}";
+
+
+  /**
+   * Value placeholder for options taking actions.
+   */
+  public static final String OPTION_VALUE_ACTION = "{action}";
 }
 

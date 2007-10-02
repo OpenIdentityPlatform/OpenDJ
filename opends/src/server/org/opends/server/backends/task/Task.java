@@ -351,7 +351,7 @@ public abstract class Task
       failedDependencyAction = FailedDependencyAction.fromString(actionString);
       if (failedDependencyAction == null)
       {
-        failedDependencyAction = FailedDependencyAction.CANCEL;
+        failedDependencyAction = FailedDependencyAction.defaultValue();
       }
     }
 
