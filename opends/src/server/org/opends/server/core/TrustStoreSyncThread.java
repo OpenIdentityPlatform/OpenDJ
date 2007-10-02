@@ -46,7 +46,9 @@ import static org.opends.server.util.ServerConstants.OC_TOP;
 import static org.opends.server.util.ServerConstants.
      OID_ENTRY_CHANGE_NOTIFICATION;
 import org.opends.server.config.ConfigConstants;
-import static org.opends.server.config.ConfigConstants.OC_INSTANCE_KEY;
+import static org.opends.server.config.ConfigConstants.OC_CRYPTO_INSTANCE_KEY;
+import static org.opends.server.config.ConfigConstants.OC_CRYPTO_CIPHER_KEY;
+import static org.opends.server.config.ConfigConstants.OC_CRYPTO_MAC_KEY;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.InternalSearchListener;
@@ -90,6 +92,9 @@ public class TrustStoreSyncThread extends DirectoryThread
   // The DN of the instance keys container within the admin suffix.
   private DN instanceKeysDN;
 
+  // The DN of the secret keys container within the admin suffix.
+  private DN secretKeysDN;
+
   // The DN of the trust store root.
   private DN trustStoreRootDN;
 
@@ -102,8 +107,8 @@ public class TrustStoreSyncThread extends DirectoryThread
   // The attribute type that holds the time a key was compromised.
   AttributeType attrCompromisedTime;
 
-  // A filter on the instance key object class.
-  private SearchFilter instanceKeyFilter;
+  // A filter on object class to select key entries.
+  private SearchFilter keySearchFilter;
 
   // Indicates whether the ADS suffix backend is initialized.
   private boolean adminBackendInitialized;
@@ -116,6 +121,15 @@ public class TrustStoreSyncThread extends DirectoryThread
 
   // Indicates whether the initial search has been done.
   private boolean searchDone;
+
+  // The instance key objectclass.
+  private ObjectClass ocInstanceKey;
+
+  // The cipher key objectclass.
+  private ObjectClass ocCipherKey;
+
+  // The mac key objectclass.
+  private ObjectClass ocMacKey;
 
   /**
    * Creates a new instance of this trust store synchronization thread.
@@ -140,22 +154,33 @@ public class TrustStoreSyncThread extends DirectoryThread
     {
       adminSuffixDN = DN.decode(ADSContext.getAdministrationSuffixDN());
       instanceKeysDN = adminSuffixDN.concat(DN.decode("cn=instance keys"));
+      secretKeysDN = adminSuffixDN.concat(DN.decode("cn=secret keys"));
       trustStoreRootDN = DN.decode(ConfigConstants.DN_TRUST_STORE_ROOT);
-      instanceKeyFilter =
-           SearchFilter.createFilterFromString(
-                "(objectclass=" + ConfigConstants.OC_INSTANCE_KEY + ")");
+      keySearchFilter =
+           SearchFilter.createFilterFromString("(|" +
+                "(objectclass=" + OC_CRYPTO_INSTANCE_KEY + ")" +
+                "(objectclass=" + OC_CRYPTO_CIPHER_KEY + ")" +
+                "(objectclass=" + OC_CRYPTO_MAC_KEY + ")" +
+                ")");
     }
     catch (DirectoryException e)
     {
       //
     }
 
+    ocInstanceKey = DirectoryServer.getObjectClass(
+         OC_CRYPTO_INSTANCE_KEY, true);
+    ocCipherKey = DirectoryServer.getObjectClass(
+         OC_CRYPTO_CIPHER_KEY, true);
+    ocMacKey = DirectoryServer.getObjectClass(
+         OC_CRYPTO_MAC_KEY, true);
+
     attrCert = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_ADS_CERTIFICATE, true);
+         ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
     attrAlias = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CERT_ALIAS, true);
+         ConfigConstants.ATTR_CRYPTO_KEY_ID, true);
     attrCompromisedTime = DirectoryServer.getAttributeType(
-         "ds-cfg-key-compromised-time", true);
+         ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME, true);
 
     if (DirectoryServer.getBackendWithBaseDN(adminSuffixDN) != null)
     {
@@ -226,7 +251,7 @@ public class TrustStoreSyncThread extends DirectoryThread
                                      adminSuffixDN, SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES,
                                      0, 0,
-                                     false, instanceKeyFilter, attributes,
+                                     false, keySearchFilter, attributes,
                                      this);
 
     searchOperation.run();
@@ -403,6 +428,35 @@ public class TrustStoreSyncThread extends DirectoryThread
                                         SearchResultEntry searchEntry)
        throws DirectoryException
   {
+    if (searchEntry.hasObjectClass(ocInstanceKey))
+    {
+      handleInstanceKeySearchEntry(searchEntry);
+    }
+    else
+    {
+      try
+      {
+        if (searchEntry.hasObjectClass(ocCipherKey))
+        {
+          DirectoryServer.getCryptoManager().importCipherKeyEntry(searchEntry);
+        }
+        else if (searchEntry.hasObjectClass(ocMacKey))
+        {
+          DirectoryServer.getCryptoManager().importMacKeyEntry(searchEntry);
+        }
+      }
+      catch (CryptoManager.CryptoManagerException e)
+      {
+        throw new DirectoryException(
+             DirectoryServer.getServerErrorResultCode(), e);
+      }
+    }
+  }
+
+
+  private void handleInstanceKeySearchEntry(SearchResultEntry searchEntry)
+       throws DirectoryException
+  {
     RDN srcRDN = searchEntry.getDN().getRDN();
 
     // Only process the entry if it has the expected form of RDN.
@@ -545,13 +599,10 @@ public class TrustStoreSyncThread extends DirectoryThread
    */
   private void addEntry(Entry srcEntry, DN dstDN)
   {
-    ObjectClass instanceKeyOC =
-         DirectoryServer.getObjectClass(OC_INSTANCE_KEY, true);
-
     LinkedHashMap<ObjectClass,String> ocMap =
          new LinkedHashMap<ObjectClass,String>(2);
     ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
-    ocMap.put(instanceKeyOC, OC_INSTANCE_KEY);
+    ocMap.put(ocInstanceKey, OC_CRYPTO_INSTANCE_KEY);
 
     HashMap<AttributeType, List<Attribute>> userAttrs =
          new HashMap<AttributeType, List<Attribute>>();
@@ -600,11 +651,35 @@ public class TrustStoreSyncThread extends DirectoryThread
   public void handleAddOperation(PostResponseAddOperation addOperation,
                                  Entry entry)
   {
-    if (!addOperation.getEntryDN().isDescendantOf(instanceKeysDN))
+    if (addOperation.getEntryDN().isDescendantOf(instanceKeysDN))
     {
-      return;
+      handleInstanceKeyAddOperation(entry);
     }
+    else if (addOperation.getEntryDN().isDescendantOf(secretKeysDN))
+    {
+      try
+      {
+        if (entry.hasObjectClass(ocCipherKey))
+        {
+          DirectoryServer.getCryptoManager().importCipherKeyEntry(entry);
+        }
+        else if (entry.hasObjectClass(ocMacKey))
+        {
+          DirectoryServer.getCryptoManager().importMacKeyEntry(entry);
+        }
+      }
+      catch (CryptoManager.CryptoManagerException e)
+      {
+        Message message = Message.raw("Failed to import key entry: %s",
+                                      e.getMessage());
+        ErrorLogger.logError(message);
+      }
+    }
+  }
 
+
+  private void handleInstanceKeyAddOperation(Entry entry)
+  {
     RDN srcRDN = entry.getDN().getRDN();
 
     // Only process the entry if it has the expected form of RDN.

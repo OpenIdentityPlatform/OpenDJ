@@ -2068,6 +2068,36 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.422
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.423
+  NAME 'ds-cfg-cipher-transformation-name'
+  DESC 'The name of a cryptographic cipher transformation consisting of an
+  algorithm, a mode, and a padding specification, separated by slashes'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.424
+  NAME 'ds-cfg-mac-algorithm-name'
+  DESC 'The name of a cryptographic message authentication code (MAC) algorithm'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.425
+  NAME 'ds-cfg-key-length-bits'
+  DESC 'The length of a cryptographic secret key'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.426
+  NAME 'ds-cfg-initialization-vector-length-bits'
+  DESC 'The length of a cryptographic cipher initialization vector'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.427
+  NAME 'ds-cfg-symmetric-key'
+  DESC 'A cryptographic secret-key wrapped by a public-key'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3511,4 +3541,19 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.173
   SUP ds-cfg-extended-operation-handler
   STRUCTURAL
   X-ORIGIN 'OpenDS Directory Server' )
-
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.174
+  NAME 'ds-cfg-cipher-key'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-key-id $ ds-cfg-cipher-transformation-name $
+  ds-cfg-key-length-bits $ ds-cfg-symmetric-key )
+  MAY ( ds-cfg-initialization-vector-length-bits $ ds-cfg-key-compromised-time )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.175
+  NAME 'ds-cfg-mac-key'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-key-id $ ds-cfg-mac-algorithm-name $
+  ds-cfg-key-length-bits $ ds-cfg-symmetric-key )
+  MAY ds-cfg-key-compromised-time
+  X-ORIGIN 'OpenDS Directory Server' )

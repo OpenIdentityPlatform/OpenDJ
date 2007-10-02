@@ -66,6 +66,8 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Base64;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.schema.IntegerSyntax;
 
 /**
  * This class provides the interface to the Directory Server
@@ -136,6 +138,17 @@ public class CryptoManager
   // The set of SSL cipher suites enabled or null for the default set.
   private final SortedSet<String> sslCipherSuites;
 
+  // Various schema element references.
+  private final AttributeType attrKeyID;
+  private final AttributeType attrTransformation;
+  private final AttributeType attrMacAlgorithm;
+  private final AttributeType attrSymmetricKey;
+  private final AttributeType attrInitVectorLength;
+  private final AttributeType attrKeyLength;
+  private final AttributeType attrCompromisedTime;
+  private final ObjectClass   ocCipherKey;
+  private final ObjectClass   ocMacKey;
+
 
   /**
    * Creates a new instance of this crypto manager object from a given
@@ -155,6 +168,26 @@ public class CryptoManager
   public CryptoManager(CryptoManagerCfg cfg)
          throws ConfigException, InitializationException
   {
+    // Initialize various schema references.
+    attrKeyID = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_KEY_ID);
+    attrTransformation = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
+    attrMacAlgorithm = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_MAC_ALGORITHM_NAME);
+    attrSymmetricKey = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
+    attrInitVectorLength = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
+    attrKeyLength = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS);
+    attrCompromisedTime = DirectoryServer.getAttributeType(
+         ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+    ocCipherKey = DirectoryServer.getObjectClass(
+         ConfigConstants.OC_CRYPTO_CIPHER_KEY);
+    ocMacKey = DirectoryServer.getObjectClass(
+         ConfigConstants.OC_CRYPTO_MAC_KEY);
+
     // TODO -- Get the crypto defaults from the configuration.
 
     // Preferred digest and validation.
@@ -273,13 +306,14 @@ public class CryptoManager
    */
  public byte[] getInstanceKeyCertificate()
          throws CryptoManagerException {
-   final String DN_ADS_CERTIFICATE = ConfigConstants.ATTR_CERT_ALIAS
-           + "=" + ConfigConstants.ADS_CERTIFICATE_ALIAS + ","
+   final String DN_ADS_CERTIFICATE =
+        ConfigConstants.ATTR_CRYPTO_KEY_ID
+        + "=" + ConfigConstants.ADS_CERTIFICATE_ALIAS + ","
            + ConfigConstants.DN_TRUST_STORE_ROOT; // TODO: constant
    final String FILTER_OC_INSTANCE_KEY
-           = new StringBuilder("(objectclass=")
-                              .append(ConfigConstants.OC_INSTANCE_KEY)
-                              .append(")").toString();
+        = new StringBuilder("(objectclass=")
+        .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
+        .append(")").toString();
    final String ATTR_INSTANCE_KEY_CERTIFICATE_BINARY
            = "ds-cfg-public-key-certificate;binary";
    final LinkedHashSet<String> requestedAttributes
@@ -307,9 +341,9 @@ public class CryptoManager
          final Entry e = searchOp.getSearchEntries().getFirst();
          /* attribute ds-cfg-public-key-certificate is a MUST in the
             schema */
-         final List<Attribute> attrs
-                 = e.getAttribute(DirectoryServer.getAttributeType(
-                               ConfigConstants.ATTR_ADS_CERTIFICATE));
+         final List<Attribute> attrs =
+            e.getAttribute(DirectoryServer.getAttributeType(
+                 ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE));
          final Attribute a = attrs.get(0);
          final AttributeValue v = a.getValues().iterator().next();
          certificate = v.getValueBytes();
@@ -1509,6 +1543,164 @@ public class CryptoManager
   }
 
   /**
+   * Imports a cipher key entry from an entry in ADS.
+   *
+   * @param entry  The ADS cipher key entry to be imported.
+   *               The entry will be ignored if it does not have
+   *               the ds-cfg-cipher-key objectclass, or if the
+   *               key is already present.
+   *
+   * @throws CryptoManagerException
+   *               If the entry had the correct objectclass,
+   *               was not already present but could not
+   *               be imported.
+   */
+  public void importCipherKeyEntry(Entry entry)
+       throws CryptoManagerException
+  {
+    // Ignore the entry if it does not have the appropriate
+    // objectclass.
+    if (!entry.hasObjectClass(ocCipherKey)) return;
+
+    try
+    {
+      String keyID =
+           entry.getAttributeValue(attrKeyID,
+                                   DirectoryStringSyntax.DECODER);
+      int ivLengthBits =
+           entry.getAttributeValue(attrInitVectorLength,
+                                   IntegerSyntax.DECODER);
+      int keyLengthBits =
+           entry.getAttributeValue(attrKeyLength,
+                                   IntegerSyntax.DECODER);
+      String transformation =
+           entry.getAttributeValue(attrTransformation,
+                                   DirectoryStringSyntax.DECODER);
+      String compromisedTime =
+           entry.getAttributeValue(attrCompromisedTime,
+                                   DirectoryStringSyntax.DECODER);
+
+      ArrayList<String> symmetricKeys = new ArrayList<String>();
+      entry.getAttributeValues(attrSymmetricKey,
+                             DirectoryStringSyntax.DECODER,
+                             symmetricKeys);
+
+      // Find the symmetric key value that was wrapped using
+      // our instance key.
+      SecretKey secretKey = null;
+      for (String symmetricKey : symmetricKeys)
+      {
+        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+        if (secretKey != null) break;
+      }
+
+      if (secretKey == null)
+      {
+        // TODO: i18n
+        Message message =
+             Message.raw("Key entry %s contains no " +
+                  "symmetric key value that can be decoded " +
+                  "by this server",
+                         entry.getDN());
+        throw new CryptoManagerException(message);
+      }
+
+      boolean isCompromised = compromisedTime != null;
+
+      CipherKeyEntry.importCipherKeyEntry(this, keyID,
+                                          transformation,
+                                          secretKey, keyLengthBits,
+                                          ivLengthBits,
+                                          isCompromised);
+
+    }
+    catch (DirectoryException e)
+    {
+      // TODO: i18n
+      Message message =
+           Message.raw("Error decoding cipher key entry %s: %s",
+                       entry.getDN(), e.getMessage());
+      throw new CryptoManagerException(message, e);
+    }
+  }
+
+  /**
+   * Imports a mac key entry from an entry in ADS.
+   *
+   * @param entry  The ADS mac key entry to be imported. The
+   *               entry will be ignored if it does not have the
+   *               ds-cfg-mac-key objectclass, or if the key is
+   *               already present.
+   *
+   * @throws CryptoManagerException
+   *               If the entry had the correct objectclass,
+   *               was not already present but could not
+   *               be imported.
+   */
+  public void importMacKeyEntry(Entry entry)
+       throws CryptoManagerException
+  {
+    // Ignore the entry if it does not have the appropriate
+    // objectclass.
+    if (!entry.hasObjectClass(ocMacKey)) return;
+
+    try
+    {
+      String keyID =
+           entry.getAttributeValue(attrKeyID,
+                                   DirectoryStringSyntax.DECODER);
+      int keyLengthBits =
+           entry.getAttributeValue(attrKeyLength,
+                                   IntegerSyntax.DECODER);
+      String algorithm =
+           entry.getAttributeValue(attrMacAlgorithm,
+                                   DirectoryStringSyntax.DECODER);
+      String compromisedTime =
+           entry.getAttributeValue(attrCompromisedTime,
+                                   DirectoryStringSyntax.DECODER);
+
+      ArrayList<String> symmetricKeys = new ArrayList<String>();
+      entry.getAttributeValues(attrSymmetricKey,
+                             DirectoryStringSyntax.DECODER,
+                             symmetricKeys);
+
+      // Find the symmetric key value that was wrapped using our
+      // instance key.
+      SecretKey secretKey = null;
+      for (String symmetricKey : symmetricKeys)
+      {
+        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+        if (secretKey != null) break;
+      }
+
+      if (secretKey == null)
+      {
+        // TODO: i18n
+        Message message =
+             Message.raw("Key entry %s contains no " +
+                  "symmetric key value that can be decoded " +
+                  "by this server",
+                         entry.getDN());
+        throw new CryptoManagerException(message);
+      }
+
+      boolean isCompromised = compromisedTime != null;
+
+      MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
+                                    secretKey, keyLengthBits,
+                                    isCompromised);
+
+    }
+    catch (DirectoryException e)
+    {
+      Message message =
+           Message.raw("Error decoding mac key entry %s: %s",
+                       entry.getDN(), e.getMessage());
+      throw new CryptoManagerException(message, e);
+    }
+  }
+
+  /**
    * This class implements a utility interface to the unique
    * identifier corresponding to a cryptographic key. For each key
    * stored in an entry in ADS, the key identifier is the naming
@@ -1971,7 +2163,7 @@ public class CryptoManager
             CryptoManager cryptoManager,
             final KeyEntryID keyID) {
       return cryptoManager.cipherKeyEntryCache.get(keyID);
-      /* TODO: Does ADS monitorying thread keep map updated with keys
+      /* TODO: Does ADS monitoring thread keep map updated with keys
          produced at other sites? If not, fetch from ADS and update
          map (assuming a legitimate key ID, the key should exist in
          ADS because this routine is called for decryption). */

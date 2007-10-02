@@ -2873,9 +2873,9 @@ public final class ConfigConstants
 
 
   /**
-   * The name of the attribute that holds a server certificate alias.
+   * The name of the attribute that holds a cryptographic cipher-key identifier.
    */
-  public static final String ATTR_CERT_ALIAS = "ds-cfg-key-id";
+  public static final String ATTR_CRYPTO_KEY_ID = "ds-cfg-key-id";
 
 
 
@@ -2883,7 +2883,7 @@ public final class ConfigConstants
    * The name of the objectclass that will be used for a server
    * certificate entry.
    */
-  public static final String OC_INSTANCE_KEY =
+  public static final String OC_CRYPTO_INSTANCE_KEY =
        "ds-cfg-instance-key";
 
 
@@ -2898,11 +2898,72 @@ public final class ConfigConstants
 
 
   /**
-   * The name of the attribute that is used to specify a server
-   * instance key.
+   * The name of the objectclass that will be used for a cipher key.
    */
-  public static final String ATTR_ADS_CERTIFICATE =
+  public static final String OC_CRYPTO_CIPHER_KEY = "ds-cfg-cipher-key";
+
+
+
+  /**
+   * The name of the objectclass that will be used for a mac key.
+   */
+  public static final String OC_CRYPTO_MAC_KEY = "ds-cfg-mac-key";
+
+
+
+  /**
+   * The name of the attribute that is used to hold a cryptographic
+   * public key certificate.
+   */
+  public static final String ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE =
        "ds-cfg-public-key-certificate";
+
+
+  /**
+   * The name of the attribute that is used to hold the name of a
+   * cryptographic cipher transformation.
+   */
+  public static final String ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME =
+       "ds-cfg-cipher-transformation-name";
+
+
+  /**
+   * The name of the attribute that is used to hold the name of a
+   * cryptographic message authentication code (MAC) algorithm.
+   */
+  public static final String ATTR_CRYPTO_MAC_ALGORITHM_NAME =
+       "ds-cfg-mac-algorithm-name";
+
+
+  /**
+   * The name of the attribute that is used to hold the length of a
+   * cryptographic secret key.
+   */
+  public static final String ATTR_CRYPTO_KEY_LENGTH_BITS =
+       "ds-cfg-key-length-bits";
+
+
+  /**
+   * The name of the attribute that is used to hold the length of a
+   * cryptographic cipher initialization vector.
+   */
+  public static final String ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS =
+       "ds-cfg-initialization-vector-length-bits";
+
+
+  /**
+   * The name of the attribute that is used to hold a cryptographic
+   * cipher-key wrapped by a public-key.
+   */
+  public static final String ATTR_CRYPTO_SYMMETRIC_KEY = "ds-cfg-symmetric-key";
+
+
+  /**
+   * The name of the attribute that is used to hold time a cryptographic key
+   * was suspected to be compromised.
+   */
+  public static final String ATTR_CRYPTO_KEY_COMPROMISED_TIME =
+       "ds-cfg-key-compromised-time";
 
 
   /**
