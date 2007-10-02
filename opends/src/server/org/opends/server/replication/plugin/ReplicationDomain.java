@@ -179,7 +179,9 @@ public class ReplicationDomain extends DirectoryThread
   private int maxSendQueue = 0;
   private int maxReceiveDelay = 0;
   private int maxSendDelay = 0;
+
   private long generationId = -1;
+  private boolean generationIdSavedStatus = false;
   private long rejectedGenerationId = -1;
   private boolean requestedResetSinceLastStart = false;
 
@@ -1048,6 +1050,11 @@ public class ReplicationDomain extends DirectoryThread
           // waiting acknowledgements
           waitingAckMsgs.put(curChangeNumber, msg);
         }
+      }
+
+      if (generationIdSavedStatus != true)
+      {
+        this.saveGenerationId(generationId);
       }
     }
     else if (!op.isSynchronizationOperation())
@@ -2344,15 +2351,23 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     op.run();
 
     ResultCode result = op.getResultCode();
-    if ((result != ResultCode.SUCCESS) && (result != ResultCode.NO_SUCH_OBJECT))
+    if (result != ResultCode.SUCCESS)
     {
-      // The case where the backend is empty (NO_SUCH_OBJECT)
-      // is not an error case.
-      Message message = ERR_UPDATING_GENERATION_ID.get(
-                          op.getResultCode().getResultCodeName() + " " +
-                          op.getErrorMessage(),
-                          baseDN.toString());
-      logError(message);
+      generationIdSavedStatus = false;
+      if (result != ResultCode.NO_SUCH_OBJECT)
+      {
+        // The case where the backend is empty (NO_SUCH_OBJECT)
+        // is not an error case.
+        Message message = ERR_UPDATING_GENERATION_ID.get(
+            op.getResultCode().getResultCodeName() + " " +
+            op.getErrorMessage(),
+            baseDN.toString());
+        logError(message);
+      }
+    }
+    else
+    {
+      generationIdSavedStatus = true;
     }
     return result;
   }
@@ -2463,6 +2478,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     else
     {
+      generationIdSavedStatus = true;
       if (debugEnabled())
         TRACER.debugInfo(
             "Generation ID successfully read from domain base DN=" + baseDN +
