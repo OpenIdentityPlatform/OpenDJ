@@ -454,7 +454,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * replication Server ID.
    * @param changelogID
    */
-  private void connectToReplServer(short changelogID)
+  private void connectServer1ToChangelog(short changelogID)
   {
     // Connect DS to the replicationServer
     try
@@ -464,10 +464,10 @@ public class GenerationIdTest extends ReplicationTestCase
       String synchroServerLdif =
         "dn: cn=" + baseSnStr + ", cn=domains," + synchroServerStringDN + "\n"
         + "objectClass: top\n"
-        + "objectClass: ds-cfg-synchronization-provider-config\n"
+        + "objectClass: ds-cfg-replication-domain\n"
         + "cn: " + baseSnStr + "\n"
         + "ds-cfg-base-dn: " + baseDnStr + "\n"
-        + "ds-cfg-changelog-server: localhost:"
+        + "ds-cfg-replication-server: localhost:"
         + getChangelogPort(changelogID)+"\n"
         + "ds-cfg-server-id: " + server1ID + "\n"
         + "ds-cfg-receive-status: true\n"
@@ -720,7 +720,7 @@ public class GenerationIdTest extends ReplicationTestCase
       // Connect DS to RS with no data
       // Read generationId - should be not retrievable since no entry
       debugInfo(testCase + " Connecting DS1 to replServer1(" + changelog1ID + ")");
-      connectToReplServer(changelog1ID);
+      connectServer1ToChangelog(changelog1ID);
       Thread.sleep(1000);
 
       debugInfo(testCase + " Expect genId attribute to be not retrievable");
@@ -744,7 +744,7 @@ public class GenerationIdTest extends ReplicationTestCase
       // Test that generation has been added to the data.
       debugInfo(testCase + " add test entries to DS");
       this.addTestEntriesToDB(updatedEntries);
-      connectToReplServer(changelog1ID);
+      connectServer1ToChangelog(changelog1ID);
 
       // Test that the generationId is written in the DB in the
       // root entry on the replica side
@@ -1060,7 +1060,7 @@ public class GenerationIdTest extends ReplicationTestCase
     Thread.sleep(500);
 
     debugInfo("Connecting DS to replServer1");
-    connectToReplServer(changelog1ID);
+    connectServer1ToChangelog(changelog1ID);
     Thread.sleep(1500);
 
     debugInfo("Expect genId are set in all replServers.");
@@ -1082,7 +1082,7 @@ public class GenerationIdTest extends ReplicationTestCase
     this.addTestEntriesToDB(updatedEntries);
 
     debugInfo("Connecting DS to replServer2");
-    connectToReplServer(changelog2ID);
+    connectServer1ToChangelog(changelog2ID);
     Thread.sleep(1000);
 
     debugInfo("Expect genIds to be set in all servers based on the added entries.");
@@ -1141,7 +1141,7 @@ public class GenerationIdTest extends ReplicationTestCase
         " Expected entries :" + updatedEntries.length);
 
     debugInfo("Connecting DS to replServer1.");
-    connectToReplServer(changelog1ID);
+    connectServer1ToChangelog(changelog1ID);
     Thread.sleep(1000);
 
 
@@ -1214,5 +1214,55 @@ public class GenerationIdTest extends ReplicationTestCase
       replDomain.loadGenerationId();
     }
     catch (Exception e) {}
+  }
+  
+  /**
+   * Test generationID saving when the root entry does not exist
+   * at the moement when the replication is enabled.
+   * @throws Exception
+   */
+  @Test(enabled=true)
+  public void testServerStop() throws Exception
+  {
+    String testCase = "testServerStop";
+    debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
+
+    debugInfo(testCase + " Clearing DS1 backend");
+    ReplicationDomain.clearJEBackend(false,
+        "userRoot",
+        baseDn.toNormalizedString());
+
+    try
+    {
+      long genId;
+
+      replServer1 = createReplicationServer(changelog1ID, false, testCase);
+
+      /*
+       * Test  : empty replicated backend
+       * Check : nothing is broken - no generationId generated
+       */
+
+      // Connect DS to RS with no data
+      // Read generationId - should be not retrievable since no entry
+      debugInfo(testCase + " Connecting DS1 to replServer1(" + changelog1ID + ")");
+      connectServer1ToChangelog(changelog1ID);
+      Thread.sleep(1000);
+
+      debugInfo(testCase + " Expect genId attribute to be not retrievable");
+      genId = readGenId();
+      assertEquals(genId,-1);
+
+      this.addTestEntriesToDB(updatedEntries);
+
+      debugInfo(testCase + " Expect genId attribute to be retrievable");
+      genId = readGenId();
+      assertEquals(genId, 3211313L);
+    }
+    finally
+    {
+      postTest();
+      debugInfo("Successfully ending " + testCase);
+    }
   }
 }
