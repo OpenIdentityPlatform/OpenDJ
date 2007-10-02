@@ -52,6 +52,8 @@ import java.util.RandomAccess;
 import java.util.StringTokenizer;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.Collection;
+import java.util.Iterator;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -3321,6 +3323,29 @@ public final class StaticUtils
   }
 
   /**
+   * Creates a string representation of the elements in the
+   * <code>collection</code> separated by <code>separator</code>.
+   *
+   * @param collection to print
+   * @param separator to use between elements
+   *
+   * @return String representing the collection
+   */
+  static public String collectionToString(Collection<?> collection,
+                                          String separator)
+  {
+    StringBuilder sb = new StringBuilder();
+    for (Iterator<?> iter = collection.iterator(); iter.hasNext();) {
+      sb.append(iter.next());
+      if (iter.hasNext()) {
+        sb.append(separator);
+      }
+    }
+    return sb.toString();
+  }
+
+
+  /**
    * Retrieves an array list containing the contents of the provided array.
    *
    * @param  stringArray  The string array to convert to an array list.
@@ -4036,5 +4061,20 @@ public final class StaticUtils
     return timeStr;
   }
 
+  /**
+   * Indicates whether or not a string represents a syntactically correct
+   * email address.
+   *
+   * @param addr to validate
+   * @return boolean where <code>true</code> indicates that the string is a
+   *         syntactically correct email address
+   */
+  public static boolean isEmailAddress(String addr) {
+
+    // This just does basic syntax checking.  Perhaps we
+    // might want to be stricter about this.
+    return addr != null && addr.contains("@") && addr.contains(".");
+
+  }
 }
 

@@ -134,7 +134,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * @return true if the user wants to perform a remote operation;
    *         false otherwise
    */
-  public boolean argumentsPresent() {
+  public boolean connectionArgumentsPresent() {
     return args != null && args.argumentsPresent();
   }
 

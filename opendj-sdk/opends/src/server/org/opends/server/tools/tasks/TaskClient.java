@@ -59,6 +59,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import static org.opends.server.types.ResultCode.*;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.backends.task.FailedDependencyAction;
 import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.util.StaticUtils;
 
@@ -147,6 +148,55 @@ public class TaskClient {
       startDateValues.add(new ASN1OctetString(startTimeString));
       attributes.add(new LDAPAttribute(ATTR_TASK_SCHEDULED_START_TIME,
               startDateValues));
+    }
+
+    // add dependency IDs
+    List<String> dependencyIds = information.getDependencyIds();
+    if (dependencyIds != null && dependencyIds.size() > 0) {
+      ArrayList<ASN1OctetString> dependencyIdValues =
+              new ArrayList<ASN1OctetString>(dependencyIds.size());
+      for (String dependencyId : dependencyIds) {
+        dependencyIdValues.add(new ASN1OctetString(dependencyId));
+      }
+      attributes.add(new LDAPAttribute(ATTR_TASK_DEPENDENCY_IDS,
+              dependencyIdValues));
+
+      // add the dependency action
+      FailedDependencyAction fda = information.getFailedDependencyAction();
+      if (fda == null) {
+        fda = FailedDependencyAction.defaultValue();
+      }
+      ArrayList<ASN1OctetString> fdaValues =
+              new ArrayList<ASN1OctetString>(1);
+      fdaValues.add(new ASN1OctetString(fda.name()));
+      attributes.add(new LDAPAttribute(ATTR_TASK_FAILED_DEPENDENCY_ACTION,
+              fdaValues));
+    }
+
+    // add completion notification email addresses
+    List<String> compNotifEmailAddresss =
+            information.getNotifyUponCompletionEmailAddresses();
+    if (compNotifEmailAddresss != null && compNotifEmailAddresss.size() > 0) {
+      ArrayList<ASN1OctetString> compNotifEmailAddrValues =
+              new ArrayList<ASN1OctetString>(compNotifEmailAddresss.size());
+      for (String emailAddr : compNotifEmailAddresss) {
+        compNotifEmailAddrValues.add(new ASN1OctetString(emailAddr));
+      }
+      attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_COMPLETION,
+              compNotifEmailAddrValues));
+    }
+
+    // add error notification email addresses
+    List<String> errNotifEmailAddresss =
+            information.getNotifyUponErrorEmailAddresses();
+    if (errNotifEmailAddresss != null && errNotifEmailAddresss.size() > 0) {
+      ArrayList<ASN1OctetString> errNotifEmailAddrValues =
+              new ArrayList<ASN1OctetString>(errNotifEmailAddresss.size());
+      for (String emailAddr : errNotifEmailAddresss) {
+        errNotifEmailAddrValues.add(new ASN1OctetString(emailAddr));
+      }
+      attributes.add(new LDAPAttribute(ATTR_TASK_NOTIFY_ON_ERROR,
+              errNotifEmailAddrValues));
     }
 
     information.addTaskAttributes(attributes);

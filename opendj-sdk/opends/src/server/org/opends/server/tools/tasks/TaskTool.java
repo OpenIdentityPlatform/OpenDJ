@@ -43,6 +43,7 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.messages.Message;
 import static org.opends.messages.ToolMessages.*;
 
@@ -52,6 +53,9 @@ import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.EnumSet;
+import java.util.Collections;
 import java.io.IOException;
 
 /**
@@ -76,6 +80,21 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
   // Argument for describing the task's start time
   StringArgument startArg;
+
+  // Argument for specifying completion notifications
+  StringArgument completionNotificationArg;
+
+  // Argument for specifying error notifications
+  StringArgument errorNotificationArg;
+
+  // Argument for specifying dependency
+  StringArgument dependencyArg;
+
+  // Argument for specifying a failed dependency action
+  StringArgument failedDependencyActionArg;
+
+  // Client for interacting with the task backend
+  TaskClient taskClient;
 
   /**
    * Called when this utility should perform its actions locally in this
@@ -120,6 +139,42 @@ public abstract class TaskTool implements TaskScheduleInformation {
               null, null,
               INFO_DESCRIPTION_START_DATETIME.get());
       argParser.addArgument(startArg, taskGroup);
+
+      completionNotificationArg = new StringArgument(
+              OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
+              OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL,
+              OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
+              false, true, true, OPTION_VALUE_EMAIL_ADDRESS,
+              null, null, INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get());
+      argParser.addArgument(completionNotificationArg, taskGroup);
+
+      errorNotificationArg = new StringArgument(
+              OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
+              OPTION_SHORT_ERROR_NOTIFICATION_EMAIL,
+              OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
+              false, true, true, OPTION_VALUE_EMAIL_ADDRESS,
+              null, null, INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get());
+      argParser.addArgument(errorNotificationArg, taskGroup);
+
+      dependencyArg = new StringArgument(
+              OPTION_LONG_DEPENDENCY,
+              OPTION_SHORT_DEPENDENCY,
+              OPTION_LONG_DEPENDENCY,
+              false, true, true, OPTION_VALUE_TASK_ID,
+              null, null, INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
+      argParser.addArgument(dependencyArg, taskGroup);
+
+      Set fdaValSet = EnumSet.allOf(FailedDependencyAction.class);
+      failedDependencyActionArg = new StringArgument(
+              OPTION_LONG_FAILED_DEPENDENCY_ACTION,
+              OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
+              OPTION_LONG_FAILED_DEPENDENCY_ACTION,
+              false, true, true, OPTION_VALUE_ACTION,
+              null, null, INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
+                StaticUtils.collectionToString(fdaValSet, ","),
+                FailedDependencyAction.defaultValue().name()));
+      argParser.addArgument(failedDependencyActionArg, taskGroup);
+
     } catch (ArgumentException e) {
       // should never happen
     }
@@ -140,6 +195,60 @@ public abstract class TaskTool implements TaskScheduleInformation {
         StaticUtils.parseDateTimeString(startArg.getValue());
       } catch (ParseException pe) {
         throw new ArgumentException(ERR_START_DATETIME_FORMAT.get());
+      }
+    }
+
+    if (!processAsTask() && completionNotificationArg.isPresent()) {
+      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
+              completionNotificationArg.getLongIdentifier()));
+    }
+
+    if (!processAsTask() && errorNotificationArg.isPresent()) {
+      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
+              errorNotificationArg.getLongIdentifier()));
+    }
+
+    if (!processAsTask() && dependencyArg.isPresent()) {
+      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
+              dependencyArg.getLongIdentifier()));
+    }
+
+    if (!processAsTask() && failedDependencyActionArg.isPresent()) {
+      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
+              failedDependencyActionArg.getLongIdentifier()));
+    }
+
+    if (completionNotificationArg.isPresent()) {
+      LinkedList<String> addrs = completionNotificationArg.getValues();
+      for (String addr : addrs) {
+        if (!StaticUtils.isEmailAddress(addr)) {
+          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(
+                  addr, completionNotificationArg.getLongIdentifier()));
+        }
+      }
+    }
+
+    if (errorNotificationArg.isPresent()) {
+      LinkedList<String> addrs = errorNotificationArg.getValues();
+      for (String addr : addrs) {
+        if (!StaticUtils.isEmailAddress(addr)) {
+          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(
+                  addr, errorNotificationArg.getLongIdentifier()));
+        }
+      }
+    }
+
+    if (failedDependencyActionArg.isPresent()) {
+
+      if (!dependencyArg.isPresent()) {
+        throw new ArgumentException(ERR_TASKTOOL_FDA_WITH_NO_DEPENDENCY.get());
+      }
+
+      String fda = failedDependencyActionArg.getValue();
+      if (null == FailedDependencyAction.fromString(fda)) {
+        Set fdaValSet = EnumSet.allOf(FailedDependencyAction.class);
+        throw new ArgumentException(ERR_TASKTOOL_INVALID_FDA.get(fda,
+                        StaticUtils.collectionToString(fdaValSet, ",")));
       }
     }
   }
@@ -166,6 +275,51 @@ public abstract class TaskTool implements TaskScheduleInformation {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public List<String> getDependencyIds() {
+    if (dependencyArg.isPresent()) {
+      return dependencyArg.getValues();
+    } else {
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public FailedDependencyAction getFailedDependencyAction() {
+    FailedDependencyAction fda = null;
+    if (failedDependencyActionArg.isPresent()) {
+      String fdaString = failedDependencyActionArg.getValue();
+      fda = FailedDependencyAction.fromString(fdaString);
+    }
+    return fda;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public List<String> getNotifyUponCompletionEmailAddresses() {
+    if (completionNotificationArg.isPresent()) {
+      return completionNotificationArg.getValues();
+    } else {
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public List<String> getNotifyUponErrorEmailAddresses() {
+    if (errorNotificationArg.isPresent()) {
+      return errorNotificationArg.getValues();
+    } else {
+      return Collections.emptyList();
+    }
+  }
+
+  /**
    * Either invokes initiates this tool's local action or schedule this
    * tool using the tasks interface based on user input.
    *
@@ -181,7 +335,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
                         PrintStream out, PrintStream err) {
     int ret;
 
-    if (argParser.argumentsPresent())
+    if (processAsTask())
     {
       if (initializeServer)
       {
@@ -273,6 +427,10 @@ public abstract class TaskTool implements TaskScheduleInformation {
       ret = processLocal(initializeServer, out, err);
     }
     return ret;
+  }
+
+  private boolean processAsTask() {
+    return argParser.connectionArgumentsPresent();
   }
 
 }
