@@ -344,6 +344,7 @@ public class LDAPDeleteTestCase
       "-V", "2",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -370,6 +371,7 @@ public class LDAPDeleteTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -397,6 +399,7 @@ public class LDAPDeleteTestCase
       "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -427,6 +430,7 @@ public class LDAPDeleteTestCase
       "-P", trustStorePath,
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -454,6 +458,7 @@ public class LDAPDeleteTestCase
       "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -484,6 +489,7 @@ public class LDAPDeleteTestCase
       "-P", trustStorePath,
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -513,6 +519,7 @@ public class LDAPDeleteTestCase
       "-o", "mech=PLAIN",
       "-o", "authid=dn:cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -539,6 +546,7 @@ public class LDAPDeleteTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "cn=Does Not Exist,o=test"
     };
 
@@ -565,6 +573,7 @@ public class LDAPDeleteTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "malformed"
     };
 
@@ -612,6 +621,7 @@ public class LDAPDeleteTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -637,6 +647,7 @@ public class LDAPDeleteTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-j", validPasswordFile,
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -662,6 +673,7 @@ public class LDAPDeleteTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-j", invalidPasswordFile,
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -688,6 +700,7 @@ public class LDAPDeleteTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-j", "does.not.exist",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -744,7 +757,8 @@ public class LDAPDeleteTestCase
       "-D", "cn=Directory Manager",
       "-j", validPasswordFile,
       "-c",
-      "-f", path
+      "-f", path,
+      "--noPropertiesFile"
     };
 
     LDAPDelete.mainDelete(args, false, null, null);
@@ -755,7 +769,7 @@ public class LDAPDeleteTestCase
   /**
    * Tests a subtree delete operation.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSubtreeDelete()
@@ -790,6 +804,7 @@ public class LDAPDeleteTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-x",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -836,6 +851,7 @@ public class LDAPDeleteTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "subtreedelete:true",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -862,6 +878,7 @@ public class LDAPDeleteTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-n",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -888,6 +905,7 @@ public class LDAPDeleteTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -916,6 +934,7 @@ public class LDAPDeleteTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "no-op:true",
+      "--noPropertiesFile",
       "o=test"
     };
 
@@ -945,6 +964,7 @@ public class LDAPDeleteTestCase
       "-w", "password",
       "-J", OID_MANAGE_DSAIT_CONTROL + ":false",
       "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "--noPropertiesFile",
       "o=test"
     };
 

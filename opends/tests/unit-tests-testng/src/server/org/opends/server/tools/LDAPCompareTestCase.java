@@ -400,6 +400,7 @@ public class LDAPCompareTestCase
       "-V", "2",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -427,6 +428,7 @@ public class LDAPCompareTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -454,6 +456,7 @@ public class LDAPCompareTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:nottest",
       "o=test"
     };
@@ -482,6 +485,7 @@ public class LDAPCompareTestCase
       "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -513,6 +517,7 @@ public class LDAPCompareTestCase
       "-P", trustStorePath,
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -541,6 +546,7 @@ public class LDAPCompareTestCase
       "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -572,6 +578,7 @@ public class LDAPCompareTestCase
       "-P", trustStorePath,
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -625,6 +632,7 @@ public class LDAPCompareTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-P", trustStorePath,
+      "--noPropertiesFile",
       "-r",
       "cn:Test User",
       "cn=Test User,o=test"
@@ -680,6 +688,7 @@ public class LDAPCompareTestCase
       "-W", "password",
       "-N", "client-cert",
       "-P", trustStorePath,
+      "--noPropertiesFile",
       "-r",
       "cn:Test User",
       "cn=Test User,o=test"
@@ -735,6 +744,7 @@ public class LDAPCompareTestCase
       "-W", "password",
       "-N", "invalid",
       "-P", trustStorePath,
+      "--noPropertiesFile",
       "-r",
       "cn:Test User",
       "cn=Test User,o=test"
@@ -789,6 +799,7 @@ public class LDAPCompareTestCase
       "-K", keyStorePath,
       "-W", "password",
       "-P", trustStorePath,
+      "--noPropertiesFile",
       "-r",
       "cn:Test User",
       "cn=Test User,o=test"
@@ -840,6 +851,7 @@ public class LDAPCompareTestCase
       "-o", "mech=CRAM-MD5",
       "-o", "authid=u:test.user",
       "-w", "password",
+      "--noPropertiesFile",
       "givenName:Test",
       "uid=test.user,o=test"
     };
@@ -892,6 +904,7 @@ public class LDAPCompareTestCase
       "-o", "authzid=u:test.user",
       "-o", "realm=o=test",
       "-w", "password",
+      "--noPropertiesFile",
       "givenName:Test",
       "uid=test.user,o=test"
     };
@@ -939,6 +952,7 @@ public class LDAPCompareTestCase
       "-o", "mech=PLAIN",
       "-o", "authid=dn:cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "givenName:Test",
       "uid=test.user,o=test"
     };
@@ -967,6 +981,7 @@ public class LDAPCompareTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o::" + Base64.encode("test".getBytes("UTF-8")),
       "o=test"
     };
@@ -995,6 +1010,7 @@ public class LDAPCompareTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o::***invalidencoding***",
       "o=test"
     };
@@ -1028,6 +1044,7 @@ public class LDAPCompareTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:<" + f.getAbsolutePath(),
       "o=test"
     };
@@ -1054,6 +1071,7 @@ public class LDAPCompareTestCase
       "-V", "3",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "o:<does.not.exist",
       "o=test"
     };
@@ -1083,6 +1101,7 @@ public class LDAPCompareTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--assertionFilter", "(o=test)",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -1112,6 +1131,7 @@ public class LDAPCompareTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--assertionFilter", "(o=notAMatch)",
+      "--noPropertiesFile",
       "o:test",
       "o=test"
     };
@@ -1149,6 +1169,7 @@ public class LDAPCompareTestCase
       "-w", "password",
       "-c",
       "-f", path,
+      "--noPropertiesFile",
       "o:test",
     };
 
@@ -1178,6 +1199,7 @@ public class LDAPCompareTestCase
       "-w", "password",
       "-c",
       "-f", "does.not.exist",
+      "--noPropertiesFile",
       "o:test",
     };
 

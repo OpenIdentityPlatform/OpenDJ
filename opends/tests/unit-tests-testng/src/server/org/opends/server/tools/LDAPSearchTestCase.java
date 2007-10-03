@@ -534,6 +534,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -557,6 +558,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -580,6 +582,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -605,6 +608,7 @@ public class LDAPSearchTestCase
       "-b", "",
       "-s", "base",
       "--dry-run",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -630,6 +634,7 @@ public class LDAPSearchTestCase
       "-b", "",
       "-s", "invalid",
       "--dry-run",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -652,6 +657,7 @@ public class LDAPSearchTestCase
       "-X",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -677,6 +683,7 @@ public class LDAPSearchTestCase
       "-P", trustStorePath,
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -699,6 +706,7 @@ public class LDAPSearchTestCase
       "-X",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -724,6 +732,7 @@ public class LDAPSearchTestCase
       "-P", trustStorePath,
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -778,6 +787,7 @@ public class LDAPSearchTestCase
       "-r",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -833,6 +843,7 @@ public class LDAPSearchTestCase
       "-r",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -888,6 +899,7 @@ public class LDAPSearchTestCase
       "-r",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -942,6 +954,7 @@ public class LDAPSearchTestCase
       "-r",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -992,6 +1005,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1044,6 +1058,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1092,6 +1107,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1114,6 +1130,7 @@ public class LDAPSearchTestCase
       "-w", "password",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1136,6 +1153,7 @@ public class LDAPSearchTestCase
       "-w", "wrongPassword",
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1161,6 +1179,7 @@ public class LDAPSearchTestCase
       "-j", validPasswordFile,
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1186,6 +1205,7 @@ public class LDAPSearchTestCase
       "-j", invalidPasswordFile,
       "-b", "",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1206,6 +1226,7 @@ public class LDAPSearchTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "malformed",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1226,6 +1247,7 @@ public class LDAPSearchTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "o=does not exist",
       "-s", "base",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1272,6 +1294,7 @@ public class LDAPSearchTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-b", "o=test",
       "-s", scope,
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1319,6 +1342,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "-a", derefPolicy,
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1343,6 +1367,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "-A",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1367,6 +1392,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "--reportAuthzID",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1393,6 +1419,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "--reportAuthzID",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1419,6 +1446,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "--usePasswordPolicyControl",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1445,6 +1473,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "-J", OID_ACCOUNT_USABLE_CONTROL + ":true",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1472,6 +1501,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "-J", "accountusable:true",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1498,6 +1528,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "--assertionFilter", "(objectClass=top)",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1524,6 +1555,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "--assertionFilter", "(objectClass=doesNotMatch)",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1550,6 +1582,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "base",
       "--matchedValuesFilter", "(objectClass=*person)",
+      "--noPropertiesFile",
       "(objectClass=*)",
       "objectClass"
     };
@@ -1591,6 +1624,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "sub",
       "--countEntries",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1605,6 +1639,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "sub",
       "--countEntries",
+      "--noPropertiesFile",
       "-J", OID_LDAP_SUBENTRIES + ":true",
       "(objectClass=*)"
     };
@@ -1620,6 +1655,7 @@ public class LDAPSearchTestCase
       "-b", "o=test",
       "-s", "sub",
       "--countEntries",
+      "--noPropertiesFile",
       "-J", "subentries:true",
       "(objectClass=*)"
     };
@@ -1651,6 +1687,7 @@ public class LDAPSearchTestCase
       "-s", "base",
       "-J", OID_ACCOUNT_USABLE_CONTROL + ":true",
       "-J", OID_MANAGE_DSAIT_CONTROL + ":false",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1706,6 +1743,7 @@ public class LDAPSearchTestCase
       "-s", "one",
       "--simplePageSize", "2",
       "--countEntries",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1830,6 +1868,7 @@ public class LDAPSearchTestCase
       "-S", "givenName",
       "--simplePageSize", "2",
       "--countEntries",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1843,6 +1882,7 @@ public class LDAPSearchTestCase
       "-s", "sub",
       "-S", "givenName",
       "--countEntries",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1904,6 +1944,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "givenName",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -1964,6 +2005,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "-givenName",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2024,6 +2066,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "givenName:caseExactOrderingMatch",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2084,6 +2127,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "sn,givenName",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2144,6 +2188,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "sn,-givenName",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2172,6 +2217,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2201,6 +2247,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "-,sn",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2230,6 +2277,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "-sn:",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2258,6 +2306,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "undefined",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2287,6 +2336,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-S", "givenName:undefined",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2314,6 +2364,7 @@ public class LDAPSearchTestCase
       "-b", "dc=example,dc=com",
       "-s", "sub",
       "-G", "0:9:1:0",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2345,6 +2396,7 @@ public class LDAPSearchTestCase
       "-S", "sn,givenName",
       "--simplePageSize", "2",
       "-G", "0:3:1:0",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2373,6 +2425,7 @@ public class LDAPSearchTestCase
       "-s", "sub",
       "-S", "sn,givenName",
       "-G", "invalid",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2401,6 +2454,7 @@ public class LDAPSearchTestCase
       "-s", "sub",
       "-S", "sn,givenName",
       "-G", "invalid:9:invalid",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2429,6 +2483,7 @@ public class LDAPSearchTestCase
       "-s", "sub",
       "-S", "sn,givenName",
       "-G", "invalid:9:1:0",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
@@ -2552,6 +2607,7 @@ public class LDAPSearchTestCase
       "-s", "sub",
       "-S", "givenName",
       "-G", "1:3:1:0",
+      "--noPropertiesFile",
       "(objectClass=*)"
     };
 
