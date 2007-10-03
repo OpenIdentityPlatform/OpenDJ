@@ -695,7 +695,7 @@ public class CryptoManager
 
 
   /**
-   * Unwraps the supplied symmetric key attribute value and re-wraps
+   * Decodes the supplied symmetric key attribute value and re-encodes
    * it with the public key referred to by the requested instance key
    * identifier. The symmetric key attribute must be wrapped in this
    * instance's instance-key-pair public key.
@@ -703,10 +703,11 @@ public class CryptoManager
    * unwrap and rewrap.
    * @param requestedInstanceKeyID The key identifier of the public
    * key to use in the re-wrapping.
-   * @return The symmetric key re-wrapped in the requested public key.
-   * @throws CryptoManagerException If there is a problem unwrapping
-   * the supplied symmetric key attribute value or retrieving the
-   * requested public key.
+   * @return The symmetric key attribute value with the symmetric key
+   * re-wrapped in the requested public key.
+   * @throws CryptoManagerException If there is a problem decoding
+   * the supplied symmetric key attribute value, unwrapping the
+   * embedded secret key, or retrieving the requested public key.
    */
   public String rewrapSymmetricKeyAttribute(
           final String symmetricKeyAttribute,
@@ -714,8 +715,16 @@ public class CryptoManager
           throws CryptoManagerException {
     final SecretKey secretKey
             = decodeSymmetricKeyAttribute(symmetricKeyAttribute);
+    final Map<String, byte[]> certMap = getTrustedCertificates();
+    if (! certMap.containsKey(requestedInstanceKeyID)) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+              Message.raw("The public key certificate specified by" +
+                      " the identifier %s cannot be found.",
+                      requestedInstanceKeyID));
+    }
     final byte[] wrappingKeyCert
-            = getTrustedCertificates().get(requestedInstanceKeyID);
+            = certMap.get(requestedInstanceKeyID);
     return encodeSymmetricKeyAttribute(
             requestedInstanceKeyID, wrappingKeyCert, secretKey);
   }
