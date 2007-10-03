@@ -867,8 +867,18 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           }
       }
 
-      assertEquals(taskState, expectedTaskState, "Task State:" + taskState +
+      if ((expectedTaskState == TaskState.RUNNING)
+          && (taskState == TaskState.COMPLETED_SUCCESSFULLY))
+      {
+        // We usually wait the running state after adding the task
+        // and if the task is fast enough then it may be already done
+        // and we can go on.
+      }
+      else
+      {
+        assertEquals(taskState, expectedTaskState, "Task State:" + taskState +
           " Expected task state:" + expectedTaskState);
+      }
     }
     catch(Exception e)
     {
