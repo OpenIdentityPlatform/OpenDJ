@@ -535,7 +535,7 @@ public class ArgumentParser
 
   /**
    * Adds the provided argument to the set of arguments handled by this parser
-   * and puts the arguement in the LDAP connection group.
+   * and puts the argument in the LDAP connection group.
    *
    * @param  argument  The argument to be added.
    *
@@ -550,7 +550,7 @@ public class ArgumentParser
 
   /**
    * Adds the provided argument to the set of arguments handled by this parser
-   * and puts the arguement in the input/output group.
+   * and puts the argument in the input/output group.
    *
    * @param  argument  The argument to be added.
    *
@@ -1001,7 +1001,7 @@ public class ArgumentParser
           {
             // "-V" will always be interpreted as requesting
             // version information except if it's already defined (e.g in
-            // lpda tools).
+            // ldap tools).
             usageOrVersionDisplayed = true ;
             try
             {
@@ -1681,7 +1681,7 @@ public class ArgumentParser
     try {
       Argument version = new BooleanArgument(
               OPTION_LONG_PRODUCT_VERSION,
-              OPTION_SHORT_PRODUCT_VERSION,
+              null,
               OPTION_LONG_PRODUCT_VERSION,
               INFO_DESCRIPTION_PRODUCT_VERSION.get());
       this.generalArgGroup.addArgument(version);
