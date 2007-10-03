@@ -380,7 +380,8 @@ public class LDAPPasswordModifyTestCase
       "-D", "uid=test.user,o=test",
       "-w", "password",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -409,7 +410,8 @@ public class LDAPPasswordModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
       "-w", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -438,7 +440,8 @@ public class LDAPPasswordModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
       "-w", "password",
-      "-c", "password"
+      "-c", "password",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -466,7 +469,8 @@ public class LDAPPasswordModifyTestCase
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "uid=test.user,o=test",
-      "-w", "password"
+      "-w", "password",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -497,7 +501,8 @@ public class LDAPPasswordModifyTestCase
       "-w", "password",
       "-a", "u:test.user",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -528,7 +533,8 @@ public class LDAPPasswordModifyTestCase
       "-w", "password",
       "-A",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -559,7 +565,8 @@ public class LDAPPasswordModifyTestCase
       "-D", "uid=test.user,o=test",
       "-w", "password",
       "-A",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -588,7 +595,8 @@ public class LDAPPasswordModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -616,7 +624,8 @@ public class LDAPPasswordModifyTestCase
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "dn:uid=test.user,o=test",
-      "-c", "password"
+      "-c", "password",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -645,7 +654,8 @@ public class LDAPPasswordModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-a", "dn:uid=test.user,o=test",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -673,7 +683,8 @@ public class LDAPPasswordModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-a", "dn:uid=test.user,o=test"
+      "-a", "dn:uid=test.user,o=test",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -703,7 +714,8 @@ public class LDAPPasswordModifyTestCase
       "-X",
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -736,7 +748,8 @@ public class LDAPPasswordModifyTestCase
       "-P", trustStorePath,
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -767,7 +780,8 @@ public class LDAPPasswordModifyTestCase
       "-X",
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -801,7 +815,8 @@ public class LDAPPasswordModifyTestCase
       "-P", trustStorePath,
       "-a", "dn:uid=test.user,o=test",
       "-c", "password",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -831,7 +846,8 @@ public class LDAPPasswordModifyTestCase
       "-D", "cn=Directory Manager",
       "-j", currentPasswordFile,
       "-a", "dn:uid=test.user,o=test",
-      "-N", newPasswordFile
+      "-N", newPasswordFile,
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -860,7 +876,8 @@ public class LDAPPasswordModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-a", "u:test.user",
       "-C", currentPasswordFile,
-      "-N", newPasswordFile
+      "-N", newPasswordFile,
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -888,7 +905,8 @@ public class LDAPPasswordModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-a", "dn:invalid",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null,
@@ -916,7 +934,8 @@ public class LDAPPasswordModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-a", "dn:cn=Does Not Exist,o=test",
-      "-n", "newPassword"
+      "-n", "newPassword",
+      "--noPropertiesFile"
     };
 
     assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null,
@@ -959,7 +978,8 @@ public class LDAPPasswordModifyTestCase
       "-w", "password",
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword",
-      "-J", "pwpolicy:true"
+      "-J", "pwpolicy:true",
+      "--noPropertiesFile"
     };
 
     assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null,
@@ -990,7 +1010,8 @@ public class LDAPPasswordModifyTestCase
       "-w", "password",
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword",
-      "-J", "1.2.3.4:true"
+      "-J", "1.2.3.4:true",
+      "--noPropertiesFile"
     };
 
     assertFalse(LDAPPasswordModify.mainPasswordModify(args, false, null, null)
@@ -1021,7 +1042,8 @@ public class LDAPPasswordModifyTestCase
       "-w", "password",
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword",
-      "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true"
+      "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -1052,7 +1074,8 @@ public class LDAPPasswordModifyTestCase
       "-w", "password",
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword",
-      "-J", "noop:true"
+      "-J", "noop:true",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),
@@ -1084,7 +1107,8 @@ public class LDAPPasswordModifyTestCase
       "-a", "dn:uid=test.user,o=test",
       "-n", "newPassword",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
-      "-J", OID_PASSWORD_POLICY_CONTROL + ":true"
+      "-J", OID_PASSWORD_POLICY_CONTROL + ":true",
+      "--noPropertiesFile"
     };
 
     assertEquals(LDAPPasswordModify.mainPasswordModify(args, false, null, null),

@@ -186,6 +186,8 @@ public class LDAPPasswordModify
     StringArgument    sslKeyStorePIN;
     StringArgument    sslTrustStore;
     StringArgument    sslTrustStorePIN;
+    StringArgument    propertiesFileArgument;
+    BooleanArgument   noPropertiesFileArgument;
 
 
     // Initialize the argument parser.
@@ -195,10 +197,24 @@ public class LDAPPasswordModify
 
     try
     {
+      propertiesFileArgument = new StringArgument("propertiesFilePath",
+          null, OPTION_LONG_PROP_FILE_PATH,
+          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      argParser.addArgument(propertiesFileArgument);
+      argParser.setFilePropertiesArgument(propertiesFileArgument);
+
+      noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
+      argParser.addArgument(noPropertiesFileArgument);
+      argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
+
       ldapHost = new StringArgument("ldaphost", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false,
                                     true, OPTION_VALUE_HOST, "127.0.0.1", null,
                                     INFO_LDAPPWMOD_DESCRIPTION_HOST.get());
+      ldapHost.setPropertyName(OPTION_LONG_HOST);
       argParser.addArgument(ldapHost);
 
 
@@ -208,18 +224,21 @@ public class LDAPPasswordModify
               true, OPTION_VALUE_PORT, 389,
               null, true, 1, true,
               65535, INFO_LDAPPWMOD_DESCRIPTION_PORT.get());
+      ldapPort.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(ldapPort);
 
 
       useSSL = new BooleanArgument("usessl", OPTION_SHORT_USE_SSL,
                                    OPTION_LONG_USE_SSL,
                                    INFO_LDAPPWMOD_DESCRIPTION_USE_SSL.get());
+      useSSL.setPropertyName(OPTION_LONG_USE_SSL);
       argParser.addArgument(useSSL);
 
 
       useStartTLS = new BooleanArgument("usestarttls", OPTION_SHORT_START_TLS,
                              OPTION_LONG_START_TLS,
                              INFO_LDAPPWMOD_DESCRIPTION_USE_STARTTLS.get());
+      useStartTLS.setPropertyName(OPTION_LONG_START_TLS);
       argParser.addArgument(useStartTLS);
 
 
@@ -227,6 +246,7 @@ public class LDAPPasswordModify
                                   OPTION_LONG_BINDDN, false, false, true,
                                   OPTION_VALUE_BINDDN, null, null,
                                   INFO_LDAPPWMOD_DESCRIPTION_BIND_DN.get());
+      bindDN.setPropertyName(OPTION_LONG_BINDDN);
       argParser.addArgument(bindDN);
 
 
@@ -234,6 +254,7 @@ public class LDAPPasswordModify
                                   OPTION_LONG_BINDPWD, false, false,
                                   true, OPTION_VALUE_BINDPWD, null, null,
                                   INFO_LDAPPWMOD_DESCRIPTION_BIND_PW.get());
+      bindPW.setPropertyName(OPTION_LONG_BINDPWD);
       argParser.addArgument(bindPW);
 
 
@@ -242,24 +263,28 @@ public class LDAPPasswordModify
                                  OPTION_LONG_BINDPWD_FILE, false,
                                  false, OPTION_VALUE_BINDPWD_FILE, null, null,
                                  INFO_LDAPPWMOD_DESCRIPTION_BIND_PW_FILE.get());
+      bindPWFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
       argParser.addArgument(bindPWFile);
 
 
       authzID = new StringArgument("authzid", 'a', "authzID", false, false,
                                    true, "{authzID}", null, null,
                                    INFO_LDAPPWMOD_DESCRIPTION_AUTHZID.get());
+      authzID.setPropertyName("authzID");
       argParser.addArgument(authzID);
 
 
       provideDNForAuthzID =
            new BooleanArgument("providednforauthzid", 'A',"provideDNForAuthzID",
                     INFO_LDAPPWMOD_DESCRIPTION_PROVIDE_DN_FOR_AUTHZID.get());
+      provideDNForAuthzID.setPropertyName("provideDNForAuthzID");
       argParser.addArgument(provideDNForAuthzID);
 
 
       newPW = new StringArgument("newpw", 'n', "newPassword", false, false,
                                  true, "{newPassword}", null, null,
                                  INFO_LDAPPWMOD_DESCRIPTION_NEWPW.get());
+      newPW.setPropertyName("newPassword");
       argParser.addArgument(newPW);
 
 
@@ -267,6 +292,7 @@ public class LDAPPasswordModify
               "newpwfile", 'N', "newPasswordFile",
               false, false, "{file}", null, null,
               INFO_LDAPPWMOD_DESCRIPTION_NEWPWFILE.get());
+      newPWFile.setPropertyName("newPasswordFile");
       argParser.addArgument(newPWFile);
 
 
@@ -274,6 +300,7 @@ public class LDAPPasswordModify
            new StringArgument("currentpw", 'c', "currentPassword", false, false,
                               true, "{currentPassword}", null,  null,
                               INFO_LDAPPWMOD_DESCRIPTION_CURRENTPW.get());
+      currentPW.setPropertyName("currentPassword");
       argParser.addArgument(currentPW);
 
 
@@ -282,12 +309,14 @@ public class LDAPPasswordModify
                    "currentpwfile", 'C', "currentPasswordFile",
                    false, false, "{file}", null, null,
                    INFO_LDAPPWMOD_DESCRIPTION_CURRENTPWFILE.get());
+      currentPWFile.setPropertyName("currentPasswordFile");
       argParser.addArgument(currentPWFile);
 
 
       sslBlindTrust =
            new BooleanArgument("blindtrust", 'X', "trustAll",
                                INFO_LDAPPWMOD_DESCRIPTION_BLIND_TRUST.get());
+      sslBlindTrust.setPropertyName("trustAll");
       argParser.addArgument(sslBlindTrust);
 
 
@@ -296,6 +325,7 @@ public class LDAPPasswordModify
                               OPTION_LONG_KEYSTOREPATH, false, false,
                               true, OPTION_VALUE_KEYSTOREPATH, null, null,
                               INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE.get());
+      sslKeyStore.setPropertyName(OPTION_LONG_KEYSTOREPATH);
       argParser.addArgument(sslKeyStore);
 
 
@@ -307,6 +337,7 @@ public class LDAPPasswordModify
                               OPTION_VALUE_KEYSTORE_PWD,
                               null, null,
                               INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PIN.get());
+      sslKeyStorePIN.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
       argParser.addArgument(sslKeyStorePIN);
 
 
@@ -318,6 +349,7 @@ public class LDAPPasswordModify
                    false, false, OPTION_VALUE_KEYSTORE_PWD_FILE,
                    null, null,
                    INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE.get());
+      sslKeyStorePINFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
       argParser.addArgument(sslKeyStorePINFile);
 
 
@@ -328,6 +360,7 @@ public class LDAPPasswordModify
                               false, true,
                               OPTION_VALUE_TRUSTSTOREPATH, null, null,
                               INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE.get());
+      sslTrustStore.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
       argParser.addArgument(sslTrustStore);
 
 
@@ -337,6 +370,7 @@ public class LDAPPasswordModify
                               false, false, true,
                               OPTION_VALUE_TRUSTSTORE_PWD, null, null,
                               INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PIN.get());
+      sslTrustStorePIN.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
       argParser.addArgument(sslTrustStorePIN);
 
 
@@ -346,6 +380,7 @@ public class LDAPPasswordModify
                     OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
                     OPTION_VALUE_TRUSTSTORE_PWD_FILE, null,
                     null, INFO_LDAPPWMOD_DESCRIPTION_TRUSTSTORE_PINFILE.get());
+      sslTrustStorePINFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
       argParser.addArgument(sslTrustStorePINFile);
 
 
@@ -353,6 +388,7 @@ public class LDAPPasswordModify
            new StringArgument("control", 'J', "control", false, true, true,
                     "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
                     null, null, INFO_DESCRIPTION_CONTROLS.get());
+      controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
 

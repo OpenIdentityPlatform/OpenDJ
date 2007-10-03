@@ -361,6 +361,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-V", "2",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -387,6 +388,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-V", "3",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -414,6 +416,7 @@ public class LDAPModifyTestCase
       "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -444,6 +447,7 @@ public class LDAPModifyTestCase
       "-P", trustStorePath,
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -471,6 +475,7 @@ public class LDAPModifyTestCase
       "-X",
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -501,6 +506,7 @@ public class LDAPModifyTestCase
       "-P", trustStorePath,
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -554,6 +560,7 @@ public class LDAPModifyTestCase
       "-W", "password",
       "-P", trustStorePath,
       "-r",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -608,6 +615,7 @@ public class LDAPModifyTestCase
       "-N", "client-cert",
       "-P", trustStorePath,
       "-r",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -662,6 +670,7 @@ public class LDAPModifyTestCase
       "-N", "invalid",
       "-P", trustStorePath,
       "-r",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -715,6 +724,7 @@ public class LDAPModifyTestCase
       "-W", "password",
       "-P", trustStorePath,
       "-r",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -815,6 +825,7 @@ public class LDAPModifyTestCase
       "-o", "authzid=u:test.user",
       "-o", "realm=o=test",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -839,6 +850,7 @@ public class LDAPModifyTestCase
       "-o", "mech=PLAIN",
       "-o", "authid=dn:cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -865,6 +877,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--dry-run",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -898,6 +911,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--dry-run",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -928,6 +942,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--dry-run",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -960,6 +975,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--dry-run",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -986,6 +1002,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1014,6 +1031,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "no-op:true",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1048,6 +1066,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1083,6 +1102,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "no-op:true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1114,6 +1134,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1146,6 +1167,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "no-op:true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1192,6 +1214,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1239,6 +1262,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-J", "no-op:true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1267,6 +1291,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--assertionFilter", "(o=test)",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1294,6 +1319,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--assertionFilter", "(o=foo)",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1324,6 +1350,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--assertionFilter", "(o=test)",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1369,6 +1396,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--assertionFilter", "(ou=People)",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1396,6 +1424,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--preReadAttributes", "o",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1423,6 +1452,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--preReadAttributes", "o,objectClass",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1453,6 +1483,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--preReadAttributes", "o",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1498,6 +1529,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--preReadAttributes", "o",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1525,6 +1557,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--postReadAttributes", "o",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1552,6 +1585,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--postReadAttributes", "o,objectClass",
+      "--noPropertiesFile",
       "-f", modifyFilePath
     };
 
@@ -1586,6 +1620,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--postReadAttributes", "o",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1631,6 +1666,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--postReadAttributes", "o",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1663,6 +1699,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "--postReadAttributes", "o,objectClass",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1695,6 +1732,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1727,6 +1765,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-a",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1764,6 +1803,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1799,6 +1839,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1831,6 +1872,7 @@ public class LDAPModifyTestCase
       "-w", "password",
       "-J", OID_MANAGE_DSAIT_CONTROL + ":false",
       "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1890,6 +1932,7 @@ public class LDAPModifyTestCase
       "-D", "cn=Directory Manager",
       "-w", "password",
       "-c",
+      "--noPropertiesFile",
       "-f", path
     };
 
@@ -1925,6 +1968,7 @@ public class LDAPModifyTestCase
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
+      "--noPropertiesFile",
       "-f", path
     };
 
