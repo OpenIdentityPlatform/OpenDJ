@@ -31,10 +31,17 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.schema.BinarySyntax;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.ADSContext;
 import org.opends.messages.Message;
 
 import java.io.File;
@@ -45,6 +52,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 
@@ -79,7 +87,8 @@ public class CryptoManagerTestCase extends TypesTestCase
    */
   @AfterClass()
   public void CleanUp() throws Exception {
-
+    DirectoryServer.restart(this.getClass().getName(),
+            Message.raw("CryptoManager: clean-up internal key caches."));
   }
 
 
@@ -189,7 +198,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     // default (preferred) AES/CBC/PKCS5Padding 128bit key.
     paramList.add(new CipherParameters(null, null, null, 128, 128));
     // custom
-//    paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 192, 64));
+// TODO:  paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 192, 64));
     paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 128, 64));
     paramList.add(new CipherParameters("RC4", null, null, 104, 0));
     paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 56));
@@ -316,7 +325,6 @@ public class CryptoManagerTestCase extends TypesTestCase
   @Test(enabled=false)
   public void testKeyPersistence()
         throws Exception {
-
     final CryptoManager cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
 
@@ -334,7 +342,97 @@ public class CryptoManagerTestCase extends TypesTestCase
     assertEquals((new String(plainText)), secretMessage);
   }
 
-  // TODO: mark a key compromised; ensure 1) subsequent encryption
-  // requests use a new key; 2) ciphertext produced using the compromised
-  // key can still be decrypted.
+
+  /**
+   Mark a key compromised; ensure 1) subsequent encryption requests use a new
+   key; 2) ciphertext produced using the compromised key can still be decrypted.
+
+   @throws Exception In case something exceptional happens.
+   */
+  @Test(enabled=false)
+  public void testCompromisedKey() throws Exception {
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
+    final String cipherTransformationName = "AES/CBC/PKCS5Padding";
+    final int cipherKeyLength = 128;
+
+    // Initial encryption ensures a cipher key entry is in ADS.
+    final byte[] cipherText = cm.encrypt(cipherTransformationName,
+            cipherKeyLength, secretMessage.getBytes());
+
+    // Retrieve all uncompromised cipher key entries corresponding to the
+    // specified transformation and key length. Mark each entry compromised.
+    final String baseDNStr // TODO: is this DN a constant?
+            = "cn=secret keys," + ADSContext.getAdministrationSuffixDN();
+    final DN baseDN = DN.decode(baseDNStr);
+    final String FILTER_OC_INSTANCE_KEY
+            = new StringBuilder("(objectclass=")
+            .append(ConfigConstants.OC_CRYPTO_CIPHER_KEY)
+            .append(")").toString();
+    final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
+            .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
+            .append("=*))").toString();
+    final String FILTER_CIPHER_TRANSFORMATION_NAME = new StringBuilder("(")
+            .append(ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME)
+            .append("=").append(cipherTransformationName)
+            .append(")").toString();
+    final String FILTER_CIPHER_KEY_LENGTH = new StringBuilder("(")
+            .append(ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS)
+            .append("=").append(String.valueOf(cipherKeyLength))
+            .append(")").toString();
+    final String searchFilter = new StringBuilder("(&")
+            .append(FILTER_OC_INSTANCE_KEY)
+            .append(FILTER_NOT_COMPROMISED)
+            .append(FILTER_CIPHER_TRANSFORMATION_NAME)
+            .append(FILTER_CIPHER_KEY_LENGTH)
+            .append(")").toString();
+    final LinkedHashSet<String> requestedAttributes
+            = new LinkedHashSet<String>();
+    requestedAttributes.add("dn");
+    final InternalClientConnection icc
+            = InternalClientConnection.getRootConnection();
+    InternalSearchOperation searchOp = icc.processSearch(
+            baseDN,
+            SearchScope.SINGLE_LEVEL,
+            DereferencePolicy.NEVER_DEREF_ALIASES,
+            /* size limit */ 0, /* time limit */ 0,
+            /* types only */ false,
+            SearchFilter.createFilterFromString(searchFilter),
+            requestedAttributes);
+
+    assertTrue(0 < searchOp.getSearchEntries().size());
+    String compromisedTime = TimeThread.getGeneralizedTime();
+    for (Entry e : searchOp.getSearchEntries()) {
+      TestCaseUtils.applyModifications(
+        "dn: " + e.getDN().toNormalizedString(),
+        "changetype: modify",
+        "replace: " + ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME,
+        ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME + ": "
+                + compromisedTime);
+    }
+
+    // Use the transformation and key length again. A new cipher key
+    // should be produced.
+    final byte[] cipherText2 = cm.encrypt(cipherTransformationName,
+            cipherKeyLength, secretMessage.getBytes());
+
+    // test for identical keys
+    try {
+      Method m = Arrays.class.getMethod("copyOfRange", (new byte[16]).getClass(),
+              Integer.TYPE, Integer.TYPE);
+      final byte[] keyID = (byte[])m.invoke(null, cipherText, 0, 16);
+      final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 0, 16);
+      assertTrue(! Arrays.equals(keyID, keyID2));
+    }
+    catch (NoSuchMethodException ex) {
+      // skip this test - requires at least Java 6
+    }
+
+    // confirm ciphertext produced using compromised key can still
+    // be decrypted.
+    final byte[] plainText = cm.decrypt(cipherText);
+    assertEquals((new String(plainText)), secretMessage);
+
+  }
+
 }
