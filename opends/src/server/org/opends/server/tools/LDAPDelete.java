@@ -423,6 +423,7 @@ public class LDAPDelete
                                     OPTION_LONG_FILENAME, false, false,
                                     true, OPTION_VALUE_FILENAME, null, null,
                                     INFO_DELETE_DESCRIPTION_FILENAME.get());
+      filename.setPropertyName(OPTION_LONG_FILENAME);
       argParser.addArgument(filename);
 
       saslExternal =
