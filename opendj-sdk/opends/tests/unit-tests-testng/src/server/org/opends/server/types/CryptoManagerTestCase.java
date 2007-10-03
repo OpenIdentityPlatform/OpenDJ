@@ -35,6 +35,7 @@ import org.opends.server.util.StaticUtils;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,7 +65,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 {
   /**
    Setup..
-   @throws  Exception  If an unexpected problem occurs.
+   @throws Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
   public void setUp()
@@ -173,7 +174,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     public int getIVLength() {
       return fIVLength;
     }
-  }
+    }
 
 
   /**
@@ -194,7 +195,6 @@ public class CryptoManagerTestCase extends TypesTestCase
     paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 56));
     paramList.add(new CipherParameters("DESede", "ECB", "PKCS5Padding", 168, 56));
 
-
     Object[][] cipherParameters = new Object[paramList.size()][1];
     for (int i=0; i < paramList.size(); i++)
     {
@@ -213,7 +213,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
    @throws Exception If an exceptional condition arises.
    */
-  @Test(dataProvider = "cipherParametersData")
+@Test(dataProvider="cipherParametersData")
   public void testEncryptDecryptSuccess(CipherParameters cp)
           throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
@@ -238,7 +238,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
    @throws Exception If an exceptional condition arises.
    */
-  @Test(dataProvider = "cipherParametersData")
+  @Test(dataProvider="cipherParametersData")
   public void testStreamEncryptDecryptSuccess(CipherParameters cp)
           throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
@@ -269,6 +269,9 @@ public class CryptoManagerTestCase extends TypesTestCase
   /**
    Tests to ensure the same key identifier (and hence, key) is used for
    successive encryptions specifying the same algorithm and key length.
+   <p>
+   The default encryption cipher requires an initialization vector. Confirm
+   successive uses of a key produces distinct ciphertext.
 
    @throws Exception  In case an error occurs in the encryption routine.
    */
@@ -277,22 +280,61 @@ public class CryptoManagerTestCase extends TypesTestCase
           throws Exception {
 
     final CryptoManager cm = DirectoryServer.getCryptoManager();
-    final String secretMessage = "1234";
+    final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
 
+    final byte[] cipherText = cm.encrypt(secretMessage.getBytes());
+    final byte[] cipherText2 = cm.encrypt(secretMessage.getBytes());
+
+    // test cycle
+    final byte[] plainText = cm.decrypt(cipherText2);
+    assertEquals((new String(plainText)), secretMessage);
+
+    // test for identical keys
     try {
       Method m = Arrays.class.getMethod("copyOfRange", (new byte[16]).getClass(),
               Integer.TYPE, Integer.TYPE);
-      final byte[] cipherText = cm.encrypt(secretMessage.getBytes());
       final byte[] keyID = (byte[])m.invoke(null, cipherText, 0, 16);
-      final byte[] cipherText2 = cm.encrypt(secretMessage.getBytes());
       final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 0, 16);
-      assertTrue(Arrays.equals(keyID, keyID2));
+      assertEquals(keyID, keyID2);
     }
     catch (NoSuchMethodException ex) {
-      // ignore - requires Java 6
+      // skip this test - requires at least Java 6
     }
+
+    // test for distinct ciphertext
+    assertTrue(! Arrays.equals(cipherText, cipherText2));
   }
 
-  // TODO: ensure ciphers using IV output differs for successive
-  // encryptions of the same clear-text.
+
+  /**
+   Test that secret keys are persisted: Encrypt some data using a
+   variety of transformations, restart the instance, and decrypt the
+   retained ciphertext.
+
+   @throws Exception  In case an error occurs in the encryption routine.
+   */
+  @Test(enabled=false)
+  public void testKeyPersistence()
+        throws Exception {
+
+    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
+
+    final byte[] cipherText = cm.encrypt("Blowfish/CFB/NoPadding", 128,
+            secretMessage.getBytes());
+    final byte[] cipherText2 = cm.encrypt("RC4", 104,
+            secretMessage.getBytes());
+
+    DirectoryServer.restart(this.getClass().getName(),
+            Message.raw("CryptoManager: testing persistent secret keys."));
+
+    byte[] plainText = cm.decrypt(cipherText);
+    assertEquals((new String(plainText)), secretMessage);
+    plainText = cm.decrypt(cipherText2);
+    assertEquals((new String(plainText)), secretMessage);
+  }
+
+  // TODO: mark a key compromised; ensure 1) subsequent encryption
+  // requests use a new key; 2) ciphertext produced using the compromised
+  // key can still be decrypted.
 }
