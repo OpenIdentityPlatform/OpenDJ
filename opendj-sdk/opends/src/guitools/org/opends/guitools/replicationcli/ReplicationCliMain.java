@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -619,7 +620,7 @@ public class ReplicationCliMain extends CliApplicationHelper
                 INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(),
                 argParser.getDefaultReplicationPort1(), false);
           }
-          if (!argParser.skipReplicationPortCheck())
+          if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
           {
             if (!SetupUtils.canUseAsPort(replicationPort1))
             {
@@ -829,7 +830,7 @@ public class ReplicationCliMain extends CliApplicationHelper
                 INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
                 argParser.getDefaultReplicationPort2(), false);
           }
-          if (!argParser.skipReplicationPortCheck())
+          if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
           {
             if (!SetupUtils.canUseAsPort(replicationPort2))
             {
@@ -2387,6 +2388,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (!hasReplicationPort1)
         {
           if (!argParser.skipReplicationPortCheck() &&
+              isLocalHost(host1) &&
               !SetupUtils.canUseAsPort(replPort1))
           {
             errorMessages.add(getCannotBindToPortError(replPort1));
@@ -2395,6 +2397,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (!hasReplicationPort2)
         {
           if (!argParser.skipReplicationPortCheck() &&
+              isLocalHost(host2) &&
               !SetupUtils.canUseAsPort(replPort2))
           {
             errorMessages.add(getCannotBindToPortError(replPort2));
@@ -5199,5 +5202,38 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
     }
     return mb.toMessage();
+  }
+
+  /**
+   * Basic method to know if the host is local or not.  This is only used to
+   * know if we can perform a port check or not.
+   * @param host the host to analyze.
+   * @return <CODE>true</CODE> if it is the local host and <CODE>false</CODE>
+   * otherwise.
+   */
+  private boolean isLocalHost(String host)
+  {
+    boolean isLocalHost = false;
+    if (!"localhost".equalsIgnoreCase(host))
+    {
+      try
+      {
+        InetAddress localAddress = InetAddress.getLocalHost();
+        InetAddress[] addresses = InetAddress.getAllByName(host);
+        for (int i=0; i<addresses.length && !isLocalHost; i++)
+        {
+          isLocalHost = localAddress.equals(addresses[i]);
+        }
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.WARNING, "Failing checking host names: "+t, t);
+      }
+    }
+    else
+    {
+      isLocalHost = true;
+    }
+    return isLocalHost;
   }
 }
