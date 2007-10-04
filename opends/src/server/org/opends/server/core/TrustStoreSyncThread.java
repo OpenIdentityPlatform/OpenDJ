@@ -724,11 +724,34 @@ public class TrustStoreSyncThread extends DirectoryThread
   public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
                                     Entry oldEntry, Entry newEntry)
   {
-    if (!modifyOperation.getEntryDN().isDescendantOf(instanceKeysDN))
+    if (modifyOperation.getEntryDN().isDescendantOf(instanceKeysDN))
     {
-      return;
+      handleInstanceKeyModifyOperation(newEntry);
     }
+    else if (modifyOperation.getEntryDN().isDescendantOf(secretKeysDN))
+    {
+      try
+      {
+        if (newEntry.hasObjectClass(ocCipherKey))
+        {
+          DirectoryServer.getCryptoManager().importCipherKeyEntry(newEntry);
+        }
+        else if (newEntry.hasObjectClass(ocMacKey))
+        {
+          DirectoryServer.getCryptoManager().importMacKeyEntry(newEntry);
+        }
+      }
+      catch (CryptoManager.CryptoManagerException e)
+      {
+        Message message = Message.raw("Failed to import modified key entry: %s",
+                                      e.getMessage());
+        ErrorLogger.logError(message);
+      }
+    }
+  }
 
+  private void handleInstanceKeyModifyOperation(Entry newEntry)
+  {
     RDN srcRDN = newEntry.getDN().getRDN();
 
     // Only process the entry if it has the expected form of RDN.

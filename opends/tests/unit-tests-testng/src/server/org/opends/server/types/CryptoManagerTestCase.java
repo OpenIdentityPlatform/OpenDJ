@@ -31,8 +31,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.BinarySyntax;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.config.ConfigConstants;
@@ -349,7 +347,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
    @throws Exception In case something exceptional happens.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void testCompromisedKey() throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
@@ -417,16 +415,11 @@ public class CryptoManagerTestCase extends TypesTestCase
             cipherKeyLength, secretMessage.getBytes());
 
     // test for identical keys
-    try {
-      Method m = Arrays.class.getMethod("copyOfRange", (new byte[16]).getClass(),
-              Integer.TYPE, Integer.TYPE);
-      final byte[] keyID = (byte[])m.invoke(null, cipherText, 0, 16);
-      final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 0, 16);
-      assertTrue(! Arrays.equals(keyID, keyID2));
-    }
-    catch (NoSuchMethodException ex) {
-      // skip this test - requires at least Java 6
-    }
+    final byte[] keyID = new byte[16];
+    final byte[] keyID2 = new byte[16];
+    System.arraycopy(cipherText, 0, keyID, 0, 16);
+    System.arraycopy(cipherText2, 0, keyID2, 0, 16);
+    assertTrue(! Arrays.equals(keyID, keyID2));
 
     // confirm ciphertext produced using compromised key can still
     // be decrypted.

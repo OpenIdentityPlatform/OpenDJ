@@ -2312,6 +2312,10 @@ public class CryptoManager
       // Check map for existing key entry with the supplied keyID.
       CipherKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
       if (null != keyEntry) {
+        if (isCompromised && !keyEntry.isCompromised())
+        {
+          keyEntry.setIsCompromised();
+        }
         // TODO: compare keyEntry with supplied parameters to ensure
         // equal.
         return keyEntry;
@@ -2765,6 +2769,10 @@ public class CryptoManager
       // Check map for existing key entry with the supplied keyID.
       MacKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
       if (null != keyEntry) {
+        if (isCompromised && !keyEntry.isCompromised())
+        {
+          keyEntry.setIsCompromised();
+        }
         // TODO: compare keyEntry with supplied parameters to ensure
         // equal.
         return keyEntry;
