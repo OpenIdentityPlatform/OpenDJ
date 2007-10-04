@@ -553,7 +553,7 @@ public class CryptoManager
         certificateValueSet.add(certificateValue);
         final LinkedHashSet<String> certificateOptions =
                 new LinkedHashSet<String>(1);
-        certificateOptions.add(";binary");
+        certificateOptions.add("binary");
         final Attribute certificateAttr = new Attribute(
                 attrPublicKeyCertificate,
                 attrPublicKeyCertificate.getNameOrOID(),
