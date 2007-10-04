@@ -49,12 +49,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import org.opends.server.config.ConfigException;
-import org.opends.server.config.ConfigConstants;
-
+import org.opends.admin.ads.ADSContext;
 import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
+import org.opends.server.config.ConfigException;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.AddOperation;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -70,7 +70,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.BinarySyntax;
-import org.opends.admin.ads.ADSContext;
 
 /**
  * This class provides the interface to the Directory Server
@@ -103,11 +102,15 @@ public class CryptoManager
   private static AttributeType attrInitVectorLength;
   private static AttributeType attrKeyLength;
   private static AttributeType attrCompromisedTime;
+  private static ObjectClass   ocInstanceKey;
   private static ObjectClass   ocCipherKey;
   private static ObjectClass   ocMacKey;
 
-  // The DN of the administration suffix.
-  private static DN adminSuffixDN;
+  // The DN of the local truststore backend.
+  private static DN localTruststoreDN;
+
+  // The DN of the ADS instance keys container.
+  private static DN instanceKeysDN;
 
   // The DN of the ADS secret keys container.
   private static DN secretKeysDN;
@@ -199,6 +202,8 @@ public class CryptoManager
            ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS);
       attrCompromisedTime = DirectoryServer.getAttributeType(
            ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      ocInstanceKey = DirectoryServer.getObjectClass(
+           ConfigConstants.OC_CRYPTO_INSTANCE_KEY);
       ocCipherKey = DirectoryServer.getObjectClass(
            ConfigConstants.OC_CRYPTO_CIPHER_KEY);
       ocMacKey = DirectoryServer.getObjectClass(
@@ -206,8 +211,12 @@ public class CryptoManager
 
       try
       {
-        adminSuffixDN = DN.decode(
-             ADSContext.getAdministrationSuffixDN());
+        localTruststoreDN
+                = DN.decode(ConfigConstants.DN_TRUST_STORE_ROOT);
+        DN adminSuffixDN = DN.decode(
+                ADSContext.getAdministrationSuffixDN());
+        instanceKeysDN = adminSuffixDN.concat(
+                DN.decode("cn=instance keys"));
         secretKeysDN = adminSuffixDN.concat(
              DN.decode("cn=secret keys"));
       }
@@ -334,84 +343,86 @@ public class CryptoManager
    * @throws CryptoManagerException If the certificate cannot be
    * retrieved.
    */
- public byte[] getInstanceKeyCertificate()
-         throws CryptoManagerException {
-   final String DN_ADS_CERTIFICATE =
-        ConfigConstants.ATTR_CRYPTO_KEY_ID
-        + "=" + ConfigConstants.ADS_CERTIFICATE_ALIAS + ","
-           + ConfigConstants.DN_TRUST_STORE_ROOT; // TODO: constant
-   final String FILTER_OC_INSTANCE_KEY
-        = new StringBuilder("(objectclass=")
-        .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
-        .append(")").toString();
-   final String ATTR_INSTANCE_KEY_CERTIFICATE_BINARY
-           = "ds-cfg-public-key-certificate;binary";
-   final LinkedHashSet<String> requestedAttributes
-           = new LinkedHashSet<String>();
-   requestedAttributes.add(ATTR_INSTANCE_KEY_CERTIFICATE_BINARY);
-   final InternalClientConnection icc
-           = InternalClientConnection.getRootConnection();
-   byte[] certificate = null;
-   try {
-     for (int i = 0; i < 2; ++i) {
-       try {
-         /* If the entry does not exist in the instance's truststore
-            backend, add it (which induces the CryptoManager to create
-            the public-key certificate attribute), then repeat the
-            search. */
-         InternalSearchOperation searchOp = icc.processSearch(
-                 DN.decode(DN_ADS_CERTIFICATE),
-                 SearchScope.BASE_OBJECT,
-                 DereferencePolicy.NEVER_DEREF_ALIASES,
-                 /* size limit */ 0, /* time limit */ 0,
-                 /* types only */ false,
-                 SearchFilter.createFilterFromString(
-                         FILTER_OC_INSTANCE_KEY),
-                 requestedAttributes);
-         final Entry e = searchOp.getSearchEntries().getFirst();
-         /* attribute ds-cfg-public-key-certificate is a MUST in the
-            schema */
-         final List<Attribute> attrs
-                 = e.getAttribute(attrPublicKeyCertificate);
-         final Attribute a = attrs.get(0);
-         final AttributeValue v = a.getValues().iterator().next();
-         certificate = v.getValueBytes();
-         break;
-       }
-       catch (DirectoryException ex) {
-         if (0 == i
-                 && ResultCode.NO_SUCH_OBJECT == ex.getResultCode()){
-           final Entry e = new Entry(DN.decode(DN_ADS_CERTIFICATE),
-                   null, null, null);
-           final AttributeType ocAttrType
-                   = DirectoryServer.getAttributeType("objectclass");
-           e.addObjectClass(new AttributeValue(ocAttrType, "top"));
-           e.addObjectClass(new AttributeValue(ocAttrType,
-                   "ds-cfg-self-signed-cert-request"));
-           AddOperation addOperation = icc.processAdd(e.getDN(),
-                   e.getObjectClasses(),
-                   e.getUserAttributes(),
-                   e.getOperationalAttributes());
-           if (ResultCode.SUCCESS != addOperation.getResultCode()) {
-             throw new DirectoryException(
-                     addOperation.getResultCode(),
-                     Message.raw("Failed to add entry %s.",
-                             e.getDN().toString()));
-           }
-         }
-         else {
-           throw ex;
-         }
-       }
-     }
-   }
-   catch (DirectoryException ex) {
-     throw new CryptoManagerException(
-       // TODO: i18n
-       Message.raw("Failed to retrieve %s.", DN_ADS_CERTIFICATE), ex);
-   }
-   return(certificate);
- }
+  public byte[] getInstanceKeyCertificateFromLocalTruststore()
+          throws CryptoManagerException {
+    // Construct the key entry DN.
+    final AttributeValue distinguishedValue = new AttributeValue(
+            attrKeyID, ConfigConstants.ADS_CERTIFICATE_ALIAS);
+    final DN entryDN = localTruststoreDN.concat(
+            RDN.create(attrKeyID, distinguishedValue));
+    // Construct the search filter.
+    final String FILTER_OC_INSTANCE_KEY =
+            new StringBuilder("(objectclass=")
+                    .append(ocInstanceKey.getNameOrOID())
+                    .append(")").toString();
+    // Construct the attribute list.
+    final LinkedHashSet<String> requestedAttributes
+            = new LinkedHashSet<String>();
+    requestedAttributes.add(attrPublicKeyCertificate.getNameOrOID());
+
+    // Retrieve the certificate from the entry.
+    final InternalClientConnection icc
+            = InternalClientConnection.getRootConnection();
+    byte[] certificate = null;
+    try {
+      for (int i = 0; i < 2; ++i) {
+        try {
+          /* If the entry does not exist in the instance's truststore
+             backend, add it (which induces the CryptoManager to
+             create the public-key certificate attribute), then repeat
+             the search. */
+          InternalSearchOperation searchOp = icc.processSearch(
+                  entryDN,
+                  SearchScope.BASE_OBJECT,
+                  DereferencePolicy.NEVER_DEREF_ALIASES,
+                  /* size limit */ 0, /* time limit */ 0,
+                  /* types only */ false,
+                  SearchFilter.createFilterFromString(
+                          FILTER_OC_INSTANCE_KEY),
+                  requestedAttributes);
+          for (Entry e : searchOp.getSearchEntries()) {
+            /* attribute ds-cfg-public-key-certificate is a MUST in
+               the schema */
+            certificate = e.getAttributeValue(
+                    attrPublicKeyCertificate, BinarySyntax.DECODER);
+            break;
+          }
+          break;
+        }
+        catch (DirectoryException ex) {
+          if (0 == i
+                  && ResultCode.NO_SUCH_OBJECT == ex.getResultCode()){
+            final Entry e = new Entry(entryDN, null, null, null);
+            final AttributeType ocAttrType
+                    = DirectoryServer.getAttributeType("objectclass");
+            e.addObjectClass(new AttributeValue(ocAttrType, "top"));
+            e.addObjectClass(new AttributeValue(ocAttrType,
+                    "ds-cfg-self-signed-cert-request"));
+            AddOperation addOperation = icc.processAdd(e.getDN(),
+                    e.getObjectClasses(),
+                    e.getUserAttributes(),
+                    e.getOperationalAttributes());
+            if (ResultCode.SUCCESS != addOperation.getResultCode()) {
+              throw new DirectoryException(
+                      addOperation.getResultCode(),
+                      Message.raw("Failed to add entry %s.",
+                              e.getDN().toString()));
+            }
+          }
+          else {
+            throw ex;
+          }
+        }
+      }
+    }
+    catch (DirectoryException ex) {
+      throw new CryptoManagerException(
+              // TODO: i18n
+            Message.raw("Failed to retrieve %s.", entryDN.toString()),
+              ex);
+    }
+    return(certificate);
+  }
 
 
   /**
@@ -426,7 +437,8 @@ public class CryptoManager
    */
   public String getInstanceKeyID()
           throws CryptoManagerException {
-    return getInstanceKeyID(getInstanceKeyCertificate());
+    return getInstanceKeyID(
+            getInstanceKeyCertificateFromLocalTruststore());
   }
 
 
@@ -460,12 +472,117 @@ public class CryptoManager
 
 
   /**
+   Publishes the instance key entry in ADS, if it does not already
+   exist.
+
+   TODO: The ADS configuration retrieves an instance's instance key
+   certificate via ServerDescriptor and publishes it via ADSContext in
+   that instance's ADS suffix (in the case a stand-alone instance is
+   being configured) or in an existing ADS suffix (in the case the
+   instance is being added to an existing ADS domain). Instead, have
+   the instance call this routine at startup (after the backends and
+   CryptoManager have been initialized), and change ADS configuration
+   to retrieve the instance key from the ADS suffix in the second
+   case, above (the first case would be unecessary).
+
+   @throws CryptoManagerException In case there is a problem
+   searching for the entry, or, if necessary, adding it.
+
+   @see org.opends.admin.ads.ServerDescriptor
+       #updatePublicKeyCertificate(
+             org.opends.admin.ads.ServerDescriptor,
+             javax.naming.ldap.InitialLdapContext)
+
+   @see org.opends.admin.ads.ADSContext
+       #registerInstanceKeyCertificate(
+             java.util.Map, javax.naming.ldap.LdapName)
+   */
+  public void publishInstanceKeyEntryInADS()
+          throws CryptoManagerException {
+    final byte[] instanceKeyCertificate
+            = getInstanceKeyCertificateFromLocalTruststore();
+    final String instanceKeyID
+            = getInstanceKeyID(instanceKeyCertificate);
+    // Construct the key entry DN.
+    final AttributeValue distinguishedValue =
+            new AttributeValue(attrKeyID, instanceKeyID);
+    final DN entryDN = instanceKeysDN.concat(
+         RDN.create(attrKeyID, distinguishedValue));
+    // Construct the search filter.
+    final String FILTER_OC_INSTANCE_KEY =
+            new StringBuilder("(objectclass=")
+                    .append(ocInstanceKey.getNameOrOID())
+                    .append(")").toString();
+    // Construct the attribute list.
+    final LinkedHashSet<String> requestedAttributes
+            = new LinkedHashSet<String>();
+    requestedAttributes.add("dn");
+
+    // Check for the entry. If it does not exist, create it.
+    final InternalClientConnection icc
+            = InternalClientConnection.getRootConnection();
+    try {
+      final InternalSearchOperation searchOp
+              = icc.processSearch( entryDN, SearchScope.BASE_OBJECT,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              /* size limit */ 0, /* time limit */ 0,
+              /* types only */ false,
+              SearchFilter.createFilterFromString(
+                      FILTER_OC_INSTANCE_KEY),
+              requestedAttributes);
+      if (0 == searchOp.getSearchEntries().size()) {
+        final Entry e = new Entry(entryDN, null, null, null);
+        e.addObjectClass(DirectoryServer.getTopObjectClass());
+        e.addObjectClass(ocInstanceKey);
+        // Add the key ID attribute.
+        final LinkedHashSet<AttributeValue> keyIDValueSet =
+                new LinkedHashSet<AttributeValue>(1);
+        keyIDValueSet.add(distinguishedValue);
+        final Attribute keyIDAttr = new Attribute(
+                attrKeyID,
+                attrKeyID.getNameOrOID(),
+                keyIDValueSet);
+        e.addAttribute(keyIDAttr, new ArrayList<AttributeValue>(0));
+        // Add the public key certificate attribute.
+        final LinkedHashSet<AttributeValue> certificateValueSet =
+                new LinkedHashSet<AttributeValue>(1);
+        final AttributeValue certificateValue = new AttributeValue(
+                attrPublicKeyCertificate,
+                ByteStringFactory.create(instanceKeyCertificate));
+        certificateValueSet.add(certificateValue);
+        final Attribute certificateAttr = new Attribute(
+                attrPublicKeyCertificate,
+                attrPublicKeyCertificate.getNameOrOID(),
+                certificateValueSet);
+        e.addAttribute(certificateAttr,
+                new ArrayList<AttributeValue>(0));
+
+        AddOperation addOperation = icc.processAdd(e.getDN(),
+                e.getObjectClasses(),
+                e.getUserAttributes(),
+                e.getOperationalAttributes());
+        if (ResultCode.SUCCESS != addOperation.getResultCode()) {
+          throw new DirectoryException(
+                  addOperation.getResultCode(),
+                  Message.raw("Failed to add entry %s.",
+                          e.getDN().toString()));
+        }
+      }
+    } catch (DirectoryException ex) {
+      throw new CryptoManagerException(
+        // TODO: i18n
+        Message.raw("Failed to publish %s.", entryDN.toString()), ex);
+    }
+  }
+
+
+  /**
    Return the set of valid (i.e., not tagged as compromised) instance
    key-pair public-key certificate entries in ADS.
    @return The set of valid (i.e., not tagged as compromised) instance
    key-pair public-key certificate entries in ADS represented as a Map
-   from ds-cfg-key-id value to ds-cfg-public-key-certificate;binary
-   value. Note that the collection might be empty.
+   from ds-cfg-key-id value to ds-cfg-public-key-certificate value.
+   Note that the collection might be empty.
    @throws CryptoManagerException  In case of a problem with the
    search operation.
    @see org.opends.admin.ads.ADSContext#getTrustedCertificates()
@@ -474,9 +591,8 @@ public class CryptoManager
           throws CryptoManagerException {
     final Map<String, byte[]> certificateMap
             = new HashMap<String, byte[]>();
-    final String baseDNStr = ADSContext.getInstanceKeysContainerDN();
     try {
-      final DN baseDN = DN.decode(baseDNStr);
+      // Construct the search filter.
       final String FILTER_OC_INSTANCE_KEY
               = new StringBuilder("(objectclass=")
               .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
@@ -488,24 +604,24 @@ public class CryptoManager
               .append(FILTER_OC_INSTANCE_KEY)
               .append(FILTER_NOT_COMPROMISED)
               .append(")").toString();
+      // Construct the attribute list.
       final LinkedHashSet<String> requestedAttributes
               = new LinkedHashSet<String>();
       requestedAttributes.add(ConfigConstants.ATTR_CRYPTO_KEY_ID);
-      final String ATTR_INSTANCE_KEY_CERTIFICATE_BINARY
-              = ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE
-              + ";binary";
-      requestedAttributes.add(ATTR_INSTANCE_KEY_CERTIFICATE_BINARY);
+      requestedAttributes.add(
+              attrPublicKeyCertificate.getNameOrOID());
+      // Invoke the search operation.
       final InternalClientConnection icc
               = InternalClientConnection.getRootConnection();
       InternalSearchOperation searchOp = icc.processSearch(
-              baseDN,
+              instanceKeysDN,
               SearchScope.SINGLE_LEVEL,
               DereferencePolicy.NEVER_DEREF_ALIASES,
               /* size limit */ 0, /* time limit */ 0,
               /* types only */ false,
               SearchFilter.createFilterFromString(searchFilter),
               requestedAttributes);
-
+      // Evaluate the search response.
       for (Entry e : searchOp.getSearchEntries()) {
         /* attribute ds-cfg-key-id is the RDN and attribute
            ds-cfg-public-key-certificate is a MUST in the schema */
@@ -521,7 +637,7 @@ public class CryptoManager
               // TODO: i18n
               Message.raw("Error retrieving instance-key public key" +
                       " certificates from ADS container %s.",
-                      baseDNStr), ex);
+                      instanceKeysDN.toString()), ex);
     }
     return(certificateMap);
   }
@@ -742,15 +858,16 @@ public class CryptoManager
     final SecretKey secretKey
             = decodeSymmetricKeyAttribute(symmetricKeyAttribute);
     final Map<String, byte[]> certMap = getTrustedCertificates();
-    if (! certMap.containsKey(requestedInstanceKeyID)) {
+    if (! (certMap.containsKey(requestedInstanceKeyID)
+            && null != certMap.get(requestedInstanceKeyID))) {
       throw new CryptoManagerException(
               // TODO: i18n
               Message.raw("The public key certificate specified by" +
                       " the identifier %s cannot be found.",
                       requestedInstanceKeyID));
     }
-    final byte[] wrappingKeyCert
-            = certMap.get(requestedInstanceKeyID);
+    final byte[] wrappingKeyCert =
+            certMap.get(requestedInstanceKeyID);
     return encodeSymmetricKeyAttribute(
             requestedInstanceKeyID, wrappingKeyCert, secretKey);
   }
@@ -2220,7 +2337,7 @@ public class CryptoManager
 
       // Need to add our own instance certificate.
       byte[] instanceKeyCertificate =
-           cryptoManager.getInstanceKeyCertificate();
+         cryptoManager.getInstanceKeyCertificateFromLocalTruststore();
       trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
                        instanceKeyCertificate);
 
@@ -2262,6 +2379,7 @@ public class CryptoManager
         throw new CryptoManagerException(message);
       }
     }
+
 
     /**
      * Initializes a secret key entry from the supplied parameters,
@@ -2684,7 +2802,7 @@ public class CryptoManager
 
       // Need to add our own instance certificate.
       byte[] instanceKeyCertificate =
-           cryptoManager.getInstanceKeyCertificate();
+         cryptoManager.getInstanceKeyCertificateFromLocalTruststore();
       trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
                        instanceKeyCertificate);
 

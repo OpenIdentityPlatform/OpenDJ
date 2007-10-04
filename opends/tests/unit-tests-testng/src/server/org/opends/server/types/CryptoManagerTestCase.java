@@ -85,8 +85,7 @@ public class CryptoManagerTestCase extends TypesTestCase
    */
   @AfterClass()
   public void CleanUp() throws Exception {
-    DirectoryServer.restart(this.getClass().getName(),
-            Message.raw("CryptoManager: clean-up internal key caches."));
+    // TODO: remove at least secret key entries added in this exercise.
   }
 
 
@@ -94,7 +93,7 @@ public class CryptoManagerTestCase extends TypesTestCase
   public void testGetInstanceKeyCertificate()
           throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
-    final byte[] cert = cm.getInstanceKeyCertificate();
+    final byte[] cert = cm.getInstanceKeyCertificateFromLocalTruststore();
     assertNotNull(cert);
 
     // The certificate should now be accessible in the truststore backend via LDAP.
@@ -103,7 +102,7 @@ public class CryptoManagerTestCase extends TypesTestCase
                     + String.valueOf(TestCaseUtils.getServerLdapPort()),
             "cn=Directory Manager", "password",
           ConnectionUtils.getDefaultLDAPTimeout(), null);
-    // TODO: the below dn should be in ConfigConstants
+    // TODO: should the below dn be in ConfigConstants?
     final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
     final LdapName dn = new LdapName(dnStr);
     final SearchControls searchControls = new SearchControls();
@@ -125,6 +124,10 @@ public class CryptoManagerTestCase extends TypesTestCase
     MessageDigest md = MessageDigest.getInstance("MD5");
     assertTrue(StaticUtils.bytesToHexNoSpace(
          md.digest(ldapCert)).equals(cm.getInstanceKeyID()));
+
+    // Call twice to ensure idempotent. 
+    cm.publishInstanceKeyEntryInADS();
+    cm.publishInstanceKeyEntryInADS();
   }
 
   @Test
@@ -342,12 +345,14 @@ public class CryptoManagerTestCase extends TypesTestCase
 
 
   /**
-   Mark a key compromised; ensure 1) subsequent encryption requests use a new
-   key; 2) ciphertext produced using the compromised key can still be decrypted.
+   Mark a key compromised; ensure 1) subsequent encryption requests use a
+   new key; 2) ciphertext produced using the compromised key can still be
+   decrypted; 3) once the compromised key entry is removed, confirm ciphertext
+   produced using the compromised key can no longer be decrypted.
 
    @throws Exception In case something exceptional happens.
    */
-  @Test(enabled=true)
+  @Test()
   public void testCompromisedKey() throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
@@ -360,7 +365,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
     // Retrieve all uncompromised cipher key entries corresponding to the
     // specified transformation and key length. Mark each entry compromised.
-    final String baseDNStr // TODO: is this DN a constant?
+    final String baseDNStr // TODO: is this DN defined elsewhere as a constant?
             = "cn=secret keys," + ADSContext.getAdministrationSuffixDN();
     final DN baseDN = DN.decode(baseDNStr);
     final String FILTER_OC_INSTANCE_KEY
@@ -397,8 +402,8 @@ public class CryptoManagerTestCase extends TypesTestCase
             /* types only */ false,
             SearchFilter.createFilterFromString(searchFilter),
             requestedAttributes);
-
     assertTrue(0 < searchOp.getSearchEntries().size());
+
     String compromisedTime = TimeThread.getGeneralizedTime();
     for (Entry e : searchOp.getSearchEntries()) {
       TestCaseUtils.applyModifications(
@@ -414,18 +419,55 @@ public class CryptoManagerTestCase extends TypesTestCase
     final byte[] cipherText2 = cm.encrypt(cipherTransformationName,
             cipherKeyLength, secretMessage.getBytes());
 
-    // test for identical keys
+    // 1. Test for distinct keys.
     final byte[] keyID = new byte[16];
     final byte[] keyID2 = new byte[16];
     System.arraycopy(cipherText, 0, keyID, 0, 16);
     System.arraycopy(cipherText2, 0, keyID2, 0, 16);
     assertTrue(! Arrays.equals(keyID, keyID2));
 
-    // confirm ciphertext produced using compromised key can still
-    // be decrypted.
+    // 2. Confirm ciphertext produced using the compromised key can still be
+    // decrypted.
     final byte[] plainText = cm.decrypt(cipherText);
     assertEquals((new String(plainText)), secretMessage);
 
+    // 3. Delete the compromised entry(ies) and ensure ciphertext produced
+    // using a compromised key can no longer be decrypted.
+    for (Entry e : searchOp.getSearchEntries()) {
+      TestCaseUtils.applyModifications(
+        "dn: " + e.getDN().toNormalizedString(),
+        "changetype: delete");
+    }
+    Thread.sleep(1000); // Clearing the cache is asynchronous.
+    try {
+      cm.decrypt(cipherText);
+    }
+    catch (CryptoManager.CryptoManagerException ex) {
+      // TODO: if reasons are added to CryptoManagerException, check for
+      // expected cause.
+    }
   }
 
+  /**
+   TODO: Test the secret key synchronization protocol.
+
+     1. Create the first instance; add reversible password storage scheme
+     to password policy; add entry using explicit password policy; confirm
+     secret key entry has been produced.
+
+     2. Create and initialize the second instance into the existing ADS domain.
+     The secret key entries should be propagated to the second instance via
+     replication. Then the new instance should detect that the secret key
+     entries are missing ds-cfg-symmetric-key attribute values for that
+     instance, inducing the key synchronization protocol.
+
+     3. Confirm the second instance can decrypt the password of the entry
+     added in step 1; e.g., bind as that user.
+
+     4. Stop the second instance. At the first instance, enable a different
+     reversible password storage scheme (different cipher transformation,
+     and hence secret key entry); add another entry using that password
+     storage scheme; start the second instance; ensure the password can
+     be decrypted at the second instance.
+     */
 }
