@@ -64,6 +64,7 @@ import org.opends.server.util.Validator;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Base64;
+import static org.opends.server.util.ServerConstants.OC_TOP;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.DirectoryStringSyntax;
@@ -94,16 +95,25 @@ public class CryptoManager
   private static final DebugTracer TRACER = getTracer();
 
   // Various schema element references.
-  private final AttributeType attrKeyID;
-  private final AttributeType attrPublicKeyCertificate;
-  private final AttributeType attrTransformation;
-  private final AttributeType attrMacAlgorithm;
-  private final AttributeType attrSymmetricKey;
-  private final AttributeType attrInitVectorLength;
-  private final AttributeType attrKeyLength;
-  private final AttributeType attrCompromisedTime;
-  private final ObjectClass   ocCipherKey;
-  private final ObjectClass   ocMacKey;
+  private static AttributeType attrKeyID;
+  private static AttributeType attrPublicKeyCertificate;
+  private static AttributeType attrTransformation;
+  private static AttributeType attrMacAlgorithm;
+  private static AttributeType attrSymmetricKey;
+  private static AttributeType attrInitVectorLength;
+  private static AttributeType attrKeyLength;
+  private static AttributeType attrCompromisedTime;
+  private static ObjectClass   ocCipherKey;
+  private static ObjectClass   ocMacKey;
+
+  // The DN of the administration suffix.
+  private static DN adminSuffixDN;
+
+  // The DN of the ADS secret keys container.
+  private static DN secretKeysDN;
+
+  // Indicates whether the schema references have been initialized.
+  private static boolean schemaInitDone = false;
 
   // The secure random number generator used for key generation,
   // initialization vector PRNG seed...
@@ -152,7 +162,6 @@ public class CryptoManager
   // The set of SSL cipher suites enabled or null for the default set.
   private final SortedSet<String> sslCipherSuites;
 
-
   /**
    * Creates a new instance of this crypto manager object from a given
    * configuration.
@@ -171,27 +180,44 @@ public class CryptoManager
   public CryptoManager(CryptoManagerCfg cfg)
          throws ConfigException, InitializationException
   {
-    // Initialize various schema references.
-    attrKeyID = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_KEY_ID);
-    attrPublicKeyCertificate = DirectoryServer.getAttributeType(
-                 ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
-    attrTransformation = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
-    attrMacAlgorithm = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_MAC_ALGORITHM_NAME);
-    attrSymmetricKey = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
-    attrInitVectorLength = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
-    attrKeyLength = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS);
-    attrCompromisedTime = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
-    ocCipherKey = DirectoryServer.getObjectClass(
-         ConfigConstants.OC_CRYPTO_CIPHER_KEY);
-    ocMacKey = DirectoryServer.getObjectClass(
-         ConfigConstants.OC_CRYPTO_MAC_KEY);
+    if (!schemaInitDone)
+    {
+      // Initialize various schema references.
+      attrKeyID = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_KEY_ID);
+      attrPublicKeyCertificate = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE);
+      attrTransformation = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME);
+      attrMacAlgorithm = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_MAC_ALGORITHM_NAME);
+      attrSymmetricKey = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
+      attrInitVectorLength = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS);
+      attrKeyLength = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS);
+      attrCompromisedTime = DirectoryServer.getAttributeType(
+           ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      ocCipherKey = DirectoryServer.getObjectClass(
+           ConfigConstants.OC_CRYPTO_CIPHER_KEY);
+      ocMacKey = DirectoryServer.getObjectClass(
+           ConfigConstants.OC_CRYPTO_MAC_KEY);
+
+      try
+      {
+        adminSuffixDN = DN.decode(
+             ADSContext.getAdministrationSuffixDN());
+        secretKeysDN = adminSuffixDN.concat(
+             DN.decode("cn=secret keys"));
+      }
+      catch (DirectoryException e)
+      {
+        throw new InitializationException(e.getMessageObject());
+      }
+
+      schemaInitDone = true;
+    }
 
     // TODO -- Get the crypto defaults from the configuration.
 
@@ -2090,8 +2116,9 @@ public class CryptoManager
               (null == iv) ? 0 : iv.length * Byte.SIZE);
 
       if (null != map) {
+        publishKeyEntry(cryptoManager, keyEntry);
         map.put(keyEntry.getKeyID(), keyEntry);
-        // TODO: publish key in ADS. (mark key "blocked" in map
+        // TODO: (mark key "blocked" in map
         // until registered? OTOH, Key should be in local map prior to
         // publication, since data could arrive from a remote OpenDS
         // instance encrypted with the key any time after publication.
@@ -2102,6 +2129,139 @@ public class CryptoManager
       return keyEntry;
     }
 
+
+    /**
+     * Publish a new cipher key by adding an entry into ADS.
+     * @param  cryptoManager The CryptoManager instance for which the
+     *                       key was generated.
+     * @param  keyEntry      The cipher key to be published.
+     * @throws CryptoManagerException
+     *                       If the key entry could not be added to
+     *                       ADS.
+     */
+    private static void publishKeyEntry(CryptoManager cryptoManager,
+                                        CipherKeyEntry keyEntry)
+         throws CryptoManagerException
+    {
+      // Construct the key entry DN.
+      AttributeValue distinguishedValue =
+           new AttributeValue(attrKeyID,
+                              keyEntry.getKeyID().getStringValue());
+      DN entryDN = secretKeysDN.concat(
+           RDN.create(attrKeyID, distinguishedValue));
+
+      // Set the entry object classes.
+      LinkedHashMap<ObjectClass,String> ocMap =
+          new LinkedHashMap<ObjectClass,String>(2);
+      ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+      ocMap.put(ocCipherKey, ConfigConstants.OC_CRYPTO_CIPHER_KEY);
+
+      // Create the operational and user attributes.
+      LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
+           new LinkedHashMap<AttributeType,List<Attribute>>(0);
+      LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
+           new LinkedHashMap<AttributeType,List<Attribute>>();
+
+      // Add the key ID attribute.
+      LinkedHashSet<AttributeValue> valueSet =
+           new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(distinguishedValue);
+
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(attrKeyID,
+                                 attrKeyID.getNameOrOID(),
+                                 valueSet));
+      userAttrs.put(attrKeyID, attrList);
+
+      // Add the transformation name attribute.
+      valueSet = new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(new AttributeValue(attrTransformation,
+                                      keyEntry.getType()));
+
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(
+           new Attribute(attrTransformation,
+                         attrTransformation.getNameOrOID(),
+                         valueSet));
+      userAttrs.put(attrTransformation, attrList);
+
+
+      // Add the init vector length attribute.
+      valueSet = new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(new AttributeValue(
+           attrInitVectorLength,
+           String.valueOf(keyEntry.getIVLengthBits())));
+
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(
+           new Attribute(attrInitVectorLength,
+                         attrInitVectorLength.getNameOrOID(),
+                         valueSet));
+      userAttrs.put(attrInitVectorLength, attrList);
+
+
+      // Add the key length attribute.
+      valueSet = new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(new AttributeValue(
+           attrKeyLength,
+           String.valueOf(keyEntry.getKeyLengthBits())));
+
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(
+           new Attribute(attrKeyLength,
+                         attrKeyLength.getNameOrOID(),
+                         valueSet));
+      userAttrs.put(attrKeyLength, attrList);
+
+
+      // Get the trusted certificates.
+      Map<String, byte[]> trustedCerts =
+           cryptoManager.getTrustedCertificates();
+
+      // Need to add our own instance certificate.
+      byte[] instanceKeyCertificate =
+           cryptoManager.getInstanceKeyCertificate();
+      trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
+                       instanceKeyCertificate);
+
+      // Add the symmetric key attribute.
+      LinkedHashSet<AttributeValue> symmetricKeyValues =
+           new LinkedHashSet<AttributeValue>(trustedCerts.size());
+
+      for (Map.Entry<String, byte[]> mapEntry :
+           trustedCerts.entrySet())
+      {
+        String symmetricKey =
+             cryptoManager.encodeSymmetricKeyAttribute(
+                  mapEntry.getKey(),
+                  mapEntry.getValue(),
+                  keyEntry.getSecretKey());
+
+        symmetricKeyValues.add(
+             new AttributeValue(attrSymmetricKey, symmetricKey));
+
+        attrList = new ArrayList<Attribute>(1);
+        attrList.add(new Attribute(attrSymmetricKey,
+                                   attrSymmetricKey.getNameOrOID(),
+                                   symmetricKeyValues));
+        userAttrs.put(attrSymmetricKey, attrList);
+      }
+
+      // Create the entry.
+      Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
+
+      InternalClientConnection connection =
+           InternalClientConnection.getRootConnection();
+      AddOperation addOperation = connection.processAdd(entry);
+      if (addOperation.getResultCode() != ResultCode.SUCCESS)
+      {
+        // TODO i18n
+        Message message = Message.raw(
+             "Unable to add generated cipher key entry %s: %s",
+             entry.getDN(), addOperation.getErrorMessage());
+        throw new CryptoManagerException(message);
+      }
+    }
 
     /**
      * Initializes a secret key entry from the supplied parameters,
@@ -2164,7 +2324,7 @@ public class CryptoManager
       // Validate new entry.
       byte[] iv = null;
       if (0 < ivLengthBits) {
-        iv = new byte[ivLengthBits * Byte.SIZE];
+        iv = new byte[ivLengthBits / Byte.SIZE];
         pseudoRandom.nextBytes(iv);
       }
       getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
@@ -2430,8 +2590,9 @@ public class CryptoManager
       getMacEngine(keyEntry);
 
       if (null != map) {
+        publishKeyEntry(cryptoManager, keyEntry);
         map.put(keyEntry.getKeyID(), keyEntry);
-        // TODO: publish key in ADS. (mark key "blocked" in map
+        // TODO: (mark key "blocked" in map
         // until registered? OTOH, Key should be in local map prior to
         // publication, since data could arrive from a remote OpenDS
         // instance encrypted with the key any time after publication.
@@ -2442,6 +2603,125 @@ public class CryptoManager
       return keyEntry;
     }
 
+
+    /**
+     * Publish a new mac key by adding an entry into ADS.
+     * @param  cryptoManager The CryptoManager instance for which the
+     *                       key was generated.
+     * @param  keyEntry      The mac key to be published.
+     * @throws CryptoManagerException
+     *                       If the key entry could not be added to
+     *                       ADS.
+     */
+    private static void publishKeyEntry(CryptoManager cryptoManager,
+                                        MacKeyEntry keyEntry)
+         throws CryptoManagerException
+    {
+      // Construct the key entry DN.
+      AttributeValue distinguishedValue =
+           new AttributeValue(attrKeyID,
+                              keyEntry.getKeyID().getStringValue());
+      DN entryDN = secretKeysDN.concat(
+           RDN.create(attrKeyID, distinguishedValue));
+
+      // Set the entry object classes.
+      LinkedHashMap<ObjectClass,String> ocMap =
+          new LinkedHashMap<ObjectClass,String>(2);
+      ocMap.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+      ocMap.put(ocMacKey, ConfigConstants.OC_CRYPTO_MAC_KEY);
+
+      // Create the operational and user attributes.
+      LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
+           new LinkedHashMap<AttributeType,List<Attribute>>(0);
+      LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
+           new LinkedHashMap<AttributeType,List<Attribute>>();
+
+      // Add the key ID attribute.
+      LinkedHashSet<AttributeValue> valueSet =
+           new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(distinguishedValue);
+
+      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+      attrList.add(new Attribute(attrKeyID,
+                                 attrKeyID.getNameOrOID(),
+                                 valueSet));
+      userAttrs.put(attrKeyID, attrList);
+
+      // Add the mac algorithm name attribute.
+      valueSet = new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(new AttributeValue(attrMacAlgorithm,
+                                      keyEntry.getType()));
+
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(
+           new Attribute(attrMacAlgorithm,
+                         attrMacAlgorithm.getNameOrOID(),
+                         valueSet));
+      userAttrs.put(attrMacAlgorithm, attrList);
+
+
+      // Add the key length attribute.
+      valueSet = new LinkedHashSet<AttributeValue>(1);
+      valueSet.add(new AttributeValue(
+           attrKeyLength,
+           String.valueOf(keyEntry.getKeyLengthBits())));
+
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(
+           new Attribute(attrKeyLength,
+                         attrKeyLength.getNameOrOID(),
+                         valueSet));
+      userAttrs.put(attrKeyLength, attrList);
+
+
+      // Get the trusted certificates.
+      Map<String, byte[]> trustedCerts =
+           cryptoManager.getTrustedCertificates();
+
+      // Need to add our own instance certificate.
+      byte[] instanceKeyCertificate =
+           cryptoManager.getInstanceKeyCertificate();
+      trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
+                       instanceKeyCertificate);
+
+      // Add the symmetric key attribute.
+      LinkedHashSet<AttributeValue> symmetricKeyValues =
+           new LinkedHashSet<AttributeValue>(trustedCerts.size());
+
+      for (Map.Entry<String, byte[]> mapEntry :
+           trustedCerts.entrySet())
+      {
+        String symmetricKey =
+             cryptoManager.encodeSymmetricKeyAttribute(
+                  mapEntry.getKey(),
+                  mapEntry.getValue(),
+                  keyEntry.getSecretKey());
+
+        symmetricKeyValues.add(
+             new AttributeValue(attrSymmetricKey, symmetricKey));
+
+        attrList = new ArrayList<Attribute>(1);
+        attrList.add(new Attribute(attrSymmetricKey,
+                                   attrSymmetricKey.getNameOrOID(),
+                                   symmetricKeyValues));
+        userAttrs.put(attrSymmetricKey, attrList);
+      }
+
+      // Create the entry.
+      Entry entry = new Entry(entryDN, ocMap, userAttrs, opAttrs);
+
+      InternalClientConnection connection =
+           InternalClientConnection.getRootConnection();
+      AddOperation addOperation = connection.processAdd(entry);
+      if (addOperation.getResultCode() != ResultCode.SUCCESS)
+      {
+        // TODO i18n
+        Message message = Message.raw(
+             "Unable to add generated mac key entry %s: %s",
+             entry.getDN(), addOperation.getErrorMessage());
+        throw new CryptoManagerException(message);
+      }
+    }
 
     /**
      * Initializes a secret key entry from the supplied parameters,
