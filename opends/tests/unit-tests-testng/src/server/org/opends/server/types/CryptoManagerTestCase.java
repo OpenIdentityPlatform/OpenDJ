@@ -322,7 +322,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
    @throws Exception  In case an error occurs in the encryption routine.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void testKeyPersistence()
         throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
