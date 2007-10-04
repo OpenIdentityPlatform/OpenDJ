@@ -172,7 +172,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     public String getTransformation() {
       if (null == fAlgorithm) return null; // default
       return (null == fMode)
-              ? new String(fAlgorithm)
+              ? fAlgorithm
               : (new StringBuilder(fAlgorithm)).append("/").append(fMode)
                 .append("/").append(fPadding).toString();
     }

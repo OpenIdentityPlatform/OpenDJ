@@ -36,7 +36,6 @@ import org.opends.server.types.*;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.TimeThread;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -77,8 +76,8 @@ public class GetSymmetricKeyExtendedOperationTestCase
     cm.publishInstanceKeyEntryInADS();
 
     // Initial encryption ensures a cipher key entry is in ADS.
-    final byte[] cipherText = cm.encrypt(cipherTransformationName,
-            cipherKeyLength, secretMessage.getBytes());
+    cm.encrypt(cipherTransformationName, cipherKeyLength,
+            secretMessage.getBytes());
 
     // Retrieve all uncompromised cipher key entries corresponding to the
     // specified transformation and key length.

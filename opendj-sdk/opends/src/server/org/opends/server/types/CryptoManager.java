@@ -359,7 +359,8 @@ public class CryptoManager
     // Construct the attribute list.
     final LinkedHashSet<String> requestedAttributes
             = new LinkedHashSet<String>();
-    requestedAttributes.add(attrPublicKeyCertificate.getNameOrOID());
+    requestedAttributes.add(
+            attrPublicKeyCertificate.getNameOrOID() + ";binary");
 
     // Retrieve the certificate from the entry.
     final InternalClientConnection icc
@@ -369,9 +370,9 @@ public class CryptoManager
       for (int i = 0; i < 2; ++i) {
         try {
           /* If the entry does not exist in the instance's truststore
-             backend, add it (which induces the CryptoManager to
-             create the public-key certificate attribute), then repeat
-             the search. */
+             backend, add it using a special object class that induces
+             the backend to create the public-key certificate
+             attribute, then repeat the search. */
           InternalSearchOperation searchOp = icc.processSearch(
                   entryDN,
                   SearchScope.BASE_OBJECT,
@@ -386,7 +387,6 @@ public class CryptoManager
                the schema */
             certificate = e.getAttributeValue(
                     attrPublicKeyCertificate, BinarySyntax.DECODER);
-            break;
           }
           break;
         }
@@ -551,9 +551,13 @@ public class CryptoManager
                 attrPublicKeyCertificate,
                 ByteStringFactory.create(instanceKeyCertificate));
         certificateValueSet.add(certificateValue);
+        final LinkedHashSet<String> certificateOptions =
+                new LinkedHashSet<String>(1);
+        certificateOptions.add(";binary");
         final Attribute certificateAttr = new Attribute(
                 attrPublicKeyCertificate,
                 attrPublicKeyCertificate.getNameOrOID(),
+                certificateOptions,
                 certificateValueSet);
         e.addAttribute(certificateAttr,
                 new ArrayList<AttributeValue>(0));
@@ -596,10 +600,10 @@ public class CryptoManager
       // Construct the search filter.
       final String FILTER_OC_INSTANCE_KEY
               = new StringBuilder("(objectclass=")
-              .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
+              .append(ocInstanceKey.getNameOrOID())
               .append(")").toString();
       final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
-             .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
+              .append(attrCompromisedTime.getNameOrOID())
               .append("=*))").toString();
       final String searchFilter = new StringBuilder("(&")
               .append(FILTER_OC_INSTANCE_KEY)
@@ -608,9 +612,9 @@ public class CryptoManager
       // Construct the attribute list.
       final LinkedHashSet<String> requestedAttributes
               = new LinkedHashSet<String>();
-      requestedAttributes.add(ConfigConstants.ATTR_CRYPTO_KEY_ID);
+      requestedAttributes.add(attrKeyID.getNameOrOID());
       requestedAttributes.add(
-              attrPublicKeyCertificate.getNameOrOID());
+              attrPublicKeyCertificate.getNameOrOID() + ";binary");
       // Invoke the search operation.
       final InternalClientConnection icc
               = InternalClientConnection.getRootConnection();
@@ -2568,7 +2572,7 @@ public class CryptoManager
               keyLengthBits);
 
       // copy arguments.
-      this.fType = new String(transformation);
+      this.fType = transformation;
       this.fIVLengthBits = -1; /* compute IV length */
     }
 
@@ -2616,7 +2620,7 @@ public class CryptoManager
       super(keyID, secretKey, secretKeyLengthBits, isCompromised);
 
       // copy arguments
-      this.fType = new String(transformation);
+      this.fType = transformation;
       this.fIVLengthBits = ivLengthBits;
     }
 
@@ -3000,7 +3004,7 @@ public class CryptoManager
       super(algorithm, keyLengthBits);
 
       // copy arguments
-      this.fType = new String(algorithm);
+      this.fType = algorithm;
     }
 
     /**
@@ -3032,7 +3036,7 @@ public class CryptoManager
       super(keyID, secretKey, secretKeyLengthBits, isCompromised);
 
       // copy arguments
-      this.fType = new String(algorithm);
+      this.fType = algorithm;
     }
 
 
