@@ -37,6 +37,7 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -131,8 +132,8 @@ public class CryptoManager
   private final String preferredDigestAlgorithm;
 
   // The map from encryption key ID to MacKeyEntry (cache).
-  private final HashMap<KeyEntryID, MacKeyEntry> macKeyEntryCache
-          = new HashMap<KeyEntryID, MacKeyEntry>();
+  private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache
+          = new ConcurrentHashMap<KeyEntryID, MacKeyEntry>();
 
   // The preferred MAC algorithm for the Directory Server.
   private final String preferredMACAlgorithm;
@@ -141,8 +142,8 @@ public class CryptoManager
   private final int preferredMACAlgorithmKeyLengthBits;
 
   // The map from encryption key ID to CipherKeyEntry (cache).
-  private final HashMap<KeyEntryID, CipherKeyEntry>
-      cipherKeyEntryCache = new HashMap<KeyEntryID, CipherKeyEntry>();
+  private final Map<KeyEntryID, CipherKeyEntry> cipherKeyEntryCache
+       = new ConcurrentHashMap<KeyEntryID, CipherKeyEntry>();
 
   // The preferred cipher for the Directory Server.
   private final String preferredCipherTransformation;
