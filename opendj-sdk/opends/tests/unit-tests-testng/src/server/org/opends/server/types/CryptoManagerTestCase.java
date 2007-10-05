@@ -184,7 +184,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     public int getIVLength() {
       return fIVLength;
     }
-    }
+  }
 
 
   /**
