@@ -247,9 +247,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new InitializationException(
-              // TODO: i18n
-              Message.raw("Cannot get preferred digest:  " +
-                      getExceptionMessage(ex).toString()), ex);
+              ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_DIGEST.get(
+                      getExceptionMessage(ex)), ex);
     }
 
     // Preferred MAC engine and validation.
@@ -265,9 +264,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new InitializationException(
-              // TODO: i18n
-              Message.raw("Cannot get preferred MAC engine:  " +
-                          getExceptionMessage(ex).toString()), ex);
+              ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_MAC_ENGINE.get(
+                      getExceptionMessage(ex)), ex);
     }
 
     // Preferred encryption cipher and validation.
@@ -283,9 +281,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new InitializationException(
-              // TODO: i18n
-            Message.raw("Cannot get preferred encryption cipher:  " +
-                      getExceptionMessage(ex).toString()), ex);
+             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_ENCRYPTION_CIPHER.get(
+                     getExceptionMessage(ex)), ex);
     }
 
 
@@ -322,9 +319,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new InitializationException(
-              // TODO: i18n
-             Message.raw("Cannot get preferred key wrapping cipher:  "
-                      + getExceptionMessage(ex).toString()), ex);
+           ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
+                   getExceptionMessage(ex)), ex);
     }
 
     sslCertNickname = cfg.getSSLCertNickname();
