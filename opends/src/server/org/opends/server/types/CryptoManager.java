@@ -73,14 +73,20 @@ import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.BinarySyntax;
 
 /**
- * This class provides the interface to the Directory Server
- * cryptographic framework, which may be used for hashing, encryption,
- * and other kinds of cryptographic operations.  Note that it also
- * contains methods for compressing and uncompressing data.  Although
- * these are not strictly cryptographic operations, there are a lot of
- * similarities and it may be conceivable at some point that
- * accelerated compression may be available just as it is for
- * cryptographic operations.
+ This class implements the Directory Server cryptographic framework,
+ which is described in the
+ <a href="https://www.opends.org/wiki//page/TheCryptoManager">
+ CrytpoManager design document</a>.  {@code CryptoManager} implements
+ inter-OpenDS-instance authentication and authorization using the
+ ADS-based truststore, and secret key distribution. The interface also
+ provides methods for hashing, encryption, and other kinds of
+ cryptographic operations.
+ <p>
+ Note that it also contains methods for compressing and uncompressing
+ data: while these are not strictly cryptographic operations, there
+ are a lot of similarities and it is conceivable at some point that
+ accelerated compression may be available just as it is for
+ cryptographic operations.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -184,8 +190,7 @@ public class CryptoManager
   public CryptoManager(CryptoManagerCfg cfg)
          throws ConfigException, InitializationException
   {
-    if (!schemaInitDone)
-    {
+    if (!schemaInitDone) {
       // Initialize various schema references.
       attrKeyID = DirectoryServer.getAttributeType(
            ConfigConstants.ATTR_CRYPTO_KEY_ID);
@@ -210,8 +215,7 @@ public class CryptoManager
       ocMacKey = DirectoryServer.getObjectClass(
            ConfigConstants.OC_CRYPTO_MAC_KEY);
 
-      try
-      {
+      try {
         localTruststoreDN
                 = DN.decode(ConfigConstants.DN_TRUST_STORE_ROOT);
         DN adminSuffixDN = DN.decode(
@@ -221,9 +225,11 @@ public class CryptoManager
         secretKeysDN = adminSuffixDN.concat(
              DN.decode("cn=secret keys"));
       }
-      catch (DirectoryException e)
-      {
-        throw new InitializationException(e.getMessageObject());
+      catch (DirectoryException ex) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        }
+        throw new InitializationException(ex.getMessageObject());
       }
 
       schemaInitDone = true;
@@ -236,15 +242,14 @@ public class CryptoManager
     try{
       MessageDigest.getInstance(preferredDigestAlgorithm);
     }
-    catch (Exception e) {
+    catch (Exception ex) {
       if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-
       throw new InitializationException(
               // TODO: i18n
               Message.raw("Cannot get preferred digest:  " +
-                      getExceptionMessage(e).toString()), e);
+                      getExceptionMessage(ex).toString()), ex);
     }
 
     // Preferred MAC engine and validation.
@@ -255,15 +260,14 @@ public class CryptoManager
               preferredMACAlgorithm,
               preferredMACAlgorithmKeyLengthBits);
     }
-    catch (Exception e) {
+    catch (Exception ex) {
       if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-
       throw new InitializationException(
               // TODO: i18n
               Message.raw("Cannot get preferred MAC engine:  " +
-                          getExceptionMessage(e).toString()), e);
+                          getExceptionMessage(ex).toString()), ex);
     }
 
     // Preferred encryption cipher and validation.
@@ -274,15 +278,14 @@ public class CryptoManager
               preferredCipherTransformation,
               preferredCipherTransformationKeyLengthBits);
     }
-    catch (Exception e) {
+    catch (Exception ex) {
       if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-
       throw new InitializationException(
               // TODO: i18n
             Message.raw("Cannot get preferred encryption cipher:  " +
-                      getExceptionMessage(e).toString()), e);
+                      getExceptionMessage(ex).toString()), ex);
     }
 
 
@@ -314,15 +317,14 @@ public class CryptoManager
               preferredMACAlgorithmKeyLengthBits).getSecretKey();
       encodeSymmetricKeyAttribute(keyID, certificate, macKey);
     }
-    catch (Exception e) {
+    catch (Exception ex) {
       if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-
       throw new InitializationException(
               // TODO: i18n
-           Message.raw("Cannot get preferred key wrapping cipher:  " +
-                      getExceptionMessage(e).toString()), e);
+             Message.raw("Cannot get preferred key wrapping cipher:  "
+                      + getExceptionMessage(ex).toString()), ex);
     }
 
     sslCertNickname = cfg.getSSLCertNickname();
@@ -417,10 +419,14 @@ public class CryptoManager
       }
     }
     catch (DirectoryException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-            Message.raw("Failed to retrieve %s.", entryDN.toString()),
-              ex);
+              Message.raw("Failed to retrieve %s:  "
+                      + getExceptionMessage(ex).toString(),
+                      entryDN.toString()), ex);
     }
     return(certificate);
   }
@@ -462,9 +468,13 @@ public class CryptoManager
       md = MessageDigest.getInstance(mdAlgorithmName);
     }
     catch (NoSuchAlgorithmException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-            Message.raw("Failed to get MessageDigest instance for %s",
+            Message.raw("Failed to get MessageDigest instance for" +
+                    " %s:  " + getExceptionMessage(ex).toString(),
                       mdAlgorithmName), ex);
     }
     return StaticUtils.bytesToHexNoSpace(
@@ -574,9 +584,14 @@ public class CryptoManager
         }
       }
     } catch (DirectoryException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
-        // TODO: i18n
-        Message.raw("Failed to publish %s.", entryDN.toString()), ex);
+              // TODO: i18n
+              Message.raw("Failed to publish %s:  "
+                      + getExceptionMessage(ex).toString(),
+                      entryDN.toString()), ex);
     }
   }
 
@@ -638,10 +653,14 @@ public class CryptoManager
       }
     }
     catch (DirectoryException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("Error retrieving instance-key public key" +
-                      " certificates from ADS container %s.",
+              Message.raw("Error retrieving instance-key public key"
+                      + " certificates from ADS container %s:  "
+                      + getExceptionMessage(ex).toString(),
                       instanceKeysDN.toString()), ex);
     }
     return(certificateMap);
@@ -703,6 +722,9 @@ public class CryptoManager
       wrappedKeyElement = StaticUtils.bytesToHexNoSpace(wrappedKey);
     }
     catch (GeneralSecurityException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
               Message.raw("Failed to wrap secret key: " +
@@ -783,6 +805,9 @@ public class CryptoManager
               = StaticUtils.hexStringToByteArray(elements[4]);
     }
     catch (ParseException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(((null == fieldName)
               // TODO: i18n
               ? Message.raw("The syntax of the symmetric key" +
@@ -790,8 +815,8 @@ public class CryptoManager
               symmetricKeyAttribute)
               : Message.raw("The syntax of the symmetric key" +
               " attribute value \"%s\" is invalid. Parsing failed" +
-              " in field: %s.", symmetricKeyAttribute, fieldName)),
-              ex);
+              " in field: %s, offset %d.", symmetricKeyAttribute,
+              fieldName, ex.getErrorOffset())), ex);
     }
 
     // Confirm key can be unwrapped at this instance.
@@ -807,17 +832,25 @@ public class CryptoManager
               .getKey(ConfigConstants.ADS_CERTIFICATE_ALIAS);
     }
     catch (ConfigException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("The instance-key-pair private-key is not" +
-                      "available."), ex);
+              Message.raw("The instance-key-pair private-key is not"
+                      + " available:  "
+                      + getExceptionMessage(ex).toString()), ex);
     }
     catch (DirectoryException ex) {
       // TODO: is DirectoryException reasonable for getKey() ?
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("The instance-key-pair private-key is not" +
-                      "available."), ex);
+              Message.raw("The instance-key-pair private-key is not"
+                      + " available:  "
+                      + getExceptionMessage(ex).toString()), ex);
     }
 
     // Unwrap secret key.
@@ -831,10 +864,14 @@ public class CryptoManager
               wrappedKeyAlgorithmElement,
               wrappedKeyTypeElement);
     } catch(GeneralSecurityException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
-            // TODO: i18n
-            Message.raw("Failed to decipher the wrapped secret-key" +
-                    " value."), ex);
+              // TODO: i18n
+              Message.raw("Failed to decipher the wrapped secret-key"
+                      + " value:  "
+                      + getExceptionMessage(ex).toString()), ex);
     }
 
     return secretKey;
@@ -1136,15 +1173,17 @@ public class CryptoManager
               new KeyEntryID(keyEntryID));
     }
     catch (IllegalArgumentException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("MAC key entry identifier \"%s\" is not" +
-                      " a valid UUID.", keyEntryID), ex);
+              Message.raw("MAC key entry identifier \"%s\" is not"
+                      + " a valid UUID:  "
+                      + getExceptionMessage(ex).toString(),
+                      keyEntryID), ex);
     }
-
-    if (null == keyEntry) return null;
-
-    return getMacEngine(keyEntry);
+    return (null == keyEntry) ? null : getMacEngine(keyEntry);
   }
 
 
@@ -1167,9 +1206,13 @@ public class CryptoManager
       mac = Mac.getInstance(keyEntry.getType());
     }
     catch (NoSuchAlgorithmException ex){
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("Invalid MAC algorithm specified: + %s",
+              Message.raw("Invalid MAC algorithm \"%s\":  "
+                      + getExceptionMessage(ex).toString(),
                       keyEntry.getType()), ex);
     }
 
@@ -1177,10 +1220,14 @@ public class CryptoManager
       mac.init(keyEntry.getSecretKey());
     }
     catch (InvalidKeyException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("Invalid key specification supplied to" +
-                      " Mac object initialization"), ex);
+              Message.raw("Invalid key specification supplied to"
+                      + " Mac object initialization:  "
+              + getExceptionMessage(ex).toString()), ex);
     }
 
     return mac;
@@ -1238,10 +1285,14 @@ public class CryptoManager
     }
     catch (GeneralSecurityException ex) {
       // NoSuchAlgorithmException, NoSuchPaddingException
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("Invalid Cipher transformation specified:"
-                      + " %s.", keyEntry.getType()), ex);
+              Message.raw("Invalid Cipher transformation \"%s\":  "
+                      + getExceptionMessage(ex).toString(),
+                      keyEntry.getType()), ex);
     }
 
     try {
@@ -1264,9 +1315,13 @@ public class CryptoManager
     }
     catch (GeneralSecurityException ex) {
       // InvalidKeyException, InvalidAlgorithmParameterException
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw("Error initializing cipher."), ex);
+              Message.raw("Error initializing cipher:  "
+              + getExceptionMessage(ex).toString()), ex);
     }
 
     return cipher;
@@ -1413,11 +1468,15 @@ public class CryptoManager
         outputStream.write(cipher.getIV());
       }
     }
-    catch (IOException ioe) {
+    catch (IOException ex) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
               Message.raw("Exception when writing CryptoManager" +
-                      " prologue."), ioe);
+                      " prologue:  "
+              + getExceptionMessage(ex).toString()), ex);
     }
 
     return new CipherOutputStream(outputStream, cipher);
@@ -1453,11 +1512,15 @@ public class CryptoManager
       keyID = new KeyEntryID(keyIDBytes);
     }
     catch (Exception ex) {
+      // IndexOutOfBoundsException, ArrayStoreException, ...
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
       throw new CryptoManagerException(
               // TODO: i18n
-              Message.raw(
-                      "Exception when reading key identifier from" +
-                              " data prologue."), ex);
+              Message.raw("Exception when reading key identifier"
+                      + " from data prologue:  "
+                      + getExceptionMessage(ex).toString()), ex);
     }
 
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this, keyID);
@@ -1476,10 +1539,15 @@ public class CryptoManager
                 iv.length);
       }
       catch (Exception ex) {
+        // IndexOutOfBoundsException, ArrayStoreException, ...
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        }
         throw new CryptoManagerException(
                 // TODO: i18n
-                Message.raw("Exception when reading initialization" +
-                        " vector from data prologue."), ex);
+                Message.raw("Exception when reading initialization"
+                        + " vector from data prologue:  "
+                        + getExceptionMessage(ex).toString()), ex);
       }
     }
 
@@ -1538,12 +1606,12 @@ public class CryptoManager
         }
       }
     }
-    catch (IOException ioe) {
+    catch (IOException ex) {
       throw new CryptoManagerException(
-          // TODO: i18n
-          Message.raw(
-                 "IO exception when reading CryptoManager prologue."),
-                 ioe);
+              // TODO: i18n
+              Message.raw("Exception when reading CryptoManager"
+                      + " prologue:  "
+                      + getExceptionMessage(ex).toString()), ex);
     }
 
     return new CipherInputStream(inputStream,
@@ -1821,11 +1889,9 @@ public class CryptoManager
       if (secretKey == null)
       {
         // TODO: i18n
-        Message message =
-             Message.raw("Key entry %s contains no " +
-                  "symmetric key value that can be decoded " +
-                  "by this server",
-                         entry.getDN());
+        Message message = Message.raw("Key entry %s contains no " +
+                "symmetric key value that can be decoded " +
+                "by this server", entry.getDN());
         throw new CryptoManagerException(message);
       }
 
@@ -1840,6 +1906,9 @@ public class CryptoManager
     }
     catch (DirectoryException e)
     {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
       // TODO: i18n
       Message message =
            Message.raw("Error decoding cipher key entry %s: %s",
@@ -1917,6 +1986,9 @@ public class CryptoManager
     }
     catch (DirectoryException e)
     {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
       Message message =
            Message.raw("Error decoding mac key entry %s: %s",
                        entry.getDN(), e.getMessage());
@@ -1975,10 +2047,15 @@ public class CryptoManager
         fValue = UUID.fromString(keyEntryID);
       }
       catch (Exception ex) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        }
         throw new CryptoManagerException(
                 // TODO: i18n
                 Message.raw("Key entry identifier \"%s\" has" +
-                        " invalid syntax.", keyEntryID), ex);
+                        " invalid syntax:  "
+                        + getExceptionMessage(ex).toString(),
+                        keyEntryID), ex);
       }
     }
 
@@ -2092,7 +2169,8 @@ public class CryptoManager
         throw new CryptoManagerException(
                 // TODO: i18n
                 Message.raw("Unable to produce key generator using" +
-                        " key algorithm argument %s",
+                        " key algorithm argument \"%s\":  "
+                        + getExceptionMessage(ex).toString(),
                         algorithm), ex);
       }
       keyGen.init(keyLengthBits, secureRandom);
