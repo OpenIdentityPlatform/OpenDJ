@@ -43,7 +43,7 @@ public class PeerNotFoundException extends OpenDsException {
    * The constructor for the exception.
    * @param message the localized message.
    */
-  PeerNotFoundException(Message message)
+  public PeerNotFoundException(Message message)
   {
     super(message);
   }

@@ -31,6 +31,8 @@ import static org.opends.guitools.replicationcli.ReplicationCliReturnCode.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.quicksetup.util.Utils.getFirstValue;
+import static org.opends.quicksetup.util.Utils.getThrowableMsg;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
 
@@ -51,7 +53,16 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.NameAlreadyBoundException;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
@@ -70,6 +81,7 @@ import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.InstallerHelper;
@@ -314,6 +326,10 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           returnValue = initializeReplication();
         }
+        else if (argParser.isInitializeAllReplicationSubcommand())
+        {
+          returnValue = initializeAllReplication();
+        }
         else if (argParser.isStatusReplicationSubcommand())
         {
           returnValue = statusReplication();
@@ -391,6 +407,36 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       initializeWithArgParser(uData);
       returnValue = disableReplication(uData);
+    }
+    return returnValue;
+  }
+
+  /**
+   * Based on the data provided in the command-line initialize the contents
+   * of the whole replication topology.
+   * @return the error code if the operation failed and SUCCESSFUL if it was
+   * successful.
+   */
+  private ReplicationCliReturnCode initializeAllReplication()
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    InitializeAllReplicationUserData uData =
+      new InitializeAllReplicationUserData();
+    if (argParser.isInteractive())
+    {
+      if (promptIfRequired(uData))
+      {
+        returnValue = initializeAllReplication(uData);
+      }
+      else
+      {
+        returnValue = USER_CANCELLED;
+      }
+    }
+    else
+    {
+      initializeWithArgParser(uData);
+      returnValue = initializeAllReplication(uData);
     }
     return returnValue;
   }
@@ -1178,6 +1224,167 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
+   * Updates the contents of the provided InitializeAllReplicationUserData
+   * object with the information provided in the command-line.  If some
+   * information is missing, ask the user to provide valid data.
+   * We assume that if this method is called we are in interactive mode.
+   * @param uData the object to be updated.
+   * @return <CODE>true</CODE> if the object was successfully updated and
+   * <CODE>false</CODE> if the user cancelled the operation.
+   */
+  private boolean promptIfRequired(InitializeAllReplicationUserData uData)
+  {
+    boolean cancelled = false;
+
+    String adminPwd = argParser.getBindPasswordAdmin();
+    String adminUid = argParser.getAdministratorUID();
+
+    String host = argParser.getHostNameToInitializeAll();
+    if (host == null)
+    {
+      host = promptForString(
+          INFO_REPLICATION_INITIALIZE_ALL_HOSTNAME_PROMPT.get(),
+          argParser.getDefaultHostNameToInitializeAll(), false);
+    }
+    int port = argParser.getPortToInitializeAll();
+    if (port == -1)
+    {
+      port = promptForPort(
+          INFO_REPLICATION_INITIALIZE_ALL_PORT_PROMPT.get(),
+          argParser.getDefaultPortToInitializeAll(), false);
+    }
+    boolean useSSL = argParser.useSSLToInitializeAll();
+    boolean useStartTLS = argParser.useStartTLSToInitializeAll();
+    if (!useSSL && !useStartTLS)
+    {
+      useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
+      if (!useSSL)
+      {
+        useStartTLS =
+          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
+      }
+    }
+
+    if (adminUid == null)
+    {
+      adminUid = askForAdministratorUID(argParser.getDefaultAdministratorUID());
+    }
+
+    if (adminPwd == null)
+    {
+      adminPwd = askForAdministratorPwd();
+    }
+
+    /*
+     * Try to connect to the server.
+     */
+    InitialLdapContext ctx = null;
+
+    while ((ctx == null) && !cancelled)
+    {
+      try
+      {
+        ctx = createContext(host, port, useSSL, useStartTLS,
+            ADSContext.getAdministratorDN(adminUid), adminPwd,
+            getTrustManager());
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.WARNING, "Error connecting to "+host+":"+port, ne);
+        if (Utils.isCertificateException(ne))
+        {
+          String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
+              getTrustManager()))
+          {
+            cancelled = true;
+          }
+        }
+        else
+        {
+          printLineBreak();
+          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
+              host+":"+port, ne.toString()));
+          printLineBreak();
+          host = promptForString(
+                INFO_REPLICATION_INITIALIZE_ALL_HOSTNAME_PROMPT.get(),
+                getValue(host, argParser.getDefaultHostNameToInitializeAll()),
+                false);
+          port = promptForPort(
+                INFO_REPLICATION_INITIALIZE_ALL_PORT_PROMPT.get(),
+              getValue(port, argParser.getDefaultPortToInitializeAll()), false);
+          useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+          if (!useSSL)
+          {
+            useStartTLS =
+              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
+          }
+          adminUid = askForAdministratorUID(adminUid);
+          adminPwd = askForAdministratorPwd();
+        }
+      }
+    }
+    if (!cancelled)
+    {
+      uData.setHostName(host);
+      uData.setPort(port);
+      uData.setUseSSL(useSSL);
+      uData.setUseStartTLS(useStartTLS);
+      uData.setAdminUid(adminUid);
+      uData.setAdminPwd(adminPwd);
+    }
+
+    if (!cancelled)
+    {
+      LinkedList<String> suffixes = argParser.getBaseDNs();
+      checkSuffixesForInitializeAllReplication(suffixes, ctx, true);
+      cancelled = suffixes.isEmpty();
+
+      uData.setBaseDNs(suffixes);
+    }
+
+    if (!cancelled)
+    {
+      // Ask for confirmation to initialize.
+      boolean initializeADS = false;
+      for (String dn : uData.getBaseDNs())
+      {
+        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        {
+          initializeADS = true;
+        }
+      }
+      String hostPortSource = ConnectionUtils.getHostPort(ctx);
+      if (initializeADS)
+      {
+        printLineBreak();
+        cancelled = !confirm(INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(
+            ADSContext.getAdministrationSuffixDN(), hostPortSource));
+      }
+      else
+      {
+        printLineBreak();
+        cancelled = !confirm(
+            INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(
+                hostPortSource));
+      }
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return !cancelled;
+  }
+
+  /**
    * Updates the contents of the provided StatusReplicationUserData object
    * with the information provided in the command-line.  If some information
    * is missing, ask the user to provide valid data.
@@ -1846,6 +2053,31 @@ public class ReplicationCliMain extends CliApplicationHelper
     uData.setPort(port);
     uData.setUseSSL(argParser.useSSLToDisable());
     uData.setUseStartTLS(argParser.useStartTLSToDisable());
+  }
+
+  /**
+   * Initializes the contents of the provided initialize all replication user
+   * data object with what was provided in the command-line without prompting to
+   * the user.
+   * @param uData the disable replication user data object to be initialized.
+   */
+  private void initializeWithArgParser(InitializeAllReplicationUserData uData)
+  {
+    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    String adminUid = getValue(argParser.getAdministratorUID(),
+        argParser.getDefaultAdministratorUID());
+    uData.setAdminUid(adminUid);
+    String adminPwd = argParser.getBindPasswordAdmin();
+    uData.setAdminPwd(adminPwd);
+
+    String hostName = getValue(argParser.getHostNameToInitializeAll(),
+        argParser.getDefaultHostNameToInitializeAll());
+    uData.setHostName(hostName);
+    int port = getValue(argParser.getPortToInitializeAll(),
+        argParser.getDefaultPortToInitializeAll());
+    uData.setPort(port);
+    uData.setUseSSL(argParser.useSSLToInitializeAll());
+    uData.setUseStartTLS(argParser.useStartTLSToInitializeAll());
   }
 
 
@@ -2745,6 +2977,87 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
+   * Initializes the contents of a whole topology with the contents of the other
+   * using the parameters in the provided InitializeAllReplicationUserData.
+   * This method does not prompt to the user for information if something is
+   * missing.
+   * @param uData the InitializeAllReplicationUserData object.
+   * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
+   * successful.
+   * and the replication could be enabled and an error code otherwise.
+   */
+  private ReplicationCliReturnCode initializeAllReplication(
+      InitializeAllReplicationUserData uData)
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = createContext(uData.getHostName(), uData.getPort(), uData.useSSL(),
+          uData.useStartTLS(),
+          ADSContext.getAdministratorDN(uData.getAdminUid()),
+          uData.getAdminPwd(), getTrustManager());
+    }
+    catch (NamingException ne)
+    {
+      String hostPort = uData.getHostName()+":"+uData.getPort();
+      printLineBreak();
+      printErrorMessage(getMessageForException(ne, hostPort));
+      LOG.log(Level.SEVERE, "Complete error stack:", ne);
+    }
+    if (ctx != null)
+    {
+      LinkedList<String> baseDNs = uData.getBaseDNs();
+      checkSuffixesForInitializeAllReplication(baseDNs, ctx, false);
+      if (!baseDNs.isEmpty())
+      {
+        for (String baseDN : baseDNs)
+        {
+          try
+          {
+            printProgressLineBreak();
+            Message msg = formatter.getFormattedProgress(
+                INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
+                    ConnectionUtils.getHostPort(ctx)));
+            printProgressMessage(msg);
+            printProgressLineBreak();
+            initializeAllSuffix(baseDN, ctx, true);
+          }
+          catch (ReplicationCliException rce)
+          {
+            printLineBreak();
+            printErrorMessage(getCriticalExceptionMessage(rce));
+            returnValue = rce.getErrorCode();
+            LOG.log(Level.SEVERE, "Complete error stack:", rce);
+          }
+        }
+      }
+      else
+      {
+        returnValue = REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
+      }
+    }
+    else
+    {
+      returnValue = ERROR_CONNECTING;
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return returnValue;
+  }
+
+
+  /**
    * Checks that replication can actually be enabled in the provided baseDNs
    * for the two servers.
    * @param suffixes the suffixes provided by the user.  This Collection is
@@ -2899,7 +3212,7 @@ public class ReplicationCliMain extends CliApplicationHelper
    * Checks that replication can actually be disabled in the provided baseDNs
    * for the server.
    * @param suffixes the suffixes provided by the user.  This Collection is
-   * updated by removing the base DNs that cannot be enabled and with the
+   * updated by removing the base DNs that cannot be disabled and with the
    * base DNs that the user provided interactively.
    * @param ctx connection to the server.
    * @param interactive whether to ask the user to provide interactively
@@ -3051,6 +3364,165 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
     }
   }
+
+  /**
+   * Checks that replication can actually be initialized in the provided baseDNs
+   * for the server.
+   * @param suffixes the suffixes provided by the user.  This Collection is
+   * updated by removing the base DNs that cannot be initialized and with the
+   * base DNs that the user provided interactively.
+   * @param ctx connection to the server.
+   * @param interactive whether to ask the user to provide interactively
+   * base DNs if none of the provided base DNs can be initialized.
+   */
+  private void checkSuffixesForInitializeAllReplication(
+      Collection<String> suffixes, InitialLdapContext ctx, boolean interactive)
+  {
+    TreeSet<String> availableSuffixes = new TreeSet<String>();
+    TreeSet<String> notReplicatedSuffixes = new TreeSet<String>();
+
+    Collection<ReplicaDescriptor> replicas = getReplicas(ctx);
+    for (ReplicaDescriptor rep : replicas)
+    {
+      String dn = rep.getSuffix().getDN();
+      if (rep.isReplicated())
+      {
+        availableSuffixes.add(dn);
+      }
+      else
+      {
+        notReplicatedSuffixes.add(dn);
+      }
+    }
+    if (availableSuffixes.size() == 0)
+    {
+      printLineBreak();
+      printErrorMessage(
+          ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+      LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
+      TreeSet<String> userProvidedNotReplicatedSuffixes =
+        new TreeSet<String>();
+      for (String s1 : userProvidedSuffixes)
+      {
+        for (String s2 : notReplicatedSuffixes)
+        {
+          if (Utils.areDnsEqual(s1, s2))
+          {
+            userProvidedNotReplicatedSuffixes.add(s1);
+          }
+        }
+      }
+      if (userProvidedNotReplicatedSuffixes.size() > 0)
+      {
+        printLineBreak();
+        printErrorMessage(
+            INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
+                Utils.getStringFromCollection(
+                    userProvidedNotReplicatedSuffixes,
+                    Constants.LINE_SEPARATOR)));
+      }
+      suffixes.clear();
+    }
+    else
+    {
+      // Verify that the provided suffixes are configured in the servers.
+      TreeSet<String> notFound = new TreeSet<String>();
+      TreeSet<String> alreadyNotReplicated = new TreeSet<String>();
+      for (String dn : suffixes)
+      {
+        boolean found = false;
+        for (String dn1 : availableSuffixes)
+        {
+          if (Utils.areDnsEqual(dn, dn1))
+          {
+            found = true;
+            break;
+          }
+        }
+        if (!found)
+        {
+          boolean notReplicated = false;
+          for (String s : notReplicatedSuffixes)
+          {
+            if (Utils.areDnsEqual(s, dn))
+            {
+              notReplicated = true;
+              break;
+            }
+          }
+          if (notReplicated)
+          {
+            alreadyNotReplicated.add(dn);
+          }
+          else
+          {
+            notFound.add(dn);
+          }
+        }
+      }
+      suffixes.removeAll(notFound);
+      suffixes.removeAll(alreadyNotReplicated);
+      if (notFound.size() > 0)
+      {
+        printLineBreak();
+        printErrorMessage(ERR_REPLICATION_INITIALIZE_ALL_SUFFIXES_NOT_FOUND.get(
+                Utils.getStringFromCollection(notFound,
+                    Constants.LINE_SEPARATOR)));
+      }
+      if (alreadyNotReplicated.size() > 0)
+      {
+        printLineBreak();
+        printErrorMessage(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
+                Utils.getStringFromCollection(alreadyNotReplicated,
+                    Constants.LINE_SEPARATOR)));
+      }
+      if (interactive)
+      {
+        while (suffixes.isEmpty())
+        {
+          boolean noSchemaOrAds = false;
+          for (String s: availableSuffixes)
+          {
+            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            {
+              noSchemaOrAds = true;
+            }
+          }
+          if (!noSchemaOrAds)
+          {
+            // In interactive mode we do not propose to manage the
+            // administration suffix.
+            printLineBreak();
+            printErrorMessage(
+                ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+            break;
+          }
+          else
+          {
+            printLineBreak();
+            printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
+            for (String dn : availableSuffixes)
+            {
+              if (!Utils.areDnsEqual(dn,
+                  ADSContext.getAdministrationSuffixDN()) &&
+                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+              {
+                if (confirm(INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(
+                    dn)))
+                {
+                  suffixes.add(dn);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   /**
    * Checks that we can initialize the provided baseDNs between the two servers.
@@ -4675,8 +5147,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     int replicationId = -1;
     try
     {
-      ServerDescriptor source = ServerDescriptor.createStandalone(
-          ctxSource);
+      ServerDescriptor source = ServerDescriptor.createStandalone(ctxSource);
       for (ReplicaDescriptor replica : source.getReplicas())
       {
         if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
@@ -4750,6 +5221,301 @@ public class ReplicationCliMain extends CliApplicationHelper
             ERROR_INITIALIZING_BASEDN_GENERIC, ae);
       }
       nTries--;
+    }
+  }
+
+  private void initializeAllSuffix(String baseDN, InitialLdapContext ctx,
+  boolean displayProgress) throws ReplicationCliException
+  {
+    int nTries = 5;
+    boolean initDone = false;
+    while (!initDone)
+    {
+      try
+      {
+        initializeAllSuffixTry(baseDN, ctx, displayProgress);
+        initDone = true;
+      }
+      catch (PeerNotFoundException pnfe)
+      {
+        LOG.log(Level.INFO, "Peer could not be found");
+        if (nTries == 1)
+        {
+          throw new ReplicationCliException(
+              ERR_REPLICATION_INITIALIZING_TRIES_COMPLETED.get(
+                  pnfe.getMessageObject().toString()),
+              INITIALIZING_TRIES_COMPLETED, pnfe);
+        }
+        try
+        {
+          Thread.sleep((5 - nTries) * 3000);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      catch (ApplicationException ae)
+      {
+        throw new ReplicationCliException(ae.getMessageObject(),
+            ERROR_INITIALIZING_BASEDN_GENERIC, ae);
+      }
+      nTries--;
+    }
+  }
+
+  /**
+   * Initializes a suffix with the contents of a replica that has a given
+   * replication id.
+   * @param ctx the connection to the server whose suffix we want to initialize.
+   * @param baseDN the dn of the suffix.
+   * @param displayProgress whether we want to display progress or not.
+   * @throws ApplicationException if an unexpected error occurs.
+   * @throws PeerNotFoundException if the replication mechanism cannot find
+   * a peer.
+   */
+  public void initializeAllSuffixTry(String baseDN, InitialLdapContext ctx,
+      boolean displayProgress)
+  throws ApplicationException, PeerNotFoundException
+  {
+    boolean taskCreated = false;
+    int i = 1;
+    boolean isOver = false;
+    String dn = null;
+    String serverDisplay = ConnectionUtils.getHostPort(ctx);
+    BasicAttributes attrs = new BasicAttributes();
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-task");
+    oc.add("ds-task-initialize-remote-replica");
+    attrs.put(oc);
+    attrs.put("ds-task-class-name",
+        "org.opends.server.tasks.InitializeTargetTask");
+    attrs.put("ds-task-initialize-domain-dn", baseDN);
+    attrs.put("ds-task-initialize-replica-server-id", "all");
+    while (!taskCreated)
+    {
+      String id = "quicksetup-initialize"+i;
+      dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
+      attrs.put("ds-task-id", id);
+      try
+      {
+        DirContext dirCtx = ctx.createSubcontext(dn, attrs);
+        taskCreated = true;
+        LOG.log(Level.INFO, "created task entry: "+attrs);
+        dirCtx.close();
+      }
+      catch (NameAlreadyBoundException x)
+      {
+        LOG.log(Level.WARNING, "A task with dn: "+dn+" already existed.");
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
+        throw new ApplicationException(
+            ReturnCode.APPLICATION_ERROR,
+                getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(
+                        serverDisplay), ne), ne);
+      }
+      i++;
+    }
+    // Wait until it is over
+    SearchControls searchControls = new SearchControls();
+    searchControls.setCountLimit(1);
+    searchControls.setSearchScope(
+        SearchControls. OBJECT_SCOPE);
+    String filter = "objectclass=*";
+    searchControls.setReturningAttributes(
+        new String[] {
+            "ds-task-unprocessed-entry-count",
+            "ds-task-processed-entry-count",
+            "ds-task-log-message",
+            "ds-task-state"
+        });
+    Message lastDisplayedMsg = null;
+    String lastLogMsg = null;
+    long lastTimeMsgDisplayed = -1;
+    long lastTimeMsgLogged = -1;
+    int totalEntries = 0;
+    while (!isOver)
+    {
+      try
+      {
+        Thread.sleep(500);
+      }
+      catch (Throwable t)
+      {
+      }
+      try
+      {
+        NamingEnumeration res = ctx.search(dn, filter, searchControls);
+        SearchResult sr = (SearchResult)res.next();
+
+        // Get the number of entries that have been handled and
+        // a percentage...
+        Message msg;
+        String sProcessed = getFirstValue(sr,
+        "ds-task-processed-entry-count");
+        String sUnprocessed = getFirstValue(sr,
+        "ds-task-unprocessed-entry-count");
+        int processed = -1;
+        int unprocessed = -1;
+        if (sProcessed != null)
+        {
+          processed = Integer.parseInt(sProcessed);
+        }
+        if (sUnprocessed != null)
+        {
+          unprocessed = Integer.parseInt(sUnprocessed);
+        }
+        totalEntries = Math.max(totalEntries, processed+unprocessed);
+
+        if ((processed != -1) && (unprocessed != -1))
+        {
+          if (processed + unprocessed > 0)
+          {
+            int perc = (100 * processed) / (processed + unprocessed);
+            msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
+                String.valueOf(perc));
+          }
+          else
+          {
+            //msg = INFO_NO_ENTRIES_TO_INITIALIZE.get();
+            msg = null;
+          }
+        }
+        else if (processed != -1)
+        {
+          msg = INFO_INITIALIZE_PROGRESS_WITH_PROCESSED.get(sProcessed);
+        }
+        else if (unprocessed != -1)
+        {
+          msg = INFO_INITIALIZE_PROGRESS_WITH_UNPROCESSED.get(sUnprocessed);
+        }
+        else
+        {
+          msg = lastDisplayedMsg;
+        }
+
+        if (msg != null)
+        {
+          long currentTime = System.currentTimeMillis();
+          /* Refresh period: to avoid having too many lines in the log */
+          long minRefreshPeriod;
+          if (totalEntries < 100)
+          {
+            minRefreshPeriod = 0;
+          }
+          else if (totalEntries < 1000)
+          {
+            minRefreshPeriod = 1000;
+          }
+          else if (totalEntries < 10000)
+          {
+            minRefreshPeriod = 5000;
+          }
+          else
+          {
+            minRefreshPeriod = 10000;
+          }
+          if (((currentTime - minRefreshPeriod) > lastTimeMsgLogged))
+          {
+            lastTimeMsgLogged = currentTime;
+            LOG.log(Level.INFO, "Progress msg: "+msg);
+          }
+          if (displayProgress)
+          {
+            if (!msg.equals(lastDisplayedMsg) &&
+                ((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
+                !msg.equals(lastDisplayedMsg))
+            {
+              printProgressMessage(msg);
+              lastDisplayedMsg = msg;
+              printProgressLineBreak();
+              lastTimeMsgDisplayed = currentTime;
+            }
+          }
+        }
+
+        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        if (logMsg != null)
+        {
+          if (!logMsg.equals(lastLogMsg))
+          {
+            LOG.log(Level.INFO, logMsg);
+            lastLogMsg = logMsg;
+          }
+        }
+        InstallerHelper helper = new InstallerHelper();
+        String state = getFirstValue(sr, "ds-task-state");
+
+        if (helper.isDone(state) || helper.isStoppedByError(state))
+        {
+          isOver = true;
+          Message errorMsg;
+          if (lastLogMsg == null)
+          {
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
+                    serverDisplay, state, serverDisplay);
+          }
+          else
+          {
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
+                serverDisplay, lastLogMsg, state, serverDisplay);
+          }
+
+          LOG.log(Level.WARNING, "Processed errorMsg: "+errorMsg);
+          if (helper.isCompletedWithErrors(state))
+          {
+            if (displayProgress)
+            {
+              printWarningMessage(errorMsg);
+            }
+          }
+          else if (!helper.isSuccessful(state) ||
+              helper.isStoppedByError(state))
+          {
+            ApplicationException ae = new ApplicationException(
+                ReturnCode.APPLICATION_ERROR, errorMsg,
+                null);
+            if ((lastLogMsg == null) ||
+                helper.isPeersNotFoundError(lastLogMsg))
+            {
+              LOG.log(Level.WARNING, "Throwing peer not found error.  "+
+                  "Last Log Msg: "+lastLogMsg);
+              // Assume that this is a peer not found error.
+              throw new PeerNotFoundException(errorMsg);
+            }
+            else
+            {
+              LOG.log(Level.SEVERE, "Throwing ApplicationException.");
+              throw ae;
+            }
+          }
+          else if (displayProgress)
+          {
+            LOG.log(Level.INFO, "Initialization completed successfully.");
+            printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+            printProgressLineBreak();
+          }
+        }
+      }
+      catch (NameNotFoundException x)
+      {
+        isOver = true;
+        LOG.log(Level.INFO, "Initialization entry not found.");
+        if (displayProgress)
+        {
+          printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+          printProgressLineBreak();
+        }
+      }
+      catch (NamingException ne)
+      {
+        throw new ApplicationException(
+            ReturnCode.APPLICATION_ERROR,
+                getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(
+                    serverDisplay), ne), ne);
+      }
     }
   }
 

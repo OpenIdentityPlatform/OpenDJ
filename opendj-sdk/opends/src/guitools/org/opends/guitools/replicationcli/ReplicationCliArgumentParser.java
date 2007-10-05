@@ -59,6 +59,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand enableReplicationSubCmd;
   private SubCommand disableReplicationSubCmd;
   private SubCommand initializeReplicationSubCmd;
+  private SubCommand initializeAllReplicationSubCmd;
   private SubCommand statusReplicationSubCmd;
 
   private BooleanArgument noPromptArg;
@@ -249,6 +250,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public static final String INITIALIZE_REPLICATION_SUBCMD_NAME = "initialize";
 
   /**
+   * The text of the initialize all replication subcommand.
+   */
+  public static final String INITIALIZE_ALL_REPLICATION_SUBCMD_NAME =
+    "initialize-all";
+
+  /**
    * The text of the status replication subcommand.
    */
   public static final String STATUS_REPLICATION_SUBCMD_NAME = "status";
@@ -286,6 +293,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     createEnableReplicationSubCommand();
     createDisableReplicationSubCommand();
     createInitializeReplicationSubCommand();
+    createInitializeAllReplicationSubCommand();
     createStatusReplicationSubCommand();
   }
 
@@ -616,7 +624,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     initializeReplicationSubCmd = new SubCommand(this,
         INITIALIZE_REPLICATION_SUBCMD_NAME,
-        INFO_DESCRIPTION_SUBCMD_INITIALIZE_REPLICATION.get());
+        INFO_DESCRIPTION_SUBCMD_INITIALIZE_REPLICATION.get(
+            INITIALIZE_ALL_REPLICATION_SUBCMD_NAME));
 
     Argument[] argsToAdd = {
         hostNameSourceArg, portSourceArg, useSSLSourceArg, useStartTLSSourceArg,
@@ -626,6 +635,28 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     for (int i=0; i<argsToAdd.length; i++)
     {
       initializeReplicationSubCmd.addArgument(argsToAdd[i]);
+    }
+  }
+
+  /**
+   * Creates the initialize all replication subcommand and all the specific
+   * options for the subcommand.  Note: this method assumes that
+   * initializeGlobalArguments has already been called and that hostNameArg,
+   * portArg, startTLSArg and useSSLArg have been created.
+   */
+  private void createInitializeAllReplicationSubCommand()
+  throws ArgumentException
+  {
+    initializeAllReplicationSubCmd = new SubCommand(this,
+        INITIALIZE_ALL_REPLICATION_SUBCMD_NAME,
+        INFO_DESCRIPTION_SUBCMD_INITIALIZE_ALL_REPLICATION.get(
+            INITIALIZE_REPLICATION_SUBCMD_NAME));
+    Argument[] argsToAdd = { secureArgsList.hostNameArg,
+        secureArgsList.portArg, secureArgsList.useSSLArg,
+        secureArgsList.useStartTLSArg };
+    for (int i=0; i<argsToAdd.length; i++)
+    {
+      initializeAllReplicationSubCmd.addArgument(argsToAdd[i]);
     }
   }
 
@@ -915,6 +946,30 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * the disable replication subcommand and <CODE>false</CODE> otherwise.
    */
   public boolean useStartTLSToDisable()
+  {
+    return secureArgsList.useStartTLSArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the initialize all
+   * replication subcommand.
+   *
+   * @return <CODE>true</CODE> if SSL mode is required for the server in the
+   * initialize all replication subcommand and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSSLToInitializeAll()
+  {
+    return secureArgsList.useSSLArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the initialize all
+   * replication subcommand.
+   *
+   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
+   * the initialize all replication subcommand and <CODE>false</CODE> otherwise.
+   */
+  public boolean useStartTLSToInitializeAll()
   {
     return secureArgsList.useStartTLSArg.isPresent();
   }
@@ -1246,6 +1301,28 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns the host name explicitly provided in the initialize all replication
+   * subcommand.
+   * @return the host name explicitly provided in the initialize all replication
+   * subcommand.
+   */
+  public String getHostNameToInitializeAll()
+  {
+    return getValue(secureArgsList.hostNameArg);
+  }
+
+  /**
+   * Returns the host name default value in the initialize all replication
+   * subcommand.
+   * @return the host name default value in the initialize all replication
+   * subcommand.
+   */
+  public String getDefaultHostNameToInitializeAll()
+  {
+    return getDefaultValue(secureArgsList.hostNameArg);
+  }
+
+  /**
    * Returns the source host name explicitly provided in the initialize
    * replication subcommand.
    * @return the source host name explicitly provided in the initialize
@@ -1351,6 +1428,28 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * subcommand.
    */
   public int getDefaultPortToDisable()
+  {
+    return getDefaultValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port explicitly provided in the initialize all
+   * replication subcommand.
+   * @return the server port explicitly provided in the initialize all
+   * replication subcommand.  Returns -1 if no port was explicitly provided.
+   */
+  public int getPortToInitializeAll()
+  {
+    return getValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port default value in the initialize all replication
+   * subcommand.
+   * @return the server port default value in the initialize all replication
+   * subcommand.
+   */
+  public int getDefaultPortToInitializeAll()
   {
     return getDefaultValue(secureArgsList.portArg);
   }
@@ -1483,6 +1582,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       validateInitializeReplicationOptions(buf);
     }
+    else if (isInitializeAllReplicationSubcommand())
+    {
+      validateInitializeAllReplicationOptions(buf);
+    }
 
     else
     {
@@ -1523,6 +1626,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean isStatusReplicationSubcommand()
   {
     return isSubcommand(STATUS_REPLICATION_SUBCMD_NAME);
+  }
+
+  /**
+   * Returns whether the user provided subcommand is the initialize all
+   * replication or not.
+   * @return <CODE>true</CODE> if the user provided subcommand is the
+   * initialize all replication and <CODE>false</CODE> otherwise.
+   */
+  public boolean isInitializeAllReplicationSubcommand()
+  {
+    return isSubcommand(INITIALIZE_ALL_REPLICATION_SUBCMD_NAME);
   }
 
   /**
@@ -1614,6 +1728,36 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
         {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg},
         {adminUidArg, secureArgsList.bindDnArg}
+    };
+
+    for (int i=0; i< conflictingPairs.length; i++)
+    {
+      Argument arg1 = conflictingPairs[i][0];
+      Argument arg2 = conflictingPairs[i][1];
+      if (arg1.isPresent() && arg2.isPresent())
+      {
+        Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+            arg1.getLongIdentifier(), arg2.getLongIdentifier());
+        addMessage(buf, message);
+      }
+    }
+  }
+
+  /**
+   * Checks the initialize all replication subcommand options and updates the
+   * provided MessageBuilder with the errors that were encountered with the
+   * subcommand options.
+   *
+   * This method assumes that the method parseArguments for the parser has
+   * already been called.
+   * @param buf the MessageBuilder object where we add the error messages
+   * describing the errors encountered.
+   */
+  private void validateInitializeAllReplicationOptions(MessageBuilder buf)
+  {
+    Argument[][] conflictingPairs =
+    {
+        {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg}
     };
 
     for (int i=0; i< conflictingPairs.length; i++)
