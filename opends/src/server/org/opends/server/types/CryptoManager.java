@@ -109,6 +109,7 @@ public class CryptoManager
   private static AttributeType attrInitVectorLength;
   private static AttributeType attrKeyLength;
   private static AttributeType attrCompromisedTime;
+  private static ObjectClass   ocCertRequest;
   private static ObjectClass   ocInstanceKey;
   private static ObjectClass   ocCipherKey;
   private static ObjectClass   ocMacKey;
@@ -208,6 +209,8 @@ public class CryptoManager
            ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS);
       attrCompromisedTime = DirectoryServer.getAttributeType(
            ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
+      ocCertRequest = DirectoryServer.getObjectClass(
+              "ds-cfg-self-signed-cert-request"); // TODO: conf-const
       ocInstanceKey = DirectoryServer.getObjectClass(
            ConfigConstants.OC_CRYPTO_INSTANCE_KEY);
       ocCipherKey = DirectoryServer.getObjectClass(
@@ -391,21 +394,18 @@ public class CryptoManager
         catch (DirectoryException ex) {
           if (0 == i
                   && ResultCode.NO_SUCH_OBJECT == ex.getResultCode()){
-            final Entry e = new Entry(entryDN, null, null, null);
-            final AttributeType ocAttrType
-                    = DirectoryServer.getAttributeType("objectclass");
-            e.addObjectClass(new AttributeValue(ocAttrType, "top"));
-            e.addObjectClass(new AttributeValue(ocAttrType,
-                    "ds-cfg-self-signed-cert-request"));
-            AddOperation addOperation = icc.processAdd(e.getDN(),
-                    e.getObjectClasses(),
-                    e.getUserAttributes(),
-                    e.getOperationalAttributes());
+            final Entry entry = new Entry(entryDN, null, null, null);
+            entry.addObjectClass(DirectoryServer.getTopObjectClass());
+            entry.addObjectClass(ocCertRequest);
+            AddOperation addOperation = icc.processAdd(entry.getDN(),
+                    entry.getObjectClasses(),
+                    entry.getUserAttributes(),
+                    entry.getOperationalAttributes());
             if (ResultCode.SUCCESS != addOperation.getResultCode()) {
               throw new DirectoryException(
                       addOperation.getResultCode(),
-                      Message.raw("Failed to add entry %s.",
-                              e.getDN().toString()));
+         ERR_CRYPTOMGR_FAILED_TO_INITIATE_INSTANCE_KEY_GENERATION.get(
+                 entry.getDN().toString()));
             }
           }
           else {
@@ -419,10 +419,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Failed to retrieve %s:  "
-                      + getExceptionMessage(ex).toString(),
-                      entryDN.toString()), ex);
+            ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_INSTANCE_CERTIFICATE.get(
+                    getExceptionMessage(ex), entryDN.toString()), ex);
     }
     return(certificate);
   }
@@ -468,10 +466,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-            Message.raw("Failed to get MessageDigest instance for" +
-                    " %s:  " + getExceptionMessage(ex).toString(),
-                      mdAlgorithmName), ex);
+          ERR_CRYPTOMGR_FAILED_TO_COMPUTE_INSTANCE_KEY_IDENTIFIER.get(
+                  getExceptionMessage(ex)), ex);
     }
     return StaticUtils.bytesToHexNoSpace(
          md.digest(instanceKeyCertificate));
@@ -538,9 +534,9 @@ public class CryptoManager
                       FILTER_OC_INSTANCE_KEY),
               requestedAttributes);
       if (0 == searchOp.getSearchEntries().size()) {
-        final Entry e = new Entry(entryDN, null, null, null);
-        e.addObjectClass(DirectoryServer.getTopObjectClass());
-        e.addObjectClass(ocInstanceKey);
+        final Entry entry = new Entry(entryDN, null, null, null);
+        entry.addObjectClass(DirectoryServer.getTopObjectClass());
+        entry.addObjectClass(ocInstanceKey);
         // Add the key ID attribute.
         final LinkedHashSet<AttributeValue> keyIDValueSet =
                 new LinkedHashSet<AttributeValue>(1);
@@ -549,7 +545,8 @@ public class CryptoManager
                 attrKeyID,
                 attrKeyID.getNameOrOID(),
                 keyIDValueSet);
-        e.addAttribute(keyIDAttr, new ArrayList<AttributeValue>(0));
+        entry.addAttribute(keyIDAttr,
+                new ArrayList<AttributeValue>(0));
         // Add the public key certificate attribute.
         final LinkedHashSet<AttributeValue> certificateValueSet =
                 new LinkedHashSet<AttributeValue>(1);
@@ -565,18 +562,18 @@ public class CryptoManager
                 attrPublicKeyCertificate.getNameOrOID(),
                 certificateOptions,
                 certificateValueSet);
-        e.addAttribute(certificateAttr,
+        entry.addAttribute(certificateAttr,
                 new ArrayList<AttributeValue>(0));
 
-        AddOperation addOperation = icc.processAdd(e.getDN(),
-                e.getObjectClasses(),
-                e.getUserAttributes(),
-                e.getOperationalAttributes());
+        AddOperation addOperation = icc.processAdd(entry.getDN(),
+                entry.getObjectClasses(),
+                entry.getUserAttributes(),
+                entry.getOperationalAttributes());
         if (ResultCode.SUCCESS != addOperation.getResultCode()) {
           throw new DirectoryException(
                   addOperation.getResultCode(),
-                  Message.raw("Failed to add entry %s.",
-                          e.getDN().toString()));
+            ERR_CRYPTOMGR_FAILED_TO_ADD_INSTANCE_KEY_ENTRY_TO_ADS.get(
+                    entry.getDN().toString()));
         }
       }
     } catch (DirectoryException ex) {
@@ -584,10 +581,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Failed to publish %s:  "
-                      + getExceptionMessage(ex).toString(),
-                      entryDN.toString()), ex);
+              ERR_CRYPTOMGR_FAILED_TO_PUBLISH_INSTANCE_KEY_ENTRY.get(
+                      getExceptionMessage(ex)), ex);
     }
   }
 
