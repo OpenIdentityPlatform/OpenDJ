@@ -9136,6 +9136,20 @@ public class DirectoryServer
                          System.getProperty("os.name") + " " +
                          System.getProperty("os.version") + " " +
                          System.getProperty("os.arch"));
+      String sunOsArchDataModel = System.getProperty("sun.arch.data.model");
+      if (sunOsArchDataModel != null)
+      {
+        System.out.print  ("JVM Architecture:       " + sunOsArchDataModel);
+        if (! sunOsArchDataModel.toLowerCase().equals("unknown"))
+        {
+          System.out.print("-bit");
+        }
+        System.out.println();
+      }
+      else
+      {
+        System.out.println("JVM Architecture:        unknown");
+      }
 
       try
       {

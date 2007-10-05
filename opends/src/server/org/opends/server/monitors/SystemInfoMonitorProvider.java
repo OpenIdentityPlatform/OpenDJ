@@ -165,6 +165,20 @@ public class SystemInfoMonitorProvider
                     System.getProperty("os.version") + " " +
                     System.getProperty("os.arch");
     attrs.add(createAttribute("operatingSystem", osInfo));
+    String sunOsArchDataModel = System.getProperty("sun.arch.data.model");
+    if (sunOsArchDataModel != null)
+    {
+      String jvmArch = sunOsArchDataModel;
+      if (! sunOsArchDataModel.toLowerCase().equals("unknown"))
+      {
+        jvmArch += "-bit";
+      }
+      attrs.add(createAttribute("jvmArchitecture", jvmArch));
+    }
+    else
+    {
+      attrs.add(createAttribute("jvmArchitecture","unknown"));
+    }
 
     try
     {
