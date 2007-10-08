@@ -754,7 +754,7 @@ public class CryptoManager
     String[] elements = symmetricKeyAttribute.split(":", 0);
     if (5 != elements.length) {
       throw new CryptoManagerException(
-          ERR_CRYPTOMGR_PARSE_SYMMETRIC_KEY_ATTRIBUTE_FIELD_COUNT.get(
+         ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_FIELD_COUNT.get(
                   symmetricKeyAttribute));
      }
 
@@ -798,7 +798,7 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              ERR_CRYPTOMGR_PARSE_SYMMETRIC_KEY_ATTRIBUTE_SYNTAX.get(
+              ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_SYNTAX.get(
                       symmetricKeyAttribute, fieldName,
                       ex.getErrorOffset()), ex);
     }
@@ -815,26 +815,14 @@ public class CryptoManager
       privateKey = (PrivateKey)getTrustStoreBackend()
               .getKey(ConfigConstants.ADS_CERTIFICATE_ALIAS);
     }
-    catch (ConfigException ex) {
+    catch (IdentifiedException ex) {
+      // ConfigException, DirectoryException
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("The instance-key-pair private-key is not"
-                      + " available:  "
-                      + getExceptionMessage(ex).toString()), ex);
-    }
-    catch (DirectoryException ex) {
-      // TODO: is DirectoryException reasonable for getKey() ?
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-      throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("The instance-key-pair private-key is not"
-                      + " available:  "
-                      + getExceptionMessage(ex).toString()), ex);
+          ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_NO_PRIVATE.get(
+                  getExceptionMessage(ex)), ex);
     }
 
     // Unwrap secret key.
@@ -852,10 +840,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Failed to decipher the wrapped secret-key"
-                      + " value:  "
-                      + getExceptionMessage(ex).toString()), ex);
+            ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_DECIPHER.get(
+                    getExceptionMessage(ex)), ex);
     }
 
     return secretKey;
@@ -887,10 +873,8 @@ public class CryptoManager
     if (! (certMap.containsKey(requestedInstanceKeyID)
             && null != certMap.get(requestedInstanceKeyID))) {
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("The public key certificate specified by" +
-                      " the identifier %s cannot be found.",
-                      requestedInstanceKeyID));
+          ERR_CRYPTOMGR_REWRAP_SYMMETRIC_KEY_ATTRIBUTE_NO_WRAPPER.get(
+                  requestedInstanceKeyID));
     }
     final byte[] wrappingKeyCert =
             certMap.get(requestedInstanceKeyID);
@@ -1161,11 +1145,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("MAC key entry identifier \"%s\" is not"
-                      + " a valid UUID:  "
-                      + getExceptionMessage(ex).toString(),
-                      keyEntryID), ex);
+              ERR_CRYPTOMGR_GET_MAC_ENGINE_INVALID_KEY_IDENTIFIER.get(
+                      keyEntryID, getExceptionMessage(ex)), ex);
     }
     return (null == keyEntry) ? null : getMacEngine(keyEntry);
   }
@@ -1194,10 +1175,9 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Invalid MAC algorithm \"%s\":  "
-                      + getExceptionMessage(ex).toString(),
-                      keyEntry.getType()), ex);
+              ERR_CRYPTOMGR_GET_MAC_ENGINE_INVALID_MAC_ALGORITHM.get(
+                      keyEntry.getType(), getExceptionMessage(ex)),
+              ex);
     }
 
     try {
@@ -1208,10 +1188,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Invalid key specification supplied to"
-                      + " Mac object initialization:  "
-              + getExceptionMessage(ex).toString()), ex);
+           ERR_CRYPTOMGR_GET_MAC_ENGINE_INVALID_KEY_SPECIFICATION.get(
+                   getExceptionMessage(ex)), ex);
     }
 
     return mac;
