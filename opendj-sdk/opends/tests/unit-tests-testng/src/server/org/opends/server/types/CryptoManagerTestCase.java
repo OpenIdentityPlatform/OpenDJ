@@ -36,6 +36,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
+import org.opends.server.util.EmbeddedUtils;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -85,7 +86,8 @@ public class CryptoManagerTestCase extends TypesTestCase
    */
   @AfterClass()
   public void CleanUp() throws Exception {
-    // TODO: remove at least secret key entries added in this exercise.
+    // Removes at least secret keys added in this test case.
+    TestCaseUtils.restartServer();
   }
 
 
@@ -323,7 +325,7 @@ public class CryptoManagerTestCase extends TypesTestCase
 
    @throws Exception  In case an error occurs in the encryption routine.
    */
-  @Test(enabled=true)
+  @Test()
   public void testKeyPersistence()
         throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
@@ -334,8 +336,10 @@ public class CryptoManagerTestCase extends TypesTestCase
     final byte[] cipherText2 = cm.encrypt("RC4", 104,
             secretMessage.getBytes());
 
-    DirectoryServer.restart(this.getClass().getName(),
-            Message.raw("CryptoManager: testing persistent secret keys."));
+    EmbeddedUtils.restartServer(
+            this.getClass().getName(),
+            Message.raw("CryptoManager: testing persistent secret keys."),
+            DirectoryServer.getEnvironmentConfig());
 
     byte[] plainText = cm.decrypt(cipherText);
     assertEquals((new String(plainText)), secretMessage);

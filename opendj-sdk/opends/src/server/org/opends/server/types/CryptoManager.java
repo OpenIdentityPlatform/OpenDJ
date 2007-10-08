@@ -420,7 +420,7 @@ public class CryptoManager
       }
       throw new CryptoManagerException(
             ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_INSTANCE_CERTIFICATE.get(
-                    getExceptionMessage(ex), entryDN.toString()), ex);
+                    entryDN.toString(), getExceptionMessage(ex)), ex);
     }
     return(certificate);
   }
@@ -648,11 +648,9 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Error retrieving instance-key public key"
-                      + " certificates from ADS container %s:  "
-                      + getExceptionMessage(ex).toString(),
-                      instanceKeysDN.toString()), ex);
+            ERR_CRYPTOMGR_FAILED_TO_RETRIEVE_ADS_TRUSTSTORE_CERTS.get(
+                    instanceKeysDN.toString(),
+                    getExceptionMessage(ex)), ex);
     }
     return(certificateMap);
   }
@@ -717,9 +715,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Failed to wrap secret key: " +
-              getExceptionMessage(ex)), ex);
+           ERR_CRYPTOMGR_FAILED_TO_ENCODE_SYMMETRIC_KEY_ATTRIBUTE.get(
+                   getExceptionMessage(ex)), ex);
     }
 
     // Compose ds-cfg-symmetric-key value.
@@ -754,6 +751,14 @@ public class CryptoManager
           final String symmetricKeyAttribute)
           throws CryptoManagerException {
     // Initial decomposition.
+    String[] elements = symmetricKeyAttribute.split(":", 0);
+    if (5 != elements.length) {
+      throw new CryptoManagerException(
+          ERR_CRYPTOMGR_PARSE_SYMMETRIC_KEY_ATTRIBUTE_FIELD_COUNT.get(
+                  symmetricKeyAttribute));
+     }
+
+    // Parse individual fields.
     String wrappingKeyIDElement;
     String wrappingTransformationElement;
     String wrappedKeyAlgorithmElement;
@@ -761,13 +766,6 @@ public class CryptoManager
     byte[] wrappedKeyCipherTextElement;
     String fieldName = null;
     try {
-      String[] elements = symmetricKeyAttribute.split(":", 0);
-      if (5 != elements.length) {
-        throw new ParseException(
-                // TODO: i18n
-                Message.raw("Incorrect number of fields.").toString(),
-                0);
-      }
       fieldName = "instance key identifier";
       wrappingKeyIDElement = elements[0];
       fieldName = "key wrapping transformation";
@@ -799,15 +797,10 @@ public class CryptoManager
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-      throw new CryptoManagerException(((null == fieldName)
-              // TODO: i18n
-              ? Message.raw("The syntax of the symmetric key" +
-              " attribute value \"%s\" is invalid:",
-              symmetricKeyAttribute)
-              : Message.raw("The syntax of the symmetric key" +
-              " attribute value \"%s\" is invalid. Parsing failed" +
-              " in field: %s, offset %d.", symmetricKeyAttribute,
-              fieldName, ex.getErrorOffset())), ex);
+      throw new CryptoManagerException(
+              ERR_CRYPTOMGR_PARSE_SYMMETRIC_KEY_ATTRIBUTE_SYNTAX.get(
+                      symmetricKeyAttribute, fieldName,
+                      ex.getErrorOffset()), ex);
     }
 
     // Confirm key can be unwrapped at this instance.
