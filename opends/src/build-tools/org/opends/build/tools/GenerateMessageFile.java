@@ -40,6 +40,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -491,9 +492,9 @@ public class GenerateMessageFile extends Task {
         log("Generating " + dest.getName() + " from " + source.getName());
       }
 
-      stubReader = new BufferedReader(new FileReader(getStubFile()));
-      destWriter = new PrintWriter(new FileOutputStream(dest));
-
+      stubReader = new BufferedReader(new InputStreamReader(
+          new FileInputStream(getStubFile()), "UTF-8"));
+      destWriter = new PrintWriter(dest, "UTF-8");
       String stubLine;
       Properties properties = new Properties();
       properties.load(new FileInputStream(source));
