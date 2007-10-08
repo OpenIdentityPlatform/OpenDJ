@@ -363,26 +363,26 @@ public class UIFactory
    * panel.
    */
   public static final Font NOT_CURRENT_STEP_FONT =
-    Font.decode("Arial-PLAIN-14");
+    Font.decode("SansSerif-PLAIN-14");
 
   /**
    * Specifies the font for the step which is the current one in the steps
    * panel.
    */
   public static final Font CURRENT_STEP_FONT =
-    Font.decode("Arial-BOLD-14");
+    Font.decode("SansSerif-BOLD-14");
 
   /**
    * Specifies the font for the title of the current panel.
    */
   public static final Font TITLE_FONT =
-    Font.decode("Arial-BOLD-14");
+    Font.decode("SansSerif-BOLD-14");
 
   /**
    * Specifies the font for the instructions of the current panel.
    */
   public static final Font INSTRUCTIONS_FONT =
-    Font.decode("Arial-PLAIN-12");
+    Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the instructions of the current panel.
@@ -394,63 +394,63 @@ public class UIFactory
    * Specifies the font for the primary valid field.
    */
   public static final Font PRIMARY_FIELD_VALID_FONT =
-    Font.decode("Arial-BOLD-12");
+    Font.decode("SansSerif-BOLD-12");
 
   /**
    * Specifies the font for the secondary valid field.
    */
   public static final Font SECONDARY_FIELD_VALID_FONT =
-    Font.decode("Arial-PLAIN-12");
+    Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the primary invalid field.
    */
   public static final Font PRIMARY_FIELD_INVALID_FONT =
-    Font.decode("Arial-BOLDITALIC-12");
+    Font.decode("SansSerif-BOLDITALIC-12");
 
   /**
    * Specifies the font for the secondary invalid field.
    */
   public static final Font SECONDARY_FIELD_INVALID_FONT =
-    Font.decode("Arial-ITALIC-12");
+    Font.decode("SansSerif-ITALIC-12");
 
   /**
    * Specifies the font for the secondary invalid field.
    */
   public static final Font SECONDARY_STATUS_FONT =
-    Font.decode("Arial-ITALIC-12");
+    Font.decode("SansSerif-ITALIC-12");
 
   /**
    * Specifies the font for read only text.
    */
-  public static final Font READ_ONLY_FONT = Font.decode("Arial-PLAIN-12");
+  public static final Font READ_ONLY_FONT = Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the check box text.
    */
-  public static final Font CHECKBOX_FONT = Font.decode("Arial-PLAIN-12");
+  public static final Font CHECKBOX_FONT = Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the progress text.
    */
-  public static final Font PROGRESS_FONT = Font.decode("Arial-PLAIN-12");
+  public static final Font PROGRESS_FONT = Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the text field text.
    */
-  public static final Font TEXTFIELD_FONT = Font.decode("Arial-PLAIN-12");
+  public static final Font TEXTFIELD_FONT = Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the password field text.
    */
   public static final Font PASSWORD_FIELD_FONT =
-    Font.decode("Arial-PLAIN-12");
+    Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the points '....' in the progress panel.
    */
   public static final Font PROGRESS_POINTS_FONT =
-    Font.decode("Arial-BOLD-12");
+    Font.decode("SansSerif-BOLD-12");
 
   /**
    * Specifies the font for the done text 'Done' in the progress panel.
@@ -473,24 +473,24 @@ public class UIFactory
    * Specifies the font for the error messages in the progress panel.
    */
   public static final Font PROGRESS_ERROR_FONT =
-    Font.decode("Arial-BOLD-12");
+    Font.decode("SansSerif-BOLD-12");
 
   /**
    * Specifies the font for the warning messages in the progress panel.
    */
   public static final Font PROGRESS_WARNING_FONT =
-    Font.decode("Arial-BOLD-12");
+    Font.decode("SansSerif-BOLD-12");
 
   /**
    * Specifies the font for the stack trace in the progress panel.
    */
-  public static final Font STACK_FONT = Font.decode("Arial-PLAIN-12");
+  public static final Font STACK_FONT = Font.decode("SansSerif-PLAIN-12");
 
   /**
    * Specifies the font for the text in the WebBrowserErrorDialog.
    */
   public static final Font ERROR_DIALOG_FONT =
-      Font.decode("Arial-PLAIN-12");
+      Font.decode("SansSerif-PLAIN-12");
 
   private static final String SPAN_CLOSE = "</span>";
 
