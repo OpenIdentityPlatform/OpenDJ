@@ -1188,7 +1188,7 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-           ERR_CRYPTOMGR_GET_MAC_ENGINE_INVALID_KEY_SPECIFICATION.get(
+           ERR_CRYPTOMGR_GET_MAC_ENGINE_CANNOT_INITIALIZE.get(
                    getExceptionMessage(ex)), ex);
     }
 
@@ -1251,10 +1251,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Invalid Cipher transformation \"%s\":  "
-                      + getExceptionMessage(ex).toString(),
-                      keyEntry.getType()), ex);
+           ERR_CRYPTOMGR_GET_CIPHER_INVALID_CIPHER_TRANSFORMATION.get(
+                   keyEntry.getType(), getExceptionMessage(ex)), ex);
     }
 
     try {
@@ -1281,9 +1279,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Error initializing cipher:  "
-              + getExceptionMessage(ex).toString()), ex);
+              ERR_CRYPTOMGR_GET_CIPHER_CANNOT_INITIALIZE.get(
+                      getExceptionMessage(ex)), ex);
     }
 
     return cipher;
@@ -1435,10 +1432,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Exception when writing CryptoManager" +
-                      " prologue:  "
-              + getExceptionMessage(ex).toString()), ex);
+             ERR_CRYPTOMGR_GET_CIPHER_STREAM_PROLOGUE_WRITE_ERROR.get(
+                     getExceptionMessage(ex)), ex);
     }
 
     return new CipherOutputStream(outputStream, cipher);
@@ -1479,18 +1474,14 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Exception when reading key identifier"
-                      + " from data prologue:  "
-                      + getExceptionMessage(ex).toString()), ex);
+              ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
+                      getExceptionMessage(ex)), ex);
     }
 
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this, keyID);
     if (null == keyEntry) {
       throw new CryptoManagerException(
-              // TODO: i18N
-              Message.raw("Invalid or unknown key identifier in" +
-                      " data prologue."));
+              ERR_CRYPTOMGR_DECRYPT_UNKNOWN_KEY_IDENTIFIER.get());
     }
 
     byte[] iv = null;
@@ -1506,10 +1497,8 @@ public class CryptoManager
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         throw new CryptoManagerException(
-                // TODO: i18n
-                Message.raw("Exception when reading initialization"
-                        + " vector from data prologue:  "
-                        + getExceptionMessage(ex).toString()), ex);
+               ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_IV.get(
+                       getExceptionMessage(ex)), ex);
       }
     }
 
