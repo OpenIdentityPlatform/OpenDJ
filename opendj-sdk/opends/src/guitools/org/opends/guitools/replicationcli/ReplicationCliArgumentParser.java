@@ -32,6 +32,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -63,6 +64,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand statusReplicationSubCmd;
 
   private BooleanArgument noPromptArg;
+
+  private String defaultLocalHostValue;
 
   /**
    * The 'hostName' argument for the first server.
@@ -456,7 +459,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
 
     hostName1Arg = new StringArgument("host1", OPTION_SHORT_HOST,
-        "host1", false, false, true, OPTION_VALUE_HOST, "localhost",
+        "host1", false, false, true, OPTION_VALUE_HOST, getDefaultHostValue(),
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
 
     port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
@@ -494,7 +497,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
 
     hostName2Arg = new StringArgument("host2", 'O',
-        "host2", false, false, true, OPTION_VALUE_HOST, "localhost",
+        "host2", false, false, true, OPTION_VALUE_HOST, getDefaultHostValue(),
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
 
     port2Arg = new IntegerArgument("port2", null, "port2",
@@ -570,6 +573,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     disableReplicationSubCmd = new SubCommand(this,
         DISABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_DISABLE_REPLICATION.get());
+    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     secureArgsList.bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
         "cn=Directory Manager", null,
@@ -591,8 +595,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     hostNameSourceArg = new StringArgument("hostSource", OPTION_SHORT_HOST,
-        "hostSource", false, false, true, OPTION_VALUE_HOST, "localhost",
-        null, INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
+        "hostSource", false, false, true, OPTION_VALUE_HOST,
+        getDefaultHostValue(), null,
+        INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
 
     portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
         "portSource", false, false, true, OPTION_VALUE_PORT, 389, null,
@@ -607,8 +612,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_STARTTLS_SOURCE.get());
 
     hostNameDestinationArg = new StringArgument("hostDestination", 'O',
-        "hostDestination", false, false, true, OPTION_VALUE_HOST, "localhost",
-        null, INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
+        "hostDestination", false, false, true, OPTION_VALUE_HOST,
+        getDefaultHostValue(), null,
+        INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
 
     portDestinationArg = new IntegerArgument("portDestination", null,
         "portDestination", false, false, true, OPTION_VALUE_PORT, 389, null,
@@ -651,6 +657,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INITIALIZE_ALL_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_INITIALIZE_ALL_REPLICATION.get(
             INITIALIZE_REPLICATION_SUBCMD_NAME));
+    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.useSSLArg,
         secureArgsList.useStartTLSArg };
@@ -676,6 +683,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         's',
         "script-friendly",
         INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.useSSLArg,
         secureArgsList.useStartTLSArg, scriptFriendlyArg };
@@ -1848,5 +1856,29 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       buf.append(EOL);
     }
     buf.append(message);
+  }
+
+  /**
+   * Returns the default value to be used for the host.
+   * @return the default value to be used for the host.
+   */
+  private String getDefaultHostValue()
+  {
+    if (defaultLocalHostValue == null)
+    {
+      try
+      {
+        InetAddress localAddress = InetAddress.getLocalHost();
+        defaultLocalHostValue = localAddress.getHostName();
+      }
+      catch (Throwable t)
+      {
+      }
+      if (defaultLocalHostValue == null)
+      {
+        defaultLocalHostValue = "localhost";
+      }
+    }
+    return defaultLocalHostValue;
   }
 }
