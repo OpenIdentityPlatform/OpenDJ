@@ -1427,8 +1427,8 @@ public class DirectoryServer
       }
 
 
-      // Start a thread to synchronize the trust store.
-      new TrustStoreSyncThread().start();
+      // Create an object to synchronize ADS with the crypto manager.
+      new CryptoManagerSync();
 
       // If we should write a copy of the config on successful startup, then do
       // so now.

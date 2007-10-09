@@ -27,14 +27,12 @@
 
 package org.opends.server.core;
 
-import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
@@ -51,16 +49,12 @@ import static org.opends.server.config.ConfigConstants.OC_CRYPTO_CIPHER_KEY;
 import static org.opends.server.config.ConfigConstants.OC_CRYPTO_MAC_KEY;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.EntryChangeNotificationControl;
 import static org.opends.messages.CoreMessages.*;
 import org.opends.messages.Message;
 import org.opends.admin.ads.ADSContext;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.LinkedHashSet;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -68,12 +62,12 @@ import java.util.List;
 import java.util.HashMap;
 
 /**
- * This class defines a thread that synchronizes certificates from the admin
- * data branch into the trust store backend.
+ * This class defines an object that synchronizes certificates from the admin
+ * data branch into the trust store backend, and synchronizes secret-key entries
+ * from the admin data branch to the crypto manager secret-key cache.
  */
-public class TrustStoreSyncThread extends DirectoryThread
-     implements ServerShutdownListener, BackendInitializationListener,
-     InternalSearchListener, ChangeNotificationListener
+public class CryptoManagerSync
+     implements BackendInitializationListener, ChangeNotificationListener
 {
   /**
    * The debug log tracer for this object.
@@ -81,10 +75,6 @@ public class TrustStoreSyncThread extends DirectoryThread
   private static final DebugTracer TRACER = getTracer();
 
 
-
-  // A lock and condition for notifying this thread.
-  private Lock lock;
-  private Condition condition;
 
   // The DN of the administration suffix.
   private DN adminSuffixDN;
@@ -110,18 +100,6 @@ public class TrustStoreSyncThread extends DirectoryThread
   // A filter on object class to select key entries.
   private SearchFilter keySearchFilter;
 
-  // Indicates whether the ADS suffix backend is initialized.
-  private boolean adminBackendInitialized;
-
-  // Indicates whether the trust store backend is initialized.
-  private boolean trustStoreBackendInitialized;
-
-  // Indicates whether a shutdown request has been received.
-  private boolean shutdownRequested;
-
-  // Indicates whether the initial search has been done.
-  private boolean searchDone;
-
   // The instance key objectclass.
   private ObjectClass ocInstanceKey;
 
@@ -134,21 +112,9 @@ public class TrustStoreSyncThread extends DirectoryThread
   /**
    * Creates a new instance of this trust store synchronization thread.
    */
-  public TrustStoreSyncThread()
+  public CryptoManagerSync()
   {
-    super("Trust Store Synchronization Thread");
-    setDaemon(true);
-
-    shutdownRequested = false;
-    adminBackendInitialized = false;
-    trustStoreBackendInitialized = false;
-    searchDone = false;
-
-    DirectoryServer.registerShutdownListener(this);
     DirectoryServer.registerBackendInitializationListener(this);
-
-    lock = new ReentrantLock();
-    condition = lock.newCondition();
 
     try
     {
@@ -184,58 +150,14 @@ public class TrustStoreSyncThread extends DirectoryThread
 
     if (DirectoryServer.getBackendWithBaseDN(adminSuffixDN) != null)
     {
-      adminBackendInitialized = true;
+      searchAdminSuffix();
     }
 
-    if (DirectoryServer.getBackendWithBaseDN(trustStoreRootDN) != null)
-    {
-      trustStoreBackendInitialized = true;
-    }
-
+    DirectoryServer.registerChangeNotificationListener(this);
   }
 
 
-//  We would need this to detect changes if the admin branch was remote.
-//  private SearchOperation runPersistentSearch()
-//  {
-//    InternalClientConnection conn =
-//         InternalClientConnection.getRootConnection();
-//    LinkedHashSet<String> attributes = new LinkedHashSet<String>(0);
-//
-//    // Specify the persistent search control.
-//    Set<PersistentSearchChangeType> changeTypes =
-//         new HashSet<PersistentSearchChangeType>();
-//    changeTypes.add(PersistentSearchChangeType.ADD);
-//    changeTypes.add(PersistentSearchChangeType.DELETE);
-//    changeTypes.add(PersistentSearchChangeType.MODIFY);
-//
-//    boolean changesOnly = false;
-//    boolean returnECs = true;
-//
-//    PersistentSearchControl psc =
-//         new PersistentSearchControl(changeTypes, changesOnly, returnECs);
-//    ArrayList<Control> controls = new ArrayList<Control>(1);
-//    controls.add(psc);
-//
-//    InternalSearchOperation searchOperation =
-//         new InternalSearchOperation(
-//              conn,
-//              InternalClientConnection.nextOperationID(),
-//              InternalClientConnection.nextMessageID(),
-//              controls,
-//              adminSuffixDN, SearchScope.WHOLE_SUBTREE,
-//              DereferencePolicy.NEVER_DEREF_ALIASES,
-//              0, 0,
-//              false, instanceKeyFilter, attributes,
-//              this);
-//
-//    searchOperation.run();
-//
-//    return searchOperation;
-//  }
-
-
-  private SearchOperation runSearch()
+  private void searchAdminSuffix()
   {
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -252,47 +174,27 @@ public class TrustStoreSyncThread extends DirectoryThread
                                      DereferencePolicy.NEVER_DEREF_ALIASES,
                                      0, 0,
                                      false, keySearchFilter, attributes,
-                                     this);
+                                     null);
 
     searchOperation.run();
 
-    return searchOperation;
-  }
+    ResultCode resultCode = searchOperation.getResultCode();
+    if (resultCode != ResultCode.SUCCESS)
+    {
+      Message message =
+           INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED.get(
+                String.valueOf(adminSuffixDN),
+                searchOperation.getErrorMessage().toString());
+      ErrorLogger.logError(message);
+    }
 
-
-  /**
-   * Performs an initial search on the ADS branch when enabled, then listens
-   * for changes within the branch, writing certificates from instance key
-   * entries to the trust store backend.
-   */
-  public void run()
-  {
-    while (!shutdownRequested)
+    for (SearchResultEntry searchEntry : searchOperation.getSearchEntries())
     {
       try
       {
-        if (!searchDone && adminBackendInitialized &&
-             trustStoreBackendInitialized)
-        {
-          SearchOperation searchOperation = runSearch();
-
-          ResultCode resultCode = searchOperation.getResultCode();
-          if (resultCode != ResultCode.SUCCESS)
-          {
-            Message message =
-                 INFO_TRUSTSTORESYNC_ADMIN_SUFFIX_SEARCH_FAILED.get(
-                      String.valueOf(adminSuffixDN),
-                      searchOperation.getErrorMessage().toString());
-            ErrorLogger.logError(message);
-          }
-          searchDone = true;
-          DirectoryServer.registerChangeNotificationListener(this);
-        }
-
-        // Wait until a backend changes state or a shutdown is requested.
-        awaitCondition();
+        handleInternalSearchEntry(searchEntry);
       }
-      catch (Exception e)
+      catch (DirectoryException e)
       {
         if (debugEnabled())
         {
@@ -304,58 +206,7 @@ public class TrustStoreSyncThread extends DirectoryThread
         ErrorLogger.logError(message);
       }
     }
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getShutdownListenerName()
-  {
-    return "Trust Store Synchronization Thread";
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void processServerShutdown(Message reason)
-  {
-    shutdownRequested = true;
-    notifyCondition();
-  }
-
-  private void notifyCondition()
-  {
-    lock.lock();
-    try
-    {
-      condition.signalAll();
-    }
-    finally
-    {
-      lock.unlock();
-    }
-  }
-
-
-  private void awaitCondition()
-  {
-    lock.lock();
-    try
-    {
-      condition.await();
-    }
-    catch (InterruptedException e)
-    {
-      // ignore
-    }
-    finally
-    {
-      lock.unlock();
-    }
   }
 
 
@@ -364,8 +215,6 @@ public class TrustStoreSyncThread extends DirectoryThread
    */
   public void performBackendInitializationProcessing(Backend backend)
   {
-    boolean notify = false;
-
     DN[] baseDNs = backend.getBaseDNs();
     if (baseDNs != null)
     {
@@ -373,20 +222,9 @@ public class TrustStoreSyncThread extends DirectoryThread
       {
         if (baseDN.equals(adminSuffixDN))
         {
-          adminBackendInitialized = true;
-          notify = true;
-        }
-        else if (baseDN.equals(trustStoreRootDN))
-        {
-          trustStoreBackendInitialized = true;
-          notify = true;
+          searchAdminSuffix();
         }
       }
-    }
-
-    if (notify)
-    {
-      notifyCondition();
     }
   }
 
@@ -395,37 +233,10 @@ public class TrustStoreSyncThread extends DirectoryThread
    */
   public void performBackendFinalizationProcessing(Backend backend)
   {
-    boolean notify = false;
-
-    DN[] baseDNs = backend.getBaseDNs();
-    if (baseDNs != null)
-    {
-      for (DN baseDN : baseDNs)
-      {
-        if (baseDN.equals(adminSuffixDN))
-        {
-          adminBackendInitialized = false;
-          notify = true;
-        }
-        else if (baseDN.equals(trustStoreRootDN))
-        {
-          adminBackendInitialized = false;
-          notify = true;
-        }
-      }
-    }
-
-    if (notify)
-    {
-      notifyCondition();
-    }
+    // No implementation required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
-                                        SearchResultEntry searchEntry)
+  private void handleInternalSearchEntry(SearchResultEntry searchEntry)
        throws DirectoryException
   {
     if (searchEntry.hasObjectClass(ocInstanceKey))
@@ -634,16 +445,6 @@ public class TrustStoreSyncThread extends DirectoryThread
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleInternalSearchReference(
-       InternalSearchOperation searchOperation,
-       SearchResultReference searchReference) throws DirectoryException
-  {
-    // No implementation required.
-  }
 
   /**
    * {@inheritDoc}

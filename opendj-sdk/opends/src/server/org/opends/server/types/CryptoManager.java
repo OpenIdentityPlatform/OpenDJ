@@ -38,6 +38,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -58,6 +59,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.ModifyOperation;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.StaticUtils.*;
@@ -65,12 +67,24 @@ import org.opends.server.util.Validator;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Base64;
+import org.opends.server.util.ServerConstants;
 import static org.opends.server.util.ServerConstants.OC_TOP;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.schema.BinarySyntax;
+import org.opends.server.tools.LDAPConnection;
+import org.opends.server.tools.LDAPConnectionOptions;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
+import org.opends.server.extensions.GetSymmetricKeyExtendedOperation;
 
 /**
  This class implements the Directory Server cryptographic framework,
@@ -122,6 +136,9 @@ public class CryptoManager
 
   // The DN of the ADS secret keys container.
   private static DN secretKeysDN;
+
+  // The DN of the ADS servers container.
+  private static DN serversDN;
 
   // Indicates whether the schema references have been initialized.
   private static boolean schemaInitDone = false;
@@ -227,6 +244,8 @@ public class CryptoManager
                 DN.decode("cn=instance keys"));
         secretKeysDN = adminSuffixDN.concat(
              DN.decode("cn=secret keys"));
+        serversDN = adminSuffixDN.concat(
+             DN.decode("cn=Servers"));
       }
       catch (DirectoryException ex) {
         if (debugEnabled()) {
@@ -1803,6 +1822,8 @@ public class CryptoManager
            entry.getAttributeValue(attrCompromisedTime,
                                    DirectoryStringSyntax.DECODER);
 
+      boolean isCompromised = compromisedTime != null;
+
       ArrayList<String> symmetricKeys = new ArrayList<String>();
       entry.getAttributeValues(attrSymmetricKey,
                              DirectoryStringSyntax.DECODER,
@@ -1819,19 +1840,52 @@ public class CryptoManager
 
       if (secretKey == null)
       {
-        throw new CryptoManagerException(
-                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
-                        entry.getDN().toString()));
+        // Request the value from another server.
+        String symmetricKey = getSymmetricKey(symmetricKeys);
+        if (symmetricKey == null)
+        {
+          throw new CryptoManagerException(
+               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
+                    entry.getDN().toString()));
+        }
+        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+        CipherKeyEntry.importCipherKeyEntry(this, keyID,
+                                            transformation,
+                                            secretKey,
+                                            keyLengthBits,
+                                            ivLengthBits,
+                                            isCompromised);
+
+        // Write the value to the entry.
+        InternalClientConnection internalConnection =
+             InternalClientConnection.getRootConnection();
+        List<Modification> modifications =
+             new ArrayList<Modification>(1);
+        Attribute attribute =
+             new Attribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY,
+                           symmetricKey);
+        modifications.add(
+             new Modification(ModificationType.ADD, attribute,
+                              false));
+        ModifyOperation internalModify =
+             internalConnection.processModify(entry.getDN(),
+                                              modifications);
+        if (internalModify.getResultCode() != ResultCode.SUCCESS)
+        {
+          throw new CryptoManagerException(
+               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(
+                    entry.getDN().toString()));
+        }
       }
-
-      boolean isCompromised = compromisedTime != null;
-
-      CipherKeyEntry.importCipherKeyEntry(this, keyID,
-                                          transformation,
-                                          secretKey, keyLengthBits,
-                                          ivLengthBits,
-                                          isCompromised);
-
+      else
+      {
+        CipherKeyEntry.importCipherKeyEntry(this, keyID,
+                                            transformation,
+                                            secretKey,
+                                            keyLengthBits,
+                                            ivLengthBits,
+                                            isCompromised);
+      }
     }
     catch (DirectoryException ex)
     {
@@ -1843,6 +1897,115 @@ public class CryptoManager
                       entry.getDN().toString(), ex.getMessage()), ex);
     }
   }
+
+  /**
+   * Given a set of other servers' symmetric key values for
+   * a given secret key, use the Get Symmetric Key extended
+   * operation to request this server's symmetric key value.
+   *
+   * @param  symmetricKeys  The known symmetric key values for
+   *                        a given secret key.
+   *
+   * @return The symmetric key value for this server, or null if
+   *         none could be obtained.
+   */
+  private String getSymmetricKey(List<String> symmetricKeys)
+  {
+    InternalClientConnection internalConnection =
+         InternalClientConnection.getRootConnection();
+    for (String symmetricKey : symmetricKeys)
+    {
+      try
+      {
+        // Get the server instance key ID from the symmetric key.
+        String[] elements = symmetricKey.split(":", 0);
+        String instanceKeyID = elements[0];
+
+        // Find the server entry from the instance key ID.
+        String filter = "(" +
+             ConfigConstants.ATTR_CRYPTO_KEY_ID + "=" +
+             instanceKeyID + ")";
+        InternalSearchOperation internalSearch =
+             internalConnection.processSearch(
+                  serversDN, SearchScope.SUBORDINATE_SUBTREE,
+                  SearchFilter.createFilterFromString(filter));
+        if (internalSearch.getResultCode() != ResultCode.SUCCESS)
+          continue;
+
+        LinkedList<SearchResultEntry> resultEntries =
+             internalSearch.getSearchEntries();
+        for (SearchResultEntry resultEntry : resultEntries)
+        {
+          AttributeType hostnameAttr =
+               DirectoryServer.getAttributeType("hostname", true);
+          String hostname = resultEntry.getAttributeValue(
+               hostnameAttr, DirectoryStringSyntax.DECODER);
+          AttributeType ldapPortAttr =
+               DirectoryServer.getAttributeType("ldapport", true);
+          Integer ldapPort = resultEntry.getAttributeValue(
+               ldapPortAttr, IntegerSyntax.DECODER);
+
+          // Connect to the server.
+          AtomicInteger nextMessageID = new AtomicInteger(1);
+          LDAPConnectionOptions connectionOptions =
+               new LDAPConnectionOptions();
+          LDAPConnection connection =
+               new LDAPConnection(hostname, ldapPort,
+                                  connectionOptions,
+                                  System.out, System.err); //FIXME
+
+          connection.connectToHost(null, null, nextMessageID);
+
+          try
+          {
+            LDAPReader reader = connection.getLDAPReader();
+            LDAPWriter writer = connection.getLDAPWriter();
+
+            // Send the Get Symmetric Key extended request.
+
+            ASN1OctetString requestValue =
+                 GetSymmetricKeyExtendedOperation.encodeRequestValue(
+                      symmetricKey, getInstanceKeyID());
+
+            ExtendedRequestProtocolOp extendedRequest =
+                 new ExtendedRequestProtocolOp(
+                      ServerConstants.
+                           OID_GET_SYMMETRIC_KEY_EXTENDED_OP,
+                      requestValue);
+
+            ArrayList<LDAPControl> controls =
+                 new ArrayList<LDAPControl>();
+            LDAPMessage requestMessage =
+                 new LDAPMessage(nextMessageID.getAndIncrement(),
+                                 extendedRequest, controls);
+            writer.writeMessage(requestMessage);
+            LDAPMessage responseMessage = reader.readMessage();
+
+            ExtendedResponseProtocolOp extendedResponse =
+                 responseMessage.getExtendedResponseProtocolOp();
+            if (extendedResponse.getResultCode() ==
+                 LDAPResultCode.SUCCESS)
+            {
+              // Got our symmetric key value.
+              return extendedResponse.getValue().stringValue();
+            }
+          }
+          finally
+          {
+            connection.close(nextMessageID);
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        // Just try another server.
+      }
+    }
+
+    // Give up.
+    return null;
+  }
+
 
   /**
    * Imports a mac key entry from an entry in ADS.
@@ -1879,6 +2042,8 @@ public class CryptoManager
            entry.getAttributeValue(attrCompromisedTime,
                                    DirectoryStringSyntax.DECODER);
 
+      boolean isCompromised = compromisedTime != null;
+
       ArrayList<String> symmetricKeys = new ArrayList<String>();
       entry.getAttributeValues(attrSymmetricKey,
                              DirectoryStringSyntax.DECODER,
@@ -1895,16 +2060,46 @@ public class CryptoManager
 
       if (secretKey == null)
       {
-        throw new CryptoManagerException(
-                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
-                        entry.getDN().toString()));
+        // Request the value from another server.
+        String symmetricKey = getSymmetricKey(symmetricKeys);
+        if (symmetricKey == null)
+        {
+          throw new CryptoManagerException(
+               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
+                    entry.getDN().toString()));
+        }
+        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+        MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
+                                      secretKey, keyLengthBits,
+                                      isCompromised);
+
+        // Write the value to the entry.
+        InternalClientConnection internalConnection =
+             InternalClientConnection.getRootConnection();
+        List<Modification> modifications =
+             new ArrayList<Modification>(1);
+        Attribute attribute =
+             new Attribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY,
+                           symmetricKey);
+        modifications.add(
+             new Modification(ModificationType.ADD, attribute,
+                              false));
+        ModifyOperation internalModify =
+             internalConnection.processModify(entry.getDN(),
+                                              modifications);
+        if (internalModify.getResultCode() != ResultCode.SUCCESS)
+        {
+          throw new CryptoManagerException(
+               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(
+                    entry.getDN().toString()));
+        }
       }
-
-      boolean isCompromised = compromisedTime != null;
-
-      MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
-                                    secretKey, keyLengthBits,
-                                    isCompromised);
+      else
+      {
+        MacKeyEntry.importMacKeyEntry(this, keyID, algorithm,
+                                      secretKey, keyLengthBits,
+                                      isCompromised);
+      }
 
     }
     catch (DirectoryException ex)
