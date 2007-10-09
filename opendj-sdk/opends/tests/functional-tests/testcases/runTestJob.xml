@@ -34,7 +34,11 @@
       <script>
         STAXLogMessage = 1
       </script>
-      
+
+      <script>
+        import os
+      </script>
+
       <if expr="not STAXJobScriptFiles">
         <sequence>
           <message>'No script file (config.py) is specified. Unable to run the tests.'</message>
@@ -206,6 +210,7 @@
       
       <script>
         logsReportDir='%s/reports' % logsDir
+        logsTestsDir='%s/testlogs' % logsDir
       </script>
       
       <call function="'createFolder'">
@@ -448,6 +453,9 @@
       
       <script>
         _message=''
+        myreportxsl='%s/xsl/my-report.xsl' % TESTS_SHARED_DIR
+        myreporthtml='%s/my-report.html' % logsReportDir
+        mytestslog='%s/tests-log.xml' % logsTestsDir
         try:
           from java.io import FileInputStream
           from java.io import FileOutputStream
@@ -467,12 +475,37 @@
           transformer.transform(source, result)
           
           #the new report transformation
-          TransformerFactory.newInstance().newTemplates(StreamSource(FileInputStream("%s/xsl/my-report.xsl" % TESTS_SHARED_DIR))).newTransformer().transform(StreamSource(FileInputStream("%s/tests-log.xml" % TMPDIR)), StreamResult(FileOutputStream("%s/my-report.html" % TMPDIR)))
+          TransformerFactory.newInstance().newTemplates(StreamSource(FileInputStream(myreportxsl))).newTransformer().transform(StreamSource(FileInputStream(mytestslog)), StreamResult(FileOutputStream(myreporthtml)))
           _message='Generated drill-down HTML report'
         except:
           _message='Could not generate drill-down HTML report'
       </script>
       <message>_message</message>
+
+      <!-- FixMe: Compatability with Hudson -->      
+      <if expr="os.path.exists(myreporthtml)">
+        <sequence>
+          <message>'Copy %s to %s' % (myreporthtml,TMPDIR)</message>
+          <call function="'copyFile'">
+            { 'srcfile'    : myreporthtml,
+              'destfile'   : '%s/my-report.html' % TMPDIR
+            }
+          </call>
+        </sequence>
+      </if>
+
+      <!-- FixMe: Compatability with Hudson -->
+      <if expr="os.path.exists(mytestslog)">
+        <sequence>
+          <message>'Copy %s to %s' % (myreporthtml,TMPDIR)</message>
+          <call function="'copyFile'">
+            { 'srcfile'    : mytestslog,
+              'destfile'   : '%s/tests-log.xml' % TMPDIR
+            }
+          </call>
+        </sequence>
+      </if>
+           
       <if expr="SEND_MAIL_AFTER_TEST_RUN == 'TRUE'">
         <sequence>
           <message>

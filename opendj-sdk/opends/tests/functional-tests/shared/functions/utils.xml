@@ -559,8 +559,8 @@
           testcaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
           issuesList=[]
           for logType in ['errors','access']:
-            if os.path.exists('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType)):
-              logfile=open('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType),'a')
+            if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
+              logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
               logfile.seek(0,2)
               logfile.write('Begin testcase %s\n' % STAXCurrentTestcase)
               logfile.close()
@@ -622,18 +622,21 @@
       <script>
         testcaseEndTime = strftime("%Y%m%d@%H:%M:%S",localtime())
       </script>
+
       <call function="'queryLogs'">
         { 'location'  : STAXServiceMachine,
           'logname'   : 'STAX_Job_%s_User' % STAXJobID, 
           'startfrom' : testcaseStartTime,
           'endat'     : testcaseEndTime }
       </call>
+      
       <script>
         class Test:
           def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
-            self.log='%s/test.log'      % TMPDIR
-            self.errors='%s/error.log'   % TMPDIR
-            self.access='%s/access.log' % TMPDIR
+            self.message=[]
+            self.log='%s/test.log'      % logsTestsDir
+            self.errors='%s/error.log'   % DIRECTORY_INSTANCE_DIR
+            self.access='%s/access.log' % DIRECTORY_INSTANCE_DIR
             for f in [self.log,self.errors,self.access]:
               fh=open(f,'w')
               fh.write('')
@@ -661,8 +664,7 @@
               else:
                 self.result='known'
             self.issues=issues
-          
-          
+            
           def toXML(self):
             xml  = '      &lt;test&gt;%s' % newLine
             xml += '        &lt;name&gt;%s&lt;/name&gt;%s'         % (self.name,newLine)
@@ -680,27 +682,36 @@
             xml += '          &lt;![CDATA[%s'                      % newLine
             if self.result!='pass':
               # TODO: wrap with try catch to get IOError without stopping the tests
-              fh=open(self.log)
-              xml += fh.read()
-              fh.close()
+              try:
+                fh=open(self.log)
+                xml += fh.read()
+                fh.close()
+              except IOError,details:
+                self.message.append('IOError: Opening %s for reading %s' % (self.log,details.args))              
             xml += '          ]]&gt;%s'                            % newLine
             xml += '        &lt;/log&gt;%s'                        % newLine
             xml += '        &lt;error&gt;%s'                       % newLine
             xml += '          &lt;![CDATA[%s'                      % newLine
             if self.result!='pass':
               # TODO: wrap with try catch to get IOError without stopping the tests
-              fh=open(self.errors)
-              xml += fh.read()
-              fh.close()
+              try:
+                fh=open(self.errors)
+                xml += fh.read()
+                fh.close()
+              except IOError,details:
+                self.message.append('IOError: Opening %s for reading %s' % (self.errors,details.args))
             xml += '          ]]&gt;%s'                            % newLine
             xml += '        &lt;/error&gt;%s'                      % newLine
             xml += '        &lt;access&gt;%s'                      % newLine
             xml += '          &lt;![CDATA[%s'                      % newLine
             if self.result!='pass':
               # TODO: wrap with try catch to get IOError without stopping the tests
-              fh=open(self.access)
-              xml += fh.read()
-              fh.close()
+              try:
+                fh=open(self.access)
+                xml += fh.read()
+                fh.close()
+              except IOError,details:
+                self.message.append('IOError: Opening %s for reading %s' % (self.access,details.args))
             xml += '          ]]&gt;%s'                            % newLine
             xml += '        &lt;/access&gt;%s'                     % newLine
             xml += '      &lt;/test&gt;%s'                         % newLine
@@ -769,12 +780,12 @@
         # TODO: figure out how to do this for multiple instance for the replication
         #       tests for example
         for logType in ['errors','access']:
-          if os.path.exists('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType)):
-            logfile=open('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType),'a')
+          if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
+            logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
             logfile.seek(0,2)
             logfile.write('End testcase %s\n' % STAXCurrentTestcase)
             logfile.close()
-            logfile=open('%s/%s/logs/%s' % (TMPDIR,OPENDSNAME,logType), 'r')
+            logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType), 'r')
             _log=''
             _doLog=False
             while True:
@@ -791,14 +802,24 @@
             thisTest.appendLog(logType, _log)
         
         # save to test log
-        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+        testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
         testlog.seek(0,2)
         testlog.write(thisTest.toXML())
         testlog.close()
+
         # clean the temporary log files for this test
         # this MUST be done AFTER the call to toXML or the logs will appear empty
         thisTest.clean()
       </script>
+
+      <if expr="thisTest.message">      
+        <iterate in="thisTest.message" var="_message">      
+          <message>'%s' % _message</message>
+        </iterate>
+      </if>
+      
+      <script>thisTest.message=[]</script>
+
     </sequence>
   </function>
 
@@ -972,7 +993,7 @@
                 if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
                   rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
                   coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;group&gt;\n")
             testlog.write("        &lt;name&gt;\n")
@@ -987,7 +1008,7 @@
         </sequence>
         <else>
           <script>
-            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;group&gt;\n")
             testlog.write("        &lt;name&gt;\n")
@@ -1395,6 +1416,13 @@
           <function-arg-property-data type="choice" value="False"/>
         </function-arg-property>
       </function-arg-def>
+      <function-arg-def name="timerDuration" 
+                        type="optional" 
+                        default="'5m'">
+        <function-arg-description>
+          The duration that the process is allowed to run
+        </function-arg-description>
+      </function-arg-def>      
     </function-map-args>
     <sequence>
       <script>
@@ -1412,19 +1440,20 @@
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
       </message>
-      
+
       <block name="'%s:Wrapper for %s' % (_id,re.compile('\..*$').sub('',os.path.basename(command)))">
-        <process name="name">
-          <location>location</location>
-          <command>command</command>
-          <parms>arguments</parms>
-          <workdir>path</workdir>
-          <envs>env</envs>
-          <console use="'same'"/>
-          <stderr mode="'stdout'"/>
-          <returnstdout/>
-        </process>
+          <process name="name">
+            <location>location</location>
+            <command>command</command>
+            <parms>arguments</parms>
+            <workdir>path</workdir>
+            <envs>env</envs>
+            <console use="'same'"/>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
       </block>
+      
       <message level="'info'">
         '%s: Command returned:\n%s' % (_id,STAXResult[0][1])
       </message>

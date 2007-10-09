@@ -133,7 +133,7 @@
           def getName(self):
             return self.name
           
-        testlog=open('%s/tests-log.xml' % TMPDIR,'w')
+        testlog=open('%s/tests-log.xml' % logsTestsDir,'w')
         testlog.write('&lt;qa&gt;\n')
         testlog.write('  &lt;functional-tests&gt;\n')
         testlog.write('    &lt;results&gt;\n')
@@ -197,7 +197,7 @@
                 if thisNodeAttributes.getNamedItem("type").getNodeValue() == 'block, %':
                   rawCoverage = thisNodeAttributes.getNamedItem("value").getNodeValue()
                   coverage = rawCoverage.split('%')[0]
-            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;all&gt;\n")
             testlog.write("        &lt;coverage&gt;\n")
@@ -209,7 +209,7 @@
         </sequence>
         <else>
           <script>
-            testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+            testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
             testlog.seek(0,2)
             testlog.write("      &lt;all&gt;\n")
             testlog.write("        &lt;coverage&gt;\n")
@@ -291,7 +291,7 @@
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
         
-        testlog=open('%s/tests-log.xml' % TMPDIR,'a')
+        testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
         testlog.seek(0,2)
         testlog.write('    &lt;/results&gt;\n')
         testlog.write('    &lt;identification&gt;\n')
