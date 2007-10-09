@@ -1474,8 +1474,8 @@ public class CryptoManager
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-              ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
-                      getExceptionMessage(ex)), ex);
+           ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(),
+              ex);
     }
 
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this, keyID);
@@ -1497,8 +1497,7 @@ public class CryptoManager
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         throw new CryptoManagerException(
-               ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_IV.get(
-                       getExceptionMessage(ex)), ex);
+               ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_IV.get(), ex);
       }
     }
 
@@ -1534,35 +1533,27 @@ public class CryptoManager
       final byte[] keyID = new byte[KeyEntryID.getByteValueLength()];
       if (keyID.length != inputStream.read(keyID)){
         throw new CryptoManagerException(
-                // TODO: i18n
-                Message.raw("Stream underflow when reading key" +
-                        " identifier from data prologue."));
+           ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get());
       }
-
       keyEntry = CipherKeyEntry.getKeyEntry(this,
               new KeyEntryID(keyID));
       if (null == keyEntry) {
         throw new CryptoManagerException(
-                // TODO: i18N
-             Message.raw("Invalid key identifier in data prologue."));
+                ERR_CRYPTOMGR_DECRYPT_UNKNOWN_KEY_IDENTIFIER.get());
       }
 
       if (0 < keyEntry.getIVLengthBits()) {
         iv = new byte[keyEntry.getIVLengthBits() / Byte.SIZE];
         if (iv.length != inputStream.read(iv)) {
           throw new CryptoManagerException(
-                  // TODO: i18n
-                  Message.raw("Stream underflow when reading" +
-                      " initialization vector from data prologue."));
+                  ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_IV.get());
         }
       }
     }
     catch (IOException ex) {
       throw new CryptoManagerException(
-              // TODO: i18n
-              Message.raw("Exception when reading CryptoManager"
-                      + " prologue:  "
-                      + getExceptionMessage(ex).toString()), ex);
+             ERR_CRYPTOMGR_DECRYPT_CIPHER_INPUT_STREAM_ERROR.get(
+                     getExceptionMessage(ex)), ex);
     }
 
     return new CipherInputStream(inputStream,
@@ -1839,11 +1830,9 @@ public class CryptoManager
 
       if (secretKey == null)
       {
-        // TODO: i18n
-        Message message = Message.raw("Key entry %s contains no " +
-                "symmetric key value that can be decoded " +
-                "by this server", entry.getDN());
-        throw new CryptoManagerException(message);
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
+                        entry.getDN().toString()));
       }
 
       boolean isCompromised = compromisedTime != null;
@@ -1855,16 +1844,14 @@ public class CryptoManager
                                           isCompromised);
 
     }
-    catch (DirectoryException e)
+    catch (DirectoryException ex)
     {
       if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-      // TODO: i18n
-      Message message =
-           Message.raw("Error decoding cipher key entry %s: %s",
-                       entry.getDN(), e.getMessage());
-      throw new CryptoManagerException(message, e);
+      throw new CryptoManagerException(
+              ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
+                      entry.getDN().toString(), ex.getMessage()), ex);
     }
   }
 
@@ -1919,13 +1906,9 @@ public class CryptoManager
 
       if (secretKey == null)
       {
-        // TODO: i18n
-        Message message =
-             Message.raw("Key entry %s contains no " +
-                  "symmetric key value that can be decoded " +
-                  "by this server",
-                         entry.getDN());
-        throw new CryptoManagerException(message);
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
+                        entry.getDN().toString()));
       }
 
       boolean isCompromised = compromisedTime != null;
@@ -1935,15 +1918,14 @@ public class CryptoManager
                                     isCompromised);
 
     }
-    catch (DirectoryException e)
+    catch (DirectoryException ex)
     {
       if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
-      Message message =
-           Message.raw("Error decoding mac key entry %s: %s",
-                       entry.getDN(), e.getMessage());
-      throw new CryptoManagerException(message, e);
+      throw new CryptoManagerException(
+              ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_OTHER.get(
+                      entry.getDN().toString(), ex.getMessage()), ex);
     }
   }
 
