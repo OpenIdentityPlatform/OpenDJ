@@ -634,13 +634,14 @@
         class Test:
           def __init__(self, group, suite, fullname, start, stop, failures, successes, issues, duration):
             self.message=[]
-            self.log='%s/test.log'      % logsTestsDir
-            self.errors='%s/error.log'   % DIRECTORY_INSTANCE_DIR
-            self.access='%s/access.log' % DIRECTORY_INSTANCE_DIR
+            self.log='%s/test.log'      % logsTempDir
+            self.errors='%s/error.log'   % logsTempDir
+            self.access='%s/access.log' % logsTempDir
             for f in [self.log,self.errors,self.access]:
-              fh=open(f,'w')
-              fh.write('')
-              fh.close()
+              if os.path.exists(logsTempDir):
+                fh=open(f,'w')
+                fh.write('')
+                fh.close()
             self.group=group
             self.suite=suite
             self.fullname=fullname
@@ -681,7 +682,6 @@
             xml += '        &lt;log&gt;%s'                         % newLine
             xml += '          &lt;![CDATA[%s'                      % newLine
             if self.result!='pass':
-              # TODO: wrap with try catch to get IOError without stopping the tests
               try:
                 fh=open(self.log)
                 xml += fh.read()
@@ -693,7 +693,6 @@
             xml += '        &lt;error&gt;%s'                       % newLine
             xml += '          &lt;![CDATA[%s'                      % newLine
             if self.result!='pass':
-              # TODO: wrap with try catch to get IOError without stopping the tests
               try:
                 fh=open(self.errors)
                 xml += fh.read()
@@ -705,7 +704,6 @@
             xml += '        &lt;access&gt;%s'                      % newLine
             xml += '          &lt;![CDATA[%s'                      % newLine
             if self.result!='pass':
-              # TODO: wrap with try catch to get IOError without stopping the tests
               try:
                 fh=open(self.access)
                 xml += fh.read()
@@ -729,11 +727,20 @@
                 _leftPadding='...    '
               wrappedLog += '%s%s%s' % (_leftPadding,_line,newLine)
             if category == 'access':
-              fh=open(self.access,'a')
+              try:
+                fh=open(self.access,'a')
+              except IOError,details:
+                self.message.append('IOError: Opening %s for appending %s' % (self.access,details.args))
             elif category == 'error':
-              fh=open(self.errors,'a')
+              try:
+                fh=open(self.errors,'a')
+              except IOError,details:
+                self.message.append('IOError: Opening %s for appending %s' % (self.errors,details.args))              
             else:
-              fh=open(self.log,'a')
+              try:
+                fh=open(self.log,'a')
+              except IOError,details:
+                self.message.append('IOError: Opening %s for appending %s' % (self.log,details.args))              
             fh.seek(0,2)
             fh.write(wrappedLog)
             fh.close()
