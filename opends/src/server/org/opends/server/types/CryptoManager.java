@@ -688,7 +688,6 @@ public class CryptoManager
    * wrappingTransformation
    *                   ::= e.g., RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING
    * wrappedKeyAlgorithm ::= e.g., DESede
-   * wrappedKeyType ::= SECRET_KEY
    * hexifiedwrappedKey ::= 0123456789abcdef01...
    * </pre>
    *
@@ -746,8 +745,6 @@ public class CryptoManager
     symmetricKeyAttribute.append(":");
     symmetricKeyAttribute.append(secretKey.getAlgorithm());
     symmetricKeyAttribute.append(":");
-    symmetricKeyAttribute.append("SECRET_KEY");
-    symmetricKeyAttribute.append(":");
     symmetricKeyAttribute.append(wrappedKeyElement);
 
     return symmetricKeyAttribute.toString();
@@ -762,7 +759,7 @@ public class CryptoManager
    * ds-cfg-symmetric-key-attribute value.
    * @return A SecretKey object instantiated with the key data,
    * algorithm, and Ciper.SECRET_KEY type, or {@code null} if the
-   * supplied symmetricKeyAttribute was encoded at another instance.
+   * supplied symmetricKeyAttribute was encoded for another instance.
    * @throws CryptoManagerException If there is a problem decomposing
    * the supplied attribute value or unwrapping the encoded key.
    */
@@ -771,7 +768,7 @@ public class CryptoManager
           throws CryptoManagerException {
     // Initial decomposition.
     String[] elements = symmetricKeyAttribute.split(":", 0);
-    if (5 != elements.length) {
+    if (4 != elements.length) {
       throw new CryptoManagerException(
          ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_FIELD_COUNT.get(
                   symmetricKeyAttribute));
@@ -781,7 +778,6 @@ public class CryptoManager
     String wrappingKeyIDElement;
     String wrappingTransformationElement;
     String wrappedKeyAlgorithmElement;
-    int wrappedKeyTypeElement;
     byte[] wrappedKeyCipherTextElement;
     String fieldName = null;
     try {
@@ -791,26 +787,9 @@ public class CryptoManager
       wrappingTransformationElement = elements[1];
       fieldName = "wrapped key algorithm";
       wrappedKeyAlgorithmElement = elements[2];
-      fieldName = "wrapped key type";
-      final String rawKeyType = elements[3];
-      if ("SECRET_KEY".equals(rawKeyType)) {
-        wrappedKeyTypeElement = Cipher.SECRET_KEY;
-      }
-      else if ("PRIVATE_KEY".equals(rawKeyType)) {
-        wrappedKeyTypeElement = Cipher.PRIVATE_KEY;
-      }
-      else if ("PUBLIC_KEY".equals(rawKeyType)) {
-        wrappedKeyTypeElement = Cipher.PUBLIC_KEY;
-      }
-      else {
-        throw new ParseException(
-                // TODO: i18n
-                Message.raw("Invalid type \"%s\".",
-                        rawKeyType).toString(), 0);
-      }
       fieldName = "wrapped key data";
       wrappedKeyCipherTextElement
-              = StaticUtils.hexStringToByteArray(elements[4]);
+              = StaticUtils.hexStringToByteArray(elements[3]);
     }
     catch (ParseException ex) {
       if (debugEnabled()) {
@@ -853,7 +832,7 @@ public class CryptoManager
       secretKey = (SecretKey)unwrapper.unwrap(
               wrappedKeyCipherTextElement,
               wrappedKeyAlgorithmElement,
-              wrappedKeyTypeElement);
+              Cipher.SECRET_KEY);
     } catch(GeneralSecurityException ex) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
