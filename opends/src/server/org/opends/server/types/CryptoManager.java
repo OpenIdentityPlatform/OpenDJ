@@ -1135,19 +1135,8 @@ public class CryptoManager
   public Mac getMacEngine(String keyEntryID)
           throws CryptoManagerException
   {
-    MacKeyEntry keyEntry;
-    try {
-      keyEntry = MacKeyEntry.getKeyEntry(this,
-              new KeyEntryID(keyEntryID));
-    }
-    catch (IllegalArgumentException ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-      throw new CryptoManagerException(
-              ERR_CRYPTOMGR_GET_MAC_ENGINE_INVALID_KEY_IDENTIFIER.get(
-                      keyEntryID, getExceptionMessage(ex)), ex);
-    }
+    final MacKeyEntry keyEntry = MacKeyEntry.getKeyEntry(this,
+            new KeyEntryID(keyEntryID));
     return (null == keyEntry) ? null : getMacEngine(keyEntry);
   }
 
@@ -1979,16 +1968,13 @@ public class CryptoManager
       try {
         fValue = UUID.fromString(keyEntryID);
       }
-      catch (Exception ex) {
+      catch (IllegalArgumentException ex) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         throw new CryptoManagerException(
-                // TODO: i18n
-                Message.raw("Key entry identifier \"%s\" has" +
-                        " invalid syntax:  "
-                        + getExceptionMessage(ex).toString(),
-                        keyEntryID), ex);
+                ERR_CRYPTOMGR_INVALID_KEY_IDENTIFIER_SYNTAX.get(
+                        keyEntryID, getExceptionMessage(ex)), ex);
       }
     }
 
@@ -2100,11 +2086,8 @@ public class CryptoManager
       }
       catch (NoSuchAlgorithmException ex) {
         throw new CryptoManagerException(
-                // TODO: i18n
-                Message.raw("Unable to produce key generator using" +
-                        " key algorithm argument \"%s\":  "
-                        + getExceptionMessage(ex).toString(),
-                        algorithm), ex);
+               ERR_CRYPTOMGR_INVALID_SYMMETRIC_KEY_ALGORITHM.get(
+                       algorithm, getExceptionMessage(ex)), ex);
       }
       keyGen.init(keyLengthBits, secureRandom);
       final byte[] key = keyGen.generateKey().getEncoded();
@@ -2388,11 +2371,10 @@ public class CryptoManager
       AddOperation addOperation = connection.processAdd(entry);
       if (addOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        // TODO i18n
-        Message message = Message.raw(
-             "Unable to add generated cipher key entry %s: %s",
-             entry.getDN(), addOperation.getErrorMessage());
-        throw new CryptoManagerException(message);
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_SYMMETRIC_KEY_ENTRY_ADD_FAILED.get(
+                        entry.getDN().toString(),
+                        addOperation.getErrorMessage()));
       }
     }
 
@@ -2853,11 +2835,10 @@ public class CryptoManager
       AddOperation addOperation = connection.processAdd(entry);
       if (addOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        // TODO i18n
-        Message message = Message.raw(
-             "Unable to add generated mac key entry %s: %s",
-             entry.getDN(), addOperation.getErrorMessage());
-        throw new CryptoManagerException(message);
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_SYMMETRIC_KEY_ENTRY_ADD_FAILED.get(
+                        entry.getDN().toString(),
+                        addOperation.getErrorMessage()));
       }
     }
 
