@@ -57,9 +57,6 @@ import javax.naming.ldap.Rdn;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 
-import org.opends.server.types.CryptoManager;
-import org.opends.server.config.ConfigConstants;
-
 /**
  * Class used to update and read the contents of the Administration Data.
  */
@@ -172,15 +169,14 @@ public class ADSContext
     /**
      * The unique name of the instance key public-key certificate.
      */
-    INSTANCE_KEY_ID(ConfigConstants.ATTR_CRYPTO_KEY_ID,
-            ADSPropertySyntax.STRING),
+    INSTANCE_KEY_ID("ds-cfg-key-id",ADSPropertySyntax.STRING),
     /**
      * The instance key-pair public-key certificate. Note: This attribute
      * belongs to an instance key entry, separate from the server entry and
      * named by the ds-cfg-key-id attribute from the server entry.
      */
     INSTANCE_PUBLIC_KEY_CERTIFICATE(
-            ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE/*binary*/,
+            "ds-cfg-public-key-certificate",
             ADSPropertySyntax.CERTIFICATE_BINARY);
 
     private String attrName;
@@ -431,6 +427,10 @@ public class ADSContext
         registerInstanceKeyCertificate(serverProperties, dn);
       }
     }
+    catch (ADSContextException ace)
+    {
+      throw ace;
+    }
     catch (NameAlreadyBoundException x)
     {
       throw new ADSContextException(
@@ -475,6 +475,10 @@ public class ADSContext
       {
         registerInstanceKeyCertificate(serverProperties, dn);
       }
+    }
+    catch (ADSContextException ace)
+    {
+      throw ace;
     }
     catch (NameNotFoundException x)
     {
@@ -949,22 +953,46 @@ public class ADSContext
   public void createAdminData(String backendName) throws ADSContextException
   {
     // Add the administration suffix
-//    createAdministrationSuffix(backendName);
+    createAdministrationSuffix(backendName);
 
     // Create the DIT below the administration suffix
-//    createTopContainerEntry();
-//    createAdministratorContainerEntry();
-    createContainerEntry(getServerContainerDN());
-//    createContainerEntry(getServerGroupContainerDN());
+    if (!isExistingEntry(nameFromDN(getAdministrationSuffixDN())))
+    {
+      createTopContainerEntry();
+    }
+    if (!isExistingEntry(nameFromDN(getAdministratorContainerDN())))
+    {
+      createAdministratorContainerEntry();
+    }
+    if (!isExistingEntry(nameFromDN(getServerContainerDN())))
+    {
+      createContainerEntry(getServerContainerDN());
+    }
+    if (!isExistingEntry(nameFromDN(getServerGroupContainerDN())))
+    {
+      createContainerEntry(getServerGroupContainerDN());
+    }
 
     // Add the default "all-servers" group
-//    Map<ServerGroupProperty, Object> allServersGroupsMap =
-//      new HashMap<ServerGroupProperty, Object>();
-//    allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
-//    createServerGroup(allServersGroupsMap);
+    if (!isExistingEntry(nameFromDN(getAllServerGroupDN())))
+    {
+      Map<ServerGroupProperty, Object> allServersGroupsMap =
+        new HashMap<ServerGroupProperty, Object>();
+      allServersGroupsMap.put(ServerGroupProperty.UID, ALL_SERVERGROUP_NAME);
+      createServerGroup(allServersGroupsMap);
+    }
 
-    // Create the CryptoManager DIT below the administration suffix
-//    createContainerEntry(getInstanceKeysContainerDN());
+    // Create the CryptoManager instance key DIT below the administration suffix
+    if (!isExistingEntry(nameFromDN(getInstanceKeysContainerDN())))
+    {
+      createContainerEntry(getInstanceKeysContainerDN());
+    }
+
+    // Create the CryptoManager secret key DIT below the administration suffix
+    if (!isExistingEntry(nameFromDN(getSecretKeysContainerDN())))
+    {
+      createContainerEntry(getSecretKeysContainerDN());
+    }
   }
 
   /**
@@ -1004,7 +1032,15 @@ public class ADSContext
    */
   public boolean hasAdminData() throws ADSContextException
   {
-    return isExistingEntry(nameFromDN(getServerContainerDN()));
+    String[] dns = {getAdministratorContainerDN(), getAllServerGroupDN(),
+        getServerContainerDN(), getInstanceKeysContainerDN(),
+        getSecretKeysContainerDN()};
+    boolean hasAdminData = true;
+    for (int i=0; i<dns.length && hasAdminData; i++)
+    {
+      hasAdminData = isExistingEntry(nameFromDN(dns[i]));
+    }
+    return hasAdminData;
   }
 
   /**
@@ -1727,6 +1763,16 @@ public class ADSContext
   }
 
   /**
+   * Returns the all server group entry DN.
+   * @return the all server group entry DN.
+   */
+  private static String getAllServerGroupDN()
+  {
+    return "cn=" + Rdn.escapeValue(ALL_SERVERGROUP_NAME) +
+    "," + getServerGroupContainerDN();
+  }
+
+  /**
    * Returns the host name for the given properties.
    * @param serverProperties the server properties.
    * @return the host name for the given properties.
@@ -2000,18 +2046,17 @@ public class ADSContext
    * Administration Suffix will be used.
    * @throws ADSContextException if something goes wrong.
    */
-//  public void createAdministrationSuffix(String backendName)
-//  throws ADSContextException
-//  {
-//    ADSContextHelper helper = new ADSContextHelper();
-//    String ben = backendName ;
-//    if (backendName == null)
-//    {
-//      ben = getDefaultBackendName() ;
-//    }
-//    helper.createAdministrationSuffix(getDirContext(), ben,
-//        getDbName(), getImportTemp());
-//  }
+  public void createAdministrationSuffix(String backendName)
+  throws ADSContextException
+  {
+    ADSContextHelper helper = new ADSContextHelper();
+    String ben = backendName ;
+    if (backendName == null)
+    {
+      ben = getDefaultBackendName() ;
+    }
+    helper.createAdministrationSuffix(getDirContext(), ben);
+  }
 
   /**
    * Removes the administration suffix.
@@ -2033,16 +2078,6 @@ public class ADSContext
     return "adminRoot";
   }
 
-//  private static String getDbName()
-//  {
-//    return "adminDb";
-//  }
-//
-//  private static String getImportTemp()
-//  {
-//    return "importAdminTemp";
-//  }
-
 
 
   /*
@@ -2057,6 +2092,15 @@ public class ADSContext
   {
     return "cn=instance keys," + getAdministrationSuffixDN();
   }
+
+  /**
+  Returns the parent entry of the secret key entries in ADS.
+  @return the parent entry of the secret key entries in ADS.
+  */
+ public static String getSecretKeysContainerDN()
+ {
+   return "cn=secret keys," + getAdministrationSuffixDN();
+ }
 
 
   /**
@@ -2075,81 +2119,17 @@ public class ADSContext
   private void registerInstanceKeyCertificate(
           Map<ServerProperty, Object> serverProperties,
           LdapName serverEntryDn)
-          throws NamingException,
-          CryptoManager.CryptoManagerException {
-    assert serverProperties.containsKey(
-                                ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
-    if (! serverProperties.containsKey(
-                              ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)) {
-      return;
-    }
-
-    /* the key ID might be supplied in serverProperties (although, I am unaware
-       of any such case). */
-    String keyID = (String)serverProperties.get(ServerProperty.INSTANCE_KEY_ID);
-
-    /* these attributes are used both to search for an existing certificate
-       entry and, if one does not exist, add a new certificate entry */
-    final BasicAttributes keyAttrs = new BasicAttributes();
-    final Attribute oc = new BasicAttribute("objectclass");
-    oc.add("top"); oc.add("ds-cfg-instance-key");
-    keyAttrs.put(oc);
-    if (null != keyID) {
-      keyAttrs.put(new BasicAttribute(
-              ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
-    }
-    keyAttrs.put(new BasicAttribute(
-            ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName()
-                    + ";binary",
-            serverProperties.get(
-                    ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
-
-    /* search for public-key certificate entry in ADS DIT */
-    final String attrIDs[] = { "ds-cfg-key-id" };
-    final NamingEnumeration<SearchResult> results
-           = dirContext.search(getInstanceKeysContainerDN(), keyAttrs, attrIDs);
-    if (results.hasMore()) {
-      final Attribute keyIdAttr
-              = results.next().getAttributes().get(attrIDs[0]);
-      if (null != keyIdAttr) {
-        /* attribute ds-cfg-key-id is the entry is a MUST in the schema */
-        keyID = (String)keyIdAttr.get();
-      }
-    }
-    /* TODO: It is possible (but unexpected) that the caller specifies a
-       ds-cfg-key-id value for which there is a certificate entry in ADS, but
-       the certificate value does not match that supplied by the caller. The
-       above search would not return the entry, but the below attempt to add
-       an new entry with the supplied ds-cfg-key-id will fail (throw a
-       NameAlreadyBoundException) */
-    else {
-      /* create key ID, if it was not supplied in serverProperties */
-      if (null == keyID) {
-        keyID = CryptoManager.getInstanceKeyID(
-                (byte[])serverProperties.get(
-                        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE));
-        keyAttrs.put(new BasicAttribute(
-                ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID));
-      }
-
-      /* add public-key certificate entry */
-      final LdapName keyDn = new LdapName((new StringBuilder())
-              .append(ServerProperty.INSTANCE_KEY_ID.getAttributeName())
-              .append("=").append(Rdn.escapeValue(keyID)).append(",")
-              .append(getInstanceKeysContainerDN()).toString());
-      dirContext.createSubcontext(keyDn, keyAttrs).close();
-    }
-
-    /* associate server entry with certificate entry via key ID attribute */
-    dirContext.modifyAttributes(serverEntryDn,
-            InitialLdapContext.REPLACE_ATTRIBUTE,
-            (new BasicAttributes(
-                   ServerProperty.INSTANCE_KEY_ID.getAttributeName(), keyID)));
+  throws ADSContextException {
+    ADSContextHelper helper = new ADSContextHelper();
+    helper.registerInstanceKeyCertificate(dirContext, serverProperties,
+        serverEntryDn);
   }
 
   /**
    Return the set of valid (i.e., not tagged as compromised) instance key-pair
    public-key certificate entries in ADS.
+   NOTE: calling this method assumes that all the jar files are present in the
+   classpath.
    @return The set of valid (i.e., not tagged as compromised) instance key-pair
    public-key certificate entries in ADS represented as a Map from ds-cfg-key-id
    value to ds-cfg-public-key-certificate;binary value. Note that the collection
@@ -2163,13 +2143,14 @@ public class ADSContext
     final Map<String, byte[]> certificateMap = new HashMap<String, byte[]>();
     final String baseDNStr = getInstanceKeysContainerDN();
     try {
+      ADSContextHelper helper = new ADSContextHelper();
       final LdapName baseDN = new LdapName(baseDNStr);
       final String FILTER_OC_INSTANCE_KEY
            = new StringBuilder("(objectclass=")
-           .append(ConfigConstants.OC_CRYPTO_INSTANCE_KEY)
+           .append(helper.getOcCryptoInstanceKey())
            .append(")").toString();
       final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
-              .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
+              .append(helper.getAttrCryptoKeyCompromisedTime())
               .append("=*))").toString();
       final String searchFilter = new StringBuilder("(&")
               .append(FILTER_OC_INSTANCE_KEY)
