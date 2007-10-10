@@ -2078,6 +2078,15 @@ public class ADSContext
     return "adminRoot";
   }
 
+  /**
+   * Returns the LDIF file of the administration data.
+   * @return the LDIF file of the administration data.
+   */
+  public static String getAdminLDIFFile()
+  {
+    return "config/admin-backend.ldif";
+  }
+
 
 
   /*
