@@ -2758,7 +2758,7 @@ public class ConfigFileHandler
         }
 
         Message message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
-            e.getMessage());
+            stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -3165,8 +3165,8 @@ public class ConfigFileHandler
       }
       catch (Exception e)
       {
-        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.
-            get(e.getMessage(), backupFile.getPath());
+        Message message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.get(
+                backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }

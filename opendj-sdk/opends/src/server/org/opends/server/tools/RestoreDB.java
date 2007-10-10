@@ -561,33 +561,36 @@ public class RestoreDB extends TaskTool {
 
 
     // If a backup ID was specified, then make sure it is valid.  If none was
-    // provided, then choose the latest backup from the archive.
+    // provided, then choose the latest backup from the archive.  Encrypted
+    // or signed backups cannot be restored to a local (offline) server
+    // instance.
     String backupID;
-    if (backupIDString.isPresent())
     {
-      backupID = backupIDString.getValue();
-      BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
+      BackupInfo backupInfo = backupDir.getLatestBackup();
       if (backupInfo == null)
-      {
-        Message message = ERR_RESTOREDB_INVALID_BACKUP_ID.get(
-            backupID, backupDirectory.getValue());
-        logError(message);
-        return 1;
-      }
-    }
-    else
-    {
-      BackupInfo latestBackup = backupDir.getLatestBackup();
-      if (latestBackup == null)
       {
         Message message = ERR_RESTOREDB_NO_BACKUPS_IN_DIRECTORY.get(
             backupDirectory.getValue());
         logError(message);
         return 1;
       }
-      else
+      backupID = backupInfo.getBackupID();
+      if (backupIDString.isPresent())
       {
-        backupID = latestBackup.getBackupID();
+        backupID = backupIDString.getValue();
+        backupInfo = backupDir.getBackupInfo(backupID);
+        if (backupInfo == null)
+        {
+          Message message = ERR_RESTOREDB_INVALID_BACKUP_ID.get(
+                  backupID, backupDirectory.getValue());
+          logError(message);
+          return 1;
+        }
+      }
+      if (backupInfo.isEncrypted() || null != backupInfo.getSignedHash()) {
+        Message message = ERR_RESTOREDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get();
+        logError(message);
+        return 1;
       }
     }
 
