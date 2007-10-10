@@ -2098,6 +2098,36 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.427
   DESC 'A cryptographic secret-key wrapped by a public-key'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.428
+  NAME 'ds-cfg-digest-algorithm'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.429
+  NAME 'ds-cfg-mac-algorithm'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.430
+  NAME 'ds-cfg-mac-key-length'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.431
+  NAME 'ds-cfg-cipher-transformation'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.432
+  NAME 'ds-cfg-cipher-key-length'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.433
+  NAME 'ds-cfg-key-wrapping-transformation'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3455,6 +3485,12 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.160
   SUP top
   STRUCTURAL
   MAY ( cn $
+        ds-cfg-digest-algorithm $
+        ds-cfg-mac-algorithm $
+        ds-cfg-mac-key-length $
+        ds-cfg-cipher-transformation $
+        ds-cfg-cipher-key-length $
+        ds-cfg-key-wrapping-transformation $
         ds-cfg-ssl-protocol $
         ds-cfg-ssl-cipher-suite $
         ds-cfg-ssl-cert-nickname $
