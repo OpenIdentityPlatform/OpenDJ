@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.PrintStream;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -1961,10 +1962,15 @@ public class CryptoManager
           AtomicInteger nextMessageID = new AtomicInteger(1);
           LDAPConnectionOptions connectionOptions =
                new LDAPConnectionOptions();
+          PrintStream nullPrintStream =
+               new PrintStream(new OutputStream() {
+                 public void write ( int b ) { }
+               });
           LDAPConnection connection =
                new LDAPConnection(hostname, ldapPort,
                                   connectionOptions,
-                                  System.out, System.err); //FIXME
+                                  nullPrintStream,
+                                  nullPrintStream);
 
           connection.connectToHost(null, null, nextMessageID);
 
