@@ -307,11 +307,11 @@ public class CryptoManager
                      getExceptionMessage(ex)), ex);
     }
 
-
     // Preferred secret key wrapping cipher and validation. Depends
-    // on MAC cipher for secret key. Note that the TrustStoreBackend
-    // not available at this point, hence a "dummy" certificate must
-    // be used to validate the choice of secret key wrapping cipher.
+    // on MAC cipher for a candidate secret key. Note that the
+    // TrustStoreBackend not available at this point, hence a "dummy"
+    // certificate must be used to validate the choice of secret key
+    // wrapping cipher.
     // TODO: Trying OAEPWITHSHA-512ANDMGF1PADDING throws an exception
     // "Key too small...".
     preferredKeyWrappingTransformation
@@ -364,7 +364,7 @@ public class CryptoManager
    * @throws CryptoManagerException If the certificate cannot be
    * retrieved.
    */
-  public byte[] getInstanceKeyCertificateFromLocalTruststore()
+  public static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
     // Construct the key entry DN.
     final AttributeValue distinguishedValue = new AttributeValue(
@@ -519,7 +519,7 @@ public class CryptoManager
        #registerInstanceKeyCertificate(
              java.util.Map, javax.naming.ldap.LdapName)
    */
-  public void publishInstanceKeyEntryInADS()
+  public static void publishInstanceKeyEntryInADS()
           throws CryptoManagerException {
     final byte[] instanceKeyCertificate
             = getInstanceKeyCertificateFromLocalTruststore();
@@ -1180,16 +1180,6 @@ public class CryptoManager
     }
 
     return mac;
-  }
-
-  /**
-   * Retrieves the name of the preferred cipher algorithm.
-   *
-   * @return  The name of the preferred cipher algorithm
-   */
-  public String getPreferredCipherTransformation()
-  {
-    return preferredCipherTransformation;
   }
 
 
@@ -2517,7 +2507,7 @@ public class CryptoManager
 
       // Need to add our own instance certificate.
       byte[] instanceKeyCertificate =
-         cryptoManager.getInstanceKeyCertificateFromLocalTruststore();
+         CryptoManager.getInstanceKeyCertificateFromLocalTruststore();
       trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
                        instanceKeyCertificate);
 
@@ -2996,7 +2986,7 @@ public class CryptoManager
 
       // Need to add our own instance certificate.
       byte[] instanceKeyCertificate =
-         cryptoManager.getInstanceKeyCertificateFromLocalTruststore();
+         CryptoManager.getInstanceKeyCertificateFromLocalTruststore();
       trustedCerts.put(getInstanceKeyID(instanceKeyCertificate),
                        instanceKeyCertificate);
 
