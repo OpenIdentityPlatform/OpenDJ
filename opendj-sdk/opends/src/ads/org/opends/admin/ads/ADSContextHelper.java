@@ -135,7 +135,7 @@ public class ADSContextHelper
       String backendName)
   throws ADSContextException
   {
-      try
+    try
     {
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
           JNDIDirContextAdaptor.adapt(ctx));
@@ -153,13 +153,16 @@ public class ADSContextHelper
         throw new ADSContextException(
             ADSContextException.ErrorType.UNEXPECTED_ADS_BACKEND_TYPE, cce);
       }
+
       if (backend == null)
       {
         LDIFBackendCfgDefn provider = LDIFBackendCfgDefn.getInstance();
         backend = root.createBackend(provider, backendName, null);
         backend.setEnabled(true);
+        backend.setLDIFFile(ADSContext.getAdminLDIFFile());
         backend.setBackendId(backendName);
         backend.setWritabilityMode(BackendCfgDefn.WritabilityMode.ENABLED);
+        backend.setIsPrivateBackend(true);
       }
       SortedSet<DN> suffixes = backend.getBaseDN();
       if (suffixes == null)
@@ -167,7 +170,7 @@ public class ADSContextHelper
         suffixes = new TreeSet<DN>();
       }
       DN newDN = DN.decode(ADSContext.getAdministrationSuffixDN());
-      if (suffixes.contains(newDN))
+      if (!suffixes.contains(newDN))
       {
         suffixes.add(newDN);
         backend.setBaseDN(suffixes);
