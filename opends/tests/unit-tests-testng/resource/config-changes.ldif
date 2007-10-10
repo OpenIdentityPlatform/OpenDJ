@@ -1426,42 +1426,6 @@ cn: Dummy Alert Handler
 ds-cfg-java-class: org.opends.server.extensions.DummyAlertHandler
 ds-cfg-enabled: true
 
-dn: cn=3DES,cn=Password Storage Schemes,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-password-storage-scheme
-objectClass: ds-cfg-triple-des-password-storage-scheme
-cn: 3DES
-ds-cfg-java-class: org.opends.server.extensions.TripleDESPasswordStorageScheme
-ds-cfg-enabled: true
-
-dn: cn=AES,cn=Password Storage Schemes,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-password-storage-scheme
-objectClass: ds-cfg-aes-password-storage-scheme
-cn: AES
-ds-cfg-java-class: org.opends.server.extensions.AESPasswordStorageScheme
-ds-cfg-enabled: true
-
-dn: cn=Blowfish,cn=Password Storage Schemes,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-password-storage-scheme
-objectClass: ds-cfg-blowfish-password-storage-scheme
-cn: Blowfish
-ds-cfg-java-class: org.opends.server.extensions.BlowfishPasswordStorageScheme
-ds-cfg-enabled: true
-
-dn: cn=RC4,cn=Password Storage Schemes,cn=config
-changetype: add
-objectClass: top
-objectClass: ds-cfg-password-storage-scheme
-objectClass: ds-cfg-rc4-password-storage-scheme
-cn: RC4
-ds-cfg-java-class: org.opends.server.extensions.RC4PasswordStorageScheme
-ds-cfg-enabled: true
-
 dn: ds-cfg-backend-id=ldifRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
