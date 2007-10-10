@@ -861,7 +861,7 @@ public class CryptoManager
    * the supplied symmetric key attribute value, unwrapping the
    * embedded secret key, or retrieving the requested public key.
    */
-  public String rewrapSymmetricKeyAttribute(
+  public String reencodeSymmetricKeyAttribute(
           final String symmetricKeyAttribute,
           final String requestedInstanceKeyID)
           throws CryptoManagerException {
@@ -2325,9 +2325,16 @@ public class CryptoManager
     /**
      * Mark a key entry as compromised. The entry will no longer be
      * eligible for use as an encryption key.
+     * <p>
+     * There is no need to lock the entry to make this change: The
+     * only valid transition for this field is from false to true,
+     * the change is asynchronous across the topology (i.e., a key
+     * might continue to be used at this instance for at least the
+     * replication propagation delay after being marked compromised at
+     * another instance), and modifying a boolean is guaranteed to be
+     * atomic.
      */
     public void setIsCompromised() {
-      // TODO: called from ADS monitoring thread. Lock entry?
       fIsCompromised = true;
     }
 
@@ -2406,14 +2413,14 @@ public class CryptoManager
               (null == iv) ? 0 : iv.length * Byte.SIZE);
 
       if (null != map) {
+        // The key is published to ADS before making it available in
+        // the local map with the intention to ensure the key is
+        // persisted before use. This ordering allows the possibility
+        // that data encrypted at another instance could arrive at
+        // this instance before the key is available in the local
+        // cache to decode the data.
         publishKeyEntry(cryptoManager, keyEntry);
         map.put(keyEntry.getKeyID(), keyEntry);
-        // TODO: (mark key "blocked" in map
-        // until registered? OTOH, Key should be in local map prior to
-        // publication, since data could arrive from a remote OpenDS
-        // instance encrypted with the key any time after publication.
-        // OTOH, the key should be published in ADS before any use,
-        // since that is the persistent shared secret key repository.)
       }
 
       return keyEntry;
@@ -2602,12 +2609,18 @@ public class CryptoManager
       // Check map for existing key entry with the supplied keyID.
       CipherKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
       if (null != keyEntry) {
-        if (isCompromised && !keyEntry.isCompromised())
-        {
+        // Paranoiac check to ensure exact type match.
+        if (! (keyEntry.getType().equals(transformation)
+                && keyEntry.getKeyLengthBits() == secretKeyLengthBits
+                && keyEntry.getIVLengthBits() == ivLengthBits)) {
+               throw new CryptoManagerException(
+                    ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FIELD_MISMATCH.get(
+                         keyIDString));
+        }
+        // Allow transition to compromised.
+        if (isCompromised && !keyEntry.isCompromised()) {
           keyEntry.setIsCompromised();
         }
-        // TODO: compare keyEntry with supplied parameters to ensure
-        // equal.
         return keyEntry;
       }
 
@@ -2634,6 +2647,10 @@ public class CryptoManager
     /**
      * Retrieve a CipherKeyEntry from the CipherKeyEntry Map based on
      * the algorithm name and key length.
+     * <p>
+     * ADS is not searched in the case a key entry meeting the
+     * specifications is not found. Instead, the ADS monitoring thread
+     * is responsible for asynchronous updates to the key map.
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
@@ -2643,8 +2660,8 @@ public class CryptoManager
      *
      * @param keyLengthBits  The cipher key length in bits.
      *
-     * @return  The key entry corresponding to the parameters, or null
-     * if no such entry exists.
+     * @return  The key entry corresponding to the parameters, or
+     * {@code null} if no such entry exists.
      */
     public static CipherKeyEntry getKeyEntry(
             final CryptoManager cryptoManager,
@@ -2652,7 +2669,6 @@ public class CryptoManager
             final int keyLengthBits) {
       Validator.ensureNotNull(cryptoManager, transformation);
       Validator.ensureTrue(0 < keyLengthBits);
-
 
       CipherKeyEntry keyEntry = null;
       // search for an existing key that satisfies the request
@@ -2667,12 +2683,6 @@ public class CryptoManager
         }
       }
 
-      // TODO: if (null == keyEntry) Does ADS monitoring thread keep
-      // map updated with keys produced at other sites? Otherwise,
-      // search ADS for suitable key.
-
-      // TODO: if (null == keyEntry) consider generating key here.
-
       return keyEntry;
     }
 
@@ -2681,22 +2691,34 @@ public class CryptoManager
      * Given a key identifier, return the associated cipher key entry
      * from the supplied map. This method would typically be used by
      * a decryption routine.
+     * <p>
+     * Although the existence of data tagged with the requested keyID
+     * implies the key entry exists in the system, it is possible for
+     * the distribution of the key entry to lag that of the data;
+     * hence this routine might return null. No attempt is made to
+     * query the other instances in the ADS topology (presumably at
+     * least the instance producing the key entry will have it), due
+     * to the presumed infrequency of key generation and expected low
+     * latency of replication, compared to the complexity of finding
+     * the set of instances and querying them. Instead, the caller
+     * must retry the operation requesting the decryption.
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
      *
      * @param keyID  The key identifier.
      *
-     * @return  The key entry associated with the key identifier.
+     * @return  The key entry associated with the key identifier, or
+     * {@code null} if no such entry exists.
+     *
+     * @see org.opends.server.types.CryptoManager.MacKeyEntry
+     *  #getKeyEntry(org.opends.server.types.CryptoManager,
+     *               java.lang.String, int)
      */
     public static CipherKeyEntry getKeyEntry(
             CryptoManager cryptoManager,
             final KeyEntryID keyID) {
       return cryptoManager.cipherKeyEntryCache.get(keyID);
-      /* TODO: Does ADS monitoring thread keep map updated with keys
-         produced at other sites? If not, fetch from ADS and update
-         map (assuming a legitimate key ID, the key should exist in
-         ADS because this routine is called for decryption). */
     }
 
     /**
@@ -2884,14 +2906,14 @@ public class CryptoManager
       getMacEngine(keyEntry);
 
       if (null != map) {
+        // The key is published to ADS before making it available in
+        // the local map with the intention to ensure the key is
+        // persisted before use. This ordering allows the possibility
+        // that data encrypted at another instance could arrive at
+        // this instance before the key is available in the local
+        // cache to decode the data.
         publishKeyEntry(cryptoManager, keyEntry);
         map.put(keyEntry.getKeyID(), keyEntry);
-        // TODO: (mark key "blocked" in map
-        // until registered? OTOH, Key should be in local map prior to
-        // publication, since data could arrive from a remote OpenDS
-        // instance encrypted with the key any time after publication.
-        // OTOH, the key should be published in ADS before any use,
-        // since that is the persistent shared secret key repository.)
       }
 
       return keyEntry;
@@ -3058,12 +3080,18 @@ public class CryptoManager
       // Check map for existing key entry with the supplied keyID.
       MacKeyEntry keyEntry = getKeyEntry(cryptoManager, keyID);
       if (null != keyEntry) {
-        if (isCompromised && !keyEntry.isCompromised())
-        {
+        // Paranoiac check to ensure exact type match.
+        if (! (keyEntry.getType().equals(algorithm)
+                && keyEntry.getKeyLengthBits()
+                    == secretKeyLengthBits)) {
+               throw new CryptoManagerException(
+                    ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FIELD_MISMATCH.get(
+                         keyIDString));
+        }
+        // Allow transition to compromised.
+        if (isCompromised && !keyEntry.isCompromised()) {
           keyEntry.setIsCompromised();
         }
-        // TODO: compare keyEntry with supplied parameters to ensure
-        // equal.
         return keyEntry;
       }
 
@@ -3085,6 +3113,10 @@ public class CryptoManager
     /**
      * Retrieve a MacKeyEntry from the MacKeyEntry Map based on
      * the algorithm name and key length.
+     * <p>
+     * ADS is not searched in the case a key entry meeting the
+     * specifications is not found. Instead, the ADS monitoring thread
+     * is responsible for asynchronous updates to the key map.
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
@@ -3094,8 +3126,8 @@ public class CryptoManager
      *
      * @param keyLengthBits  The MAC key length in bits.
      *
-     * @return  The key entry corresponding to the parameters, or null
-     * if no such entry exists.
+     * @return  The key entry corresponding to the parameters, or
+     * {@code null} if no such entry exists.
      */
     public static MacKeyEntry getKeyEntry(
             final CryptoManager cryptoManager,
@@ -3117,12 +3149,6 @@ public class CryptoManager
         }
       }
 
-      // TODO: if (null == keyEntry) Does ADS monitoring thread keep
-      // map updated with keys produced at other sites? Otherwise,
-      // search ADS for suitable key.
-
-      // TODO: if (null == keyEntry) consider generating key here.
-
       return keyEntry;
     }
 
@@ -3131,23 +3157,34 @@ public class CryptoManager
      * Given a key identifier, return the associated cipher key entry
      * from the supplied map. This method would typically be used by
      * a decryption routine.
+     * <p>
+     * Although the existence of data tagged with the requested keyID
+     * implies the key entry exists in the system, it is possible for
+     * the distribution of the key entry to lag that of the data;
+     * hence this routine might return null. No attempt is made to
+     * query the other instances in the ADS topology (presumably at
+     * least the instance producing the key entry will have it), due
+     * to the presumed infrequency of key generation and expected low
+     * latency of replication, compared to the complexity of finding
+     * the set of instances and querying them. Instead, the caller
+     * must retry the operation requesting the decryption.
      *
      * @param cryptoManager  The CryptoManager instance with which the
      * key entry is associated.
      *
      * @param keyID  The key identifier.
      *
-     * @return  The key entry associated with the key identifier.
+     * @return  The key entry associated with the key identifier, or
+     * {@code null} if no such entry exists.
+     *
+     * @see org.opends.server.types.CryptoManager.CipherKeyEntry
+     *     #getKeyEntry(org.opends.server.types.CryptoManager,
+     *                  java.lang.String, int)
      */
     public static MacKeyEntry getKeyEntry(
             final CryptoManager cryptoManager,
             final KeyEntryID keyID) {
       return cryptoManager.macKeyEntryCache.get(keyID);
-
-      /* TODO: Does ADS monitorying thread keep map updated with keys
-         produced at other sites? If not, fetch from ADS and update
-         map (assuming a legitimate key ID, the key should exist in
-         ADS because this routine is called for decryption). */
     }
 
     /**

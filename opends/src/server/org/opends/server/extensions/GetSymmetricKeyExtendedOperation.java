@@ -221,7 +221,7 @@ public class GetSymmetricKeyExtendedOperation
     CryptoManager cm = DirectoryServer.getCryptoManager();
     try
     {
-      String responseSymmetricKey = cm.rewrapSymmetricKeyAttribute(
+      String responseSymmetricKey = cm.reencodeSymmetricKeyAttribute(
            requestSymmetricKey, instanceKeyID);
 
       operation.setResponseOID(
