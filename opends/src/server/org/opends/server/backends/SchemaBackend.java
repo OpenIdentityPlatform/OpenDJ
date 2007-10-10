@@ -4257,7 +4257,7 @@ public class SchemaBackend
         }
 
         Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_CIPHER.get(
-                e.getMessage());
+                stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -4624,8 +4624,8 @@ public class SchemaBackend
       }
       catch (CryptoManager.CryptoManagerException e)
       {
-        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.
-            get(backupFile.getPath(), e.getMessage());
+        Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.get(
+                backupFile.getPath(), stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }

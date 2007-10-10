@@ -355,7 +355,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-                e.getMessage());
+                stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -984,7 +984,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-            e.getMessage());
+            stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -1313,7 +1313,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-                e.getMessage());
+                stackTraceToSingleLineString(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
