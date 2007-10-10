@@ -354,6 +354,19 @@ public class BackUpDB extends TaskTool
       }
     }
 
+    // Encryption or signing requires the ADS backend be available for
+    // CryptoManager access to secret key entries. If no connection arguments
+    //  are present, infer an offline backup.
+    if ((encrypt.isPresent() || signHash.isPresent())
+            && ! argParser.connectionArgumentsPresent()) {
+      Message message =
+              ERR_BACKUPDB_ENCRYPT_OR_SIGN_REQUIRES_ONLINE.get(
+                      encrypt.getLongIdentifier(),
+                      signHash.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
     // If the signHash option was provided, then make sure that the hash option
     // was given.
     if (signHash.isPresent() && (! hash.isPresent()))
