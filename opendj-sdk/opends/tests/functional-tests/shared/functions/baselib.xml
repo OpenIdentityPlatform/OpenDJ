@@ -92,6 +92,8 @@
                 DSInfo.getServerValueFromKey('JVM Version',DSInfo.SystemDict)
               DSInfo.ServerDict['jvm vendor']= \
                 DSInfo.getServerValueFromKey('JVM Vendor',DSInfo.SystemDict)
+              DSInfo.ServerDict['jvm architecture']= \
+                DSInfo.getServerValueFromKey('JVM Architecture',DSInfo.SystemDict)  
               DSInfo.ServerDict['system os']= \
                 DSInfo.getServerValueFromKey('Operating System',DSInfo.SystemDict)
               DSInfo.ServerDict['system name']= \

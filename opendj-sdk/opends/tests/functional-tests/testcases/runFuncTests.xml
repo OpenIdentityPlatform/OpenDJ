@@ -245,6 +245,7 @@
         ServerJavaVendor='unknown'
         ServerJVMVersion='unknown'
         ServerJVMVendor='unknown'
+        ServerJVMArchitecture='unknown'
         ServerSystemOS='unknown'
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
@@ -275,6 +276,10 @@
           ServerInfoKey='jvm vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJVMVendor=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='jvm architecture'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerJVMArchitecture=ServerInfoDict[ServerInfoKey]
 
           ServerInfoKey='system os'
           if ServerInfoDict.has_key(ServerInfoKey):

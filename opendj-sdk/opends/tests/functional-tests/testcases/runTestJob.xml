@@ -137,6 +137,10 @@
           ServerInfoKey='jvm vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJVMVendor=ServerInfoDict[ServerInfoKey]
+
+          ServerInfoKey='jvm architecture'
+          if ServerInfoDict.has_key(ServerInfoKey):
+            ServerJVMArchitecture=ServerInfoDict[ServerInfoKey]
           
           ServerInfoKey='system os'
           if ServerInfoDict.has_key(ServerInfoKey):
@@ -362,7 +366,10 @@
         xmlfh.write('      &lt;/jvm-version&gt;\n')
         xmlfh.write('      &lt;jvm-vendor&gt;\n')
         xmlfh.write('        %s\n' % ServerJVMVendor)
-        xmlfh.write('      &lt;/jvm-vendor&gt;\n')        
+        xmlfh.write('      &lt;/jvm-vendor&gt;\n')
+        xmlfh.write('      &lt;jvm-arch&gt;\n')
+        xmlfh.write('        %s\n' % ServerJVMArchitecture)
+        xmlfh.write('      &lt;/jvm-arch&gt;\n')                
         xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>
