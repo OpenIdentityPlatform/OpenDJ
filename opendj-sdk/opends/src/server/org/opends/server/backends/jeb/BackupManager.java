@@ -342,15 +342,12 @@ public class BackupManager
     // output stream.
     if (encrypt)
     {
-      String cipherAlgorithm = cryptoManager.getPreferredCipherTransformation();
-      backupProperties.put(BACKUP_PROPERTY_CIPHER_ALGORITHM, cipherAlgorithm);
-
       try
       {
         outputStream
                 = cryptoManager.getCipherOutputStream(outputStream);
       }
-      catch (Exception e)
+      catch (CryptoManager.CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -358,7 +355,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-            cipherAlgorithm, stackTraceToSingleLineString(e));
+                e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -975,14 +972,11 @@ public class BackupManager
     // input stream.
     if (encrypt)
     {
-      String cipherAlgorithm =
-           backupProperties.get(BACKUP_PROPERTY_CIPHER_ALGORITHM);
-
       try
       {
         inputStream = cryptoManager.getCipherInputStream(inputStream);
       }
-      catch (Exception e)
+      catch (CryptoManager.CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -990,7 +984,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-            cipherAlgorithm, stackTraceToSingleLineString(e));
+            e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -1307,14 +1301,11 @@ public class BackupManager
     // input stream.
     if (encrypt)
     {
-      String cipherAlgorithm =
-           backupProperties.get(BACKUP_PROPERTY_CIPHER_ALGORITHM);
-
       try
       {
         inputStream = cryptoManager.getCipherInputStream(inputStream);
       }
-      catch (Exception e)
+      catch (CryptoManager.CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -1322,7 +1313,7 @@ public class BackupManager
         }
 
         Message message = ERR_JEB_BACKUP_CANNOT_GET_CIPHER.get(
-            cipherAlgorithm, stackTraceToSingleLineString(e));
+                e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }

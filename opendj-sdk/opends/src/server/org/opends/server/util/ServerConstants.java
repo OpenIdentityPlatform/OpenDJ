@@ -2247,15 +2247,6 @@ public final class ServerConstants
 
 
   /**
-   * The name of the backup property that holds the name of the cipher algorithm
-   * used to perform the encryption for the backup.
-   */
-  public static final String BACKUP_PROPERTY_CIPHER_ALGORITHM =
-       "cipher_algorithm";
-
-
-
-  /**
    * The name of the backup property that holds the name of the digest algorithm
    * used to generate the hash of a backup.
    */

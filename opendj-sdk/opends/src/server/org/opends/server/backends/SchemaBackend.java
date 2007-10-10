@@ -4244,14 +4244,12 @@ public class SchemaBackend
     // output stream.
     if (encrypt)
     {
-      String cipherAlgorithm = cryptoManager.getPreferredCipherTransformation();
-      backupProperties.put(BACKUP_PROPERTY_CIPHER_ALGORITHM, cipherAlgorithm);
       try
       {
         outputStream
                 = cryptoManager.getCipherOutputStream(outputStream);
       }
-      catch (Exception e)
+      catch (CryptoManager.CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -4259,7 +4257,7 @@ public class SchemaBackend
         }
 
         Message message = ERR_SCHEMA_BACKUP_CANNOT_GET_CIPHER.get(
-            cipherAlgorithm, stackTraceToSingleLineString(e));
+                e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -4619,24 +4617,15 @@ public class SchemaBackend
     // in a cipher input stream.
     if (backupInfo.isEncrypted())
     {
-      String cipherAlgorithm =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_CIPHER_ALGORITHM);
-      if (cipherAlgorithm == null)
-      {
-        Message message = ERR_SCHEMA_RESTORE_UNKNOWN_CIPHER.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-
       try
       {
         inputStream = DirectoryServer.getCryptoManager()
                                          .getCipherInputStream(inputStream);
       }
-      catch (Exception e)
+      catch (CryptoManager.CryptoManagerException e)
       {
         Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.
-            get(cipherAlgorithm, backupFile.getPath());
+            get(backupFile.getPath(), e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }

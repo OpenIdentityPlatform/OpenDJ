@@ -2745,9 +2745,6 @@ public class ConfigFileHandler
     // output stream.
     if (encrypt)
     {
-      String cipherAlgorithm = cryptoManager.getPreferredCipherTransformation();
-      backupProperties.put(BACKUP_PROPERTY_CIPHER_ALGORITHM, cipherAlgorithm);
-
       try
       {
         outputStream
@@ -2761,7 +2758,7 @@ public class ConfigFileHandler
         }
 
         Message message = ERR_CONFIG_BACKUP_CANNOT_GET_CIPHER.get(
-            cipherAlgorithm, stackTraceToSingleLineString(e));
+            e.getMessage());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
@@ -3161,15 +3158,6 @@ public class ConfigFileHandler
     // in a cipher input stream.
     if (backupInfo.isEncrypted())
     {
-      String cipherAlgorithm =
-           backupInfo.getBackupProperty(BACKUP_PROPERTY_CIPHER_ALGORITHM);
-      if (cipherAlgorithm == null)
-      {
-        Message message = ERR_CONFIG_RESTORE_UNKNOWN_CIPHER.get(backupID);
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message);
-      }
-
       try
       {
         inputStream = DirectoryServer.getCryptoManager()
@@ -3178,7 +3166,7 @@ public class ConfigFileHandler
       catch (Exception e)
       {
         Message message = ERR_CONFIG_RESTORE_CANNOT_GET_CIPHER.
-            get(backupFile.getPath(), cipherAlgorithm);
+            get(e.getMessage(), backupFile.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
