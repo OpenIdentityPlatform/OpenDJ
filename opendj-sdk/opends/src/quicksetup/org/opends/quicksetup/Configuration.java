@@ -46,6 +46,7 @@ public class Configuration {
           Logger.getLogger(Configuration.class.getName());
 
   private String contents = null;
+  private String lowerCaseContents = null;
   private Installation install = null;
   private File file = null;
 
@@ -116,7 +117,7 @@ public class Configuration {
    */
   public int getReplicationPort() throws IOException {
     int port = -1;
-    String contents = getContents();
+    String contents = getLowerCaseContents();
     int index = contents.indexOf("cn=replication server");
 
     if (index != -1) {
@@ -156,7 +157,7 @@ public class Configuration {
 
   private int getLDAPPort(String portAttr) throws IOException {
     int port = -1;
-    String contents = getContents();
+    String contents = getLowerCaseContents();
     int index = contents.indexOf("cn=ldap connection handler");
 
     if (index != -1) {
@@ -199,7 +200,7 @@ public class Configuration {
       // Note: a better way might be to diff this file with
       // /config/ldif/upgrade/config.ldif.<svn rev>
       isConfigFileModified =
-              getContents().indexOf("# cddl header start") == -1;
+              getLowerCaseContents().indexOf("# cddl header start") == -1;
     }
 
     return isConfigFileModified;
@@ -263,6 +264,20 @@ public class Configuration {
   }
 
   /**
+   * Provides the contents of the config.ldif file in a lower case String.
+   *
+   * @return a lower case String representing the contents of the config.ldif
+   * file.
+   * @throws IOException if there was a problem reading the file
+   */
+  public String getLowerCaseContents() throws IOException {
+    if (lowerCaseContents == null) {
+      load();
+    }
+    return lowerCaseContents;
+  }
+
+  /**
    * Returns the list of paths where the databases are installed as they appear
    * in the configuration file.
    *
@@ -298,7 +313,8 @@ public class Configuration {
       buf.append(line).append(Constants.LINE_SEPARATOR);
     }
     reader.close();
-    contents = buf.toString().toLowerCase();
+    contents = buf.toString();
+    lowerCaseContents = contents.toLowerCase();
   }
 
   private Set<String> getConfigurationValues(String attrName)
@@ -306,18 +322,17 @@ public class Configuration {
   {
     Set<String> set = new HashSet<String>();
     attrName += ":";
+    String lowerCaseContents = getLowerCaseContents();
     String contents = getContents();
-    int index1 = contents.indexOf(attrName);
+    int index1 = lowerCaseContents.indexOf(attrName);
     while (index1 != -1) {
-      int index2 = contents.indexOf(Constants.LINE_SEPARATOR, index1);
+      int index2 = lowerCaseContents.indexOf(Constants.LINE_SEPARATOR, index1);
       String value;
       if (index2 > (index1 + attrName.length())) {
-        value = contents.substring(attrName.length() + index1,
-                index2).trim();
-      } else if (contents.length() > (index1 + attrName.length())) {
+        value = contents.substring(attrName.length() + index1, index2).trim();
+      } else if (lowerCaseContents.length() > (index1 + attrName.length())) {
         // Assume end of file
-        value = contents.substring(
-                attrName.length() + index1).trim();
+        value = contents.substring(attrName.length() + index1).trim();
       } else {
         value = null;
       }
@@ -326,7 +341,7 @@ public class Configuration {
         set.add(value);
       }
 
-      index1 = contents.indexOf(attrName,
+      index1 = lowerCaseContents.indexOf(attrName,
               index1 + attrName.length());
     }
     return set;
