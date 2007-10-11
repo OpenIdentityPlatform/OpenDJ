@@ -504,27 +504,8 @@ public class CryptoManager
    Publishes the instance key entry in ADS, if it does not already
    exist.
 
-   TODO: The ADS configuration retrieves an instance's instance key
-   certificate via ServerDescriptor and publishes it via ADSContext in
-   that instance's ADS suffix (in the case a stand-alone instance is
-   being configured) or in an existing ADS suffix (in the case the
-   instance is being added to an existing ADS domain). Instead, have
-   the instance call this routine at startup (after the backends and
-   CryptoManager have been initialized), and change ADS configuration
-   to retrieve the instance key from the ADS suffix in the second
-   case, above (the first case would be unecessary).
-
    @throws CryptoManagerException In case there is a problem
    searching for the entry, or, if necessary, adding it.
-
-   @see org.opends.admin.ads.ServerDescriptor
-       #updatePublicKeyCertificate(
-             org.opends.admin.ads.ServerDescriptor,
-             javax.naming.ldap.InitialLdapContext)
-
-   @see org.opends.admin.ads.ADSContext
-       #registerInstanceKeyCertificate(
-             java.util.Map, javax.naming.ldap.LdapName)
    */
   public static void publishInstanceKeyEntryInADS()
           throws CryptoManagerException {

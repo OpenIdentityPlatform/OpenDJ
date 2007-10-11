@@ -111,9 +111,20 @@ public class CryptoManagerSync
 
   /**
    * Creates a new instance of this trust store synchronization thread.
+   *
+   * @throws InitializationException in case an exception occurs during
+   * initialization, such as a failure to publish the instance-key-pair
+   * public-key-certificate in ADS.
    */
   public CryptoManagerSync()
+          throws InitializationException
   {
+    try {
+      CryptoManager.publishInstanceKeyEntryInADS();
+    }
+    catch (CryptoManager.CryptoManagerException ex) {
+      throw new InitializationException(ex.getMessageObject());
+    }
     DirectoryServer.registerBackendInitializationListener(this);
 
     try
