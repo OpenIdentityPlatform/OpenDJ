@@ -88,8 +88,7 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
       "create-ads",
       "--noPropertiesFile",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password",
-      "--backendName", "admin"
+      "-w", "password"
     };
 
     assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
@@ -104,17 +103,17 @@ public class DsframeworkTestCase extends DirectoryServerTestCase {
   public void afterClass()
          throws Exception
   {
-    String[] args =
-    {
-      "delete-ads",
-      "--noPropertiesFile",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-w", "password",
-      "--backendName", "admin"
-    };
-
-    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
-        System.err), SUCCESSFUL.getReturnCode());
+//    String[] args =
+//    {
+//      "delete-ads",
+//      "--noPropertiesFile",
+//      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+//      "-w", "password",
+//      "--backendName", "admin"
+//    };
+//
+//    assertEquals(DsFrameworkCliMain.mainCLI(args, false, System.out,
+//        System.err), SUCCESSFUL.getReturnCode());
   }
 
   /**

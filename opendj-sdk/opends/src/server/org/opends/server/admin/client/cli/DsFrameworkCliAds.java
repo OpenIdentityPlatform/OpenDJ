@@ -186,7 +186,7 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
     subCommands.add(createAdsSubCmd);
 
     createAdsBackendNameArg = new StringArgument("backendName",
-        OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
+        OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, false, true,
         OPTION_VALUE_BACKENDNAME,
         INFO_ADMIN_ARG_BACKENDNAME_DESCRIPTION.get());
     createAdsSubCmd.addArgument(createAdsBackendNameArg);
@@ -231,7 +231,11 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
       // create-ads subcommand
       if (subCmd.getName().equals(createAdsSubCmd.getName()))
       {
-        String backendName = createAdsBackendNameArg.getValue();
+        String backendName = null;
+        if (createAdsBackendNameArg.isPresent())
+        {
+          backendName = createAdsBackendNameArg.getValue();
+        }
         ctx = argParser.getContext(outStream, errStream);
         if (ctx == null)
         {
