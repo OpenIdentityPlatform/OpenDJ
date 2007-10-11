@@ -770,7 +770,6 @@
          location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
     <mkdir dir="${pdir}"                                             />
-    <mkdir dir="${pdir}/adminDb"                                     />
     <mkdir dir="${pdir}/bak"                                         />
     <mkdir dir="${pdir}/bat"                                         />
     <mkdir dir="${pdir}/bin"                                         />
