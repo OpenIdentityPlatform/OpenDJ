@@ -48,7 +48,15 @@
           <message>
              'Create DS topology as described in %s' % topologyFile
           </message>
-        
+
+          <script>
+            try:
+              if REPLICATION_CONFIG_FILE:
+                topologyFile=REPLICATION_CONFIG_FILE
+            except NameError:
+              topologyFile=topologyFile
+          </script>
+                 
           <call function="'createTopology'">
             { 'topologyDescFile' : topologyFile,
               'sharedDataFolder' : 'replication' }
