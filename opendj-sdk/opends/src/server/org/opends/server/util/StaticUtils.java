@@ -112,14 +112,10 @@ public final class StaticUtils
    */
   public static byte[] getBytes(String s)
   {
+    if (s == null) return null;
+
     try
     {
-      if (s == null)
-      {
-        return null;
-      }
-
-
       char c;
       int length = s.length();
       byte[] returnArray = new byte[length];
@@ -1040,7 +1036,6 @@ public final class StaticUtils
       buffer.append(indentBuf);
       buffer.append(byteToHex(currentByte));
       asciiBuf.append(byteToASCII(currentByte));
-      pos++;
 
       for (int i=1; i < 16; i++)
       {
@@ -1647,7 +1642,7 @@ public final class StaticUtils
         try
         {
           className = className.substring(className.lastIndexOf('.') + 1);
-        } catch (Exception e) {}
+        } catch (Exception e) { /* ignored */ }
         buffer.append(className);
       }
       else
@@ -1656,7 +1651,7 @@ public final class StaticUtils
       }
 
       int i=0;
-      buffer.append("(");
+      buffer.append(" (");
       for (StackTraceElement e : t.getStackTrace())
       {
         if (i > 20)
