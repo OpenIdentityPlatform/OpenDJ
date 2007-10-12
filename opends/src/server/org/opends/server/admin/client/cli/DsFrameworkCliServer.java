@@ -550,6 +550,27 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       serverProperties.put(prop, arg);
     }
 
+   /**
+    * The INSTANCE_KEY_ID used to identify the server key ID.
+    */
+    {
+      ServerProperty prop = ServerProperty.INSTANCE_KEY_ID;
+      String attName = prop.getAttributeName();
+      StringArgument arg = new StringArgument(attName, null, prop
+          .getAttributeName(), false, false, true, "", null, null, null);
+      serverProperties.put(prop, arg);
+    }
+
+    /**
+     * The INSTANCE_PUBLIC_KEY_CERTIFICATE associated to the server.
+     */
+    {
+      ServerProperty prop = ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE;
+      String attName = prop.getAttributeName();
+      StringArgument arg = new StringArgument(attName, null, prop
+          .getAttributeName(), false, false, true, "", null, null, null);
+      serverProperties.put(prop, arg);
+    }
   }
 
   /**
@@ -600,9 +621,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         adsCtx = new ADSContext(ctx);
         adsCtx.registerServer(map);
 
-        // Add this server in the default "all-servers" group.
-        returnCode = DsFrameworkCliServerGroup.addServerTogroup(adsCtx,
-            ADSContext.ALL_SERVERGROUP_NAME, map);
+        returnCode = SUCCESSFUL;
       }
       else
       // -----------------------

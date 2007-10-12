@@ -426,6 +426,34 @@ public class ADSContext
       {
         registerInstanceKeyCertificate(serverProperties, dn);
       }
+
+      // register this server into "all" groups
+      HashMap<ServerGroupProperty, Object> serverGroupProperties =
+        new HashMap<ServerGroupProperty, Object>();
+      Set<String> memberList = getServerGroupMemberList(ALL_SERVERGROUP_NAME);
+      if (memberList == null) {
+        memberList = new HashSet<String>();
+      }
+      String newMember = "cn="
+          + Rdn.escapeValue(serverProperties.get(ServerProperty.ID));
+
+      memberList.add(newMember);
+      serverGroupProperties.put(ServerGroupProperty.MEMBERS, memberList);
+
+      updateServerGroup(ALL_SERVERGROUP_NAME, serverGroupProperties);
+
+      // Update the server property "GROUPS"
+      Set rawGroupList = (Set) serverProperties.get(ServerProperty.GROUPS);
+      Set<String> groupList = new HashSet<String>();
+      if (rawGroupList != null) {
+        for (Object elm : rawGroupList.toArray()) {
+          groupList.add(elm.toString());
+        }
+      }
+      groupList.add(ALL_SERVERGROUP_NAME);
+      serverProperties.put(ServerProperty.GROUPS, groupList);
+    updateServer(serverProperties, null);
+
     }
     catch (ADSContextException ace)
     {
