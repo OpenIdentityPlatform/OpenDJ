@@ -626,6 +626,17 @@
   </target>
 
 
+
+  <!-- copy the message properties files -->
+  <target name="copymessages">
+    <mkdir dir="${msg.package.dir}"/>
+    <copy todir="${msg.package.dir}">
+      <fileset dir="${msg.prop.dir}"/>
+    </copy>
+  </target>
+
+
+
   <!--
    ! Rebuild the Directory Server without destroying any existing configuration
    ! or data.  It will only overwrite the libraries, classes, and scripts, and
@@ -693,10 +704,7 @@
     </copy>
 
     <!-- copy the message properties files -->
-    <mkdir dir="${msg.package.dir}"/>
-    <copy todir="${msg.package.dir}">
-      <fileset dir="${msg.prop.dir}"/>
-    </copy>
+    <antcall target="copymessages" />
 
     <!-- copy the message descriptor registry file -->
     <copy todir="${classes.dir}/org/opends/messages"
@@ -805,10 +813,7 @@
 
 
     <!-- copy the message properties files -->
-    <mkdir dir="${msg.package.dir}"/>
-    <copy todir="${msg.package.dir}">
-      <fileset dir="${msg.prop.dir}"/>
-    </copy>
+    <antcall target="copymessages" />
 
     <!-- copy the message descriptor registry file -->
     <copy todir="${classes.dir}/org/opends/messages"
