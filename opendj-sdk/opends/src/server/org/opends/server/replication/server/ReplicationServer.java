@@ -822,8 +822,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           "ds-cfg-java-class: " +
             "org.opends.server.replication.server.ReplicationBackend",
           "ds-cfg-backend-id: " + backendId,
-          "ds-cfg-import-temp-directory: importTmp",
-          "ds-cfg-db-directory: " + getFileForPath(dbDirname));
+          "ds-cfg-import-temp-directory: importReplChangesTmp",
+          "ds-cfg-db-directory: " + dbDirname);
 
       LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
           new StringReader(ldif));
