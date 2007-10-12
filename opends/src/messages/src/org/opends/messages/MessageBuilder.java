@@ -158,13 +158,17 @@ public class MessageBuilder implements Appendable, CharSequence,
   /**
    * Append a string to this builder.
    *
-   * @param rawString to append
+   * @param cs to append
    * @return reference to this builder
    */
-  public MessageBuilder append(CharSequence rawString) {
-    if (rawString != null) {
-      sb.append(rawString);
-      messages.add(Message.raw(rawString));
+  public MessageBuilder append(CharSequence cs) {
+    if (cs != null) {
+      sb.append(cs);
+      if (cs instanceof Message) {
+        messages.add((Message)cs);
+      } else {
+        messages.add(Message.raw(cs));
+      }
     }
     return this;
   }
@@ -254,21 +258,11 @@ public class MessageBuilder implements Appendable, CharSequence,
    * @return Message raw message representing builder content
    */
   public Message toMessage() {
-    return Message.raw(sb.toString());
-  }
-
-  /**
-   * Returns a raw message representation of the appended
-   * content in a specific locale.  Only <code>Message</code>s
-   * appended to this builder are rendered in the requested
-   * locale.  Raw strings appended to this buffer are not
-   * translated to different locale.
-   *
-   * @param locale requested
-   * @return Message raw message representing builder content
-   */
-  public Message toMessage(Locale locale) {
-    return Message.raw(toString(locale));
+    StringBuffer fmtString = new StringBuffer();
+    for (int i = 0; i < messages.size(); i++) {
+      fmtString.append("%s");
+    }
+    return Message.raw(fmtString, messages.toArray());
   }
 
   /**

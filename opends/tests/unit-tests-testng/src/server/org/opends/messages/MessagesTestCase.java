@@ -31,7 +31,15 @@ package org.opends.messages;
 import org.testng.annotations.Test;
 
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 
+import java.io.IOException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Enumeration;
+import java.util.Locale;
 
 
 /**
@@ -41,6 +49,32 @@ import org.opends.server.DirectoryServerTestCase;
 public abstract class MessagesTestCase
        extends DirectoryServerTestCase
 {
+  /** Locale for accessing a pseudo localized test messages file. */
+  protected static final Locale TEST_LOCALE = Locale.CHINA;
+
+  /** Message to appear in pseudo localized test messages file. */
+  protected static final String TEST_MSG = "XXX";
+  protected static final String EOL = System.getProperty("line.separator");
+
   // No implementation required.
+  protected void createDummyLocalizedCoreMessagesFile() throws IOException {
+    Properties corePseudoI18nMsgs = new Properties();
+    ResourceBundle coreDefaultMsgs = ResourceBundle.getBundle("messages/core");
+    Enumeration<String> keyEnum = coreDefaultMsgs.getKeys();
+    while (keyEnum.hasMoreElements()) {
+      corePseudoI18nMsgs.put(keyEnum.nextElement(), TEST_MSG);
+    }
+    File buildRoot = new File(System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT));
+    File corePseudoI18nMsgsFile = new File(buildRoot,
+            "build" + File.separator + "unit-tests" +
+                    File.separator + "classes" +
+                    File.separator + "messages" +
+                    File.separator + "core_" + TEST_LOCALE.getLanguage() +
+                    ".properties");
+    if (!corePseudoI18nMsgsFile.getParentFile().exists()) {
+      corePseudoI18nMsgsFile.getParentFile().mkdirs();
+    }
+    corePseudoI18nMsgs.store(new FileOutputStream(corePseudoI18nMsgsFile), "");
+  }
 }
 
