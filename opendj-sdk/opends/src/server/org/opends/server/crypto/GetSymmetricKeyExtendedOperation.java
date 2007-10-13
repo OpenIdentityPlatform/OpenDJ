@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.extensions;
+package org.opends.server.crypto;
 
 import org.opends.server.admin.std.server.
             GetSymmetricKeyExtendedOperationHandlerCfg;

@@ -24,7 +24,7 @@
  *
  *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
  */
-package org.opends.server.types;
+package org.opends.server.crypto;
 
 import org.opends.messages.Message;
 import static org.opends.messages.CoreMessages.*;
@@ -86,7 +86,7 @@ import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.extensions.GetSymmetricKeyExtendedOperation;
+import org.opends.server.types.*;
 
 /**
  This class implements the Directory Server cryptographic framework,
@@ -106,8 +106,8 @@ import org.opends.server.extensions.GetSymmetricKeyExtendedOperation;
 
  @see "src/admin/defn/org/opends/server/admin/std\
                                       /CryptoManagerConfiguration.xml"
- @see org.opends.server.core.CryptoManagerSync
- @see org.opends.server.extensions.GetSymmetricKeyExtendedOperation
+ @see org.opends.server.crypto.CryptoManagerSync
+ @see org.opends.server.crypto.GetSymmetricKeyExtendedOperation
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -131,7 +131,7 @@ public class CryptoManager
   private static AttributeType attrInitVectorLength;
   private static AttributeType attrKeyLength;
   private static AttributeType attrCompromisedTime;
-  private static ObjectClass   ocCertRequest;
+  private static ObjectClass ocCertRequest;
   private static ObjectClass   ocInstanceKey;
   private static ObjectClass   ocCipherKey;
   private static ObjectClass   ocMacKey;
@@ -203,23 +203,20 @@ public class CryptoManager
 
 
   /**
-   * Creates a new instance of this crypto manager object from a given
-   * configuration, plus some static member initialization.
-   *
-   * @param   cfg  The configuration of this crypto manager.
-   *
-   * @throws  ConfigException  If a problem occurs while creating this
-   *                           crypto manager that is a result of a
-   *                           problem in the configuration.
-   *
-   * @throws  InitializationException  If a problem occurs while
-   *                                   creating this crypto manager
-   *                                   that is not the result of a
-   *                                   problem in the configuration.
+   Creates a new instance of this crypto manager object from a given
+   configuration, plus some static member initialization.
+
+   @param cfg  The configuration of this crypto manager.
+
+   @throws ConfigException  If a problem occurs while creating this
+   {@code CryptoManager} that is a result of a problem in the configuration.
+
+   @throws org.opends.server.types.InitializationException  If a problem
+   occurs while creating this {@code CryptoManager} that is not the result of a
+   problem in the configuration.
    */
   public CryptoManager(CryptoManagerCfg cfg)
-         throws ConfigException, InitializationException
-  {
+         throws ConfigException, InitializationException {
     if (!schemaInitDone) {
       // Initialize various schema references.
       attrKeyID = DirectoryServer.getAttributeType(
@@ -2838,7 +2835,7 @@ public class CryptoManager
      * @return  The key entry associated with the key identifier, or
      * {@code null} if no such entry exists.
      *
-     * @see org.opends.server.types.CryptoManager.MacKeyEntry
+     * @see org.opends.server.crypto.CryptoManager.MacKeyEntry
      *  #getKeyEntry(org.opends.server.types.CryptoManager,
      *               java.lang.String, int)
      */
@@ -3304,7 +3301,7 @@ public class CryptoManager
      * @return  The key entry associated with the key identifier, or
      * {@code null} if no such entry exists.
      *
-     * @see org.opends.server.types.CryptoManager.CipherKeyEntry
+     * @see org.opends.server.crypto.CryptoManager.CipherKeyEntry
      *     #getKeyEntry(org.opends.server.types.CryptoManager,
      *                  java.lang.String, int)
      */

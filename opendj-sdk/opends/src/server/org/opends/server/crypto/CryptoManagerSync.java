@@ -25,7 +25,7 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.core;
+package org.opends.server.crypto;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
@@ -51,6 +51,9 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.controls.EntryChangeNotificationControl;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.AddOperation;
 import static org.opends.messages.CoreMessages.*;
 import org.opends.messages.Message;
 import org.opends.admin.ads.ADSContext;

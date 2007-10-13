@@ -545,7 +545,7 @@ objectClass: top
 objectClass: ds-cfg-extended-operation-handler
 objectClass: ds-cfg-get-symmetric-key-extended-operation-handler
 cn: Get Symmetric Key
-ds-cfg-java-class: org.opends.server.extensions.GetSymmetricKeyExtendedOperation
+ds-cfg-java-class: org.opends.server.crypto.GetSymmetricKeyExtendedOperation
 ds-cfg-enabled: true
 
 dn: cn=Who Am I,cn=Extended Operations,cn=config
