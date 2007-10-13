@@ -103,6 +103,11 @@ import org.opends.server.extensions.GetSymmetricKeyExtendedOperation;
  are a lot of similarities and it is conceivable at some point that
  accelerated compression may be available just as it is for
  cryptographic operations.
+
+ @see "src/admin/defn/org/opends/server/admin/std\
+                                      /CryptoManagerConfiguration.xml"
+ @see org.opends.server.core.CryptoManagerSync
+ @see org.opends.server.extensions.GetSymmetricKeyExtendedOperation
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -158,7 +163,8 @@ public class CryptoManager
   // The preferred message digest algorithm for the Directory Server.
   private String preferredDigestAlgorithm;
 
-  // The map from encryption key ID to MacKeyEntry (cache).
+  // The map from encryption key ID to MacKeyEntry (cache). The cache
+  // is accessed by methods that request, publish, and import keys.
   private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache
           = new ConcurrentHashMap<KeyEntryID, MacKeyEntry>();
 
@@ -168,7 +174,9 @@ public class CryptoManager
   // The preferred key length for the preferred MAC algorithm.
   private int preferredMACAlgorithmKeyLengthBits;
 
-  // The map from encryption key ID to CipherKeyEntry (cache).
+  // The map from encryption key ID to CipherKeyEntry (cache). The
+  // cache is accessed by methods that request, publish, and import
+  // keys.
   private final Map<KeyEntryID, CipherKeyEntry> cipherKeyEntryCache
        = new ConcurrentHashMap<KeyEntryID, CipherKeyEntry>();
 
@@ -193,9 +201,10 @@ public class CryptoManager
   // The set of SSL cipher suites enabled or null for the default set.
   private final SortedSet<String> sslCipherSuites;
 
+
   /**
    * Creates a new instance of this crypto manager object from a given
-   * configuration.
+   * configuration, plus some static member initialization.
    *
    * @param   cfg  The configuration of this crypto manager.
    *
@@ -260,68 +269,134 @@ public class CryptoManager
       schemaInitDone = true;
     }
 
-    // Preferred digest and validation.
-    preferredDigestAlgorithm = cfg.getDigestAlgorithm();
-    try{
-      MessageDigest.getInstance(preferredDigestAlgorithm);
+    // CryptoMangager crypto config parameters.
+    List<Message> why = new LinkedList<Message>();
+    if (! isConfigurationChangeAcceptable(cfg, why)) {
+      throw new InitializationException(why.get(0));
     }
-    catch (Exception ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+    applyConfigurationChange(cfg);
+
+    // Secure replication related...
+    sslCertNickname = cfg.getSSLCertNickname();
+    sslEncryption   = cfg.isSSLEncryption();
+    sslProtocols    = cfg.getSSLProtocol();
+    sslCipherSuites = cfg.getSSLCipherSuite();
+
+    // Register as a configuration change listener.
+    cfg.addChangeListener(this);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+       CryptoManagerCfg cfg,
+       List<Message> unacceptableReasons)
+  {
+    // Acceptable until we find an error.
+    boolean acceptable = true;
+
+    // Preferred digest validation.
+    String preferredDigestAlgorithm =
+         cfg.getDigestAlgorithm();
+    if (!preferredDigestAlgorithm.equals(
+         this.preferredDigestAlgorithm))
+    {
+      try{
+        MessageDigest.getInstance(preferredDigestAlgorithm);
       }
-      throw new InitializationException(
-              ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_DIGEST.get(
-                      getExceptionMessage(ex)), ex);
+      catch (Exception ex) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        }
+        unacceptableReasons.add(
+             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_DIGEST.get(
+                  getExceptionMessage(ex)));
+        acceptable = false;
+      }
     }
 
-    // Preferred MAC engine and validation.
-    preferredMACAlgorithm = cfg.getMacAlgorithm();
-    preferredMACAlgorithmKeyLengthBits =
+    // Preferred MAC algorithm validation.
+    String preferredMACAlgorithm = cfg.getMacAlgorithm();
+    Integer preferredMACAlgorithmKeyLengthBits =
          cfg.getMacKeyLength();
-    try {
-      MacKeyEntry.generateKeyEntry(null,
-              preferredMACAlgorithm,
-              preferredMACAlgorithmKeyLengthBits);
-    }
-    catch (Exception ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+    if (!preferredMACAlgorithm.equals(this.preferredMACAlgorithm) ||
+         preferredMACAlgorithmKeyLengthBits !=
+              this.preferredMACAlgorithmKeyLengthBits)
+    {
+      try {
+        MacKeyEntry.generateKeyEntry(
+             null,
+             preferredMACAlgorithm,
+             preferredMACAlgorithmKeyLengthBits);
       }
-      throw new InitializationException(
-              ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_MAC_ENGINE.get(
-                      getExceptionMessage(ex)), ex);
+      catch (Exception ex) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        }
+        unacceptableReasons.add(
+             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_MAC_ENGINE.get(
+                  getExceptionMessage(ex)));
+        acceptable = false;
+      }
     }
 
-    // Preferred encryption cipher and validation.
-    preferredCipherTransformation =
+    // Preferred encryption cipher validation.
+    String preferredCipherTransformation =
          cfg.getCipherTransformation();
-    preferredCipherTransformationKeyLengthBits =
+    Integer preferredCipherTransformationKeyLengthBits =
          cfg.getCipherKeyLength();
-    try {
-      CipherKeyEntry.generateKeyEntry(null,
-              preferredCipherTransformation,
-              preferredCipherTransformationKeyLengthBits);
-    }
-    catch (Exception ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+    if (! preferredCipherTransformation.equals(
+            this.preferredCipherTransformation) ||
+        preferredCipherTransformationKeyLengthBits !=
+            this.preferredCipherTransformationKeyLengthBits) {
+      if (3 != preferredCipherTransformation.split("/",0).length) {
+        unacceptableReasons.add(
+                ERR_CRYPTOMGR_FULL_CIPHER_TRANSFORMATION_REQUIRED.get(
+                        preferredCipherTransformation));
+        acceptable = false;
       }
-      throw new InitializationException(
+      else {
+        try {
+          CipherKeyEntry.generateKeyEntry(
+                  null,
+                  preferredCipherTransformation,
+                  preferredCipherTransformationKeyLengthBits);
+        }
+        catch (Exception ex) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          }
+          unacceptableReasons.add(
              ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_ENCRYPTION_CIPHER.get(
-                     getExceptionMessage(ex)), ex);
+                          getExceptionMessage(ex)));
+          acceptable = false;
+        }
+      }
     }
 
-    // Preferred secret key wrapping cipher and validation. Depends
-    // on MAC cipher for a candidate secret key. Note that the
-    // TrustStoreBackend not available at this point, hence a "dummy"
-    // certificate must be used to validate the choice of secret key
-    // wrapping cipher.
-    // TODO: Trying OAEPWITHSHA-512ANDMGF1PADDING throws an exception
-    // "Key too small...".
-    preferredKeyWrappingTransformation
+    // Preferred secret key wrapping cipher and validation. Validation
+    // depends on MAC cipher for secret key.
+    String preferredKeyWrappingTransformation
             = cfg.getKeyWrappingTransformation();
-    try {
-      final String certificateBase64 =
+    if (!preferredKeyWrappingTransformation.equals(
+         this.preferredKeyWrappingTransformation)) {
+      if (3 != preferredKeyWrappingTransformation
+                                              .split("/", 0).length) {
+        unacceptableReasons.add(
+          ERR_CRYPTOMGR_FULL_KEY_WRAPPING_TRANSFORMATION_REQUIRED.get(
+                        preferredKeyWrappingTransformation));
+        acceptable = false;
+      }
+      else {
+        try {
+          /* Note that the TrustStoreBackend not available at initial,
+             CryptoManager configuration, hence a "dummy" certificate
+             must be used to validate the choice of secret key
+             wrapping cipher. Otherwise, call
+             getInstanceKeyCertificateFromLocalTruststore() */
+          final String certificateBase64 =
       "MIIB2jCCAUMCBEb7wpYwDQYJKoZIhvcNAQEEBQAwNDEbMBkGA1UEChMST3B" +
       "lbkRTIENlcnRpZmljYXRlMRUwEwYDVQQDEwwxMC4wLjI0OC4yNTEwHhcNMD" +
       "cwOTI3MTQ0NzUwWhcNMjcwOTIyMTQ0NzUwWjA0MRswGQYDVQQKExJPcGVuR" +
@@ -333,29 +408,61 @@ public class CryptoManager
       "jucN34MZwvzbmFHT/leUu3/cpykbGM9HL2QUX7iKvv2LJVqexhj7CLoXxZP" +
       "oNL+HHKW0vi5/7W5KwOZsPqKI2SdYV7nDqTZklm5ZP0gmIuNO6mTqBRtC2D" +
       "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
-      final byte[] certificate = Base64.decode(certificateBase64);
-      final String keyID = getInstanceKeyID(certificate);
-      final SecretKey macKey = MacKeyEntry.generateKeyEntry(null,
-              preferredMACAlgorithm,
-              preferredMACAlgorithmKeyLengthBits).getSecretKey();
-      encodeSymmetricKeyAttribute(keyID, certificate, macKey);
-    }
-    catch (Exception ex) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-      throw new InitializationException(
+          final byte[] certificate = Base64.decode(certificateBase64);
+          final String keyID = getInstanceKeyID(certificate);
+          preferredKeyWrappingTransformation
+            = cfg.getKeyWrappingTransformation();
+          final SecretKey macKey =
+                  MacKeyEntry.generateKeyEntry(
+                          null,
+                          preferredMACAlgorithm,
+                          preferredMACAlgorithmKeyLengthBits).
+                          getSecretKey();
+          encodeSymmetricKeyAttribute(
+                  preferredKeyWrappingTransformation, keyID,
+                  certificate, macKey);
+        }
+        catch (Exception ex) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          }
+          unacceptableReasons.add(
            ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
-                   getExceptionMessage(ex)), ex);
+                          getExceptionMessage(ex)));
+          acceptable = false;
+        }
+      }
     }
 
-    sslCertNickname = cfg.getSSLCertNickname();
-    sslEncryption   = cfg.isSSLEncryption();
-    sslProtocols    = cfg.getSSLProtocol();
-    sslCipherSuites = cfg.getSSLCipherSuite();
+    return acceptable;
+  }
 
-    // Register as a configuration change listener.
-    cfg.addChangeListener(this);
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+       CryptoManagerCfg cfg)
+  {
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    List<Message> messages = new ArrayList<Message>();
+
+    preferredDigestAlgorithm =
+         cfg.getDigestAlgorithm();
+    preferredMACAlgorithm =
+         cfg.getMacAlgorithm();
+    preferredMACAlgorithmKeyLengthBits =
+         cfg.getMacKeyLength();
+    preferredCipherTransformation =
+         cfg.getCipherTransformation();
+    preferredCipherTransformationKeyLengthBits =
+         cfg.getCipherKeyLength();
+    preferredKeyWrappingTransformation =
+         cfg.getKeyWrappingTransformation();
+
+    return new ConfigChangeResult(resultCode,
+                                  adminActionRequired, messages);
   }
 
 
@@ -3313,153 +3420,6 @@ public class CryptoManager
     public CryptoManagerException(Message message, Exception cause) {
       super(message, cause);
     }
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isConfigurationChangeAcceptable(
-       CryptoManagerCfg cfg,
-       List<Message> unacceptableReasons)
-  {
-    // Acceptable until we find an error.
-    boolean acceptable = true;
-
-    // Preferred digest validation.
-    String preferredDigestAlgorithm =
-         cfg.getDigestAlgorithm();
-    if (!preferredDigestAlgorithm.equals(
-         this.preferredDigestAlgorithm))
-    {
-      try{
-        MessageDigest.getInstance(preferredDigestAlgorithm);
-      }
-      catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
-        unacceptableReasons.add(
-             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_DIGEST.get(
-                  getExceptionMessage(ex)));
-        acceptable = false;
-      }
-    }
-
-    // Preferred MAC algorithm validation.
-    String preferredMACAlgorithm = cfg.getMacAlgorithm();
-    Integer preferredMACAlgorithmKeyLengthBits =
-         cfg.getMacKeyLength();
-    if (!preferredMACAlgorithm.equals(this.preferredMACAlgorithm) ||
-         preferredMACAlgorithmKeyLengthBits !=
-              this.preferredMACAlgorithmKeyLengthBits)
-    {
-      try {
-        MacKeyEntry.generateKeyEntry(
-             null,
-             preferredMACAlgorithm,
-             preferredMACAlgorithmKeyLengthBits);
-      }
-      catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
-        unacceptableReasons.add(
-             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_MAC_ENGINE.get(
-                  getExceptionMessage(ex)));
-        acceptable = false;
-      }
-    }
-
-    // Preferred encryption cipher validation.
-    String preferredCipherTransformation =
-         cfg.getCipherTransformation();
-    Integer preferredCipherTransformationKeyLengthBits =
-         cfg.getCipherKeyLength();
-    if (!preferredCipherTransformation.equals(
-         this.preferredCipherTransformation) ||
-         preferredCipherTransformationKeyLengthBits !=
-              this.preferredCipherTransformationKeyLengthBits)
-    {
-      try {
-        CipherKeyEntry.generateKeyEntry(
-             null,
-             preferredCipherTransformation,
-             preferredCipherTransformationKeyLengthBits);
-      }
-      catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
-        unacceptableReasons.add(
-             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_ENCRYPTION_CIPHER.get(
-                  getExceptionMessage(ex)));
-        acceptable = false;
-      }
-    }
-
-    // Preferred secret key wrapping cipher and validation. Depends
-    // on MAC cipher for secret key. Note that the TrustStoreBackend
-    // not available at this point, hence a "dummy" certificate must
-    // be used to validate the choice of secret key wrapping cipher.
-    String preferredKeyWrappingTransformation
-            = cfg.getKeyWrappingTransformation();
-    if (!preferredKeyWrappingTransformation.equals(
-         this.preferredKeyWrappingTransformation))
-    {
-      try {
-        final byte[] certificate =
-             getInstanceKeyCertificateFromLocalTruststore();
-        final String keyID = getInstanceKeyID(certificate);
-        final SecretKey macKey =
-             MacKeyEntry.generateKeyEntry(
-                  null,
-                  preferredMACAlgorithm,
-                  preferredMACAlgorithmKeyLengthBits).
-                  getSecretKey();
-        encodeSymmetricKeyAttribute(
-             preferredKeyWrappingTransformation, keyID,
-             certificate, macKey);
-      }
-      catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
-        unacceptableReasons.add(
-          ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
-                  getExceptionMessage(ex)));
-        acceptable = false;
-      }
-    }
-
-    return acceptable;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationChange(
-       CryptoManagerCfg cfg)
-  {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
-
-    preferredDigestAlgorithm =
-         cfg.getDigestAlgorithm();
-    preferredMACAlgorithm =
-         cfg.getMacAlgorithm();
-    preferredMACAlgorithmKeyLengthBits =
-         cfg.getMacKeyLength();
-    preferredCipherTransformation =
-         cfg.getCipherTransformation();
-    preferredCipherTransformationKeyLengthBits =
-         cfg.getCipherKeyLength();
-    preferredKeyWrappingTransformation =
-         cfg.getKeyWrappingTransformation();
-
-    return new ConfigChangeResult(resultCode,
-                                  adminActionRequired, messages);
   }
 }
 

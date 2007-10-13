@@ -95,7 +95,8 @@ public class CryptoManagerTestCase extends TypesTestCase
   public void testGetInstanceKeyCertificate()
           throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
-    final byte[] cert = cm.getInstanceKeyCertificateFromLocalTruststore();
+    final byte[] cert
+            = CryptoManager.getInstanceKeyCertificateFromLocalTruststore();
     assertNotNull(cert);
 
     // The certificate should now be accessible in the truststore backend via LDAP.
@@ -128,8 +129,8 @@ public class CryptoManagerTestCase extends TypesTestCase
          md.digest(ldapCert)).equals(cm.getInstanceKeyID()));
 
     // Call twice to ensure idempotent. 
-    cm.publishInstanceKeyEntryInADS();
-    cm.publishInstanceKeyEntryInADS();
+    CryptoManager.publishInstanceKeyEntryInADS();
+    CryptoManager.publishInstanceKeyEntryInADS();
   }
 
   @Test
@@ -201,7 +202,7 @@ public class CryptoManagerTestCase extends TypesTestCase
     // default (preferred) AES/CBC/PKCS5Padding 128bit key.
     paramList.add(new CipherParameters(null, null, null, 128, 128));
     // custom
-// TODO:  paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 192, 64));
+// TODO: paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 448, 64));
     paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 128, 64));
     paramList.add(new CipherParameters("RC4", null, null, 104, 0));
     paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 56));
@@ -451,6 +452,12 @@ public class CryptoManagerTestCase extends TypesTestCase
       // expected cause.
     }
   }
+
+  /**
+   TODO: Test key wrapping
+   Trying OAEPWITHSHA-512ANDMGF1PADDING throws an exception "Key too small...".
+   */
+
 
   /**
    TODO: Test the secret key synchronization protocol.
