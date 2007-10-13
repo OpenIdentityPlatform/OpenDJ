@@ -48,7 +48,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
+import org.opends.server.crypto.CryptoManager;
 
 
 /**

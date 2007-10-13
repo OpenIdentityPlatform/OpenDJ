@@ -30,7 +30,7 @@ package org.opends.server.replication.protocol;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.CryptoManager;
+import org.opends.server.crypto.CryptoManager;
 import org.opends.server.config.ConfigException;
 
 import javax.net.ssl.SSLSocket;

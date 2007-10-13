@@ -33,7 +33,7 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
-import org.opends.server.types.CryptoManager;
+import org.opends.server.crypto.CryptoManager;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RestoreConfig;
 

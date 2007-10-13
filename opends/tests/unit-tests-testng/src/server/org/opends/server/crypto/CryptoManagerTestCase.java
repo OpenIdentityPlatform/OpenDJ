@@ -24,13 +24,14 @@
  *
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
-package org.opends.server.types;
+package org.opends.server.crypto;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.config.ConfigConstants;
@@ -68,8 +69,7 @@ import javax.naming.ldap.InitialLdapContext;
 /**
  This class tests the CryptoManager.
  */
-public class CryptoManagerTestCase extends TypesTestCase
-{
+public class CryptoManagerTestCase extends CryptoTestCase {
   /**
    Setup..
    @throws Exception  If an unexpected problem occurs.

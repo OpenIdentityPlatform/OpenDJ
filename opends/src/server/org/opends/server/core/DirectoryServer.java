@@ -145,7 +145,7 @@ import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
-import org.opends.server.types.CryptoManager;
+import org.opends.server.crypto.CryptoManager;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
@@ -190,6 +190,7 @@ import org.opends.server.workflowelement.*;
 import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.crypto.CryptoManagerSync;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;

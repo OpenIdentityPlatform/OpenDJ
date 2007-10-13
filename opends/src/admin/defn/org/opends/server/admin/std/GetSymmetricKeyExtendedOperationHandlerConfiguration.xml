@@ -51,7 +51,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.extensions.GetSymmetricKeyExtendedOperation
+          org.opends.server.crypto.GetSymmetricKeyExtendedOperation
         </adm:value>
       </adm:defined>
     </adm:default-behavior>

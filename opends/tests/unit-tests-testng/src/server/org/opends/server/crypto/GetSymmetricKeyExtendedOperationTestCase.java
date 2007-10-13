@@ -25,11 +25,12 @@
  *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 
-package org.opends.server.extensions;
+package org.opends.server.crypto;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.extensions.ExtensionsTestCase;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.*;
@@ -49,8 +50,7 @@ import java.util.LinkedHashSet;
  * A set of test cases for the symmetric key extended operation.
  */
 public class GetSymmetricKeyExtendedOperationTestCase
-     extends ExtensionsTestCase
-{
+     extends CryptoTestCase {
   /**
    * Ensures that the Directory Server is running.
    *
@@ -73,7 +73,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
     final String cipherTransformationName = "AES/CBC/PKCS5Padding";
     final int cipherKeyLength = 128;
 
-    cm.publishInstanceKeyEntryInADS();
+    CryptoManager.publishInstanceKeyEntryInADS();
 
     // Initial encryption ensures a cipher key entry is in ADS.
     cm.encrypt(cipherTransformationName, cipherKeyLength,

@@ -50,7 +50,7 @@ import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.BackendCfgDefn;
 import org.opends.server.admin.std.meta.LDIFBackendCfgDefn;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.CryptoManager;
+import org.opends.server.crypto.CryptoManager;
 import org.opends.server.types.DN;
 
 /**
