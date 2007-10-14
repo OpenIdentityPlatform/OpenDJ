@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.crypto.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
 
 import javax.crypto.Mac;

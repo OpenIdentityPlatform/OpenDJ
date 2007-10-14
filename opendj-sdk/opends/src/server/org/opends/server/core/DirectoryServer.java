@@ -145,7 +145,7 @@ import org.opends.server.types.AttributeUsage;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
-import org.opends.server.crypto.CryptoManager;
+import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.types.DITContentRule;
 import org.opends.server.types.DITStructureRule;
 import org.opends.server.types.DN;
@@ -521,7 +521,7 @@ public class DirectoryServer
   private CoreConfigManager coreConfigManager;
 
   // The crypto manager for the Directory Server.
-  private CryptoManager cryptoManager;
+  private CryptoManagerImpl cryptoManager;
 
   // The default compressed schema manager.
   private DefaultCompressedSchema compressedSchema;
@@ -2211,7 +2211,7 @@ public class DirectoryServer
     RootCfg root =
          ServerManagementContext.getInstance().getRootConfiguration();
     CryptoManagerCfg cryptoManagerCfg = root.getCryptoManager();
-    cryptoManager = new CryptoManager(cryptoManagerCfg);
+    cryptoManager = new CryptoManagerImpl(cryptoManagerCfg);
   }
 
 
@@ -2221,7 +2221,7 @@ public class DirectoryServer
    *
    * @return  A reference to the Directory Server crypto manager.
    */
-  public static CryptoManager getCryptoManager()
+  public static CryptoManagerImpl getCryptoManager()
   {
     return directoryServer.cryptoManager;
   }

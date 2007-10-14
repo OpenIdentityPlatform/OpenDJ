@@ -50,7 +50,7 @@ import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.BackendCfgDefn;
 import org.opends.server.admin.std.meta.LDIFBackendCfgDefn;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.crypto.CryptoManager;
+import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DN;
 
@@ -252,7 +252,7 @@ public class ADSContextHelper
       else {
         /* create key ID, if it was not supplied in serverProperties */
         if (null == keyID) {
-          keyID = CryptoManager.getInstanceKeyID(
+          keyID = CryptoManagerImpl.getInstanceKeyID(
               (byte[])serverProperties.get(
                   ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE));
           keyAttrs.put(new BasicAttribute(

@@ -94,9 +94,9 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   @Test
   public void testGetInstanceKeyCertificate()
           throws Exception {
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
     final byte[] cert
-            = CryptoManager.getInstanceKeyCertificateFromLocalTruststore();
+            = CryptoManagerImpl.getInstanceKeyCertificateFromLocalTruststore();
     assertNotNull(cert);
 
     // The certificate should now be accessible in the truststore backend via LDAP.
@@ -129,8 +129,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
          md.digest(ldapCert)).equals(cm.getInstanceKeyID()));
 
     // Call twice to ensure idempotent. 
-    CryptoManager.publishInstanceKeyEntryInADS();
-    CryptoManager.publishInstanceKeyEntryInADS();
+    CryptoManagerImpl.publishInstanceKeyEntryInADS();
+    CryptoManagerImpl.publishInstanceKeyEntryInADS();
   }
 
   @Test
@@ -254,7 +254,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   @Test(dataProvider="cipherParametersData")
   public void testStreamEncryptDecryptSuccess(CipherParameters cp)
           throws Exception {
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "56789";
 
     final File tempFile

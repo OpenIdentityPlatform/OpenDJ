@@ -30,7 +30,6 @@ package org.opends.server.crypto;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.extensions.ExtensionsTestCase;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.*;
@@ -68,12 +67,12 @@ public class GetSymmetricKeyExtendedOperationTestCase
   @Test(enabled=true)
   public void testValidRequest() throws Exception
   {
-    final CryptoManager cm = DirectoryServer.getCryptoManager();
+    final CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";
     final String cipherTransformationName = "AES/CBC/PKCS5Padding";
     final int cipherKeyLength = 128;
 
-    CryptoManager.publishInstanceKeyEntryInADS();
+    CryptoManagerImpl.publishInstanceKeyEntryInADS();
 
     // Initial encryption ensures a cipher key entry is in ADS.
     cm.encrypt(cipherTransformationName, cipherKeyLength,
@@ -154,7 +153,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
   @Test()
   public void testInvalidRequest() throws Exception
   {
-    CryptoManager cm = DirectoryServer.getCryptoManager();
+    CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
 
     String symmetricKey = "1";
     String instanceKeyID = cm.getInstanceKeyID();

@@ -2172,7 +2172,7 @@ public class ADSContext
    value to ds-cfg-public-key-certificate;binary value. Note that the collection
    might be empty.
    @throws ADSContextException in case of problems with the entry search.
-   @see org.opends.server.crypto.CryptoManager#getTrustedCertificates
+   @see org.opends.server.crypto.CryptoManagerImpl#getTrustedCertificates
    */
   public Map<String,byte[]> getTrustedCertificates()
           throws ADSContextException

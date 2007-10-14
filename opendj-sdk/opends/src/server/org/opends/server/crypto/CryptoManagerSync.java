@@ -123,7 +123,7 @@ public class CryptoManagerSync
           throws InitializationException
   {
     try {
-      CryptoManager.publishInstanceKeyEntryInADS();
+      CryptoManagerImpl.publishInstanceKeyEntryInADS();
     }
     catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());
