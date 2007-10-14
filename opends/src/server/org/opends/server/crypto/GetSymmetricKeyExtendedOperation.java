@@ -229,7 +229,7 @@ public class GetSymmetricKeyExtendedOperation
       operation.setResponseValue(new ASN1OctetString(responseSymmetricKey));
       operation.setResultCode(ResultCode.SUCCESS);
     }
-    catch (CryptoManager.CryptoManagerException e)
+    catch (CryptoManagerException e)
     {
       operation.setResultCode(DirectoryServer.getServerErrorResultCode());
       operation.appendErrorMessage(e.getMessageObject());

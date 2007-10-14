@@ -80,40 +80,9 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.crypto.CryptoManager;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.CryptoManagerException;
+import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
@@ -4248,7 +4217,7 @@ public class SchemaBackend
         outputStream
                 = cryptoManager.getCipherOutputStream(outputStream);
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -4621,7 +4590,7 @@ public class SchemaBackend
         inputStream = DirectoryServer.getCryptoManager()
                                          .getCipherInputStream(inputStream);
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         Message message = ERR_SCHEMA_RESTORE_CANNOT_GET_CIPHER.get(
                 backupFile.getPath(), stackTraceToSingleLineString(e));
