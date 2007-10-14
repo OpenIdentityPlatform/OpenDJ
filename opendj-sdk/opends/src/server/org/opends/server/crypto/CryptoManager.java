@@ -475,7 +475,7 @@ public class CryptoManager
    * @throws CryptoManagerException If the certificate cannot be
    * retrieved.
    */
-  public static byte[] getInstanceKeyCertificateFromLocalTruststore()
+  static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
     // Construct the key entry DN.
     final AttributeValue distinguishedValue = new AttributeValue(
@@ -566,7 +566,7 @@ public class CryptoManager
    * the instance-key public-key certificate or computing its MD5
    * hash.
    */
-  public String getInstanceKeyID()
+  String getInstanceKeyID()
           throws CryptoManagerException {
     return getInstanceKeyID(
             getInstanceKeyCertificateFromLocalTruststore());
@@ -583,6 +583,9 @@ public class CryptoManager
    * @return The identifier of the supplied instance key.
    * @throws CryptoManagerException If there is a problem computing
    * the identifier from the instance key.
+   *
+   * TODO: make package-private if ADSContextHelper can get keyID from ADS
+   * suffix: Issue https://opends.dev.java.net/issues/show_bug.cgi?id=2442
    */
   public static String getInstanceKeyID(byte[] instanceKeyCertificate)
             throws CryptoManagerException {
@@ -611,7 +614,7 @@ public class CryptoManager
    @throws CryptoManagerException In case there is a problem
    searching for the entry, or, if necessary, adding it.
    */
-  public static void publishInstanceKeyEntryInADS()
+  static void publishInstanceKeyEntryInADS()
           throws CryptoManagerException {
     final byte[] instanceKeyCertificate
             = getInstanceKeyCertificateFromLocalTruststore();
@@ -989,7 +992,7 @@ public class CryptoManager
    * the supplied symmetric key attribute value, unwrapping the
    * embedded secret key, or retrieving the requested public key.
    */
-  public String reencodeSymmetricKeyAttribute(
+  String reencodeSymmetricKeyAttribute(
           final String symmetricKeyAttribute,
           final String requestedInstanceKeyID)
           throws CryptoManagerException {
@@ -1895,7 +1898,7 @@ public class CryptoManager
    *               was not already present but could not
    *               be imported.
    */
-  public void importCipherKeyEntry(Entry entry)
+  void importCipherKeyEntry(Entry entry)
        throws CryptoManagerException
   {
     // Ignore the entry if it does not have the appropriate
@@ -2123,7 +2126,7 @@ public class CryptoManager
    *               was not already present but could not
    *               be imported.
    */
-  public void importMacKeyEntry(Entry entry)
+  void importMacKeyEntry(Entry entry)
        throws CryptoManagerException
   {
     // Ignore the entry if it does not have the appropriate
@@ -3380,43 +3383,4 @@ public class CryptoManager
     // state
     private final String fType;
   }
-
-
-
-  /**
-   * This class defines an exception that is thrown in the case of
-   * problems with encryption key managagment, and is a wrapper for a
-   * variety of other cipher related exceptions.
-   */
-  public static class CryptoManagerException extends OpenDsException
-  {
-    /**
-     * The serial version identifier required to satisfy the compiler
-     * because this class extends <CODE>java.lang.Exception</CODE>,
-     * which implements the <CODE>java.io.Serializable</CODE>
-     * interface. This value was generated using the
-     * <CODE>serialver</CODE> command-line utility included with the
-     * Java SDK.
-     */
-    static final long serialVersionUID = -5890763923778143774L;
-
-    /**
-     * Creates an exception with the given message.
-     * @param message the message message.
-     */
-    public CryptoManagerException(Message message) {
-      super(message);
-     }
-
-    /**
-     * Creates an exception with the given message and underlying
-     * cause.
-     * @param message The message message.
-     * @param cause  The underlying cause.
-     */
-    public CryptoManagerException(Message message, Exception cause) {
-      super(message, cause);
-    }
-  }
 }
-

@@ -51,6 +51,7 @@ import org.opends.server.admin.std.meta.BackendCfgDefn;
 import org.opends.server.admin.std.meta.LDIFBackendCfgDefn;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.crypto.CryptoManager;
+import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DN;
 
 /**
@@ -277,7 +278,7 @@ public class ADSContextHelper
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
     }
-    catch (CryptoManager.CryptoManagerException cme)
+    catch (CryptoManagerException cme)
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, cme);

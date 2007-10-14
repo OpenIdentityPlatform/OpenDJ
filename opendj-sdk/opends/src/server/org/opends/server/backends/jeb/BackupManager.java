@@ -30,12 +30,8 @@ import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.BackupInfo;
 import org.opends.server.crypto.CryptoManager;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.CryptoManagerException;
 
 import javax.crypto.Mac;
 import java.io.BufferedReader;
@@ -64,7 +60,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -347,7 +343,7 @@ public class BackupManager
         outputStream
                 = cryptoManager.getCipherOutputStream(outputStream);
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -976,7 +972,7 @@ public class BackupManager
       {
         inputStream = cryptoManager.getCipherInputStream(inputStream);
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         if (debugEnabled())
         {
@@ -1305,7 +1301,7 @@ public class BackupManager
       {
         inputStream = cryptoManager.getCipherInputStream(inputStream);
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         if (debugEnabled())
         {

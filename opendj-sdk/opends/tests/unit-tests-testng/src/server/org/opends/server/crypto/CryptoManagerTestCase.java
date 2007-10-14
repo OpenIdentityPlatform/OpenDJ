@@ -447,7 +447,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     try {
       cm.decrypt(cipherText);
     }
-    catch (CryptoManager.CryptoManagerException ex) {
+    catch (CryptoManagerException ex) {
       // TODO: if reasons are added to CryptoManagerException, check for
       // expected cause.
     }

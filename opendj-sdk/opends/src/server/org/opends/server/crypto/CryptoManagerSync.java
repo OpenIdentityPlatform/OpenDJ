@@ -125,7 +125,7 @@ public class CryptoManagerSync
     try {
       CryptoManager.publishInstanceKeyEntryInADS();
     }
-    catch (CryptoManager.CryptoManagerException ex) {
+    catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());
     }
     DirectoryServer.registerBackendInitializationListener(this);
@@ -270,7 +270,7 @@ public class CryptoManagerSync
           DirectoryServer.getCryptoManager().importMacKeyEntry(searchEntry);
         }
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         throw new DirectoryException(
              DirectoryServer.getServerErrorResultCode(), e);
@@ -483,7 +483,7 @@ public class CryptoManagerSync
           DirectoryServer.getCryptoManager().importMacKeyEntry(entry);
         }
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         Message message = Message.raw("Failed to import key entry: %s",
                                       e.getMessage());
@@ -556,7 +556,7 @@ public class CryptoManagerSync
           DirectoryServer.getCryptoManager().importMacKeyEntry(newEntry);
         }
       }
-      catch (CryptoManager.CryptoManagerException e)
+      catch (CryptoManagerException e)
       {
         Message message = Message.raw("Failed to import modified key entry: %s",
                                       e.getMessage());
