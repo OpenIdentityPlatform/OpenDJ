@@ -218,7 +218,7 @@ public class GetSymmetricKeyExtendedOperation
       return;
     }
 
-    CryptoManager cm = DirectoryServer.getCryptoManager();
+    CryptoManagerImpl cm = DirectoryServer.getCryptoManager();
     try
     {
       String responseSymmetricKey = cm.reencodeSymmetricKeyAttribute(

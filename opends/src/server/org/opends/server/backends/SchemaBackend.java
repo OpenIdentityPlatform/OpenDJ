@@ -80,7 +80,6 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.crypto.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;

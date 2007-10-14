@@ -34,6 +34,11 @@ import org.opends.messages.Message;
  * problems with encryption key managagment, and is a wrapper for a
  * variety of other cipher related exceptions.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE,
+     mayInstantiate=false,
+     mayExtend=false,
+     mayInvoke=true)
 public class CryptoManagerException extends OpenDsException {
   /**
    * The serial version identifier required to satisfy the compiler
