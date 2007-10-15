@@ -159,6 +159,15 @@ public class CryptoManagerImpl
   // The preferred message digest algorithm for the Directory Server.
   private String preferredDigestAlgorithm;
 
+  // The first byte in any ciphertext produced by CryptoManager is the
+  // prologue version. At present, this constant is both the version written
+  // and the expected version. If a new version is introduced (e.g., to allow
+  // embedding the HMAC key identifier and signature in a signed backup) the
+  // prologue version will likely need to be configurable at the granularity
+  // of the CryptoManager client (e.g., password encryption might use version 1,
+  // while signed backups might use version 2.
+  private static final int CIPHERTEXT_PROLOGUE_VERSION = 1 ;
+
   // The map from encryption key ID to MacKeyEntry (cache). The cache
   // is accessed by methods that request, publish, and import keys.
   private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache
@@ -2802,25 +2811,28 @@ public class CryptoManagerImpl
   {
     Validator.ensureNotNull(cipherTransformation, data);
 
-    CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(
-            this, cipherTransformation, keyLengthBits);
+    CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this,
+            cipherTransformation, keyLengthBits);
     if (null == keyEntry) {
-      keyEntry = CipherKeyEntry.generateKeyEntry(this,
-              cipherTransformation, keyLengthBits);
+      keyEntry = CipherKeyEntry.generateKeyEntry(this, cipherTransformation,
+              keyLengthBits);
     }
 
-    final Cipher cipher
-            = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
+    final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
 
     final byte[] keyID = keyEntry.getKeyID().getByteValue();
     final byte[] iv = cipher.getIV();
     final int prologueLength
-            = keyID.length + ((null == iv) ? 0 : iv.length);
+            = /* version */ 1 + keyID.length + ((null == iv) ? 0 : iv.length);
     final int dataLength = cipher.getOutputSize(data.length);
     final byte[] cipherText = new byte[prologueLength + dataLength];
-    System.arraycopy(keyID, 0, cipherText, 0, keyID.length);
+    int writeIndex = 0;
+    cipherText[writeIndex++] = CIPHERTEXT_PROLOGUE_VERSION;
+    System.arraycopy(keyID, 0, cipherText, writeIndex, keyID.length);
+    writeIndex += keyID.length;
     if (null != iv) {
-      System.arraycopy(iv, 0, cipherText, keyID.length, iv.length);
+      System.arraycopy(iv, 0, cipherText, writeIndex, iv.length);
+      writeIndex += iv.length;
     }
     System.arraycopy(cipher.doFinal(data), 0, cipherText,
                      prologueLength, dataLength);
@@ -2848,14 +2860,14 @@ public class CryptoManagerImpl
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(
             this, cipherTransformation, keyLengthBits);
     if (null == keyEntry) {
-      keyEntry = CipherKeyEntry.generateKeyEntry(this,
-              cipherTransformation, keyLengthBits);
+      keyEntry = CipherKeyEntry.generateKeyEntry(this, cipherTransformation,
+              keyLengthBits);
     }
 
-    final Cipher cipher
-            = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
+    final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
     final byte[] keyID = keyEntry.getKeyID().getByteValue();
     try {
+      outputStream.write((byte)CIPHERTEXT_PROLOGUE_VERSION);
       outputStream.write(keyID);
       if (null != cipher.getIV()) {
         outputStream.write(cipher.getIV());
@@ -2879,11 +2891,37 @@ public class CryptoManagerImpl
          throws GeneralSecurityException,
                 CryptoManagerException
   {
+    int readIndex = 0;
+
+    int version;
+    try {
+      version = data[readIndex++];
+    }
+    catch (Exception ex) {
+      // IndexOutOfBoundsException, ArrayStoreException, ...
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      }
+      throw new CryptoManagerException(
+              ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_PROLOGUE_VERSION.get(
+                      ex.getMessage()), ex);
+    }
+    switch (version) {
+      case CIPHERTEXT_PROLOGUE_VERSION:
+        // Encryption key identifier only in the data prologue.
+        break;
+
+      default:
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_DECRYPT_UNKNOWN_PROLOGUE_VERSION.get(version));
+    }
+
     KeyEntryID keyID;
     try {
       final byte[] keyIDBytes
               = new byte[KeyEntryID.getByteValueLength()];
-      System.arraycopy(data, 0, keyIDBytes, 0, keyIDBytes.length);
+      System.arraycopy(data, readIndex, keyIDBytes, 0, keyIDBytes.length);
+      readIndex += keyIDBytes.length;
       keyID = new KeyEntryID(keyIDBytes);
     }
     catch (Exception ex) {
@@ -2892,8 +2930,8 @@ public class CryptoManagerImpl
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       throw new CryptoManagerException(
-           ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(),
-              ex);
+           ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
+                   ex.getMessage()), ex);
     }
 
     CipherKeyEntry keyEntry = CipherKeyEntry.getKeyEntry(this, keyID);
@@ -2906,8 +2944,8 @@ public class CryptoManagerImpl
     if (0 < keyEntry.getIVLengthBits()) {
       iv = new byte[keyEntry.getIVLengthBits()/Byte.SIZE];
       try {
-        System.arraycopy(data, KeyEntryID.getByteValueLength(), iv, 0,
-                iv.length);
+        System.arraycopy(data, readIndex, iv, 0, iv.length);
+        readIndex += iv.length;
       }
       catch (Exception ex) {
         // IndexOutOfBoundsException, ArrayStoreException, ...
@@ -2919,12 +2957,8 @@ public class CryptoManagerImpl
       }
     }
 
-    final Cipher cipher = getCipher(keyEntry, Cipher.DECRYPT_MODE,
-            iv);
-    final int prologueLength = KeyEntryID.getByteValueLength()
-                                     + ((null == iv) ? 0 : iv.length);
-    return cipher.doFinal(data, prologueLength,
-                          data.length - prologueLength);
+    final Cipher cipher = getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
+    return cipher.doFinal(data, readIndex, data.length - readIndex);
   }
 
 
@@ -2932,13 +2966,32 @@ public class CryptoManagerImpl
   public CipherInputStream getCipherInputStream(
           InputStream inputStream) throws CryptoManagerException
   {
+    int version;
     CipherKeyEntry keyEntry;
     byte[] iv = null;
     try {
-      final byte[] keyID = new byte[KeyEntryID.getByteValueLength()];
-      if (keyID.length != inputStream.read(keyID)){
+      final byte[] rawVersion = new byte[1];
+      if (rawVersion.length != inputStream.read(rawVersion)) {
         throw new CryptoManagerException(
-           ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get());
+                ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_PROLOGUE_VERSION.get(
+                      "stream underflow"));
+      }
+      version = rawVersion[0];
+      switch (version) {
+        case CIPHERTEXT_PROLOGUE_VERSION:
+          // Encryption key identifier only in the data prologue.
+          break;
+
+        default:
+          throw new CryptoManagerException(
+                  ERR_CRYPTOMGR_DECRYPT_UNKNOWN_PROLOGUE_VERSION.get(version));
+      }
+
+      final byte[] keyID = new byte[KeyEntryID.getByteValueLength()];
+      if (keyID.length != inputStream.read(keyID)) {
+        throw new CryptoManagerException(
+           ERR_CRYPTOMGR_DECRYPT_FAILED_TO_READ_KEY_IDENTIFIER.get(
+                   "stream underflow"));
       }
       keyEntry = CipherKeyEntry.getKeyEntry(this,
               new KeyEntryID(keyID));

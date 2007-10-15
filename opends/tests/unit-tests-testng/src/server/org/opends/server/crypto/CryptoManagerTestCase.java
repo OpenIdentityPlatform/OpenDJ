@@ -202,6 +202,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // default (preferred) AES/CBC/PKCS5Padding 128bit key.
     paramList.add(new CipherParameters(null, null, null, 128, 128));
     // custom
+// TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2448
 // TODO: paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 448, 64));
     paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 128, 64));
     paramList.add(new CipherParameters("RC4", null, null, 104, 0));
@@ -306,8 +307,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     try {
       Method m = Arrays.class.getMethod("copyOfRange", (new byte[16]).getClass(),
               Integer.TYPE, Integer.TYPE);
-      final byte[] keyID = (byte[])m.invoke(null, cipherText, 0, 16);
-      final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 0, 16);
+      final byte[] keyID = (byte[])m.invoke(null, cipherText, 1, 16);
+      final byte[] keyID2 = (byte[])m.invoke(null, cipherText2, 1, 16);
       assertEquals(keyID, keyID2);
     }
     catch (NoSuchMethodException ex) {
@@ -427,8 +428,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // 1. Test for distinct keys.
     final byte[] keyID = new byte[16];
     final byte[] keyID2 = new byte[16];
-    System.arraycopy(cipherText, 0, keyID, 0, 16);
-    System.arraycopy(cipherText2, 0, keyID2, 0, 16);
+    System.arraycopy(cipherText, 1, keyID, 0, 16);
+    System.arraycopy(cipherText2, 1, keyID2, 0, 16);
     assertTrue(! Arrays.equals(keyID, keyID2));
 
     // 2. Confirm ciphertext produced using the compromised key can still be
@@ -440,8 +441,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // using a compromised key can no longer be decrypted.
     for (Entry e : searchOp.getSearchEntries()) {
       TestCaseUtils.applyModifications(
-        "dn: " + e.getDN().toNormalizedString(),
-        "changetype: delete");
+        "dn: " + e.getDN().toNormalizedString(), "changetype: delete");
     }
     Thread.sleep(1000); // Clearing the cache is asynchronous.
     try {
