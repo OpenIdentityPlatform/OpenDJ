@@ -601,7 +601,7 @@ public class TrustStoreBackend
     {
       if (debugEnabled())
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        TRACER.debugCaught(DebugLogLevel.VERBOSE, e);
       }
 
       Message message = ERR_TRUSTSTORE_CANNOT_RETRIEVE_CERT.get(
@@ -808,7 +808,7 @@ public class TrustStoreBackend
           {
             if (debugEnabled())
             {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              TRACER.debugCaught(DebugLogLevel.VERBOSE, e);
             }
 
             continue;
