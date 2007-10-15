@@ -264,7 +264,7 @@ searchProcessing:
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          TRACER.debugCaught(DebugLogLevel.VERBOSE, de);
         }
 
         setResponseData(de);
