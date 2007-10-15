@@ -117,8 +117,6 @@ public class MessageBuilderTest extends MessagesTestCase {
       mb.append(c);
     }
     Message m = mb.toMessage();
-    System.out.println("result:" + result);
-    System.out.println("message:" + m.toString(locale));
     assertTrue(result.equals(m.toString(locale)));
   }
 
