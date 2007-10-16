@@ -1559,7 +1559,7 @@ public class CryptoManagerImpl
 
       this.fKeyID = new KeyEntryID();
       this.fSecretKey = new SecretKeySpec(key, algorithm);
-      this.fKeyLengthBits = key.length * Byte.SIZE;
+      this.fKeyLengthBits = keyLengthBits;
       this.fIsCompromised = false;
     }
 
