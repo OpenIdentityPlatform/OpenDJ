@@ -203,7 +203,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   {
     synchronized (this)
     {
-      ProgressDescriptor desc = createInstallProgressDescriptor(ev);
+      ProgressDescriptor desc = createProgressDescriptor(ev);
       boolean isLastDescriptor = desc.getProgressStep().isLast();
       if (isLastDescriptor)
       {
@@ -684,8 +684,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
    *          ProgressDescriptor.
    * @return the ProgressDescriptor.
    */
-  private ProgressDescriptor createInstallProgressDescriptor(
-      ProgressUpdateEvent ev)
+  private ProgressDescriptor createProgressDescriptor(ProgressUpdateEvent ev)
   {
     ProgressStep status = ev.getProgressStep();
     Message newProgressLabel = ev.getCurrentPhaseSummary();
@@ -696,9 +695,11 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     {
       progressDetails.append(additionalDetails);
     }
-
+    // Note: progressDetails might have lot of messages and since the fix for
+    // issue 2142 was committed there is a limitation in this area.  So here
+    // we use Message.raw instead of calling directly progressDetails.toMessage
     return new ProgressDescriptor(status, ratio, newProgressLabel,
-        progressDetails.toMessage());
+        Message.raw(progressDetails.toString()));
   }
 
   /**
