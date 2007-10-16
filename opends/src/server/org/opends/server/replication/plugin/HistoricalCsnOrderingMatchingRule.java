@@ -60,7 +60,7 @@ public class HistoricalCsnOrderingMatchingRule
    * Compare two ByteString values containing historical information.
    * @param value1 first value to compare
    * @param value2 second value to compare
-   * @return 0 when equals, -1 ot 1 to establish order
+   * @return 0 when equals, -1 or 1 to establish order
    */
   @Override
   public int compareValues(ByteString value1, ByteString value2)
