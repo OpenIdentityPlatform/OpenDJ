@@ -30,11 +30,13 @@ import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -1065,7 +1067,7 @@ public class Utils
   static public int getNumberZipEntries()
   {
     // TODO  we should get this dynamically during build
-    return 83;
+    return 165;
   }
 
   /**
@@ -1372,5 +1374,45 @@ public class Utils
                     getCommandLineMaxLineWidth()));
   }
 
+  private static EmptyPrintStream emptyStream = new EmptyPrintStream();
 
+  /**
+   * Returns a printstream that does not write anything to standard output.
+   * @return a printstream that does not write anything to standard output.
+   */
+  public static EmptyPrintStream getEmptyPrintStream()
+  {
+    if (emptyStream == null)
+    {
+      emptyStream = new EmptyPrintStream();
+    }
+    return emptyStream;
+  }
+}
+
+/**
+ * This class is used to avoid displaying the error message related to display
+ * problems that we might have when trying to display the SplashWindow.
+ *
+ */
+class EmptyPrintStream extends PrintStream {
+  private static final Logger LOG =
+    Logger.getLogger(EmptyPrintStream.class.getName());
+
+  /**
+   * Default constructor.
+   *
+   */
+  public EmptyPrintStream()
+  {
+    super(new ByteArrayOutputStream(), true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void println(String msg)
+  {
+    LOG.log(Level.INFO, "EmptyStream msg: "+msg);
+  }
 }
