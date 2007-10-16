@@ -1094,9 +1094,9 @@ public class ImportLDIF extends TaskTool {
     }
 
     // Make sure that if the "backendID" argument was provided, no include base
-    // was included, and the "append" ption was not provided, the "clearBackend"
-    // argument was also provided if there are more then one baseDNs for the
-    // backend being imported.
+    // was included, and the "append" option was not provided, the
+    // "clearBackend" argument was also provided if there are more then one
+    // baseDNs for the backend being imported.
     if(backendID.isPresent() && !includeBranchStrings.isPresent() &&
         !append.isPresent() && defaultIncludeBranches.size() > 1 &&
         !clearBackend.isPresent())
