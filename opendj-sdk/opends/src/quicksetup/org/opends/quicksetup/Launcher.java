@@ -37,7 +37,6 @@ import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
 import org.opends.quicksetup.util.Utils;
 
 import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -258,7 +257,7 @@ public abstract class Launcher {
      * problems with the display environment.
      */
     PrintStream printStream = System.err;
-    System.setErr(new EmptyPrintStream());
+    System.setErr(Utils.getEmptyPrintStream());
     t.start();
     try
     {
@@ -415,28 +414,4 @@ public abstract class Launcher {
       }
     }
   }
-
-  /**
-   * This class is used to avoid displaying the error message related to display
-   * problems that we might have when trying to display the SplashWindow.
-   *
-   */
-  private class EmptyPrintStream extends PrintStream {
-    /**
-     * Default constructor.
-     *
-     */
-    public EmptyPrintStream()
-    {
-      super(new ByteArrayOutputStream(), true);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void println(String msg)
-    {
-    }
-  }
-
 }
