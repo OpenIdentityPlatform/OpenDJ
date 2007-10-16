@@ -202,7 +202,7 @@ public class ReplicationBroker implements InternalSearchListener
    */
   private void connect()
   {
-    ReplServerStartMessage replServerStartMsg;
+    ReplServerStartMessage replServerStartMsg = null;
 
     // Stop any existing heartbeat monitor from a previous session.
     if (heartbeatMonitor != null)
@@ -331,21 +331,11 @@ public class ReplicationBroker implements InternalSearchListener
 
                 /*
                  * Get all the changes that have not been seen by this
-                 * replicationServer and update it
+                 * replicationServer and populate the replayOperations
+                 * list.
                  */
-                InternalClientConnection conn =
-                  InternalClientConnection.getRootConnection();
-                LDAPFilter filter = LDAPFilter.decode(
-                    "("+ Historical.HISTORICALATTRIBUTENAME +
-                    ">=dummy:" + replServerMaxChangeNumber + ")");
-                LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-                attrs.add(Historical.HISTORICALATTRIBUTENAME);
-                InternalSearchOperation op = conn.processSearch(
-                    new ASN1OctetString(baseDn.toString()),
-                    SearchScope.WHOLE_SUBTREE,
-                    DereferencePolicy.NEVER_DEREF_ALIASES,
-                    0, 0, false, filter,
-                    attrs, this);
+                InternalSearchOperation op = seachForChangedEntries(
+                    baseDn, replServerMaxChangeNumber, this);
                 if (op.getResultCode() != ResultCode.SUCCESS)
                 {
                   /*
@@ -451,9 +441,27 @@ public class ReplicationBroker implements InternalSearchListener
           sendWindow.release(Integer.MAX_VALUE);
         this.sendWindow = new Semaphore(maxSendWindow);
         connectPhaseLock.notify();
-        Message message =
-            NOTE_NOW_FOUND_CHANGELOG.get(replicationServer, baseDn.toString());
-        logError(message);
+
+        if ((replServerStartMsg.getGenerationId() == this.generationId) ||
+           (replServerStartMsg.getGenerationId() == -1))
+        {
+          Message message =
+            NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG.get(
+                baseDn.toString(),
+                replicationServer,
+                Long.toString(this.generationId));
+          logError(message);
+        }
+        else
+        {
+          Message message =
+            NOTE_NOW_FOUND_BAD_GENERATION_CHANGELOG.get(
+                baseDn.toString(),
+                replicationServer,
+                Long.toString(this.generationId),
+                Long.toString(replServerStartMsg.getGenerationId()));
+          logError(message);
+        }
       }
       else
       {
@@ -473,6 +481,38 @@ public class ReplicationBroker implements InternalSearchListener
         }
       }
     }
+  }
+
+  /**
+   * Search for the changes that happened since fromChangeNumber
+   * based on the historical attribute.
+   * @param baseDn the base DN
+   * @param fromChangeNumber The change number from which we want the changes
+   * @param resultListener that will process the entries returned.
+   * @return the internal search operation
+   * @throws Exception when raised.
+   */
+  public static InternalSearchOperation seachForChangedEntries(
+      DN baseDn,
+      ChangeNumber fromChangeNumber,
+      InternalSearchListener resultListener)
+  throws Exception
+  {
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+    LDAPFilter filter = LDAPFilter.decode(
+        "("+ Historical.HISTORICALATTRIBUTENAME +
+        ">=dummy:" + fromChangeNumber + ")");
+    LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+    attrs.add(Historical.HISTORICALATTRIBUTENAME);
+    attrs.add(Historical.ENTRYUIDNAME);
+    return conn.processSearch(
+        new ASN1OctetString(baseDn.toString()),
+        SearchScope.WHOLE_SUBTREE,
+        DereferencePolicy.NEVER_DEREF_ALIASES,
+        0, 0, false, filter,
+        attrs,
+        resultListener);
   }
 
   /**

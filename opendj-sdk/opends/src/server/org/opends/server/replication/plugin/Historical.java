@@ -84,7 +84,7 @@ public class Historical
   /**
    * The name of the entryuuid attribute.
    */
-  static final String ENTRYUIDNAME = "entryuuid";
+  public static final String ENTRYUIDNAME = "entryuuid";
 
 
   /*

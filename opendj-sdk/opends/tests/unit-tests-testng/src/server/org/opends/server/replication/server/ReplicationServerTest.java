@@ -1260,7 +1260,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      {
        server1.publish(msg);
      }
-     Thread.sleep(200);
+     Thread.sleep(500);
 
      // Sets manually the association backend-replication server since
      // no config object exist for our replication server.
