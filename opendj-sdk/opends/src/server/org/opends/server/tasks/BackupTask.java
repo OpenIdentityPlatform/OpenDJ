@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.getAttributeType;
@@ -132,6 +133,8 @@ public class BackupTask extends Task
   private String  backupID;
   private File    backupDirectory;
   private String  incrementalBase;
+
+  private BackupConfig backupConfig;
 
   /**
    * All the backend configuration entries defined in the server mapped
@@ -460,7 +463,7 @@ public class BackupTask extends Task
 
 
     // Create a backup configuration.
-    BackupConfig backupConfig = new BackupConfig(backupDir, backupID,
+    backupConfig = new BackupConfig(backupDir, backupID,
                                                  incremental);
     backupConfig.setCompressData(compress);
     backupConfig.setEncryptData(encrypt);
@@ -560,6 +563,30 @@ public class BackupTask extends Task
   /**
    * {@inheritDoc}
    */
+  public void interruptTask(TaskState interruptState, Message interruptReason)
+  {
+    if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
+            backupConfig != null)
+    {
+      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+              interruptReason));
+      setTaskInterruptState(interruptState);
+      backupConfig.cancel();
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInterruptable() {
+    return true;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
   protected TaskState runTask()
   {
     if (!argumentsAreValid())
@@ -585,6 +612,11 @@ public class BackupTask extends Task
     boolean errorsEncountered = false;
     for (Backend b : backendsToArchive)
     {
+      if (isCancelled())
+      {
+        break;
+      }
+
       // Acquire a shared lock for this backend.
       if (!lockBackend(b))
       {
@@ -638,6 +670,12 @@ public class BackupTask extends Task
       Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
       logError(message);
       return TaskState.COMPLETED_WITH_ERRORS;
+    }
+    else if (isCancelled())
+    {
+      Message message = NOTE_BACKUPDB_CANCELLED.get();
+      logError(message);
+      return getTaskInterruptState();
     }
     else
     {

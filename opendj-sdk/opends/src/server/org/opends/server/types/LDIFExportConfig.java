@@ -56,7 +56,7 @@ import static org.opends.messages.UtilityMessages.*;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class LDIFExportConfig
+public final class LDIFExportConfig extends OperationConfig
 {
   /**
    * The tracer object for the debug logger.

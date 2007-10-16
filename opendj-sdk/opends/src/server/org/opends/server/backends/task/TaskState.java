@@ -224,6 +224,26 @@ public enum TaskState
   }
 
 
+  /**
+   * Indicates whether or not this task has been cancelled.
+   *
+   * @param  taskState  The task state for which to make the determination.
+   *
+   * @return  <CODE>true</CODE> if the task state indicates that the task
+   *          was cancelled either before or during execution, or
+   *          <CODE>false</CODE> otherwise.
+   */
+  public static boolean isCancelled(TaskState taskState)
+  {
+    switch(taskState)
+    {
+      case STOPPED_BY_ADMINISTRATOR:
+      case CANCELED_BEFORE_STARTING:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   /**
    * Retrieves the task state that corresponds to the provided string value.

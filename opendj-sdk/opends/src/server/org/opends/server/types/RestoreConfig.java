@@ -47,7 +47,7 @@ package org.opends.server.types;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class RestoreConfig
+public final class RestoreConfig extends OperationConfig
 {
   // The reference to the directory containing the backup file(s) to
   // restore.

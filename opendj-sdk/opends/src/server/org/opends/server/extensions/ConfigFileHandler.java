@@ -2798,7 +2798,7 @@ public class ConfigFileHandler
       while (true)
       {
         int bytesRead = inputStream.read(buffer);
-        if (bytesRead < 0)
+        if (bytesRead < 0 || backupConfig.isCancelled())
         {
           break;
         }
@@ -2862,7 +2862,7 @@ public class ConfigFileHandler
           while (true)
           {
             int bytesRead = inputStream.read(buffer);
-            if (bytesRead < 0)
+            if (bytesRead < 0 || backupConfig.isCancelled())
             {
               break;
             }
@@ -2972,6 +2972,14 @@ public class ConfigFileHandler
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
+
+    // Remove the backup if this operation was cancelled since the
+    // backup may be incomplete
+    if (backupConfig.isCancelled())
+    {
+      removeBackup(backupDirectory, backupID);
+    }
+
   }
 
 

@@ -601,6 +601,11 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
     do
     {
+      if (ldifImportConfig.isCancelled())
+      {
+        break;
+      }
+
       if(threads.size() <= 0)
       {
         message = ERR_JEB_IMPORT_NO_WORKER_THREADS.get();
@@ -674,7 +679,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         {
           status = cursor.getFirst(key, data, lockMode);
 
-          while(status == OperationStatus.SUCCESS)
+          while(status == OperationStatus.SUCCESS &&
+                !ldifImportConfig.isCancelled())
           {
             if(threads.size() <= 0)
             {
@@ -772,7 +778,8 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
               end[0] = (byte) (end[0] + 1);
 
               while(status == OperationStatus.SUCCESS &&
-                  dn2idComparator.compare(key.getData(), end) < 0)
+                  dn2idComparator.compare(key.getData(), end) < 0 &&
+                  !ldifImportConfig.isCancelled())
               {
                 if(threads.size() <= 0)
                 {

@@ -143,6 +143,11 @@ public class ExportJob
     {
       for (EntryContainer exportContainer : exportContainers)
       {
+        if (exportConfig.isCancelled())
+        {
+          break;
+        }
+
         exportContainer.sharedLock.lock();
         try
         {
@@ -201,6 +206,11 @@ public class ExportJob
            status == OperationStatus.SUCCESS;
            status = cursor.getNext(key, data, LockMode.DEFAULT))
       {
+        if (exportConfig.isCancelled())
+        {
+          break;
+        }
+
         EntryID entryID = null;
         try
         {

@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.config.ConfigConstants.*;
@@ -55,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.io.File;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -136,6 +138,7 @@ public class ExportTask extends Task
   private ArrayList<String> includeBranchStrings;
   private ArrayList<String> excludeBranchStrings;
 
+  private LDIFExportConfig exportConfig;
 
   /**
    * {@inheritDoc}
@@ -258,6 +261,31 @@ public class ExportTask extends Task
     wrapColumn = TaskUtils.getSingleValueInteger(attrList, 0);
 
   }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void interruptTask(TaskState interruptState, Message interruptReason)
+  {
+    if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
+            exportConfig != null)
+    {
+      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+              interruptReason));
+      setTaskInterruptState(interruptState);
+      exportConfig.cancel();
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInterruptable() {
+    return true;
+  }
+
 
   /**
    * {@inheritDoc}
@@ -483,8 +511,7 @@ public class ExportTask extends Task
       existingBehavior = ExistingFileBehavior.OVERWRITE;
     }
 
-    LDIFExportConfig exportConfig =
-         new LDIFExportConfig(ldifFile, existingBehavior);
+    exportConfig = new LDIFExportConfig(ldifFile, existingBehavior);
     exportConfig.setCompressData(compressLDIF);
     exportConfig.setEncryptData(encryptLDIF);
     exportConfig.setExcludeAttributes(excludeAttributes);
@@ -587,7 +614,19 @@ public class ExportTask extends Task
       exportConfig.close();
     }
 
+    // If the operation was cancelled delete the export file since
+    // if will be incomplete.
+    if (exportConfig.isCancelled())
+    {
+      File f = new File(ldifFile);
+      if (f.exists())
+      {
+        f.delete();
+      }
+    }
 
-    return TaskState.COMPLETED_SUCCESSFULLY;
+    // If we got here the task either completed successfully or
+    // was interrupted
+    return getFinalTaskState();
   }
 }
