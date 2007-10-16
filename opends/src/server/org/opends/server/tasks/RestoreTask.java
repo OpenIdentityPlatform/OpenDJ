@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
 
 import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.config.ConfigConstants.*;
@@ -100,6 +101,7 @@ public class RestoreTask extends Task
   private String backupID;
   private boolean verifyOnly;
 
+  private RestoreConfig restoreConfig;
 
   /**
    * {@inheritDoc}
@@ -223,6 +225,31 @@ public class RestoreTask extends Task
     return true;
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public void interruptTask(TaskState interruptState, Message interruptReason)
+  {
+    if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
+            restoreConfig != null)
+    {
+      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+              interruptReason));
+      setTaskInterruptState(interruptState);
+      restoreConfig.cancel();
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInterruptable() {
+    return true;
+  }
+
+
   /**
    * {@inheritDoc}
    */
@@ -311,8 +338,7 @@ public class RestoreTask extends Task
     }
 
     // Create the restore config object from the information available.
-    RestoreConfig restoreConfig = new RestoreConfig(backupDir, backupID,
-                                                    verifyOnly);
+    restoreConfig = new RestoreConfig(backupDir, backupID, verifyOnly);
 
     // Notify the task listeners that a restore is going to start
     // this must be done before disabling the backend to allow
@@ -408,7 +434,7 @@ public class RestoreTask extends Task
     }
     else
     {
-      return TaskState.COMPLETED_SUCCESSFULLY;
+      return getFinalTaskState();
     }
   }
 }

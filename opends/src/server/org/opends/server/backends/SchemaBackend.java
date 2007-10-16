@@ -4277,6 +4277,11 @@ public class SchemaBackend
     byte[] buffer = new byte[8192];
     for (File schemaFile : schemaFiles)
     {
+      if (backupConfig.isCancelled())
+      {
+        break;
+      }
+
       if (! schemaFile.isFile())
       {
         // If there are any non-file items in the directory (e.g., one or more
@@ -4310,7 +4315,7 @@ public class SchemaBackend
         while (true)
         {
           int bytesRead = inputStream.read(buffer);
-          if (bytesRead < 0)
+          if (bytesRead < 0 || backupConfig.isCancelled())
           {
             break;
           }

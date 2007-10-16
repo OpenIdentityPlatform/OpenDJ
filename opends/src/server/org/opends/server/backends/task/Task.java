@@ -142,6 +142,9 @@ public abstract class Task
   // The current state of this task.
   private TaskState taskState;
 
+  // The task state that may be set when the task is interrupted.
+  private TaskState taskInterruptState;
+
   // The scheduler with which this task is associated.
   private TaskScheduler taskScheduler;
 
@@ -577,6 +580,18 @@ public abstract class Task
     return taskState;
   }
 
+  /**
+   * Indicates whether or not this task has been cancelled.
+   *
+   * @return boolean where true indicates that this task was
+   *         cancelled either before or during execution
+   */
+  public boolean isCancelled()
+  {
+    return taskInterruptState != null &&
+      TaskState.isCancelled(taskInterruptState);
+  }
+
 
 
   /**
@@ -625,6 +640,58 @@ public abstract class Task
       }
     }
   }
+
+
+  /**
+   * Sets a state for this task that is the result of a call to
+   * {@link #interruptTask(TaskState, org.opends.messages.Message)}.
+   * It may take this task some time to actually cancel to that
+   * actual state may differ until quiescence.
+   *
+   * @param state for this task once it has canceled whatever it is doing
+   */
+  protected void setTaskInterruptState(TaskState state)
+  {
+    this.taskInterruptState = state;
+  }
+
+
+  /**
+   * Gets the interrupt state for this task that was set as a
+   * result of a call to {@link #interruptTask(TaskState,
+   * org.opends.messages.Message)}.
+   *
+   * @return interrupt state for this task
+   */
+  protected TaskState getTaskInterruptState()
+  {
+    return this.taskInterruptState;
+  }
+
+
+  /**
+   * Returns a state for this task after processing has completed.
+   * If the task was interrupted with a call to
+   * {@link #interruptTask(TaskState, org.opends.messages.Message)}
+   * then that method's interruptState is returned here.  Otherwse
+   * this method returns TaskState.COMPLETED_SUCCESSFULLY.  It is
+   * assumed that if there were errors during task processing that
+   * task state will have been derived in some other way.
+   *
+   * @return state for this task after processing has completed
+   */
+  protected TaskState getFinalTaskState()
+  {
+    if (this.taskInterruptState == null)
+    {
+      return TaskState.COMPLETED_SUCCESSFULLY;
+    }
+    else
+    {
+      return this.taskInterruptState;
+    }
+  }
+
 
   /**
    * Replaces an attribute values of the task entry.
@@ -1240,6 +1307,10 @@ public abstract class Task
    * this task.  By default no action is performed, but if it is feasible to
    * gracefully interrupt a task, then subclasses should override this method to
    * do so.
+   *
+   * Implementations of this method are exprected to call
+   * {@link #setTaskInterruptState(TaskState)} if the interruption is accepted
+   * by this task.
    *
    * @param  interruptState   The state to use for the task if it is
    *                          successfully interrupted.

@@ -49,7 +49,7 @@ package org.opends.server.types;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class BackupConfig
+public final class BackupConfig extends OperationConfig
 {
   // The path to the directory in which the backup file(s) should be
   // created.

@@ -505,6 +505,10 @@ public class ReplicationBackend
     {
       for (ReplicationCache exportContainer : exportContainers)
       {
+        if (exportConfig.isCancelled())
+        {
+          break;
+        }
         processContainer(exportContainer, exportConfig, ldifWriter, null);
       }
     }
@@ -571,6 +575,11 @@ public class ReplicationBackend
 
     for (ReplicationCache exportContainer : exportContainers)
     {
+      if (exportConfig != null && exportConfig.isCancelled())
+      {
+        break;
+      }
+
       attributes.clear();
       ldapAttrList.clear();
 
@@ -630,6 +639,11 @@ public class ReplicationBackend
     // Walk through the servers
     for (Short serverId : rc.getServers())
     {
+      if (exportConfig != null && exportConfig.isCancelled())
+      {
+        break;
+      }
+
       ReplicationIterator ri = rc.getChangelogIterator(serverId,
           null);
 
@@ -640,6 +654,10 @@ public class ReplicationBackend
           // Walk through the changes
           while (ri.getChange() != null)
           {
+            if (exportConfig != null && exportConfig.isCancelled())
+            {
+              break;
+            }
             UpdateMessage msg = ri.getChange();
             processChange(msg, exportConfig, ldifWriter, searchOperation);
             if (!ri.next())

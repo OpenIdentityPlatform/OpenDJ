@@ -476,7 +476,8 @@ public class BackupManager
       if (latestFileName != null)
       {
         ArrayList<String> unchangedList = new ArrayList<String>();
-        while (indexCurrent < logFiles.length)
+        while (indexCurrent < logFiles.length &&
+                !backupConfig.isCancelled())
         {
           File logFile = logFiles[indexCurrent];
           String logFileName = logFile.getName();
@@ -528,13 +529,15 @@ public class BackupManager
       {
         boolean deletedFiles = false;
 
-        while (indexCurrent < logFiles.length)
+        while (indexCurrent < logFiles.length &&
+                !backupConfig.isCancelled())
         {
           File logFile = logFiles[indexCurrent];
 
           try
           {
-            latestFileSize = archiveFile(zipStream, mac, digest, logFile);
+            latestFileSize = archiveFile(zipStream, mac, digest,
+                                         logFile, backupConfig);
             latestFileName = logFile.getName();
           }
           catch (FileNotFoundException e)
@@ -694,6 +697,13 @@ public class BackupManager
           backupDir.getDescriptorPath(), stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
+    }
+
+    // Remove the backup if this operation was cancelled since the
+    // backup may be incomplete
+    if (backupConfig.isCancelled())
+    {
+      removeBackup(backupDir, backupID);
     }
   }
 
@@ -991,7 +1001,7 @@ public class BackupManager
 
     // Iterate through the entries in the zip file.
     ZipEntry zipEntry = zipStream.getNextEntry();
-    while (zipEntry != null)
+    while (zipEntry != null && !restoreConfig.isCancelled())
     {
       String name = zipEntry.getName();
 
@@ -1078,7 +1088,7 @@ public class BackupManager
         long totalBytesRead = 0;
         byte[] buffer = new byte[8192];
         int bytesRead = zipStream.read(buffer);
-        while (bytesRead > 0)
+        while (bytesRead > 0 && !restoreConfig.isCancelled())
         {
           totalBytesRead += bytesRead;
 
@@ -1153,7 +1163,8 @@ public class BackupManager
    * @throws IOException If an I/O error occurs while archiving the file.
    */
   private long archiveFile(ZipOutputStream zipStream,
-                           Mac mac, MessageDigest digest, File file)
+                           Mac mac, MessageDigest digest, File file,
+                           BackupConfig backupConfig)
        throws IOException, FileNotFoundException
   {
     ZipEntry zipEntry = new ZipEntry(file.getName());
@@ -1179,7 +1190,7 @@ public class BackupManager
     long totalBytesRead = 0;
     byte[] buffer = new byte[8192];
     int bytesRead = inputStream.read(buffer);
-    while (bytesRead > 0)
+    while (bytesRead > 0 && !backupConfig.isCancelled())
     {
       if (mac != null)
       {

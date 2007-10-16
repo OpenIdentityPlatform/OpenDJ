@@ -26,6 +26,7 @@
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
+import org.opends.messages.TaskMessages;
 
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -169,6 +170,7 @@ public class ImportTask extends Task
   ArrayList<String>  includeFilterStrings    = null;
   ArrayList<String>  ldifFiles               = null;
 
+  private LDIFImportConfig importConfig;
 
   /**
    * {@inheritDoc}
@@ -482,6 +484,30 @@ public class ImportTask extends Task
   }
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public void interruptTask(TaskState interruptState, Message interruptReason)
+  {
+    if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
+            importConfig != null)
+    {
+      addLogMessage(TaskMessages.INFO_TASK_STOPPED_BY_ADMIN.get(
+              interruptReason));
+      setTaskInterruptState(interruptState);
+      importConfig.cancel();
+    }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInterruptable()
+  {
+    return true;
+  }
+
 
   /**
    * {@inheritDoc}
@@ -731,7 +757,7 @@ public class ImportTask extends Task
 
     // Create the LDIF import configuration to use when reading the LDIF.
     ArrayList<String> fileList = new ArrayList<String>(ldifFiles);
-    LDIFImportConfig importConfig = new LDIFImportConfig(fileList);
+    importConfig = new LDIFImportConfig(fileList);
     importConfig.setAppendToExistingData(append);
     importConfig.setReplaceExistingEntries(replaceExisting);
     importConfig.setCompressed(isCompressed);
@@ -942,6 +968,6 @@ public class ImportTask extends Task
 
     // Clean up after the import by closing the import config.
     importConfig.close();
-    return TaskState.COMPLETED_SUCCESSFULLY;
+    return getFinalTaskState();
   }
 }
