@@ -130,7 +130,7 @@ public class UserData
           new HashSet<SuffixDescriptor>());
     setSuffixesToReplicateOptions(suffixes);
     SecurityOptions sec = SecurityOptions.createNoCertificateOptions();
-    sec.setSslPort(getDefaultSslPort());
+    sec.setSslPort(getDefaultSslPort(defaultPort));
     setSecurityOptions(sec);
 
     remoteWithNoReplicationPort =
@@ -543,17 +543,25 @@ public class UserData
    * Provides the port that will be proposed to the user in the security dialog
    *  of the installation wizard. It will check whether we can use ports of type
    * X636 and if not it will return -1.
+   * @param defaultLdapPort the default port used for LDAP.
    *
    * @return the free port of type X636 if it is available and we can use and -1
    * if not.
    */
-  static int getDefaultSslPort()
+  static int getDefaultSslPort(int defaultLdapPort)
   {
     int defaultPort = -1;
 
+    int port = defaultLdapPort - 389 + 636;
+    // Try first with the correlated port of the default LDAP port.
+    if (Utils.canUseAsPort(port))
+    {
+      defaultPort = port;
+    }
+
     for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
     {
-      int port = i + 636;
+      port = i + 636;
       if (Utils.canUseAsPort(port))
       {
         defaultPort = port;
