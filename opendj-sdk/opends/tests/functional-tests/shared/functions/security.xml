@@ -580,7 +580,7 @@
         else:
           option3='--set key-manager-provider:"%s"' % (keystoreType)
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
-        option5='--set enabled:true' 
+        option5='--set enabled:true --set use-ssl:true' 
         optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)     
       </script>
       
@@ -863,7 +863,7 @@
         option2='--set trust-manager-provider:"Blind Trust"'
         option3='--set key-manager-provider:"%s"' % (keystoreType)
         option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
-        option5='--set enabled:true'
+        option5='--set enabled:true --set use-ssl:true'
         optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)
       </script>  
       
@@ -998,7 +998,7 @@
           'subcommand'     : 'set-connection-handler-prop' ,
           'objectType'     : 'handler-name' ,
           'objectName'     : 'LDAPS Connection Handler',
-          'optionsString'  : '--set enabled:false',
+          'optionsString'  : '--set enabled:false --set use-ssl:false',
           'expectedRC'     : 0
         }
       </call>
@@ -1287,7 +1287,7 @@
           'subcommand'     : 'set-connection-handler-prop',
           'objectType'     : 'handler-name',
           'objectName'     : 'LDAPS Connection Handler',
-          'optionsString'  : '--set enabled:false',
+          'optionsString'  : '--set enabled:false --set use-ssl:false',
           'expectedRC'     : 0
         }
       </call>
