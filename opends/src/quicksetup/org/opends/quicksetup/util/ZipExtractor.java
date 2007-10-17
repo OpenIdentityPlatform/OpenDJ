@@ -180,10 +180,12 @@ public class ZipExtractor {
         new HashMap<String, ArrayList<String>>();
 
     try {
-      application.checkAbort();
+      if(application != null)
+         application.checkAbort();
       ZipEntry entry = zipIn.getNextEntry();
       while (entry != null) {
-        application.checkAbort();
+        if(application != null)
+           application.checkAbort();
         int ratioBeforeCompleted = minRatio
                 + ((nEntries - 1) * (maxRatio - minRatio) / numberZipEntries);
         int ratioWhenCompleted =
