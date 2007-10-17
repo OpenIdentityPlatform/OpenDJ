@@ -48,6 +48,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.SetupUtils;
 
 
 
@@ -117,6 +118,8 @@ public class SubCommandArgumentParser extends ArgumentParser
   // The subcommand requested by the user as part of the command-line arguments.
   private SubCommand subCommand;
 
+  private final static String INDENT = "    ";
+  private final static int MAX_LENGTH = SetupUtils.isWindows() ? 79 : 80;
 
 
   /**
@@ -1435,7 +1438,7 @@ public class SubCommandArgumentParser extends ArgumentParser
 
           int lineLength = (buffer.length() - currentLength) +
                            newBuffer.length();
-          if (lineLength > 80)
+          if (lineLength > MAX_LENGTH)
           {
             buffer.append(EOL);
             buffer.append(newBuffer.toString());
@@ -1474,21 +1477,22 @@ public class SubCommandArgumentParser extends ArgumentParser
       // indent the description five characters and try our best to wrap at or
       // before column 79 so it will be friendly to 80-column displays.
       Message description = a.getDescription();
-      if (description.length() <= 75)
+      int maxLength = MAX_LENGTH - INDENT.length() - 1;
+      if (description.length() <= maxLength)
       {
-        buffer.append("    ");
+        buffer.append(INDENT);
         buffer.append(description);
         buffer.append(EOL);
       }
       else
       {
         String s = description.toString();
-        while (s.length() > 75)
+        while (s.length() > maxLength)
         {
-          int spacePos = s.lastIndexOf(' ', 75);
+          int spacePos = s.lastIndexOf(' ', maxLength);
           if (spacePos > 0)
           {
-            buffer.append("    ");
+            buffer.append(INDENT);
             buffer.append(s.substring(0, spacePos).trim());
             s = s.substring(spacePos+1).trim();
             buffer.append(EOL);
@@ -1501,14 +1505,14 @@ public class SubCommandArgumentParser extends ArgumentParser
             spacePos = s.indexOf(' ');
             if (spacePos > 0)
             {
-              buffer.append("    ");
+              buffer.append(INDENT);
               buffer.append(s.substring(0, spacePos).trim());
               s = s.substring(spacePos+1).trim();
               buffer.append(EOL);
             }
             else
             {
-              buffer.append("    ");
+              buffer.append(INDENT);
               buffer.append(s);
               s = "";
               buffer.append(EOL);
@@ -1663,7 +1667,7 @@ public class SubCommandArgumentParser extends ArgumentParser
     usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
-      buffer.append(wrapText(toolDescription, 79));
+      buffer.append(wrapText(toolDescription, MAX_LENGTH - 1));
       buffer.append(EOL);
       buffer.append(EOL);
     }
@@ -1770,7 +1774,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           Message groupDesc = argGroup.getDescription();
           if (groupDesc != null && !Message.EMPTY.equals(groupDesc)) {
             buffer.append(EOL);
-            buffer.append(wrapText(groupDesc.toString(), 79));
+            buffer.append(wrapText(groupDesc.toString(), MAX_LENGTH - 1));
             buffer.append(EOL);
             buffer.append(EOL);
           }
@@ -1861,7 +1865,7 @@ public class SubCommandArgumentParser extends ArgumentParser
     }
 
     buffer.append(EOL);
-    indentAndWrap(Message.raw("    "), a.getDescription(), buffer);
+    indentAndWrap(Message.raw(INDENT), a.getDescription(), buffer);
   }
 
 
@@ -1874,7 +1878,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   private void indentAndWrap(Message indent, Message text,
                              MessageBuilder buffer)
   {
-    int actualSize = 80 - indent.length();
+    int actualSize = MAX_LENGTH - indent.length();
     if (text.length() <= actualSize)
     {
       buffer.append(indent);
