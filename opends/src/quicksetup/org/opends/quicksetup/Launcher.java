@@ -390,11 +390,9 @@ public abstract class Launcher {
         }
         CliApplication cliApp = createCliApplication();
         exitCode = launchCli(cliApp);
-        if (exitCode != 0) {
-          preExit(cliApp);
-          System.exit(exitCode);
-        }
+        preExit(cliApp);
       }
+      System.exit(exitCode);
     }
   }
 
