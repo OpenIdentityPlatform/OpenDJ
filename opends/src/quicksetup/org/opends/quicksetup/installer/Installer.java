@@ -855,7 +855,7 @@ public abstract class Installer extends GuiApplication {
     argList.add("-R");
     argList.add(getInstallation().getRootDirectory().getAbsolutePath());
 
-    String[] args = new String[argList.size()];
+    final String[] args = new String[argList.size()];
     argList.toArray(args);
     StringBuilder cmd = new StringBuilder();
     for (String s : argList)
@@ -867,23 +867,37 @@ public abstract class Installer extends GuiApplication {
       cmd.append(s);
     }
     LOG.log(Level.INFO, "configure DS cmd: "+cmd);
-    try
+    final InstallerHelper helper = new InstallerHelper();
+    InvokeThread thread = new InvokeThread()
     {
-      InstallerHelper helper = new InstallerHelper();
-      int result = helper.invokeConfigureServer(args);
-
-      if (result != 0)
+      public void run()
       {
-        throw new ApplicationException(
-            ReturnCode.CONFIGURATION_ERROR,
-            INFO_ERROR_CONFIGURING.get(), null);
+        int result = -1;
+        try
+        {
+          result = helper.invokeConfigureServer(args);
+          if (result != 0)
+          {
+            ae = new ApplicationException(
+                ReturnCode.CONFIGURATION_ERROR,
+                INFO_ERROR_CONFIGURING.get(), null);
+          }
+        } catch (Throwable t)
+        {
+          ae = new ApplicationException(
+              ReturnCode.CONFIGURATION_ERROR,
+              getThrowableMsg(INFO_ERROR_CONFIGURING.get(), t), t);
+        }
+        isOver = true;
       }
-    } catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          getThrowableMsg(INFO_ERROR_CONFIGURING.get(), t), t);
-    }
+      public void abort()
+      {
+        // TODO: implement the abort
+      }
+    };
+    invokeLongOperation(thread);
+
+    checkAbort();
 
     try
     {
@@ -1013,7 +1027,7 @@ public abstract class Installer extends GuiApplication {
           INFO_PROGRESS_CREATING_BASE_ENTRIES.get()));
     }
 
-    InstallerHelper helper = new InstallerHelper();
+    final InstallerHelper helper = new InstallerHelper();
 
     LinkedList<File> ldifFiles = new LinkedList<File>();
 
@@ -1021,6 +1035,8 @@ public abstract class Installer extends GuiApplication {
     {
       ldifFiles.add(helper.createBaseEntryTempFile(baseDn));
     }
+    checkAbort();
+
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
     argList.add(getConfigurationClassName());
@@ -1041,32 +1057,45 @@ public abstract class Installer extends GuiApplication {
 
     argList.add("-Q");
 
-    String[] args = new String[argList.size()];
+    final String[] args = new String[argList.size()];
     argList.toArray(args);
 
     getApplicationOutputStream().setNotifyListeners(false);
     getApplicationErrorStream().setNotifyListeners(false);
-    try
-    {
-      int result = helper.invokeImportLDIF(args);
 
-      if (result != 0)
+    InvokeThread thread = new InvokeThread()
+    {
+      public void run()
       {
-        throw new ApplicationException(
-            ReturnCode.CONFIGURATION_ERROR,
-            INFO_ERROR_CREATING_BASE_ENTRY.get(), null);
+        try
+        {
+          int result = helper.invokeImportLDIF(args);
+
+          if (result != 0)
+          {
+            ae = new ApplicationException(
+                ReturnCode.CONFIGURATION_ERROR,
+                INFO_ERROR_CREATING_BASE_ENTRY.get(), null);
+          }
+        } catch (Throwable t)
+        {
+          ae = new ApplicationException(
+              ReturnCode.CONFIGURATION_ERROR,
+              getThrowableMsg(INFO_ERROR_CREATING_BASE_ENTRY.get(), t), t);
+        }
+        finally
+        {
+          getApplicationOutputStream().setNotifyListeners(true);
+          getApplicationErrorStream().setNotifyListeners(true);
+        }
+        isOver = true;
       }
-    } catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          getThrowableMsg(INFO_ERROR_CREATING_BASE_ENTRY.get(), t), t);
-    }
-    finally
-    {
-      getApplicationOutputStream().setNotifyListeners(true);
-      getApplicationErrorStream().setNotifyListeners(true);
-    }
+      public void abort()
+      {
+        // TODO: implement the abort
+      }
+    };
+    invokeLongOperation(thread);
     notifyListeners(getFormattedDone());
   }
 
@@ -1106,26 +1135,38 @@ public abstract class Installer extends GuiApplication {
       argList.add(ldifPath);
     }
     argList.add("-F");
-    String[] args = new String[argList.size()];
+    final String[] args = new String[argList.size()];
     argList.toArray(args);
 
-    try
+    InvokeThread thread = new InvokeThread()
     {
-      InstallerHelper helper = new InstallerHelper();
-      int result = helper.invokeImportLDIF(args);
-
-      if (result != 0)
+      public void run()
       {
-        throw new ApplicationException(
-            ReturnCode.CONFIGURATION_ERROR,
-            INFO_ERROR_IMPORTING_LDIF.get(), null);
+        try
+        {
+          InstallerHelper helper = new InstallerHelper();
+          int result = helper.invokeImportLDIF(args);
+
+          if (result != 0)
+          {
+            ae = new ApplicationException(
+                ReturnCode.CONFIGURATION_ERROR,
+                INFO_ERROR_IMPORTING_LDIF.get(), null);
+          }
+        } catch (Throwable t)
+        {
+          ae = new ApplicationException(
+              ReturnCode.CONFIGURATION_ERROR,
+              getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), t), t);
+        }
+        isOver = true;
       }
-    } catch (Throwable t)
-    {
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), t), t);
-    }
+      public void abort()
+      {
+        // TODO: implement the abort
+      }
+    };
+    invokeLongOperation(thread);
   }
 
   /**
@@ -1145,7 +1186,7 @@ public abstract class Installer extends GuiApplication {
 
     for (File templatePath : templatePaths)
     {
-      ArrayList<String> argList = new ArrayList<String>();
+      final ArrayList<String> argList = new ArrayList<String>();
       argList.add("-C");
       argList.add(getConfigurationClassName());
 
@@ -1161,28 +1202,41 @@ public abstract class Installer extends GuiApplication {
       // append: each file contains data for each base DN.
       argList.add("-a");
 
-      String[] args = new String[argList.size()];
+      final String[] args = new String[argList.size()];
       argList.toArray(args);
 
-      try
+      InvokeThread thread = new InvokeThread()
       {
-        InstallerHelper helper = new InstallerHelper();
-        int result = helper.invokeImportLDIF(args);
-
-        if (result != 0)
+        public void run()
         {
-          throw new ApplicationException(
-              ReturnCode.CONFIGURATION_ERROR,
-              INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
-                  Integer.toString(result)), null);
+          try
+          {
+            InstallerHelper helper = new InstallerHelper();
+            int result = helper.invokeImportLDIF(args);
+
+            if (result != 0)
+            {
+              ae = new ApplicationException(
+                  ReturnCode.CONFIGURATION_ERROR,
+                  INFO_ERROR_IMPORT_LDIF_TOOL_RETURN_CODE.get(
+                      Integer.toString(result)), null);
+            }
+          } catch (Throwable t)
+          {
+            ae = new ApplicationException(
+                ReturnCode.CONFIGURATION_ERROR,
+                getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
+                    listToString(argList, " "), t.getLocalizedMessage()), t),
+                    t);
+          }
+          isOver = true;
         }
-      } catch (Throwable t)
-      {
-        throw new ApplicationException(
-            ReturnCode.CONFIGURATION_ERROR,
-            getThrowableMsg(INFO_ERROR_IMPORT_AUTOMATICALLY_GENERATED.get(
-                listToString(argList, " "), t.getLocalizedMessage()), t), t);
-      }
+        public void abort()
+        {
+          // TODO: implement the abort
+        }
+      };
+      invokeLongOperation(thread);
     }
   }
 
@@ -1642,7 +1696,7 @@ public abstract class Installer extends GuiApplication {
    *
    * @throws ApplicationException thrown if <code>canceled</code>
    */
-  protected void checkAbort() throws ApplicationException {
+  public void checkAbort() throws ApplicationException {
     if (canceled) {
       setCurrentProgressStep(InstallProgressStep.CANCELING);
       notifyListeners(null);
@@ -3819,6 +3873,7 @@ public abstract class Installer extends GuiApplication {
         String.valueOf(replicaId));
     while (!taskCreated)
     {
+      checkAbort();
       String id = "quicksetup-initialize"+i;
       dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
       attrs.put("ds-task-id", id);
@@ -3864,12 +3919,26 @@ public abstract class Installer extends GuiApplication {
     int totalEntries = 0;
     while (!isOver)
     {
+      if (canceled)
+      {
+        // TODO: we should try to cleanly abort the initialize.  As we have
+        // aborted the install, the server will be stopped and the remote
+        // server will receive a connect error.
+        checkAbort();
+      }
       try
       {
         Thread.sleep(500);
       }
       catch (Throwable t)
       {
+      }
+      if (canceled)
+      {
+        // TODO: we should try to cleanly abort the initialize.  As we have
+        // aborted the install, the server will be stopped and the remote
+        // server will receive a connect error.
+        checkAbort();
       }
       try
       {
@@ -4115,6 +4184,7 @@ public abstract class Installer extends GuiApplication {
     attrs.put("ds-task-reset-generation-id-domain-base-dn", suffixDn);
     while (!taskCreated)
     {
+      checkAbort();
       String id = "quicksetup-reset-generation-id-"+i;
       dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
       attrs.put("ds-task-id", id);
@@ -4194,11 +4264,13 @@ public abstract class Installer extends GuiApplication {
 
           if (helper.isCompletedWithErrors(state))
           {
+            LOG.log(Level.WARNING, "Completed with error: "+errorMsg);
             notifyListeners(getFormattedWarning(errorMsg));
           }
           else if (!helper.isSuccessful(state) ||
               helper.isStoppedByError(state))
           {
+            LOG.log(Level.WARNING, "Error: "+errorMsg);
             ApplicationException ae = new ApplicationException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
@@ -4220,4 +4292,102 @@ public abstract class Installer extends GuiApplication {
       }
     }
   }
+
+  /**
+   * Invokes a long operation in a separate thread and checks whether the user
+   * canceled the operation or not.
+   * @param thread the Thread that must be launched.
+   * @throws ApplicationException if there was an error executing the task or
+   * if the user canceled the installer.
+   */
+  private void invokeLongOperation(InvokeThread thread)
+  throws ApplicationException
+  {
+    try
+    {
+      thread.start();
+      while (!thread.isOver() && thread.isAlive())
+      {
+        if (canceled)
+        {
+          // Try to abort the thread
+          try
+          {
+            thread.abort();
+          }
+          catch (Throwable t)
+          {
+            LOG.log(Level.WARNING, "Error cancelling thread: "+t, t);
+          }
+        }
+        else if (thread.getException() != null)
+        {
+          throw thread.getException();
+        }
+        else
+        {
+          try
+          {
+            Thread.sleep(100);
+          }
+          catch (Throwable t)
+          {
+          }
+        }
+      }
+      if (canceled)
+      {
+        checkAbort();
+      }
+    }
+    catch (ApplicationException e)
+    {
+      throw e;
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.SEVERE, "Error: "+t, t);
+      throw new ApplicationException(ReturnCode.BUG,
+          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+    }
+  }
+}
+
+/**
+ * Class used to be able to cancel long operations.
+ */
+abstract class InvokeThread extends Thread implements Runnable
+{
+  protected boolean isOver = false;
+  protected ApplicationException ae;
+
+  /**
+   * Returns <CODE>true</CODE> if the thread is over and <CODE>false</CODE>
+   * otherwise.
+   * @return  <CODE>true</CODE> if the thread is over and <CODE>false</CODE>
+   * otherwise.
+   */
+  public boolean isOver()
+  {
+    return isOver;
+  }
+
+  /**
+   * Returns the exception that was encountered running the thread.
+   * @return the exception that was encountered running the thread.
+   */
+  public ApplicationException getException()
+  {
+    return ae;
+  }
+
+  /**
+   * Runnable implementation.
+   */
+  public abstract void run();
+
+  /**
+   * Abort this thread.
+   */
+  public abstract void abort();
 }

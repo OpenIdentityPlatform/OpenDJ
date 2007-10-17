@@ -162,6 +162,7 @@ public class OfflineInstaller extends Installer
 
     } catch (ApplicationException ex)
     {
+      LOG.log(Level.SEVERE, "Caught exception: "+ex, ex);
       if (ReturnCode.CANCELLED.equals(ex.getType())) {
         uninstall();
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);

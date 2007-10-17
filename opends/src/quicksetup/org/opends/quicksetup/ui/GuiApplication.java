@@ -496,6 +496,7 @@ public abstract class GuiApplication extends Application {
       WebStartDownloader.Status.DOWNLOADING;
     while (!loader.isFinished() && (loader.getException() == null))
     {
+      checkAbort();
       // Pool until is over
       int perc = loader.getDownloadPercentage();
       WebStartDownloader.Status downloadStatus = loader.getStatus();
@@ -521,16 +522,17 @@ public abstract class GuiApplication extends Application {
         }
         loader.setSummary(summary);
         notifyListeners(ratio, summary, null);
-
-        try
-        {
-          Thread.sleep(300);
-        } catch (Exception ex)
-        {
-          // do nothing;
-        }
+      }
+      checkAbort();
+      try
+      {
+        Thread.sleep(300);
+      } catch (Exception ex)
+      {
+        // do nothing;
       }
     }
+    checkAbort();
 
     if (loader.getException() != null)
     {
