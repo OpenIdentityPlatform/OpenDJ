@@ -241,7 +241,7 @@ public class CryptoManagerImpl
       attrCompromisedTime = DirectoryServer.getAttributeType(
            ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME);
       ocCertRequest = DirectoryServer.getObjectClass(
-              "ds-cfg-self-signed-cert-request"); // TODO: conf-const
+              "ds-cfg-self-signed-cert-request"); // TODO: ConfigConstants
       ocInstanceKey = DirectoryServer.getObjectClass(
            ConfigConstants.OC_CRYPTO_INSTANCE_KEY);
       ocCipherKey = DirectoryServer.getObjectClass(
@@ -299,96 +299,93 @@ public class CryptoManagerImpl
     // Acceptable until we find an error.
     boolean acceptable = true;
 
-    // Preferred digest validation.
-    String preferredDigestAlgorithm =
+    // Requested digest validation.
+    String requestedDigestAlgorithm =
          cfg.getDigestAlgorithm();
-    if (!preferredDigestAlgorithm.equals(
-         this.preferredDigestAlgorithm))
+    if (! requestedDigestAlgorithm.equals(this.preferredDigestAlgorithm))
     {
       try{
-        MessageDigest.getInstance(preferredDigestAlgorithm);
+        MessageDigest.getInstance(requestedDigestAlgorithm);
       }
       catch (Exception ex) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, ex);
         }
         unacceptableReasons.add(
-             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_DIGEST.get(
-                  getExceptionMessage(ex)));
+             ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_DIGEST.get(
+                  requestedDigestAlgorithm, getExceptionMessage(ex)));
         acceptable = false;
       }
     }
 
-    // Preferred MAC algorithm validation.
-    String preferredMACAlgorithm = cfg.getMacAlgorithm();
-    Integer preferredMACAlgorithmKeyLengthBits =
-         cfg.getMacKeyLength();
-    if (!preferredMACAlgorithm.equals(this.preferredMACAlgorithm) ||
-         preferredMACAlgorithmKeyLengthBits !=
-              this.preferredMACAlgorithmKeyLengthBits)
-    {
-      try {
-        MacKeyEntry.generateKeyEntry(
-             null,
-             preferredMACAlgorithm,
-             preferredMACAlgorithmKeyLengthBits);
-      }
-      catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
-        unacceptableReasons.add(
-             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_MAC_ENGINE.get(
-                  getExceptionMessage(ex)));
-        acceptable = false;
-      }
-    }
-
-    // Preferred encryption cipher validation.
-    String preferredCipherTransformation =
+    // Requested encryption cipher validation.
+    String requestedCipherTransformation =
          cfg.getCipherTransformation();
-    Integer preferredCipherTransformationKeyLengthBits =
+    Integer requestedCipherTransformationKeyLengthBits =
          cfg.getCipherKeyLength();
-    if (! preferredCipherTransformation.equals(
+    if (! requestedCipherTransformation.equals(
             this.preferredCipherTransformation) ||
-        preferredCipherTransformationKeyLengthBits !=
+        requestedCipherTransformationKeyLengthBits !=
             this.preferredCipherTransformationKeyLengthBits) {
-      if (3 != preferredCipherTransformation.split("/",0).length) {
+      if (3 != requestedCipherTransformation.split("/",0).length) {
         unacceptableReasons.add(
                 ERR_CRYPTOMGR_FULL_CIPHER_TRANSFORMATION_REQUIRED.get(
-                        preferredCipherTransformation));
+                        requestedCipherTransformation));
         acceptable = false;
       }
       else {
         try {
-          CipherKeyEntry.generateKeyEntry(
-                  null,
-                  preferredCipherTransformation,
-                  preferredCipherTransformationKeyLengthBits);
+          CipherKeyEntry.generateKeyEntry(null,
+                  requestedCipherTransformation,
+                  requestedCipherTransformationKeyLengthBits);
         }
         catch (Exception ex) {
           if (debugEnabled()) {
             TRACER.debugCaught(DebugLogLevel.ERROR, ex);
           }
           unacceptableReasons.add(
-             ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_ENCRYPTION_CIPHER.get(
-                          getExceptionMessage(ex)));
+             ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_ENCRYPTION_CIPHER.get(
+                     requestedCipherTransformation, getExceptionMessage(ex)));
           acceptable = false;
         }
       }
     }
 
-    // Preferred secret key wrapping cipher and validation. Validation
-    // depends on MAC cipher for secret key.
-    String preferredKeyWrappingTransformation
-            = cfg.getKeyWrappingTransformation();
-    if (!preferredKeyWrappingTransformation.equals(
-         this.preferredKeyWrappingTransformation)) {
-      if (3 != preferredKeyWrappingTransformation
-                                              .split("/", 0).length) {
+    // Requested MAC algorithm validation.
+    String requestedMACAlgorithm = cfg.getMacAlgorithm();
+    Integer requestedMACAlgorithmKeyLengthBits =
+         cfg.getMacKeyLength();
+    if (!requestedMACAlgorithm.equals(this.preferredMACAlgorithm) ||
+         requestedMACAlgorithmKeyLengthBits !=
+              this.preferredMACAlgorithmKeyLengthBits)
+    {
+      try {
+        MacKeyEntry.generateKeyEntry(
+             null,
+             requestedMACAlgorithm,
+             requestedMACAlgorithmKeyLengthBits);
+      }
+      catch (Exception ex) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        }
         unacceptableReasons.add(
-          ERR_CRYPTOMGR_FULL_KEY_WRAPPING_TRANSFORMATION_REQUIRED.get(
-                        preferredKeyWrappingTransformation));
+                ERR_CRYPTOMGR_CANNOT_GET_REQUESTED_MAC_ENGINE.get(
+                        requestedMACAlgorithm, getExceptionMessage(ex)));
+        acceptable = false;
+      }
+    }
+
+    // Requested secret key wrapping cipher and validation. Validation
+    // depends on MAC cipher for secret key.
+    String requestedKeyWrappingTransformation
+            = cfg.getKeyWrappingTransformation();
+    if (! requestedKeyWrappingTransformation.equals(
+            this.preferredKeyWrappingTransformation)) {
+      if (3 != requestedKeyWrappingTransformation.split("/", 0).length) {
+        unacceptableReasons.add(
+                ERR_CRYPTOMGR_FULL_KEY_WRAPPING_TRANSFORMATION_REQUIRED.get(
+                        requestedKeyWrappingTransformation));
         acceptable = false;
       }
       else {
@@ -412,16 +409,16 @@ public class CryptoManagerImpl
       "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
           final byte[] certificate = Base64.decode(certificateBase64);
           final String keyID = getInstanceKeyID(certificate);
-          preferredKeyWrappingTransformation
+          requestedKeyWrappingTransformation
             = cfg.getKeyWrappingTransformation();
           final SecretKey macKey =
                   MacKeyEntry.generateKeyEntry(
                           null,
-                          preferredMACAlgorithm,
-                          preferredMACAlgorithmKeyLengthBits).
+                          requestedMACAlgorithm,
+                          requestedMACAlgorithmKeyLengthBits).
                           getSecretKey();
           encodeSymmetricKeyAttribute(
-                  preferredKeyWrappingTransformation, keyID,
+                  requestedKeyWrappingTransformation, keyID,
                   certificate, macKey);
         }
         catch (Exception ex) {
@@ -994,10 +991,8 @@ public class CryptoManagerImpl
       final Cipher unwrapper
               = Cipher.getInstance(wrappingTransformationElement);
       unwrapper.init(Cipher.UNWRAP_MODE, privateKey);
-      secretKey = (SecretKey)unwrapper.unwrap(
-              wrappedKeyCipherTextElement,
-              wrappedKeyAlgorithmElement,
-              Cipher.SECRET_KEY);
+      secretKey = (SecretKey)unwrapper.unwrap(wrappedKeyCipherTextElement,
+              wrappedKeyAlgorithmElement, Cipher.SECRET_KEY);
     } catch(GeneralSecurityException ex) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
@@ -1215,53 +1210,43 @@ public class CryptoManagerImpl
         if (secretKey != null) break;
       }
 
-      if (secretKey == null)
-      {
-        // Request the value from another server.
-        String symmetricKey = getSymmetricKey(symmetricKeys);
-        if (symmetricKey == null)
-        {
-          throw new CryptoManagerException(
-               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
-                    entry.getDN().toString()));
-        }
-        secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        CipherKeyEntry.importCipherKeyEntry(this, keyID,
-                                            transformation,
-                                            secretKey,
-                                            keyLengthBits,
-                                            ivLengthBits,
-                                            isCompromised);
-
-        // Write the value to the entry.
-        InternalClientConnection internalConnection =
-             InternalClientConnection.getRootConnection();
-        List<Modification> modifications =
-             new ArrayList<Modification>(1);
-        Attribute attribute =
-             new Attribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY,
-                           symmetricKey);
-        modifications.add(
-             new Modification(ModificationType.ADD, attribute,
-                              false));
-        ModifyOperation internalModify =
-             internalConnection.processModify(entry.getDN(),
-                                              modifications);
-        if (internalModify.getResultCode() != ResultCode.SUCCESS)
-        {
-          throw new CryptoManagerException(
-               ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(
-                    entry.getDN().toString()));
-        }
+      if (null != secretKey) {
+        CipherKeyEntry.importCipherKeyEntry(this, keyID, transformation,
+                secretKey, keyLengthBits, ivLengthBits, isCompromised);
+        return;
       }
-      else
+
+      // Request the value from another server.
+      String symmetricKey = getSymmetricKey(symmetricKeys);
+      if (symmetricKey == null)
       {
-        CipherKeyEntry.importCipherKeyEntry(this, keyID,
-                                            transformation,
-                                            secretKey,
-                                            keyLengthBits,
-                                            ivLengthBits,
-                                            isCompromised);
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_DECODE.get(
+                        entry.getDN().toString()));
+      }
+      secretKey = decodeSymmetricKeyAttribute(symmetricKey);
+      CipherKeyEntry.importCipherKeyEntry(this, keyID, transformation,
+              secretKey, keyLengthBits, ivLengthBits, isCompromised);
+
+      // Write the value to the entry.
+      InternalClientConnection internalConnection =
+              InternalClientConnection.getRootConnection();
+      List<Modification> modifications =
+              new ArrayList<Modification>(1);
+      Attribute attribute =
+              new Attribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY,
+                      symmetricKey);
+      modifications.add(
+              new Modification(ModificationType.ADD, attribute,
+                      false));
+      ModifyOperation internalModify =
+              internalConnection.processModify(entry.getDN(),
+                      modifications);
+      if (internalModify.getResultCode() != ResultCode.SUCCESS)
+      {
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(
+                        entry.getDN().toString()));
       }
     }
     catch (DirectoryException ex)
@@ -1525,25 +1510,35 @@ public class CryptoManagerImpl
 
 
   /**
-   * This class corresponds to the secret key portion if a secret
-   * key entry in ADS.
+   This class corresponds to the secret key portion if a secret
+   key entry in ADS.
+   <p>
+   Note that the generated key length is in some cases longer than requested
+   key length. For example, when a 56-bit key is requested for DES (or 168-bit
+   for DESede) the default provider for the Sun JRE produces an 8-byte (24-byte)
+   key, which embeds the generated key in an array with one parity bit per byte.
+   The requested key length is what is recorded in this object and in the
+   published key entry; hence, users of the actual key data must be sure to
+   operate on the full key byte array, and not truncate it to the key length.
    */
   private static class SecretKeyEntry
   {
     /**
-     * Construct an instance of {@code SecretKeyEntry} using the
-     * specified parameters. This constructor is used for key
-     * generation.
-     *
-     * @param algorithm  The name of the secret key algorithm for
-     * which the key entry is to be produced.
-     *
-     * @param keyLengthBits  The length of the requested key in bits.
-     *
-     * @throws CryptoManagerException If there is a problem
-     * instantiating the key generator.
+     Construct an instance of {@code SecretKeyEntry} using the specified
+     parameters. This constructor is used for key generation.
+     <p>
+     Note the relationship between the secret key data array length and the
+     secret key length parameter described in {@link SecretKeyEntry}
+
+     @param algorithm  The name of the secret key algorithm for which the key
+     entry is to be produced.
+
+     @param keyLengthBits  The length of the requested key in bits.
+
+     @throws CryptoManagerException If there is a problem instantiating the key
+     generator.
      */
-    public SecretKeyEntry(String algorithm, int keyLengthBits)
+    public SecretKeyEntry(final String algorithm, final int keyLengthBits)
     throws CryptoManagerException {
       KeyGenerator keyGen;
       try {
@@ -1565,21 +1560,22 @@ public class CryptoManagerImpl
 
 
     /**
-     * Construct an instance of {@code SecretKeyEntry} using the
-     * specified parameters. This constructor would typically be used
-     * for key entries imported from ADS, for which the full set of
-     * paramters is known.
-     *
-     * @param keyID  The unique identifier of this algorithm/key pair.
-     *
-     * @param secretKey  The secret key.
-     *
-     * @param secretKeyLengthBits The length in bits of the secret
-     * key.
-     *
-     * @param isCompromised {@code false} if the key may be used
-     * for operations on new data, or {@code true} if the key is being
-     * retained only for use in validation.
+     Construct an instance of {@code SecretKeyEntry} using the specified
+     parameters. This constructor would typically be used for key entries
+     imported from ADS, for which the full set of paramters is known.
+     <p>
+     Note the relationship between the secret key data array length and the
+     secret key length parameter described in {@link SecretKeyEntry}
+
+     @param keyID  The unique identifier of this algorithm/key pair.
+
+     @param secretKey  The secret key.
+
+     @param secretKeyLengthBits The length in bits of the secret key.
+
+     @param isCompromised {@code false} if the key may be used
+     for operations on new data, or {@code true} if the key is being
+     retained only for use in validation.
      */
     public SecretKeyEntry(final KeyEntryID keyID,
                           final SecretKey secretKey,
@@ -1630,8 +1626,12 @@ public class CryptoManagerImpl
     }
 
     /**
-     * Returns the length of the secret key in bits.
-     * @return the length of the secret key in bits.
+     Returns the length of the secret key in bits.
+     <p>
+     Note the relationship between the secret key data array length and the
+     secret key length parameter described in {@link SecretKeyEntry}
+
+     @return the length of the secret key in bits.
      */
     public int getKeyLengthBits() {
       return fKeyLengthBits;
@@ -1671,9 +1671,10 @@ public class CryptoManagerImpl
      * transformation and key length without publishing the key.
      *
      * @param transformation  The cipher transformation for which the
-     * key is to be produced.
+     * key is to be produced. This argument is required.
      *
-     * @param keyLengthBits  The cipher key length in bits.
+     * @param keyLengthBits  The cipher key length in bits. This argument is
+     * required and must be suitable for the requested transformation.
      *
      * @return The key entry corresponding to the parameters.
      *
@@ -1681,7 +1682,7 @@ public class CryptoManagerImpl
      * instantiating a Cipher object in order to validate the supplied
      * parameters when creating a new entry.
      *
-     * @see CipherKeyEntry#getKeyEntry(CryptoManagerImpl, String, int)
+     * @see MacKeyEntry#getKeyEntry(CryptoManagerImpl, String, int)
      */
     public static CipherKeyEntry generateKeyEntry(
             final CryptoManagerImpl cryptoManager,
@@ -1689,29 +1690,27 @@ public class CryptoManagerImpl
             final int keyLengthBits)
     throws CryptoManagerException {
 
-      final Map<KeyEntryID, CipherKeyEntry> map
+      final Map<KeyEntryID, CipherKeyEntry> cache
               = (null == cryptoManager)
               ? null : cryptoManager.cipherKeyEntryCache;
 
       CipherKeyEntry keyEntry = new CipherKeyEntry(transformation,
               keyLengthBits);
 
-      // Validate the key entry.
-      final Cipher cipher
-              = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
+      // Validate the key entry. Record the initialization vector length, if
+      // any.
+      final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
       final byte[] iv = cipher.getIV();
-      keyEntry.setIVLengthBits(
-              (null == iv) ? 0 : iv.length * Byte.SIZE);
+      keyEntry.setIVLengthBits((null == iv) ? 0 : iv.length * Byte.SIZE);
 
-      if (null != map) {
-        // The key is published to ADS before making it available in
-        // the local map with the intention to ensure the key is
-        // persisted before use. This ordering allows the possibility
-        // that data encrypted at another instance could arrive at
-        // this instance before the key is available in the local
-        // cache to decode the data.
+      if (null != cache) {
+        /* The key is published to ADS before making it available in the local
+           cache with the intention to ensure the key is persisted before use.
+           This ordering allows the possibility that data encrypted at another
+           instance could arrive at this instance before the key is available in
+           the local cache to decode the data. */
         publishKeyEntry(cryptoManager, keyEntry);
-        map.put(keyEntry.getKeyID(), keyEntry);
+        cache.put(keyEntry.getKeyID(), keyEntry);
       }
 
       return keyEntry;
@@ -1790,9 +1789,8 @@ public class CryptoManagerImpl
 
       // Add the key length attribute.
       valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(new AttributeValue(
-           attrKeyLength,
-           String.valueOf(keyEntry.getKeyLengthBits())));
+      valueSet.add(new AttributeValue(attrKeyLength,
+              String.valueOf(keyEntry.getKeyLengthBits())));
 
       attrList = new ArrayList<Attribute>(1);
       attrList.add(
@@ -2044,12 +2042,10 @@ public class CryptoManagerImpl
      * @throws CryptoManagerException If there is a problem
      * instantiating the key generator.
      */
-    private CipherKeyEntry(final String transformation,
-                           final int keyLengthBits)
+    private CipherKeyEntry(final String transformation, final int keyLengthBits)
             throws CryptoManagerException {
       // Generate a new key.
-      super(keyAlgorithmFromTransformation(transformation),
-              keyLengthBits);
+      super(keyAlgorithmFromTransformation(transformation), keyLengthBits);
 
       // copy arguments.
       this.fType = transformation;
@@ -2158,8 +2154,8 @@ public class CryptoManagerImpl
    * @param mode  Either Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE.
    *
    * @param initializationVector  For Cipher.DECRYPT_MODE, supply
-   * any initialzation vector used in the corresponding encryption
-   * cipher. May be null.
+   * the initialzation vector used in the corresponding encryption
+   * cipher, or {@code null} if none.
    *
    * @return  The initialized cipher object.
    *
@@ -2184,7 +2180,22 @@ public class CryptoManagerImpl
 
     Cipher cipher;
     try {
-      cipher = Cipher.getInstance(keyEntry.getType());
+      String transformation = keyEntry.getType();
+      /* If a client specifies only an algorithm for a transformation, the
+         Cipher provider can supply default values for mode and padding. Hence
+         in order to avoid a decryption error due to mismatched defaults in the
+         provider implementation of JREs supplied by different vendors, the
+         {@code CryptoManager} configuration validator requires the mode and
+         padding be explicitly specified. Some cipher algorithms, including
+         RC4 and ARCFOUR, do not have a mode or padding, and hence must be
+         specified as {@code algorithm/NONE/NoPadding}. */
+      String fields[] = transformation.split("/",0);
+      if (1 < fields.length && "NONE".equals(fields[1])) {
+        assert "RC4".equals(fields[0]) || "ARCFOUR".equals(fields[0]);
+        assert "NoPadding".equals(fields[2]);
+        transformation = fields[0];
+      }
+      cipher = Cipher.getInstance(transformation);
     }
     catch (GeneralSecurityException ex) {
       // NoSuchAlgorithmException, NoSuchPaddingException
@@ -2199,16 +2210,14 @@ public class CryptoManagerImpl
     try {
       if (0 < keyEntry.getIVLengthBits()) {
           byte[] iv;
-          if (Cipher.ENCRYPT_MODE == mode
-                  && null == initializationVector) {
+          if (Cipher.ENCRYPT_MODE == mode && null == initializationVector) {
             iv = new byte[keyEntry.getIVLengthBits() / Byte.SIZE];
             pseudoRandom.nextBytes(iv);
           }
           else {
             iv = initializationVector;
           }
-          cipher.init(mode, keyEntry.getSecretKey(),
-                  new IvParameterSpec(iv));
+          cipher.init(mode, keyEntry.getSecretKey(), new IvParameterSpec(iv));
       }
       else {
         cipher.init(mode, keyEntry.getSecretKey());
@@ -2248,9 +2257,8 @@ public class CryptoManagerImpl
      * @param algorithm  The MAC algorithm for which the
      * key is to be produced. This argument is required.
      *
-     * @param keyLengthBits  The MAC key length in bits. The argument
-     * must be a positive integer evenly divisible by the value
-     * Byte.SIZE.
+     * @param keyLengthBits  The MAC key length in bits. The argument is
+     * required and must be suitable for the requested algorithm.
      *
      * @return The key entry corresponding to the parameters.
      *
@@ -2258,7 +2266,7 @@ public class CryptoManagerImpl
      * instantiating a Mac object in order to validate the supplied
      * parameters when creating a new entry.
      *
-     * @see MacKeyEntry#getKeyEntry(CryptoManagerImpl, String, int)
+     * @see CipherKeyEntry#getKeyEntry(CryptoManagerImpl, String, int)
      */
     public static MacKeyEntry generateKeyEntry(
             final CryptoManagerImpl cryptoManager,
@@ -2267,24 +2275,22 @@ public class CryptoManagerImpl
     throws CryptoManagerException {
       Validator.ensureNotNull(algorithm);
 
-      final Map<KeyEntryID, MacKeyEntry> map = (null == cryptoManager)
+      final Map<KeyEntryID, MacKeyEntry> cache = (null == cryptoManager)
               ? null : cryptoManager.macKeyEntryCache;
 
-      final MacKeyEntry keyEntry = new MacKeyEntry(algorithm,
-              keyLengthBits);
+      final MacKeyEntry keyEntry = new MacKeyEntry(algorithm, keyLengthBits);
 
       // Validate the key entry.
       getMacEngine(keyEntry);
 
-      if (null != map) {
-        // The key is published to ADS before making it available in
-        // the local map with the intention to ensure the key is
-        // persisted before use. This ordering allows the possibility
-        // that data encrypted at another instance could arrive at
-        // this instance before the key is available in the local
-        // cache to decode the data.
+      if (null != cache) {
+        /* The key is published to ADS before making it available in the local
+           cache with the intention to ensure the key is persisted before use.
+           This ordering allows the possibility that data encrypted at another
+           instance could arrive at this instance before the key is available in
+           the local cache to decode the data. */
         publishKeyEntry(cryptoManager, keyEntry);
-        map.put(keyEntry.getKeyID(), keyEntry);
+        cache.put(keyEntry.getKeyID(), keyEntry);
       }
 
       return keyEntry;
@@ -2350,8 +2356,7 @@ public class CryptoManagerImpl
       // Add the key length attribute.
       valueSet = new LinkedHashSet<AttributeValue>(1);
       valueSet.add(new AttributeValue(
-           attrKeyLength,
-           String.valueOf(keyEntry.getKeyLengthBits())));
+              attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits())));
 
       attrList = new ArrayList<Attribute>(1);
       attrList.add(
@@ -2453,8 +2458,7 @@ public class CryptoManagerImpl
       if (null != keyEntry) {
         // Paranoiac check to ensure exact type match.
         if (! (keyEntry.getType().equals(algorithm)
-                && keyEntry.getKeyLengthBits()
-                    == secretKeyLengthBits)) {
+                && keyEntry.getKeyLengthBits() == secretKeyLengthBits)) {
                throw new CryptoManagerException(
                     ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FIELD_MISMATCH.get(
                          keyIDString));
