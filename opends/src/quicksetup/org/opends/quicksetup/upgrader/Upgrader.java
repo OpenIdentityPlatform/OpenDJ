@@ -1107,7 +1107,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
   }
 
-  private void checkAbort() throws ApplicationException {
+  /**
+   * Checks the value of <code>aborted</code> field and throws an
+   * ApplicationException if true.  This indicates that the user has
+   * aborted this operation and the process of aborting should begin
+   * as soon as possible.
+   *
+   * @throws ApplicationException thrown if <code>aborted</code>
+   */
+  public void checkAbort() throws ApplicationException {
     if (abort) throw new ApplicationException(
         ReturnCode.CANCELLED,
             INFO_UPGRADE_CANCELED.get(), null);

@@ -265,7 +265,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    */
   public void setProgressMessageFormatter(ProgressMessageFormatter formatter) {
     this.formatter = formatter;
-    this.listenerDelegate = new ProgressUpdateListenerDelegate(formatter);
+    this.listenerDelegate = new ProgressUpdateListenerDelegate();
   }
 
   /**
@@ -595,6 +595,17 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * returns true so that the application can complete.
    */
   abstract public void cancel();
+
+  /**
+   * Checks whether the operation has been aborted.  If it has throws an
+   * ApplicationException.  All the applications that support abort must
+   * provide their implementation as the default implementation is empty.
+   *
+   * @throws ApplicationException thrown if the application was aborted.
+   */
+  public void checkAbort() throws ApplicationException
+  {
+  }
 
   /**
    * Makes available a <code>UserInteraction</code> class that can be used

@@ -278,7 +278,7 @@ public class Reverter extends Application implements CliApplication {
    */
   public void setProgressMessageFormatter(ProgressMessageFormatter formatter) {
     this.formatter = formatter;
-    this.listenerDelegate = new ProgressUpdateListenerDelegate(formatter);
+    this.listenerDelegate = new ProgressUpdateListenerDelegate();
   }
 
   /**
