@@ -695,8 +695,9 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     {
       progressDetails.append(additionalDetails);
     }
-    // Note: progressDetails might have lot of messages and since the fix for
-    // issue 2142 was committed there is a limitation in this area.  So here
+    // Note: progressDetails might have a certain number of characters that
+    // break Message Formatter (for instance percentages).  When fix for
+    // issue 2142 was committed it broke this code.  So here
     // we use Message.raw instead of calling directly progressDetails.toMessage
     return new ProgressDescriptor(status, ratio, newProgressLabel,
         Message.raw(progressDetails.toString()));

@@ -105,6 +105,7 @@ public class WebStartInstaller extends Installer {
     initMaps();
     PrintStream origErr = System.err;
     PrintStream origOut = System.out;
+    boolean downloadedBits = false;
     try
     {
       System.setErr(getApplicationErrorStream());
@@ -125,6 +126,7 @@ public class WebStartInstaller extends Installer {
       createParentDirectoryIfRequired();
       extractZipFiles(in, getRatio(InstallProgressStep.EXTRACTING),
           getRatio(InstallProgressStep.CONFIGURING_SERVER));
+      downloadedBits = true;
 
       try
       {
@@ -212,7 +214,8 @@ public class WebStartInstaller extends Installer {
     } catch (ApplicationException ex)
     {
       if (ReturnCode.CANCELLED.equals(ex.getType())) {
-        uninstall();
+        uninstall(downloadedBits);
+
         setCurrentProgressStep(InstallProgressStep.FINISHED_CANCELED);
         notifyListeners(null);
       } else {
@@ -515,29 +518,46 @@ public class WebStartInstaller extends Installer {
 
   /**
    * Uninstall what has already been installed.
+   * @param downloadedBits whether the bits were downloaded or not.
    */
-  private void uninstall() {
-    notifyListeners(getTaskSeparator());
+  private void uninstall(boolean downloadedBits) {
+    if (downloadedBits)
+    {
+      notifyListeners(getTaskSeparator());
+      Installation installation = getInstallation();
+      FileManager fm = new FileManager(this);
 
-    Installation installation = getInstallation();
-    FileManager fm = new FileManager(this);
+      // Stop the server if necessary
+      if (installation.getStatus().isServerRunning()) {
+        try {
+          new ServerController(installation).stopServer(true);
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "error stopping server", e);
+        }
+      }
 
-    // Stop the server if necessary
-    if (installation.getStatus().isServerRunning()) {
+      uninstallServices();
+
       try {
-        new ServerController(installation).stopServer(true);
+        fm.deleteRecursively(installation.getRootDirectory(), null,
+            FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
       } catch (ApplicationException e) {
-        LOG.log(Level.INFO, "error stopping server", e);
+        LOG.log(Level.INFO, "error deleting files", e);
       }
     }
-
-    uninstallServices();
-
-    try {
-      fm.deleteRecursively(installation.getRootDirectory(), null,
+    else
+    {
+      File serverRoot = new File(getUserData().getServerLocation());
+      if (serverRoot.exists())
+      {
+        FileManager fm = new FileManager(this);
+        try {
+          fm.deleteRecursively(serverRoot, null,
               FileManager.DeletionPolicy.DELETE_ON_EXIT_IF_UNSUCCESSFUL);
-    } catch (ApplicationException e) {
-      LOG.log(Level.INFO, "error deleting files", e);
+        } catch (ApplicationException e) {
+          LOG.log(Level.INFO, "error deleting files", e);
+        }
+      }
     }
   }
 
