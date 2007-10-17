@@ -42,6 +42,7 @@ import java.util.TreeSet;
 import java.util.Set;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -166,6 +167,9 @@ public class ArgumentParser
   protected ArgumentGroup generalArgGroup = new ArgumentGroup(
           INFO_DESCRIPTION_GENERAL_ARGS.get(), Integer.MIN_VALUE);
 
+
+  private final static String INDENT = "    ";
+  private final static int MAX_LENGTH = SetupUtils.isWindows() ? 79 : 80;
 
   /**
    * Creates a new instance of this argument parser with no arguments.
@@ -1338,7 +1342,7 @@ public class ArgumentParser
     usageOrVersionDisplayed = true;
     if ((toolDescription != null) && (toolDescription.length() > 0))
     {
-      buffer.append(wrapText(toolDescription.toString(), 79));
+      buffer.append(wrapText(toolDescription.toString(), MAX_LENGTH - 1));
       buffer.append(EOL);
       buffer.append(EOL);
     }
@@ -1385,7 +1389,7 @@ public class ArgumentParser
         Message groupDesc = argGroup.getDescription();
         if (groupDesc != null && !Message.EMPTY.equals(groupDesc)) {
           buffer.append(EOL);
-          buffer.append(wrapText(groupDesc.toString(), 79));
+          buffer.append(wrapText(groupDesc.toString(), MAX_LENGTH - 1));
           buffer.append(EOL);
           buffer.append(EOL);
         }
@@ -1503,6 +1507,7 @@ public class ArgumentParser
     // Write a line with the short and/or long identifiers that may be
     // used
     // for the argument.
+    final int indentLength = INDENT.length();
     Character shortID = a.getShortIdentifier();
     String longID = a.getLongIdentifier();
     if (shortID != null)
@@ -1537,7 +1542,7 @@ public class ArgumentParser
 
         int lineLength = (buffer.length() - currentLength) +
                          newBuffer.length();
-        if (lineLength > 80)
+        if (lineLength > MAX_LENGTH)
         {
           buffer.append(EOL);
           buffer.append(newBuffer.toString());
@@ -1578,21 +1583,22 @@ public class ArgumentParser
     // at or
     // before column 79 so it will be friendly to 80-column displays.
     Message description = a.getDescription();
-    if (description.length() <= 75)
+    int descMaxLength = MAX_LENGTH - indentLength - 1;
+    if (description.length() <= descMaxLength)
     {
-      buffer.append("    ");
+      buffer.append(INDENT);
       buffer.append(description);
       buffer.append(EOL);
     }
     else
     {
       String s = description.toString();
-      while (s.length() > 75)
+      while (s.length() > descMaxLength)
       {
-        int spacePos = s.lastIndexOf(' ', 75);
+        int spacePos = s.lastIndexOf(' ', descMaxLength);
         if (spacePos > 0)
         {
-          buffer.append("    ");
+          buffer.append(INDENT);
           buffer.append(s.substring(0, spacePos).trim());
           s = s.substring(spacePos+1).trim();
           buffer.append(EOL);
@@ -1607,14 +1613,14 @@ public class ArgumentParser
           spacePos = s.indexOf(' ');
           if (spacePos > 0)
           {
-            buffer.append("    ");
+            buffer.append(INDENT);
             buffer.append(s.substring(0, spacePos).trim());
             s = s.substring(spacePos+1).trim();
             buffer.append(EOL);
           }
           else
           {
-            buffer.append("    ");
+            buffer.append(INDENT);
             buffer.append(s);
             s = "";
             buffer.append(EOL);
@@ -1624,7 +1630,7 @@ public class ArgumentParser
 
       if (s.length() > 0)
       {
-        buffer.append("    ");
+        buffer.append(INDENT);
         buffer.append(s);
         buffer.append(EOL);
       }
