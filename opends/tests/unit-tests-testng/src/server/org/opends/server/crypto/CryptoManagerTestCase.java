@@ -204,10 +204,13 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // custom
 // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2448
 // TODO: paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 448, 64));
+// TODO: paramList.add(new CipherParameters("AES", "CBC", "PKCS5Padding", 256, 64));
+    paramList.add(new CipherParameters("AES", "CFB", "NoPadding", 128, 64));
     paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 128, 64));
     paramList.add(new CipherParameters("RC4", null, null, 104, 0));
-    paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 56));
-    paramList.add(new CipherParameters("DESede", "ECB", "PKCS5Padding", 168, 56));
+    paramList.add(new CipherParameters("RC4", "NONE", "NoPadding", 128, 0));
+    paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 64));
+    paramList.add(new CipherParameters("DESede", "ECB", "PKCS5Padding", 168, 64));
 
     Object[][] cipherParameters = new Object[paramList.size()][1];
     for (int i=0; i < paramList.size(); i++)

@@ -147,7 +147,7 @@ public class ExtensionsConstants
    * The cipher transformation that should be used when performing RC4
    * encryption/decription.
    */
-  public static final String CIPHER_TRANSFORMATION_RC4 = "RC4";
+  public static final String CIPHER_TRANSFORMATION_RC4 = "RC4/NONE/NoPadding";
 
 
 

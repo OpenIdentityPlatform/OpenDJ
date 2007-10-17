@@ -127,7 +127,15 @@
   </adm:property>
   <adm:property name="cipher-transformation" multi-valued="false" advanced="false">
     <adm:synopsis>
-      The preferred cipher for the Directory Server.
+      The preferred cipher for the Directory Server, to be specified using the
+      syntax algorithm/mode/padding. The full transformation is required:
+      specifying only an algorithm and allowing the cipher provider to supply
+      the default mode and padding is not supported, because there is no
+      guarantee these default values will be the same among different
+      implementations. Some cipher algorithms, including RC4 and ARCFOUR, do not
+      have a mode or padding, and hence must be specified using NONE for the
+      mode field and NoPadding for the padding field. For example,
+      RC4/NONE/NoPadding.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
