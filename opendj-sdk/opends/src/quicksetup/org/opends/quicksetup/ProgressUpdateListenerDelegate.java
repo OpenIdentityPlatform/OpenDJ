@@ -27,15 +27,10 @@
 
 package org.opends.quicksetup;
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
-
 import java.util.HashSet;
-import java.io.File;
 
 /**
  * Delegate class for handling progress notification listeners and events.
@@ -45,14 +40,10 @@ public class ProgressUpdateListenerDelegate {
   private HashSet<ProgressUpdateListener> listeners =
           new HashSet<ProgressUpdateListener>();
 
-  private ProgressMessageFormatter formatter;
-
   /**
    * Creates a parameterized instance.
-   * @param formatter for formatting messages.
    */
-  public ProgressUpdateListenerDelegate(ProgressMessageFormatter formatter) {
-    this.formatter = formatter;
+  public ProgressUpdateListenerDelegate() {
   }
 
   /**
@@ -93,22 +84,6 @@ public class ProgressUpdateListenerDelegate {
                     currentPhaseSummary, newLogDetail);
     for (ProgressUpdateListener l : listeners) {
       l.progressUpdate(ev);
-    }
-  }
-
-  /**
-   * Conditionally notifies listeners of the log file if it
-   * has been initialized.
-   */
-  public void notifyListenersOfLog() {
-    File logFile = QuickSetupLog.getLogFile();
-    if (logFile != null) {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(formatter.getFormattedProgress(
-                  INFO_GENERAL_SEE_FOR_DETAILS.get(
-                          logFile.getPath())));
-      mb.append(formatter.getLineBreak());
-      notifyListeners(mb.toMessage());
     }
   }
 
