@@ -633,7 +633,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
         entriesProcessed++;
         if (entriesProcessed >= importPassSize)
         {
-          merge(false);
+          merge(true);
           entriesProcessed = 0;
         }
       }
