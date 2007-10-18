@@ -944,14 +944,16 @@
       
       <function-arg-def name="dsInstanceHost"
                         type="optional"
-                        default="STAF_REMOTE_HOSTNAME">
+                        default="None">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
         <function-arg-property name="type" value="hostname" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstancePort" type="required">
+      <function-arg-def name="dsInstancePort" 
+                        type="optional"
+                        default="None">
         <function-arg-description>
           Directory server port number
         </function-arg-description>
@@ -1018,7 +1020,11 @@
           STAFCmd='%s/%s%s' % (dsBinPath,DSREPLICATION,fileExt)
         
         STAFCmdParamsList=[]
-        STAFCmdParamsList.append('initialize')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('initialize')
+        else:
+          STAFCmdParamsList.append('initialize-all')          
         STAFCmdParamsList.append('-n')                    
         STAFCmdParamsList.append('-Q')
           
