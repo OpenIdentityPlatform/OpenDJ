@@ -304,6 +304,7 @@ public class IndexMergeThread extends DirectoryThread
 
             if (merged.size() > entryLimit)
             {
+              index.incEntryLimitExceededCount();
               byte[] undefinedSizeBytes =
                   JebFormat.entryIDUndefinedSizeToDatabase(merged.size());
               dbData.setData(undefinedSizeBytes);
