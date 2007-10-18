@@ -29,6 +29,8 @@ package org.opends.server.replication.plugin;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.opends.server.util.ServerConstants;
+
 /**
  * This class creates an output stream that can be used to export entries
  * to a synchonization domain.
@@ -44,7 +46,6 @@ public class ReplLDIFOutputStream
 
   // The current number of entries exported
   long numExportedEntries;
-  static String newline = System.getProperty("line.separator");
   String entryBuffer = "";
 
   /**
@@ -81,7 +82,8 @@ public class ReplLDIFOutputStream
     {
       // if we have the bytes for an entry, let's make an entry and send it
       String ebytes = new String(b,startOfEntryIndex,bytesToRead);
-      endOfEntryIndex = ebytes.indexOf(newline + newline);
+      endOfEntryIndex = ebytes.indexOf(ServerConstants.EOL +
+          ServerConstants.EOL);
 
       if ( endOfEntryIndex >= 0 )
       {
