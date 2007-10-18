@@ -92,7 +92,7 @@ public class ProgressPanel extends QuickSetupStepPanel
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
     progressBarLabel = UIFactory.makeHtmlPane(
-            INFO_PROGRESSBAR_INITIAL_LABEL.get(),
+            null,
             UIFactory.PROGRESS_FONT);
     progressBarLabel.setOpaque(false);
     progressBarLabel.setEditable(false);
@@ -110,6 +110,10 @@ public class ProgressPanel extends QuickSetupStepPanel
       }
     });
     progressBarLabel.setEditorKit(htmlEditor);
+    String summaryText = UIFactory.applyFontToHtml(
+        String.valueOf(INFO_PROGRESSBAR_INITIAL_LABEL.get()),
+        UIFactory.PROGRESS_FONT);
+    progressBarLabel.setText(summaryText);
     progressBarLabel.addHyperlinkListener(this);
     panel.add(progressBarLabel, gbc);
 
@@ -204,6 +208,7 @@ public class ProgressPanel extends QuickSetupStepPanel
         summaryText = "<form>"+summaryText+"</form>";
       }
     }
+
     progressBarLabel.setText(summaryText);
 
     Integer v = descriptor.getProgressBarRatio();
