@@ -466,6 +466,22 @@ modifyProcessing:
         }
 
 
+        try
+        {
+          handleSchemaProcessing();
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          setResponseData(de);
+          break modifyProcessing;
+        }
+
+
         // Check to see if the client has permission to perform the modify.
         // The access control check is not made any earlier because the handler
         // needs access to the modified entry.
@@ -489,7 +505,7 @@ modifyProcessing:
 
         try
         {
-          handleInitialPasswordPolicyAndSchemaProcessing();
+          handleInitialPasswordPolicyProcessing();
 
           wasLocked = false;
           if (passwordChanged)
@@ -796,7 +812,6 @@ modifyProcessing:
   /**
    * Gets the entry to modify.
    *
-   * @return  The entry retrieved from the backend.
    *
    * @throws  DirectoryException  If a problem occurs while trying to get the
    *                              entry, or if the entry doesn't exist.
@@ -1093,16 +1108,126 @@ modifyProcessing:
     }
   }
 
-
-
-  /**
-   * Handles the initial set of password policy and schema processing for this
-   * modify operation.
+   /**
+   * Handles schema processing for non-password modifications.
    *
    * @throws  DirectoryException  If a problem is encountered that should cause
    *                              the modify operation to fail.
    */
-  private void handleInitialPasswordPolicyAndSchemaProcessing()
+  private void handleSchemaProcessing() throws DirectoryException
+  {
+
+    for (Modification m : modifications)
+    {
+      Attribute     a = m.getAttribute();
+      AttributeType t = a.getAttributeType();
+
+
+      // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
+      // this is an internal operation or is related to synchronization in some
+      // way.
+      if (t.isNoUserModification())
+      {
+        if (! (isInternalOperation() || isSynchronizationOperation() ||
+                m.isInternal()))
+        {
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
+                          String.valueOf(entryDN), a.getName()));
+        }
+      }
+
+      // If the attribute type is marked "OBSOLETE" and the modification is
+      // setting new values, then fail unless this is an internal operation or
+      // is related to synchronization in some way.
+      if (t.isObsolete())
+      {
+        if (a.hasValue() &&
+                (m.getModificationType() != ModificationType.DELETE))
+        {
+          if (! (isInternalOperation() || isSynchronizationOperation() ||
+                  m.isInternal()))
+          {
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                    ERR_MODIFY_ATTR_IS_OBSOLETE.get(
+                            String.valueOf(entryDN), a.getName()));
+          }
+        }
+      }
+
+
+      // See if the attribute is one which controls the privileges available for
+      // a user.  If it is, then the client must have the PRIVILEGE_CHANGE
+      // privilege.
+      if (t.hasName(OP_ATTR_PRIVILEGE_NAME))
+      {
+        if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
+        {
+          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                  ERR_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
+        }
+      }
+
+      // If the modification is not updating the password attribute,
+      // then check if the isEnabled flag should be set and then perform any
+      // schema processing.
+      boolean isPassword =
+              t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
+      if (!isPassword )
+      {
+        // See if it's an attribute used to maintain the account
+        // enabled/disabled state.
+        AttributeType disabledAttr =
+               DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
+        if (t.equals(disabledAttr))
+        {
+          enabledStateChanged = true;
+          for (AttributeValue v : a.getValues())
+          {
+            try
+            {
+              isEnabled =
+                  (! BooleanSyntax.decodeBooleanValue(v.getNormalizedValue()));
+            }
+            catch (DirectoryException de)
+            {
+              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                      ERR_MODIFY_INVALID_DISABLED_VALUE.get(
+                              OP_ATTR_ACCOUNT_DISABLED,
+                              String.valueOf(de.getMessageObject())), de);
+            }
+          }
+        }
+
+        switch (m.getModificationType())
+        {
+          case ADD:
+            processInitialAddSchema(a);
+            break;
+
+          case DELETE:
+            processInitialDeleteSchema(a);
+            break;
+
+          case REPLACE:
+            processInitialReplaceSchema(a);
+            break;
+
+          case INCREMENT:
+            processInitialIncrementSchema(a);
+            break;
+        }
+      }
+    }
+  }
+
+  /**
+   * Handles the initial set of password policy  for this modify operation.
+   *
+   * @throws  DirectoryException  If a problem is encountered that should cause
+   *                              the modify operation to fail.
+   */
+  private void handleInitialPasswordPolicyProcessing()
           throws DirectoryException
   {
     // Declare variables used for password policy state processing.
@@ -1110,7 +1235,7 @@ modifyProcessing:
     isEnabled = true;
     enabledStateChanged = false;
     if (currentEntry.hasAttribute(
-        pwPolicyState.getPolicy().getPasswordAttribute()))
+            pwPolicyState.getPolicy().getPasswordAttribute()))
     {
       // It may actually have more than one, but we can't tell the difference if
       // the values are encoded, and its enough for our purposes just to know
@@ -1131,8 +1256,10 @@ modifyProcessing:
     {
       for (Modification m : modifications)
       {
-        if (m.getAttribute().getAttributeType().equals(
-            pwPolicyState.getPolicy().getPasswordAttribute()))
+        AttributeType t = m.getAttribute().getAttributeType();
+        boolean isPassword =
+                t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
+        if (isPassword)
         {
           passwordChanged = true;
           if (! selfChange)
@@ -1141,8 +1268,8 @@ modifyProcessing:
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
               throw new DirectoryException(
-                             ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                             ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
+                      ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                      ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
             }
           }
 
@@ -1158,57 +1285,11 @@ modifyProcessing:
       AttributeType t = a.getAttributeType();
 
 
-      // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
-      // this is an internal operation or is related to synchronization in some
-      // way.
-      if (t.isNoUserModification())
-      {
-        if (! (isInternalOperation() || isSynchronizationOperation() ||
-                m.isInternal()))
-        {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                         ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
-                              String.valueOf(entryDN), a.getName()));
-        }
-      }
-
-      // If the attribute type is marked "OBSOLETE" and the modification is
-      // setting new values, then fail unless this is an internal operation or
-      // is related to synchronization in some way.
-      if (t.isObsolete())
-      {
-        if (a.hasValue() &&
-            (m.getModificationType() != ModificationType.DELETE))
-        {
-          if (! (isInternalOperation() || isSynchronizationOperation() ||
-                 m.isInternal()))
-          {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                           ERR_MODIFY_ATTR_IS_OBSOLETE.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
-        }
-      }
-
-
-      // See if the attribute is one which controls the privileges available for
-      // a user.  If it is, then the client must have the PRIVILEGE_CHANGE
-      // privilege.
-      if (t.hasName(OP_ATTR_PRIVILEGE_NAME))
-      {
-        if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
-        {
-          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-               ERR_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
-        }
-      }
-
-
       // If the modification is updating the password attribute, then perform
       // any necessary password policy processing.  This processing should be
       // skipped for synchronization operations.
       boolean isPassword =
-           t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
+              t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
       if (isPassword && (!(isSynchronizationOperation())))
       {
         // If the attribute contains any options, then reject it.  Passwords
@@ -1218,28 +1299,28 @@ modifyProcessing:
           if (a.hasOptions())
           {
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                           ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+                    ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
           }
 
 
           // If it's a self change, then see if that's allowed.
           if (selfChange &&
-              (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
+                  (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
           {
             pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         ERR_MODIFY_NO_USER_PW_CHANGES.get());
+                    ERR_MODIFY_NO_USER_PW_CHANGES.get());
           }
 
 
           // If we require secure password changes, then makes sure it's a
           // secure communication channel.
           if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
-              (! clientConnection.isSecure()))
+                  (! clientConnection.isSecure()))
           {
             pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                           ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
+                    ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
           }
 
 
@@ -1249,7 +1330,7 @@ modifyProcessing:
           {
             pwpErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
+                    ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
           }
         }
 
@@ -1260,7 +1341,7 @@ modifyProcessing:
         boolean isAdd = (m.getModificationType() == ModificationType.ADD);
         LinkedHashSet<AttributeValue> pwValues = a.getValues();
         LinkedHashSet<AttributeValue> encodedValues =
-          new LinkedHashSet<AttributeValue>();
+                new LinkedHashSet<AttributeValue>();
         switch (m.getModificationType())
         {
           case ADD:
@@ -1274,38 +1355,10 @@ modifyProcessing:
 
           default:
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                           ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
-                                String.valueOf(m.getModificationType()),
-                                a.getName()));
+                    ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
+                            String.valueOf(m.getModificationType()),
+                            a.getName()));
         }
-      }
-      else
-      {
-        // See if it's an attribute used to maintain the account
-        // enabled/disabled state.
-        AttributeType disabledAttr =
-          DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
-        if (t.equals(disabledAttr))
-        {
-          enabledStateChanged = true;
-          for (AttributeValue v : a.getValues())
-          {
-            try
-            {
-              isEnabled =
-                   (! BooleanSyntax.decodeBooleanValue(v.getNormalizedValue()));
-            }
-            catch (DirectoryException de)
-            {
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                             ERR_MODIFY_INVALID_DISABLED_VALUE.get(
-                                  OP_ATTR_ACCOUNT_DISABLED,
-                                  String.valueOf(de.getMessageObject())), de);
-            }
-          }
-        }
-      }
-
 
       switch (m.getModificationType())
       {
@@ -1325,6 +1378,7 @@ modifyProcessing:
           processInitialIncrementSchema(a);
           break;
       }
+     }
     }
   }
 
