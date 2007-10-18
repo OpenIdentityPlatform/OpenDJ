@@ -103,8 +103,8 @@ public class UserData
 
     LinkedList<String> baseDn = new LinkedList<String>();
     baseDn.add("dc=example,dc=com");
-    NewSuffixOptions defaultNewSuffixOptions = new NewSuffixOptions(
-        NewSuffixOptions.Type.CREATE_BASE_ENTRY, baseDn);
+    NewSuffixOptions defaultNewSuffixOptions = NewSuffixOptions.createBaseEntry(
+        baseDn);
     setNewSuffixOptions(defaultNewSuffixOptions);
 
     // See what we can propose as port

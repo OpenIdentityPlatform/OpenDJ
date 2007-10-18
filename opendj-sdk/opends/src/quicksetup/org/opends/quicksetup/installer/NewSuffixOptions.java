@@ -46,10 +46,6 @@ public class NewSuffixOptions
   public enum Type
   {
     /**
-     * Do nothing.
-     */
-    NOTHING,
-    /**
      * Create base entry.
      */
     CREATE_BASE_ENTRY,
@@ -67,51 +63,85 @@ public class NewSuffixOptions
     IMPORT_AUTOMATICALLY_GENERATED_DATA
   }
 
-  private Type type = Type.NOTHING;
+  private Type type;
 
   private LinkedList<String> baseDns = new LinkedList<String>();
 
   private LinkedList<String> ldifPaths = new LinkedList<String>();
 
+  private String rejectedFile;
+
+  private String skippedFile;
+
   private int numberEntries = 2000;
 
   /**
-   * Constructor for the NewSuffixOptions object.
+   * Private constructor.
+   * @param baseDns the base DNs of the suffix options.
    *
-   * If the Data Options is IMPORT_FROM_LDIF_FILE the args are the baseDn and
-   * a String with the ldif location.
-   *
-   * If the Data Options is IMPORT_AUTOMATICALLY_GENERATED_DATA the args
-   * are the baseDn and an Integer with the number of entries.
-   *
-   * For the rest of the types the args are just the baseDn.
-   *
-   * @param type the Type of NewSuffixOptions.
-   * @param args the different argument objects (depending on the Type
-   * specified)
    */
-  public NewSuffixOptions(Type type, Object... args)
+  private NewSuffixOptions(LinkedList<String> baseDns)
   {
-    this.type = type;
-    LinkedList<?> v = (LinkedList<?>)args[0];
-    for (Object o : v)
-    {
-      baseDns.add((String)o);
-    }
-    switch (type)
-    {
-    case IMPORT_FROM_LDIF_FILE:
-      v = (LinkedList<?>)args[1];
-      for (Object o : v)
-      {
-        ldifPaths.add((String)o);
-      }
-      break;
+    this.baseDns.addAll(baseDns);
+  }
 
-    case IMPORT_AUTOMATICALLY_GENERATED_DATA:
-      numberEntries = ((Integer) args[1]).intValue();
-      break;
-    }
+  /**
+   * Creates a base entry suffix options.
+   * @param baseDNs the base DNs of the suffix options.
+   * @return a base entry suffix options.
+   */
+  public static NewSuffixOptions createBaseEntry(LinkedList<String> baseDNs)
+  {
+    NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
+    ops.type = Type.CREATE_BASE_ENTRY;
+    return ops;
+  }
+
+  /**
+   * Creates an empty suffix options.
+   * @param baseDNs the base DNs of the suffix options.
+   * @return an empty suffix options.
+   */
+  public static NewSuffixOptions createEmpty(LinkedList<String> baseDNs)
+  {
+    NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
+    ops.type = Type.LEAVE_DATABASE_EMPTY;
+    return ops;
+  }
+
+  /**
+   * Creates a base entry suffix options.
+   * @param baseDNs the base DNs of the suffix options.
+   * @param ldifPaths the LDIF files to be imported.
+   * @param rejectedFile the files where the rejected entries are stored.
+   * @param skippedFile the files where the skipped entries are stored.
+   * @return a base entry suffix options.
+   */
+  public static NewSuffixOptions createImportFromLDIF(
+      LinkedList<String> baseDNs, LinkedList<String> ldifPaths,
+      String rejectedFile, String skippedFile)
+  {
+    NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
+    ops.type = Type.IMPORT_FROM_LDIF_FILE;
+    ops.ldifPaths.addAll(ldifPaths);
+    ops.rejectedFile = rejectedFile;
+    ops.skippedFile = skippedFile;
+    return ops;
+  }
+
+  /**
+   * Creates an automatically generated entries suffix options.
+   * @param baseDNs the base DNs of the suffix options.
+   * @param numberEntries the number of entries to generate.
+   * @return a base entry suffix options.
+   */
+  public static NewSuffixOptions createAutomaticallyGenerated(
+      LinkedList<String> baseDNs, int numberEntries)
+  {
+    NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
+    ops.type = Type.IMPORT_AUTOMATICALLY_GENERATED_DATA;
+    ops.numberEntries = numberEntries;
+    return ops;
   }
 
   /**
@@ -133,6 +163,30 @@ public class NewSuffixOptions
   {
     LinkedList<String> copy = new LinkedList<String>(ldifPaths);
     return copy;
+  }
+
+  /**
+   * Returns the path to store the rejected entries of the import.
+   * <CODE>null</CODE> if no rejected file is specified.
+   *
+   * @return the path to store the rejected entries of the import.
+   * <CODE>null</CODE> if no rejected file is specified.
+   */
+  public String getRejectedFile()
+  {
+    return rejectedFile;
+  }
+
+  /**
+   * Returns the path to store the skipped entries of the import.
+   * <CODE>null</CODE> if no skipped file is specified.
+   *
+   * @return the path to store the skipped entries of the import.
+   * <CODE>null</CODE> if no skipped file is specified.
+   */
+  public String getSkippedFile()
+  {
+    return skippedFile;
   }
 
   /**

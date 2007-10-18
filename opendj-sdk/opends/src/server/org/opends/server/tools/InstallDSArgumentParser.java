@@ -81,6 +81,8 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    configClassArg;
   StringArgument    configFileArg;
   StringArgument    importLDIFArg;
+  StringArgument    rejectedImportFileArg;
+  StringArgument    skippedImportFileArg;
   StringArgument    directoryManagerDNArg;
   StringArgument    directoryManagerPwdStringArg;
   StringArgument    useJavaKeyStoreArg;
@@ -187,6 +189,18 @@ public class InstallDSArgumentParser extends ArgumentParser
         null, null,
         INFO_INSTALLDS_DESCRIPTION_IMPORTLDIF.get());
     addArgument(importLDIFArg);
+
+    rejectedImportFileArg = new StringArgument(
+        "rejectfile", 'R', "rejectFile", false, false,
+        true, "{rejectFile}", null, null,
+        INFO_INSTALLDS_DESCRIPTION_REJECTED_FILE.get());
+    addArgument(rejectedImportFileArg);
+
+    skippedImportFileArg = new StringArgument(
+        "skipFile", null, "skipFile", false, false,
+        true, "{skipFile}", null, null,
+        INFO_INSTALLDS_DESCRIPTION_SKIPPED_FILE.get());
+    addArgument(skippedImportFileArg);
 
     sampleDataArg = new IntegerArgument(
         "sampledata", 'd', "sampleData", false,
@@ -514,6 +528,36 @@ public class InstallDSArgumentParser extends ArgumentParser
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
               importLDIFArg.getLongIdentifier(),
               sampleDataArg.getLongIdentifier());
+      errorMessages.add(message);
+    }
+
+    if (rejectedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          addBaseEntryArg.getLongIdentifier(),
+          rejectedImportFileArg.getLongIdentifier());
+      errorMessages.add(message);
+    }
+    else if (rejectedImportFileArg.isPresent() && sampleDataArg.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          rejectedImportFileArg.getLongIdentifier(),
+          sampleDataArg.getLongIdentifier());
+      errorMessages.add(message);
+    }
+
+    if (skippedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          addBaseEntryArg.getLongIdentifier(),
+          skippedImportFileArg.getLongIdentifier());
+      errorMessages.add(message);
+    }
+    else if (skippedImportFileArg.isPresent() && sampleDataArg.isPresent())
+    {
+      Message message = ERR_TOOL_CONFLICTING_ARGS.get(
+          skippedImportFileArg.getLongIdentifier(),
+          sampleDataArg.getLongIdentifier());
       errorMessages.add(message);
     }
   }
