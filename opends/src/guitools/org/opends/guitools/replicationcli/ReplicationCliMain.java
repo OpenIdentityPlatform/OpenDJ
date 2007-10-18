@@ -365,13 +365,22 @@ public class ReplicationCliMain extends CliApplicationHelper
     EnableReplicationUserData uData = new EnableReplicationUserData();
     if (argParser.isInteractive())
     {
-      if (promptIfRequired(uData))
+      try
       {
-        returnValue = enableReplication(uData);
+        if (promptIfRequired(uData))
+        {
+          returnValue = enableReplication(uData);
+        }
+        else
+        {
+          returnValue = USER_CANCELLED;
+        }
       }
-      else
+      catch (ReplicationCliException rce)
       {
-        returnValue = USER_CANCELLED;
+        returnValue = rce.getErrorCode();
+        printLineBreak();
+        printErrorMessage(getCriticalExceptionMessage(rce));
       }
     }
     else
@@ -394,13 +403,22 @@ public class ReplicationCliMain extends CliApplicationHelper
     DisableReplicationUserData uData = new DisableReplicationUserData();
     if (argParser.isInteractive())
     {
-      if (promptIfRequired(uData))
+      try
       {
-        returnValue = disableReplication(uData);
+        if (promptIfRequired(uData))
+        {
+          returnValue = disableReplication(uData);
+        }
+        else
+        {
+          returnValue = USER_CANCELLED;
+        }
       }
-      else
+      catch (ReplicationCliException rce)
       {
-        returnValue = USER_CANCELLED;
+        returnValue = rce.getErrorCode();
+        printLineBreak();
+        printErrorMessage(getCriticalExceptionMessage(rce));
       }
     }
     else
@@ -453,13 +471,22 @@ public class ReplicationCliMain extends CliApplicationHelper
     StatusReplicationUserData uData = new StatusReplicationUserData();
     if (argParser.isInteractive())
     {
-      if (promptIfRequired(uData))
+      try
       {
-        returnValue = statusReplication(uData);
+        if (promptIfRequired(uData))
+        {
+          returnValue = statusReplication(uData);
+        }
+        else
+        {
+          returnValue = USER_CANCELLED;
+        }
       }
-      else
+      catch (ReplicationCliException rce)
       {
-        returnValue = USER_CANCELLED;
+        returnValue = rce.getErrorCode();
+        printLineBreak();
+        printErrorMessage(getCriticalExceptionMessage(rce));
       }
     }
     else
@@ -507,8 +534,11 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @param uData the object to be updated.
    * @return <CODE>true</CODE> if the object was successfully updated and
    * <CODE>false</CODE> if the user cancelled the operation.
+   * @throws ReplicationCliException if a critical error occurs reading the
+   * ADS.
    */
   private boolean promptIfRequired(EnableReplicationUserData uData)
+  throws ReplicationCliException
   {
     boolean cancelled = false;
 
@@ -1025,8 +1055,11 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @param uData the object to be updated.
    * @return <CODE>true</CODE> if the object was successfully updated and
    * <CODE>false</CODE> if the user cancelled the operation.
+   * @throws ReplicationCliException if there is a critical error reading the
+   * ADS.
    */
   private boolean promptIfRequired(DisableReplicationUserData uData)
+  throws ReplicationCliException
   {
     boolean cancelled = false;
 
@@ -1392,8 +1425,11 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @param uData the object to be updated.
    * @return <CODE>true</CODE> if the object was successfully updated and
    * <CODE>false</CODE> if the user cancelled the operation.
+   * @throws ReplicationCliException if a critical error occurs reading the
+   * ADS.
    */
   private boolean promptIfRequired(StatusReplicationUserData uData)
+  throws ReplicationCliException
   {
     boolean cancelled = false;
 
@@ -2167,13 +2203,15 @@ public class ReplicationCliMain extends CliApplicationHelper
    * @param isFirstOrSourceServer whether this is the first server in the
    * enable replication subcommand or the source server in the initialize server
    * subcommand.
+   * @throws ReplicationCliException if a critical error occurred.
    * @return <CODE>true</CODE> if everything went fine and the user accepted
    * all the certificates and confirmed everything.  Returns <CODE>false</CODE>
-   * if a critical error occurred or the user did not accept a certificate or
-   * any of the confirmation messages.
+   * if the user did not accept a certificate or any of the confirmation
+   * messages.
    */
   private boolean loadADSAndAcceptCertificates(InitialLdapContext[] ctx,
       ReplicationUserData uData, boolean isFirstOrSourceServer)
+  throws ReplicationCliException
   {
     boolean cancelled = false;
     boolean triedWithUserProvidedAdmin = false;
@@ -2339,19 +2377,17 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     catch (ADSContextException ace)
     {
-      printLineBreak();
-      printErrorMessage(Utils.getThrowableMsg(INFO_BUG_MSG.get(), ace));
-
       LOG.log(Level.SEVERE, "Complete error stack:", ace);
-      cancelled = true;
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(ace.getMessage()),
+          ERROR_READING_ADS, ace);
     }
     catch (TopologyCacheException tce)
     {
-      printLineBreak();
-      printErrorMessage(Utils.getMessage(tce));
-
       LOG.log(Level.SEVERE, "Complete error stack:", tce);
-      cancelled = true;
+      throw new ReplicationCliException(
+          ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
+          ERROR_READING_TOPOLOGY_CACHE, tce);
     }
     return !cancelled;
   }
