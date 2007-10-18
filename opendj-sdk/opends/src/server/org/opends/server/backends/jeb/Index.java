@@ -590,6 +590,15 @@ public class Index extends DatabaseContainer
   }
 
   /**
+   * Increment the count of the number of keys that have exceeded the entry
+   * limit since this object was created.
+   */
+  public void incEntryLimitExceededCount()
+  {
+    entryLimitExceededCount++;
+  }
+
+  /**
    * Update the index for a new entry.
    *
    * @param txn A database transaction, or null if none is required.
