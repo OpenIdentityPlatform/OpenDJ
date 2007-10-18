@@ -240,7 +240,7 @@ public class TopologyCache
       Map<ServerProperty,Object> serverProperties)
   {
     return new ServerLoader(serverProperties, dn, pwd,
-        trustManager.createCopy());
+        trustManager == null ? null : trustManager.createCopy());
   }
 
   /**

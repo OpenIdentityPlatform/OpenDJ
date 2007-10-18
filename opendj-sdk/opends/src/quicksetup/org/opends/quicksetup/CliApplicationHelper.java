@@ -798,8 +798,15 @@ public abstract class CliApplicationHelper {
       ApplicationTrustManager trustManager)
   {
     boolean returnValue = false;
-    ApplicationTrustManager.Cause cause =
-      usedTrustManager.getLastRefusedCause();
+    ApplicationTrustManager.Cause cause;
+    if (usedTrustManager != null)
+    {
+      cause = usedTrustManager.getLastRefusedCause();
+    }
+    else
+    {
+      cause = null;
+    }
 
     LOG.log(Level.INFO, "Certificate exception cause: "+cause);
     UserDataCertificateException.Type excType = null;
@@ -948,7 +955,10 @@ public abstract class CliApplicationHelper {
       if ((chain != null) && (authType != null) && (host != null))
       {
         LOG.log(Level.INFO, "Accepting certificate presented by host "+host);
-        trustManager.acceptCertificate(chain, authType, host);
+        if (trustManager != null)
+        {
+          trustManager.acceptCertificate(chain, authType, host);
+        }
         accepted = true;
       }
       else

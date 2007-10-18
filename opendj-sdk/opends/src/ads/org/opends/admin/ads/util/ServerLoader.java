@@ -236,9 +236,13 @@ public class ServerLoader extends Thread
   public InitialLdapContext createContext() throws NamingException
   {
     InitialLdapContext ctx = null;
-    trustManager.resetLastRefusedItems();
-    String host = (String)serverProperties.get(ServerProperty.HOST_NAME);
-    trustManager.setHost(host);
+    if (trustManager != null)
+    {
+      trustManager.resetLastRefusedItems();
+
+      String host = (String)serverProperties.get(ServerProperty.HOST_NAME);
+      trustManager.setHost(host);
+    }
     lastLdapUrl = getLdapsUrl(serverProperties);
 
     if (lastLdapUrl == null)
