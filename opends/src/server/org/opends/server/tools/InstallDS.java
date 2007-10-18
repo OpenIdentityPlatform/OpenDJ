@@ -617,25 +617,40 @@ public class InstallDS  extends CliApplicationHelper
         errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
             Utils.getStringFromCollection(nonExistingFiles, ", ")));
       }
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE, baseDNs,
-          argParser.importLDIFArg.getValues());
+      String rejectedFile = argParser.rejectedImportFileArg.getValue();
+      if (rejectedFile != null)
+      {
+        if (!Utils.canWrite(rejectedFile))
+        {
+          errorMessages.add(
+              ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
+        }
+      }
+      String skippedFile = argParser.skippedImportFileArg.getValue();
+      if (skippedFile != null)
+      {
+        if (!Utils.canWrite(skippedFile))
+        {
+          errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(
+              skippedFile));
+        }
+      }
+      dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
+          argParser.importLDIFArg.getValues(),
+          rejectedFile, skippedFile);
     }
     else if (argParser.addBaseEntryArg.isPresent())
     {
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.CREATE_BASE_ENTRY, baseDNs);
+      dataOptions = NewSuffixOptions.createBaseEntry(baseDNs);
     }
     else if (argParser.sampleDataArg.isPresent())
     {
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA, baseDNs,
+      dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
           new Integer(argParser.sampleDataArg.getValue()));
     }
     else
     {
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, baseDNs);
+      dataOptions = NewSuffixOptions.createEmpty(baseDNs);
     }
     uData.setNewSuffixOptions(dataOptions);
 
@@ -1021,15 +1036,39 @@ public class InstallDS  extends CliApplicationHelper
           importLDIFFiles.add(path);
         }
       }
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE,
-          baseDNs, importLDIFFiles);
+      String rejectedFile = argParser.rejectedImportFileArg.getValue();
+      if (rejectedFile != null)
+      {
+        while (!Utils.canWrite(rejectedFile))
+        {
+          printLineBreak();
+          printErrorMessage(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(
+              rejectedFile));
+          printLineBreak();
+          rejectedFile =
+            promptForString(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+        }
+      }
+      String skippedFile = argParser.skippedImportFileArg.getValue();
+      if (skippedFile != null)
+      {
+        while (!Utils.canWrite(skippedFile))
+        {
+          printLineBreak();
+          printErrorMessage(
+              ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
+          printLineBreak();
+          skippedFile =
+            promptForString(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+        }
+      }
+
+      dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
+          importLDIFFiles, rejectedFile, skippedFile);
     }
     else if (argParser.addBaseEntryArg.isPresent())
     {
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.CREATE_BASE_ENTRY,
-          baseDNs);
+      dataOptions = NewSuffixOptions.createBaseEntry(baseDNs);
     }
     else if (argParser.sampleDataArg.isPresent())
     {
@@ -1045,9 +1084,8 @@ public class InstallDS  extends CliApplicationHelper
         Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
       }
-      dataOptions = new NewSuffixOptions(
-          NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA,
-          baseDNs, numUsers);
+      dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
+          numUsers);
     }
     else
     {
@@ -1093,28 +1131,50 @@ public class InstallDS  extends CliApplicationHelper
             printErrorMessage(message);
           }
         }
-        dataOptions = new NewSuffixOptions(
-            NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE,
-            baseDNs, importLDIFFiles);
+        String rejectedFile = argParser.rejectedImportFileArg.getValue();
+        if (rejectedFile != null)
+        {
+          while (!Utils.canWrite(rejectedFile))
+          {
+            printLineBreak();
+            printErrorMessage(
+                ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
+            printLineBreak();
+            rejectedFile =
+              promptForString(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+          }
+        }
+        String skippedFile = argParser.skippedImportFileArg.getValue();
+        if (skippedFile != null)
+        {
+          while (!Utils.canWrite(skippedFile))
+          {
+            printLineBreak();
+            printErrorMessage(
+                ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
+            printLineBreak();
+            skippedFile =
+              promptForString(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+          }
+        }
+        dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
+            importLDIFFiles, rejectedFile, skippedFile);
       }
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
         Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         int numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
 
-        dataOptions = new NewSuffixOptions(
-            NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA,
-            baseDNs, numUsers);
+        dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
+            numUsers);
       }
       else if (populateType == POPULATE_TYPE_LEAVE_EMPTY)
       {
-        dataOptions = new NewSuffixOptions(
-            NewSuffixOptions.Type.LEAVE_DATABASE_EMPTY, baseDNs);
+        dataOptions = NewSuffixOptions.createEmpty(baseDNs);
       }
       else if (populateType == POPULATE_TYPE_BASE_ONLY)
       {
-        dataOptions = new NewSuffixOptions(
-            NewSuffixOptions.Type.CREATE_BASE_ENTRY, baseDNs);
+        dataOptions = NewSuffixOptions.createBaseEntry(baseDNs);
       }
       else
       {

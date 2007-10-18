@@ -1135,6 +1135,18 @@ public abstract class Installer extends GuiApplication {
       argList.add(ldifPath);
     }
     argList.add("-F");
+    String rejectedFile = getUserData().getNewSuffixOptions().getRejectedFile();
+    if (rejectedFile != null)
+    {
+      argList.add("-R");
+      argList.add(rejectedFile);
+    }
+    String skippedFile = getUserData().getNewSuffixOptions().getSkippedFile();
+    if (skippedFile != null)
+    {
+      argList.add("--skipFile");
+      argList.add(skippedFile);
+    }
     final String[] args = new String[argList.size()];
     argList.toArray(args);
 
@@ -3423,7 +3435,8 @@ public abstract class Installer extends GuiApplication {
         LinkedList<String> ldifPaths = new LinkedList<String>();
         ldifPaths.add(ldifPath);
 
-        dataOptions = new NewSuffixOptions(type, baseDns, ldifPaths);
+        dataOptions = NewSuffixOptions.createImportFromLDIF(baseDns, ldifPaths,
+            null, null);
         qs.displayFieldInvalid(FieldName.LDIF_PATH, false);
       }
       break;
@@ -3467,8 +3480,8 @@ public abstract class Installer extends GuiApplication {
         // No validation errors
         LinkedList<String> baseDns = new LinkedList<String>();
         baseDns.add(baseDn);
-        dataOptions = new NewSuffixOptions(type, baseDns,
-            new Integer(nEntries));
+        dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDns,
+            Integer.parseInt(nEntries));
       }
       break;
 
@@ -3479,7 +3492,14 @@ public abstract class Installer extends GuiApplication {
       {
         LinkedList<String> baseDns = new LinkedList<String>();
         baseDns.add(baseDn);
-        dataOptions = new NewSuffixOptions(type, baseDns);
+        if (type == NewSuffixOptions.Type.CREATE_BASE_ENTRY)
+        {
+          dataOptions = NewSuffixOptions.createBaseEntry(baseDns);
+        }
+        else
+        {
+          dataOptions = NewSuffixOptions.createEmpty(baseDns);
+        }
       }
     }
 
