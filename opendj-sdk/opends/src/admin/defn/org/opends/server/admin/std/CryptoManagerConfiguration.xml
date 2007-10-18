@@ -187,33 +187,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="key-wrapping-transformation" multi-valued="false" advanced="false">
-    <adm:synopsis>
-      The preferred key wrapping transformation for the Directory Server.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes to this property will take effect immediately but will
-          only affect cryptographic operations performed after the
-          change.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-key-wrapping-transformation</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="ssl-protocol" multi-valued="true">
     <adm:synopsis>
       Specifies the names of the SSL protocols that will be allowed for
@@ -231,8 +204,7 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Uses the default set of SSL protocols provided by the server's
-          JVM.
+          Uses the default set of SSL protocols provided by the server's JVM.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

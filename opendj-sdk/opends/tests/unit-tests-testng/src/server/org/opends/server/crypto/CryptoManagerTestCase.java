@@ -457,8 +457,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
   }
 
   /**
-   TODO: Test key wrapping
-   Trying OAEPWITHSHA-512ANDMGF1PADDING throws an exception "Key too small...".
+   TODO: Test shared secret key wrapping (various wrapping ciphers, if configurable).
    */
 
 
