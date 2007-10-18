@@ -44,7 +44,7 @@ public class ReplLDIFOutputStream
 
   // The current number of entries exported
   long numExportedEntries;
-
+  static String newline = System.getProperty("line.separator");
   String entryBuffer = "";
 
   /**
@@ -81,7 +81,8 @@ public class ReplLDIFOutputStream
     {
       // if we have the bytes for an entry, let's make an entry and send it
       String ebytes = new String(b,startOfEntryIndex,bytesToRead);
-      endOfEntryIndex = ebytes.indexOf("\n\n");
+      endOfEntryIndex = ebytes.indexOf(newline + newline);
+
       if ( endOfEntryIndex >= 0 )
       {
 
