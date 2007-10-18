@@ -146,6 +146,8 @@ public class ExtensionsConstants
   /**
    * The cipher transformation that should be used when performing RC4
    * encryption/decription.
+   *
+   * TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2471
    */
   public static final String CIPHER_TRANSFORMATION_RC4 = "RC4/NONE/NoPadding";
 
@@ -162,6 +164,7 @@ public class ExtensionsConstants
   /**
    * The key size (in bits) that should be used for the encryption key when
    * using the AES cipher.
+   * TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2475
    */
   public static final int KEY_SIZE_AES = 128;
 
@@ -170,6 +173,7 @@ public class ExtensionsConstants
   /**
    * The key size (in bits) that should be used for the encryption key when
    * using the Blowfish cipher.
+   * TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2475
    */
   public static final int KEY_SIZE_BLOWFISH = 128;
 
@@ -178,6 +182,7 @@ public class ExtensionsConstants
   /**
    * The key size (in bits) that should be used for the encryption key when
    * using the RC4 cipher.
+   * TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2475
    */
   public static final int KEY_SIZE_RC4 = 128;
 

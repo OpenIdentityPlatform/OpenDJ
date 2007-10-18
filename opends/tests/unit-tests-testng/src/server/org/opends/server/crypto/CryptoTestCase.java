@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 import org.opends.server.DirectoryServerTestCase;
 
 /**
- * An abstract class that all types unit tests should extend.
+ * An abstract class that all crypto unit tests should extend.
  */
 
 @Test(groups = { "precommit", "crypto" }, sequential = true)
