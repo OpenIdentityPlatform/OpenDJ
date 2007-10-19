@@ -54,7 +54,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_setup_pwd_storage.xml' % (TESTS_DIR)"/>
           <call function="'setup_pwd_storage'" />
-  
+          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SSHA.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SSHA'" />
@@ -82,11 +82,27 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_SMD5.xml' % (TESTS_DIR)"/>
           <call function="'pwd_SMD5'" />
-  
+          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_BASE64.xml' % (TESTS_DIR)"/>
           <call function="'pwd_BASE64'" />
   
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/pwd_storage/security_pwd_3DES.xml' % (TESTS_DIR)"/>
+          <call function="'pwd_3DES'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/pwd_storage/security_pwd_AES.xml' % (TESTS_DIR)"/>
+          <call function="'pwd_AES'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/pwd_storage/security_pwd_RC4.xml' % (TESTS_DIR)"/>
+          <call function="'pwd_RC4'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/security/pwd_storage/security_pwd_blowfish.xml' % (TESTS_DIR)"/>
+          <call function="'pwd_BLOWFISH'" />
+          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_pwd_CLEAR.xml' % (TESTS_DIR)"/>
           <call function="'pwd_CLEAR'" />
@@ -102,7 +118,7 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_deprecated_schemes.xml' % (TESTS_DIR)"/>
           <call function="'deprecated_schemes'" />
-  
+          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/security/pwd_storage/security_teardown_pwd_storage.xml' % (TESTS_DIR)"/>
           <call function="'teardown_pwd_storage'" />
