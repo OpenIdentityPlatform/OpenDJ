@@ -1,0 +1,83 @@
+# CDDL HEADER START
+#
+# The contents of this file are subject to the terms of the
+# Common Development and Distribution License, Version 1.0 only
+# (the "License").  You may not use this file except in compliance
+# with the License.
+#
+# You can obtain a copy of the license at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE
+# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# See the License for the specific language governing permissions
+# and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL HEADER in each
+# file and include the License file at
+# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+# add the following below this CDDL HEADER, with the fields enclosed
+# by brackets "[]" replaced with your own identifying information:
+#      Portions Copyright [yyyy] [name of copyright owner]
+#
+# CDDL HEADER END
+#
+#      Portions Copyright 2007 Sun Microsystems, Inc.
+#
+
+
+Manual tests for Issue 588, Need a MakeLDIF-like capability.
+
+Test Case 1
+1. Unzip and start OpenDS.
+
+2. Import 160 entries using the file, shared/data/backends/manual_tests/160Entries.template. The command and output are shown below.
+
+bash-3.00# /tmp/OpenDS-1.0.0/bin/import-ldif -n userRoot -A /data/160Entries.template     
+[19/Oct/2007:15:57:34 -0500] category=JEB severity=INFORMATION msgID=8388697 msg=Starting import (using 8 threads)
+[19/Oct/2007:15:57:34 -0500] category=JEB severity=INFORMATION msgID=8388766 msg=Processing LDIF
+[19/Oct/2007:15:57:35 -0500] category=JEB severity=INFORMATION msgID=8388767 msg=End of LDIF reached
+[19/Oct/2007:15:57:37 -0500] category=JEB severity=INFORMATION msgID=8388730 msg=Beginning final index merge
+[19/Oct/2007:15:57:39 -0500] category=JEB severity=INFORMATION msgID=8388732 msg=Final index merge complete (processing time 2 seconds)
+[19/Oct/2007:15:57:39 -0500] category=JEB severity=INFORMATION msgID=8388702 msg=Processed 162 entries, imported 162, skipped 0, rejected 0 and migrated 0 in 5 seconds (average rate 30.9/sec)
+[19/Oct/2007:15:57:39 -0500] category=JEB severity=INFORMATION msgID=8388703 msg=Number of index values that exceeded the entry limit: 0
+bash-3.00#
+
+3. Start OpenDS and conduct a search to confirm that the entries are present.
+
+
+Test Case 2
+1. Use make-ldif to create an ldif file from the same template file as used above.
+
+bash-3.00# /tmp/OpenDS-1.0.0/bin/make-ldif -t /data/160Entries.template -o /tmp/160entries.ldif
+LDIF processing complete.  162 entries written
+bash-3.00#
+
+2. Unzip and start OpenDS.
+
+3. Configure OpenDS with base DN, dc=com.
+
+bash-3.00# /tmp/OpenDS-1.0.0/setup  -p 389 -D "cn=Directory Manager" -w password -b "dc=com" -i -n -O
+
+OpenDS Directory Server 1.0.0
+Please wait while the setup program initializes...
+
+Configuring Directory Server ..... Successfully wrote the updated Directory Server configuration
+
+To see basic server configuration status and configuration you can launch
+/tmp/OpenDS-1.0.0/bin/status
+bash-3.00#
+ 
+4. Import the ldif file created in step 1.
+
+bash-3.00# /tmp/OpenDS-1.0.0/bin/import-ldif -b dc=com -n userRoot -l /tmp/160entries.ldif 
+[19/Oct/2007:16:08:07 -0500] category=JEB severity=INFORMATION msgID=8388697 msg=Starting import (using 8 threads)
+[19/Oct/2007:16:08:07 -0500] category=JEB severity=INFORMATION msgID=8388766 msg=Processing LDIF
+[19/Oct/2007:16:08:08 -0500] category=JEB severity=INFORMATION msgID=8388767 msg=End of LDIF reached
+[19/Oct/2007:16:08:08 -0500] category=JEB severity=INFORMATION msgID=8388730 msg=Beginning final index merge
+[19/Oct/2007:16:08:08 -0500] category=JEB severity=INFORMATION msgID=8388732 msg=Final index merge complete (processing time 0 seconds)
+[19/Oct/2007:16:08:08 -0500] category=JEB severity=INFORMATION msgID=8388702 msg=Processed 162 entries, imported 0, skipped 0, rejected 162 and migrated 0 in 1 seconds (average rate 0.0/sec)
+[19/Oct/2007:16:08:08 -0500] category=JEB severity=INFORMATION msgID=8388703 msg=Number of index values that exceeded the entry limit: 0
+bash-3.00#
+
+5. Start OpenDS and conduct a search to confirm that the entries are present.
+
+
