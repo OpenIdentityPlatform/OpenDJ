@@ -260,6 +260,8 @@ public abstract class Driver {
           }
           return values;
         } else {
+          // FIXME: issue 2481 - this is broken if the referenced property
+          // inherits its defaults from the newly created managed object.
           return getPropertyValues(target, pd2);
         }
       } catch (DefaultBehaviorException e) {
