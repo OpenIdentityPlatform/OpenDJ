@@ -39,11 +39,14 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
@@ -1387,6 +1390,50 @@ public class Utils
       emptyStream = new EmptyPrintStream();
     }
     return emptyStream;
+  }
+
+  /**
+   * Returns the current time of a server in milliseconds.
+   * @param ctx the connection to the server.
+   * @return the current time of a server in milliseconds.
+   */
+  public static long getServerClock(InitialLdapContext ctx)
+  {
+    long time = -1;
+    String v = null;
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "currentTime"
+        });
+    String filter = "(objectclass=*)";
+
+    try
+    {
+      LdapName jndiName = new LdapName("cn=monitor");
+      NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+
+      while(listeners.hasMore())
+      {
+        SearchResult sr = (SearchResult)listeners.next();
+
+        v = getFirstValue(sr, "currentTime");
+
+        TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
+
+        SimpleDateFormat formatter =
+             new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+        formatter.setTimeZone(utcTimeZone);
+
+        time = formatter.parse(v).getTime();
+      }
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error retrieving server current time: "+t, t);
+    }
+    return time;
   }
 }
 

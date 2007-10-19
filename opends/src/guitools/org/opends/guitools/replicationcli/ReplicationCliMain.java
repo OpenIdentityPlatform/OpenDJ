@@ -84,6 +84,7 @@ import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.installer.Installer;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
@@ -2736,6 +2737,21 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       printLineBreak();
       printErrorMessage(msg);
+    }
+
+    long time1 = Utils.getServerClock(ctx1);
+    long time2 = Utils.getServerClock(ctx2);
+    if ((time1 != -1) && (time2 != -1))
+    {
+      if (Math.abs(time1 - time2) >
+      (Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
+      {
+        printWarningMessage(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
+            ConnectionUtils.getHostPort(ctx1),
+            ConnectionUtils.getHostPort(ctx2),
+            String.valueOf(
+                Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES)));
+      }
     }
 
     if (ctx1 != null)
