@@ -89,11 +89,11 @@
   <adm:property name="message-subject" mandatory="true" multi-valued="false">
     <adm:synopsis>
       Specifies the subject that should be used for e-mail messages generated
-      by this alert handler.  The token "%%alert-type%%" will be dynamically
-      replaced with the alert type string.  The token "%%alert-id%%" will be
+      by this alert handler.  The token "%%%%alert-type%%%%" will be dynamically
+      replaced with the alert type string.  The token "%%%%alert-id%%%%" will be
       dynamically replaced with the alert ID value.  The token
-      "%%alert-message%%" will be dynamically replaced with the alert message.
-      The token "\n" will be replaced with an end-of-line marker.
+      "%%%%alert-message%%%%" will be dynamically replaced with the alert message.
+      The token "\\n" will be replaced with an end-of-line marker.
     </adm:synopsis>
     <adm:syntax>
       <adm:string />
@@ -108,11 +108,11 @@
   <adm:property name="message-body" mandatory="true" multi-valued="false">
     <adm:synopsis>
       Specifies the body that should be used for e-mail messages generated
-      by this alert handler.  The token "%%alert-type%%" will be dynamically
-      replaced with the alert type string.  The token "%%alert-id%%" will be
+      by this alert handler.  The token "%%%%alert-type%%%%" will be dynamically
+      replaced with the alert type string.  The token "%%%%alert-id%%%%" will be
       dynamically replaced with the alert ID value.  The token
-      "%%alert-message%%" will be dynamically replaced with the alert message.
-      The token "\n" will be replaced with an end-of-line marker.
+      "%%%%alert-message%%%%" will be dynamically replaced with the alert message.
+      The token "\\n" will be replaced with an end-of-line marker.
     </adm:synopsis>
     <adm:syntax>
       <adm:string />
