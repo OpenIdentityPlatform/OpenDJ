@@ -60,6 +60,7 @@ import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 
@@ -163,6 +164,11 @@ public abstract class Installer extends GuiApplication {
 
   /** Alias of a self-signed certificate. */
   protected static final String SELF_SIGNED_CERT_ALIAS = "server-cert";
+
+  /** The thresold in minutes used to know whether we must display a warning
+   * informing that there is a server clock difference between two servers
+   * whose contents are being replicated. */
+  public static final int WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES = 5;
 
   /**
    * Creates a default instance.
@@ -1483,6 +1489,9 @@ public abstract class Installer extends GuiApplication {
     replicationServers.put(Constants.SCHEMA_DN, adsServers);
 
     InitialLdapContext ctx = null;
+    long localTime = -1;
+    long localTimeMeasureTime = -1;
+    String localServerDisplay = null;
     try
     {
       ctx = createLocalContext();
@@ -1491,6 +1500,9 @@ public abstract class Installer extends GuiApplication {
           getUserData().getReplicationOptions().useSecureReplication(),
           getLocalHostPort(),
           knownReplicationServerIds, knownServerIds);
+      localTimeMeasureTime = System.currentTimeMillis();
+      localTime = Utils.getServerClock(ctx);
+      localServerDisplay = ConnectionUtils.getHostPort(ctx);
     }
     catch (ApplicationException ae)
     {
@@ -1583,6 +1595,22 @@ public abstract class Installer extends GuiApplication {
               replicationPort, enableSecureReplication,
               server.getHostPort(true), knownReplicationServerIds,
               knownServerIds);
+        long remoteTimeMeasureTime = System.currentTimeMillis();
+        long remoteTime = Utils.getServerClock(ctx);
+        if ((localTime != -1) && (remoteTime != -1))
+        {
+          if (Math.abs(localTime - remoteTime - localTimeMeasureTime +
+              remoteTimeMeasureTime) >
+          (WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
+          {
+            notifyListeners(getFormattedWarning(
+                INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
+                    localServerDisplay, ConnectionUtils.getHostPort(ctx),
+                    String.valueOf(
+                        WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES))));
+          }
+        }
+
         hmConfiguredRemoteReplication.put(server, repl);
 
         try
