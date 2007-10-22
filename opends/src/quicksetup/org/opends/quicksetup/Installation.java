@@ -39,6 +39,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.util.SetupUtils;
 
 /**
  * This class represents the physical state of an OpenDS installation.
@@ -71,7 +72,8 @@ public class Installation {
   /**
    * The relative path where all the libraries (jar files) are.
    */
-  public static final String LIBRARIES_PATH_RELATIVE = "lib";
+  public static final String LIBRARIES_PATH_RELATIVE =
+    SetupUtils.LIBRARIES_PATH_RELATIVE;
 
   /**
    * The relative path where the database files are.

@@ -28,8 +28,10 @@ package org.opends.server.util;
 
 
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -76,6 +78,14 @@ public class SetupUtils
    */
   public static final String ZIP_FILE_NAME =
       "org.opends.quicksetup.zipfilename";
+
+  /**
+   * The relative path where all the libraries (jar files) are.
+   */
+  public static final String LIBRARIES_PATH_RELATIVE = "lib";
+
+  private static final String SET_JAVA_HOME_UNIX = "set-java-home";
+  private static final String SET_JAVA_HOME_WINDOWS = "set-java-home.bat";
 
   /**
    * Creates a MakeLDIF template file using the provided information.
@@ -239,59 +249,126 @@ public class SetupUtils
    * @param  serverRoot  The path to the root of the Directory Server instance
    *                     for which the file will be written.
    *
+   * @param overWrite when the set-java-home file exists whether to overwrite it
+   *        or not.
    * @return  A handle to the {@code File} object that has been written.
    *
    * @throws  IOException  If a problem occurs while creating or writing to the
    *                       specified file.
    */
-  public static File writeSetOpenDSJavaHome(String serverRoot)
-         throws IOException
+  public static File writeSetOpenDSJavaHome(String serverRoot,
+      boolean overWrite) throws IOException
   {
-    String javaHome = System.getenv("OPENDS_JAVA_HOME");
+    String javaHome = System.getenv(OPENDS_JAVA_HOME);
     if ((javaHome == null) || (javaHome.length() == 0))
     {
       javaHome = System.getProperty("java.home");
     }
 
 
-    File libDirectory = new File(serverRoot, "lib");
+    File libDirectory = new File(serverRoot, LIBRARIES_PATH_RELATIVE);
 
     File setJavaHomeFile;
     if (isWindows())
     {
-      setJavaHomeFile = new File(libDirectory, "set-java-home.bat");
+      setJavaHomeFile = new File(libDirectory, SET_JAVA_HOME_WINDOWS);
       if (setJavaHomeFile.exists())
       {
-        return setJavaHomeFile;
+        if (!overWrite)
+        {
+          return setJavaHomeFile;
+        }
+        else
+        {
+          File f1 = new File(javaHome);
+          File f2 = new File(getOpenDSJavaHome(serverRoot));
+          if (f1.equals(f2))
+          {
+            return setJavaHomeFile;
+          }
+        }
       }
-
       BufferedWriter writer =
            new BufferedWriter(new FileWriter(setJavaHomeFile));
-      writer.write("set OPENDS_JAVA_HOME=" + javaHome);
+      writer.write("set "+OPENDS_JAVA_HOME+"=" + javaHome);
       writer.newLine();
       writer.close();
     }
     else
     {
-      setJavaHomeFile = new File(libDirectory, "set-java-home");
+      setJavaHomeFile = new File(libDirectory, SET_JAVA_HOME_UNIX);
       if (setJavaHomeFile.exists())
       {
-        return setJavaHomeFile;
+        if (!overWrite)
+        {
+          return setJavaHomeFile;
+        }
+        else
+        {
+          File f1 = new File(javaHome);
+          File f2 = new File(getOpenDSJavaHome(serverRoot));
+          if (f1.equals(f2))
+          {
+            return setJavaHomeFile;
+          }
+        }
       }
-
       BufferedWriter writer =
            new BufferedWriter(new FileWriter(setJavaHomeFile));
       writer.write("#!/bin/sh");
       writer.newLine();
       writer.newLine();
-      writer.write("OPENDS_JAVA_HOME=" + javaHome);
+      writer.write(OPENDS_JAVA_HOME+"=" + javaHome);
       writer.newLine();
-      writer.write("export OPENDS_JAVA_HOME");
+      writer.write("export "+OPENDS_JAVA_HOME);
       writer.newLine();
       writer.close();
     }
 
     return setJavaHomeFile;
+  }
+
+  /**
+   * Returns the java home value as it is specified in the set-java-home file.
+   * It returns <CODE>null</CODE> if the contents of the file are not valid, the
+   * file could not be read or if the file does not exist.
+   * @param  serverRoot  The path to the root of the Directory Server instance
+   *                     in which the set-java-home file is located.
+   * @return the java home value as it is specified in the set-java-home file.
+   * @throws  IOException  If a problem occurs while reading the file.
+   */
+  public static String getOpenDSJavaHome(String serverRoot) throws IOException
+  {
+    String javaHome = null;
+
+    File libDirectory = new File(serverRoot, LIBRARIES_PATH_RELATIVE);
+
+    File setJavaHomeFile;
+    if (isWindows())
+    {
+      setJavaHomeFile = new File(libDirectory, SET_JAVA_HOME_WINDOWS);
+    }
+    else
+    {
+      setJavaHomeFile = new File(libDirectory, SET_JAVA_HOME_UNIX);
+    }
+    if (setJavaHomeFile.exists())
+    {
+      BufferedReader reader =
+        new BufferedReader(new FileReader(setJavaHomeFile));
+      String line = reader.readLine();
+      String tag = OPENDS_JAVA_HOME+"=";
+      while ((line != null) && (javaHome == null))
+      {
+        int index = line.indexOf(tag);
+        if (index != -1)
+        {
+          javaHome = line.substring(index + tag.length());
+        }
+        line = reader.readLine();
+      }
+    }
+    return javaHome;
   }
 
   /**
