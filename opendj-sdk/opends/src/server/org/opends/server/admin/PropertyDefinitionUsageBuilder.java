@@ -318,7 +318,15 @@ public final class PropertyDefinitionUsageBuilder {
     @Override
     public Message visitString(StringPropertyDefinition d, Void p) {
       if (d.getPattern() != null) {
-        return Message.raw(d.getPatternUsage());
+        if (isDetailed) {
+          MessageBuilder builder = new MessageBuilder();
+          builder.append(d.getPatternUsage());
+          builder.append(" - ");
+          builder.append(d.getPatternSynopsis());
+          return builder.toMessage();
+        } else {
+          return Message.raw(d.getPatternUsage());
+        }
       } else {
         return Message.raw("STRING");
       }

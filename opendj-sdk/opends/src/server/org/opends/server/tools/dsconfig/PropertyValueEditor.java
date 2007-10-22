@@ -631,10 +631,8 @@ final class PropertyValueEditor {
     @Override
     public <T> MenuResult<Void> visitUnknown(PropertyDefinition<T> d,
         Void p) throws UnknownPropertyDefinitionException {
-      PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
-          true);
       app.println();
-      app.println(INFO_EDITOR_HEADING_SYNTAX.get(b.getUsage(d)), 4);
+      displayPropertySyntax(app, d);
 
       // Set the new property value(s).
       try {
@@ -1009,10 +1007,8 @@ final class PropertyValueEditor {
     @Override
     public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d,
         Void p) {
-      PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
-          true);
       app.println();
-      app.println(INFO_EDITOR_HEADING_SYNTAX.get(b.getUsage(d)), 4);
+      displayPropertySyntax(app, d);
 
       final SortedSet<T> defaultValues = mo.getPropertyDefaultValues(d);
       final SortedSet<T> oldValues = mo.getPropertyValues(d);
@@ -1781,10 +1777,8 @@ final class PropertyValueEditor {
     @Override
     public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d,
         Void p) {
-      PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
-          true);
       app.println();
-      app.println(INFO_EDITOR_HEADING_SYNTAX.get(b.getUsage(d)), 4);
+      displayPropertySyntax(app, d);
 
       // Construct a menu of actions.
       MenuBuilder<T> builder = new MenuBuilder<T>(app);
@@ -1957,6 +1951,25 @@ final class PropertyValueEditor {
       app.println();
       app.println(pd.getDescription(), 4);
     }
+  }
+
+
+
+  // Display a property's syntax.
+  private static <T> void displayPropertySyntax(ConsoleApplication app,
+      PropertyDefinition<T> d) throws IllegalArgumentException {
+    PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
+
+    TableBuilder builder = new TableBuilder();
+    builder.startRow();
+    builder.appendCell(INFO_EDITOR_HEADING_SYNTAX.get());
+    builder.appendCell(b.getUsage(d));
+
+    TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+    printer.setDisplayHeadings(false);
+    printer.setIndentWidth(4);
+    printer.setColumnWidth(1, 0);
+    builder.print(printer);
   }
 
 
