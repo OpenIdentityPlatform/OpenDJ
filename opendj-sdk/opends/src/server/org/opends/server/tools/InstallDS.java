@@ -38,6 +38,7 @@ import java.io.PrintStream;
 import java.security.KeyStoreException;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.messages.Message;
@@ -282,12 +283,42 @@ public class InstallDS  extends CliApplicationHelper
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-    // If we are on test only mode, delete the log file that does not contain
-    // any information.  The test only mode is called several times by the setup
-    // script and if we do not remove it we have a lot of empty log files.
+    // If we are on test only mode, try to see if the contents of the
+    // set-java-home file are valid.  If they are not try to update them, if no
+    // problem occurred while doing this delete the log file that does not
+    // contain any information.  The test only mode is called several times by
+    // the setup script and if we do not remove it we have a lot of empty log
+    // files.
     if (argParser.testOnlyArg.isPresent())
     {
-      QuickSetupLog.getLogFile().deleteOnExit();
+      try
+      {
+        String serverRoot = Utils.getInstallPathFromClasspath();
+        String javaHome = SetupUtils.getOpenDSJavaHome(serverRoot);
+        boolean writeJavaHome = false;
+        if (javaHome != null)
+        {
+          File f = new File(javaHome);
+          if (!f.exists())
+          {
+            writeJavaHome = true;
+          }
+        }
+        else
+        {
+          writeJavaHome = true;
+        }
+        if (writeJavaHome)
+        {
+          SetupUtils.writeSetOpenDSJavaHome(serverRoot, true);
+        }
+        QuickSetupLog.getLogFile().deleteOnExit();
+      }
+      catch (Throwable t)
+      {
+        LOG.log(Level.WARNING, "Error while trying to update the contents of "+
+            "the set-java-home file in test only mode: "+t, t);
+      }
     }
 
     // If either the showUsage or testOnly or version arguments were provided,
@@ -340,10 +371,9 @@ public class InstallDS  extends CliApplicationHelper
         return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
       }
     }
-
+    System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     OfflineInstaller installer = new OfflineInstaller();
     installer.setUserData(uData);
-    System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(
         new ProgressUpdateListener() {

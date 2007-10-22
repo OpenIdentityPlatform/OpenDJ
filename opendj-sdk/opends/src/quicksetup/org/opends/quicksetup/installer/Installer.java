@@ -1758,8 +1758,10 @@ public abstract class Installer extends GuiApplication {
     {
       // This isn't likely to happen, and it's not a serious problem even if
       // it does.
-      SetupUtils.writeSetOpenDSJavaHome(getInstallationPath());
-    } catch (Exception e) {}
+      SetupUtils.writeSetOpenDSJavaHome(getInstallationPath(), false);
+    } catch (Exception e) {
+      LOG.log(Level.WARNING, "Error writing OpenDS Java Home file: "+e, e);
+    }
   }
 
   /**
