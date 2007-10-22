@@ -66,6 +66,10 @@
           <call function="'aci_targetscope'" />
           
           <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_targetcontrol.xml' % (TESTS_DIR)"/>
+          <call function="'aci_targetcontrol'" />
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/aci/aci_delete_entry.xml' % (TESTS_DIR)"/>
           <call function="'aci_delete_entry'" />
           

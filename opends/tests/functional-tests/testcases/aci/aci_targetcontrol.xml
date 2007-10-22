@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="aci_targetcontrol"/>
+
+  <function name="aci_targetcontrol">
+
+    <sequence>
+
+      <block name="'aci-target-control'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='aci'                
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             ACI Targetcontrol Tests
+                #@TestSuitePurpose          Test the basic ACI Targetcontrol Support.
+                #@TestSuiteGroup            Basic ACI Targetcontrol Tests
+                #@TestScript                aci_targetcontrol.xml
+          -->
+    
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_setup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_setup'" />
+
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targetcontrol Tests
+                #@TestName                  Preamble
+                #@TestIssue                 452
+                #@TestPurpose               Prepare for targetcontrol tests
+                #@TestPreamble              none
+                #@TestStep                  Admin removes global search ACI
+                #@TestStep                  Admin adds ACI to access controls
+                #@TestStep                  Admin adds ACI to access effective rights
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all operations.
+            -->
+            <testcase name="getTestCaseName('Preamble')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                   'ACI: Targetcontrol: Preamble - Removing Search Global ACI'
+                </message>
+    
+                <call function="'modifyGlobalAci'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'remove' }
+                </call>
+            
+                <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <script>
+                    curr_aci_ldif_file = 'add_effrights_aci.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targetcontrol/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Targetcontrol: Preamble - Admin adding get effective rights ACI,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (logsRemoteDataDir,curr_aci_ldif_file)  }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+    
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targetcontrol Tests
+                #@TestName                  Targetcontrol using search effective rights with control allow
+                #@TestIssue                 452
+                #@TestPurpose               Test targetcontrol with search effective rights with control allow
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations, and
+                                            apprpriate entries are returned for any step.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="getTestCaseName('Basic - search with control allow')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targetcontrol/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Targetcontrol: Basic - search, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'uid aclRights roomnumber' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;uid: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching non-targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Basic - search, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'     : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+  
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targetcontrol Tests
+                #@TestName                  Targetcontrol using search effective rights with control deny 
+                #@TestIssue                 452
+                #@TestPurpose               Test targetcontrol with search effective rights with control deny
+                #@TestPreamble              Admin adds an ACI to deny effective rights control and Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
+                #@TestStep                  Admin removes ACI that denied effective rights control.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap modify operations, 50
+                                            for all effective rights search queries, and
+                                            appropriate entries are returned for any step.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="getTestCaseName('Basic - search with control deny')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    deny_aci='(targetcontrol=\"1.3.6.1.4.1.42.2.27.9.5.2\") (version 3.0; acl \"deny effective rights control\"; deny(all) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : deny_aci ,
+                    'changetype'             : 'add' }
+                </call>
+                
+                <script>
+                    curr_aci_ldif_file = 'add_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targetcontrol/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Targetcontrol: Basic - search, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'uid aclRights roomnumber' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel:' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'insufficient access rights' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching non-targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Basic - search, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : deny_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+  
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targetcontrol Tests
+                #@TestName                  Targetcontrol using search effective rights with control allow 2
+                #@TestIssue                 452
+                #@TestPurpose               Test targetcontrol with search effective rights with control allow
+                #@TestPreamble              Admin adds an aci.
+                #@TestStep                  Client searches for effective rights in an entry in the targeted branch dn.
+                #@TestStep                  Client searches for effective rights in an entry in the non-targeted branch dn.
+                #@TestStep                  Remove aci.
+                #@TestStep                  Client searches for effective rights in an entry with the previously targeted branch dn.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations, and
+                                            apprpriate entries are returned for any step.
+            -->
+          <!-- cross reference to http://docs.sun.com/source/816-6698-10/aci.html -->
+          <!-- cross reference to DS6 docs -->
+            <testcase name="getTestCaseName('Basic - search with control allow 2')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <script>
+                    curr_aci_ldif_file = 'add_aci2.ldif'
+                    curr_aci=retrieve_aci('%s/aci/aci_targetcontrol/%s' % (logsLocalDataDir,curr_aci_ldif_file));
+                </script>
+        
+                <message>
+                   'ACI: Targetcontrol: Basic - search, preamble adding aci,\n %s' % curr_aci
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/%s' % (logsRemoteDataDir,curr_aci_ldif_file) }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'uid aclRights roomnumber' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'entryLevel: add:0,delete:0,read:1,write:0,proxy:0' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;uid: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'attributeLevel;roomnumber: search:1,read:0,compare:0,write:0,selfwrite_add:0,selfwrite_delete:0,proxy:0' ,
+                      'expectedResult'     : '1' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching non-targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'searchStringForSubstring'">
+                    { 'returnString'       : returnString ,
+                      'testString'         : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' ,
+                      'expectedResult'     : '0' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Basic - search, admin deleting aci'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_aci.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <message>
+                   'ACI: Targetcontrol: Basic - search, user searching previously targeted entry'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'ACIRules' ,
+                    'dsBaseDN'         : 'uid=scarter,ou=People,ou=aci branch,o=ACI Tests,dc=example,dc=com' ,
+                    'dsFilter'         : 'objectclass=*'  ,
+                    'attributes'       : 'aclRights' ,
+                    'extraParams'      : '-T -g "dn: uid=auser,ou=people,o=ACI Tests,dc=example,dc=com" -e uid -e roomnumber -e aclRights' }
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestStringNotPresent'">
+                    { 'returnString'       : returnString ,
+                      'testString'     : 'uid=scarter,ou=People,ou=non-aci branch,o=ACI Tests,dc=example,dc=com' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+  
+           <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                ACI Targetcontrol Tests
+                #@TestName                  Postamble
+                #@TestIssue                 452
+                #@TestPurpose               Reset targetcontrol tests
+                #@TestPreamble              none
+                #@TestStep                  Admin deletes ACI to access effective rights
+                #@TestStep                  Admin puts back global search ACI
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all operations.
+            -->
+            <testcase name="getTestCaseName('Postamble')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                   'ACI: Targetcontrol: Postamble - Admin deleting get effective rights ACI'
+                </message>
+    
+                <call function="'modifyEntry'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'entryToBeModified'   : '%s/aci/aci_targetcontrol/del_effrights_aci.ldif' % (logsRemoteDataDir)  }
+                </call>
+    
+                <if expr="RC != 0">
+                    <tcstatus result="'fail'"/>
+                </if>
+    
+                <script>
+                    allow_aci='(targetcontrol=\"*\") (version 3.0; acl \"allow control access\"; allow(read) userdn=\"ldap:///anyone\";)'
+                </script>
+        
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'dc=example,dc=com' ,
+                    'attributeName'          : 'aci' ,
+                    'newAttributeValue'      : allow_aci ,
+                    'changetype'             : 'delete' }
+                </call>
+                
+                <message>
+                   'ACI: Targetcontrol: Preamble - putting back Search Global ACI'
+                </message>
+    
+                <call function="'modifyGlobalAci'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
+                    'opType'                 : 'add' }
+                </call>
+                
+               <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/aci/aci_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'aci_cleanup'" />
+  
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
