@@ -131,8 +131,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
   // Regular expression for validating class names.
   private static final String CLASS_RE =
-    "^([A-Za-z]+[A-Za-z0-9_]*)*(\\.[A-Za-z]+[A-Za-z0-9_]*)"
-      + "*([\\$][A-Za-z0-9_]+)*$";
+    "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(\\$[A-Za-z0-9_]+)*$";
 
   // Flag indicating whether class property values should be
   // validated.
