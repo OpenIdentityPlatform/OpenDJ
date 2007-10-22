@@ -62,34 +62,12 @@
                                     
           <script>
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()    
-            replServerList = master.getSynchronizedSuffixList()[0].getChangelogServerList()
             
             currentSchemaFile = '%s/config/schema/99-user.ldif' % masterPath
             provSchemaFile = '%s/../last-99-user.ldif' % masterPath                            
           </script>            
-            
-          <iterate var="server" in="_topologyServerList" indexvar="i">
-            <sequence>
-              <message>
-                'Create domain name for schema on server %s/%s' % (server.getDir(), OPENDSNAME)
-              </message>
-    
-            <call function="'createMultimasterDomain'">
-                { 'location' : server.getHostname(),
-                  'dsPath' :  '%s/%s' % (server.getDir(), OPENDSNAME),
-                  'dsInstanceHost'  : server.getHostname(),
-                  'dsInstancePort'   : server.getPort(),
-                  'dsInstanceDn'    : server.getRootDn(),
-                  'dsInstancePswd'  : server.getRootPwd(),
-                  'domainName'  : 'schema',
-                  'replicationDn'  : 'cn=schema',
-                  'serverId'  :  i + 1,
-                  'replicationServerList'  :  replServerList }
-              </call>                                  
-            </sequence>
-          </iterate>                      
-            
-                        
+              
+                                    
           <!--- Test Case information
           #@TestMarker          Replication Schema Replication Tests
           #@TestName            Replication: Schema Replication: Add objectclass
@@ -618,6 +596,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
+
+
+              <script>
+                knownIssue(2355)
+              </script>                                 
                                 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -694,11 +677,16 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+
+              <script>
+                knownIssue(2355)
+              </script> 
+                                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                                                                     
-                                                
+                                                            
                                                 
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
