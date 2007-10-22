@@ -720,19 +720,30 @@ public class EntryContainer
    * Determine the number of subordinate entries for a given entry.
    *
    * @param entryDN The distinguished name of the entry.
+   * @param subtree <code>true</code> will include all the entries under the
+   *                given entries. <code>false</code> will only return the
+   *                number of entries immediately under the given entry.
    * @return The number of subordinate entries for the given entry or -1 if
    *         the entry does not exist.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public long getNumSubordinates(DN entryDN) throws DatabaseException
+  public long getNumSubordinates(DN entryDN, boolean subtree)
+      throws DatabaseException
   {
     EntryID entryID = dn2id.get(null, entryDN);
     if (entryID != null)
     {
       DatabaseEntry key =
           new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
-      EntryIDSet entryIDSet =
-          id2children.readKey(key, null, LockMode.DEFAULT);
+      EntryIDSet entryIDSet;
+      if(!subtree)
+      {
+        entryIDSet = id2children.readKey(key, null, LockMode.DEFAULT);
+      }
+      else
+      {
+        entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
+      }
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)
       {

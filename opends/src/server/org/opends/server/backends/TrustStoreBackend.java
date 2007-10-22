@@ -1002,9 +1002,10 @@ public class TrustStoreBackend
    */
   @Override()
   public ConditionResult hasSubordinates(DN entryDN)
-         throws DirectoryException
+      throws DirectoryException
   {
-    return ConditionResult.UNDEFINED;
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_HAS_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
 
@@ -1013,9 +1014,11 @@ public class TrustStoreBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN) throws DirectoryException
+  public long numSubordinates(DN entryDN, boolean subtree)
+      throws DirectoryException
   {
-    return -1;
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
 

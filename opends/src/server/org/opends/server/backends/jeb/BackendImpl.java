@@ -264,33 +264,6 @@ public class BackendImpl
     return 0;
   }
 
-  /**
-   * This method constructs a container name from a base DN. Only alphanumeric
-   * characters are preserved, all other characters are replaced with an
-   * underscore.
-   *
-   * @param dn The base DN.
-   * @return The container name for the base DN.
-   */
-  public static String getContainerName(DN dn)
-  {
-    String normStr = dn.toNormalizedString();
-    StringBuilder builder = new StringBuilder(normStr.length());
-    for (int i = 0; i < normStr.length(); i++)
-    {
-      char ch = normStr.charAt(i);
-      if (Character.isLetterOrDigit(ch))
-      {
-        builder.append(ch);
-      }
-      else
-      {
-        builder.append('_');
-      }
-    }
-    return builder.toString();
-  }
-
 
 
   /**
@@ -641,7 +614,7 @@ public class BackendImpl
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
+    long ret = numSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -662,7 +635,8 @@ public class BackendImpl
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN) throws DirectoryException
+  public long numSubordinates(DN entryDN, boolean subtree)
+      throws DirectoryException
   {
     EntryContainer ec;
     if (rootContainer != null)
@@ -685,7 +659,7 @@ public class BackendImpl
     ec.sharedLock.lock();
     try
     {
-      long count = ec.getNumSubordinates(entryDN);
+      long count = ec.getNumSubordinates(entryDN, subtree);
       if(count == Long.MAX_VALUE)
       {
         // The index entry limit has exceeded and there is no count maintained.

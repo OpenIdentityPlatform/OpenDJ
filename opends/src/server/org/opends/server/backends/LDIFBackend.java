@@ -500,7 +500,7 @@ public class LDIFBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN)
+  public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     backendLock.readLock().lock();
@@ -525,7 +525,21 @@ public class LDIFBackend
       }
       else
       {
-        return childDNSet.size();
+        if(!subtree)
+        {
+          return childDNSet.size();
+        }
+        else
+        {
+          long count = 0;
+          for(DN childDN : childDNSet)
+          {
+            count += numSubordinates(childDN, true);
+            count ++;
+          }
+          return count;
+        }
+
       }
     }
     finally

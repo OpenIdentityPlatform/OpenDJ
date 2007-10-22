@@ -713,13 +713,16 @@ public class LDIFBackendTestCase
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
 
-    assertEquals(b.numSubordinates(DN.decode("o=ldif")), 1);
-    assertEquals(b.numSubordinates(DN.decode("uid=user.1,ou=People,o=ldif")),
-                 0);
+    assertEquals(b.numSubordinates(DN.decode("o=ldif"), false), 1);
+    assertEquals(b.numSubordinates(DN.decode("o=ldif"), true), 26);
+    assertEquals(b.numSubordinates(
+        DN.decode("uid=user.1,ou=People,o=ldif"), false), 0);
+    assertEquals(b.numSubordinates(
+        DN.decode("uid=user.1,ou=People,o=ldif"), true), 0);
 
     try
     {
-      b.numSubordinates(DN.decode("ou=nonexistent,o=ldif"));
+      b.numSubordinates(DN.decode("ou=nonexistent,o=ldif"), false);
       fail("Expected an exception when calling numSubordinates on a " +
            "non-existent entry");
     }

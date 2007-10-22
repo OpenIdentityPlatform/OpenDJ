@@ -357,7 +357,7 @@ public class BackupBackend
   @Override()
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
+    long ret = numSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -378,7 +378,8 @@ public class BackupBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN) throws DirectoryException
+  public long numSubordinates(DN entryDN, boolean subtree)
+      throws DirectoryException
   {
     // If the requested entry was null, then return undefined.
     if (entryDN == null)
@@ -400,6 +401,23 @@ public class BackupBackend
         {
           continue;
         }
+
+        // If subtree is included, count the number of entries for each
+        // backup directory.
+        if (subtree)
+        {
+          try
+          {
+            BackupDirectory backupDirectory =
+                BackupDirectory.readBackupDirectoryDescriptor(f.getPath());
+            count += backupDirectory.getBackups().keySet().size();
+          }
+          catch (Exception e)
+          {
+            return -1;
+          }
+        }
+
         count ++;
       }
       return count;

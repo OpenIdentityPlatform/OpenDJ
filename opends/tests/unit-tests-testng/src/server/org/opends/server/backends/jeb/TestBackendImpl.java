@@ -605,17 +605,23 @@ public class TestBackendImpl extends JebTestCase {
   public void testNumSubordinates() throws Exception
   {
     DN dn = DN.decode("dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), 1);
+    assertEquals(backend.numSubordinates(dn, false), 1);
+    assertEquals(backend.numSubordinates(dn, true), 13);
     dn = DN.decode("ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), 12);
+    assertEquals(backend.numSubordinates(dn, false), 12);
+    assertEquals(backend.numSubordinates(dn, true), 12);
     dn = DN.decode("dc=com");
-    assertEquals(backend.numSubordinates(dn), -1);
+    assertEquals(backend.numSubordinates(dn, false), -1);
+    assertEquals(backend.numSubordinates(dn, true), -1);
     dn = DN.decode("dc=test1,dc=com");
-    assertEquals(backend.numSubordinates(dn), 2);
+    assertEquals(backend.numSubordinates(dn, false), 2);
+    assertEquals(backend.numSubordinates(dn, true), 2);
     dn = DN.decode("uid=user.10,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), 0);
+    assertEquals(backend.numSubordinates(dn, false), 0);
+    assertEquals(backend.numSubordinates(dn, true), 0);
     dn = DN.decode("uid=does not exist,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), -1);
+    assertEquals(backend.numSubordinates(dn, false), -1);
+    assertEquals(backend.numSubordinates(dn, true), -1);
   }
 
   @Test(dependsOnMethods = "testAdd")
@@ -1543,19 +1549,25 @@ public class TestBackendImpl extends JebTestCase {
   public void testNumSubordinatesIndexEntryLimitExceeded() throws Exception
   {
     DN dn = DN.decode("dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), 1);
+    assertEquals(backend.numSubordinates(dn, false), 1);
+    assertEquals(backend.numSubordinates(dn, true), 14);
 
     // 1 entry was deleted and 2 added for a total of 13
     dn = DN.decode("ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), 13);
+    assertEquals(backend.numSubordinates(dn, false), 13);
+    assertEquals(backend.numSubordinates(dn, true), 13);
     dn = DN.decode("dc=com");
-    assertEquals(backend.numSubordinates(dn), -1);
+    assertEquals(backend.numSubordinates(dn, false), -1);
+    assertEquals(backend.numSubordinates(dn, true), -1);
     dn = DN.decode("dc=test1,dc=com");
-    assertEquals(backend.numSubordinates(dn), 2);
+    assertEquals(backend.numSubordinates(dn, false), 2);
+    assertEquals(backend.numSubordinates(dn, true), 2);
     dn = DN.decode("uid=user.10,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), 0);
+    assertEquals(backend.numSubordinates(dn, false), 0);
+    assertEquals(backend.numSubordinates(dn, true), 0);
     dn = DN.decode("uid=does not exist,ou=People,dc=test,dc=com");
-    assertEquals(backend.numSubordinates(dn), -1);
+    assertEquals(backend.numSubordinates(dn, false), -1);
+    assertEquals(backend.numSubordinates(dn, true), -1);
   }
 
 

@@ -3020,17 +3020,19 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       acquireIEContext();
 
+      // The number of entries to be exported is the number of entries under
+      // the base DN entry and the base entry itself.
+      long entryCount = backend.numSubordinates(baseDN, true) + 1;
       ieContext.exportTarget = target;
       if (initTask != null)
       {
         ieContext.initializeTask = initTask;
-        ieContext.initImportExportCounters(backend.getEntryCount());
+        ieContext.initImportExportCounters(entryCount);
       }
 
       // Send start message to the peer
       InitializeTargetMessage initializeMessage = new InitializeTargetMessage(
-          baseDN, serverId, ieContext.exportTarget, requestorID,
-          backend.getEntryCount());
+          baseDN, serverId, ieContext.exportTarget, requestorID, entryCount);
 
       broker.publish(initializeMessage);
 

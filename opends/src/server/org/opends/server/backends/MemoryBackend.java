@@ -326,7 +326,7 @@ public class MemoryBackend
   public synchronized ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
+    long ret = numSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -345,7 +345,7 @@ public class MemoryBackend
    * {@inheritDoc}
    */
   @Override()
-  public synchronized long numSubordinates(DN entryDN)
+  public synchronized long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     // Try to look up the immediate children for the DN
@@ -360,7 +360,20 @@ public class MemoryBackend
       return -1;
     }
 
-    return children.size();
+    if(!subtree)
+    {
+      return children.size();
+    }
+    else
+    {
+      long count = 0;
+      for(DN child : children)
+      {
+        count += numSubordinates(child, true);
+        count++;
+      }
+      return count;
+    }
   }
 
   /**
