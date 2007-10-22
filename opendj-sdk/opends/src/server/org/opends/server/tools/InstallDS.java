@@ -122,7 +122,11 @@ public class InstallDS  extends CliApplicationHelper
     /**
      * Error initializing server.
      */
-    ERROR_INITIALIZING_SERVER(4);
+    ERROR_INITIALIZING_SERVER(4),
+    /**
+     * The user failed providing password (for the keystore for instance).
+     */
+    ERROR_PASSWORD_LIMIT(5);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -140,6 +144,8 @@ public class InstallDS  extends CliApplicationHelper
       return returnCode;
     }
   };
+
+  private static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
 
   /**
    * The Logger.
@@ -355,19 +361,26 @@ public class InstallDS  extends CliApplicationHelper
 
     UserData uData = new UserData();
 
-    if (isInteractive())
+    try
     {
-      promptIfRequired(uData);
-    }
-    else
-    {
-      try
+      if (isInteractive())
+      {
+        promptIfRequired(uData);
+      }
+      else
       {
         initializeUserDataWithParser(uData);
       }
-      catch (UserDataException ude)
+    }
+    catch (UserDataException ude)
+    {
+      printErrorMessage(ude.getMessageObject());
+      if (isPasswordTriesError(ude.getMessageObject()))
       {
-        printErrorMessage(ude.getMessageObject());
+        return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
+      }
+      else
+      {
         return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
       }
     }
@@ -772,8 +785,10 @@ public class InstallDS  extends CliApplicationHelper
    * data or if the provided data is not valid, it prompts the user to provide
    * it.
    * @param uData the UserData object to be updated.
+   * @throws UserDataException if the user did not manage to provide the
+   * keystore password after a certain number of tries.
    */
-  private void promptIfRequired(UserData uData)
+  private void promptIfRequired(UserData uData) throws UserDataException
   {
     uData.setConfigurationClassName(argParser.configClassArg.getValue());
     uData.setConfigurationFile(argParser.configFileArg.getValue());
@@ -1221,8 +1236,11 @@ public class InstallDS  extends CliApplicationHelper
    * If the user did not provide explicitly some data or if the provided data is
    * not valid, it prompts the user to provide it.
    * @param uData the UserData object to be updated.
+   * @throws UserDataException if the user did not manage to provide the
+   * keystore password after a certain number of tries.
    */
   private void promptIfRequiredForSecurityData(UserData uData)
+  throws UserDataException
   {
     // Check that the security data provided is valid.
     boolean enableSSL = false;
@@ -1550,15 +1568,24 @@ public class InstallDS  extends CliApplicationHelper
    * @param ldapsPort the LDAPS port to use.
    * @return a SecurityOptions object that corresponds to the provided
    * parameters (or to what the user provided after being prompted).
+   * @throws UserDataException if the user did not manage to provide the
+   * keystore password after a certain number of tries.
    */
   private SecurityOptions createSecurityOptionsPrompting(
       SecurityOptions.CertificateType type, boolean enableSSL,
-      boolean enableStartTLS, int ldapsPort)
+      boolean enableStartTLS, int ldapsPort) throws UserDataException
   {
     SecurityOptions securityOptions;
     String path;
     String certNickname = argParser.certNicknameArg.getValue();
     String pwd = argParser.getKeyStorePassword();
+    if (pwd != null)
+    {
+      if (pwd.length() == 0)
+      {
+        pwd = null;
+      }
+    }
     Message pathPrompt;
     String defaultPathValue;
 
@@ -1586,6 +1613,7 @@ public class InstallDS  extends CliApplicationHelper
     LinkedList<Message> errorMessages = new LinkedList<Message>();
     LinkedList<String> keystoreAliases = new LinkedList<String>();
     boolean firstTry = true;
+    int nPasswordPrompts = 0;
 
     while ((errorMessages.size() > 0) || firstTry)
     {
@@ -1625,8 +1653,19 @@ public class InstallDS  extends CliApplicationHelper
         {
           printLineBreak();
         }
-        pwd = promptForPassword(
-            INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get());
+        pwd = null;
+        while (pwd == null)
+        {
+          if (nPasswordPrompts > LIMIT_KEYSTORE_PASSWORD_PROMPT)
+          {
+            throw new UserDataException(null,
+                ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES.get(
+                    String.valueOf(LIMIT_KEYSTORE_PASSWORD_PROMPT)));
+          }
+          pwd = promptForPassword(
+              INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get());
+          nPasswordPrompts ++;
+        }
       }
       if (containsCertNicknameErrorMessage(errorMessages))
       {
@@ -1742,6 +1781,19 @@ public class InstallDS  extends CliApplicationHelper
       }
     }
     return found;
+  }
+
+  /**
+   * Tells if the error messages provided corresponds to a problem with the
+   * password tries.
+   * @param msg the message to analyze.
+   * @return <CODE>true</CODE> if the error message provided corresponds to a
+   * problem with the password tries and <CODE>false</CODE> otherwise.
+   */
+  private boolean isPasswordTriesError(Message msg)
+  {
+    return msg.getDescriptor().equals(
+        ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES);
   }
 
   /**
