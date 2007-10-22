@@ -1,0 +1,11 @@
+dn: uid=test.user1,ou=People,o=core tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: test.user1
+givenName: Test
+sn: User1
+cn: Test User1
+userPassword: password
+ds-privilege-name: bypass-acl
