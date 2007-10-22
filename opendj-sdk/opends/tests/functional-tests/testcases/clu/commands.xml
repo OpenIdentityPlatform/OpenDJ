@@ -59,6 +59,10 @@
             file="'%s/testcases/clu/cluDelete.xml' % (TESTS_DIR)"/>
           <call function="'main_cluDelete'" /> -->
                 
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/clu/cluBase64.xml' % (TESTS_DIR)"/>
+          <call function="'main_cluBase64'" />
+
           <call function="'testGroup_Postamble'"/>
         
         </sequence>

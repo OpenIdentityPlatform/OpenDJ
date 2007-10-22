@@ -3070,5 +3070,220 @@
     
   </function>
 
-                                                
+  <!-- This function shows server status using the status script -->
+  <function name="StatusWithScript">
+    <function-prolog>
+      This function shows server status using the status script
+    </function-prolog>    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindDN" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsBindPwd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                               
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>    
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        STAFCmdParamsList.append('-n')
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/status%s' % (dsBinPath,fileExt)   
+                  
+        if dsBindDN:
+          STAFCmdParamsList.append('-D "%s"' % dsBindDN)
+        
+        if dsBindPwd:
+          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
+   
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'name'      : 'Status Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsPath
+        }
+      </call>
+
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
+      </call>
+      
+    </sequence>
+
+  </function>
+
+  <!-- This function executes the base64 encode decode utility with script -->
+  <function name="Base64WithScript">
+    <function-prolog>
+      This function executes the base64 encode decode utility with script
+    </function-prolog>    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="subcommand" type="required">
+        <function-arg-description>
+          The subcommand for base64 (encode or decode)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="rawData" type="optional">
+        <function-arg-description>
+          The raw data to be base64 encoded
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                               
+      <function-arg-def name="rawDataFile" type="optional">
+        <function-arg-description>
+          The path to a file containing the raw data to be base64 encoded
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="toEncodedFile" type="optional">
+        <function-arg-description>
+          The path to a file to which the base64-encoded data should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="encodedData" type="optional">
+        <function-arg-description>
+          The base64-encoded data to be decoded
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="encodedDataFile" type="optional">
+        <function-arg-description>
+          The path to a file containing the base64-encoded data to be decoded
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="toRawFile" type="optional">
+        <function-arg-description>
+          The path to a file to which the raw base64-decoded data should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
+      <function-arg-def name="toolHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>    
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/base64%s' % (dsBinPath,fileExt)   
+
+        if subcommand:
+          STAFCmdParamsList.append(subcommand)
+
+        if rawData:
+          STAFCmdParamsList.append('-d "%s"' % rawData)
+                    
+        if rawDataFile:
+          STAFCmdParamsList.append('-f "%s"' % rawDataFile)
+                
+        if toEncodedFile:
+          STAFCmdParamsList.append('-o "%s"' % toEncodedFile)
+                
+        if encodedData:
+          STAFCmdParamsList.append('-d "%s"' % encodedData)
+      
+        if encodedDataFile:
+          STAFCmdParamsList.append('-f "%s"' % encodedDataFile)
+
+        if toRawFile:
+          STAFCmdParamsList.append('-o "%s"' % toRawFile)
+   
+        if toolHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'name'      : 'Base 64 %s Script' % subcommand,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsPath
+        }
+      </call>
+
+      <script>
+        CmdRC=RC
+        CmdResult=STAXResult
+      </script>
+
+      <call function="'checkRC'">
+        { 'returncode' : CmdRC ,
+          'result'     : CmdResult }
+      </call>
+
+      <return>CmdResult</return>
+            
+    </sequence>
+  </function>
+                        
 </stax>
