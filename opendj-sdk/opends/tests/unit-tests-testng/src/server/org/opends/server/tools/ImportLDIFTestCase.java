@@ -115,6 +115,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f",configFilePath,
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-R", rejectFilePath,
       "-n", beID,
@@ -142,6 +143,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f",configFilePath,
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-R", rejectFilePath,
       "-n", beID,
@@ -178,6 +180,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R", rejectFilePath
@@ -213,6 +216,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l", ldifFilePath,
       "-b", baseDN,
       "-R", rejectFilePath
@@ -250,6 +254,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -282,6 +287,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -308,6 +314,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -339,6 +346,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -370,6 +378,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,
@@ -409,6 +418,7 @@ public class ImportLDIFTestCase extends ToolsTestCase {
     String[] args =
     {
       "-f", DirectoryServer.getConfigFile(),
+      "--noPropertiesFile",
       "-l",ldifFilePath,
       "-n", beID,
       "-R",rejectFilePath,

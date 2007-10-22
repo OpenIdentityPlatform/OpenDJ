@@ -27,6 +27,7 @@
 
 package org.opends.server.tools.tasks;
 
+import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
@@ -39,6 +40,7 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
 import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.core.DirectoryServer;
@@ -131,6 +133,20 @@ public abstract class TaskTool implements TaskScheduleInformation {
             INFO_DESCRIPTION_TASK_TASK_ARGS.get(), 1000);
 
     try {
+      StringArgument propertiesFileArgument = new StringArgument(
+          "propertiesFilePath",
+          null, OPTION_LONG_PROP_FILE_PATH,
+          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      argParser.addArgument(propertiesFileArgument);
+      argParser.setFilePropertiesArgument(propertiesFileArgument);
+
+     BooleanArgument noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
+     argParser.addArgument(noPropertiesFileArgument);
+     argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
+
       startArg = new StringArgument(
               OPTION_LONG_START_DATETIME,
               OPTION_SHORT_START_DATETIME,
@@ -267,7 +283,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         try {
           start = StaticUtils.parseDateTimeString(startArg.getValue());
         } catch (ParseException pe) {
-          // ignore; valiidated in validateTaskArgs()
+          // ignore; validated in validateTaskArgs()
         }
       }
     }
