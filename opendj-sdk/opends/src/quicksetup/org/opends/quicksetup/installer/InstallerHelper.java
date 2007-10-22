@@ -383,7 +383,7 @@ public class InstallerHelper {
         {
           int domainId = getReplicationId(usedServerIds);
           usedServerIds.add(domainId);
-          domainName = getDomainName(domainNames, domainId);
+          domainName = getDomainName(domainNames, domainId, dn);
           domain = sync.createReplicationDomain(
               ReplicationDomainCfgDefn.getInstance(), domainName,
               new ArrayList<DefaultBehaviorException>());
@@ -625,11 +625,13 @@ public class InstallerHelper {
    * Returns the name to be used for a new replication domain.
    * @param existingDomains the existing domains names.
    * @param newDomainId the new domain replication id.
+   * @param baseDN the base DN of the domain.
    * @return the name to be used for a new replication domain.
    */
-  public static String getDomainName(String[] existingDomains, int newDomainId)
+  public static String getDomainName(String[] existingDomains, int newDomainId,
+      String baseDN)
   {
-    String domainName = DOMAIN_BASE_NAME+newDomainId;
+    String domainName = baseDN + " ("+DOMAIN_BASE_NAME+newDomainId+")";
     boolean nameExists = true;
     int j = 0;
     while (nameExists)

@@ -5053,7 +5053,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       int domainId = InstallerHelper.getReplicationId(usedReplicationDomainIds);
       usedReplicationDomainIds.add(domainId);
-      domainName = InstallerHelper.getDomainName(domainNames, domainId);
+      domainName = InstallerHelper.getDomainName(domainNames, domainId, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
           new ArrayList<DefaultBehaviorException>());
