@@ -1163,18 +1163,18 @@ public class ConfigFileHandler
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
-    if(ret < 0)
+    ConfigEntry baseEntry = configEntries.get(entryDN);
+    if(baseEntry == null)
     {
       return ConditionResult.UNDEFINED;
     }
-    else if(ret == 0)
+    else if(baseEntry.hasChildren())
     {
-      return ConditionResult.FALSE;
+      return ConditionResult.TRUE;
     }
     else
     {
-      return ConditionResult.TRUE;
+      return ConditionResult.FALSE;
     }
   }
 
@@ -1184,8 +1184,8 @@ public class ConfigFileHandler
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN)
-         throws DirectoryException
+  public long numSubordinates(DN entryDN, boolean subtree)
+      throws DirectoryException
   {
     ConfigEntry baseEntry = configEntries.get(entryDN);
     if (baseEntry == null)
@@ -1193,7 +1193,20 @@ public class ConfigFileHandler
       return -1;
     }
 
-    return baseEntry.getChildren().size();
+    if(!subtree)
+    {
+      return baseEntry.getChildren().size();
+    }
+    else
+    {
+      long count = 0;
+      for(ConfigEntry child : baseEntry.getChildren().values())
+      {
+        count += numSubordinates(child.getDN(), true);
+        count ++;
+      }
+      return count;
+    }
   }
 
 

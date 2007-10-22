@@ -952,7 +952,7 @@ public class ReplicationBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN)
+  public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,

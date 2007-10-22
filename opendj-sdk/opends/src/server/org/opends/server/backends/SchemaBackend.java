@@ -622,7 +622,7 @@ public class SchemaBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN)
+  public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     return 0L;

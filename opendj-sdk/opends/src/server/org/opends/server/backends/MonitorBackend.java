@@ -373,7 +373,7 @@ public class MonitorBackend
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
+    long ret = numSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -394,7 +394,7 @@ public class MonitorBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN)
+  public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     // If the requested entry was null, then return undefined.
@@ -408,6 +408,8 @@ public class MonitorBackend
     // the number of monitor providers.
     if (entryDN.equals(baseMonitorDN))
     {
+      // This backend is only 1 level deep so the count is the same for
+      // subtree and immediate subordinates.
       return DirectoryServer.getMonitorProviders().size();
     }
 

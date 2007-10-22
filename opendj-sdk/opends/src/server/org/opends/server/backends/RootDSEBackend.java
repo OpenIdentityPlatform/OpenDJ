@@ -396,7 +396,7 @@ public class RootDSEBackend
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
+    long ret = numSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -417,7 +417,7 @@ public class RootDSEBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN)
+  public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     if (entryDN == null || ! entryDN.isNullDN())
@@ -439,9 +439,21 @@ public class RootDSEBackend
 
     for (DN subBase : baseMap.keySet())
     {
-      if (DirectoryServer.entryExists(subBase))
+      Backend b = baseMap.get(subBase);
+      Entry subBaseEntry = b.getEntry(subBase);
+      if (subBaseEntry != null)
       {
-        count++;
+        if(subtree)
+        {
+          long subCount = b.numSubordinates(subBase, true);
+          if(subCount < 0)
+          {
+            return -1;
+          }
+
+          count += subCount;
+        }
+        count ++;
       }
     }
 

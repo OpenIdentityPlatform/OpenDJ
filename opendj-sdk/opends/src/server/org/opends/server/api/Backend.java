@@ -433,13 +433,19 @@ public abstract class Backend
    *
    * @param entryDN The distinguished name of the entry.
    *
+   * @param subtree <code>true</code> to include all entries from the
+   *                      requested entry to the lowest level in the
+   *                      tree or <code>false</code> to only include
+   *                      the entries immediately below the requested
+   *                      entry.
+   *
    * @return The number of subordinate entries for the requested entry
    *         or -1 if it can not be determined.
    *
    * @throws DirectoryException  If a problem occurs while trying to
    *                              retrieve the entry.
    */
-  public abstract long numSubordinates(DN entryDN)
+  public abstract long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException;
 
 

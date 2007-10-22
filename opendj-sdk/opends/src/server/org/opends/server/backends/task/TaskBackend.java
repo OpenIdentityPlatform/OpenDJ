@@ -412,7 +412,7 @@ public class TaskBackend
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
-    long ret = numSubordinates(entryDN);
+    long ret = numSubordinates(entryDN, false);
     if(ret < 0)
     {
       return ConditionResult.UNDEFINED;
@@ -433,7 +433,8 @@ public class TaskBackend
    * {@inheritDoc}
    */
   @Override()
-  public long numSubordinates(DN entryDN) throws DirectoryException
+  public long numSubordinates(DN entryDN, boolean subtree)
+      throws DirectoryException
   {
     if (entryDN == null)
     {
@@ -443,7 +444,15 @@ public class TaskBackend
     if (entryDN.equals(taskRootDN))
     {
       // scheduled and recurring parents.
-      return 2;
+      if(!subtree)
+      {
+        return 2;
+      }
+      else
+      {
+        return taskScheduler.getScheduledTaskCount() +
+            taskScheduler.getRecurringTaskCount() + 2;
+      }
     }
     else if (entryDN.equals(scheduledTaskParentDN))
     {

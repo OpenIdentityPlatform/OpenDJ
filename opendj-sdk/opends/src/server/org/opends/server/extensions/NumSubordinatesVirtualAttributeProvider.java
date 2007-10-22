@@ -119,7 +119,7 @@ public class NumSubordinatesVirtualAttributeProvider
 
     try
     {
-      long count = backend.numSubordinates(entry.getDN());
+      long count = backend.numSubordinates(entry.getDN(), false);
       if(count >= 0)
       {
         AttributeValue value =
@@ -151,7 +151,7 @@ public class NumSubordinatesVirtualAttributeProvider
 
     try
     {
-       return backend.numSubordinates(entry.getDN()) >= 0;
+       return backend.numSubordinates(entry.getDN(), false) >= 0;
     }
     catch(DirectoryException de)
     {
@@ -177,7 +177,7 @@ public class NumSubordinatesVirtualAttributeProvider
 
     try
     {
-      long count = backend.numSubordinates(entry.getDN());
+      long count = backend.numSubordinates(entry.getDN(), false);
       if(count >= 0)
       {
         return Long.parseLong(value.getNormalizedStringValue()) == count;
