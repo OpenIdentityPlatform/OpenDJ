@@ -778,10 +778,20 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         app.println(pd.getDescription(), 4);
       }
 
-      PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(
-          true);
+      PropertyDefinitionUsageBuilder b =
+        new PropertyDefinitionUsageBuilder(true);
+      TableBuilder builder = new TableBuilder();
+      builder.startRow();
+      builder.appendCell(INFO_EDITOR_HEADING_SYNTAX.get());
+      builder.appendCell(b.getUsage(pd));
+
+      TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
+      printer.setDisplayHeadings(false);
+      printer.setIndentWidth(4);
+      printer.setColumnWidth(1, 0);
+
       app.println();
-      app.println(INFO_EDITOR_HEADING_SYNTAX.get(b.getUsage(pd)), 4);
+      builder.print(printer);
       app.println();
 
       return app.readValidatedInput(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING_CONT

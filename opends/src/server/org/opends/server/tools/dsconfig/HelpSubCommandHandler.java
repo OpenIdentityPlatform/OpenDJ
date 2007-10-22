@@ -268,7 +268,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       @Override
       public Void visitString(StringPropertyDefinition d, PrintStream p) {
         PropertyDefinitionUsageBuilder usageBuilder =
-          new PropertyDefinitionUsageBuilder(true);
+          new PropertyDefinitionUsageBuilder(false);
 
         TableBuilder builder = new TableBuilder();
         builder.startRow();
