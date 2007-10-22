@@ -179,6 +179,19 @@ public class ManageTasks extends ConsoleApplication {
     // parser.
     try {
 
+       StringArgument propertiesFileArgument = new StringArgument(
+          "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
+          true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      argParser.addArgument(propertiesFileArgument);
+      argParser.setFilePropertiesArgument(propertiesFileArgument);
+
+      BooleanArgument noPropertiesFileArgument = new BooleanArgument(
+          "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+          INFO_DESCRIPTION_NO_PROP_FILE.get());
+      argParser.addArgument(noPropertiesFileArgument);
+      argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
+
       task = new StringArgument(
               "info", 'i', "info",
               false, true, "{taskID}",
