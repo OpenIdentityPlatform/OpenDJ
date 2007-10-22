@@ -93,6 +93,9 @@ public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
   public Object[][] createBuilderAddInstanceOfData2() {
     return new Object[][]{
             { "1" },
+            { "" },
+            { " " },
+            { "  " },
             { "abc." },
             { "abc.123" },
             { "abc.123$" },
