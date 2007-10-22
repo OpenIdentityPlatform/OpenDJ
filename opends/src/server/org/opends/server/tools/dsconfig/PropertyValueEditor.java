@@ -1998,12 +1998,12 @@ final class PropertyValueEditor {
     List<T> vl = new ArrayList<T>(values);
     for (int i = 0, j = rows; i < rows; i++, j++) {
       builder.startRow();
-      builder.appendCell(INFO_EDITOR_OPTION_VALUES.get(i + 1));
+      builder.appendCell("*)");
       builder.appendCell(valuePrinter.print(pd, vl.get(i)));
 
       if (useMultipleColumns && (j < sz)) {
         builder.appendCell();
-        builder.appendCell(INFO_EDITOR_OPTION_VALUES.get(j + 1));
+        builder.appendCell("*)");
         builder.appendCell(valuePrinter.print(pd, vl.get(j)));
       }
     }
