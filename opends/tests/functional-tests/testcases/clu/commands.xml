@@ -42,12 +42,12 @@
           </script>
       
           <call function="'testGroup_Preamble'"/>
-                        
+                  
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluSearch.xml' % (TESTS_DIR)"/>
           <call function="'main_cluSearch'" />
                       
-       <!--   <import machine="STAF_LOCAL_HOSTNAME"
+          <!-- <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluModify.xml' % (TESTS_DIR)"/>
           <call function="'main_cluModify'" /> -->
                                 
@@ -62,6 +62,10 @@
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/clu/cluBase64.xml' % (TESTS_DIR)"/>
           <call function="'main_cluBase64'" />
+
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/clu/cluStatus.xml' % (TESTS_DIR)"/>
+          <call function="'main_cluStatus'" />
 
           <call function="'testGroup_Postamble'"/>
         

@@ -3088,19 +3088,19 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-      <function-arg-def name="dsBindDN" type="optional">
+      <function-arg-def name="dsBindDN" type="optional" default="''">
         <function-arg-description>
           Bind DN
         </function-arg-description>
         <function-arg-property name="type" value="DN"/>
       </function-arg-def> 
-      <function-arg-def name="dsBindPwd" type="optional">
+      <function-arg-def name="dsBindPwd" type="optional" default="''">
         <function-arg-description>
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>                               
-      <function-arg-def name="dsHelp" type="optional">
+      <function-arg-def name="dsHelp" type="optional" default="''">
         <function-arg-description>
           Help option
         </function-arg-description>
@@ -3144,10 +3144,17 @@
         }
       </call>
 
+      <script>
+        CmdRC=RC
+        CmdResult=STAXResult
+      </script>
+
       <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+        { 'returncode' : CmdRC ,
+          'result'     : CmdResult }
       </call>
+
+      <return>CmdResult</return>
       
     </sequence>
 
@@ -3177,43 +3184,43 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def> 
-      <function-arg-def name="rawData" type="optional">
+      <function-arg-def name="rawData" type="optional" default="''">
         <function-arg-description>
           The raw data to be base64 encoded
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>                               
-      <function-arg-def name="rawDataFile" type="optional">
+      <function-arg-def name="rawDataFile" type="optional" default="''">
         <function-arg-description>
           The path to a file containing the raw data to be base64 encoded
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="toEncodedFile" type="optional">
+      <function-arg-def name="toEncodedFile" type="optional" default="''">
         <function-arg-description>
           The path to a file to which the base64-encoded data should be written
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="encodedData" type="optional">
+      <function-arg-def name="encodedData" type="optional" default="''">
         <function-arg-description>
           The base64-encoded data to be decoded
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="encodedDataFile" type="optional">
+      <function-arg-def name="encodedDataFile" type="optional" default="''">
         <function-arg-description>
           The path to a file containing the base64-encoded data to be decoded
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="toRawFile" type="optional">
+      <function-arg-def name="toRawFile" type="optional" default="''">
         <function-arg-description>
           The path to a file to which the raw base64-decoded data should be written
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>      
-      <function-arg-def name="toolHelp" type="optional">
+      <function-arg-def name="toolHelp" type="optional" default="''">
         <function-arg-description>
           Help option
         </function-arg-description>
