@@ -730,6 +730,6 @@ public class ConfigFromFile
   private BaseDNDescriptor getBaseDNDescriptor(Entry entry, String baseDn)
   {
     return new BaseDNDescriptor(BaseDNDescriptor.Type.NOT_REPLICATED,
-        baseDn, null, -1, -1);
+        baseDn, null, -1, -1, -1);
   }
 }

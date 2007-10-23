@@ -35,15 +35,19 @@ import java.util.List;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteStringFactory;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
 
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -65,6 +69,10 @@ public class BackendMonitor
   // The attribute type that will be used to report the number of entries.
   private AttributeType entryCountType;
 
+  // The attribute type that will be used to report the number of entries per
+  // base DN.
+  private AttributeType baseDNEntryCountType;
+
   // The attribute type that will be used to indicate if a backend is private.
   private AttributeType isPrivateType;
 
@@ -77,7 +85,10 @@ public class BackendMonitor
   // The name for this monitor.
   private String monitorName;
 
-
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * Creates a new instance of this backend monitor provider that will work with
@@ -111,6 +122,10 @@ public class BackendMonitor
 
     entryCountType =
          DirectoryConfig.getAttributeType(ATTR_MONITOR_BACKEND_ENTRY_COUNT,
+                                          true);
+
+    baseDNEntryCountType =
+         DirectoryConfig.getAttributeType(ATTR_MONITOR_BASE_DN_ENTRY_COUNT,
                                           true);
 
     isPrivateType =
@@ -196,10 +211,45 @@ public class BackendMonitor
                             values));
 
     values = new LinkedHashSet<AttributeValue>();
+    long backendCount = backend.getEntryCount();
     values.add(new AttributeValue(entryCountType,
-         ByteStringFactory.create(String.valueOf(backend.getEntryCount()))));
+         ByteStringFactory.create(String.valueOf(backendCount))));
     attrs.add(new Attribute(entryCountType, ATTR_MONITOR_BACKEND_ENTRY_COUNT,
                             values));
+
+    values = new LinkedHashSet<AttributeValue>();
+    if (baseDNs.length != 1)
+    {
+      for (DN dn : baseDNs)
+      {
+        long entryCount = -1;
+        try
+        {
+          entryCount = backend.numSubordinates(dn, true) + 1;
+        }
+        catch (Exception ex)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          }
+        }
+        String s = entryCount + " " + dn.toString();
+        values.add(new AttributeValue(baseDNEntryCountType,
+            ByteStringFactory.create(s)));
+      }
+    }
+    else
+    {
+      // This is done to avoid recalculating the number of entries using the
+      // hasNumSubordinates method in the case where the backend has a single
+      // base DN.
+      String s = backendCount + " " + baseDNs[0].toString();
+      values.add(new AttributeValue(baseDNEntryCountType,
+          ByteStringFactory.create(s)));
+    }
+    attrs.add(new Attribute(baseDNEntryCountType,
+        ATTR_MONITOR_BASE_DN_ENTRY_COUNT, values));
 
     values = new LinkedHashSet<AttributeValue>();
     values.add(new AttributeValue(writabilityModeType,

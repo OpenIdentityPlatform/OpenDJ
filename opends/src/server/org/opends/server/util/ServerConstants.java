@@ -255,6 +255,12 @@ public final class ServerConstants
        "ds-backend-entry-count";
 
 
+  /**
+   * The name of the monitor attribute that is used to hold the base DN entry
+   * count.
+   */
+  public static final String ATTR_MONITOR_BASE_DN_ENTRY_COUNT =
+       "ds-base-dn-entry-count";
 
   /**
    * The name of the monitor attribute that is used to hold the backend

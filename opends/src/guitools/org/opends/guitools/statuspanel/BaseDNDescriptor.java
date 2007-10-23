@@ -56,6 +56,7 @@ public class BaseDNDescriptor implements Comparable
     REPLICATED
   };
 
+  private int nEntries;
   private int missingChanges;
   private DatabaseDescriptor db;
   private int ageOfOldestMissingChange;
@@ -71,15 +72,17 @@ public class BaseDNDescriptor implements Comparable
    * @param type the type of replication.
    * @param baseDn the base DN associated with the Replication.
    * @param db the database containing this base DN.
+   * @param nEntries the number of entries for the base DN.
    * @param ageOfOldestMissingChange the number of missing changes.
    * @param missingChanges the number of missing changes.
    */
   public BaseDNDescriptor(Type type, String baseDn, DatabaseDescriptor db,
-      int ageOfOldestMissingChange, int missingChanges)
+      int nEntries, int ageOfOldestMissingChange, int missingChanges)
   {
     this.baseDn = baseDn;
     this.db = db;
     this.type = type;
+    this.nEntries = nEntries;
     this.ageOfOldestMissingChange = ageOfOldestMissingChange;
     this.missingChanges = missingChanges;
     try
@@ -130,7 +133,7 @@ public class BaseDNDescriptor implements Comparable
         (getMissingChanges() == desc.getMissingChanges()) &&
         getDatabase().getBackendID().equals(
             desc.getDatabase().getBackendID()) &&
-        (getDatabase().getEntries() == desc.getDatabase().getEntries());
+        (getEntries() == desc.getEntries());
       }
     }
     else
@@ -162,6 +165,14 @@ public class BaseDNDescriptor implements Comparable
     return returnValue;
   }
 
+  /**
+   * Returns the number of entries in the database for this base DN.
+   * @return the number of entries in the database for this base DN.
+   */
+  public int getEntries()
+  {
+    return nEntries;
+  }
 
   /**
    * Returns the number of missing changes in the replication topology for
@@ -219,6 +230,15 @@ public class BaseDNDescriptor implements Comparable
   void setDatabase(DatabaseDescriptor db)
   {
     this.db = db;
+  }
+
+  /**
+   * Sets the number of entries for this base DN in this database.
+   * @param nEntries the number of entries.
+   */
+  void setEntries(int nEntries)
+  {
+    this.nEntries = nEntries;
   }
 
   private String unescapeUtf8(String v) throws UnsupportedEncodingException
