@@ -413,8 +413,8 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
   private int compareEntries(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
-    int n1 = desc1.getDatabase().getEntries();
-    int n2 = desc2.getDatabase().getEntries();
+    int n1 = desc1.getEntries();
+    int n2 = desc2.getEntries();
     return compareIntegers(n1, n2);
   }
 
@@ -458,27 +458,13 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
 
   /**
    * Returns the Object describing the number of entries of a given Base DN.
-   * The Object will be an Integer unless the database of the Base DN contains
-   * several Base DNs.  In this case we return a String.
+   * The Object will be an Integer.
    * @param rep the Base DN object to handle.
    * @return the Object describing the number of entries of a given Base DN.
    */
   private Object getValueForEntries(BaseDNDescriptor rep)
   {
-    Object v;
-    int nEntries = rep.getDatabase().getEntries();
-    if ((rep.getDatabase().getBaseDns().size() > 1) &&
-      (nEntries >= 0))
-    {
-      v = INFO_NUMBER_ENTRIES_MULTIPLE_SUFFIXES_IN_DB.get(
-              String.valueOf(nEntries),
-              rep.getDatabase().getBackendID());
-    }
-    else
-    {
-      v = new Integer(nEntries);
-    }
-    return v;
+    return rep.getEntries();
   }
 
   /**

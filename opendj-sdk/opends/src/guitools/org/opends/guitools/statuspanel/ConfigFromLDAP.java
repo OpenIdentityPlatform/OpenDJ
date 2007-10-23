@@ -29,6 +29,7 @@ package org.opends.guitools.statuspanel;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -43,6 +44,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.messages.Message;
@@ -798,8 +800,8 @@ public class ConfigFromLDAP
       type = BaseDNDescriptor.Type.NOT_REPLICATED;
     }
 
-    return new BaseDNDescriptor(type, baseDn, null, ageOfOldestMissingChange,
-      missingChanges);
+    return new BaseDNDescriptor(type, baseDn, null, -1,
+        ageOfOldestMissingChange, missingChanges);
   }
 
   /**
@@ -932,13 +934,35 @@ public class ConfigFromLDAP
       Set<String> baseDns = getValues(entry, "ds-cfg-base-dn");
       TreeSet<BaseDNDescriptor> replicas = new TreeSet<BaseDNDescriptor>();
       int nEntries = getEntryCount(ctx, id);
-
+      Set<String> baseDnEntries = getBaseDNEntryCount(ctx, id);
       DatabaseDescriptor db = new DatabaseDescriptor(id, replicas, nEntries);
 
       for (String baseDn : baseDns)
       {
         BaseDNDescriptor rep = getBaseDNDescriptor(ctx, baseDn);
         rep.setDatabase(db);
+        nEntries = -1;
+        for (String s : baseDnEntries)
+        {
+          int index = s.indexOf(" ");
+          if (index != -1)
+          {
+            String dn = s.substring(index +1);
+            if (Utils.areDnsEqual(baseDn, dn))
+            {
+              try
+              {
+                nEntries = Integer.parseInt(s.substring(0, index));
+              }
+              catch (Throwable t)
+              {
+                /* Ignore */
+              }
+              break;
+            }
+          }
+        }
+        rep.setEntries(nEntries);
         db.getBaseDns().add(rep);
       }
 
@@ -1018,5 +1042,37 @@ public class ConfigFromLDAP
   private boolean isConfigBackend(String id)
   {
     return ConfigFromFile.isConfigBackend(id);
+  }
+
+  /**
+   * Returns the values of the ds-base-dn-entry count attributes for the given
+   * backend monitor entry using the provided InitialLdapContext.
+   * @param ctx the InitialLdapContext to use to update the configuration.
+   * @param backendID the id of the backend.
+   * @return the values of the ds-base-dn-entry count attribute.
+   * @throws NamingException if there was an error.
+   */
+  private static Set<String> getBaseDNEntryCount(InitialLdapContext ctx,
+      String backendID) throws NamingException
+  {
+    LinkedHashSet<String> v = new LinkedHashSet<String>();
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "ds-base-dn-entry-count"
+        });
+    String filter = "(ds-backend-id="+backendID+")";
+
+    LdapName jndiName = new LdapName("cn=monitor");
+    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+
+    while(listeners.hasMore())
+    {
+      SearchResult sr = (SearchResult)listeners.next();
+
+      v.addAll(ConnectionUtils.getValues(sr, "ds-base-dn-entry-count"));
+    }
+    return v;
   }
 }

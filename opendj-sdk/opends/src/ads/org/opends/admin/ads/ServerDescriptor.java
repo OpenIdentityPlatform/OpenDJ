@@ -681,7 +681,7 @@ public class ServerDescriptor
       {
         Set<String> baseDns = getValues(sr, "ds-cfg-base-dn");
 
-        int nEntries = getEntryCount(ctx, id);
+        Set<String> entries = getBaseDNEntryCount(ctx, id);
 
         Set<ReplicaDescriptor> replicas = desc.getReplicas();
         for (String baseDn : baseDns)
@@ -695,15 +695,28 @@ public class ServerDescriptor
           r.add(replica);
           suffix.setReplicas(r);
           replica.setSuffix(suffix);
-          if (baseDns.size() == 1)
+          int nEntries = -1;
+          for (String s : entries)
           {
-            replica.setEntries(nEntries);
+            int index = s.indexOf(" ");
+            if (index != -1)
+            {
+              String dn = s.substring(index + 1);
+              if (Utils.areDnsEqual(baseDn, dn))
+              {
+                try
+                {
+                  nEntries = Integer.parseInt(s.substring(0, index));
+                }
+                catch (Throwable t)
+                {
+                  /* Ignore */
+                }
+                break;
+              }
+            }
           }
-          else
-          {
-            /* Cannot know how many entries correspond to this replica */
-            replica.setEntries(-1);
-          }
+          replica.setEntries(nEntries);
         }
         desc.setReplicas(replicas);
       }
@@ -1031,23 +1044,22 @@ public class ServerDescriptor
   }
 
   /**
-   * Returns the number of entries in a given backend using the provided
-   * InitialLdapContext.
+   * Returns the values of the ds-base-dn-entry count attributes for the given
+   * backend monitor entry using the provided InitialLdapContext.
    * @param ctx the InitialLdapContext to use to update the configuration.
    * @param backendID the id of the backend.
-   * @return the number of entries in the backend.
+   * @return the values of the ds-base-dn-entry count attribute.
    * @throws NamingException if there was an error.
    */
-  private static int getEntryCount(InitialLdapContext ctx, String backendID)
-  throws NamingException
+  private static Set<String> getBaseDNEntryCount(InitialLdapContext ctx,
+      String backendID) throws NamingException
   {
-    int nEntries = -1;
-    String v = null;
+    LinkedHashSet<String> v = new LinkedHashSet<String>();
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-backend-entry-count"
+            "ds-base-dn-entry-count"
         });
     String filter = "(ds-backend-id="+backendID+")";
 
@@ -1058,18 +1070,9 @@ public class ServerDescriptor
     {
       SearchResult sr = (SearchResult)listeners.next();
 
-      v = getFirstValue(sr, "ds-backend-entry-count");
+      v.addAll(getValues(sr, "ds-base-dn-entry-count"));
     }
-    try
-    {
-      nEntries = Integer.parseInt(v);
-    }
-    catch (Exception ex)
-    {
-      /* ignore */
-    }
-    return nEntries;
-
+    return v;
   }
 
   /*
