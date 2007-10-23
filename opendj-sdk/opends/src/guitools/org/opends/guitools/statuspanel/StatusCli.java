@@ -578,43 +578,61 @@ class StatusCli extends CliApplicationHelper
         INFO_JAVA_VERSION_LABEL.get()
       };
     int labelWidth = 0;
-    for (int i=0; i<labels.length; i++)
-    {
-      labelWidth = Math.max(labelWidth, labels[i].length());
-    }
-    out.println();
     Message title = INFO_SERVER_STATUS_TITLE.get();
-    out.println(centerTitle(title));
+    if (!isScriptFriendly())
+    {
+      for (int i=0; i<labels.length; i++)
+      {
+        labelWidth = Math.max(labelWidth, labels[i].length());
+      }
+      out.println();
+      out.println(centerTitle(title));
+    }
     writeStatusContents(desc, labelWidth);
     writeCurrentConnectionContents(desc, labelWidth);
-    out.println();
+    if (!isScriptFriendly())
+    {
+      out.println();
+    }
 
     title = INFO_SERVER_DETAILS_TITLE.get();
-    out.println(centerTitle(title));
+    if (!isScriptFriendly())
+    {
+      out.println(centerTitle(title));
+    }
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
     writeInstallPathContents(desc, labelWidth);
     writeVersionContents(desc, labelWidth);
     writeJavaVersionContents(desc, labelWidth);
-    out.println();
+    if (!isScriptFriendly())
+    {
+      out.println();
+    }
 
     writeListenerContents(desc);
-    out.println();
+    if (!isScriptFriendly())
+    {
+      out.println();
+    }
 
     writeDatabaseContents(desc);
 
     writeErrorContents(desc);
 
-    if (displayMustStartLegend)
+    if (!isScriptFriendly())
     {
-      out.println();
-      out.println(wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
-    }
-    else if (displayMustAuthenticateLegend)
-    {
-      out.println();
-      out.println(
-          wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
+      if (displayMustStartLegend)
+      {
+        out.println();
+        out.println(wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
+      }
+      else if (displayMustAuthenticateLegend)
+      {
+        out.println();
+        out.println(
+            wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
+      }
     }
     out.println();
   }
@@ -830,8 +848,11 @@ class StatusCli extends CliApplicationHelper
    */
   private void writeListenerContents(ServerStatusDescriptor desc)
   {
-    Message title = INFO_LISTENERS_TITLE.get();
-    out.println(centerTitle(title));
+    if (!isScriptFriendly())
+    {
+      Message title = INFO_LISTENERS_TITLE.get();
+      out.println(centerTitle(title));
+    }
 
     Set<ListenerDescriptor> allListeners = desc.getListeners();
 
@@ -879,7 +900,10 @@ class StatusCli extends CliApplicationHelper
   private void writeDatabaseContents(ServerStatusDescriptor desc)
   {
     Message title = INFO_DATABASES_TITLE.get();
-    out.println(centerTitle(title));
+    if (!isScriptFriendly())
+    {
+      out.println(centerTitle(title));
+    }
 
     Set<DatabaseDescriptor> databases = desc.getDatabases();
 
@@ -1039,19 +1063,30 @@ class StatusCli extends CliApplicationHelper
         headerLine.append(" ");
       }
     }
-    out.println(wrap(headerLine.toMessage()));
-    MessageBuilder t = new MessageBuilder();
-    for (int i=0; i<headerLine.length(); i++)
+    if (!isScriptFriendly())
     {
-      t.append("=");
+      out.println(wrap(headerLine.toMessage()));
+      MessageBuilder t = new MessageBuilder();
+      for (int i=0; i<headerLine.length(); i++)
+      {
+        t.append("=");
+      }
+      out.println(wrap(t.toMessage()));
     }
-    out.println(wrap(t.toMessage()));
 
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
+      if (isScriptFriendly())
+      {
+        out.println("-");
+      }
       MessageBuilder line = new MessageBuilder();
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
+        if (isScriptFriendly())
+        {
+          line.append(tableModel.getColumnName(j)+": ");
+        }
         int extra = maxWidths[j];
         Object v = tableModel.getValueAt(i, j);
         if (v != null)
@@ -1085,14 +1120,24 @@ class StatusCli extends CliApplicationHelper
           {
             throw new IllegalStateException("Unknown object type: "+v);
           }
-
+          if (isScriptFriendly())
+          {
+            out.println(wrap(line.toMessage()));
+            line = new MessageBuilder();
+          }
         }
-        for (int k=0; k<extra; k++)
+        if (!isScriptFriendly())
         {
-          line.append(" ");
+          for (int k=0; k<extra; k++)
+          {
+            line.append(" ");
+          }
         }
       }
-      out.println(wrap(line.toMessage()));
+      if (!isScriptFriendly())
+      {
+        out.println(wrap(line.toMessage()));
+      }
     }
   }
 
@@ -1128,7 +1173,11 @@ class StatusCli extends CliApplicationHelper
     Message replicatedLabel = INFO_BASEDN_REPLICATED_LABEL.get();
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
-      if (i > 0)
+      if (isScriptFriendly())
+      {
+        out.println("-");
+      }
+      else if (i > 0)
       {
         out.println();
       }
@@ -1253,5 +1302,16 @@ class StatusCli extends CliApplicationHelper
   private ApplicationTrustManager getTrustManager()
   {
     return argParser.getTrustManager();
+  }
+
+  /**
+   * Tells whether the user specified to have a script-friendly output or not.
+   * This method must be called after calling parseArguments.
+   * @return <CODE>true</CODE> if the user specified to have a script-friendly
+   * output and <CODE>false</CODE> otherwise.
+   */
+  private boolean isScriptFriendly()
+  {
+    return argParser.isScriptFriendly();
   }
 }
