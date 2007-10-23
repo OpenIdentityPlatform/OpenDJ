@@ -28,6 +28,7 @@
 package org.opends.quicksetup.ui;
 
 import org.opends.messages.Message;
+import org.opends.quicksetup.util.Utils;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -531,19 +532,22 @@ public class UIFactory
       new HashMap<IconType, ImageIcon>();
 
   static {
-    try
+    if (!Utils.isCli())
     {
-      UIManager.put("OptionPane.background",
-          getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
-      UIManager.put("Panel.background",
-          getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
-      UIManager.put("ComboBox.background",
-          getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
-    }
-    catch (Throwable t)
-    {
-      // This might occur when we do not get the display
-      LOG.log(Level.WARNING, "Error updating UIManager: "+t, t);
+      try
+      {
+        UIManager.put("OptionPane.background",
+            getColor(INFO_OPTIONPANE_BACKGROUND_COLOR.get()));
+        UIManager.put("Panel.background",
+            getColor(INFO_PANEL_BACKGROUND_COLOR.get()));
+        UIManager.put("ComboBox.background",
+            getColor(INFO_COMBOBOX_BACKGROUND_COLOR.get()));
+      }
+      catch (Throwable t)
+      {
+        // This might occur when we do not get the display
+        LOG.log(Level.WARNING, "Error updating UIManager: "+t, t);
+      }
     }
   }
 
