@@ -412,6 +412,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     baseDNsArg = new StringArgument("baseDNs", OPTION_SHORT_BASEDN,
         OPTION_LONG_BASEDN, false, true, true, OPTION_VALUE_BASEDN, null,
         null, INFO_DESCRIPTION_REPLICATION_BASEDNS.get());
+    baseDNsArg.setPropertyName(OPTION_LONG_BASEDN);
     defaultArgs.add(index++, baseDNsArg);
 
     adminUidArg = new StringArgument("adminUID", 'I',
@@ -419,6 +420,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
             ENABLE_REPLICATION_SUBCMD_NAME));
+    adminUidArg.setPropertyName("adminUID");
     defaultArgs.add(index++, adminUidArg);
 
     adminPasswordArg = new StringArgument("adminPassword",
@@ -447,6 +449,20 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         OPTION_LONG_QUIET,
         INFO_REPLICATION_DESCRIPTION_QUIET.get());
     defaultArgs.add(quietArg);
+
+    StringArgument propertiesFileArgument = new StringArgument(
+        "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
+        true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    defaultArgs.add(propertiesFileArgument);
+    setFilePropertiesArgument(propertiesFileArgument);
+
+    BooleanArgument noPropertiesFileArgument = new BooleanArgument(
+        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    defaultArgs.add(noPropertiesFileArgument);
+    setNoPropertiesFileArgument(noPropertiesFileArgument);
+
     initializeGlobalArguments(defaultArgs);
   }
 
