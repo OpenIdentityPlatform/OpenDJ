@@ -49,6 +49,11 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   private BooleanArgument noPromptArg;
 
   /**
+   * The 'scriptFriendly' argument.
+   */
+  private BooleanArgument scriptFriendlyArg;
+
+  /**
    * Creates a new instance of this argument parser with no arguments.
    *
    * @param mainClassName
@@ -86,6 +91,12 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
         ToolConstants.OPTION_LONG_NO_PROMPT,
         INFO_DESCRIPTION_NO_PROMPT.get());
     defaultArgs.add(0, noPromptArg);
+    scriptFriendlyArg = new BooleanArgument(
+        "script-friendly",
+        's',
+        "script-friendly",
+        INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+    defaultArgs.add(1, scriptFriendlyArg);
     initializeGlobalArguments(defaultArgs);
   }
 
@@ -98,6 +109,17 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   public boolean isInteractive()
   {
     return !noPromptArg.isPresent();
+  }
+
+  /**
+   * Tells whether the user specified to have a script-friendly output or not.
+   * This method must be called after calling parseArguments.
+   * @return <CODE>true</CODE> if the user specified to have a script-friendly
+   * output and <CODE>false</CODE> otherwise.
+   */
+  public boolean isScriptFriendly()
+  {
+    return scriptFriendlyArg.isPresent();
   }
 
   /**
