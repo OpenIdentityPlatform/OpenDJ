@@ -2863,7 +2863,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (DirectoryException de)
     {
-      throw new IOException(de);
+      throw new IOException(de.getMessage());
     }
   }
 
