@@ -460,17 +460,25 @@ public class Aci  {
          return AciTargets.isTargetApplicable(aci, matchCtx) &&
                 AciTargets.isTargetControlApplicable(aci, matchCtx);
       } else {
+        //If an ACI has extOp or targetControl targets skip it because the
+        //matchCtx right does not contain either ACI_EXT_OP or ACI_CONTROL at
+        //this point.
+        if(aci.getTargets().getExtOp() != null ||
+          (aci.getTargets().getTargetControl() != null)) {
+           return false;
+        } else {
         int ctxRights = matchCtx.getRights();
-        //First check if the ACI and context have similar rights.
+        //Check if the ACI and context have similar rights.
         if(!aci.hasRights(ctxRights)) {
           if(!(aci.hasRights(ACI_SEARCH| ACI_READ) &&
                   matchCtx.hasRights(ACI_SEARCH | ACI_READ)))
             return false;
         }
-        return AciTargets.isTargetApplicable(aci, matchCtx) &&
+        return  AciTargets.isTargetApplicable(aci, matchCtx) &&
                 AciTargets.isTargetFilterApplicable(aci, matchCtx) &&
                 AciTargets.isTargAttrFiltersApplicable(aci, matchCtx) &&
                 AciTargets.isTargetAttrApplicable(aci, matchCtx);
+      }
       }
     }
 
