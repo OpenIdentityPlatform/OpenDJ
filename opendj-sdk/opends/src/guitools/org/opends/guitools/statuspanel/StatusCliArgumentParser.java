@@ -29,6 +29,9 @@ package org.opends.guitools.statuspanel;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.OPTION_LONG_NO_PROP_FILE;
+import static org.opends.server.tools.ToolConstants.OPTION_LONG_PROP_FILE_PATH;
+import static org.opends.server.tools.ToolConstants.OPTION_VALUE_PROP_FILE_PATH;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
+import org.opends.server.util.args.StringArgument;
 
 /**
  * The class that is used to parse the arguments provided in the status command
@@ -91,12 +95,27 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
         ToolConstants.OPTION_LONG_NO_PROMPT,
         INFO_DESCRIPTION_NO_PROMPT.get());
     defaultArgs.add(0, noPromptArg);
+
     scriptFriendlyArg = new BooleanArgument(
         "script-friendly",
         's',
         "script-friendly",
         INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
     defaultArgs.add(1, scriptFriendlyArg);
+
+    StringArgument propertiesFileArgument = new StringArgument(
+        "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
+        true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    defaultArgs.add(propertiesFileArgument);
+    setFilePropertiesArgument(propertiesFileArgument);
+
+    BooleanArgument noPropertiesFileArgument = new BooleanArgument(
+        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
+        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    defaultArgs.add(noPropertiesFileArgument);
+    setNoPropertiesFileArgument(noPropertiesFileArgument);
+
     initializeGlobalArguments(defaultArgs);
   }
 
