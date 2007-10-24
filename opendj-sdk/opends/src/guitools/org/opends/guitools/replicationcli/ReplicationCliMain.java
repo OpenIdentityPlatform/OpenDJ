@@ -5476,8 +5476,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           if (displayProgress)
           {
-            if (!msg.equals(lastDisplayedMsg) &&
-                ((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
+            if (((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
                 !msg.equals(lastDisplayedMsg))
             {
               printProgressMessage(msg);
@@ -5504,6 +5503,12 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           isOver = true;
           Message errorMsg;
+          if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
+          {
+            printProgressMessage(msg);
+            lastDisplayedMsg = msg;
+            printProgressLineBreak();
+          }
           if (lastLogMsg == null)
           {
             errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
@@ -5543,11 +5548,14 @@ public class ReplicationCliMain extends CliApplicationHelper
               throw ae;
             }
           }
-          else if (displayProgress)
-          {
+          else
+            {
+            if (displayProgress)
+            {
+              printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+              printProgressLineBreak();
+            }
             LOG.log(Level.INFO, "Initialization completed successfully.");
-            printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
-            printProgressLineBreak();
           }
         }
       }
