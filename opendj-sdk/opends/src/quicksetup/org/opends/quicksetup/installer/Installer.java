@@ -4069,8 +4069,7 @@ public abstract class Installer extends GuiApplication {
           }
           if (displayProgress)
           {
-            if (!msg.equals(lastDisplayedMsg) &&
-                ((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
+            if (((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
                 !msg.equals(lastDisplayedMsg))
             {
               notifyListeners(getFormattedProgress(msg));
@@ -4097,6 +4096,13 @@ public abstract class Installer extends GuiApplication {
         {
           isOver = true;
           Message errorMsg;
+          if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
+          {
+            notifyListeners(getFormattedProgress(msg));
+            lastDisplayedMsg = msg;
+            notifyListeners(getLineBreak());
+          }
+
           if (lastLogMsg == null)
           {
             errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
