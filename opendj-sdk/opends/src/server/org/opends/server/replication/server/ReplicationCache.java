@@ -617,10 +617,14 @@ public class ReplicationCache
     {
       if (!senderHandler.isReplicationServer())
       {
-        // Send to all replicationServers
-        for (ServerHandler destinationHandler : replicationServers.values())
+        // Send to all replication servers with a least one remote
+        // server connected
+        for (ServerHandler rsh : replicationServers.values())
         {
-          servers.add(destinationHandler);
+          if (!rsh.getRemoteLDAPServers().isEmpty())
+          {
+            servers.add(rsh);
+          }
         }
       }
 
@@ -651,6 +655,8 @@ public class ReplicationCache
         {
           for (ServerHandler h : replicationServers.values())
           {
+            // Send to all replication servers with a least one remote
+            // server connected
             if (h.isRemoteLDAPServer(msg.getDestination()))
             {
               servers.add(h);
@@ -696,13 +702,16 @@ public class ReplicationCache
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get());
-      mb.append(" unreachable server ID=" + msg.getDestination());
-      mb.append(" unroutable message =" + msg);
+      mb.append(" In Replication Server=" + this.replicationServer.
+          getMonitorInstanceName());
+      mb.append(" domain =" + this.baseDn);
+      mb.append(" unroutable message =" + msg.toString());
+      mb.append(" routing table is empty");
       ErrorMessage errMsg = new ErrorMessage(
           this.replicationServer.getServerId(),
           msg.getsenderID(),
           mb.toMessage());
-
+      logError(mb.toMessage());
       try
       {
         senderHandler.send(errMsg);

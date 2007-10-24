@@ -283,6 +283,7 @@ public class ReplicationDomain extends DirectoryThread
      * @param count The value with which to initialize the counters.
      */
     public void initImportExportCounters(long count)
+      throws DirectoryException
     {
       entryCount = count;
       entryLeftCount = count;
@@ -307,6 +308,7 @@ public class ReplicationDomain extends DirectoryThread
      * an import or export.
      */
     public void updateCounters()
+      throws DirectoryException
     {
       entryLeftCount--;
 
@@ -344,7 +346,7 @@ public class ReplicationDomain extends DirectoryThread
   public ReplicationDomain(ReplicationDomainCfg configuration)
     throws ConfigException
   {
-    super("replication flush");
+    super("replicationDomain_" + configuration.getBaseDN());
 
     // Read the configuration parameters.
     replicationServers = configuration.getReplicationServer();
@@ -2536,7 +2538,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         msg = broker.receive();
 
         if (debugEnabled())
-          TRACER.debugInfo("Import: EntryBytes received " + msg);
+          TRACER.debugInfo(
+              " sid:" + this.serverId +
+              " base DN:" + this.baseDN +
+              " Import EntryBytes received " + msg);
         if (msg == null)
         {
           // The server is in the shutdown process
@@ -2750,11 +2755,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch (DirectoryException de)
     {
-      Message message =
+      if ((ieContext != null) && (ieContext.checksumOutput) &&
+          (ros.getNumExportedEntries() >= ieContext.entryCount))
+      {
+        // This is the normal end when computing the generationId
+        // We can interrupt the export only by an IOException
+      }
+      else
+      {
+        Message message =
           ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
-      logError(message);
-      throw new DirectoryException(
-          ResultCode.OTHER, message, null);
+        logError(message);
+        throw new DirectoryException(
+            ResultCode.OTHER, message, null);
+      }
     }
     catch (Exception e)
     {
@@ -2843,7 +2857,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         serverId, ieContext.exportTarget, lDIFEntry.getBytes());
       broker.publish(entryMessage);
     }
-    ieContext.updateCounters();
+    try
+    {
+      ieContext.updateCounters();
+    }
+    catch (DirectoryException de)
+    {
+      throw new IOException(de);
+    }
   }
 
   /**
@@ -2857,7 +2878,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public void initializeFromRemote(short source, Task initTask)
   throws DirectoryException
   {
-    // TRACER.debugInfo("Entering initializeFromRemote");
+    if (debugEnabled())
+      TRACER.debugInfo("Entering initializeFromRemote");
 
     acquireIEContext();
     ieContext.initializeTask = initTask;
@@ -2881,7 +2903,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public short decodeSource(String sourceString)
   throws DirectoryException
   {
-    TRACER.debugInfo("Entering decodeSource");
     short  source = 0;
     Throwable cause = null;
     try
@@ -3140,7 +3161,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Process import
       backend.importLDIF(importConfig);
 
-      TRACER.debugInfo("The import has ended successfully.");
+      if (debugEnabled())
+        TRACER.debugInfo("The import has ended successfully on " +
+          this.baseDN);
       stateSavingDisabled = false;
 
     }

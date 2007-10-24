@@ -32,26 +32,20 @@ import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.messages.TaskMessages;
 import org.opends.messages.Message;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.replication.plugin.ReplicationDomain;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
 
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
 import org.opends.server.types.ResultCode;
 
 /**
@@ -122,8 +116,7 @@ public class InitializeTargetTask extends Task
     String targetString = TaskUtils.getSingleValueString(attrList);
     target = domain.decodeTarget(targetString);
 
-    createCounterAttribute(ATTR_TASK_INITIALIZE_LEFT, 0);
-    createCounterAttribute(ATTR_TASK_INITIALIZE_DONE, 0);
+    setTotal(0);
   }
 
   /**
@@ -153,77 +146,27 @@ public class InitializeTargetTask extends Task
   }
 
   /**
-   * Create attribute to store entry counters.
-   * @param name The name of the attribute.
-   * @param value The value to store for that attribute.
-   */
-  protected void createCounterAttribute(String name, long value)
-  {
-    AttributeType type;
-    LinkedHashSet<AttributeValue> values =
-      new LinkedHashSet<AttributeValue>();
-
-    Entry taskEntry = getTaskEntry();
-    try
-    {
-      type = getAttributeType(name, true);
-      values.add(new AttributeValue(type,
-          new ASN1OctetString(String.valueOf(value))));
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(new Attribute(type, name,values));
-      taskEntry.putAttribute(type, attrList);
-    }
-    finally
-    {
-      // taskScheduler.unlockEntry(taskEntryDN, lock);
-    }
-  }
-
-  /**
    * Set the total number of entries expected to be exported.
    * @param total The total number of entries.
+   * @throws DirectoryException when a problem occurs
    */
-  public void setTotal(long total)
+  public void setTotal(long total) throws DirectoryException
   {
     this.total = total;
-    try
-    {
-      updateAttribute(ATTR_TASK_INITIALIZE_LEFT, total);
-      updateAttribute(ATTR_TASK_INITIALIZE_DONE, 0);
-    }
-    catch(Exception e) {}
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT,
+        String.valueOf(total));
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(0));
   }
 
   /**
    * Set the total number of entries still to be exported.
    * @param left The total number of entries to be exported.
+   * @throws DirectoryException when a problem occurs
    */
-  public void setLeft(long left)
+  public void setLeft(long left)  throws DirectoryException
   {
     this.left = left;
-    try
-    {
-      updateAttribute(ATTR_TASK_INITIALIZE_LEFT, left);
-      updateAttribute(ATTR_TASK_INITIALIZE_DONE, total-left);
-    }
-    catch(Exception e) {}
-  }
-
-  /**
-   * Update an attribute for this task.
-   * @param name The name of the attribute.
-   * @param value The value.
-   * @throws DirectoryException When an error occurs.
-   */
-  protected void updateAttribute(String name, long value)
-  throws DirectoryException
-  {
-    Entry taskEntry = getTaskEntry();
-
-    ArrayList<Modification> modifications = new ArrayList<Modification>();
-    modifications.add(new Modification(ModificationType.REPLACE,
-        new Attribute(name, String.valueOf(value))));
-
-    taskEntry.applyModifications(modifications);
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE,String.valueOf(total-left));
   }
 }
