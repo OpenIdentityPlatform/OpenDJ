@@ -98,7 +98,8 @@ public class TLSSocketSession implements ProtocolSession
   {
     if (debugEnabled())
     {
-      TRACER.debugVerbose("Closing SocketSession.");
+      TRACER.debugInfo("Closing SocketSession." +
+          Thread.currentThread().getStackTrace());
     }
     if (plainSocket != null && !plainSocket.isClosed())
     {

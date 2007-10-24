@@ -524,8 +524,9 @@ public class ReplicationBroker implements InternalSearchListener
     if (heartbeatInterval > 0)
     {
       heartbeatMonitor =
-           new HeartbeatMonitor("Replication Heartbeat Monitor", session,
-                                heartbeatInterval);
+           new HeartbeatMonitor("Replication Heartbeat Monitor on " +
+               baseDn + " with " + getReplicationServer(),
+               session, heartbeatInterval);
       heartbeatMonitor.start();
     }
   }

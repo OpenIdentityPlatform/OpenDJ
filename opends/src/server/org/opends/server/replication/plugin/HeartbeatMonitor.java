@@ -27,6 +27,8 @@
 
 package org.opends.server.replication.plugin;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -114,11 +116,7 @@ public class HeartbeatMonitor extends DirectoryThread
         if (now > lastReceiveTime + 2 * heartbeatInterval)
         {
           // Heartbeat is well overdue so the server is assumed to be dead.
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Heartbeat monitor is closing the broker " +
-                "session because it could not detect a heartbeat.");
-          }
+          logError(NOTE_HEARTBEAT_FAILURE.get(this.currentThread().getName()));
           session.close();
           break;
         }

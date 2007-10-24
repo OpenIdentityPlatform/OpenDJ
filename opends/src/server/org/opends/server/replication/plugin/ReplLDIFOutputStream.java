@@ -45,7 +45,7 @@ public class ReplLDIFOutputStream
   long numEntries;
 
   // The current number of entries exported
-  long numExportedEntries;
+  private long numExportedEntries;
   String entryBuffer = "";
 
   /**
@@ -92,11 +92,11 @@ public class ReplLDIFOutputStream
         entryBuffer = entryBuffer + ebytes.substring(0, endOfEntryIndex);
 
         // Send the entry
-        if ((numEntries>0) && (numExportedEntries > numEntries))
+        if ((numEntries>0) && (getNumExportedEntries() > numEntries))
         {
           // This outputstream has reached the total number
           // of entries to export.
-          return;
+          throw(new IOException());
         }
         domain.exportLDIFEntry(entryBuffer);
         numExportedEntries++;
@@ -113,5 +113,13 @@ public class ReplLDIFOutputStream
         break;
       }
     }
+  }
+
+  /**
+   * Return the number of exported entries.
+   * @return the numExportedEntries
+   */
+  public long getNumExportedEntries() {
+    return numExportedEntries;
   }
 }
