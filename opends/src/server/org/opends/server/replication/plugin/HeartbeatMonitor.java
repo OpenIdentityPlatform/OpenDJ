@@ -116,7 +116,7 @@ public class HeartbeatMonitor extends DirectoryThread
         if (now > lastReceiveTime + 2 * heartbeatInterval)
         {
           // Heartbeat is well overdue so the server is assumed to be dead.
-          logError(NOTE_HEARTBEAT_FAILURE.get(this.currentThread().getName()));
+          logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
           session.close();
           break;
         }
