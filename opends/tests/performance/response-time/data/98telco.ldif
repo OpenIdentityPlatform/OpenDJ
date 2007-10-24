@@ -68,10 +68,9 @@ attributeTypes: ( 1.3.6.1.4.1.42.2.27.9.1.501 NAME 'sun-fm-saml2-nameid-info'
  1.15 X-ORIGIN ( 'Sun Java System Access Management' 'user defined' ) )
 attributeTypes: ( 1.3.6.1.4.1.42.2.27.9.1.500 NAME 'sun-fm-saml2-nameid-infoke
  y' DESC 'SAML 2.0 Name Identifier Information Key' SYNTAX 1.3.6.1.4.1.1466.1
- 15.121.1.15 X-ORIGIN ( 'Sun Java System Access Management' 'user defined' )
- )
+ 15.121.1.15 X-ORIGIN ( 'Sun Java System Access Management' 'user defined' ) )
 objectClasses: ( 1.3.6.1.4.1.42.2.27.9.2.200 NAME 'sunFMSAML2NameIdentifier' D
  ESC 'SAML 2.0 name identifier objectclass' SUP top AUXILIARY MAY ( sun-fm-sa
  ml2-nameid-infokey $ sun-fm-saml2-nameid-info ) X-ORIGIN ( 'Sun Java System
- Access Management' 'user defined' )
+ Access Management' 'user defined' ) )
 
