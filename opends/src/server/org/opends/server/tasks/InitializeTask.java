@@ -185,11 +185,10 @@ public class InitializeTask extends Task
   /**
    * Set the state for the current task.
    *
-   * @param newState The new state value to set
    * @param de  When the new state is different from COMPLETED_SUCCESSFULLY
    * this is the exception that contains the cause of the failure.
    */
-  public void setState(TaskState newState, DirectoryException de)
+  public void updateTaskCompletionState(DirectoryException de)
   {
     try
     {
@@ -197,11 +196,15 @@ public class InitializeTask extends Task
       {
         initTaskError = de.getMessageObject();
       }
+      if (de == null)
+        initState =  TaskState.COMPLETED_SUCCESSFULLY;
+      else
+        initState =  TaskState.STOPPED_BY_ERROR;
+
       if (debugEnabled())
       {
-        TRACER.debugInfo("InitializeTask/setState: %s", newState);
+        TRACER.debugInfo("InitializeTask/setState: %s", initState);
       }
-      initState = newState;
       synchronized (initState)
       {
         initState.notify();

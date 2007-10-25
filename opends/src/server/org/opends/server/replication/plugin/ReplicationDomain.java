@@ -66,7 +66,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -323,17 +322,6 @@ public class ReplicationDomain extends DirectoryThread
           ((InitializeTargetTask)initializeTask).setLeft(entryLeftCount);
         }
       }
-    }
-
-    /**
-     * Update the state of the task.
-     */
-    protected TaskState updateTaskCompletionState()
-    {
-      if (exception == null)
-        return TaskState.COMPLETED_SUCCESSFULLY;
-      else
-        return TaskState.STOPPED_BY_ERROR;
     }
   }
 
@@ -2607,7 +2595,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         // Update the task that initiated the import
         ((InitializeTask)ieContext.initializeTask).
-        setState(ieContext.updateTaskCompletionState(),ieContext.exception);
+        updateTaskCompletionState(ieContext.exception);
 
         releaseIEContext();
       }
@@ -3121,74 +3109,88 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     Backend backend = retrievesBackend(baseDN);
 
-    if (!backend.supportsLDIFImport())
-    {
-      Message message = ERR_INIT_IMPORT_NOT_SUPPORTED.get(
-                          backend.getBackendID().toString());
-      logError(message);
-      throw new DirectoryException(ResultCode.OTHER, message);
-    }
-
     try
     {
-      if (initializeMessage.getRequestorID() == serverId)
+      if (!backend.supportsLDIFImport())
       {
-        // The import responds to a request we did so the IEContext
-        // is already acquired
+        Message message = ERR_INIT_IMPORT_NOT_SUPPORTED.get(
+            backend.getBackendID().toString());
+        logError(message);
+        de = new DirectoryException(ResultCode.OTHER, message);
       }
       else
       {
-        acquireIEContext();
+        if (initializeMessage.getRequestorID() == serverId)
+        {
+          // The import responds to a request we did so the IEContext
+          // is already acquired
+        }
+        else
+        {
+          acquireIEContext();
+        }
+
+        ieContext.importSource = initializeMessage.getsenderID();
+        ieContext.entryLeftCount = initializeMessage.getEntryCount();
+        ieContext.initImportExportCounters(initializeMessage.getEntryCount());
+
+        preBackendImport(backend);
+
+        ieContext.ldifImportInputStream = new ReplLDIFInputStream(this);
+        importConfig =
+          new LDIFImportConfig(ieContext.ldifImportInputStream);
+        List<DN> includeBranches = new ArrayList<DN>();
+        includeBranches.add(this.baseDN);
+        importConfig.setIncludeBranches(includeBranches);
+        importConfig.setAppendToExistingData(false);
+
+        // TODO How to deal with rejected entries during the import
+        // importConfig.writeRejectedEntries("rejectedImport",
+        // ExistingFileBehavior.OVERWRITE);
+
+        // Process import
+        backend.importLDIF(importConfig);
+
+        if (debugEnabled())
+          TRACER.debugInfo("The import has ended successfully on " +
+              this.baseDN);
+        stateSavingDisabled = false;
       }
-
-      ieContext.importSource = initializeMessage.getsenderID();
-      ieContext.entryLeftCount = initializeMessage.getEntryCount();
-      ieContext.initImportExportCounters(initializeMessage.getEntryCount());
-
-      preBackendImport(backend);
-
-      ieContext.ldifImportInputStream = new ReplLDIFInputStream(this);
-      importConfig =
-        new LDIFImportConfig(ieContext.ldifImportInputStream);
-      List<DN> includeBranches = new ArrayList<DN>();
-      includeBranches.add(this.baseDN);
-      importConfig.setIncludeBranches(includeBranches);
-      importConfig.setAppendToExistingData(false);
-
-      // TODO How to deal with rejected entries during the import
-      // importConfig.writeRejectedEntries("rejectedImport",
-      // ExistingFileBehavior.OVERWRITE);
-
-      // Process import
-      backend.importLDIF(importConfig);
-
-      if (debugEnabled())
-        TRACER.debugInfo("The import has ended successfully on " +
-          this.baseDN);
-      stateSavingDisabled = false;
-
     }
     catch(Exception e)
     {
       de = new DirectoryException(ResultCode.OTHER,
-                                  Message.raw(e.getLocalizedMessage()));
+          Message.raw(e.getLocalizedMessage()));
     }
     finally
     {
-      // Cleanup
-      importConfig.close();
+      if ((ieContext != null)  && (ieContext.exception != null))
+        de = ieContext.exception;
 
-      // Re-enable backend
-      closeBackendImport(backend);
+      // Cleanup
+      if (importConfig != null)
+      {
+        importConfig.close();
+
+        // Re-enable backend
+        closeBackendImport(backend);
+      }
 
       // Update the task that initiated the import
       if ((ieContext != null ) && (ieContext.initializeTask != null))
       {
         ((InitializeTask)ieContext.initializeTask).
-        setState(ieContext.updateTaskCompletionState(),ieContext.exception);
+        updateTaskCompletionState(de);
       }
       releaseIEContext();
-
+    }
+    // Sends up the root error.
+    if (de != null)
+    {
+      throw de;
+    }
+    else
+    {
       // Retrieves the generation ID associated with the data imported
       try
       {
@@ -3211,9 +3213,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Re-exchange generationID and state with RS
       broker.reStart();
     }
-    // Sends up the root error.
-    if (de != null)
-      throw de;
   }
 
   /**
