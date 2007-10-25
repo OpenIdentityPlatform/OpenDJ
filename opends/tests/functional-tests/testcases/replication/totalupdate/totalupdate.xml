@@ -202,8 +202,7 @@
                   'expectedRC'  :  65 }
               </call>                     
 
-              <!-- Perform the total update on every server -->                 
-              <!-- Issue #2487 makes 'dsreplication initialize-all' for cn=schema hang.
+              <!-- Perform the total update on every server -->
               <iterate var="server" in="consumerList">
                 <sequence>     
                   <call function="'initializeReplication'">
@@ -217,8 +216,7 @@
                     }
                   </call>
                 </sequence>
-              </iterate>
-              -->                  
+              </iterate>       
                 
               <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
