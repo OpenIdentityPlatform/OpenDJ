@@ -5503,6 +5503,7 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           isOver = true;
           Message errorMsg;
+          LOG.log(Level.INFO, "Last task entry: "+sr);
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
             printProgressMessage(msg);
@@ -5549,7 +5550,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             }
           }
           else
-            {
+          {
             if (displayProgress)
             {
               printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());

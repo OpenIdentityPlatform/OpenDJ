@@ -4096,6 +4096,7 @@ public abstract class Installer extends GuiApplication {
         {
           isOver = true;
           Message errorMsg;
+          LOG.log(Level.INFO, "Last task entry: "+sr);
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
             notifyListeners(getFormattedProgress(msg));
