@@ -2289,7 +2289,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public long computeGenerationId() throws DirectoryException
   {
     Backend backend = retrievesBackend(baseDN);
-    long bec = backend.getEntryCount();
+    long bec = backend.numSubordinates(baseDN, true) + 1;
     this.acquireIEContext();
     ieContext.checksumOutput = true;
     ieContext.entryCount = (bec<1000?bec:1000);
@@ -2710,7 +2710,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       os = new CheckedOutputStream(ros, new Adler32());
       try
       {
-        os.write((Long.toString(ieContext.entryCount)).getBytes());
+        os.write((Long.toString(backend.numSubordinates(baseDN, true) + 1)).
+            getBytes());
       }
       catch(Exception e)
       {
