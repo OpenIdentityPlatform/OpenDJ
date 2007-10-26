@@ -12,9 +12,9 @@ ZIPPATH                     = '/path/to/opends/build/package'
 TESTS_ROOT                  = '%s/tests' % OPENDSDIR
 TESTS_DIR                   = '%s/functional-tests' % TESTS_ROOT
 TESTS_SHARED_DIR            = '%s/shared' % TESTS_DIR
-TESTS_FUNCTIONS_DIR         = '%s/functions' % TESTS_SHARED_DIR
+TESTS_FUNCTIONS_DIR         = '%s/shared/functions' % TESTS_ROOT
 TESTS_DATA_DIR              = '%s/data' % TESTS_SHARED_DIR
-TESTS_JAVA_DIR		    = '%s/java' % TESTS_SHARED_DIR
+TESTS_JAVA_DIR		    = '%s/shared/java' % TESTS_ROOT
 DIRECTORY_INSTANCE_DN       = 'cn=myself'
 DIRECTORY_INSTANCE_PSWD     = 'password'
 DIRECTORY_INSTANCE_DIR      = '%s' % TMPDIR
