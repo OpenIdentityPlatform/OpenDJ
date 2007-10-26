@@ -103,7 +103,7 @@
           STAFCmdParamsList.append('-t %s' % templateFile)
         
         if ldifFile:
-          STAFCmdParamsList.append('-o "%s"' % ldifFile)
+          STAFCmdParamsList.append('-o %s' % ldifFile)
         
         if randomSeed:
           STAFCmdParamsList.append('-s "%s"' % randomSeed)
@@ -121,7 +121,8 @@
         }
       </call>
       <script>
-        STAXCode, STAXReason=STAXResult
+         STAXCode=RC
+         STAXReason=STAXResult
       </script>
       <if expr="STAXCode != 0">
         <sequence>
@@ -130,11 +131,106 @@
           </message>
         </sequence>
       </if>
-      <return>[STAXCode, STAXReason]</return>
+      <call function="'checktestRC'">
+       { 'returncode' : STAXCode ,
+         'result'     : STAXReason }
+      </call>
+
+    <return>[STAXCode, STAXReason]</return>
     </sequence>
   </function> 
   
   
+  <!-- This function uses make ldif to generate LDIF data files -->
+  <function name="MakeAMakeLdifTemplate">
+    <function-prolog>
+      This function makes a make-ldif template file
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="numEntries" type="required">
+        <function-arg-description>
+          Number of entries
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="templateFile" type="required">
+        <function-arg-description>
+          Template file name
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="extraLine" type="optional">
+        <function-arg-description>
+          Extra line to add to the mkae-ldif template
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the import task configuration object -->
+      <script>
+        ldifLines=[]
+        ldifLines.append('define suffix=%s' % DIRECTORY_INSTANCE_SFX)
+        ldifLines.append('define maildomain=example.com')
+        ldifLines.append('define numusers=%s' % numEntries )
+        ldifLines.append('')
+        
+        ldifLines.append('branch: [suffix]')
+        ldifLines.append('')
+        
+        ldifLines.append('branch: ou=People,[suffix]')
+        ldifLines.append('subordinateTemplate: person:[numusers]')
+        ldifLines.append('')
+        
+        ldifLines.append('template: person')
+        ldifLines.append('rdnAttr: uid')    
+        ldifLines.append('objectClass: top')
+        ldifLines.append('objectClass: person')
+        ldifLines.append('objectClass: organizationalPerson')
+        ldifLines.append('objectClass: inetOrgPerson')
+        ldifLines.append('givenName: &lt;first&gt;')
+        ldifLines.append('sn: &lt;last&gt;')
+        ldifLines.append('employeeNumber: &lt;sequential:0&gt;')
+        ldifLines.append('cn: {givenName} {sn} {employeeNumber}')
+        ldifLines.append('uid: user.{employeeNumber}')
+        ldifLines.append('mail: {uid}@[maildomain]')
+        ldifLines.append('telephoneNumber: &lt;random:telephone&gt;')
+        ldifLines.append('description: This is the description for user.{employeeNumber}.')
+        if extraLine:
+          ldifLines.append('%s' % extraLine)
+      </script>
+  
+      <!-- Write out the make-ldif template file -->
+      <script>
+        outfile = open(templateFile,"w")
+          
+        for line in ldifLines:
+          outfile.write("%s\n" % line)
+          
+        outfile.close()
+      </script>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message level="'error'">
+            'creation of a make-ldif template failed (Code=%s,Reason=%s).' % (STAXCode,STAXReason)
+          </message>
+        </sequence>
+      </if>
+      <call function="'checktestRC'">
+      { 'returncode' : STAXCode ,
+        'result'     : STAXReason }
+      </call>
+    
+      <return>[STAXCode, STAXReason]</return>
+     
+    </sequence>
+  </function> 
+    
   <!-- This function compares two LDIF files using the ldif-diff script -->
   <function name="LdifDiffWithScript">
     <function-prolog>
