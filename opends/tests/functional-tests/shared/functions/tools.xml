@@ -846,13 +846,14 @@
 
     <sequence>
       <script>
+        dsBinPath='%s/%s' % (dsPath,fileFolder)                  
         _cmd='%s/verify-index%s' % (dsBinPath,fileExt)
         _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
       </script>
       <call function="'runCommand'">
         { 'name'      : 'verify index',
           'location'  : location,
-          'command'   : cmd,
+          'command'   : _cmd,
           'arguments' : _args
         }
       </call>

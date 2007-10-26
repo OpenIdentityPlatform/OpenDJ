@@ -137,19 +137,19 @@
                         
           <!--- Test Case information
           #@TestMarker          Replication Failover Tests
-          #@TestName            Replication: Failover: One server down
-          #@TestID                  One server down
-          #@TestPurpose        Check replication when one server fails
+          #@TestName            Replication: Failover: One server down (stopped)
+          #@TestID                  One server down (stopped)
+          #@TestPurpose        Check replication when one server is off-line
           #@TestPreamble
           #@TestSteps
           #@TestPostamble
           #@TestResult
           -->               
-          <testcase name="getTestCaseName('One server down')">
+          <testcase name="getTestCaseName('One server down (stopped)')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Failover: One server down. Check replication when one server fails'
+                 'Replication: Failover: One server down (stopped). Check replication when one server is off-line '
               </message>
                              
               <iterate var="server" in="_topologyServerList" indexvar="i">
@@ -222,39 +222,25 @@
 
           <!--- Test Case information
           #@TestMarker          Replication Failover Tests
-          #@TestName            Replication: Failover: All but one servers down
-          #@TestID                  One server down
-          #@TestPurpose        Check replication when all but one servers fail
+          #@TestName            Replication: Failover: All but one servers down (stopped)
+          #@TestID                  All but one servers down (stopped)
+          #@TestPurpose        Check replication when all but one servers are off-line
           #@TestPreamble
           #@TestSteps
           #@TestPostamble
           #@TestResult
           -->               
-          <testcase name="getTestCaseName('All but one servers down')">
+          <testcase name="getTestCaseName('All but one servers down (stopped)')">
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Failover: All but one servers down. Check replication when all but one servers fail'
+                 'Replication: Failover: All but one servers down (stopped). Check replication when all but one servers are off-line'
               </message>
-                 
-              <paralleliterate var="server" in="consumerList">
-                <sequence>
-                  <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                  </script>
-                    
-                  <!-- Stop server (simulate failover?) -->
-                  <call function="'StopDsWithScript'">
-                    { 'location'  :  server.getHostname(),
-                      'dsPath'    :  serverPath,
-                      'dsHost'    :  server.getHostname(),
-                      'dsPort'    :  server.getPort(),
-                      'dsBindDN'  :  server.getRootDn(),
-                      'dsBindPwd' :  server.getRootPwd()
-                    }
-                  </call>                    
-                </sequence>
-              </paralleliterate>
+
+              <!-- Start the "consumer" servers -->
+              <call function="'stopServers'">
+                [consumerList]
+              </call>
  
                     
               <!-- Add entry to master servers -->
@@ -284,21 +270,11 @@
                 }
               </call>
 
-              <paralleliterate var="server" in="consumerList">
-                <sequence>
-                  <script>
-                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                  </script>
-                                                                                                
-                  <!-- Start the server again -->
-                  <call function="'StartDsWithScript'">
-                    { 'location'  :  server.getHostname(),
-                      'dsPath'    :  serverPath
-                    }
-                  </call>                    
-                </sequence>
-              </paralleliterate>
-                                        
+              <!-- Start the "consumer" servers -->
+              <call function="'startServers'">
+                [consumerList]
+              </call>
+                                  
                 
               <!-- Verify the synchronization of the trees among the servers in the topology -->          
               <call function="'verifyTrees'">
@@ -310,6 +286,164 @@
           </testcase>                     
                                                 
 
+
+
+
+          <!--- Test Case information
+          #@TestMarker          Replication Failover Tests
+          #@TestName            Replication: Failover: One server down (killed)
+          #@TestID                  One server down (killed)
+          #@TestPurpose        Check replication when one server fails
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->               
+          <testcase name="getTestCaseName('One server down (killed)')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Failover: One server down (killed). Check replication when one server fails'
+              </message>
+                             
+              <iterate var="server" in="_topologyServerList" indexvar="i">
+                <sequence>
+                    
+                  <script>
+                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    nbOfServers = len(_topologyServerList)
+                    nextServer = _topologyServerList[(i + 1) % nbOfServers]
+                    nextServerPath = '%s/%s' % (nextServer.getDir(), OPENDSNAME)
+                    userDn = 'uid=ideiturak-%s, ou=People, %s' % (i, synchroSuffix)
+                  </script>
+                    
+                  <!-- Kill server (simulate failover?) -->
+                  <call function="'killDs'">
+                    { 'location'  :  server.getHostname(),
+                      'dsPath'    :  serverPath
+                    }
+                  </call>
+                    
+                  <!-- Add entry to one of the other servers -->
+                  <script>
+                    listAttr = []
+                    listAttr.append('objectclass:top')
+                    listAttr.append('objectclass:organizationalperson')
+                    listAttr.append('objectclass:inetorgperson')
+                    listAttr.append('objectclass:person')
+                    listAttr.append('givenname:Izen-%s' % i)
+                    listAttr.append('sn:Deiturak-%s' % i)
+                    listAttr.append('cn:Izen-%s Deiturak-%s' % (i, i))
+                  </script>
+          
+                  <call function="'addAnEntry'">
+                    { 'location'  :  nextServer.getHostname(),
+                      'dsPath'  :  nextServerPath,
+                      'dsInstanceHost'  :  nextServer.getHostname(),
+                      'dsInstancePort'  :  nextServer.getPort(),
+                      'dsInstanceDn'  :  nextServer.getRootDn(),
+                      'dsInstancePswd'  :  nextServer.getRootPwd(),
+                      'DNToAdd'  :  userDn,
+                      'listAttributes' : listAttr,
+                      'expectedRC'     :  0
+                    }
+                  </call>
+                                                                                
+                  <!-- Start the server again -->
+                  <call function="'StartDsWithScript'">
+                    { 'location'  :  server.getHostname(),
+                      'dsPath'    :  serverPath
+                    }
+                  </call>                    
+                </sequence>                  
+              </iterate>
+                                        
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>                     
+          
+
+
+          <!--- Test Case information
+          #@TestMarker          Replication Failover Tests
+          #@TestName            Replication: Failover: All but one servers down (killed)
+          #@TestID                  One server down (killed)
+          #@TestPurpose        Check replication when all but one servers fail
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->               
+          <testcase name="getTestCaseName('All but one servers down (killed)')">
+            <sequence>            
+              <call function="'testCase_Preamble'"/>
+              <message>
+                 'Replication: Failover: All but one servers down (killed). Check replication when all but one servers fail'
+              </message>
+                 
+              <paralleliterate var="server" in="consumerList">
+                <sequence>
+                  <script>
+                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                  </script>
+                    
+                  <!-- Kill server (simulate failover?) -->
+                  <call function="'killDs'">
+                    { 'location'  :  server.getHostname(),
+                      'dsPath'    :  serverPath
+                    }
+                  </call>                    
+                </sequence>
+              </paralleliterate>
+ 
+                    
+              <!-- Add entry to master servers -->
+              <script>
+                userDn = 'uid=ideitura-berriak, ou=People, %s' % synchroSuffix
+                  
+                listAttr = []
+                listAttr.append('objectclass:top')
+                listAttr.append('objectclass:organizationalperson')
+                listAttr.append('objectclass:inetorgperson')
+                listAttr.append('objectclass:person')
+                listAttr.append('givenname:Izen-berri')
+                listAttr.append('sn:Deitura-berriak')
+                listAttr.append('cn:Izen-berri Deitura-berriak')
+              </script>
+          
+              <call function="'addAnEntry'">
+                { 'location'  :  masterHost,
+                  'dsPath'  :  masterPath,
+                  'dsInstanceHost'  :  masterHost,
+                  'dsInstancePort'  :  master.getPort(),
+                  'dsInstanceDn'  :  master.getRootDn(),
+                  'dsInstancePswd'  :  master.getRootPwd(),
+                  'DNToAdd'  :  userDn,
+                  'listAttributes' : listAttr,
+                  'expectedRC'     :  0
+                }
+              </call>
+
+              <!-- Start the "consumer" servers -->
+              <call function="'startServers'">
+                [consumerList]
+              </call>
+                                        
+                
+              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <call function="'verifyTrees'">
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
+              </call> 
+                                
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>                                                                     
 
                                                 
                                                 

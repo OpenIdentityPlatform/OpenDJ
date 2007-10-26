@@ -1487,4 +1487,56 @@
       </return>
     </sequence>
   </function>
+
+
+
+  <function name="killDs">
+    <function-prolog>
+      Kill the ldap server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+    </function-map-args>
+      
+    <sequence>
+      <message>
+        'Kill server running on  %s  at  %s' % (location, dsPath)
+      </message>
+
+      <script>
+        pidPath = '%s/logs/server.pid' % dsPath
+        pidFile = open(pidPath, 'r')
+        pid = pidFile.readline()[:-1]
+        pidFile.close()
+
+        if isWindows:
+          _cmd = 'tskill'
+          _args = pid
+        else:
+          _cmd = 'kill'
+          _args = '-9 %s' % pid
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Kill DS server',
+          'location'  : location,
+          'command'   : _cmd,
+          'arguments' : _args
+        }
+      </call>
+      <return>STAXResult</return>        
+    </sequence>
+  </function>
+
+                        
 </stax>
