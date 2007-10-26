@@ -2687,6 +2687,13 @@
         <function-arg-property name="type" value="string"/>
     </function-arg-def>
    
+    <function-arg-def name="suppressTestStatus" type="optional" default="0">
+        <function-arg-description>
+          Supress the call to checkTestRC
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+
     <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
         Expected return code value. Default value is 0
@@ -2756,14 +2763,156 @@
         STAXCode=RC
         STAXReason=STAXResult
       </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
+      
+      <if expr="suppressTestStatus != '1'">
+        <sequence>
+          <call function="'checktestRC'">
+          { 'returncode' : STAXCode ,
+            'result'     : STAXReason,
+            'expected'   : expectedRC }
+          </call>
+        </sequence>
+      </if>
       <return>
-        STAXReason
+        [STAXCode,STAXReason]
       </return>
+    </sequence>
+    
+  </function>
+  
+  <!-- Create a load on Directory with modifies -->
+  <function name="loadOfModifies">
+    <function-prolog>
+      This function creates a load of modifies against Directory. It is only for entries with uid=user.xxx.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+    <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+    
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>      
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+    
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    
+     <function-arg-def name="partialDNToModify" type="required">
+        <function-arg-description>
+          partial DN to modify, all but the uid=user.xxxx
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      
+      <function-arg-def name="attributeName" type="optional">
+        <function-arg-description>
+          Attribute to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    
+     <function-arg-def name="newAttributeValue" type="optional">
+        <function-arg-description>
+          New Attribute Value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+     <function-arg-def name="listAttributes" type="optional" default="' '">
+       <function-arg-description>
+         List of attributes name and value to modify. The format is name:value
+       </function-arg-description>
+       <function-arg-property name="type" value="string"/>       
+     </function-arg-def>
+    
+    <function-arg-def name="changetype" type="required">
+        <function-arg-description>
+          Type of modification, can be delete, add, replace
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+   
+    <function-arg-def name="numEntries" type="required">
+        <function-arg-description>
+          Number of entries to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+   
+    <function-arg-def name="clientID" type="optional">
+        <function-arg-description>
+          ID for the client doing the modify
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+   
+    <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+        Expected return code value. Default value is 0
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>      
+  
+    </function-map-args>
+    <sequence>
+      
+      <script>
+        import random
+        curr_rdn_num=random.randint(0,99)
+        curr_dn="uid=user.%s,%s" % (curr_rdn_num, partialDNToModify)
+      </script>
+      
+      <message>
+        '****From client, %s, Modifying %s' % (clientID,curr_dn)
+      </message>
+           
+      <call function="'modifyAnAttribute'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'DNToModify'             : curr_dn ,
+              'attributeName'          : 'description' ,
+              'newAttributeValue'      : 'New description for %s' % curr_dn ,
+              'changetype'             : 'replace'  ,
+              'suppressTestStatus'     : '1' }
+       </call>
+       
+       <return>
+        [STAXCode,STAXReason]
+       </return>
+       
     </sequence>
     
   </function>

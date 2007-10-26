@@ -97,7 +97,7 @@
 
       <!-- Load in the local shared python objects from libraries -->
       <script>
-        sys.path.append("%s/python" % TESTS_SHARED_DIR )
+        sys.path.append("%s/shared/python" % TESTS_ROOT )
         from common import *
         from security import *
         from replication import *

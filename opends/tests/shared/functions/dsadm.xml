@@ -110,7 +110,7 @@
 
         if dsPath:
           STAFCmd='%s/setup%s' % (dsPath,fileExt)
-          STAFCmdParamsList.append('--cli')
+          STAFCmdParamsList.append('--cli')    
           STAFCmdParamsList.append('-n')    
                   
         if dsPort:
@@ -929,11 +929,15 @@
           'arguments' : STAFCmdParams
         }
       </call>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
       <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason }
       </call>
-            
+      <return>STAXReason</return>      
     </sequence>
   </function>
 
@@ -1075,6 +1079,19 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="numLdapCheckTries" type="optional" default="10">
+        <function-arg-description>
+          Number of ldap check tries when checking if task is complete
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="sleepBetweenLdapCheckTries" type="optional" default="2000">
+        <function-arg-description>
+          Sleep time in milliseconds between ldap check tries
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      
     </function-map-args>
     <sequence>
     
@@ -1166,13 +1183,15 @@
       <if expr="STAFCmdRC == 0">
         <sequence>
           <call function="'CheckLdapTask'">
-            { 'location'   : myLocation,
-              'dsPath'     :  myPath,
-              'dsTaskDn'   : taskDN,
-              'dsHost'     : dsInstanceHost,
-              'dsPort'     : dsInstancePort,
-              'dsBindDn'   : dsInstanceDn,
-              'dsBindPswd' : dsInstancePswd }
+            { 'location'          : myLocation,
+              'dsPath'            : myPath,
+              'dsTaskDn'          : taskDN,
+              'dsHost'            : dsInstanceHost,
+              'dsPort'            : dsInstancePort,
+              'dsBindDn'          : dsInstanceDn,
+              'dsBindPswd'        : dsInstancePswd,
+              'noOfLoops'         : numLdapCheckTries,
+              'sleepMilliSeconds' : sleepBetweenLdapCheckTries }
           </call>
         </sequence>
       </if>
@@ -2952,7 +2971,20 @@
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="noOfLoops" type="optional" default="10">
+        <function-arg-description>
+          Number of ldap check tries when checking if task is complete
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
       </function-arg-def> 
+      <function-arg-def name="sleepMilliSeconds" type="optional" default="2000">
+        <function-arg-description>
+          Sleep time in milliseconds between ldap check tries
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def> 
+      
     </function-map-args>
 
     <sequence>
@@ -3003,15 +3035,16 @@
       <script> 
         successPattern = re.compile('ds-task-state: COMPLETED_SUCCESSFULLY')
         stopErrPattern = re.compile('ds-task-state: STOPPED_BY_ERROR') 
+        myCounter=1
       </script>
              
       <!-- Wait for the task to be COMPLETED_SUCCESSFULLY -->
       <script>taskRC=1</script>
-      <loop from="1" to="10" while="taskRC != 0">
+      <loop from="1" to="noOfLoops" while="taskRC != 0">
         <sequence>
         
           <message>
-            '%s %s' % (STAFCmd, STAFCmdParams)
+            'LOOP number %s - %s %s' % (myCounter, STAFCmd, STAFCmdParams)
           </message>
 
           <!-- Search for task status -->
@@ -3027,6 +3060,7 @@
           <script>
             STAFCmdRC=RC
             STAFCmdResult=STAXResult
+            myCounter=myCounter+1
           </script>
             
           <if expr='re.search(successPattern, STAFCmdResult[0][1]) != None'>
@@ -3057,8 +3091,12 @@
                 'result'     : STAFCmdResult }
           </call>
         
+          <message>
+            'Sleeping for %s ms' % sleepMilliSeconds
+          </message>
+
           <call function="'Sleep'">
-            { 'sleepForMilliSeconds' : '2000' }
+            { 'sleepForMilliSeconds' : sleepMilliSeconds }
           </call>
           
         </sequence>
@@ -3292,5 +3330,5 @@
             
     </sequence>
   </function>
-                        
+                                                   
 </stax>
