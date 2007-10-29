@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="many_indexes"/>
+
+  <function name="many_indexes">
+
+    <sequence>
+
+      <block name="'many-indexes'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='many-indexes'                
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/import_ldif/import_ldif_setup.xml' % (TESTS_DIR)"/>
+          <call function="'import_ldif_setup'" />
+
+          <testcase name="getTestCaseName('Preamble')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                 'Import Ldif: Many Indexes: Preamble - Create many indexes'
+                </message>
+
+                <script>
+                  indexes_five = ['cn', 'givenName', 'sn', 'uid']
+                </script>
+            
+                <iterate var="currIndex" in="indexes_five" indexvar="index">
+                  <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'set-je-index-prop' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'optionsString'        : '--index-name %s --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' % currIndex ,
+                    'expectedRC'           : 0 } 
+                  </call>          
+                </iterate>
+            
+                <script>
+                  indexes_three = ['aci', 'mail', 'member', 'objectclass', 'telephonenumber', 'uniquemember']
+                </script>
+            
+                <iterate var="currIndex" in="indexes_three" indexvar="index">
+                  <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'set-je-index-prop' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'optionsString'        : '--index-name %s --set index-type:equality --set index-type:presence --set index-type:substring ' % currIndex ,
+                    'expectedRC'           : 0 } 
+                  </call>          
+                </iterate>
+            
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'create-je-index' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'optionsString'        : '--index-name description --set index-type:approximate --set index-type:equality --set index-type:presence --set index-type:substring ' ,
+                    'expectedRC'           : 0 } 
+                </call> 
+         
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'create-je-index' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'optionsString'        : '--index-name employeeNumber --set index-type:approximate --set index-type:equality --set index-type:ordering --set index-type:presence --set index-type:substring ' ,
+                    'expectedRC'           : 0 } 
+                </call> 
+         
+                <message>
+                 'Import Ldif: Many Indexes: Preamble - List indexes'
+                </message>
+
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'list-je-indexes' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'expectedRC'           : 0 } 
+                </call> 
+         
+                <message>
+                 'Import Ldif: Many Indexes: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                </call>
+
+                <message>
+                   'Import Ldif: Many Indexes: Preamble - Make an make-ldif template file'
+                </message>
+                
+                <script>
+                    numberOfEntries='160'
+                </script>
+                
+                <call function="'MakeAMakeLdifTemplate'">
+                  { 'numEntries'         : numberOfEntries ,
+                    'templateFile'       : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir) }
+                </call>
+                
+                <message>
+                   'Import Ldif: Many Indexes: Preamble - Make the ldif file'
+                </message>
+                
+                <call function="'MakeLdif'">
+                  { 'templateFile'   : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir)  ,
+                    'ldifFile'       : '%s/quickstart/import_Entries.ldif' % (logsRemoteDataDir)  }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            
+            <testcase name="getTestCaseName('Import Large Ldif File')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Import Ldif: Many Indexes: Import large ldif file'
+                </message>
+                
+                <call function="'ImportLdifWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME ,
+                  'dsLdifFile'  : '%s/quickstart/import_Entries.ldif' % logsRemoteDataDir,
+                  'dsBackEnd'   : 'userRoot'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'skipped 0, rejected 0' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+          
+          <testcase name="getTestCaseName('Start Directory After Import')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                 'Import Ldif: Many Indexes: Start DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StartDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+  
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+  
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 2000 }
+                </call>      
+        
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+          
+          <testcase name="getTestCaseName('Search For Imported Entries')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                 'Import Ldif: Many Indexes: Search for certain entries that were imported'
+                </message>
+
+                <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
+                                       'uid=user.100,ou=People,dc=com' ,
+                                       'uid=user.159,ou=People,dc=com'] ,
+                  'startDS'         : 'no'
+                }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+          
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'import_ldif_cleanup'" />
+         
+              
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
