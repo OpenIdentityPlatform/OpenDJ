@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
@@ -94,6 +96,8 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.ObjectClass;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.LDIFReader;
@@ -101,6 +105,10 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ModifyDNChangeRecordEntry;
 import org.opends.server.util.Validator;
+import static org.opends.server.config.ConfigConstants.ATTR_OBJECTCLASSES_LC;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import static org.opends.server.util.ServerConstants.*;
+
 
 /**
  * This class defines a backend that stores its information in an
@@ -161,6 +169,16 @@ public class ReplicationBackend
    * The current number of entries skipped.
    */
   private long skippedCount = 0;
+
+  //Objectclass for getEntry root entries.
+  private HashMap<ObjectClass,String> rootObjectclasses;
+
+  //Attributes used for getEntry root entries.
+  private LinkedHashMap<AttributeType,List<Attribute>> attributes;
+
+  //Operational attributes used for getEntry root entries.
+  private Map<AttributeType,List<Attribute>> operationalAttributes;
+
 
   /**
    * Creates a new backend with the provided information.  All backend
@@ -247,6 +265,24 @@ public class ReplicationBackend
         throw new InitializationException(message, e);
       }
     }
+    rootObjectclasses = new LinkedHashMap<ObjectClass,String>(3);
+    rootObjectclasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
+    ObjectClass domainOC = DirectoryServer.getObjectClass("domain", true);
+    rootObjectclasses.put(domainOC, "domain");
+    ObjectClass objectclassOC =
+                   DirectoryServer.getObjectClass(ATTR_OBJECTCLASSES_LC, true);
+    rootObjectclasses.put(objectclassOC, ATTR_OBJECTCLASSES_LC);
+    attributes = new LinkedHashMap<AttributeType,List<Attribute>>();
+    AttributeType changeType =
+    DirectoryServer.getAttributeType("changetype", true);
+    LinkedHashSet<AttributeValue> valueSet =
+                                           new LinkedHashSet<AttributeValue>(1);
+    valueSet.add(new AttributeValue(changeType, "add"));
+    Attribute a = new Attribute(changeType, "changetype", valueSet);
+    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    attrList.add(a);
+    attributes.put(changeType, attrList);
+    operationalAttributes = new LinkedHashMap<AttributeType,List<Attribute>>();
   }
 
 
@@ -292,7 +328,29 @@ public class ReplicationBackend
   @Override()
   public synchronized long getEntryCount()
   {
-    return -1;
+    //This method only returns the number of actual change entries, the
+    //domain and any baseDN entries are not counted.
+    long retNum=0;
+    try {
+        InternalClientConnection conn =
+                    InternalClientConnection.getRootConnection();
+        SearchFilter filter=
+                       SearchFilter.createFilterFromString("(changetype=*)");
+        InternalSearchOperation searchOperation =
+                new InternalSearchOperation(conn,
+                        InternalClientConnection.nextOperationID(),
+                        InternalClientConnection.nextMessageID(), null,
+                        baseDNs[0],
+                        SearchScope.WHOLE_SUBTREE,
+                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                        filter, null, null);
+      search(searchOperation);
+      retNum=searchOperation.getSearchEntries().size();
+    } catch (DirectoryException ex) {
+      retNum=0;
+    }
+    return retNum;
+
   }
 
 
@@ -314,8 +372,7 @@ public class ReplicationBackend
   @Override()
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
-    // This needs to be updated when the backend implementation is complete.
-    return false;
+    return true;
   }
 
 
@@ -326,7 +383,35 @@ public class ReplicationBackend
   @Override()
   public synchronized Entry getEntry(DN entryDN)
   {
-    return null;
+    Entry e = null;
+    try {
+      if(baseDNSet.contains(entryDN)) {
+           return new Entry(entryDN, rootObjectclasses, attributes,
+                            operationalAttributes);
+      } else {
+        InternalClientConnection conn =
+                InternalClientConnection.getRootConnection();
+        SearchFilter filter=
+                SearchFilter.createFilterFromString("(changetype=*)");
+        InternalSearchOperation searchOperation =
+                new InternalSearchOperation(conn,
+                        InternalClientConnection.nextOperationID(),
+                        InternalClientConnection.nextMessageID(), null, entryDN,
+                        SearchScope.BASE_OBJECT,
+                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                        filter, null, null);
+        search(searchOperation);
+        LinkedList<SearchResultEntry> resultEntries =
+                searchOperation.getSearchEntries();
+        if(resultEntries.size() != 0) {
+          e=resultEntries.getFirst();
+        }
+      }
+    } catch (DirectoryException ex) {
+      e=null;
+    }
+    return e;
+
   }
 
 
@@ -337,7 +422,7 @@ public class ReplicationBackend
   @Override()
   public synchronized boolean entryExists(DN entryDN)
   {
-    return false;
+   return getEntry(entryDN) != null;
   }
 
 
@@ -441,7 +526,10 @@ public class ReplicationBackend
     DN baseDN;
     ArrayList<ReplicationCache> exportContainers =
       new ArrayList<ReplicationCache>();
-
+    if(server == null) {
+       Message message = ERR_REPLICATONBACKEND_EXPORT_LDIF_FAILED.get();
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,message);
+    }
     Iterator<ReplicationCache> rcachei = server.getCacheIterator();
     if (rcachei != null)
     {
@@ -865,7 +953,8 @@ public class ReplicationBackend
   public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-      return new LDIFImportResult(0, 0, 0);
+    Message message = ERR_REPLICATONBACKEND_IMPORT_LDIF_NOT_SUPPORTED.get();
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
 
@@ -1058,7 +1147,22 @@ public class ReplicationBackend
           ResultCode.NO_SUCH_OBJECT, message, null, null);
       }
     }
-
+    //This check is for GroupManager initialization. It currently doesn't
+    //come into play because the replication server variable is null in
+    //the check above. But if the order of initialization of the server variable
+    //is ever changed, the following check will keep replication change entries
+    //from being added to the groupmanager cache erroneously.
+    List<Control> requestControls = searchOperation.getRequestControls();
+    if (requestControls != null)
+    {
+      for (Control c : requestControls)
+      {
+        if (c.getOID().equals(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE))
+        {
+          return;
+        }
+      }
+    }
     // Make sure the base entry exists if it's supposed to be in this backend.
     if (!handlesEntry(searchBaseDN))
     {

@@ -29,10 +29,7 @@ package org.opends.server.core;
 
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.messages.Message;
@@ -583,6 +580,9 @@ public class GroupManager
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
+    LinkedList<Control> requestControls = new LinkedList<Control>();
+    requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+                                    false));
     for (DN configEntryDN : groupImplementations.keySet())
     {
       SearchFilter filter;
@@ -631,7 +631,8 @@ public class GroupManager
 
         InternalSearchOperation internalSearch =
              new InternalSearchOperation(conn, conn.nextOperationID(),
-                                         conn.nextMessageID(), null, baseDN,
+                                         conn.nextMessageID(), requestControls,
+                                         baseDN,
                                          SearchScope.WHOLE_SUBTREE,
                                          DereferencePolicy.NEVER_DEREF_ALIASES,
                                          0, 0, false, filter, null, null);
