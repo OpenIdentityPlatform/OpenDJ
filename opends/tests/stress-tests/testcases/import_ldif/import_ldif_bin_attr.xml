@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="bin_attr"/>
+
+  <function name="bin_attr">
+
+    <sequence>
+
+      <block name="'bin-attr'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='bin_attr'                
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/import_ldif/import_ldif_setup.xml' % (TESTS_DIR)"/>
+          <call function="'import_ldif_setup'" />
+
+          <testcase name="getTestCaseName('Preamble')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                <message>
+                 'Import Ldif: Binary Attribute: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StopDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                </call>
+
+                <script>
+                    import os.path
+                    curr_filename=logsRemoteDataDir + r"/../../" + bin_attr_filename
+                    curr_file_exists='0'
+                    if os.path.exists(curr_filename):
+                      curr_file_exists='1'
+                    
+                    numberOfEntries='100000'
+                </script>
+                
+                <message>
+                      'Import Ldif: Binary Attribute: Looking for file, %s. File exists? (0=false, 1=true) %s' % (curr_filename, curr_file_exists)
+                </message>
+                
+                <if expr="curr_file_exists=='0'">
+                  <sequence>
+                    <message>
+                    'Import Ldif Tasks: Binary Attribute: Preamble - Make an make-ldif template file'
+                    </message>
+                    <call function="'MakeAMakeLdifTemplate'">
+                    { 'numEntries'         : numberOfEntries ,
+                      'templateFile'       : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir) ,
+                      'extraLine'          : 'jpegPhoto;binary:: &lt;random:base64:38000&gt;'}
+                    </call>
+                
+                    <message>
+                      'Import Ldif Tasks: Binary Attribute: Preamble - Make the ldif file'
+                    </message>
+                
+                    <call function="'MakeLdif'">
+                    { 'templateFile'   : '%s/quickstart/import_Entries.template' % (logsRemoteDataDir)  ,
+                      'ldifFile'       : curr_filename  }
+                    </call>
+                  </sequence>
+                </if>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            
+            <testcase name="getTestCaseName('Import Large Ldif File')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Import Ldif: Binary Attribute: Import large ldif file'
+                </message>
+                
+                <call function="'ImportLdifWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME ,
+                  'dsLdifFile'  : curr_filename ,
+                  'dsBackEnd'   : 'userRoot'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'Processed 100002 entries' }
+                </call>
+                
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+          
+          <testcase name="getTestCaseName('Start Directory After Import')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                 'Import Ldif: Binary Attribute: Start DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StartDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+  
+                <call function="'checktestRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+  
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 5 ,
+                    'noOfMilliSeconds' : 5000 }
+                </call>      
+        
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+          
+          <testcase name="getTestCaseName('Search For Imported Entries')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                 'Import Ldif: Binary Attribute: Search for certain entries that were imported'
+                </message>
+
+                <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
+                                       'uid=user.10000,ou=People,dc=com' ,
+                                       'uid=user.20000,ou=People,dc=com' ,
+                                       'uid=user.30000,ou=People,dc=com' ,
+                                       'uid=user.40000,ou=People,dc=com' ,
+                                       'uid=user.50000,ou=People,dc=com' ,
+                                       'uid=user.60000,ou=People,dc=com' ,
+                                       'uid=user.70000,ou=People,dc=com' ,
+                                       'uid=user.80000,ou=People,dc=com' ,
+                                       'uid=user.90000,ou=People,dc=com' ,
+                                       'uid=user.99999,ou=People,dc=com'] ,
+                  'startDS'         : 'no'
+                }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+          </testcase>
+          
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/import_ldif/import_ldif_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'import_ldif_cleanup'" />
+         
+              
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>

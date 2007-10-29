@@ -1,0 +1,1185 @@
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<project name="opends-staf-installer" basedir="." default="usage">
+  <description>
+    Installer ant file for the staf platform
+    This allows tests that need a running instance of staf to easily
+    get one and hides all the complexity under the hood
+  </description>
+  <dirname file="${basedir}/.." property="project.home"/>
+  
+  <!-- installer wide settings - top -->
+    <property file="${project.home}/PRODUCT"/>
+    <property name="product.name"
+              value="${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}" />
+    <!-- load user properties first if they have been set -->
+    <property file="user.properties"/>
+    <!-- this is the file where the default values are defined                -->
+    <property file="staf-installer/staf-installer.properties"                  />
+    
+    <!-- Define the os name in case we're on windows
+         why do this ?
+         the jvm returns different strings for os.name on different flavors
+         of windows ('Windows 2000', 'Windows 2003', 'Windows XP', ...) 
+    -->
+    <condition property="os.myname" value="windows" else="${os.name}">
+      <os family="windows"/>
+    </condition>
+    
+    <!-- Check if the current platform is supported                           -->
+    <condition property="platform.supported">
+      <available file="staf-installer/${os.myname}.properties"/>
+    </condition>
+    
+    <!-- Load architecture specific properties
+        loading this one first allows to override common properties with platform
+        specific properties
+    -->
+    <property file="staf-installer/${os.myname}-${os.arch}-${sun.arch.data.model}.properties" />
+    <property file="staf-installer/${os.myname}-${os.arch}.properties"         />
+    <!-- Load properties common to the OS regardless of architecture          -->
+    <property file="staf-installer/${os.myname}.properties"                    />
+
+    <!-- Daily build properties -->
+    <tstamp>
+      <format property="todays.date" pattern="yyyyMMdd"/>
+    </tstamp>
+    <tstamp>
+      <format property="yesterdays.date" pattern="yyyyMMdd" offset="-24" unit="hour"/>
+    </tstamp>
+    <condition property="daily.date" value="${todays.date}" else="${yesterdays.date}">
+      <http url="${daily.build.url}/${todays.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
+    </condition>
+    <property name="daily.package.dir" 
+              value="${staf.home}/daily-builds/${daily.date}"/>
+    <property name="daily.package" 
+              value="${daily.package.dir}/${product.name}.zip"/>
+    <property name="daily.package.url" 
+              value="${daily.build.url}/${daily.date}${daily.build.time}/${SHORT_NAME}/build/package/${product.name}.zip"/>
+    
+  <!-- installer wide settings - bottom  -->
+  
+<!-- Usage section - top     -->
+  <!-- Default target => how to use this file -->
+  <target name="usage"
+          description="Gives a message that helps using this file">
+    <echo>Installer usage:
+ main targets=
+   usage      : print this message
+   status     : report if the staf is installed and running
+   bootstrap  : install and start the framework
+   run-tests  : run the stress tests (requires staf installed and started)
+   run-daily  : run the stress tests on today's build
+   wipeout    : stop and uninstall the framework
+ gui tools:
+   gui        : start the STAX gui
+   jvm-log    : start the STAF jvm log viewer
+ subtargets=
+   download   : download the archives necessary to install the staf
+   install    : install the staf
+   start      : start the staf unless it is already running
+   stop       : stop the staf if it is already running
+   uninstall  : uninstall the staf if it is installed</echo>
+  </target>
+<!-- Usage section - bottom  -->
+  
+<!-- Downloader section - top    -->
+  <target name="download-do-prepare-check-proxy" unless="proxy.disabled">
+    <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
+    <echo>Note: If these values do not match your environment, </echo>
+    <echo>      please use the 'configure' target</echo>
+    <condition property="proxy.enabled">
+      <and>
+        <not>
+          <http url="${bits.download.url}"/>
+        </not>
+        <isreachable host="${proxy.host}" timeout="5"/>
+      </and>
+    </condition>
+  </target>
+  <target name="download-do-prepare-set-proxy" if="proxy.enabled" >
+    <echo>Proxy detected. Configuring.</echo>
+    <setproxy 
+      proxyhost="${proxy.host}" 
+      proxyport="${proxy.port}"
+      proxyuser="${proxy.user}" 
+      proxypassword="${proxy.pass}"/>
+  </target>
+  <target 
+    name="download-do-prepare" 
+    depends="download-do-prepare-check-proxy,download-do-prepare-set-proxy">
+    <mkdir dir="${bits.download.dir}" />
+  </target>  
+  <target name="download-do-failed" unless="bits.all.downloaded" >
+    <echo>Couldn't get the bits, sorry.</echo>
+  </target>
+  <target name="download-do-succeeded" if="bits.all.downloaded" >
+    <echo>Successfully downloaded all the archives needed for installation.</echo>
+  </target>
+  
+  <target name="download-do-get-staf"  unless="bits.staf.downloaded.before">
+    <get src="${bits.download.url}/${bits.staf.archive}" 
+         dest="${bits.download.dir}/${bits.staf.archive}" />
+    <property name="bits.staf.downloaded" value="true"/>
+  </target>
+
+  <target name="download-do-get-services"  unless="bits.services.downloaded.before">
+    <get src="${bits.download.url}/${bits.email.archive}" 
+         dest="${bits.download.dir}/${bits.email.archive}" />
+    <get src="${bits.download.url}/${bits.event.archive}" 
+         dest="${bits.download.dir}/${bits.event.archive}" />
+    <get src="${bits.download.url}/${bits.eventmanager.archive}" 
+         dest="${bits.download.dir}/${bits.eventmanager.archive}" />
+    <get src="${bits.download.url}/${bits.stax.archive}" 
+         dest="${bits.download.dir}/${bits.stax.archive}" />
+    <property name="bits.services.downloaded" value="true" />
+  </target>
+  
+  <target name="download-do" 
+          if="platform.supported" 
+          depends="status-do,download-do-prepare,download-do-get-staf,download-do-get-services">
+    <condition property="bits.all.downloaded" >
+      <and>
+        <or>
+          <isset property="bits.staf.downloaded"/>
+          <isset property="bits.staf.downloaded.before" />
+        </or>
+        <or>
+          <isset property="bits.services.downloaded"/>
+          <isset property="bits.services.downloaded.before" />
+        </or>
+      </and>
+    </condition>
+    <antcall target="download-do-succeeded" />
+    <antcall target="download-do-failed"    />
+  </target>
+  
+  <target name="download-dont" unless="platform.supported">
+    <echo>${os.myname}-${os.arch} is not a supported platform</echo>
+  </target>
+  
+  <target name="download" 
+          depends="status-do,download-do,download-dont"
+          description="Download the bits necessary to install staf"/>
+
+  <target name="download-daily" depends="status-do,download-do-prepare" unless="daily.package.downloaded">
+    <mkdir dir="${daily.package.dir}"/>
+    <get src="${daily.package.url}"
+         dest="${daily.package}"/>
+  </target>
+  
+  <target name="remove-bits">
+    <delete dir="${bits.download.dir}"/>
+  </target>
+  
+  <target name="re-download" depends="remove-bits,download"/>
+<!-- Downloader section - bottom -->
+
+<!-- Installation section - top    -->
+  <target name="install-config" if="staf.install.successful">
+    <copy file="${staf.config.stubs}" tofile="${staf.config}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+  </target>
+
+  <target name="install-services" if="staf.install.successful">
+    <unzip 
+        src="${bits.download.dir}/${bits.email.archive}" 
+        dest="${staf.install.dir}/services"/>
+    <unzip 
+        src="${bits.download.dir}/${bits.event.archive}" 
+        dest="${staf.install.dir}/services"/>
+    <unzip 
+        src="${bits.download.dir}/${bits.eventmanager.archive}" 
+        dest="${staf.install.dir}/services"/>
+    <unzip 
+        src="${bits.download.dir}/${bits.stax.archive}" 
+        dest="${staf.install.dir}/services"/>
+  </target>
+
+  <target name="install-staf-jar" 
+          description="deploy the staf bits"
+          if="staf.archive.is.jar">
+    <echo message="Installing staf, please wait, it'll take some time..."    />
+    <java jar="${bits.download.dir}/${bits.staf.archive}" fork="true">
+      <arg value="-silent" />
+      <arg line="-W license.selection=&quot;Accept&quot;" />
+      <arg line="-W stafinstalldirectory.defaultInstallLocation=&quot;${staf.install.dir}&quot;"/>
+    </java>
+    <condition property="staf.install.successful">
+      <available file="${staf.install.dir}/bin/STAF.cfg"/>
+    </condition>
+  </target>
+  
+  <target name="install-staf-tar" if="staf.archive.is.tar">
+    <delete dir="${bits.download.dir}/staf"/>
+    <gunzip
+      src="${bits.download.dir}/${bits.staf.archive}"
+      dest="${bits.download.dir}"/>
+    <untar dest="${bits.download.dir}">
+      <fileset dir="${bits.download.dir}">
+        <include name="*.tar"/>
+      </fileset>
+    </untar>
+    <chmod file="${bits.download.dir}/staf/STAFInst" perm="755"/>
+    <exec executable="${bits.download.dir}/staf/STAFInst">
+      <arg value="-source"/>
+      <arg value="${bits.download.dir}/staf"/>
+      <arg value="-target"/>
+      <arg value="${staf.install.dir}"/>
+      <arg value="-acceptlicense"/>
+    </exec>
+    <condition property="staf.install.successful">
+      <available file="${staf.install.dir}/bin/STAF.cfg"/>
+    </condition>
+  </target>
+  
+  <target name="install-staf" 
+          depends="install-staf-jar,install-staf-tar">
+    <fail unless="staf.install.successful" />
+  </target>
+  
+  <target name="install-prepare" >
+    <mkdir dir="${staf.install.dir}"/>
+    <mkdir dir="${staf.install.dir}/services"/>
+    <mkdir dir="${staf.config.dir}"/>
+  </target>
+
+  <target name="install" 
+          description="Perform framework installation" 
+          depends="status-do,install-prepare,install-staf,install-services,install-config"
+          if="bits.all.downloaded"/>
+<!-- Installation section - bottom -->
+
+<!-- Gui section - top    -->
+  <target name="gui"
+          depends="status-do"
+          description="brings up the stax gui" >
+    <condition property="gui.spawn" value="false" else="true">
+      <isset property="DEBUG"/>
+    </condition>
+    <exec
+      dir="${staf.install.dir}"
+      executable="${java.home}/bin/java"
+      spawn="${gui.spawn}">
+      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg value="-classpath"/>
+      <arg value="${staf.install.dir}/services/stax/STAXMon.jar${path.separator}${staf.lib.dir}/JSTAF.jar"/>
+      <arg value="com.ibm.staf.service.stax.STAXMonitor"/>
+    </exec>
+  </target>
+<!-- Gui section - bottom -->
+<!-- Jvmlog section - top    -->
+  <target name="jvm-log"
+          depends="status-do"
+          description="brings up the jvmlog gui" >
+    
+    <exec
+      dir="${staf.install.dir}"
+      executable="${java.home}/bin/java"
+      spawn="true">
+      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg value="-classpath"/>
+      <arg value="${staf.lib.dir}${path.separator}${staf.lib.dir}/JSTAF.jar"/>
+      <arg value="com.ibm.staf.STAFJVMLogViewer"/>
+    </exec>
+  </target>
+<!-- Jvmlog section - bottom -->
+
+<!-- Configure section - top    -->
+  <target name="configure">
+    <echo>I. STAF configuration</echo>
+    <input
+      message="I [1/1] STAF port"
+      defaultvalue="${staf.port}"
+      addproperty="staf.port.input"
+    />
+    <input
+      message="I [2/2] Host name"
+      defaultvalue="${host.name}"
+      addproperty="host.name.input"
+    />
+    <echo>II. HTTP proxy (to download the framework and/or daily builds)</echo>
+    <input
+      message="II [1/4] Proxy host"
+      defaultvalue="${proxy.host}"
+      addproperty="proxy.host.input"
+    />
+    <input
+      message="II [2/4] Proxy port"
+      defaultvalue="${proxy.port}"
+      addproperty="proxy.port.input"
+    />
+    <input
+      message="II [3/4] Proxy user"
+      defaultvalue="${proxy.user}"
+      addproperty="proxy.user.input"
+    />
+    <input
+      message="II [4/4] Proxy password"
+      defaultvalue="${proxy.pass}"
+      addproperty="proxy.pass.input"
+    />
+    <echo>III. OpenDS configuration</echo>
+    <input
+      message="III [1/5] OpenDS ldap port"
+      defaultvalue="${opends.port.ldap}"
+      addproperty="opends.port.ldap.input"
+    />
+    <input
+      message="III [2/5] OpenDS secure ldap port"
+      defaultvalue="${opends.port.ldaps}"
+      addproperty="opends.port.ldaps.input"
+    />
+    <input
+      message="III [3/5] OpenDS jmx port"
+      defaultvalue="${opends.port.jmx}"
+      addproperty="opends.port.jmx.input"
+    />
+    <input
+      message="III [4/5] OpenDS admin DN (also called root DN)"
+      defaultvalue="${opends.admin.dn}"
+      addproperty="opends.admin.dn.input"
+    />
+    <input
+      message="III [5/5] OpenDS admin password"
+      defaultvalue="${opends.admin.pwd}"
+      addproperty="opends.admin.pwd.input"
+    />
+    <echo>IV. Email configuration</echo>
+    <input
+      message="IV [1/7] Send report email?"
+      defaultvalue="${email.enabled}"
+      validargs="y,n"
+      addproperty="email.enabled.input"
+    />
+    <input
+      message="IV [2/7] Email will appear to be from"
+      defaultvalue="${email.from}"
+      addproperty="email.from.input"
+    />
+    <input
+      message="IV [3/7] Send email to"
+      defaultvalue="${email.to}"
+      addproperty="email.to.input"
+    />
+    <input
+      message="IV [4/7] SMTP server host"
+      defaultvalue="${email.server.host}"
+      addproperty="email.server.host.input"
+    />
+    <input
+      message="IV [5/7] SMTP server port"
+      defaultvalue="${email.server.port}"
+      addproperty="email.server.port.input"
+    />
+    <input
+      message="IV [6/7] SMTP server user"
+      defaultvalue="${email.server.user}"
+      addproperty="email.server.user.input"
+    />
+    <input
+      message="IV [7/7] SMTP server password"
+      defaultvalue="${email.server.pwd}"
+      addproperty="email.server.pwd.input"
+    />
+
+    <echo>Saving ...</echo>
+    <echo
+      file="user.properties">staf.port=${staf.port.input}
+host.name=${host.name.input}
+proxy.host=${proxy.host.input}
+proxy.port=${proxy.port.input}
+proxy.user=${proxy.user.input}
+proxy.pass=${proxy.pass.input}
+opends.port.ldap=${opends.port.ldap.input}
+opends.port.ldaps=${opends.port.ldaps.input}
+opends.port.jmx=${opends.port.jmx.input}
+opends.admin.dn=${opends.admin.dn.input}
+opends.admin.pwd=${opends.admin.pwd.input}
+email.enabled=${email.enabled.input}
+email.from=${email.from.input}
+email.to=${email.to.input}
+email.server.host=${email.server.host.input}
+email.server.port=${email.server.port.input}
+email.server.user=${email.server.user.input}
+email.server.pwd=${email.server.pwd.input}
+</echo>
+  </target>
+  <target name="unconfigure">
+    <delete file="user.properties"/>
+  </target>
+<!-- Configure section - bottom -->
+
+<!-- Run tests section - top    -->
+  <target name="run-tests-build-pkg" 
+    if="product.package.build" 
+    depends="run-tests-get-pkg">
+    <ant dir="${project.home}" 
+      antfile="${project.home}/build.xml" 
+      target="package"/>
+  </target>
+  
+  <target name="run-tests-get-pkg">
+    <condition property="product.package.dir" 
+               value="${daily.package.dir}"
+               else="${project.home}/build/package">
+       <isset property="tests.run.daily"/>
+     </condition>
+     <property name="product.package" 
+               value="${product.package.dir}/${product.name}.zip"/>
+     <condition property="product.package.build">
+       <and> 
+         <not>
+           <isset property="tests.run.daily"/>
+         </not>
+         <not>
+           <available file="${product.package}"/>
+         </not>
+       </and>
+     </condition>
+  </target>
+
+  <target name="run-tests-check" depends="run-tests-build-pkg">
+    <condition property="opends.port.ldap.taken">
+      <socket port="${opends.port.ldap}" server="${host.name}"/>
+    </condition>
+    <condition property="opends.port.ldaps.taken">
+      <socket port="${opends.port.ldaps}" server="${host.name}"/>
+    </condition>
+    <condition property="opends.port.jmx.taken">
+      <socket port="${opends.port.jmx}" server="${host.name}"/>
+    </condition>
+    <condition property="product.package.available">
+      <available file="${product.package}"/>
+    </condition>
+    <condition property="run-tests.proceed">
+      <and>
+        <not>
+          <or>
+            <isset property="opends.port.ldap.taken"/>
+            <isset property="opends.port.ldaps.taken"/>
+            <isset property="opends.port.jmx.taken"/>
+          </or>
+        </not>
+        <isset property="staf.running"/>
+        <isset property="product.package.available"/>
+      </and>
+    </condition>
+  </target>
+
+  <target name="run-tests-prepare"
+          depends="status-do,run-tests-build-pkg" 
+          if="run-tests.proceed">
+    <!-- python config - top -->
+      <!-- 1. get a timestamp for step 3 -->
+      <tstamp>
+        <format property="tests.run.time" pattern="yyyy.MM.dd-HH.mm.ss"/>
+      </tstamp>
+      <!-- clean up some -->
+      <delete dir="${staf.logs.dir}"/>
+      <delete dir="${staf.tmp.dir}"/>
+      <!-- make all the necessary directories for this test run -->
+      <mkdir dir="${staf.tmp.dir}"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/config"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/report"/>
+      <!-- these will serve for after-the-fact archiving the logs -->
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/staf-logs"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/server-logs"/>
+      <mkdir dir="${tests.run.dir}/${tests.run.time}/coverage"/>
+      
+      <!-- 3. perform the config back up if necessary -->
+      <copy file="${tests.config}" 
+            tofile="${tests.config.backup}"
+            overwrite="false"/>
+      <!-- 4. generate the timestamped config file that will be used for this run -->
+      <copy file="${tests.config.stubs}"
+            tofile="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}">
+        <filterchain>
+          <expandproperties/>
+        </filterchain>
+      </copy>
+      <!-- 5. this is a windows-specific measure to replace the windows file
+              separator by a forward slash. Staf otherwise fails to find the
+              files.
+       -->
+      <replace file="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}" token="\" value="/"/>
+      <!-- 6. copy the generated config in place of the previous one -->
+      <copy file="${tests.run.dir}/${tests.run.time}/config/${tests.config.file}"
+            tofile="${tests.config}"
+            overwrite="true"/>
+    <!-- python config - bottom -->
+  </target>
+  
+  <target name="run-tests-cant-ldap" if="opends.port.ldap.taken">
+    <echo>Port [${opends.port.ldap}] already used</echo>
+  </target>
+  <target name="run-tests-cant-ldaps" if="opends.port.ldaps.taken">
+    <echo>Port [${opends.port.ldaps}] already used</echo>
+  </target>
+  <target name="run-tests-cant-jmx" if="opends.port.jmx.taken">
+    <echo>Port [${opends.port.jmx}] already used</echo>
+  </target>
+  <target name="run-tests-cant-staf" unless="staf.running">
+    <echo>Staf is NOT running. Use the start target and try again</echo>
+  </target>
+  <target name="run-tests-cant-package" unless="product.package.available">
+    <echo>the package [${product.package}] is not available</echo>
+  </target>
+  <target name="run-tests-cant" 
+          depends="run-tests-cant-ldap,run-tests-cant-ldaps,run-tests-cant-jmx,run-tests-cant-staf,run-tests-cant-package"
+          unless="run-tests.proceed">
+    <echo>Could not run the tests for the afore mentioned reasons</echo>
+    <fail message="Could not run the stress tests"/>
+  </target>
+  <target name="run-tests"
+    depends="status-do,run-tests-check,run-tests-cant,run-tests-prepare,run-my-tests-default-plan" 
+    if="run-tests.proceed">
+    <property name="tests.request" value="EXECUTE FILE ${tests.xml} JOBNAME OpenDS_stress_Tests SCRIPTFILE ${tests.config} SCRIPTFILE ${tests.python} WAIT CLEARLOGS"/>
+    <condition property="tests.replay.script" value="replay.bat" else="replay.sh">
+      <os family="windows"/>
+    </condition>
+    <echo>Generating replay script to allow you to re-execute the tests in the same conditions</echo>
+    <copy file="${staf.installer.dir}${file.separator}${tests.replay.script}"
+          tofile="${tests.run.dir}${file.separator}${tests.run.time}${file.separator}${tests.replay.script}">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+    <echo>While the tests are running you may tail the job logs at</echo>
+    <echo>${staf.home}/logs/MACHINE/</echo>
+    <echo>Running tests. This will take more than a while.</echo>
+    <property name="CLASSPATH" value="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+    <exec
+      dir="${staf.bin.dir}"
+      executable="${staf.executable}"
+      >
+      <arg line="LOCAL STAX ${tests.request}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+    </exec>
+    <!-- restore the original config file to avoid it to be mistakenly commited
+         with the generated values    -->
+    <delete file="${tests.config}"/>
+    <move file="${tests.config.backup}" 
+          tofile="${tests.config}"/>
+    <echo file="${tests.run.dir}/last.run">${tests.run.time}</echo>
+    <echo>Saving server logs</echo>
+    <copy todir="${tests.run.dir}/${tests.run.time}/server-logs">
+      <fileset dir="${staf.tmp.dir}/${product.name}/logs"/>
+    </copy>
+    <echo>Saving Staf/Stax logs</echo>
+    <copy todir="${tests.run.dir}/${tests.run.time}/staf-logs">
+      <fileset dir="${staf.home}/logs"/>
+    </copy>
+    <!--<delete dir="${staf.home}/logs" />-->
+    <echo>Saving report</echo>
+    <copy todir="${tests.run.dir}/${tests.run.time}/report">
+      <fileset dir="${staf.tmp.dir}">
+        <include name="r*"/>
+      </fileset>
+    </copy>
+    <echo>You may access the tests report at</echo>
+    <echo>${tests.run.dir}/${tests.run.time}/report/my-report.html</echo>
+    <antcall target="send-mail"/>
+  </target>
+  
+  <target name="run-my-tests-get-contrib-check">
+    <available file="ant-contrib.zip" property="ant-contrib.downloaded" />
+  </target>
+  <target name="run-my-tests-get-contrib" depends="run-my-tests-get-contrib-check,download-do-prepare-check-proxy,download-do-prepare-set-proxy" unless="ant-contrib.downloaded">
+    <get src="http://easynews.dl.sourceforge.net/sourceforge/ant-contrib/ant-contrib-1.0b3-bin.zip" dest="ant-contrib.zip"/>
+  </target>
+  <target name="run-my-tests-expand-check">
+    <available file="ant-contrib" property="ant-contrib.expanded" />
+  </target>
+  <target name="run-my-tests-expand" depends="run-my-tests-get-contrib,run-my-tests-expand-check" unless="ant-contrib.expanded">
+    <unzip src="ant-contrib.zip" dest="." />
+  </target>
+
+  <target name="run-my-tests-define" depends="run-my-tests-expand">
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+        <fileset dir="ant-contrib"> 
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </taskdef>
+  </target>
+  
+  <target name="run-my-tests" depends="run-my-tests-define">
+    <condition property="already.customized" value="true" else="false">
+      <available file="${test.plan.custom}" />
+    </condition>
+    <if>
+      <equals arg1="${already.customized}" arg2="true" />
+      <then>
+        <input message="A previously customized test plan was detected. Do you want to change the list of suites to run?" validargs="y,n" defaultvalue="n" addproperty="prompt.do" />
+      </then>
+      <else>
+        <echo>No previous customized test plan found.</echo>
+        <property name="prompt.do" value="y" />
+      </else>
+    </if>
+    
+    <if>
+      <equals arg1="${prompt.do}" arg2="y" />
+      <then>
+        <delete file="${test.plan.custom}" />
+        <foreach list="${test.plan.list}" param="test" target="run-my-tests-prompt"/>
+      </then>
+    </if>
+    
+    <echo>You may now run those tests simply by calling 'build run-tests'</echo>
+    <!-- <antcall target="run-tests" /> -->
+  </target>
+
+  <target name="run-my-tests-prompt">
+    <input message="Do you want to execute ${test}?" validargs="y,n" defaultvalue="y" addproperty="answer"/>
+    <if>
+      <equals arg1="${answer}" arg2="y" />
+      <then>
+        <echo file="${test.plan.custom}" append="true">${test}
+</echo>
+      </then>
+    </if>
+  </target>
+  <target name="run-my-tests-default-plan" depends="run-my-tests-define" unless="custom-suites.on">
+    <delete file="${test.plan.default}"/>
+    <foreach list="${test.plan.list}" param="test" target="run-my-tests-default-plan-add"/>
+  </target>
+  <target name="run-my-tests-default-plan-add">
+    <echo file="${test.plan.default}" append="true">${test}
+</echo>
+  </target>
+  
+  
+  <target name="send-mail-prepare">
+    <condition property="test.successful">
+      <available file="${staf.tmp.dir}/my-report.html"/>
+    </condition>
+    <condition property="email.send">
+      <equals arg1="${email.enabled}" arg2="y"
+              casesensitive="false" trim="true"/>
+    </condition>
+  </target>
+
+  <target name="send-mail-get-percentage" depends="send-mail-prepare" if="test.successful">
+    <echo>test report found.Proceeding...</echo>
+    <delete file="${staf.tmp.dir}/percentage.properties"/>
+    <copy file="${staf.tmp.dir}/my-report.html" tofile="${staf.tmp.dir}/percentage.properties">
+      <filterchain>
+        <linecontains>
+         <contains value='font size="+2'/>
+        </linecontains>
+        <tokenfilter>
+          <replaceregex pattern=".*font size=.+2..(\d+)%./font.*" replace="test.percentage=\1"/>
+        </tokenfilter>
+      </filterchain>
+    </copy>
+    <property file="${staf.tmp.dir}/percentage.properties"/>
+    <echo>Test Success Rate: ${test.percentage}%</echo>
+  </target>
+
+  <target name="send-mail" if="email.send" depends="send-mail-get-percentage">
+    <condition property="email.send.noauth">
+      <or>
+        <not>
+          <isset property="email.server.user"/>
+        </not>
+        <not>
+          <length string="${email.server.user}" when="greater"
+                  trim="true" length="0"/>
+        </not>
+      </or>
+    </condition>
+    <condition property="email.file" 
+               value="${staf.tmp.dir}/my-report.html" 
+               else="staf-installer/failure.html">
+      <available file="${staf.tmp.dir}/my-report.html"/>
+    </condition>
+    <condition property="email.subject"
+               value="FT - Run - ${daily.date} - ${os.name} - ${os.arch} - ${test.percentage}%"
+               else="FT - Failed -${daily.date} - ${os.name} - ${os.arch}">
+      <available file="${staf.tmp.dir}/my-report.html"/>
+    </condition>
+    <antcall target="send-mail-noauth"/>
+    <antcall target="send-mail-withauth"/>
+  </target>
+  <target name="send-mail-noauth" if="email.send.noauth">
+    <mail from="${email.from}" 
+          tolist="${email.to}" 
+          subject="${email.subject}"
+          mailhost="${email.server.host}"
+          mailport="${email.server.port}"
+          messagefile="${email.file}"
+          messagemimetype="text/html" />
+  </target>
+  <target name="send-mail-withauth" unless="email.send.noauth">
+    <mail from="${email.from}" 
+          tolist="${email.to}" 
+          subject="${email.subject}"
+          mailhost="${email.server.host}"
+          mailport="${email.server.port}"
+          user="${email.server.user}"
+          password="${email.server.pwd}"
+          messagefile="${email.file}"
+          messagemimetype="text/html" />
+  </target>
+  
+  <target name="daily">
+    <property name="tests.run.daily" value="true"/>
+  </target>
+  
+  <target name="run-daily" depends="status-do,daily,download-daily,coverage-instrument,run-tests"/>
+  
+  <target name="coverage-init">
+    <path id="emma.lib">
+      <pathelement location="${project.home}/ext/emma/lib/emma.jar"     />
+      <pathelement location="${project.home}/ext/emma/lib/emma_ant.jar" />
+    </path>
+
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+  </target>
+  
+  <target name="coverage-on" depends="coverage-init">
+    <property name="coverage.on" value="true"/>
+  </target>
+  
+  <target name="coverage-instrument" depends="status-do,run-tests-get-pkg" if="coverage.on">
+    <delete dir="${staf.tmp.dir}/coverage-instr" />
+    <mkdir dir="${staf.tmp.dir}/coverage-instr" />
+    <!-- unzip the original package in a temporary location to make the
+         changes necessary so that the coverage tool is called
+     -->
+    <unzip src="${product.package}" 
+           dest="${staf.tmp.dir}/coverage-instr"/>
+
+    <!-- Add emma in the package along with the other librairies
+         this has the advantage of being automatically picked up by the scripts
+    -->
+    <copy file="${project.home}/ext/emma/lib/emma.jar" 
+          tofile="${staf.tmp.dir}/coverage-instr/${product.name}/lib/emma.jar"/>
+    
+    <!-- move the original product package to make room for the coverage 
+         enabled package 
+     -->
+    <move file="${product.package}" tofile="${product.package}.nocov"/>
+    
+    <!-- intrument the OpenDS java archive to gather coverage -->
+    <java classpath="${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}emma.jar"
+          classname="emma" fork="true">
+      <jvmarg value="-Demma.metadata.out.file=${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}coverage.em" />
+      <arg value="instr" />
+      <arg value="-m" />
+      <arg value="overwrite" />
+      <arg value="-cp" />
+      <arg value="${staf.tmp.dir}${file.separator}coverage-instr${file.separator}${product.name}${file.separator}lib${file.separator}OpenDS.jar" />
+    </java>
+    <echo>Writing properties file</echo>
+    <echo file="${staf.tmp.dir}/coverage-instr/${product.name}/classes/emma.properties">coverage.out.file=${staf.tmp.dir}/emma.coverage</echo> 
+    <!-- Repackage the product with coverage enabled scripts -->          
+    <zip basedir="${staf.tmp.dir}/coverage-instr" destfile="${product.package}">
+      <zipfileset dir="${staf.tmp.dir}/coverage-instr" 
+                  includes="${product.name}/setup,${product.name}/uninstall,${product.name}/upgrade,${product.name}/bin/*,${product.name}/lib/*.sh"
+           filemode="755" dirmode="755" />
+    </zip>
+    <!-- <delete dir="${staf.tmp.dir}/coverage-instr"/> -->
+  </target>
+  
+  <target name="coverage-report" if="coverage.on">
+    <delete dir="${staf.tmp.dir}/coverage/all" />
+    <mkdir dir="${staf.tmp.dir}/coverage/all" />
+    <emma enabled="${coverage.on}" >
+      <report >
+        <infileset dir="${staf.tmp.dir}" includes="**/*.em,**/*.ec" />
+
+        <sourcepath>
+          <dirset dir="${project.home}" >
+            <include name="src" />
+          </dirset>
+        </sourcepath>
+
+        <html outfile="${staf.tmp.dir}/coverage/all/index.html"
+              columns="name, method, line"
+              sort="+line, +name"
+              metrics="line:80"
+        />
+      </report>
+    </emma>
+  </target>
+  
+  <target name="restore-pkg" if="coverage.on">
+    <delete file="${product.package}"/>
+    <move file="${product.package}.nocov" tofile="${product.package}"/> 
+  </target>
+
+  <target name="daily-coverage" depends="coverage-on,run-daily,restore-pkg,coverage-report"/>
+  
+  <target name="testwithcoverage" depends="coverage-on,coverage-instrument,run-tests,restore-pkg,coverage-report"/> 
+<!-- Run tests section - bottom -->
+  
+<!-- Uninstallation section - top    -->
+  <target name="uninstall-do-jar"
+          description="Uninstall the staf"
+          if="staf.install.is.jar">
+    <echo message="Uninstalling staf, please wait..."                        />
+    <java jar="${staf.install.dir}/_uninst/uninstall.jar" fork="true">
+      <arg value="-silent" />
+    </java>
+    <sleep seconds="5" />
+    <delete dir="${staf.install.dir}" />
+  </target>
+  <target name="uninstall-do-tar"
+          description="Uninstall the staf"
+          unless="staf.install.is.jar">
+    <echo message="Uninstalling staf, please wait..."                        />
+    <exec executable="${staf.install.dir}/STAFUninst"/>
+    <sleep seconds="5" />
+    <delete dir="${staf.install.dir}" />
+  </target>
+
+  <target name="uninstall-do" if="staf.installed">
+    <condition property="staf.install.is.jar">
+      <available file="${staf.install.dir}/_uninst/uninstall.jar"/>
+    </condition>
+    <antcall target="uninstall-do-jar"/>
+    <antcall target="uninstall-do-tar"/>
+  </target>
+  <target name="uninstall-dont-not-installed" unless="staf.installed">
+    <echo>Staf is not installed.</echo>
+  </target>
+  <target name="uninstall-dont-running" if="staf.running">
+    <echo>Staf is running. Stop staf before uninstalling.</echo>
+    <echo>Use either the 'stop' or the 'wipeout' target.</echo>
+  </target>
+  <target 
+    name="uninstall-dont" 
+    depends="uninstall-dont-running,uninstall-dont-not-installed" />
+  
+  <target name="uninstall" depends="status-do,uninstall-do,uninstall-dont">
+  </target>
+<!-- Uninstallation section - bottom -->
+  
+<!-- Start section - top       -->
+  <target name="start-do" 
+          description="start the staf"
+          if="staf.installed"
+          unless="staf.running" >
+    <echo message="Starting staf daemon ... on ${os.myname}" />
+    <condition property="staf.spawn">
+      <not>
+        <isset property="staf.spawn"/>
+      </not>
+    </condition>
+    <echo message="Starting STAF..."/>
+    <exec
+      dir="${staf.bin.dir}"
+      executable="${staf.daemon}"
+      spawn="${staf.spawn}">
+     <arg value="${staf.config}"/>
+     <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+     <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
+     <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+     <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+     <env key="STAFCODEPAGE" value="LATIN_1"/>
+     <env key="STAF_INSTANCE_NAME" value="STAF"/>
+   </exec>
+   <echo message="Waiting for service to become available..."/>
+    <waitfor>
+      <socket server="${host.name}" port="${staf.port}"/>
+    </waitfor>
+    <echo message="STAF is now ready to serve requests"/>
+   </target>
+  <target name="start-dont" if="staf.running">
+    <echo>Staf is already running.</echo>
+  </target>
+  <target name="start" depends="status-do">
+    <antcall target="start-do"/>
+    <antcall target="start-dont"/>
+  </target>
+  <target name="start-nodetach">
+    <property name="staf.spawn" value="false"/>
+    <antcall target="start"/>
+  </target>
+
+<!-- Start section - bottom    -->
+  
+<!-- Stop section - top     -->
+  <target name="stop-do" if="staf.running">
+    <echo>Stopping staf...</echo>
+    <exec
+      executable="${staf.executable}" 
+      >
+      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
+      <env key="LD_LIBRARY_PATH" path="${staf.lib.dir}"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+      <arg line="local shutdown shutdown"/>
+    </exec>
+    <echo message="Waiting for service to shutdown gracefully..."/>
+    <waitfor>
+      <not>
+        <socket server="${host.name}" port="${staf.port}"/>
+      </not>
+    </waitfor>
+    <echo message="STAF stopped"/>
+  </target>
+  <target name="stop-dont" unless="staf.running">
+    <echo>Staf is not running.</echo>
+  </target>
+  <target name="stop" depends="status-do">
+    <antcall target="stop-do"/>
+    <antcall target="stop-dont"/>
+  </target>
+<!-- Stop section - bottom  -->
+  
+<!-- Status section - top    -->
+  <!-- Bits status section - top -->
+    <target name="status-archive-downloaded?" if="bits.all.downloaded.before">
+      <echo>Staf bits are ready to be installed. Use 'install' target.</echo>
+    </target>
+    <target name="status-archive-not-downloaded?" unless="bits.all.downloaded.before">
+      <echo>No staf bits found. Use the get-bits or bootstrap target.</echo>
+    </target>
+  <!-- Bits status section - bottom -->
+  
+  <!-- Installation status section - top -->
+    <target name="status-staf-installed?" if="staf.installed">
+      <echo>Found staf installed in [${staf.install.dir}]</echo>
+      <antcall target="status-staf-running?"       />
+      <antcall target="status-staf-not-running?"   />
+    </target>
+    <target name="status-staf-not-installed?" unless="staf.installed">
+      <echo>Could not find staf installation.</echo>
+      <echo>Checking if the bits here and ready for installation...</echo>
+      <antcall target="status-archive-downloaded?" />
+      <antcall target="status-archive-not-downloaded?" />
+    </target>
+  <!-- Installation status section - bottom -->
+    
+  <!-- Running status section - top -->
+    <target name="status-staf-running?" if="staf.running">
+      <echo>staf is listening on port [${staf.port.default}]</echo>
+      <echo>You're all set to run the stress tests.</echo>
+    </target>  
+    <target name="status-staf-not-running?" unless="staf.running">
+      <echo>staf is NOT running. Use the 'start' target.</echo>
+    </target>
+  <!-- Running status section - bottom -->
+
+
+  <!-- Get status section - top -->
+    <target name="status-do" unless="status-do.already.run" >
+      <!-- check if the various archives needed have already been downloaded -->
+      <condition property="bits.staf.downloaded.before">
+        <available file="${bits.download.dir}/${bits.staf.archive}"/>
+      </condition>
+      <condition property="bits.services.downloaded.before" >
+        <available file="${bits.download.dir}/${bits.stax.archive}" />
+      </condition>
+      <condition property="bits.all.downloaded.before">
+        <and>
+          <isset property="bits.staf.downloaded.before"/>
+          <isset property="bits.services.downloaded.before"/>
+        </and>
+      </condition>
+      <available file="${daily.package}" property="daily.package.downloaded"/>
+      <available file="testcases/run-custom-suites.dat" property="custom-suites.on" />
+      <available file="${staf.install.dir}" 
+                type="dir" 
+                property="staf.installed" />
+      <condition property="staf.lib.dir" 
+        value="${staf.install.dir}${file.separator}bin" 
+        else="${staf.install.dir}${file.separator}lib">
+        <os family="windows"/>
+      </condition>
+  
+      <condition property="staf.running">
+        <socket port="${staf.port}" server="${host.name}"/>
+      </condition>
+
+      <condition property="staf.archive.is.jar">
+        <contains string="${bits.staf.archive}" substring=".jar"/>
+      </condition>
+      <condition property="staf.archive.is.tar">
+        <not>
+          <contains string="${bits.staf.archive}" substring=".jar"/>
+        </not>
+      </condition>
+      <condition property="binary.extension" value=".exe" else="">
+          <os family="windows"/>
+      </condition>
+      <condition property="script.extension" value=".bat" else="">
+          <os family="windows"/>
+      </condition>
+      
+      <condition property="path.var" value="Path" else="PATH">
+        <os family="windows"/>
+      </condition>
+      <macrodef name="propertycopy">
+        <attribute name="name"/>
+        <attribute name="from"/>
+        <sequential>
+          <property name="@{name}" value="${@{from}}"/>
+        </sequential>
+      </macrodef>
+      <property environment="e"/>
+      <propertycopy name="path.current" from="e.${path.var}"/>
+
+      <property name="staf.executable" 
+                value="${staf.bin.dir}${file.separator}STAF${binary.extension}"/> 
+      <property name="staf.daemon" 
+                value="${staf.bin.dir}${file.separator}STAFProc${binary.extension}"/> 
+      
+      <property name="status-do.already.run" value="true"/>
+    </target>
+  <!-- Get status section - bottom -->
+  
+  <!-- Status cli section - top -->
+    <target name="status" depends="status-do">
+      <condition property="is.platform.supported" value="yes" else="no" >
+        <isset property="platform.supported"/>
+      </condition>
+      <echo>Operating System Family  - ${os.myname}</echo>
+      <echo>Operating System Name    - ${os.name}</echo>
+      <echo>Operating System Version - ${os.version}</echo>
+      <echo>Machine Architecture     - ${os.arch}</echo>
+      <echo>Platform Supported       - ${is.platform.supported}</echo>
+      <echo>Java Home                - ${java.home}</echo>
+      <echo>Java Version             - ${java.version}</echo>
+      <!--
+      <echo>PATH                     - ${path.current}</echo>
+      <echo>CLASSPATH                - ${e.CLASSPATH}</echo> 
+      -->
+      <antcall target="status-staf-installed?"     />
+      <antcall target="status-staf-not-installed?" />
+    </target>
+  <!-- Status cli section - bottom -->
+<!-- Status section - bottom -->
+
+<!-- Macros section - top -->
+  <target name="bootstrap">
+    <antcall target="download"  />
+    <antcall target="install"   />
+    <antcall target="start"     />
+  </target>
+  
+  <target name="wipeout">
+    <antcall target="stop"/>
+    <echo>Allow a minute for STAF to bring all the JVMs down</echo>
+    <sleep seconds="60"/>
+    <antcall target="uninstall"/>
+  </target>
+
+  <target name="restart">
+    <antcall target="stop"  inheritAll="false" />
+    <sleep seconds="10"                        />
+    <antcall target="start" inheritAll="false" />
+  </target>
+<!--  Macros section - bottom -->
+  <target name="javadoc" depends="status-do" if="staf.installed">
+    <delete dir="${staf.home}/doc"/>
+    <mkdir dir="${staf.home}/doc"/>
+    <java jar="${staf.install.dir}/services/stax/STAXDoc.jar" fork="true">
+      <arg value="-d"/> 
+      <arg value="${staf.home}/doc"/>
+      <!--<arg value="testcases"/>
+      <arg value="testcases/aci"/>
+      <arg value="testcases/backends"/>
+      <arg value="testcases/core"/>
+      <arg value="testcases/schema"/>
+      <arg value="testcases/security"/>
+      <arg value="testcases/security/account_activation"/>
+      <arg value="testcases/security/auth_pwd_syntax"/>
+      <arg value="testcases/security/bind_no_pwd"/>
+      <arg value="testcases/security/jks"/>
+      <arg value="testcases/security/pkcs12"/>
+      <arg value="testcases/security/pwd_policy"/>
+      <arg value="testcases/security/pwd_policy_root"/>
+      <arg value="testcases/security/pwd_storage"/>
+      <arg value="testcases/security/pwd_validator"/>
+      <arg value="testcases/security/sasl"/>
+      <arg value="testcases/security/startTLS"/>-->
+      <arg value="shared/functions"/>
+      <arg value="testcases/sample" />
+    </java>
+  </target>
+  
+  <target name="properties">
+    <echoproperties/>
+  </target>
+  
+  <target name="get-dtd" depends="status-do">
+    <property name="stax.dtd" value="${staf.home}/stax.dtd"/>
+    <exec
+      dir="${staf.bin.dir}"
+      executable="${staf.executable}"
+      output="${stax.dtd}"
+      >
+      <arg line="LOCAL STAX get dtd"/>
+      <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+      <env key="LD_LIBRARY_PATH" value="${staf.lib.dir}"/>
+      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
+      <env key="STAFCODEPAGE" value="LATIN_1"/>
+    </exec>
+    <replace file="${stax.dtd}">
+      <replacetoken>Response
+--------
+</replacetoken>
+      <replacevalue></replacevalue>
+    </replace>
+  </target>
+  
+  <target name="generate-report">
+    <delete file="${staf.tmp.dir}/my-report.html"/>
+    <xslt processor="trax"
+          in="${staf.tmp.dir}/tests-log.xml" 
+          out="${staf.tmp.dir}/my-report.html"
+          style="shared/xsl/my-report.xsl">
+    </xslt>
+  </target>
+  
+  <target name="opends">
+    <ant dir="../.." target="package" inheritAll="false" />
+  </target>
+</project>
