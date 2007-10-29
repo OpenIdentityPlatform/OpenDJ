@@ -54,6 +54,7 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
@@ -74,21 +75,10 @@ import org.opends.server.replication.protocol.ServerStartMessage;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
+import static org.opends.server.util.ServerConstants.OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -1000,14 +990,14 @@ public class ReplicationServerTest extends ReplicationTestCase
   }
 
 
-  /* 
+  /*
    * Test backup and restore of the Replication server backend
    */
    @Test(enabled=false)
    public void backupRestore() throws Exception
    {
      debugInfo("Starting backupRestore");
-     
+
      Entry backupTask = createBackupTask();
      Entry restoreTask = createRestoreTask();
 
@@ -1016,11 +1006,11 @@ public class ReplicationServerTest extends ReplicationTestCase
 
      addTask(restoreTask, ResultCode.SUCCESS, null);
      waitTaskState(restoreTask, TaskState.COMPLETED_SUCCESSFULLY, null);
-     
+
      debugInfo("Ending   backupRestore");
    }
 
-   /* 
+   /*
     * Test export of the Replication server backend
     * - Creates 2 brokers connecting to the replication for 2 differents baseDN
     * - Make these brokers publish changes to the replication server
@@ -1031,7 +1021,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     public void exportBackend() throws Exception
     {
       debugInfo("Starting exportBackend");
-      
+
       ReplicationBroker server1 = null;
       ReplicationBroker server2 = null;
 
@@ -1044,7 +1034,7 @@ public class ReplicationServerTest extends ReplicationTestCase
             1000, true);
       }
       catch(Exception e) {}
-      
+
       debugInfo("Publish changes");
       List<UpdateMessage> msgs = createChanges("dc=example,dc=com", (short)1);
       for(UpdateMessage msg : msgs )
@@ -1102,7 +1092,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-backup-directory-path: bak" + File.separator +
                         "replicationChanges");
    }
-   
+
    private Entry createExportAllTask()
    throws Exception
    {
@@ -1154,7 +1144,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // - Add
        String lentry = new String("dn: "+suffix+"\n"
-           + "objectClass: top\n" 
+           + "objectClass: top\n"
            + "objectClass: domain\n"
            + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
        Entry entry = TestCaseUtils.entryFromLdifString(lentry);
@@ -1167,7 +1157,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        // - Add
        String luentry = new String(
              "dn: uid=new person,ou=People,"+suffix+"\n"
-           + "objectClass: top\n" 
+           + "objectClass: top\n"
            + "objectclass: person\n"
            + "objectclass: organizationalPerson\n"
            + "objectclass: inetOrgPerson\n"
@@ -1179,12 +1169,12 @@ public class ReplicationServerTest extends ReplicationTestCase
        Entry uentry = TestCaseUtils.entryFromLdifString(luentry);
        cn = new ChangeNumber(time, ts++, serverId);
        AddMsg addMsg2 = new AddMsg(
-           cn, 
+           cn,
            "uid=new person,ou=People,"+suffix,
-           user1entryUUID, 
-           baseUUID, 
-           uentry.getObjectClassAttribute(), 
-           uentry.getAttributes(), 
+           user1entryUUID,
+           baseUUID,
+           uentry.getObjectClassAttribute(),
+           uentry.getAttributes(),
            new ArrayList<Attribute>());
        l.add(addMsg2);
 
@@ -1203,7 +1193,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        cn = new ChangeNumber(time, ts++, serverId);
        DN dn = DN.decode("o=test,"+suffix);
-       ModifyMsg modMsg = new ModifyMsg(cn, dn, 
+       ModifyMsg modMsg = new ModifyMsg(cn, dn,
            mods, "fakeuniqueid");
        l.add(modMsg);
 
@@ -1225,6 +1215,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      return l;
    }
 
+
    /**
     * Testing searches on the backend of the replication server.
     * @throws Exception
@@ -1233,9 +1224,9 @@ public class ReplicationServerTest extends ReplicationTestCase
    public void searchBackend() throws Exception
    {
      debugInfo("Starting searchBackend");
- 
+
      replicationServer.clearDb();
-    
+
      LDIFWriter ldifWriter = null;
      ByteArrayOutputStream stream = new ByteArrayOutputStream();
      LDIFExportConfig exportConfig = new LDIFExportConfig(stream);
@@ -1267,6 +1258,27 @@ public class ReplicationServerTest extends ReplicationTestCase
      ReplicationBackend b =
        (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
      b.setServer(replicationServer);
+     assertTrue(b.getEntryCount() == msgs.size());
+     assertTrue(b.entryExists(DN.decode("dc=replicationChanges")));
+     SearchFilter filter=SearchFilter.createFilterFromString("(objectclass=*)");
+     assertTrue(b.isIndexed(filter));
+     InternalClientConnection conn =
+     InternalClientConnection.getRootConnection();
+     LinkedList<Control> requestControls = new LinkedList<Control>();
+     requestControls.add(new Control(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
+                                    false));
+     DN baseDN=DN.decode("dc=replicationChanges");
+     //Test the group membership control causes search to be skipped.
+     InternalSearchOperation internalSearch =
+             new InternalSearchOperation(conn, conn.nextOperationID(),
+                                         conn.nextMessageID(), requestControls,
+                                         baseDN,
+                                         SearchScope.WHOLE_SUBTREE,
+                                         DereferencePolicy.NEVER_DEREF_ALIASES,
+                                         0, 0, false, filter, null, null);
+     internalSearch.run();
+     assertTrue(internalSearch.getResultCode() == ResultCode.SUCCESS);
+     assertTrue(internalSearch.getSearchEntries().isEmpty());
 
      // General search
      InternalSearchOperation op = connection.processSearch(
@@ -1347,7 +1359,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      SearchFilter ALLMATCH;
      ALLMATCH = SearchFilter.createFilterFromString("(changetype=moddn)");
      op =
-       connection.processSearch(DN.decode("dc=replicationChanges"), 
+       connection.processSearch(DN.decode("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
            attrs);
@@ -1368,7 +1380,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      attrs.add("*");
      ALLMATCH = SearchFilter.createFilterFromString("(changetype=*)");
      op =
-       connection.processSearch(DN.decode("dc=replicationChanges"), 
+       connection.processSearch(DN.decode("dc=replicationChanges"),
            SearchScope.WHOLE_SUBTREE,
            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
            attrs2);
@@ -1378,6 +1390,6 @@ public class ReplicationServerTest extends ReplicationTestCase
      if (server1 != null)
        server1.stop();
 
-     debugInfo("Successfully ending searchBackend");     
+     debugInfo("Successfully ending searchBackend");
    }
 }
