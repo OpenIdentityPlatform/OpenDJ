@@ -44,7 +44,7 @@
       
           <call function="'testGroup_Preamble'"/>
                                     
-   
+          
           <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_users.xml' % (TESTS_DIR)"/>
           <call function="'privileges_users'" />
@@ -56,7 +56,11 @@
          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_new_root_user.xml' % (TESTS_DIR)"/>
           <call function="'privileges_new_root_user'" />
-  
+          
+         <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/privileges/privileges_unindexed_searches.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_unindexed_searches'" />
+          
          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_import_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_import_task'" />
@@ -72,7 +76,7 @@
          <import machine="STAF_LOCAL_HOSTNAME"
             file="'%s/testcases/privileges/privileges_restore_task.xml' % (TESTS_DIR)"/>
           <call function="'privileges_restore_task'" />
-  
+          
                                
           <call function="'testGroup_Postamble'"/>
         

@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="privileges_unindexed_searches"/>
+
+  <function name="privileges_unindexed_searches">
+
+    <sequence>
+
+      <block name="'privileges-unindexed-searches'">
+      
+        <sequence>
+  
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='privileges'                
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+      
+          <call function="'testSuite_Preamble'"/>
+          
+          <!---
+                Place suite-specific test information here.
+                #@TestSuiteName             Privileges Unindexed Searches Tests
+                #@TestSuitePurpose          Test the basic Privileges Support in regard to unindexed searches.
+                #@TestSuiteGroup            Basic Privileges Unindexed Searches Tests
+                #@TestScript                privileges_unindexed_searches.xml
+          -->
+
+
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/privileges/privileges_setup.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_setup'" />
+
+      <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Unindexed Searches Tests
+                #@TestName                  preamble
+                #@TestIssue                 480
+                #@TestPurpose               Prepare for unindexed search privileges tests
+                #@TestPreamble              none
+                #@TestStep                  Admin changing index-entry-limit.
+                #@TestStep                  Admin importing 50 entries.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all ldap operations,
+                                            and the entries imported without error. 
+             -->
+          <testcase name="getTestCaseName('preamble')">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Preamble - Admin changing index-entry-limit'
+                </message>
+    
+                <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'backend' ,
+                    'propertyType'           : 'backend' ,
+                    'propertyName'           : 'userRoot' ,
+                    'attributeName'          : 'index-entry-limit' ,
+                    'attributeValue'         : '4' }
+                </call>
+            
+                <message>
+                   'Privileges: Unindexed Searches: Preamble - Admin adding import task'
+                </message>
+    
+                <call function="'importLdifTask'">
+                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'           : STAXCurrentTestcase,
+                  'ldifFile'         : '%s/privileges/privileges_unindexed_searches/50Entries.ldif' % logsRemoteDataDir
+                }
+                </call>
+    
+                <call function="'checktestRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult  }
+                </call>
+              
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+      
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Unindexed Searches Tests
+                #@TestName                  unindexed searches - non-root user
+                #@TestIssue                 480
+                #@TestPurpose               Unindexed search privilege for normal users
+                #@TestPreamble              none
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin adds privilege.
+                #@TestStep                  User searches entry.
+                #@TestStep                  Admin removes privilege.
+                #@TestStep                  User searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for steps 1 and 5, and 0 for all
+					    other ldap operations. 
+            -->
+            <testcase name="getTestCaseName('unindexed search non-root user')">
+              <sequence>
+                <call function="'testCase_Preamble'"/>
+                          
+                <message>
+                   'Privileges: Unindexed Searches: user searching entries'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=user.0,ou=People,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'smellyFish' ,
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Admin adding privilege'
+                </message>
+    
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=user.0,ou=People,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'unindexed-search' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: user searching entries'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=user.0,ou=People,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'smellyFish' ,
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Admin deleting privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'uid=user.0,ou=People,dc=example,dc=com' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : 'unindexed-search' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: user searching entries'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'uid=user.0,ou=People,dc=example,dc=com' ,
+                    'dsInstancePswd'   : 'smellyFish' ,
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <call function="'testCase_Postamble'"/>
+    
+              </sequence>
+            </testcase>
+    
+            <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Unindexed Searches Tests
+                #@TestName                  unindexed searches - Directory Manager
+                #@TestIssue                 480
+                #@TestPurpose               Unindexed search privilege for Directory Manager
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager searches entry.
+                #@TestStep                  Alternate Admin removes privilege.
+                #@TestStep                  Directory Manager  searches entry.
+                #@TestStep                  Alternate Admin puts back privilege.
+                #@TestStep                  Directory Manager  searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0 for all
+					    other ldap operations. 
+            -->
+            <testcase name="getTestCaseName('unindexed search Directory Manager')">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Directory Manager searching entries'
+                </message>
+ 
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: alternative root user removing privilege from Directory Manager'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-unindexed-search' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Directory Manager searching entries'
+                </message>
+ 
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: alternative root user putting back privilege to Directory Manager'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Directory Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-unindexed-search' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Directory Manager searching entries'
+                </message>
+ 
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' }
+                </call>
+    
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+          
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Unindexed Searches Tests
+                #@TestName                  unindexed searches - new root user
+                #@TestIssue                 480
+                #@TestPurpose               Unindexed search privilege for new root user
+                #@TestPreamble              none
+                #@TestStep                  Directory Manager adds new root user.
+                #@TestStep                  New root user searches entries.
+                #@TestStep                  Alternate root user removes privilege.
+                #@TestStep                  New root user searches entry.
+                #@TestStep                  Alternate root user puts back privilege.
+                #@TestStep                  New root user searches entry.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 50
+                                            for step 3, and 0 for all
+					    other ldap operations. 
+            -->
+            <testcase name="getTestCaseName('unindexed search New Root User')">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Directory Manager adding new root user'
+                </message>
+    
+                <call function="'addEntry'">
+                  { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
+                    'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: New root user searching entries'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Zroot' ,
+                    'dsInstancePswd'   : 'PrivsRule',
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Alternative root user removing privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Zroot Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-unindexed-search' ,
+                    'changetype'             : 'add' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: New root user searching entries'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Zroot' ,
+                    'dsInstancePswd'   : 'PrivsRule',
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' ,
+                    'expectedRC'       : 50 }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Alternative root user putting back privilege'
+                </message>
+ 
+                <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : 'cn=Aroot' ,
+                    'dsInstancePswd'         : 'PrivsRule' ,
+                    'DNToModify'             : 'cn=Zroot Manager,cn=Root DNs,cn=config' ,
+                    'attributeName'          : 'ds-privilege-name' ,
+                    'newAttributeValue'      : '-unindexed-search' ,
+                    'changetype'             : 'delete' }
+                </call>
+    
+                <message>
+                   'Privileges: Unindexed Searches: New root user searching entries'
+                </message>
+    
+                <call function="'SearchObject'">
+                  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'     : 'cn=Zroot' ,
+                    'dsInstancePswd'   : 'PrivsRule',
+                    'dsBaseDN'         : 'dc=example,dc=com' ,
+                    'dsFilter'         : 'facsimiletelephonenumber=*512*' }
+                </call>
+    
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+          
+          <!---
+                Place test-specific test information here.
+                The tag, TestMarker, must be the same as the tag, TestSuiteName.
+                #@TestMarker                Privileges Unindexed Searches Tests
+                #@TestName                  postamble
+                #@TestIssue                 480
+                #@TestPurpose               Reset after unindexed saerch tests
+                #@TestPreamble              none
+                #@TestStep                  Admin changing index-entry-limit.
+                #@TestPostamble             none
+                #@TestResult                Success if OpenDS returns 0
+                                            for all other ldap operations. 
+            -->
+          <testcase name="getTestCaseName('postamble')">
+    
+            <sequence>
+    
+                <call function="'testCase_Preamble'"/>
+    
+                <message>
+                   'Privileges: Unindexed Searches: Postamble - Admin changing index-entry-limit'
+                </message>
+    
+                <call function="'dsconfigSet'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'objectName'             : 'backend' ,
+                    'propertyType'           : 'backend' ,
+                    'propertyName'           : 'userRoot' ,
+                    'attributeName'          : 'index-entry-limit' ,
+                    'attributeValue'         : '4000' }
+                </call>
+            
+                <call function="'testCase_Postamble'"/>
+    
+            </sequence>
+          </testcase>
+      
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/privileges/privileges_cleanup.xml' % (TESTS_DIR)"/>
+          <call function="'privileges_cleanup'" />
+
+              
+          <call function="'testSuite_Postamble'"/>
+            
+        </sequence>
+       
+      </block>
+       
+    </sequence>
+      
+  </function>
+
+</stax>
