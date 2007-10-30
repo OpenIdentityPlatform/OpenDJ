@@ -63,12 +63,16 @@
           
             componentNumber=0
             testNumber=0
+            i=1
         </script>
         <iterate var="dummyIndex" in="componentList">
           <sequence>
             <script>
-                thisTestname = componentList[componentNumber][0] + ", " + componentList[componentNumber][2]
+                # avoid same testName by incrementing the number
+                thisTestname = "%s.%s, %s" % (i,componentList[componentNumber][0],componentList[componentNumber][2])
+                i+=1
             </script>
+            <message>'TRACE %s' % thisTestname</message>
             <testcase name="getTestCaseName(thisTestname)" >
               <sequence>
                 <call function="'testCase_Preamble'" />
