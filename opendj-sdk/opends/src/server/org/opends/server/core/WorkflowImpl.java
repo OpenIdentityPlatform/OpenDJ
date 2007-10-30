@@ -30,6 +30,7 @@ import static org.opends.messages.CoreMessages.*;
 import org.opends.messages.Message;
 import static org.opends.server.util.Validator.ensureNotNull;
 
+import java.util.Collection;
 import java.util.TreeMap;
 
 import org.opends.server.types.DN;
@@ -104,6 +105,17 @@ public class WorkflowImpl implements Workflow
     {
       this.isPrivate = rootWorkflowElement.isPrivate();
     }
+  }
+
+
+  /**
+   * Performs any finalization that might be required when this
+   * workflow is unloaded.  No action is taken in the default
+   * implementation.
+   */
+  public void finalizeWorkflow()
+  {
+    // No action is required by default.
   }
 
 
@@ -230,6 +242,7 @@ public class WorkflowImpl implements Workflow
     return workflowToDeregister;
   }
 
+
   /**
    * Deregisters all Workflows that have been registered.  This should be
    * called when the server is shutting down.
@@ -242,4 +255,52 @@ public class WorkflowImpl implements Workflow
         new TreeMap<String, Workflow>();
     }
   }
+
+
+  /**
+   * Gets a workflow that was registered with the server.
+   *
+   * @param workflowID  the ID of the workflow to get
+   * @return the requested workflow
+   */
+  public static Workflow getWorkflow(
+      String workflowID)
+  {
+    return registeredWorkflows.get(workflowID);
+  }
+
+
+  /**
+   * Gets all the workflows that were registered with the server.
+   *
+   * @return the list of registered workflows
+   */
+  public static Collection<Workflow> getWorkflows()
+  {
+    return registeredWorkflows.values();
+  }
+
+
+  /**
+   * Gets the root workflow element for test purpose only.
+   *
+   * @return the root workflow element.
+   */
+  WorkflowElement getRootWorkflowElement()
+  {
+    return rootWorkflowElement;
+  }
+
+
+  /**
+   * Resets all the registered workflows.
+   */
+  public static void resetConfig()
+  {
+    synchronized (registeredWorkflowsLock)
+    {
+      registeredWorkflows = new TreeMap<String, Workflow>();
+    }
+  }
+
 }

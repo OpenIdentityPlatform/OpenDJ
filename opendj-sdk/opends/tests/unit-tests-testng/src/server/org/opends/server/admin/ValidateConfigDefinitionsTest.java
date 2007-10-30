@@ -133,6 +133,10 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
                   "backend-id",
                   "plugin-type",
                   "replication-server-id",
+                  "network-group-id",
+                  "workflow-id",
+                  "workflow-element-id",
+                  "workflow-element"
                   // e.g. "prop-name-starting-with-object-prefix"
           });
 

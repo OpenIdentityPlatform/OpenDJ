@@ -725,5 +725,39 @@
     </adm:profile>
   </adm:property>
 
+  <adm:property name="workflow-configuration-mode">
+    <adm:synopsis>
+      Specifies the workflow configuration mode (auto vs. manual).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>auto</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="auto">
+          <adm:synopsis>
+             In the "auto" configuration mode there is no workflow
+             configuration. The workflows are created automatically
+             based on the backend configuration. There will be one
+             workflow per backend base DN.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="manual">
+          <adm:synopsis>
+             In the "manual" configuration mode each workflow is created
+             according to its description in the configuration.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-workflow-configuration-mode</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>
 

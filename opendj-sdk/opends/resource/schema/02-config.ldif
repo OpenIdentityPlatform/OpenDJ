@@ -2133,6 +2133,40 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.434
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.435
+  NAME 'ds-cfg-network-group-id'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.436
+  NAME 'ds-cfg-workflow-id'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.437
+  NAME 'ds-cfg-workflow'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.438
+  NAME 'ds-cfg-workflow-element-id'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.439
+  NAME 'ds-cfg-workflow-element'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.440
+  NAME 'ds-cfg-workflow-configuration-mode'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.441
+  NAME 'ds-cfg-backend'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2531,6 +2565,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.39
         ds-cfg-disabled-privilege $
         ds-cfg-return-bind-error-messages $
         ds-cfg-idle-time-limit $
+        ds-cfg-workflow-configuration-mode $
         ds-cfg-save-config-on-successful-startup )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.40
@@ -3598,4 +3633,35 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.175
   MUST ( ds-cfg-key-id $ ds-cfg-mac-algorithm-name $
   ds-cfg-key-length-bits $ ds-cfg-symmetric-key )
   MAY ds-cfg-key-compromised-time
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.176
+  NAME 'ds-cfg-network-group'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-network-group-id $
+         ds-cfg-enabled $
+         ds-cfg-workflow )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.177
+  NAME 'ds-cfg-workflow'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-workflow-id $
+         ds-cfg-enabled $
+         ds-cfg-workflow-element $
+         ds-cfg-base-dn )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.178
+  NAME 'ds-cfg-workflow-element'
+  SUP top
+  STRUCTURAL
+  MUST ( ds-cfg-workflow-element-id $
+         ds-cfg-enabled $
+         ds-cfg-java-class )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.179
+  NAME 'ds-cfg-local-backend-workflow-element'
+  SUP ds-cfg-workflow-element
+  STRUCTURAL
+  MUST ( ds-cfg-backend )
   X-ORIGIN 'OpenDS Directory Server' )

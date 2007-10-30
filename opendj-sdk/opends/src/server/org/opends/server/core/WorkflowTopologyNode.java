@@ -500,7 +500,9 @@ public class WorkflowTopologyNode extends WorkflowTopology
 
     // display the baseDN
     DN baseDN = getBaseDN();
-    sb.append(leftMargin + "Workflow baseDN:[");
+    String workflowID = this.getWorkflowImpl().getWorkflowId();
+    sb.append(leftMargin + "Workflow ID = " + workflowID + "\n");
+    sb.append(leftMargin + "         baseDN:[");
     if (baseDN.isNullDN())
     {
       sb.append(" \"\"");
@@ -511,21 +513,26 @@ public class WorkflowTopologyNode extends WorkflowTopology
     }
     sb.append(" ]\n");
 
+    // display the root workflow element
+    sb.append(leftMargin
+        + "         Root Workflow Element: "
+        + getWorkflowImpl().getRootWorkflowElement() + "\n");
+
     // display parent workflow
-    sb.append(leftMargin + "Parent: " + getParent() + "\n");
+    sb.append(leftMargin + "         Parent: " + getParent() + "\n");
 
     // dump each subordinate
-    sb.append(leftMargin + "List of subordinates:\n");
+    sb.append(leftMargin + "         List of subordinates:\n");
     ArrayList<WorkflowTopologyNode> subordinates = getSubordinates();
     if (subordinates.isEmpty())
     {
-      sb.append(leftMargin + "   NONE\n");
+      sb.append(leftMargin + "            NONE\n");
     }
     else
     {
       for (WorkflowTopologyNode subordinate: getSubordinates())
       {
-        sb.append(subordinate.toString(leftMargin + "   "));
+        sb.append(subordinate.toString(leftMargin + "            "));
       }
     }
 
