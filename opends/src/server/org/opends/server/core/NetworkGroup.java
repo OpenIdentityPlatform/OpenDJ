@@ -56,7 +56,7 @@ public class NetworkGroup
 
 
   // A lock to protect concurrent access to the registered Workflow nodes.
-  private static Object registeredWorkflowNodesLock = new Object();
+  private Object registeredWorkflowNodesLock = new Object();
 
 
   // The workflow node for the rootDSE entry. The RootDSE workflow node
@@ -103,6 +103,17 @@ public class NetworkGroup
       )
   {
     this.networkGroupID = networkGroupID;
+  }
+
+
+  /**
+   * Performs any finalization that might be required when this
+   * network group is unloaded.  No action is taken in the
+   * default implementation.
+   */
+  public void finalizeNetworkGroup()
+  {
+    // No action is required by default.
   }
 
 
@@ -188,9 +199,6 @@ public class NetworkGroup
       WorkflowElement[] postWorkflowElements
       ) throws DirectoryException
   {
-    // true as soon as the workflow has been registered
-    boolean registered = false;
-
     // Is it the rootDSE workflow?
     DN baseDN = workflow.getBaseDN();
     if (baseDN.isNullDN())
@@ -198,7 +206,6 @@ public class NetworkGroup
       // NOTE - The rootDSE workflow is stored with the registeredWorkflows.
       rootDSEWorkflowNode =
         new RootDseWorkflowTopology(workflow, namingContexts);
-      registered = true;
     }
     else
     {
@@ -210,7 +217,6 @@ public class NetworkGroup
       // Register the workflow node with the network group. If the workflow
       // ID is already existing then an exception is raised.
       registerWorkflowNode(workflowNode);
-      registered = true;
 
       // Now add the workflow in the workflow topology...
       for (WorkflowTopologyNode curNode: registeredWorkflowNodes.values())
@@ -234,17 +240,6 @@ public class NetworkGroup
       // Rebuild the list of naming context handled by the network group
       rebuildNamingContextList();
     }
-
-    // If the workflow has been registered successfully then register it
-    // with the default network group
-    if (registered)
-    {
-      if (this != defaultNetworkGroup)
-      {
-        defaultNetworkGroup.registerWorkflow(
-            workflow, preWorkflowElements, postWorkflowElements);
-      }
-    }
   }
 
 
@@ -253,20 +248,25 @@ public class NetworkGroup
    * deregister is identified by its baseDN.
    *
    * @param baseDN  the baseDN of the workflow to deregister, may be null
+   *
+   * @return the deregistered workflow
    */
-  public void deregisterWorkflow(
+  public Workflow deregisterWorkflow(
       DN baseDN
       )
   {
+    Workflow workflow = null;
+
     if (baseDN == null)
     {
-      return;
+      return workflow;
     }
 
     if (baseDN.isNullDN())
     {
       // deregister the rootDSE
       deregisterWorkflow(rootDSEWorkflowNode);
+      workflow = rootDSEWorkflowNode.getWorkflowImpl();
     }
     else
     {
@@ -281,6 +281,7 @@ public class NetworkGroup
             // Call deregisterWorkflow() instead of deregisterWorkflowNode()
             // because we want the naming context list to be updated as well.
             deregisterWorkflow(node);
+            workflow = node.getWorkflowImpl();
 
             // Only one workflow can match the baseDN, so we can break
             // the loop here.
@@ -289,6 +290,8 @@ public class NetworkGroup
         }
       }
     }
+
+    return workflow;
   }
 
 
@@ -505,38 +508,6 @@ public class NetworkGroup
 
 
   /**
-   * Checks whether a base DN has been already registered with
-   * the network group.
-   *
-   * @param baseDN  the base DN to check
-   * @return <code>false</code> if the base DN is registered with the
-   *         network group, <code>false</code> otherwise
-   */
-  private boolean baseDNAlreadyRegistered(
-      DN baseDN
-      )
-  {
-    // returned result
-    boolean alreadyRegistered = false;
-
-    // go through the list of registered workflow and check whether a base DN
-    // has already been used in a registered workflow
-    for (WorkflowTopologyNode workflowNode: registeredWorkflowNodes.values())
-    {
-      DN curDN = workflowNode.getBaseDN();
-      if (baseDN.equals (curDN))
-      {
-        alreadyRegistered = true;
-        break;
-      }
-    }
-
-    // check done
-    return alreadyRegistered;
-  }
-
-
-  /**
    * Returns the list of naming contexts handled by the network group.
    *
    * @return the list of naming contexts
@@ -614,5 +585,47 @@ public class NetworkGroup
     namingContexts = null;
     networkGroupID = null;
     rootDSEWorkflowNode = null;
+    registeredWorkflowNodes = null;
+  }
+
+
+  /**
+   * Provides the list of network group registered with the server.
+   *
+   * @return the list of registered network groups
+   */
+  public static Collection<NetworkGroup> getRegisteredNetworkGroups()
+  {
+    return registeredNetworkGroups.values();
+  }
+
+
+  /**
+   * Resets the configuration of all the registered network groups.
+   */
+  public static void resetConfig()
+  {
+    // Reset the default network group
+    defaultNetworkGroup.reset();
+
+    // Reset all the registered network group
+    synchronized (registeredNetworkGroupsLock)
+    {
+      registeredNetworkGroups = new TreeMap<String, NetworkGroup>();
+    }
+  }
+
+
+  /**
+   * Resets the configuration of the current network group.
+   */
+  public void reset()
+  {
+    synchronized (registeredWorkflowNodesLock)
+    {
+      registeredWorkflowNodes = new TreeMap<String, WorkflowTopologyNode>();
+      rootDSEWorkflowNode = null;
+      namingContexts = new NetworkGroupNamingContexts();
+    }
   }
 }

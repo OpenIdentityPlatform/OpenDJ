@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
+import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -338,8 +339,25 @@ public class CoreConfigManager
 
     DirectoryServer.setSaveConfigOnSuccessfulStartup(
          globalConfig.isSaveConfigOnSuccessfulStartup());
-  }
 
+    // If the workflow configuration mode has changed then reconfigure
+    // the workflows-only if the server is running. If the server is not
+    // running (ie. the server is starting up) simply update the workflow
+    // configuration mode as the workflow configuration is processed
+    // elsewhere.
+    WorkflowConfigurationMode oldMode =
+      DirectoryServer.getWorkflowConfigurationMode();
+    WorkflowConfigurationMode newMode =
+      globalConfig.getWorkflowConfigurationMode();
+    if (DirectoryServer.isRunning())
+    {
+      DirectoryServer.reconfigureWorkflows(oldMode, newMode);
+    }
+    else
+    {
+      DirectoryServer.setWorkflowConfigurationMode(newMode);
+    }
+  }
 
 
   /**

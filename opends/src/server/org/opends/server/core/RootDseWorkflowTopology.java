@@ -166,8 +166,10 @@ public class RootDseWorkflowTopology extends WorkflowTopology
   {
     StringBuilder sb = new StringBuilder();
 
-    // display the baseDN
-    sb.append(leftMargin + "Workflow baseDN:[ \"\" ]\n");
+    // display the identifier and baseDN
+    String workflowID = this.getWorkflowImpl().getWorkflowId();
+    sb.append(leftMargin + "Workflow ID = " + workflowID + "\n");
+    sb.append(leftMargin + "         baseDN:[ \"\" ]\n");
 
     return sb;
   }

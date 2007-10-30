@@ -32,15 +32,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
+import org.opends.server.types.ResultCode;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
 
@@ -49,36 +57,151 @@ import org.opends.server.workflowelement.LeafWorkflowElement;
  * This class defines a local backend workflow element; e-g an entity that
  * handle the processing of an operation aginst a local backend.
  */
-public class LocalBackendWorkflowElement extends LeafWorkflowElement
+public class LocalBackendWorkflowElement extends
+    LeafWorkflowElement<LocalBackendWorkflowElementCfg>
+    implements ConfigurationChangeListener<LocalBackendWorkflowElementCfg>
 {
   // the backend associated with the local workflow element
   private Backend backend;
+
 
   // the set of local backend workflow elements registered with the server
   private static TreeMap<String, LocalBackendWorkflowElement>
        registeredLocalBackends =
             new TreeMap<String, LocalBackendWorkflowElement>();
 
+
   // a lock to guarantee safe concurrent access to the registeredLocalBackends
   // variable
   private static Object registeredLocalBackendsLock = new Object();
 
 
-
   /**
    * Creates a new instance of the local backend workflow element.
+   */
+  public LocalBackendWorkflowElement()
+  {
+    // There is nothing to do in this constructor.
+  }
+
+
+  /**
+   * Initializes a new instance of the local backend workflow element.
+   * This method is intended to be called by DirectoryServer when
+   * workflow configuration mode is auto as opposed to
+   * initializeWorkflowElement which is invoked when workflow
+   * configuration mode is manual.
    *
    * @param workflowElementID  the workflow element identifier
    * @param backend  the backend associated to that workflow element
    */
-  private LocalBackendWorkflowElement(String workflowElementID, Backend backend)
+  private void initialize(String workflowElementID, Backend backend)
   {
-    super(workflowElementID);
+    // Initialize the workflow ID
+    super.initialize(workflowElementID);
 
     this.backend  = backend;
-    setPrivate(backend.isPrivateBackend());
+
+    if (this.backend != null)
+    {
+      setPrivate(this.backend.isPrivateBackend());
+    }
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  public void initializeWorkflowElement(
+      LocalBackendWorkflowElementCfg configuration
+      ) throws ConfigException, InitializationException
+  {
+    configuration.addLocalBackendChangeListener(this);
+
+    // Read configuration and apply changes.
+    processWorkflowElementConfig(configuration, true);
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void finalizeWorkflowElement()
+  {
+    // null all fields so that any use of the finalized object will raise
+    // an NPE
+    super.initialize(null);
+    backend = null;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+      LocalBackendWorkflowElementCfg configuration,
+      List<Message>                  unacceptableReasons
+      )
+  {
+    boolean isAcceptable =
+      processWorkflowElementConfig(configuration, false);
+
+    return isAcceptable;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      LocalBackendWorkflowElementCfg configuration
+      )
+  {
+    // Returned result.
+    ConfigChangeResult changeResult = new ConfigChangeResult(
+        ResultCode.SUCCESS, false, new ArrayList<Message>()
+        );
+
+    processWorkflowElementConfig(configuration, true);
+
+    return changeResult;
+  }
+
+
+  /**
+   * Parses the provided configuration and configure the workflow element.
+   *
+   * @param configuration  The new configuration containing the changes.
+   * @param applyChanges   If true then take into account the new configuration.
+   *
+   * @return  <code>true</code> if the configuration is acceptable.
+   */
+  private boolean processWorkflowElementConfig(
+      LocalBackendWorkflowElementCfg configuration,
+      boolean                        applyChanges
+      )
+  {
+    // returned status
+    boolean isAcceptable = true;
+
+    // If the workflow element is disabled then do nothing. Note that the
+    // config manager could have finalized the object right before.
+    if (configuration.isEnabled())
+    {
+      // Read configuration.
+      String newBackendID = configuration.getBackend();
+      Backend newBackend  = DirectoryServer.getBackend(newBackendID);
+
+      // Get the new config
+      if (applyChanges)
+      {
+        super.initialize(configuration.getWorkflowElementId());
+        backend = newBackend;
+      }
+    }
+
+    return isAcceptable;
+  }
 
 
   /**
@@ -92,8 +215,9 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
    *         already created or a newly created local backend workflow
    *         element.
    */
-  public static LocalBackendWorkflowElement create(String workflowElementID,
-                                                   Backend backend)
+  public static LocalBackendWorkflowElement createAndRegister(
+      String workflowElementID,
+      Backend backend)
   {
     LocalBackendWorkflowElement localBackend = null;
 
@@ -101,8 +225,8 @@ public class LocalBackendWorkflowElement extends LeafWorkflowElement
     localBackend = registeredLocalBackends.get(workflowElementID);
     if (localBackend == null)
     {
-      localBackend = new LocalBackendWorkflowElement(workflowElementID,
-                                                     backend);
+      localBackend = new LocalBackendWorkflowElement();
+      localBackend.initialize(workflowElementID, backend);
 
       // store the new local backend in the list of registered backends
       registerLocalBackend(localBackend);

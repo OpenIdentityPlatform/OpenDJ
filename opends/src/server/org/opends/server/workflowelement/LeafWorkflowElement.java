@@ -26,24 +26,21 @@
  */
 package org.opends.server.workflowelement;
 
+import org.opends.server.admin.std.server.WorkflowElementCfg;
+
 
 
 /**
- * This class gathers all the workflow elements that are encapsulating
- * physical repositories such as local database, remote LDAP servers,
- * JDBC repository or LDIF flat file.
+ * This class defines the super class for all the workflow elements
+ * used to wrap physical repositories. A physical repository contains
+ * data (for example, a local backend, a remote LDAP servers or an
+ * LDIF flat file). Such workflow element is a leaf in the sense that
+ * the workflow element can be used by another workflow element but
+ * cannot use an other workflow element.
+ *
+ * @param  <T>  The type of configuration handled by this workflow elelemnt.
  */
-public abstract class LeafWorkflowElement
-  extends WorkflowElement
+public abstract class LeafWorkflowElement <T extends WorkflowElementCfg>
+  extends WorkflowElement<WorkflowElementCfg>
 {
-  /**
-   * Creates a new instance of the leaf workflow element.
-   *
-   * @param workflowElementID  the workflow element identifier as defined
-   *                           in the configuration.
-   */
-  protected LeafWorkflowElement(String workflowElementID)
-  {
-    super(workflowElementID);
-  }
 }

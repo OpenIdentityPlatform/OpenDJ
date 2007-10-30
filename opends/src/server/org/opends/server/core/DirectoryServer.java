@@ -30,6 +30,7 @@ import com.sleepycat.je.JEVersion;
 
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.server.*;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
@@ -191,6 +192,7 @@ import org.opends.server.workflowelement.localbackend.*;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.crypto.CryptoManagerSync;
+import static org.opends.messages.ConfigMessages.*;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -706,6 +708,24 @@ public class DirectoryServer
 
   // The writability mode for the Directory Server.
   private WritabilityMode writabilityMode;
+
+  // The workflow configuration mode (auto or manual).
+  private WorkflowConfigurationMode workflowConfigurationMode;
+
+  // The network group config manager for the Directory Server.
+  // This config manager is used when the workflow configuration
+  // mode is 'manual'.
+  private NetworkGroupConfigManager networkGroupConfigManager;
+
+  // The workflow config manager for the Directory Server.
+  // This config manager is used when the workflow configuration
+  // mode is 'manual'.
+  private WorkflowConfigManager workflowConfigManager;
+
+  // The workflow element config manager for the Directory Server.
+  // This config manager is used when the workflow configuration
+  // mode is 'manual'.
+  private WorkflowElementConfigManager workflowElementConfigManager;
 
 
 
@@ -1346,14 +1366,22 @@ public class DirectoryServer
       // Initialize the access control handler.
       AccessControlConfigManager.getInstance().initializeAccessControl();
 
-      // Initialize all the backends and their associated suffixes.
+      // Initialize all the backends and their associated suffixes
+      // and initialize the workflows when workflow configuration mode
+      // is auto.
       initializeBackends();
 
-      // A first set of workflows had been created in the registerBackend
-      // method. We now need to complete the workflow creation for the
-      // backends that were not registered through the registerBackend
-      // method (ie. cn=config and RootDSE).
-      createAndRegisterRemainingWorkflows();
+      // When workflow configuration mode is manual, do configure the
+      // workflows now, else just configure the remaining workflows
+      // (rootDSE and config backend).
+      if (workflowConfigurationModeIsAuto())
+      {
+        createAndRegisterRemainingWorkflows();
+      }
+      else
+      {
+        configureWorkflowsManual();
+      }
 
       // Check for and initialize user configured entry cache if any,
       // if not stick with default entry cache initialized earlier.
@@ -2582,51 +2610,32 @@ public class DirectoryServer
 
 
   /**
-   * Deregisters a set of workflows each of which is identified with
-   * a baseDN.
-   *
-   * In the first implementation, workflows are stored in the default network
-   * group only.
-   *
-   * @param baseDNs  the DNs of the workflows to deregister
-   */
-  private static void deregisterWorkflows(
-      DN[] baseDNs
-      )
-  {
-    for (DN baseDN: baseDNs)
-    {
-      deregisterWorkflow(baseDN);
-    }
-  }
-
-
-  /**
-   * Deregisters one workflow with the appropriate network group.
-   *
-   * In the first implementation, workflows are stored in the default network
-   * group only.
+   * Deregisters a workflow with the default network group and
+   * deregisters the workflow with the server. This method is
+   * intended to be called when workflow configuration mode is
+   * auto.
    *
    * @param baseDN  the DN of the workflow to deregister
    */
-  private static void deregisterWorkflow(
+  private static void deregisterWorkflowWithDefaultNetworkGroup(
       DN baseDN
       )
   {
     // Get the default network group and deregister all the workflows
-    // being configured for the backend (reminder: there is one worklfow
-    // per base DN configured in the backend).
+    // being configured for the backend (there is one worklfow per
+    // backend base DN).
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    defaultNetworkGroup.deregisterWorkflow (baseDN);
+    Workflow workflow = defaultNetworkGroup.deregisterWorkflow(baseDN);
+    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+    workflowImpl.deregister();
   }
 
 
   /**
-   * Creates a set of workflows for a given backend. There are as many
-   * workflows as base DNs defined in the backend. Each workflow is
-   * registered with the appropriate network group.
-   *
-   * TODO implement the registration with the appropriate network group.
+   * Creates a set of workflows for a given backend and registers the
+   * workflows with the default network group. There are as many workflows
+   * as base DNs defined in the backend. This method is intended
+   * to be called when workflow configuration mode is auto.
    *
    * @param backend  the backend handled by the workflow
    *
@@ -2634,35 +2643,33 @@ public class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  public static void createAndRegisterWorkflows(
+  public static void createAndRegisterWorkflowsWithDefaultNetworkGroup(
       Backend backend
       ) throws DirectoryException
   {
-    // Create a worklfow for each baseDN being configured
-    // in the backend and register the workflow with the network groups.
-    // In the automatic configuration mode, the workflow identifier is
-    // set to the backend ID.
+    // Create a worklfow for each backend base DN and register the workflow
+    // with the default network group.
     for (DN curBaseDN: backend.getBaseDNs())
     {
-      createAndRegisterWorkflow(curBaseDN, backend);
+      WorkflowImpl workflowImpl = createWorkflow(curBaseDN, backend);
+      registerWorkflowWithDefaultNetworkGroup(workflowImpl);
     }
   }
 
 
   /**
-   * Creates one workflow for a given base DN in a backend. The workflow
-   * is registered with the appropriate network group.
-   *
-   * TODO implement the registration with the appropriate network group.
+   * Creates one workflow for a given base DN in a backend.
    *
    * @param baseDN   the base DN of the workflow to create
    * @param backend  the backend handled by the workflow
+   *
+   * @return the newly created workflow
    *
    * @throws  DirectoryException  If the workflow ID for the provided
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  public static void createAndRegisterWorkflow(
+  public static WorkflowImpl createWorkflow(
       DN      baseDN,
       Backend backend
       ) throws DirectoryException
@@ -2671,49 +2678,52 @@ public class DirectoryServer
 
     // Create a root workflow element to encapsulate the backend
     LocalBackendWorkflowElement rootWE =
-        LocalBackendWorkflowElement.create(backendID, backend);
+        LocalBackendWorkflowElement.createAndRegister(backendID, backend);
+
+    // The workflow ID is "backendID + baseDN".
+    // We cannot use backendID as workflow identifier because a backend
+    // may handle several base DNs. We cannot use baseDN either because
+    // we might want to configure several workflows handling the same
+    // baseDN through different network groups. So a mix of both
+    // backendID and baseDN should be ok.
+    String workflowID = backend.getBackendID() + "#" + baseDN.toString();
 
     // Create the worklfow for the base DN and register the workflow with
-    // the appropriate network groups.
+    // the server.
     WorkflowImpl workflowImpl = new WorkflowImpl(
-        baseDN.toString(), baseDN, (WorkflowElement) rootWE);
-    registerWorkflowInNetworkGroups(workflowImpl);
+        workflowID, baseDN, (WorkflowElement) rootWE);
+    workflowImpl.register();
+
+    return workflowImpl;
   }
 
 
   /**
-   * Registers a workflow with the appropriate network groups.
+   * Registers a workflow with the default network group. This method
+   * is intended to be called when workflow configuration mode is auto.
    *
-   * In the first implementation, the workflow is registered with the
-   * default network group only.
+   * @param workflowImpl  The workflow to register with the
+   *                      default network group
    *
-   * TODO implement the registration with the appropriate network group.
-   *
-   * @param workflowImpl  the workflow to register
-   *
-   * @throws  DirectoryException  If the workflow ID for the provided
-   *                              workflow conflicts with the workflow
-   *                              ID of an existing workflow in a
-   *                              network group.
+   * @throws  DirectoryException  If the workflow is already registered with
+   *                              the default network group
    */
-  private static void registerWorkflowInNetworkGroups(
+  private static void registerWorkflowWithDefaultNetworkGroup(
       WorkflowImpl workflowImpl
       ) throws DirectoryException
   {
     NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
     defaultNetworkGroup.registerWorkflow(workflowImpl);
-
-    // Now for each network group that exposes the baseDN of the workflow
-    // create an instance of the workflow and register it with the network
-    // group.
-    // TODO jdemendi - we need the network group configuration to configure
-    // the workflows per network group.
   }
 
 
   /**
-   * Creates the workflows for the backends whose baseDNs were not registered
-   * with registerBaseDN method, namely config backend and RootDSE backend.
+   * Creates the missing workflows, one for the config backend and one for
+   * the rootDSE backend.
+   *
+   * This method should be invoked whatever may be the workflow
+   * configuration mode because config backend and rootDSE backend
+   * will not have any configuration section, ever.
    *
    * @throws  ConfigException  If there is a configuration problem with any of
    *                           the workflows.
@@ -2723,13 +2733,158 @@ public class DirectoryServer
   {
     try
     {
-      createAndRegisterWorkflows (configHandler);
-      createAndRegisterWorkflows (rootDSEBackend);
+      createAndRegisterWorkflowsWithDefaultNetworkGroup (configHandler);
+      createAndRegisterWorkflowsWithDefaultNetworkGroup (rootDSEBackend);
     }
     catch (DirectoryException de)
     {
       throw new ConfigException(de.getMessageObject());
     }
+  }
+
+
+  /**
+   * Reconfigures the workflows when configuration mode has changed.
+   * This method is invoked when workflows need to be reconfigured
+   * while the server is running. If the reconfiguration is valid
+   * then the method update the workflow configuration mode.
+   *
+   * @param oldMode  the current workflow configuration mode
+   * @param newMode  the new workflow configuration mode
+   */
+  public static void reconfigureWorkflows(
+      WorkflowConfigurationMode oldMode,
+      WorkflowConfigurationMode newMode)
+  {
+    if ((oldMode == WorkflowConfigurationMode.AUTO)
+        && (newMode == WorkflowConfigurationMode.MANUAL))
+    {
+      // move to manual mode
+      try
+      {
+        directoryServer.configureWorkflowsManual();
+        setWorkflowConfigurationMode(newMode);
+      }
+      catch (Exception e)
+      {
+        // rollback to auto mode
+        try
+        {
+           directoryServer.configureWorkflowsAuto();
+        }
+        catch (Exception ee)
+        {
+          // rollback to auto mode is failing too!!
+          // well, just log an error message and suggest the admin
+          // to restart the server with the last valid config...
+          Message message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_MANUAL.get();
+          logError(message);
+        }
+      }
+    }
+    else if ((oldMode == WorkflowConfigurationMode.MANUAL)
+        && (newMode == WorkflowConfigurationMode.AUTO))
+    {
+      // move to auto mode
+      try
+      {
+        directoryServer.configureWorkflowsAuto();
+        setWorkflowConfigurationMode(newMode);
+      }
+      catch (Exception e)
+      {
+        // rollback to manual mode
+        try
+        {
+           directoryServer.configureWorkflowsManual();
+        }
+        catch (Exception ee)
+        {
+          // rollback to auto mode is failing too!!
+          // well, just log an error message and suggest the admin
+          // to restart the server with the last valid config...
+          Message message = ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_AUTO.get();
+          logError(message);
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Configures the workflows when configuration mode is manual.
+   *
+   * @throws  ConfigException  If there is a problem with the Directory Server
+   *                           configuration that prevents a critical component
+   *                           from being instantiated.
+   *
+   * @throws  InitializationException  If some other problem occurs while
+   *                                   attempting to initialize and start the
+   *                                   Directory Server.
+   */
+  private void configureWorkflowsManual()
+      throws ConfigException, InitializationException
+  {
+    // First of all re-initialize the current workflow configuration
+    NetworkGroup.resetConfig();
+    WorkflowImpl.resetConfig();
+    WorkflowElement.resetConfig();
+
+    // Then configure the workflows
+    workflowElementConfigManager = new WorkflowElementConfigManager();
+    workflowElementConfigManager.initializeWorkflowElements();
+
+    workflowConfigManager = new WorkflowConfigManager();
+    workflowConfigManager.initializeWorkflows();
+
+    networkGroupConfigManager = new NetworkGroupConfigManager();
+    networkGroupConfigManager.initializeNetworkGroups();
+
+    // We now need to complete the workflow creation for the
+    // config backend and rootDSE backend.
+    createAndRegisterRemainingWorkflows();
+  }
+
+
+  /**
+   * Configures the workflows when configuration mode is auto.
+   *
+   * @throws  ConfigException  If there is a problem with the Directory Server
+   *                           configuration that prevents a critical component
+   *                           from being instantiated.
+   */
+  private void configureWorkflowsAuto() throws ConfigException
+  {
+    // First of all re-initialize the current workflow configuration
+    NetworkGroup.resetConfig();
+    WorkflowImpl.resetConfig();
+    WorkflowElement.resetConfig();
+
+    // For each base DN in a backend create a workflow and register
+    // the workflow with the default network group
+    Map<String, Backend> backends = getBackends();
+    for (String backendID: backends.keySet())
+    {
+      Backend backend = backends.get(backendID);
+      for (DN baseDN: backend.getBaseDNs())
+      {
+        WorkflowImpl workflowImpl;
+        try
+        {
+          workflowImpl = createWorkflow(baseDN, backend);
+          registerWorkflowWithDefaultNetworkGroup(workflowImpl);
+        }
+        catch (DirectoryException e)
+        {
+          // TODO Auto-generated catch block
+          throw new ConfigException(e.getMessageObject());
+        }
+      }
+    }
+
+    // We now need to complete the workflow creation for the
+    // config backend and rootDSE backend.
+    createAndRegisterRemainingWorkflows();
   }
 
 
@@ -6246,8 +6401,14 @@ public class DirectoryServer
 
       directoryServer.backends = newBackends;
 
-      // Don't need anymore the local backend workflow element
-      LocalBackendWorkflowElement.remove(backend.getBackendID());
+      // Don't need anymore the local backend workflow element so we
+      // can remove it. We do remove the workflow element only when
+      // the workflow configuration mode is auto because in manual
+      // mode the config manager is doing the job.
+      if (workflowConfigurationModeIsAuto())
+      {
+        LocalBackendWorkflowElement.remove(backend.getBackendID());
+      }
 
 
       BackendMonitor monitor = backend.getBackendMonitor();
@@ -6409,13 +6570,21 @@ public class DirectoryServer
         }
       }
 
-      // Now create a workflow for the registered baseDN and register
-      // the workflow with the network groups, but don't register the
-      // workflow if the backend happens to be the configuration backend
-      // because it's too soon.
-      if (! baseDN.equals(DN.decode("cn=config")))
+      // When a new baseDN is registered with the server we have to create
+      // a new workflow to handle the base DN. We do not need to create
+      // the workflow in manual mode because in that case the workflows
+      // are created explicitely.
+      if (workflowConfigurationModeIsAuto())
       {
-        createAndRegisterWorkflow(baseDN, backend);
+        // Now create a workflow for the registered baseDN and register
+        // the workflow with the default network group, but don't register
+        // the workflow if the backend happens to be the configuration
+        // backend because it's too soon for the config backend.
+        if (! baseDN.equals(DN.decode("cn=config")))
+        {
+          WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
+          registerWorkflowWithDefaultNetworkGroup(workflowImpl);
+        }
       }
     }
   }
@@ -6449,8 +6618,14 @@ public class DirectoryServer
         }
       }
 
-      // Now deregister the workflow that was associated with the base DN.
-      deregisterWorkflow(baseDN);
+      // Now we need to deregister the workflow that was associated with
+      // the base DN but we can do it only when the workflow configuration
+      // mode is auto, because in manual mode the deregistration is done
+      // by the workflow config manager.
+      if (workflowConfigurationModeIsAuto())
+      {
+        deregisterWorkflowWithDefaultNetworkGroup(baseDN);
+      }
     }
   }
 
@@ -9609,6 +9784,49 @@ public class DirectoryServer
       isRunningAsWindowsService = false;
     }
     return isRunningAsWindowsService;
+  }
+
+
+  /**
+   * Specifies whether the workflows are configured automatically or manually.
+   * In auto configuration mode one workflow is created for each and every
+   * base DN in the local backends. In the auto configuration mode the
+   * workflows are created according to their description in the configuration
+   * file.
+   *
+   * @param  workflowConfigurationMode  Indicates whether the workflows are
+   *                                    configured automatically or manually
+   */
+  public static void setWorkflowConfigurationMode(
+      WorkflowConfigurationMode workflowConfigurationMode)
+  {
+    directoryServer.workflowConfigurationMode = workflowConfigurationMode;
+  }
+
+
+  /**
+   * Indicates whether the workflow configuration mode is 'auto' or not.
+   *
+   * @return the workflow configuration mode
+   */
+  public static boolean workflowConfigurationModeIsAuto()
+  {
+    boolean isAuto =
+      (directoryServer.workflowConfigurationMode
+       == WorkflowConfigurationMode.AUTO);
+    return isAuto;
+  }
+
+
+
+  /**
+   * Retrieves the workflow configuration mode.
+   *
+   * @return the workflow configuration mode
+   */
+  public static WorkflowConfigurationMode getWorkflowConfigurationMode()
+  {
+    return directoryServer.workflowConfigurationMode;
   }
 }
 
