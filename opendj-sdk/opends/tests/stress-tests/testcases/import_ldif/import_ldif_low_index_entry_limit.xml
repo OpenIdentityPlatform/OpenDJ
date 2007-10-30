@@ -146,6 +146,9 @@
                       'expectedString'     : 'Processed 100002 entries' }
                 </call>
                 
+                <script>
+                  knownIssue(2535)
+                </script>
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
@@ -203,6 +206,9 @@
                 }
                 </call>
               
+                <script>
+                  knownIssue(2535)
+                </script>
                 <call function="'testCase_Postamble'"/>
     
               </sequence>
