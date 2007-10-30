@@ -61,6 +61,9 @@ get-certificate-mapper-prop:mapper-name:Subject Equals DN:enabled:java-class:
 get-connection-handler-prop:handler-name:JMX Connection Handler:allowed-client:denied-client:
 get-connection-handler-prop:handler-name:LDAP Connection Handler:allowed-client:denied-client:
 get-connection-handler-prop:handler-name:LDAPS Connection Handler:allowed-client:denied-client:
+get-connection-handler-prop:handler-name:LDAP Connection Handler:use-tcp-no-delay:false:
+get-connection-handler-prop:handler-name:LDAP Connection Handler:allow-tcp-reuse-address:true:
+get-connection-handler-prop:handler-name:LDAP Connection Handler:use-tcp-keep-alive:true:
 get-extended-operation-handler-prop:handler-name:Cancel:enabled:java-class:
 get-extended-operation-handler-prop:handler-name:Get Connection ID:enabled:java-class:
 get-extended-operation-handler-prop:handler-name:Password Modify:enabled:java-class:
