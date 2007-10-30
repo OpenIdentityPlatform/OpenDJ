@@ -38,79 +38,79 @@
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/security/security.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_security'" />
+      add keyword 'main_security' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/aci/aci.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_aci'" />
+      add keyword 'main_aci' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/privileges/privileges.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_privileges'" />
+      add keyword 'main_privileges' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/dsconfig/dsconfig.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_dsconfig'" />
+      add keyword 'main_dsconfig' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
       
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/backends/backends.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_backends'" />
-      --> 
+      add keyword 'main_backends' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
       
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/clu/commands.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_commands'" />
+      add keyword 'main_commands' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/core/core.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_core'" />
+      add keyword 'main_core' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/schema/schema.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_schema'" />
+      add keyword 'main_schema' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/replication/replication.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_replication'" />          
+      add keyword 'main_replication' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/indexes/indexes.xml' % TESTS_DIR" />
       <!--
-      <call function="'indexes'" />
+      add keyword 'indexes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/groups/groups.xml' % TESTS_DIR" />
       <!--
-      <call function="'main_groups'" />
+      add keyword 'main_groups' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/logging/logging.xml' % (TESTS_DIR)" />
       <!--
-      <call function="'main_logging'" />
+      add keyword 'main_logging' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/plugins/plugins.xml' % (TESTS_DIR)" />
       <!--
-      <call function="'main_plugins'" />
+      add keyword 'main_plugins' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
 
