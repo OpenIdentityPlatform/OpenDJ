@@ -447,6 +447,81 @@
           </sequence>
         </testcase>
 
+        <!--- Test Case : Disable startTLS extop -->
+        <testcase name="getTestCaseName('Disable startTLS extop')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: TLS: Disabling StartTLS'
+            </message>
+
+            <script>
+                    deny_aci='(extop=\"1.3.6.1.4.1.1466.20037\") (version 3.0; acl \"Deny extended operation access\"; deny(read) userdn=\"ldap:///anyone\";)'
+            </script>
+        
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : deny_aci ,
+                    'changetype'             : 'add' }
+            </call>
+                
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <!--- Test Case : User search with disabled startTLS -->
+        <testcase name="getTestCaseName('User search with disabled startTLS')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: TLS: User Searching With Password with Disabled StartTLS'
+            </message>
+
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=mdog,ou=people,ou=startTLS tests,o=SSL Tests,dc=example,dc=com' ,
+                'dsInstancePswd'   : 'newpizza' ,
+                'dsBaseDN'         : 'dc=example,dc=com' ,
+                'dsFilter'         : 'objectclass=*'  ,
+                'extraParams'      : '-s base -q -X' ,
+                'expectedRC'       : 50 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
+        <testcase name="getTestCaseName('Enable startTLS extop')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Security: TLS: Enabling StartTLS'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+                  { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                    'DNToModify'             : 'cn=Access Control Handler,cn=config' ,
+                    'attributeName'          : 'ds-cfg-global-aci' ,
+                    'newAttributeValue'      : deny_aci ,
+                    'changetype'             : 'delete' }
+            </call>
+                
+            <call function="'testCase_Postamble'"/>
+            
+          </sequence>
+        </testcase>
+
         <!--- Test Case : Admin Enable Maximum Reset Age -->
         <testcase name="getTestCaseName('Admin Enable Max Reset Age Long')">
           <sequence>
@@ -652,6 +727,7 @@
           </sequence>
         </testcase>
 
+        
      </sequence>
 
   </function>
