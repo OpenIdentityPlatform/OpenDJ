@@ -34,7 +34,6 @@ import org.opends.server.types.*;
 
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -179,7 +178,37 @@ public class SubstringIndexer extends Indexer
                           Set<ASN1OctetString> addKeys,
                           Set<ASN1OctetString> delKeys)
   {
-    replaceEntry(txn, oldEntry, newEntry, addKeys, delKeys);
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+    HashSet<AttributeValue> newValues;
+    HashSet<AttributeValue> oldValues;
+
+    if(newAttributes == null)
+    {
+      indexAttribute(oldAttributes, delKeys);
+    }
+    else
+    {
+      if(oldAttributes == null)
+      {
+        indexAttribute(newAttributes, addKeys);
+      }
+      else
+      {
+        HashSet<ASN1OctetString> newKeys =
+            new HashSet<ASN1OctetString>();
+        HashSet<ASN1OctetString> oldKeys =
+            new HashSet<ASN1OctetString>();
+        indexAttribute(newAttributes, newKeys);
+        indexAttribute(oldAttributes, oldKeys);
+
+        addKeys.addAll(newKeys);
+        addKeys.removeAll(oldKeys);
+
+        delKeys.addAll(oldKeys);
+        delKeys.removeAll(newKeys);
+      }
+    }
   }
 
 
@@ -187,30 +216,42 @@ public class SubstringIndexer extends Indexer
   /**
    * Generate the set of substring index keys for an attribute.
    * @param attrList The attribute for which substring keys are required.
-   * @param addKeys The set into which the generated keys will be inserted.
+   * @param keys The set into which the generated keys will be inserted.
    */
   private void indexAttribute(List<Attribute> attrList,
-                              Set<ASN1OctetString> addKeys)
+                              Set<ASN1OctetString> keys)
   {
     if (attrList == null) return;
 
     for (Attribute attr : attrList)
     {
-      LinkedHashSet<AttributeValue> values = attr.getValues();
-      for (AttributeValue value : values)
-      {
-        try
-        {
-          byte[] normalizedBytes = value.getNormalizedValue().value();
+      indexValues(attr.getValues(), keys);
+    }
+  }
 
-          substringKeys(normalizedBytes, addKeys);
-        }
-        catch (DirectoryException e)
+  /**
+   * Generate the set of index keys for a set of attribute values.
+   * @param values The set of attribute values to be indexed.
+   * @param keys The set into which the keys will be inserted.
+   */
+  private void indexValues(Set<AttributeValue> values,
+                           Set<ASN1OctetString> keys)
+  {
+    if (values == null) return;
+
+    for (AttributeValue value : values)
+    {
+      try
+      {
+        byte[] normalizedBytes = value.getNormalizedValue().value();
+
+        substringKeys(normalizedBytes, keys);
+      }
+      catch (DirectoryException e)
+      {
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }

@@ -608,17 +608,38 @@ public class Entry
   }
 
 
-
   /**
    * Indicates whether this entry contains the specified attribute.
+   * Any subordinate attribute of the specified attribute will also
+   * be used in the determination.
    *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
+   *
+   * @param  attributeType       The attribute type for which to
+   *                             make the determination.
    *
    * @return  <CODE>true</CODE> if this entry contains the specified
    *          attribute, or <CODE>false</CODE> if not.
    */
   public boolean hasAttribute(AttributeType attributeType)
+  {
+    return hasAttribute(attributeType, true);
+  }
+
+
+  /**
+   * Indicates whether this entry contains the specified attribute.
+   *
+   * @param  attributeType       The attribute type for which to
+   *                             make the determination.
+   * @param  includeSubordinates Whether to include any subordinate
+   *                             attributes of the attribute type
+   *                             being retrieved.
+   *
+   * @return  <CODE>true</CODE> if this entry contains the specified
+   *          attribute, or <CODE>false</CODE> if not.
+   */
+  public boolean hasAttribute(AttributeType attributeType,
+                              boolean includeSubordinates)
   {
     if (userAttributes.containsKey(attributeType) ||
         operationalAttributes.containsKey(attributeType))
@@ -626,7 +647,8 @@ public class Entry
       return true;
     }
 
-    if (attributeType.mayHaveSubordinateTypes())
+    if (includeSubordinates &&
+        attributeType.mayHaveSubordinateTypes())
     {
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
@@ -643,15 +665,16 @@ public class Entry
   }
 
 
-
   /**
    * Indicates whether this entry contains the specified attribute
-   * with all of the options in the provided set.
+   * with all of the options in the provided set. Any subordinate
+   * attribute of the specified attribute will also be used in
+   * the determination.
    *
-   * @param  attributeType     The attribute type for which to make
-   *                           the determination.
-   * @param  attributeOptions  The set of options to use in the
-   *                           determination.
+   * @param  attributeType       The attribute type for which to
+   *                             make the determination.
+   * @param  attributeOptions    The set of options to use in the
+   *                             determination.
    *
    * @return  <CODE>true</CODE> if this entry contains the specified
    *          attribute, or <CODE>false</CODE> if not.
@@ -659,8 +682,32 @@ public class Entry
   public boolean hasAttribute(AttributeType attributeType,
                               Set<String> attributeOptions)
   {
+    return hasAttribute(attributeType, true, attributeOptions);
+  }
+
+
+  /**
+   * Indicates whether this entry contains the specified attribute
+   * with all of the options in the provided set.
+   *
+   * @param  attributeType       The attribute type for which to
+   *                             make the determination.
+   * @param  includeSubordinates Whether to include any subordinate
+   *                             attributes of the attribute type
+   *                             being retrieved.
+   * @param  attributeOptions    The set of options to use in the
+   *                             determination.
+   *
+   * @return  <CODE>true</CODE> if this entry contains the specified
+   *          attribute, or <CODE>false</CODE> if not.
+   */
+  public boolean hasAttribute(AttributeType attributeType,
+                              boolean includeSubordinates,
+                              Set<String> attributeOptions)
+  {
     List<Attribute> attributes;
-    if (attributeType.mayHaveSubordinateTypes())
+    if (includeSubordinates &&
+        attributeType.mayHaveSubordinateTypes())
     {
       attributes = new LinkedList<Attribute>();
       List<Attribute> attrs = userAttributes.get(attributeType);
@@ -726,13 +773,12 @@ public class Entry
     return false;
   }
 
-
-
   /**
    * Retrieves the requested attribute element(s) for the specified
    * attribute type.  The list returned may include multiple elements
    * if the same attribute exists in the entry multiple times with
-   * different sets of options.
+   * different sets of options. It may also include any subordinate
+   * attributes of the attribute being retrieved.
    *
    * @param  attributeType  The attribute type to retrieve.
    *
@@ -742,7 +788,30 @@ public class Entry
    */
   public List<Attribute> getAttribute(AttributeType attributeType)
   {
-    if (attributeType.mayHaveSubordinateTypes())
+    return getAttribute(attributeType, true);
+  }
+
+
+  /**
+   * Retrieves the requested attribute element(s) for the specified
+   * attribute type.  The list returned may include multiple elements
+   * if the same attribute exists in the entry multiple times with
+   * different sets of options.
+   *
+   * @param  attributeType       The attribute type to retrieve.
+   * @param  includeSubordinates Whether to include any subordinate
+   *                             attributes of the attribute type
+   *                             being retrieved.
+   *
+   * @return  The requested attribute element(s) for the specified
+   *          attribute type, or <CODE>null</CODE> if the specified
+   *          attribute type is not present in this entry.
+   */
+  public List<Attribute> getAttribute(AttributeType attributeType,
+                                      boolean includeSubordinates)
+  {
+    if (includeSubordinates &&
+        attributeType.mayHaveSubordinateTypes())
     {
       List<Attribute> attributes = new LinkedList<Attribute>();
 
@@ -821,7 +890,9 @@ public class Entry
    * Retrieves the requested attribute element(s) for the attribute
    * with the specified name or OID.  The list returned may include
    * multiple elements if the same attribute exists in the entry
-   * multiple times with different sets of options.
+   * multiple times with different sets of options. It may also
+   * include any subordinate attributes of the attribute being
+   * retrieved.
    * <BR><BR>
    * Note that this method should only be used in cases in which the
    * Directory Server schema has no reference of an attribute type
@@ -842,7 +913,7 @@ public class Entry
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        return getAttribute(attr);
+        return getAttribute(attr, true);
       }
     }
 
@@ -850,7 +921,7 @@ public class Entry
     {
       if (attr.hasNameOrOID(lowerName))
       {
-        return getAttribute(attr);
+        return getAttribute(attr, true);
       }
     }
 
@@ -865,17 +936,16 @@ public class Entry
     return null;
   }
 
-
-
   /**
    * Retrieves the requested attribute element(s) for the specified
    * attribute type.  The list returned may include multiple elements
    * if the same attribute exists in the entry multiple times with
-   * different sets of options.
+   * different sets of options. It may also include any subordinate
+   * attributes of the attribute being retrieved.
    *
-   * @param  attributeType  The attribute type to retrieve.
-   * @param  options        The set of attribute options to include in
-   *                        matching elements.
+   * @param  attributeType       The attribute type to retrieve.
+   * @param  options             The set of attribute options to
+   *                             include in matching elements.
    *
    * @return  The requested attribute element(s) for the specified
    *          attribute type, or <CODE>null</CODE> if the specified
@@ -885,8 +955,34 @@ public class Entry
   public List<Attribute> getAttribute(AttributeType attributeType,
                                       Set<String> options)
   {
+    return getAttribute(attributeType, true, options);
+  }
+
+  /**
+   * Retrieves the requested attribute element(s) for the specified
+   * attribute type.  The list returned may include multiple elements
+   * if the same attribute exists in the entry multiple times with
+   * different sets of options.
+   *
+   * @param  attributeType       The attribute type to retrieve.
+   * @param  includeSubordinates Whether to include any subordinate
+   *                             attributes of the attribute type
+   *                             being retrieved.
+   * @param  options             The set of attribute options to
+   *                             include in matching elements.
+   *
+   * @return  The requested attribute element(s) for the specified
+   *          attribute type, or <CODE>null</CODE> if the specified
+   *          attribute type is not present in this entry with the
+   *          provided set of options.
+   */
+  public List<Attribute> getAttribute(AttributeType attributeType,
+                                      boolean includeSubordinates,
+                                      Set<String> options)
+  {
     List<Attribute> attributes = new LinkedList<Attribute>();
-    if (attributeType.mayHaveSubordinateTypes())
+    if (includeSubordinates &&
+        attributeType.mayHaveSubordinateTypes())
     {
       List<Attribute> attrs = userAttributes.get(attributeType);
       if (attrs != null)
@@ -1053,7 +1149,7 @@ public class Entry
   public final <T> T getAttributeValue(AttributeType attributeType,
       AttributeValueDecoder<T> decoder) throws DirectoryException
   {
-    List<Attribute> attributes = getAttribute(attributeType);
+    List<Attribute> attributes = getAttribute(attributeType, true);
     AttributeValueIterable values =
          new AttributeValueIterable(attributes);
     Iterator<AttributeValue> iterator = values.iterator();
@@ -1100,7 +1196,7 @@ public class Entry
       Collection<T> collection)
       throws DirectoryException
   {
-    List<Attribute> attributes = getAttribute(attributeType);
+    List<Attribute> attributes = getAttribute(attributeType, true);
     AttributeValueIterable values =
          new AttributeValueIterable(attributes);
 
@@ -1664,7 +1760,7 @@ public class Entry
     attachment = null;
 
     List<Attribute> attrList =
-         getAttribute(attribute.getAttributeType());
+         getAttribute(attribute.getAttributeType(), false);
     if (attrList == null)
     {
       // There are no instances of the specified attribute in this
@@ -1721,10 +1817,11 @@ public class Entry
 
   /**
    * Removes all instances of the specified attribute type from this
-   * entry.  If the provided attribute type is the objectclass type,
-   * then all objectclass values will be removed (but must be replaced
-   * for the entry to be valid).  If the specified attribute type is
-   * not present in this entry, then this method will have no effect.
+   * entry, including any instances with options.  If the provided
+   * attribute type is the objectclass type, then all objectclass
+   * values will be removed (but must be replaced for the entry to
+   * be valid).  If the specified attribute type is not present in
+   * this entry, then this method will have no effect.
    *
    * @param  attributeType  The attribute type for the attribute to
    *                        remove from this entry.
@@ -1753,12 +1850,10 @@ public class Entry
 
   /**
    * Removes the attribute with the provided type and set of options
-   * from this entry.  If the provided set of options is
-   * <CODE>null</CODE> or empty, then all occurrences of the specified
-   * attribute will be removed.  Otherwise, only the instance with the
-   * exact set of options provided will be removed.  This has no
-   * effect if the specified attribute is not present in this entry
-   * with the given set of options.
+   * from this entry.  Only the instance with the exact set of
+   * options provided will be removed.  This has no effect if the
+   * specified attribute is not present in this entry with the given
+   * set of options.
    *
    * @param  attributeType  The attribute type for the attribute to
    *                        remove from this entry.
@@ -1774,44 +1869,37 @@ public class Entry
   {
     attachment = null;
 
-    if ((options == null) || options.isEmpty())
+    List<Attribute> attrList = userAttributes.get(attributeType);
+    if (attrList == null)
     {
-      return removeAttribute(attributeType);
-    }
-    else
-    {
-      List<Attribute> attrList = userAttributes.get(attributeType);
+      attrList = operationalAttributes.get(attributeType);
       if (attrList == null)
       {
-        attrList = operationalAttributes.get(attributeType);
-        if (attrList == null)
-        {
-          return false;
-        }
+        return false;
       }
-
-      boolean removed = false;
-
-      Iterator<Attribute> iterator = attrList.iterator();
-      while (iterator.hasNext())
-      {
-        Attribute a = iterator.next();
-        if (a.optionsEqual(options))
-        {
-          iterator.remove();
-          removed = true;
-          break;
-        }
-      }
-
-      if (attrList.isEmpty())
-      {
-        userAttributes.remove(attributeType);
-        operationalAttributes.remove(attributeType);
-      }
-
-      return removed;
     }
+
+    boolean removed = false;
+
+    Iterator<Attribute> iterator = attrList.iterator();
+    while (iterator.hasNext())
+    {
+      Attribute a = iterator.next();
+      if (a.optionsEqual(options))
+      {
+        iterator.remove();
+        removed = true;
+        break;
+      }
+    }
+
+    if (attrList.isEmpty())
+    {
+      userAttributes.remove(attributeType);
+      operationalAttributes.remove(attributeType);
+    }
+
+    return removed;
   }
 
 
@@ -1906,7 +1994,7 @@ public class Entry
       }
 
       List<Attribute> attrList =
-           getAttribute(attribute.getAttributeType());
+           getAttribute(attribute.getAttributeType(), false);
       if (attrList == null)
       {
         return false;
@@ -1944,11 +2032,11 @@ public class Entry
       LinkedHashSet<AttributeValue> valueSet = attribute.getValues();
       if ((valueSet == null) || valueSet.isEmpty())
       {
-        return removeAttribute(attribute.getAttributeType());
+        return removeAttribute(attribute.getAttributeType(), null);
       }
 
       List<Attribute> attrList =
-           getAttribute(attribute.getAttributeType());
+           getAttribute(attribute.getAttributeType(), false);
       if (attrList == null)
       {
         return false;
@@ -1971,7 +2059,8 @@ public class Entry
 
           if (existingValueSet.isEmpty())
           {
-            return removeAttribute(attribute.getAttributeType());
+            return removeAttribute(attribute.getAttributeType(),
+                null);
           }
 
           return true;
@@ -2050,7 +2139,7 @@ public class Entry
   public boolean hasValue(AttributeType attributeType,
                           Set<String> options, AttributeValue value)
   {
-    List<Attribute> attrList = getAttribute(attributeType);
+    List<Attribute> attrList = getAttribute(attributeType, true);
     if ((attrList == null) || attrList.isEmpty())
     {
       return false;
@@ -2196,7 +2285,7 @@ public class Entry
         break;
 
       case INCREMENT:
-        List<Attribute> attrList = getAttribute(t);
+        List<Attribute> attrList = getAttribute(t, false);
         if ((attrList == null) || attrList.isEmpty())
         {
           Message message =

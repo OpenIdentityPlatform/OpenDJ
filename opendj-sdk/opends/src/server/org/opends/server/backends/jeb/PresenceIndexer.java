@@ -171,6 +171,23 @@ public class PresenceIndexer extends Indexer
                           Set<ASN1OctetString> delKeys)
        throws DatabaseException
   {
-    replaceEntry(txn, oldEntry, newEntry, addKeys, delKeys);
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+    if(oldAttributes == null)
+    {
+      if(newAttributes != null)
+      {
+        addKeys.add(
+              new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      }
+    }
+    else
+    {
+      if(newAttributes == null)
+      {
+        delKeys.add(
+              new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      }
+    }
   }
 }

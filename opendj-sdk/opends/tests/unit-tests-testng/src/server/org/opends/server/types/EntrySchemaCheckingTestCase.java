@@ -1430,5 +1430,35 @@ public class EntrySchemaCheckingTestCase
     invalidReason = new MessageBuilder();
     failOnlyForStrictEvaluation(e);
   }
+
+  /**
+   * Tests schema checking for an entry that includes an attribute not
+   * defined in any objectClasses but the subtypes of the attribute are.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testInvalidSuperiorAttribute()
+         throws Exception
+  {
+    // The LDIF reader won't let us do this directly, so we have to hack around
+    // it.
+    Entry e = TestCaseUtils.makeEntry(
+         "dn: uid=test.user,o=test",
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "objectClass: account",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User");
+
+    e.addAttribute(new Attribute("name", "foo"),
+                   new LinkedList<AttributeValue>());
+
+    assertFalse(e.conformsToSchema(null, false, true, true, new MessageBuilder()));
+  }
 }
 

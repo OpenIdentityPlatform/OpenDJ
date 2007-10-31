@@ -383,13 +383,24 @@ public class VLVIndex extends DatabaseContainer
         SortKey[] sortKeys = sortOrder.getSortKeys();
         for(SortKey sortKey : sortKeys)
         {
+          AttributeType attributeType = sortKey.getAttributeType();
+          Iterable<AttributeType> subTypes =
+              DirectoryServer.getSchema().getSubTypes(attributeType);
           for(Modification mod : mods)
           {
-            if(mod.getAttribute().getAttributeType().
-                equals(sortKey.getAttributeType()))
+            AttributeType modAttrType = mod.getAttribute().getAttributeType();
+            if(modAttrType.equals(attributeType))
             {
               sortAttributeModified = true;
               break;
+            }
+            for(AttributeType subType : subTypes)
+            {
+              if(modAttrType.equals(subType))
+              {
+                sortAttributeModified = true;
+                break;
+              }
             }
           }
           if(sortAttributeModified)

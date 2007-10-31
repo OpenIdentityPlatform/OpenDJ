@@ -1246,6 +1246,18 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Index
 
+dn: ds-cfg-attribute=name,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: name
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+ds-cfg-index-entry-limit: 4000
+
 dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add
 objectClass: top
