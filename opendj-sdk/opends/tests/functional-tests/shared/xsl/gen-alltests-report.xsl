@@ -144,17 +144,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="'JVM Version'"/>
+          <xsl:value-of select="'JVM'"/>
         </xsl:element>
       </xsl:element>
-      <xsl:element name="td">
-        <xsl:attribute name="align">
-          <xsl:value-of select="'center'"/>
-        </xsl:attribute>
-        <xsl:element name="b">
-          <xsl:value-of select="'JVM Vendor'"/>
-        </xsl:element>
-      </xsl:element>      
       <xsl:element name="td">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>
@@ -210,7 +202,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/platform"/>
+          <xsl:value-of select="$identification/os-label"/>
         </xsl:element>
       </xsl:element>
       <xsl:element name="td">
@@ -218,17 +210,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="$identification/jvm-version"/>
+          <xsl:value-of select="$identification/jvm-label"/>
         </xsl:element>
       </xsl:element>
-      <xsl:element name="td">
-        <xsl:attribute name="align">
-          <xsl:value-of select="'center'"/>
-        </xsl:attribute>
-        <xsl:element name="b">
-          <xsl:value-of select="$identification/jvm-vendor"/>
-        </xsl:element>
-      </xsl:element>      
       <xsl:element name="td">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>

@@ -1,5 +1,4 @@
 TEST_OS_STRING              = '${os.name}'
-TEST_HW_STRING              = '${os.arch}'
 TEST_JVM_STRING             = '${java.version}(${sun.arch.data.model} bits)'
 STAF_LOCAL_HOSTNAME         = 'localhost'
 STAF_REMOTE_HOSTNAME        = 'localhost'

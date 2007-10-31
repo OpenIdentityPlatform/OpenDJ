@@ -163,8 +163,7 @@
           <th align="center">Build</th>
           <th align="center">Revision</th>
           <th align="center">Platform</th>
-          <th align="center">JVM Version</th>
-          <th align="center">JVM Vendor</th>
+          <th align="center">JVM</th>
           <th align="center" width="5%">Total</th>
           <th align="center" width="5%">Pass</th>
           <th align="center" width="5%">Fail</th>
@@ -175,9 +174,8 @@
         <tr>
           <th align="center"><xsl:value-of select="$identification/buildid"/></th>
           <th align="center"><xsl:value-of select="$identification/revision"/></th>
-          <th align="center"><xsl:value-of select="$identification/platform"/></th>
-          <th align="center"><xsl:value-of select="$identification/jvm-version"/></th>
-          <th align="center"><xsl:value-of select="$identification/jvm-vendor"/></th>
+          <th align="center"><xsl:value-of select="$identification/os-label"/></th>
+          <th align="center"><xsl:value-of select="$identification/jvm-label"/></th>
           <th align="center"><xsl:value-of select="$total"/></th>
           <th align="center"><xsl:value-of select="$pass"/></th>
           <th align="center"><xsl:value-of select="$fail"/></th>

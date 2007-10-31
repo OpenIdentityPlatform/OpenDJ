@@ -46,7 +46,26 @@
         </sequence>
       </if>
 
-      <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,TEST_OS_STRING) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
+      <!-- Check some of the optional variables from config.py -->
+      <script>
+        try:
+          if TEST_OS_STRING:
+            ServerOsString=TEST_OS_STRING
+          else:
+            ServerOsString='Unknown Operating System'
+        except NameError,details:
+            ServerOsString='Unknown Operating System'    
+
+        try:
+          if TEST_JVM_STRING:
+            ServerJVMString=TEST_JVM_STRING
+          else:
+            ServerJVMString='Unknown JVM'
+        except NameError,details:
+            ServerJVMString='Unknown JVM'
+      </script>
+      
+      <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,ServerOsString) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
         <job-file>'%s/testcases/runFuncTests.xml' % TESTS_DIR</job-file>
         <job-scriptfiles machine="STAF_LOCAL_HOSTNAME"> STAXJobScriptFiles </job-scriptfiles>
         <job-action>
@@ -107,6 +126,8 @@
         ServerJavaVendor='unknown'
         ServerJVMVersion='unknown'
         ServerJVMVendor='unknown'
+        ServerJVMArchitecture='unknown'
+        ServerJVMLabel='unknown'
         ServerSystemOS='unknown'
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
@@ -156,7 +177,13 @@
                                                                                                 
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        
+
+        if ServerOsString == 'Unknown Operating System':
+          ServerOsString=ServerSystemOS        
+
+        if ServerJVMString == 'Unknown JVM':
+          ServerJVMString=ServerJVMVersion
+
       </script>
       
       <message>'Server= %s' % ServerInfoDict </message>     
@@ -358,18 +385,27 @@
         xmlfh.write('      &lt;revision&gt;\n')
         xmlfh.write('        %s\n' % ServerSvnRevision)
         xmlfh.write('      &lt;/revision&gt;\n')                 
+        xmlfh.write('      &lt;hostname&gt;\n')
+        xmlfh.write('        %s\n' % STAF_REMOTE_HOSTNAME)
+        xmlfh.write('      &lt;/hostname&gt;\n')
         xmlfh.write('      &lt;platform&gt;\n')
         xmlfh.write('        %s\n' % ServerSystemOS)
         xmlfh.write('      &lt;/platform&gt;\n')
         xmlfh.write('      &lt;jvm-version&gt;\n')
         xmlfh.write('        %s\n' % ServerJVMVersion)
         xmlfh.write('      &lt;/jvm-version&gt;\n')
+        xmlfh.write('      &lt;jvm-label&gt;\n')
+        xmlfh.write('        %s\n' % ServerJVMString)
+        xmlfh.write('      &lt;/jvm-label&gt;\n')
         xmlfh.write('      &lt;jvm-vendor&gt;\n')
         xmlfh.write('        %s\n' % ServerJVMVendor)
         xmlfh.write('      &lt;/jvm-vendor&gt;\n')
         xmlfh.write('      &lt;jvm-arch&gt;\n')
         xmlfh.write('        %s\n' % ServerJVMArchitecture)
-        xmlfh.write('      &lt;/jvm-arch&gt;\n')                
+        xmlfh.write('      &lt;/jvm-arch&gt;\n')
+        xmlfh.write('      &lt;os-label&gt;\n')
+        xmlfh.write('        %s\n' % ServerOsString)
+        xmlfh.write('      &lt;/os-label&gt;\n')                        
         xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>
@@ -447,48 +483,76 @@
       <message>
         'XML Report Written to %s.' % xmlfile
       </message>
-      
-      <!-- Transform Report XML into HTML -->
+
+      <script>      
+        class reportGeneration:
+          'Test Report Generation'
+          def transformReport(self,stylesheet,xml,output):
+            from java.io import FileInputStream
+            from java.io import FileOutputStream
+            from java.io import ByteArrayOutputStream
+            
+            from javax.xml.transform import TransformerFactory
+            from javax.xml.transform.stream import StreamSource
+            from javax.xml.transform.stream import StreamResult
+              
+            self.xslSource = StreamSource(FileInputStream("%s" % stylesheet))
+            self.xslTemplate = TransformerFactory.newInstance().newTemplates(self.xslSource)
+            self.transformer = self.xslTemplate.newTransformer()
+            
+            self.source = StreamSource(FileInputStream("%s" % xml))
+            self.result = StreamResult(FileOutputStream("%s" % output))
+
+            self.transformer.transform(self.source, self.result)        
+      </script>            
+
+      <!-- Generate the standard test report showing all testcases -->      
       <script>
+        _message='Generated standard test report.'
         xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
         htmlfile= '%s/results.html' % logsReportDir
+
+        standardReport=reportGeneration()      
+
+        try:
+          standardReport.transformReport(xslfile,xmlfile,htmlfile)
+        except IOError,details:
+          _message='Unable to generate standard test report %s.' % details
       </script>
-      
-      <message>
-        'Writing HTML (with stylesheet %s) Report to %s.' % (xslfile,htmlfile)
-      </message>
-      
-      <script>
-        _message=''
+      <message>_message</message>
+                    
+      <!-- Generate the drill down test report -->
+      <script>          
+        _message='Generated the drill down test report.'
         myreportxsl='%s/xsl/my-report.xsl' % TESTS_SHARED_DIR
         myreporthtml='%s/my-report.html' % logsReportDir
         mytestslog='%s/tests-log.xml' % logsTestsDir
+
+        drillDownReport=reportGeneration()      
+
         try:
-          from java.io import FileInputStream
-          from java.io import FileOutputStream
-          from java.io import ByteArrayOutputStream
-          
-          from javax.xml.transform import TransformerFactory
-          from javax.xml.transform.stream import StreamSource
-          from javax.xml.transform.stream import StreamResult
-          
-          xslSource = StreamSource(FileInputStream("%s" % xslfile))
-          xslTemplate = TransformerFactory.newInstance().newTemplates(xslSource)
-          transformer = xslTemplate.newTransformer()
-          
-          source = StreamSource(FileInputStream("%s" % xmlfile))
-          result = StreamResult(FileOutputStream("%s" % htmlfile))
-          # the original report
-          transformer.transform(source, result)
-          
-          #the new report transformation
-          TransformerFactory.newInstance().newTemplates(StreamSource(FileInputStream(myreportxsl))).newTransformer().transform(StreamSource(FileInputStream(mytestslog)), StreamResult(FileOutputStream(myreporthtml)))
-          _message='Generated drill-down HTML report'
-        except:
-          _message='Could not generate drill-down HTML report'
+          drillDownReport.transformReport(myreportxsl,mytestslog,myreporthtml)
+        except IOError,details:
+          _message='Unable to generate drill down test report %s.' % details
       </script>
       <message>_message</message>
 
+      <!-- Generate the summary text file -->
+      <script>          
+        _message='Generated the summary text report'
+        mysummaryxsl='%s/xsl/gen-text-summary.xsl' % TESTS_SHARED_DIR
+        mysummarytext='%s/summary.txt' % logsReportDir
+        mysummaryxml=xmlfile
+
+        summaryReport=reportGeneration()      
+
+        try:
+          summaryReport.transformReport(mysummaryxsl,mysummaryxml,mysummarytext)
+        except IOError,details:
+          _message='Unable to generate summary text file %s.' % details
+      </script>
+      <message>_message</message>
+            
       <!-- FixMe: Compatability with Hudson -->      
       <if expr="os.path.exists(myreporthtml)">
         <sequence>
@@ -504,7 +568,7 @@
       <!-- FixMe: Compatability with Hudson -->
       <if expr="os.path.exists(mytestslog)">
         <sequence>
-          <message>'Copy %s to %s' % (myreporthtml,TMPDIR)</message>
+          <message>'Copy %s to %s' % (mytestslog,TMPDIR)</message>
           <call function="'copyFile'">
             { 'srcfile'    : mytestslog,
               'destfile'   : '%s/tests-log.xml' % TMPDIR

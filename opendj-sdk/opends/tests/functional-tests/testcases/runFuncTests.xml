@@ -296,6 +296,23 @@
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
         
+        # Platform and JVM can be overridden from config file
+        try:
+          if TEST_OS_STRING:
+            ServerOsString=TEST_OS_STRING
+          else:
+            ServerOsString=ServerSystemOS
+        except NameError,details:
+            ServerOsString=ServerSystemOS
+
+        try:
+          if TEST_JVM_STRING:
+            ServerJVMString=TEST_JVM_STRING
+          else:
+            ServerJVMString=ServerJVMVersion
+        except NameError,details:
+            ServerJVMString=ServerJVMVersion
+
         testlog=open('%s/tests-log.xml' % logsTestsDir,'a')
         testlog.seek(0,2)
         testlog.write('    &lt;/results&gt;\n')
@@ -312,9 +329,15 @@
         testlog.write('      &lt;platform&gt;\n')
         testlog.write('        %s\n' % ServerSystemOS)
         testlog.write('      &lt;/platform&gt;\n')
+        testlog.write('      &lt;os-label&gt;\n')
+        testlog.write('        %s\n' % ServerOsString)
+        testlog.write('      &lt;/os-label&gt;\n')
         testlog.write('      &lt;jvm-version&gt;\n')
         testlog.write('        %s\n' % ServerJVMVersion)
         testlog.write('      &lt;/jvm-version&gt;\n')
+        testlog.write('      &lt;jvm-label&gt;\n')
+        testlog.write('        %s\n' % ServerJVMString)
+        testlog.write('      &lt;/jvm-label&gt;\n')
         testlog.write('      &lt;jvm-vendor&gt;\n')
         testlog.write('        %s\n' % ServerJVMVendor)
         testlog.write('      &lt;/jvm-vendor&gt;\n')        
