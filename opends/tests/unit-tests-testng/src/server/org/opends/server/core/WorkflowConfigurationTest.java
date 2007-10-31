@@ -530,6 +530,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     // Workflow configuration mode is auto, so test backend should
     // be accessible
+    setModeAuto();
     checkBackendIsAccessible(testBaseDN);
 
     // Set the workflow configuration mode to manual. In this mode
@@ -598,6 +599,9 @@ public class WorkflowConfigurationTest extends UtilTestCase
     removeWorkflow(testBaseDN3, testBackendID2);
     removeSuffix(testBaseDN3, testBackendID2);
     checkBackendIsNotAccessible(testBaseDN3);    
+    
+    // Back to the original configuration mode
+    setModeAuto();
   }
 
  
@@ -641,6 +645,9 @@ public class WorkflowConfigurationTest extends UtilTestCase
     removeWorkflow(baseDN2, backendID2);
     removeMemoryBackend(backendID2);
     checkBackendIsNotAccessible(baseDN2);
+
+    // Back to the original configuration mode
+    setModeAuto();
   }
   
   
@@ -655,7 +662,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     String backendID = "test";
     String baseDN    = "o=test";
 
-    // Now move to the manual mode
+    // Move to the manual mode
     setModeManual();
     
     // Create a route for o=test suffix in the default network group.
@@ -685,5 +692,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
     clientConnection.setNetworkGroup(NetworkGroup.getDefaultNetworkGroup());
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    
+    // Back to the original configuration mode
+    setModeAuto();
   }
 }
