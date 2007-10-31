@@ -3789,14 +3789,26 @@ public class EntryContainer
     {
       // Check whether any modifications apply to this indexed attribute.
       boolean attributeModified = false;
+      AttributeType indexAttributeType = index.getAttributeType();
+      Iterable<AttributeType> subTypes =
+          DirectoryServer.getSchema().getSubTypes(indexAttributeType);
+
       for (Modification mod : mods)
       {
         Attribute modAttr = mod.getAttribute();
         AttributeType modAttrType = modAttr.getAttributeType();
-        if (modAttrType.equals(index.getAttributeType()))
+        if (modAttrType.equals(indexAttributeType))
         {
           attributeModified = true;
           break;
+        }
+        for(AttributeType subType : subTypes)
+        {
+          if(modAttrType.equals(subType))
+          {
+            attributeModified = true;
+            break;
+          }
         }
       }
       if (attributeModified)

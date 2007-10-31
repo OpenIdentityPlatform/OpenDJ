@@ -129,6 +129,9 @@ public class TestBackendImpl extends JebTestCase {
         "objectClass: organizationalPerson",
         "objectClass: inetOrgPerson",
         "givenName: Aaren",
+        "givenName;lang-fr: test2",
+        "givenName;lang-cn: test2",
+        "givenName;lang-es: test3",
         "sn: Atp",
         "cn: Aaren Atp",
         "initials: APA",
@@ -1019,7 +1022,8 @@ public class TestBackendImpl extends JebTestCase {
     Entry newEntry;
     EntryID entryID;
     AttributeType attribute;
-    AttributeIndex index;
+    AttributeIndex titleIndex;
+    AttributeIndex nameIndex;
     HashSet<ASN1OctetString> addKeys;
     DatabaseEntry key;
     PresenceIndexer presenceIndexer;
@@ -1036,12 +1040,46 @@ public class TestBackendImpl extends JebTestCase {
       ArrayList<Modification> modifications = new ArrayList<Modification>();
       modifications.add(new Modification(ModificationType.ADD, new
           Attribute("title", "debugger")));
+
+      attribute = DirectoryServer.getAttributeType("title");
+      LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(attribute, "debugger2"));
+      LinkedHashSet<String> options = new LinkedHashSet<String>(1);
+      options.add("lang-en");
+      Attribute attr = new Attribute(attribute, "title", options, values);
+      modifications.add(new Modification(ModificationType.ADD, attr));
+
       modifications.add(new Modification(ModificationType.DELETE, new
           Attribute("cn", "Aaren Atp")));
       modifications.add(new Modification(ModificationType.ADD, new
           Attribute("cn", "Aaren Rigor")));
       modifications.add(new Modification(ModificationType.ADD, new
           Attribute("cn", "Aarenister Rigor")));
+
+      attribute = DirectoryServer.getAttributeType("givenname");
+      values = new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(attribute, "test"));
+      options = new LinkedHashSet<String>(1);
+      options.add("lang-de");
+      attr = new Attribute(attribute, "givenName", options, values);
+      modifications.add(new Modification(ModificationType.ADD, attr));
+
+      attribute = DirectoryServer.getAttributeType("givenname");
+      values = new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(attribute, "test2"));
+      options = new LinkedHashSet<String>(1);
+      options.add("lang-cn");
+      attr = new Attribute(attribute, "givenName", options, values);
+      modifications.add(new Modification(ModificationType.DELETE, attr));
+
+      attribute = DirectoryServer.getAttributeType("givenname");
+      values = new LinkedHashSet<AttributeValue>();
+      values.add(new AttributeValue(attribute, "newtest3"));
+      options = new LinkedHashSet<String>(1);
+      options.add("lang-es");
+      attr = new Attribute(attribute, "givenName", options, values);
+      modifications.add(new Modification(ModificationType.REPLACE, attr));
+
       modifications.add(new Modification(ModificationType.REPLACE, new
           Attribute("employeenumber", "222")));
 
@@ -1053,18 +1091,30 @@ public class TestBackendImpl extends JebTestCase {
       assertNotNull(entryID);
 
 
-      attribute = newEntry.getAttribute("title").get(0).getAttributeType();
-      index = ec.getAttributeIndex(attribute);
+      attribute = DirectoryServer.getAttributeType("title");
+      titleIndex = ec.getAttributeIndex(attribute);
+      attribute = DirectoryServer.getAttributeType("name");
+      nameIndex = ec.getAttributeIndex(attribute);
 
-      //This current entry in the DB shouldn't be in the presence index.
+      //This current entry in the DB shouldn't be in the presence titleIndex.
       addKeys = new HashSet<ASN1OctetString>();
       addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
       key = new DatabaseEntry();
       for (ASN1OctetString keyBytes : addKeys) {
         key.setData(keyBytes.value());
       }
-      assertEquals(index.presenceIndex.containsID(null, key, entryID),
+      assertEquals(titleIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
+
+      //This current entry should be in the presence nameIndex.
+      addKeys = new HashSet<ASN1OctetString>();
+      addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+      }
+      assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
 
       ArrayList<Control> noControls = new ArrayList<Control>(0);
       InternalClientConnection conn =
@@ -1098,55 +1148,123 @@ public class TestBackendImpl extends JebTestCase {
               entry.getAttribute("cn").get(0).getAttributeType(),
               "Aaren Atp")));
 
+      options = new LinkedHashSet<String>();
+      options.add("lang-de");
+      assertTrue(entry.getAttribute("givenname", options).get(0).getValues().contains(
+          new AttributeValue(
+              entry.getAttribute("givenname", options).get(0).getAttributeType(),
+              "test")));
+      options = new LinkedHashSet<String>();
+      options.add("lang-cn");
+      assertNull
+          (entry.getAttribute("givenname", options));
+      options = new LinkedHashSet<String>();
+      options.add("lang-es");
+      assertTrue(entry.getAttribute("givenname", options).get(0).getValues().contains(
+          new AttributeValue(
+              entry.getAttribute("givenname", options).get(0).getAttributeType(),
+              "newtest3")));
+      options = new LinkedHashSet<String>();
+      options.add("lang-fr");
+      assertTrue(entry.getAttribute("givenname", options).get(0).getValues().contains(
+          new AttributeValue(
+              entry.getAttribute("givenname", options).get(0).getAttributeType(),
+              "test2")));
+
       assertTrue(entry.getAttribute("employeenumber").contains(new
           Attribute("employeenumber", "222")));
       assertFalse(entry.getAttribute("employeenumber").contains(new
           Attribute("employeenumber", "1")));
 
       addKeys = new HashSet<ASN1OctetString>();
-      presenceIndexer = new PresenceIndexer(index.getAttributeType());
+      presenceIndexer = new PresenceIndexer(titleIndex.getAttributeType());
       presenceIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
       for (ASN1OctetString keyBytes : addKeys) {
         key.setData(keyBytes.value());
-      }
-      assertEquals(index.presenceIndex.containsID(null, key, entryID),
+        assertEquals(titleIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
+      }
 
       addKeys = new HashSet<ASN1OctetString>();
-      orderingIndexer = new OrderingIndexer(index.getAttributeType());
+      presenceIndexer = new PresenceIndexer(nameIndex.getAttributeType());
+      presenceIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+        assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+      }
+
+      addKeys = new HashSet<ASN1OctetString>();
+      orderingIndexer = new OrderingIndexer(titleIndex.getAttributeType());
       orderingIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
       for (ASN1OctetString keyBytes : addKeys) {
         key.setData(keyBytes.value());
-      }
-      assertEquals(index.orderingIndex.containsID(null, key, entryID),
+        assertEquals(titleIndex.orderingIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
+      }
 
       addKeys = new HashSet<ASN1OctetString>();
-      equalityIndexer = new EqualityIndexer(index.getAttributeType());
+      orderingIndexer = new OrderingIndexer(nameIndex.getAttributeType());
+      orderingIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+        assertEquals(nameIndex.orderingIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+      }
+
+      addKeys = new HashSet<ASN1OctetString>();
+      equalityIndexer = new EqualityIndexer(titleIndex.getAttributeType());
       equalityIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
       for (ASN1OctetString keyBytes : addKeys) {
         key.setData(keyBytes.value());
-      }
-      assertEquals(index.equalityIndex.containsID(null, key, entryID),
+        assertEquals(titleIndex.equalityIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
+      }
 
       addKeys = new HashSet<ASN1OctetString>();
-      substringIndexer = new SubstringIndexer(index.getAttributeType(),
-                   index.getConfiguration().getSubstringLength());
+      equalityIndexer = new EqualityIndexer(nameIndex.getAttributeType());
+      equalityIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+        assertEquals(nameIndex.equalityIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+      }
+
+      addKeys = new HashSet<ASN1OctetString>();
+      substringIndexer = new SubstringIndexer(titleIndex.getAttributeType(),
+                   titleIndex.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
       for (ASN1OctetString keyBytes : addKeys) {
         key.setData(keyBytes.value());
-      }
-      assertEquals(index.substringIndex.containsID(null, key, entryID),
+        assertEquals(titleIndex.substringIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
+      }
+
+      addKeys = new HashSet<ASN1OctetString>();
+      substringIndexer = new SubstringIndexer(nameIndex.getAttributeType(),
+                   nameIndex.getConfiguration().getSubstringLength());
+      substringIndexer.indexEntry(null, entry, addKeys);
+
+      key = new DatabaseEntry();
+      for (ASN1OctetString keyBytes : addKeys) {
+        key.setData(keyBytes.value());
+        assertEquals(nameIndex.substringIndex.containsID(null, key, entryID),
+          ConditionResult.TRUE);
+      }
     }
     finally
     {

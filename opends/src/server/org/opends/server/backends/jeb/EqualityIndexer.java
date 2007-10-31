@@ -45,7 +45,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.ArrayList;
 
 /**
  * An implementation of an Indexer for attribute equality.
@@ -191,140 +190,44 @@ public class EqualityIndexer extends Indexer
                           Set<ASN1OctetString> delKeys)
        throws DatabaseException
   {
-    // Optimize for the case where there are no attribute options
-    // involved and only simple addition and deletion of individual values.
-    // An issue with attribute options is that the values can not be assumed
-    // to be unique.
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+    HashSet<AttributeValue> newValues;
+    HashSet<AttributeValue> oldValues;
 
-    List<Attribute> beforeList;
-    List<Attribute> afterList;
-    beforeList = oldEntry.getAttribute(attributeType);
-    afterList = newEntry.getAttribute(attributeType);
-
-    boolean hasOptions = false;
-
-    if (beforeList != null)
+    if(newAttributes == null)
     {
-      for (Attribute a : beforeList)
-      {
-        if (a.hasOptions())
-        {
-          hasOptions = true;
-          break;
-        }
-      }
-    }
-
-    if (afterList != null)
-    {
-      for (Attribute a : afterList)
-      {
-        if (a.hasOptions())
-        {
-          hasOptions = true;
-          break;
-        }
-      }
-    }
-
-    boolean hasOnlySimpleMods = true;
-    List<Modification> simpleMods = new ArrayList<Modification>();
-    for (Modification mod : mods)
-    {
-      Attribute modAttr = mod.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeType();
-      if (modAttrType.equals(attributeType))
-      {
-        if (modAttr.hasOptions())
-        {
-          hasOptions = true;
-        }
-        switch (mod.getModificationType())
-        {
-          case ADD:
-            simpleMods.add(mod);
-            break;
-
-          case DELETE:
-            if (!modAttr.hasValue())
-            {
-              hasOnlySimpleMods = false;
-            }
-            else
-            {
-              simpleMods.add(mod);
-            }
-            break;
-
-          default:
-            hasOnlySimpleMods = false;
-            break;
-        }
-      }
-    }
-
-    if (hasOnlySimpleMods && !hasOptions)
-    {
-      // This is the optimized case where there are no attribute options
-      // involved and only simple addition and deletion of individual values.
-      // It should be efficient for adding and/or deleting a few values of an
-      // attribute with lots of values.
-      for (Modification mod : simpleMods)
-      {
-        Set<AttributeValue> values = mod.getAttribute().getValues();
-        Set<ASN1OctetString> keys =
-             new HashSet<ASN1OctetString>(values.size());
-        indexValues(values, keys);
-
-        switch (mod.getModificationType())
-        {
-          case ADD:
-            for (ASN1OctetString key : keys)
-            {
-              if (delKeys.contains(key))
-              {
-                delKeys.remove(key);
-              }
-              else
-              {
-                addKeys.add(key);
-              }
-            }
-            break;
-
-          case DELETE:
-            for (ASN1OctetString key : keys)
-            {
-              if (addKeys.contains(key))
-              {
-                addKeys.remove(key);
-              }
-              else
-              {
-                delKeys.add(key);
-              }
-            }
-            break;
-        }
-      }
+      indexAttribute(oldAttributes, delKeys);
     }
     else
     {
-      // This is the non-optimized case that should be correct in all cases.
+      if(oldAttributes == null)
+      {
+        indexAttribute(newAttributes, addKeys);
+      }
+      else
+      {
+        newValues = new HashSet<AttributeValue>();
+        oldValues = new HashSet<AttributeValue>();
+        for(Attribute a : newAttributes)
+        {
+          newValues.addAll(a.getValues());
+        }
+        for(Attribute a : oldAttributes)
+        {
+          oldValues.addAll(a.getValues());
+        }
 
-      Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
-      indexAttribute(beforeList, oldSet);
+        HashSet<AttributeValue> valuesToAdd =
+            new HashSet<AttributeValue>(newValues);
+        HashSet<AttributeValue> valuesToDel =
+            new HashSet<AttributeValue>(oldValues);
+        valuesToAdd.removeAll(oldValues);
+        valuesToDel.removeAll(newValues);
 
-      Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
-      indexAttribute(afterList, newSet);
-
-      HashSet<ASN1OctetString> removeSet = new HashSet<ASN1OctetString>(oldSet);
-      removeSet.removeAll(newSet);
-      delKeys.addAll(removeSet);
-
-      HashSet<ASN1OctetString> addSet = new HashSet<ASN1OctetString>(newSet);
-      addSet.removeAll(oldSet);
-      addKeys.addAll(addSet);
+        indexValues(valuesToDel, delKeys);
+        indexValues(valuesToAdd, addKeys);
+      }
     }
   }
 

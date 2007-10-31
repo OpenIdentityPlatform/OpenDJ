@@ -180,72 +180,43 @@ public class OrderingIndexer extends Indexer
                           Set<ASN1OctetString> delKeys)
        throws DatabaseException
   {
-    List<Attribute> beforeList;
-    beforeList = oldEntry.getAttribute(attributeType);
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+    HashSet<AttributeValue> newValues;
+    HashSet<AttributeValue> oldValues;
 
-    // Pick out the modifications that apply to this indexed attribute
-
-    /**
-     * FIXME unusual modifications can insert spurious index values
-     * The following sequence of modifications will insert A into the
-     * index, yet A is not a resulting value for the attribute.
-     *
-     * add: cn
-     * cn: A
-     * -
-     * replace: cn
-     * cn: B
-     * -
-     *
-     */
-
-    for (Modification mod : mods)
+    if(newAttributes == null)
     {
-      Attribute modAttr = mod.getAttribute();
-      AttributeType modAttrType = modAttr.getAttributeType();
-      if (modAttrType.equals(attributeType))
+      indexAttribute(oldAttributes, delKeys);
+    }
+    else
+    {
+      if(oldAttributes == null)
       {
-        switch (mod.getModificationType())
+        indexAttribute(newAttributes, addKeys);
+      }
+      else
+      {
+        newValues = new HashSet<AttributeValue>();
+        oldValues = new HashSet<AttributeValue>();
+        for(Attribute a : newAttributes)
         {
-          case REPLACE:
-          case INCREMENT:
-            if (beforeList != null)
-            {
-              for (Attribute attr : beforeList)
-              {
-                if (attr.hasOptions(modAttr.getOptions()))
-                {
-                  indexValues(attr.getValues(), delKeys);
-                }
-              }
-            }
-            indexValues(modAttr.getValues(), addKeys);
-            break;
-
-          case ADD:
-            indexValues(modAttr.getValues(), addKeys);
-            break;
-
-          case DELETE:
-            if (!modAttr.hasValue())
-            {
-              if (beforeList != null)
-              {
-                for (Attribute attr : beforeList)
-                {
-                  if (attr.hasOptions(modAttr.getOptions()))
-                  {
-                    indexValues(attr.getValues(), delKeys);
-                  }
-                }
-              }
-            }
-            else
-            {
-              indexValues(modAttr.getValues(), delKeys);
-            }
-            break;
+          newValues.addAll(a.getValues());
         }
+        for(Attribute a : oldAttributes)
+        {
+          oldValues.addAll(a.getValues());
+        }
+
+        HashSet<AttributeValue> valuesToAdd =
+            new HashSet<AttributeValue>(newValues);
+        HashSet<AttributeValue> valuesToDel =
+            new HashSet<AttributeValue>(oldValues);
+        valuesToAdd.removeAll(oldValues);
+        valuesToDel.removeAll(newValues);
+
+        indexValues(valuesToDel, delKeys);
+        indexValues(valuesToAdd, addKeys);
       }
     }
   }

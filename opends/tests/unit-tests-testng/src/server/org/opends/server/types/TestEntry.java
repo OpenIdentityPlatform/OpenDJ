@@ -343,6 +343,7 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.hasAttribute(ocType));
     assertTrue(e.hasAttribute(cnType));
     assertTrue(e.hasAttribute(nameType));
+    assertFalse(e.hasAttribute(nameType, false));
     assertFalse(e.hasAttribute(uidType));
     assertTrue(e.hasAttribute(mnType));
 
@@ -350,6 +351,7 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(nameType, false, options));
     assertFalse(e.hasAttribute(uidType, options));
     assertTrue(e.hasAttribute(mnType, options));
 
@@ -357,6 +359,7 @@ public final class TestEntry extends TypesTestCase {
     assertTrue(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(nameType, false, options));
     assertFalse(e.hasAttribute(uidType, options));
     assertTrue(e.hasAttribute(mnType, options));
 
@@ -364,6 +367,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(ocType, options));
     assertTrue(e.hasAttribute(cnType, options));
     assertTrue(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(nameType, false, options));
     assertFalse(e.hasAttribute(uidType, options));
     assertFalse(e.hasAttribute(mnType, options));
 
@@ -371,6 +375,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(ocType, options));
     assertFalse(e.hasAttribute(cnType, options));
     assertFalse(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(nameType, false, options));
     assertFalse(e.hasAttribute(uidType, options));
     assertFalse(e.hasAttribute(mnType, options));
 
@@ -379,6 +384,7 @@ public final class TestEntry extends TypesTestCase {
     assertFalse(e.hasAttribute(ocType, options));
     assertFalse(e.hasAttribute(cnType, options));
     assertFalse(e.hasAttribute(nameType, options));
+    assertFalse(e.hasAttribute(nameType, false, options));
     assertFalse(e.hasAttribute(uidType, options));
     assertFalse(e.hasAttribute(mnType, options));
   }
@@ -526,6 +532,9 @@ public final class TestEntry extends TypesTestCase {
     assertNotNull(attrs);
     assertEquals(attrs.size(), 6);
 
+    attrs = e.getAttribute(nameType, false);
+    assertNull(attrs);
+
     attrs = e.getAttribute(uidType);
     assertNull(attrs);
 
@@ -562,6 +571,9 @@ public final class TestEntry extends TypesTestCase {
     attrs = e.getAttribute(nameType, options);
     assertNotNull(attrs);
     assertEquals(attrs.size(), 6);
+
+    attrs = e.getAttribute(nameType, false, options);
+    assertNull(attrs);
 
     attrs = e.getAttribute(uidType, options);
     assertNull(attrs);
@@ -600,6 +612,9 @@ public final class TestEntry extends TypesTestCase {
     assertNotNull(attrs);
     assertEquals(attrs.size(), 6);
 
+    attrs = e.getAttribute(nameType, false, options);
+    assertNull(attrs);
+
     attrs = e.getAttribute(uidType, options);
     assertNull(attrs);
 
@@ -635,6 +650,9 @@ public final class TestEntry extends TypesTestCase {
     attrs = e.getAttribute(nameType, options);
     assertNotNull(attrs);
     assertEquals(attrs.size(), 3);
+
+    attrs = e.getAttribute(nameType, false, options);
+    assertNull(attrs);
 
     attrs = e.getAttribute(uidType, options);
     assertNull(attrs);

@@ -176,7 +176,37 @@ public class ApproximateIndexer extends Indexer
                           Set<ASN1OctetString> addKeys,
                           Set<ASN1OctetString> delKeys)
   {
-    replaceEntry(txn, oldEntry, newEntry, addKeys, delKeys);
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+    HashSet<AttributeValue> newValues;
+    HashSet<AttributeValue> oldValues;
+
+    if(newAttributes == null)
+    {
+      indexAttribute(oldAttributes, delKeys);
+    }
+    else
+    {
+      if(oldAttributes == null)
+      {
+        indexAttribute(newAttributes, addKeys);
+      }
+      else
+      {
+        HashSet<ASN1OctetString> newKeys =
+            new HashSet<ASN1OctetString>();
+        HashSet<ASN1OctetString> oldKeys =
+            new HashSet<ASN1OctetString>();
+        indexAttribute(newAttributes, newKeys);
+        indexAttribute(oldAttributes, oldKeys);
+
+        addKeys.addAll(newKeys);
+        addKeys.removeAll(oldKeys);
+
+        delKeys.addAll(oldKeys);
+        delKeys.removeAll(newKeys);
+      }
+    }
   }
 
   /**
