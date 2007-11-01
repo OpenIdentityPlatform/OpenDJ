@@ -2752,6 +2752,14 @@ public final class ServerConstants
        "org.opends.server.UseLastKnownGoodConfiguration";
 
 
+  /**
+   * The name of the system property that can be used to configure the
+   * server to report etimes in nanoseconds instead of milliseconds.
+   */
+  public static final String PROPERTY_ETIME_NANO =
+      "org.opends.server.etime.nano";
+
+
 
   /**
    * The column at which to wrap long lines of output in the command-line tools.

@@ -30,6 +30,7 @@ import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.core.CoreConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +67,23 @@ public abstract class AbstractOperation
    */
   protected static final List<Control> NO_RESPONSE_CONTROLS =
        new ArrayList<Control>(0);
+
+  /**
+   * Indicates whether to use nanoTime instead of
+   * currentTimeMillis when setting processing start and stop times.
+   */
+  protected static boolean useNanoTime = false;
+
+  static
+  {
+    if(System.getProperty(PROPERTY_ETIME_NANO) != null &&
+         System.getProperty(PROPERTY_ETIME_NANO).
+            equalsIgnoreCase("true"))
+    {
+      useNanoTime = true;
+    }
+  }
+
 
   /**
    * The client connection with which this operation is associated.
@@ -1027,7 +1045,14 @@ public abstract class AbstractOperation
    */
   public final void setProcessingStartTime()
   {
-    processingStartTime = System.currentTimeMillis();
+    if(useNanoTime)
+    {
+      processingStartTime = System.nanoTime();
+    }
+    else
+    {
+      processingStartTime = System.currentTimeMillis();
+    }
   }
 
 
@@ -1053,7 +1078,14 @@ public abstract class AbstractOperation
    */
   public final void setProcessingStopTime()
   {
-    this.processingStopTime = System.currentTimeMillis();
+    if(useNanoTime)
+    {
+      this.processingStopTime = System.nanoTime();
+    }
+    else
+    {
+      this.processingStopTime = System.currentTimeMillis();
+    }
   }
 
 
