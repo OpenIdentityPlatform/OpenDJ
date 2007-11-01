@@ -198,6 +198,7 @@
                             'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                             'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                             'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                            'dsPath'                 : '%s/..' % DIRECTORY_INSTANCE_DIR ,
                             'partialDNToModify'      : 'ou=People,dc=com' ,
                             'attributeName'          : 'description' ,
                             'newAttributeValue'      : 'Modify load forever' ,
