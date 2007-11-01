@@ -2902,6 +2902,7 @@
               'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+              'dsPath'                 : dsPath ,
               'DNToModify'             : curr_dn ,
               'attributeName'          : 'description' ,
               'newAttributeValue'      : 'New description for %s' % curr_dn ,
