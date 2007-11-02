@@ -49,6 +49,7 @@ import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -77,7 +78,6 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -198,7 +198,7 @@ public class PasswordPolicyState
                              boolean debug)
        throws DirectoryException
   {
-    this(userEntry, updateEntry, TimeThread.getTime(), debug);
+    this(userEntry, updateEntry, TimeThread.getTime(), false, debug);
   }
 
 
@@ -210,21 +210,25 @@ public class PasswordPolicyState
    * the actual current time.  For all other purposes, the other constructor
    * should be used.
    *
-   * @param  userEntry    The entry with the user account.
-   * @param  updateEntry  Indicates whether changes should update the provided
-   *                      user entry directly or whether they should be
-   *                      collected as a set of modifications.
-   * @param  currentTime  The time to use as the current time for all
-   *                      time-related determinations.
-   * @param  debug        Indicates whether to enable debugging for the
-   *                      operations performed.
+   * @param  userEntry          The entry with the user account.
+   * @param  updateEntry        Indicates whether changes should update the
+   *                            provided user entry directly or whether they
+   *                            should be collected as a set of modifications.
+   * @param  currentTime        The time to use as the current time for all
+   *                            time-related determinations.
+   * @param  useDefaultOnError  Indicates whether the server should fall back to
+   *                            using the default password policy if there is a
+   *                            problem with the configured policy for the user.
+   * @param  debug              Indicates whether to enable debugging for the
+   *                            operations performed.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              determine the password policy for the user or
    *                              perform any other state initialization.
    */
   public PasswordPolicyState(Entry userEntry, boolean updateEntry,
-                             long currentTime, boolean debug)
+                             long currentTime, boolean useDefaultOnError,
+                             boolean debug)
        throws DirectoryException
   {
     this.userEntry   = userEntry;
@@ -233,7 +237,8 @@ public class PasswordPolicyState
     this.currentTime = currentTime;
 
     userDNString     = userEntry.getDN().toString();
-    passwordPolicy   = getPasswordPolicyInternal(this.userEntry, this.debug);
+    passwordPolicy   = getPasswordPolicyInternal(this.userEntry,
+                                                 useDefaultOnError, this.debug);
 
     // Get the password changed time for the user.
     AttributeType type
@@ -278,9 +283,12 @@ public class PasswordPolicyState
    * password policy is returned, otherwise the default password policy is
    * returned.
    *
-   * @param  userEntry    The user entry.
-   * @param  debug        Indicates whether to enable debugging for the
-   *                      operations performed.
+   * @param  userEntry          The user entry.
+   * @param  useDefaultOnError  Indicates whether the server should fall back to
+   *                            using the default password policy if there is a
+   *                            problem with the configured policy for the user.
+   * @param  debug              Indicates whether to enable debugging for the
+   *                            operations performed.
    *
    * @return  The password policy for the user.
    *
@@ -288,7 +296,7 @@ public class PasswordPolicyState
    *                              determine the password policy for the user.
    */
   private static PasswordPolicy getPasswordPolicyInternal(Entry userEntry,
-                                                          boolean debug)
+                                     boolean useDefaultOnError, boolean debug)
        throws DirectoryException
   {
     String userDNString = userEntry.getDN().toString();
@@ -325,8 +333,16 @@ public class PasswordPolicyState
 
           Message message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN.get(
               v.getStringValue(), userDNString, e.getMessage());
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message,
-                                       e);
+          if (useDefaultOnError)
+          {
+            ErrorLogger.logError(message);
+            return DirectoryServer.getDefaultPasswordPolicy();
+          }
+          else
+          {
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message,
+                                         e);
+          }
         }
 
         PasswordPolicy policy = DirectoryServer.getPasswordPolicy(subentryDN);
@@ -341,8 +357,16 @@ public class PasswordPolicyState
 
           Message message = ERR_PWPSTATE_NO_SUCH_POLICY.get(
               userDNString, String.valueOf(subentryDN));
-          throw new DirectoryException(
-               DirectoryServer.getServerErrorResultCode(), message);
+          if (useDefaultOnError)
+          {
+            ErrorLogger.logError(message);
+            return DirectoryServer.getDefaultPasswordPolicy();
+          }
+          else
+          {
+            throw new DirectoryException(
+                 DirectoryServer.getServerErrorResultCode(), message);
+          }
         }
 
         if (debug)
