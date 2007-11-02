@@ -289,6 +289,15 @@ public final class LDAPConnectionHandler extends
       enabledSSLProtocols = protocols.toArray(new String[0]);
     }
 
+    if (config.isAllowLDAPV2())
+    {
+      DirectoryServer.registerSupportedLDAPVersion(2, this);
+    }
+    else
+    {
+      DirectoryServer.deregisterSupportedLDAPVersion(2, this);
+    }
+
     return new ConfigChangeResult(resultCode, adminActionRequired,
         messages);
   }
@@ -316,6 +325,9 @@ public final class LDAPConnectionHandler extends
       boolean closeConnections) {
     shutdownRequested = true;
     currentConfig.removeLDAPChangeListener(this);
+
+    DirectoryServer.deregisterSupportedLDAPVersion(2, this);
+    DirectoryServer.deregisterSupportedLDAPVersion(3, this);
 
     try {
       selector.wakeup();
@@ -741,6 +753,14 @@ public final class LDAPConnectionHandler extends
 
     for (int i = 0; i < numRequestHandlers; i++) {
       requestHandlers[i].start();
+    }
+
+
+    // Register the set of supported LDAP versions.
+    DirectoryServer.registerSupportedLDAPVersion(3, this);
+    if (config.isAllowLDAPV2())
+    {
+      DirectoryServer.registerSupportedLDAPVersion(2, this);
     }
 
 

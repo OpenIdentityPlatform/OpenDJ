@@ -438,6 +438,10 @@ public class DirectoryServer
   // policy implementation.
   private ConcurrentHashMap<DN, RetentionPolicy> retentionPolicies;
 
+  // The set supported LDAP protocol versions.
+  private ConcurrentHashMap<Integer,List<ConnectionHandler>>
+               supportedLDAPVersions;
+
   // The set of extended operation handlers registered with the server (mapped
   // between the OID of the extended operation and the handler).
   private ConcurrentHashMap<String,ExtendedOperationHandler>
@@ -924,6 +928,8 @@ public class DirectoryServer
                                    <SynchronizationProviderCfg>>();
       directoryServer.supportedControls = new TreeSet<String>();
       directoryServer.supportedFeatures = new TreeSet<String>();
+      directoryServer.supportedLDAPVersions =
+           new ConcurrentHashMap<Integer,List<ConnectionHandler>>();
       directoryServer.virtualAttributes =
            new CopyOnWriteArrayList<VirtualAttributeRule>();
       directoryServer.connectionHandlers =
@@ -7046,6 +7052,79 @@ public class DirectoryServer
     // FIXME -- Should we force this name to be lowercase?
     directoryServer.saslMechanismHandlers.remove(name);
   }
+
+
+
+  /**
+   * Retrieves the supported LDAP versions for the Directory Server.
+   *
+   * @return  The supported LDAP versions for the Directory Server.
+   */
+  public static Set<Integer> getSupportedLDAPVersions()
+  {
+    return directoryServer.supportedLDAPVersions.keySet();
+  }
+
+
+
+  /**
+   * Registers the provided LDAP protocol version as supported within the
+   * Directory Server.
+   *
+   * @param  supportedLDAPVersion  The LDAP protocol version to register as
+   *                               supported.
+   * @param  connectionHandler     The connection handler that supports the
+   *                               provided LDAP version.  Note that multiple
+   *                               connection handlers can provide support for
+   *                               the same LDAP versions.
+   */
+  public static synchronized void registerSupportedLDAPVersion(
+                                       int supportedLDAPVersion,
+                                       ConnectionHandler connectionHandler)
+  {
+    List<ConnectionHandler> handlers =
+         directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
+    if (handlers == null)
+    {
+      handlers = new LinkedList<ConnectionHandler>();
+      handlers.add(connectionHandler);
+      directoryServer.supportedLDAPVersions.put(supportedLDAPVersion, handlers);
+    }
+    else
+    {
+      if (! handlers.contains(connectionHandler))
+      {
+        handlers.add(connectionHandler);
+      }
+    }
+  }
+
+
+
+  /**
+   * Deregisters the provided LDAP protocol version as supported within the
+   * Directory Server.
+   *
+   * @param  supportedLDAPVersion  The LDAP protocol version to deregister.
+   * @param  connectionHandler     The connection handler that no longer
+   *                               supports the provided LDAP version.
+   */
+  public static synchronized void deregisterSupportedLDAPVersion(
+                                       int supportedLDAPVersion,
+                                       ConnectionHandler connectionHandler)
+  {
+    List<ConnectionHandler> handlers =
+         directoryServer.supportedLDAPVersions.get(supportedLDAPVersion);
+    if (handlers != null)
+    {
+      handlers.remove(connectionHandler);
+      if (handlers.isEmpty())
+      {
+        directoryServer.supportedLDAPVersions.remove(supportedLDAPVersion);
+      }
+    }
+  }
+
 
 
 

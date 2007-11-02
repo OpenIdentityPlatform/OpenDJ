@@ -36,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.messages.Message;
@@ -633,6 +634,32 @@ public class RootDSEBackend
     {
       dseOperationalAttrs.put(supportedSASLMechAttr.getAttributeType(),
                               supportedSASLMechAttrs);
+    }
+
+
+    // Add the "supportedLDAPVersions" attribute.
+    TreeSet<String> versionStrings = new TreeSet<String>();
+    for (Integer ldapVersion : DirectoryServer.getSupportedLDAPVersions())
+    {
+      versionStrings.add(ldapVersion.toString());
+    }
+    Attribute supportedLDAPVersionAttr =
+         createAttribute(ATTR_SUPPORTED_LDAP_VERSION,
+                         ATTR_SUPPORTED_LDAP_VERSION_LC,
+                         versionStrings);
+    ArrayList<Attribute> supportedLDAPVersionAttrs =
+         new ArrayList<Attribute>(1);
+    supportedLDAPVersionAttrs.add(supportedLDAPVersionAttr);
+    if (showAllAttributes ||
+        (! supportedLDAPVersionAttr.getAttributeType().isOperational()))
+    {
+      dseUserAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
+                       supportedLDAPVersionAttrs);
+    }
+    else
+    {
+      dseOperationalAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
+                              supportedLDAPVersionAttrs);
     }
 
 

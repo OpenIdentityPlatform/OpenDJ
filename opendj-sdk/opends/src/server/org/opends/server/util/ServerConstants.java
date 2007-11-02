@@ -468,6 +468,24 @@ public final class ServerConstants
 
   /**
    * The name of the standard attribute that is used to specify the names of the
+   * LDAP protocol versions supported by the server, formatted in camel case.
+   */
+  public static final String ATTR_SUPPORTED_LDAP_VERSION =
+       "supportedLDAPVersion";
+
+
+
+  /**
+   * The name of the standard attribute that is used to specify the names of the
+   * LDAP protocol versions supported by the server, formatted in all lowercase.
+   */
+  public static final String ATTR_SUPPORTED_LDAP_VERSION_LC =
+       "supportedldapversion";
+
+
+
+  /**
+   * The name of the standard attribute that is used to specify the names of the
    * SASL mechanisms supported by the server, formatted in camel case.
    */
   public static final String ATTR_SUPPORTED_SASL_MECHANISMS =
