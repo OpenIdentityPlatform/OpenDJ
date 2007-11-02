@@ -77,6 +77,7 @@ import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.ContainsCondition;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
+import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
@@ -285,7 +286,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
       TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
       printer.setColumnWidth(1, 0);
-      printer.setColumnSeparator(":");
+      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
       builder.print(printer);
       app.println();
       app.pressReturnToContinue();

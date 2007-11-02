@@ -36,6 +36,7 @@ import static org.opends.server.tools.ToolConstants.OPTION_VALUE_PROP_FILE_PATH;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.Argument;
@@ -119,6 +120,16 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
     initializeGlobalArguments(defaultArgs);
   }
 
+  /**
+   * Returns the SecureConnectionCliArgs object containing the arguments
+   * of this parser.
+   * @return the SecureConnectionCliArgs object containing the arguments
+   * of this parser.
+   */
+  SecureConnectionCliArgs getSecureArgsList()
+  {
+    return secureArgsList;
+  }
   /**
    * Tells whether the user specified to have an interactive uninstall or not.
    * This method must be called after calling parseArguments.

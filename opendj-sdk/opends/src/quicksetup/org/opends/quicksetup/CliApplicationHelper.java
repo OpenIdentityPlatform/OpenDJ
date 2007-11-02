@@ -864,20 +864,7 @@ public abstract class CliApplicationHelper {
   protected ConnectionProtocolPolicy getConnectionPolicy(boolean useSSL,
       boolean useStartTLS)
   {
-    ConnectionProtocolPolicy policy;
-    if (useStartTLS)
-    {
-      policy = ConnectionProtocolPolicy.USE_STARTTLS;
-    }
-    else if (useSSL)
-    {
-      policy = ConnectionProtocolPolicy.USE_LDAPS;
-    }
-    else
-    {
-      policy = ConnectionProtocolPolicy.USE_LESS_SECURE_AVAILABLE;
-    }
-    return policy;
+    return ConnectionProtocolPolicy.getConnectionPolicy(useSSL, useStartTLS);
   }
 
   /**

@@ -42,8 +42,8 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
+import javax.net.ssl.TrustManager;
 
-import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.util.Utils;
 
@@ -76,7 +76,7 @@ public class ConfigFromLDAP
   private String lastUrl;
   private ConnectionProtocolPolicy policy;
   private ConfigFromFile offlineConf;
-  private ApplicationTrustManager trustManager;
+  private TrustManager trustManager;
 
   private InitialLdapContext ctx;
   private String javaVersion;
@@ -105,7 +105,7 @@ public class ConfigFromLDAP
    */
   public void setConnectionInfo(ConfigFromFile offlineConf,
       ConnectionProtocolPolicy policy, String dn, String pwd,
-      ApplicationTrustManager trustManager) throws ConfigException
+      TrustManager trustManager) throws ConfigException
   {
     if (offlineConf == null)
     {

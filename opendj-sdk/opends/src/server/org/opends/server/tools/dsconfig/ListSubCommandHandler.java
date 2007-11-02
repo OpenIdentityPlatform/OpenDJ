@@ -54,6 +54,7 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
+import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
@@ -385,7 +386,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         }
 
         TextTablePrinter printer = new TextTablePrinter(out);
-        printer.setColumnSeparator(":");
+        printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
         builder.print(printer);
       }
     }
