@@ -41,7 +41,7 @@ attributeTypes: ( 1.3.6.1.1.1.1.1 NAME 'gidNumber'
   X-ORIGIN 'draft-howard-rfc2307bis' )
 attributeTypes: ( 1.3.6.1.1.1.1.2 NAME 'gecos'
   DESC 'The GECOS field; the common name' EQUALITY caseIgnoreIA5Match
-  SUBSTRINGS caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE X-ORIGIN 'draft-howard-rfc2307bis' )
 attributeTypes: ( 1.3.6.1.1.1.1.3 NAME 'homeDirectory'
   DESC 'The absolute path to the home directory' EQUALITY caseExactIA5Match
@@ -75,7 +75,7 @@ attributeTypes: ( 1.3.6.1.1.1.1.11 NAME 'shadowFlag' EQUALITY integerMatch
 attributeTypes: ( 1.3.6.1.1.1.1.12 NAME 'memberUid' EQUALITY caseExactIA5Match
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'draft-howard-rfc2307bis' )
 attributeTypes: ( 1.3.6.1.1.1.1.13 NAME 'memberNisNetgroup'
-  EQUALITY caseExactIA5Match SUBSTRINGS caseExactIA5SubstringsMatch
+  EQUALITY caseExactIA5Match SUBSTR caseExactIA5SubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'draft-howard-rfc2307bis' )
 attributeTypes: ( 1.3.6.1.1.1.1.14 NAME 'nisNetgroupTriple'
   DESC 'Netgroup triple' EQUALITY caseIgnoreIA5Match
@@ -119,7 +119,7 @@ attributeTypes: ( 1.3.6.1.1.1.1.26 NAME 'nisMapName'
   X-ORIGIN 'draft-howard-rfc2307bis' )
 attributeTypes: ( 1.3.6.1.1.1.1.27 NAME 'nisMapEntry'
   DESC 'A generic NIS entry' EQUALITY caseExactIA5Match
-  SUBSTRINGS caseExactIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
+  SUBSTR caseExactIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
   SINGLE-VALUE X-ORIGIN 'draft-howard-rfc2307bis' )
 attributeTypes: ( 1.3.6.1.1.1.1.28 NAME 'nisPublicKey' DESC 'NIS public key'
   EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE

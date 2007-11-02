@@ -237,7 +237,7 @@ objectClasses: ( 1.3.6.1.1.10.6.5 NAME 'uddiBindingTemplate' SUP top
   STRUCTURAL MUST ( uddiBindingKey ) MAY ( uddiServiceKey $ uddiDescription $
   uddiAccessPoint $ uddiHostingRedirector $ uddiCategoryBag $
   uddiv3BindingKey $ uddiv3ServiceKey $ uddiv3DigitalSignature $
-  uddiv3EntityCreationTime $ uddiv3NodeId)
+  uddiv3EntityCreationTime $ uddiv3NodeId )
   X-ORIGIN 'RFC 4403' )
 objectClasses: ( 1.3.6.1.1.10.6.6 NAME 'uddiTModelInstanceInfo' SUP top
   STRUCTURAL MUST ( uddiTModelKey ) MAY ( uddiDescription $
