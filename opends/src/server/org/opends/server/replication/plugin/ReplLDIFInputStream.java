@@ -45,6 +45,10 @@ extends InputStream
   // The domain associated to this import.
   ReplicationDomain domain;
 
+  private byte[] bytes;
+
+  private int index;
+
   /**
    * Creates a new ReplLDIFInputStream that will import entries
    * for a synchronzation domain.
@@ -86,20 +90,50 @@ extends InputStream
     if (closed)
       return -1;
 
-    byte[] bytes = domain.receiveEntryBytes();
+    int receivedLength;
+    int copiedLength;
 
-    if (bytes==null)
+    if (bytes == null)
     {
-      closed = true;
-      return -1;
+      // First time this method is called or the previous entry was
+      // finished. Read a new entry and return it.
+      bytes = domain.receiveEntryBytes();
+
+      if (bytes==null)
+      {
+        closed = true;
+        return -1;
+      }
+
+      receivedLength = bytes.length;
+      index = 0;
+    }
+    else
+    {
+      // Some data was left from the previous entry, feed the read with this
+      // data.
+      receivedLength = bytes.length - index;
     }
 
-    int l = bytes.length;
-    for (int i =0; i<l; i++)
+    if (receivedLength <= len)
     {
-      b[off+i] = bytes[i];
+      copiedLength = receivedLength;
     }
-    return l;
+    else
+    {
+      copiedLength = len;
+    }
+
+    for (int i =0; i<copiedLength; i++)
+    {
+      b[off+i] = bytes[index+i];
+    }
+    index += copiedLength;
+
+    if (copiedLength <= len)
+      bytes = null;
+
+    return copiedLength;
   }
 
   /**

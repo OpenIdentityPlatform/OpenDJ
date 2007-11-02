@@ -49,7 +49,7 @@ public class ErrorMessage extends RoutableMessage implements
   // The tracer object for the debug logger
   private static final DebugTracer TRACER = getTracer();
 
-  // Specifies the messageID built form the error that was detected
+  // Specifies the messageID built from the error that was detected
   private int msgID;
 
   // Specifies the complementary details about the error that was detected
