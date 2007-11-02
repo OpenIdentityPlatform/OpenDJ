@@ -96,6 +96,7 @@ import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
+import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -416,7 +417,9 @@ modifyProcessing:
           selfChange = entryDN.equals(getAuthorizationDN());
 
           // FIXME -- Need a way to enable debug mode.
-          pwPolicyState = new PasswordPolicyState(currentEntry, false, false);
+          pwPolicyState = new PasswordPolicyState(currentEntry, false,
+                                                  TimeThread.getTime(), true,
+                                                  false);
         }
         catch (DirectoryException de)
         {
