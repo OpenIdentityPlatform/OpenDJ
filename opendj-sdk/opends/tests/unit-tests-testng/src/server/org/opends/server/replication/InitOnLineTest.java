@@ -428,6 +428,12 @@ public class InitOnLineTest extends ReplicationTestCase
    */
   private String[] newLDIFEntries()
   {
+    // It is relevant to test ReplLDIFInputStream
+    // and ReplLDIFOutputStream with big entries
+    char bigAttributeValue[] = new char[30240];
+    for (int i=0; i<bigAttributeValue.length; i++)
+      bigAttributeValue[i] = Integer.toString(i).charAt(0);
+    
     String[] entries =
     {
         "dn: dc=example,dc=com\n"
@@ -461,7 +467,7 @@ public class InitOnLineTest extends ReplicationTestCase
         + "cn: Robert Langman\n"
         + "sn: Langman\n"
         + "uid: robert\n"
-        + "telephonenumber: +1 408 555 1213\n"
+        + "telephonenumber: "+ new String(bigAttributeValue)+"\n"
         + "entryUUID: 21111111-1111-1111-1111-111111111114\n"
         + "\n"
         };

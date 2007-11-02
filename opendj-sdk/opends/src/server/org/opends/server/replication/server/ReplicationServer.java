@@ -42,7 +42,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -108,8 +108,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   /* This table is used to store the list of dn for which we are currently
    * handling servers.
    */
-  private HashMap<DN, ReplicationCache> baseDNs =
-          new HashMap<DN, ReplicationCache>();
+  private ConcurrentHashMap<DN, ReplicationCache> baseDNs =
+          new ConcurrentHashMap<DN, ReplicationCache>();
 
   private String localURL = "null";
   private boolean shutdown = false;

@@ -26,9 +26,12 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -38,6 +41,11 @@ import org.opends.server.util.ServerConstants;
 public class ReplLDIFOutputStream
        extends OutputStream
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   // The synchronization domain on which the export is done
   ReplicationDomain domain;
 
@@ -75,21 +83,25 @@ public class ReplLDIFOutputStream
   public void write(byte b[], int off, int len) throws IOException
   {
     int endOfEntryIndex;
-    int startOfEntryIndex = off;
-    int bytesToRead = len;
+    int endIndex;
+
+    String ebytes = "";
+    ebytes = ebytes.concat(entryBuffer);
+    entryBuffer = "";
+
+    ebytes = ebytes.concat(new String(b, off, len));
+    endIndex = ebytes.length();
 
     while (true)
     {
       // if we have the bytes for an entry, let's make an entry and send it
-      String ebytes = new String(b,startOfEntryIndex,bytesToRead);
       endOfEntryIndex = ebytes.indexOf(ServerConstants.EOL +
           ServerConstants.EOL);
 
       if ( endOfEntryIndex >= 0 )
       {
-
         endOfEntryIndex += 2;
-        entryBuffer = entryBuffer + ebytes.substring(0, endOfEntryIndex);
+        entryBuffer = ebytes.substring(0, endOfEntryIndex);
 
         // Send the entry
         if ((numEntries>0) && (getNumExportedEntries() > numEntries))
@@ -100,16 +112,25 @@ public class ReplLDIFOutputStream
         }
         domain.exportLDIFEntry(entryBuffer);
         numExportedEntries++;
-
-        startOfEntryIndex = startOfEntryIndex + endOfEntryIndex;
         entryBuffer = "";
-        bytesToRead -= endOfEntryIndex;
-        if (bytesToRead==0)
+
+        if (endIndex == endOfEntryIndex)
+        {
+          // no more data to process
           break;
+        }
+        else
+        {
+          // loop to the data of the next entry
+          ebytes = ebytes.substring(endOfEntryIndex,
+                                    endIndex);
+          endIndex = ebytes.length();
+        }
       }
       else
       {
-        entryBuffer = new String(b, startOfEntryIndex, bytesToRead);
+        // a next call to us will provide more bytes to make an entry
+        entryBuffer = entryBuffer.concat(ebytes);
         break;
       }
     }
