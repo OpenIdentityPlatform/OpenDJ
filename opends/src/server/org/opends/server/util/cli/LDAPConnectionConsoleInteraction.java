@@ -263,7 +263,23 @@ public class LDAPConnectionConsoleInteraction {
   public void run()
           throws ArgumentException
   {
-    boolean secureConnection =
+    run(true, true);
+  }
+
+
+  /**
+   * Interact with the user though the console to get information
+   * necessary to establish an LDAP connection.
+   * @param canUseSSL whether we can propose to connect using SSL or not.
+   * @param canUseStartTLS whether we can propose to connect using Start TLS or
+   * not.
+   *
+   * @throws ArgumentException if there is a problem with the arguments
+   */
+  public void run(boolean canUseSSL, boolean canUseStartTLS)
+          throws ArgumentException
+  {
+    boolean secureConnection = (canUseSSL || canUseStartTLS) &&
       (
           secureArgsList.useSSLArg.isPresent()
           ||
@@ -381,6 +397,14 @@ public class LDAPConnectionConsoleInteraction {
         if (secureConnection && p.equals(Protocols.LDAP))
         {
           continue ;
+        }
+        if (!canUseSSL && p.equals(Protocols.SSL))
+        {
+          continue;
+        }
+        if (!canUseStartTLS && p.equals(Protocols.START_TLS))
+        {
+          continue;
         }
         int i = builder.addNumberedOption(p.getMenuMessage(), MenuResult
             .success(p.getChoice()));
@@ -1080,6 +1104,16 @@ public class LDAPConnectionConsoleInteraction {
    */
   public int getPortNumber() {
     return portNumber;
+  }
+
+  /**
+   * Sets the port number name that should be used for connections based on
+   * this interaction.
+   *
+   * @param portNumber port number for connections
+   */
+  public void setPortNumber(int portNumber) {
+    this.portNumber = portNumber;
   }
 
   /**

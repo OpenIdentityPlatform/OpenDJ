@@ -84,11 +84,40 @@ public final class LDAPManagementContextFactory implements
     // Lazily create the LDAP management context.
     if (context == null)
     {
+      LDAPConnectionConsoleInteraction ci =
+        new LDAPConnectionConsoleInteraction(app, secureArgsList);
+      ci.run();
+      context = getManagementContext(app, ci);
+    }
+    return context;
+  }
+
+  /**
+   * Gets the management context which sub-commands should use in
+   * order to manage the directory server. Implementations can use the
+   * application instance for retrieving passwords interactively.
+   *
+   * @param app
+   *          The application instance.
+   * @param ci the LDAPConsoleInteraction object to be used.  The code assumes
+   *        that the LDAPConsoleInteraction has already been run.
+   * @return Returns the management context which sub-commands should
+   *         use in order to manage the directory server.
+   * @throws ArgumentException
+   *           If a management context related argument could not be
+   *           parsed successfully.
+   * @throws ClientException
+   *           If the management context could not be created.
+   */
+  public ManagementContext getManagementContext(ConsoleApplication app,
+      LDAPConnectionConsoleInteraction ci)
+      throws ArgumentException, ClientException
+  {
+    // Lazily create the LDAP management context.
+    if (context == null)
+    {
       // Interact with the user though the console to get
       // LDAP connection information
-      LDAPConnectionConsoleInteraction ci =
-              new LDAPConnectionConsoleInteraction(app, secureArgsList);
-      ci.run();
       String hostName = ci.getHostName();
       Integer portNumber = ci.getPortNumber();
       String bindDN = ci.getBindDN();

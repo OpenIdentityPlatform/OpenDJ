@@ -49,5 +49,32 @@ public enum ConnectionProtocolPolicy
   /**
    * Use the less secure available (LDAP, and then LDAPs).
    */
-  USE_LESS_SECURE_AVAILABLE,
+  USE_LESS_SECURE_AVAILABLE;
+
+  /**
+   * Returns the ConnectionPolicy to be used with the parameters provided
+   * by the user.
+   * @param useSSL whether the user asked to use SSL or not.
+   * @param useStartTLS whether the user asked to use Start TLS or not.
+   * @return the ConnectionPolicy to be used with the parameters provided
+   * by the user.
+   */
+  public static ConnectionProtocolPolicy getConnectionPolicy(boolean useSSL,
+      boolean useStartTLS)
+  {
+    ConnectionProtocolPolicy policy;
+    if (useStartTLS)
+    {
+      policy = ConnectionProtocolPolicy.USE_STARTTLS;
+    }
+    else if (useSSL)
+    {
+      policy = ConnectionProtocolPolicy.USE_LDAPS;
+    }
+    else
+    {
+      policy = ConnectionProtocolPolicy.USE_LESS_SECURE_AVAILABLE;
+    }
+    return policy;
+  }
 }

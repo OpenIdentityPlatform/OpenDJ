@@ -902,5 +902,11 @@ public class ToolConstants
    * Value placeholder for options taking actions.
    */
   public static final String OPTION_VALUE_ACTION = "{action}";
+
+
+  /**
+   * The default separator to be used in tables.
+   */
+  public static final String LIST_TABLE_SEPARATOR = ":";
 }
 

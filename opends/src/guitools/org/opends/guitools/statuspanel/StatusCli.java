@@ -40,22 +40,18 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.TrustManager;
 import javax.swing.table.TableModel;
 
-import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.statuspanel.ui.DatabasesTableModel;
 import org.opends.guitools.statuspanel.ui.ListenersTableModel;
-import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
-import org.opends.quicksetup.util.Utils;
 
 import static org.opends.quicksetup.util.Utils.*;
 
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.messages.Message;
@@ -64,8 +60,15 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
+import org.opends.server.tools.ClientException;
+import org.opends.server.tools.ToolConstants;
+import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -74,7 +77,7 @@ import org.opends.server.util.args.ArgumentException;
  * in the command line.
  *
  */
-class StatusCli extends CliApplicationHelper
+class StatusCli extends ConsoleApplication
 {
 
   private boolean displayMustAuthenticateLegend;
@@ -86,8 +89,7 @@ class StatusCli extends CliApplicationHelper
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
 
-  /** Maximum number of connection attempts. */
-  private final int MAX_CONNECTION_RETRY =3;
+  private TrustManager interactiveTrustManager;
 
   /**
    * The enumeration containing the different return codes that the command-line
@@ -114,13 +116,10 @@ class StatusCli extends CliApplicationHelper
      */
     ERROR_PARSING_ARGS(2),
     /**
-     * User cancelled (for instance not accepting the certificate proposed).
+     * User cancelled (for instance not accepting the certificate proposed) or
+     * could not use the provided connection parameters in interactive mode.
      */
-    USER_CANCELLED(3),
-    /**
-     * Too many connection failure.
-     */
-   ERROR_TOO_MANY_CONNECTION_FAILURE(4);
+    USER_CANCELLED_OR_DATA_ERROR(3);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -156,7 +155,7 @@ class StatusCli extends CliApplicationHelper
    */
   public StatusCli(PrintStream out, PrintStream err, InputStream in)
   {
-    super(out, err, in);
+    super(in, out, err);
   }
 
   /**
@@ -263,12 +262,12 @@ class StatusCli extends CliApplicationHelper
     argParser = new StatusCliArgumentParser(StatusCli.class.getName());
     try
     {
-      argParser.initializeGlobalArguments(err);
+      argParser.initializeGlobalArguments(getErrorStream());
     }
     catch (ArgumentException ae)
     {
       Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      err.println(wrap(message));
+      println(message);
       return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
@@ -280,9 +279,9 @@ class StatusCli extends CliApplicationHelper
     catch (ArgumentException ae)
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      printErrorMessage(message);
-      printLineBreak();
-      printErrorMessage(argParser.getUsage());
+      println(message);
+      println();
+      println(Message.raw(argParser.getUsage()));
 
       return ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode();
     }
@@ -293,11 +292,11 @@ class StatusCli extends CliApplicationHelper
     {
       return ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
-    int v = argParser.validateGlobalOptions(err);
+    int v = argParser.validateGlobalOptions(getErrorStream());
 
     if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
-      printErrorMessage(argParser.getUsage());
+      println(Message.raw(argParser.getUsage()));
       return v;
     }
     else
@@ -319,150 +318,92 @@ class StatusCli extends CliApplicationHelper
           boolean useStartTLS = argParser.useStartTLS();
           if (argParser.isInteractive())
           {
-            boolean connected = false;
-            boolean cancelled = false;
-            boolean prompted = false;
-
             boolean canUseSSL = offLineConf.getLDAPSURL() != null;
             boolean canUseStartTLS = offLineConf.getStartTLSURL() != null;
+            // This is done because we do not need to ask the user about these
+            // parameters.  If we force their presence the class
+            // LDAPConnectionConsoleInteraction will not prompt the user for
+            // them.
+            SecureConnectionCliArgs secureArgsList =
+              argParser.getSecureArgsList();
 
-            bindDn = argParser.getExplicitBindDn();
-            bindPwd = argParser.getBindPassword();
-            if (bindDn == null)
+            secureArgsList.hostNameArg.setPresent(true);
+            secureArgsList.portArg.setPresent(true);
+            secureArgsList.hostNameArg.addValue(
+                secureArgsList.hostNameArg.getDefaultValue());
+            secureArgsList.portArg.addValue(
+                secureArgsList.portArg.getDefaultValue());
+            // We already know if SSL or StartTLS can be used.  If we cannot
+            // use them we will not propose them in the connection parameters
+            // and if none of them can be used we will just not ask for the
+            // protocol to be used.
+            if (!canUseSSL)
             {
-              bindDn = promptForString(
-                  INFO_CLI_BINDDN_PROMPT.get(), argParser.getDefaultBindDn());
-              prompted = true;
-            }
-            if (bindPwd == null)
-            {
-              bindPwd = promptForPassword(
-                  INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
-              prompted = true;
-            }
-
-            if (!useSSL && !useStartTLS)
-            {
-              if (canUseSSL)
+              if (useSSL)
               {
-                printLineBreak();
-                useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
+                throw new ConfigException(
+                    ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
               }
-              if (!useSSL && canUseStartTLS)
-              {
-                printLineBreak();
-                useStartTLS =
-                  confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-              }
-              prompted = true;
+              secureArgsList.useSSLArg.setValueSetByProperty(true);
             }
-
-            InitialLdapContext ctx = null;
-            int remainingRetry = MAX_CONNECTION_RETRY;
-            while (!connected && !cancelled && (remainingRetry > 0))
+            if (!canUseStartTLS)
             {
-             remainingRetry--;
-              if (prompted)
+              if (useStartTLS)
               {
-                printLineBreak();
+                throw new ConfigException(
+                    ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
               }
+              secureArgsList.useStartTLSArg.setValueSetByProperty(true);
+            }
+            LDAPConnectionConsoleInteraction ci =
+              new LDAPConnectionConsoleInteraction(
+                  this, argParser.getSecureArgsList());
+            try
+            {
+              ci.run(canUseSSL, canUseStartTLS);
+              bindDn = ci.getBindDN();
+              bindPwd = ci.getBindPassword();
+              useSSL = ci.useSSL();
+              useStartTLS = ci.useStartTLS();
 
-              String host = "localhost";
               int port = 389;
+
+              String ldapUrl = offLineConf.getURL(
+                  ConnectionProtocolPolicy.getConnectionPolicy(
+                      useSSL, useStartTLS));
               try
               {
-                String ldapUrl = offLineConf.getURL(
-                    getConnectionPolicy(useSSL, useStartTLS));
-                try
-                {
-                  URI uri = new URI(ldapUrl);
-                  host = uri.getHost();
-                  port = uri.getPort();
-                }
-                catch (Throwable t)
-                {
-                  LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
-                }
-                ctx = createContext(host, port, useSSL, useStartTLS, bindDn,
-                    bindPwd, getTrustManager());
-                connected = true;
-              }
-              catch (ConfigException ce)
-              {
-                LOG.log(Level.WARNING, "Error reading config file: "+ce, ce);
-                printLineBreak();
-                printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-                printLineBreak();
-                useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
-                if (!useSSL)
-                {
-                  useStartTLS =
-                    confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-                }
-                prompted = true;
-              }
-              catch (NamingException ne)
-              {
-                LOG.log(Level.WARNING, "Error connecting: "+ne, ne);
-
-                if (Utils.isCertificateException(ne))
-                {
-                  String usedUrl = ConnectionUtils.getLDAPUrl(host, port,
-                      useSSL);
-                  if (!promptForCertificateConfirmation(ne, getTrustManager(),
-                      usedUrl, getTrustManager()))
-                  {
-                    cancelled = true;
-                  }
-                  prompted = true;
-                }
-                else
-                {
-                  printLineBreak();
-                  printErrorMessage(
-                      ERR_STATUS_CLI_ERROR_CONNECTING_PROMPT_AGAIN.get(
-                          ne.getMessage()));
-                  String defaultValue = (bindDn != null) ? bindDn :
-                    argParser.getDefaultBindDn();
-
-                  bindDn = promptForString(
-                      INFO_CLI_BINDDN_PROMPT.get(), defaultValue);
-
-                  bindPwd = promptForPassword(
-                      INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDn));
-                  printLineBreak();
-                  useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
-                  if (!useSSL)
-                  {
-                    printLineBreak();
-                    useStartTLS =
-                      confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-                  }
-                  prompted = true;
-                }
-              }
-            }
-            if (ctx != null)
-            {
-              try
-              {
-                ctx.close();
+                URI uri = new URI(ldapUrl);
+                port = uri.getPort();
+                ci.setPortNumber(port);
               }
               catch (Throwable t)
               {
+                LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
               }
+              LDAPManagementContextFactory factory =
+                new LDAPManagementContextFactory();
+              factory.getManagementContext(this, ci);
+              interactiveTrustManager = ci.getTrustManager();
             }
-            if (cancelled)
+            catch (ConfigException ce)
             {
-              return ErrorReturnCode.USER_CANCELLED.getReturnCode();
+              LOG.log(Level.WARNING, "Error reading config file: "+ce, ce);
+              println();
+              println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+              println();
+              return
+                ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
             }
-            else
-            if (remainingRetry <= 0)
-            {
-              printErrorMessage(
-                  ERR_STATUS_CLI_TOO_MANY_CONNECTION_ATTEMPT.get());
-              return ErrorReturnCode.ERROR_TOO_MANY_CONNECTION_FAILURE
-                  .getReturnCode();
+            catch (ArgumentException e) {
+              println(e.getMessageObject());
+              return
+                ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
+            }
+            catch (ClientException e) {
+              println(e.getMessageObject());
+              return
+                ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
             }
           }
           else
@@ -482,8 +423,8 @@ class StatusCli extends CliApplicationHelper
           ServerStatusDescriptor desc = createServerStatusDescriptor(
               bindDn, bindPwd);
           ConfigFromLDAP onLineConf = new ConfigFromLDAP();
-          ConnectionProtocolPolicy policy = getConnectionPolicy(useSSL,
-              useStartTLS);
+          ConnectionProtocolPolicy policy =
+            ConnectionProtocolPolicy.getConnectionPolicy(useSSL, useStartTLS);
           onLineConf.setConnectionInfo(offLineConf, policy, bindDn,
               bindPwd, getTrustManager());
           onLineConf.readConfiguration();
@@ -500,8 +441,8 @@ class StatusCli extends CliApplicationHelper
       }
       catch (ConfigException ce)
       {
-        printLineBreak();
-        printErrorMessage(ce.getMessageObject());
+        println();
+        println(ce.getMessageObject());
       }
     }
 
@@ -585,20 +526,20 @@ class StatusCli extends CliApplicationHelper
       {
         labelWidth = Math.max(labelWidth, labels[i].length());
       }
-      out.println();
-      out.println(centerTitle(title));
+      getOutputStream().println();
+      getOutputStream().println(centerTitle(title));
     }
     writeStatusContents(desc, labelWidth);
     writeCurrentConnectionContents(desc, labelWidth);
     if (!isScriptFriendly())
     {
-      out.println();
+      getOutputStream().println();
     }
 
     title = INFO_SERVER_DETAILS_TITLE.get();
     if (!isScriptFriendly())
     {
-      out.println(centerTitle(title));
+      getOutputStream().println(centerTitle(title));
     }
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
@@ -607,13 +548,13 @@ class StatusCli extends CliApplicationHelper
     writeJavaVersionContents(desc, labelWidth);
     if (!isScriptFriendly())
     {
-      out.println();
+      getOutputStream().println();
     }
 
     writeListenerContents(desc);
     if (!isScriptFriendly())
     {
-      out.println();
+      getOutputStream().println();
     }
 
     writeDatabaseContents(desc);
@@ -624,17 +565,18 @@ class StatusCli extends CliApplicationHelper
     {
       if (displayMustStartLegend)
       {
-        out.println();
-        out.println(wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
+        getOutputStream().println();
+        getOutputStream().println(
+            wrap(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
       }
       else if (displayMustAuthenticateLegend)
       {
-        out.println();
-        out.println(
+        getOutputStream().println();
+        getOutputStream().println(
             wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
       }
     }
-    out.println();
+    getOutputStream().println();
   }
 
   /**
@@ -851,7 +793,7 @@ class StatusCli extends CliApplicationHelper
     if (!isScriptFriendly())
     {
       Message title = INFO_LISTENERS_TITLE.get();
-      out.println(centerTitle(title));
+      getOutputStream().println(centerTitle(title));
     }
 
     Set<ListenerDescriptor> allListeners = desc.getListeners();
@@ -871,17 +813,17 @@ class StatusCli extends CliApplicationHelper
       {
         if (!desc.isAuthenticated())
         {
-          out.println(
+          getOutputStream().println(
               wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
+          getOutputStream().println(wrap(INFO_NO_LISTENERS_FOUND.get()));
         }
       }
       else
       {
-        out.println(wrap(INFO_NO_LISTENERS_FOUND.get()));
+        getOutputStream().println(wrap(INFO_NO_LISTENERS_FOUND.get()));
       }
     }
     else
@@ -902,7 +844,7 @@ class StatusCli extends CliApplicationHelper
     Message title = INFO_DATABASES_TITLE.get();
     if (!isScriptFriendly())
     {
-      out.println(centerTitle(title));
+      getOutputStream().println(centerTitle(title));
     }
 
     Set<DatabaseDescriptor> databases = desc.getDatabases();
@@ -913,17 +855,17 @@ class StatusCli extends CliApplicationHelper
       {
         if (!desc.isAuthenticated())
         {
-          out.println(
+          getOutputStream().println(
               wrap(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
         }
         else
         {
-          out.println(wrap(INFO_NO_DBS_FOUND.get()));
+          getOutputStream().println(wrap(INFO_NO_DBS_FOUND.get()));
         }
       }
       else
       {
-        out.println(wrap(INFO_NO_DBS_FOUND.get()));
+        getOutputStream().println(wrap(INFO_NO_DBS_FOUND.get()));
       }
     }
     else
@@ -951,8 +893,8 @@ class StatusCli extends CliApplicationHelper
     Message errorMsg = desc.getErrorMessage();
     if (errorMsg != null)
     {
-      out.println();
-      out.println(wrap(errorMsg));
+      getOutputStream().println();
+      getOutputStream().println(wrap(errorMsg));
     }
   }
 
@@ -996,149 +938,82 @@ class StatusCli extends CliApplicationHelper
   private void writeTableModel(TableModel tableModel,
       ServerStatusDescriptor desc)
   {
-    int[] maxWidths = new int[tableModel.getColumnCount()];
-    for (int i=0; i<maxWidths.length; i++)
+    if (isScriptFriendly())
     {
-      maxWidths[i] = tableModel.getColumnName(i).length();
-    }
-
-    for (int i=0; i<tableModel.getRowCount(); i++)
-    {
-      for (int j=0; j<maxWidths.length; j++)
+      for (int i=0; i<tableModel.getRowCount(); i++)
       {
-        Object v = tableModel.getValueAt(i, j);
-        if (v != null)
+        getOutputStream().println("-");
+        for (int j=0; j<tableModel.getColumnCount(); j++)
         {
-          if (v instanceof String)
-          {
-            maxWidths[j] = Math.max(maxWidths[j], ((String)v).length());
-          }
-          else if (v instanceof Integer)
-          {
-            Message text;
-            int nEntries = ((Integer)v).intValue();
-            if (nEntries >= 0)
-            {
-              text = Message.raw(String.valueOf(nEntries));
-            }
-            else
-            {
-              if (!desc.isAuthenticated())
-              {
-                text = getNotAvailableBecauseAuthenticationIsRequiredText();
-              }
-              else
-              {
-                text = getNotAvailableText();
-              }
-            }
-            maxWidths[j] = Math.max(maxWidths[j], text.length());
-          }
-          else
-          {
-            throw new IllegalStateException("Unknown object type: "+v);
-          }
-        }
-      }
-    }
-
-    int totalWidth = 0;
-    for (int i=0; i<maxWidths.length; i++)
-    {
-      if (i < maxWidths.length - 1)
-      {
-        maxWidths[i] += 5;
-      }
-      totalWidth += maxWidths[i];
-    }
-
-    MessageBuilder headerLine = new MessageBuilder();
-    for (int i=0; i<maxWidths.length; i++)
-    {
-      String header = tableModel.getColumnName(i);
-      headerLine.append(header);
-      int extra = maxWidths[i] - header.length();
-      for (int j=0; j<extra; j++)
-      {
-        headerLine.append(" ");
-      }
-    }
-    if (!isScriptFriendly())
-    {
-      out.println(wrap(headerLine.toMessage()));
-      MessageBuilder t = new MessageBuilder();
-      for (int i=0; i<headerLine.length(); i++)
-      {
-        t.append("=");
-      }
-      out.println(wrap(t.toMessage()));
-    }
-
-    for (int i=0; i<tableModel.getRowCount(); i++)
-    {
-      if (isScriptFriendly())
-      {
-        out.println("-");
-      }
-      MessageBuilder line = new MessageBuilder();
-      for (int j=0; j<tableModel.getColumnCount(); j++)
-      {
-        if (isScriptFriendly())
-        {
+          MessageBuilder line = new MessageBuilder();
           line.append(tableModel.getColumnName(j)+": ");
+
+          line.append(getCellValue(tableModel.getValueAt(i, j), desc));
+
+          getOutputStream().println(wrap(line.toMessage()));
         }
-        int extra = maxWidths[j];
-        Object v = tableModel.getValueAt(i, j);
-        if (v != null)
+      }
+    }
+    else
+    {
+      TableBuilder table = new TableBuilder();
+      for (int i=0; i< tableModel.getColumnCount(); i++)
+      {
+        table.appendHeading(Message.raw(tableModel.getColumnName(i)));
+      }
+      for (int i=0; i<tableModel.getRowCount(); i++)
+      {
+        table.startRow();
+        for (int j=0; j<tableModel.getColumnCount(); j++)
         {
-          if (v instanceof String)
+          table.appendCell(getCellValue(tableModel.getValueAt(i, j), desc));
+        }
+      }
+      TextTablePrinter printer = new TextTablePrinter(getOutputStream());
+      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      table.print(printer);
+    }
+  }
+
+
+  private Message getCellValue(Object v, ServerStatusDescriptor desc)
+  {
+    Message s = null;
+    if (v != null)
+    {
+      if (v instanceof String)
+      {
+        s = Message.raw((String)v);
+      }
+      else if (v instanceof Integer)
+      {
+        int nEntries = ((Integer)v).intValue();
+        if (nEntries >= 0)
+        {
+          s = Message.raw(String.valueOf(nEntries));
+        }
+        else
+        {
+          if (!desc.isAuthenticated())
           {
-            line.append((String)v);
-            extra -= ((String)v).length();
-          }
-          else if (v instanceof Integer)
-          {
-            int nEntries = ((Integer)v).intValue();
-            if (nEntries >= 0)
-            {
-              line.append(nEntries);
-            }
-            else
-            {
-              if (!desc.isAuthenticated())
-              {
-                line.append(
-                    getNotAvailableBecauseAuthenticationIsRequiredText());
-              }
-              else
-              {
-                line.append(getNotAvailableText());
-              }
-            }
+            s = getNotAvailableBecauseAuthenticationIsRequiredText();
           }
           else
           {
-            throw new IllegalStateException("Unknown object type: "+v);
-          }
-          if (isScriptFriendly())
-          {
-            out.println(wrap(line.toMessage()));
-            line = new MessageBuilder();
-          }
-        }
-        if (!isScriptFriendly())
-        {
-          for (int k=0; k<extra; k++)
-          {
-            line.append(" ");
+            s = getNotAvailableText();
           }
         }
       }
-      if (!isScriptFriendly())
+      else
       {
-        out.println(wrap(line.toMessage()));
+        throw new IllegalStateException("Unknown object type: "+v);
       }
     }
+    else
+    {
+      s = getNotAvailableText();
+    }
+    return s;
   }
 
   /**
@@ -1154,6 +1029,7 @@ class StatusCli extends CliApplicationHelper
       desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED;
 
     int labelWidth = 0;
+    int labelWidthWithoutReplicated = 0;
     Message[] labels = new Message[tableModel.getColumnCount()];
     for (int i=0; i<tableModel.getColumnCount(); i++)
     {
@@ -1168,6 +1044,11 @@ class StatusCli extends CliApplicationHelper
       }
       labels[i] = new MessageBuilder(header).append(":").toMessage();
       labelWidth = Math.max(labelWidth, labels[i].length());
+      if ((i != 4) && (i != 5))
+      {
+        labelWidthWithoutReplicated =
+          Math.max(labelWidthWithoutReplicated, labels[i].length());
+      }
     }
 
     Message replicatedLabel = INFO_BASEDN_REPLICATED_LABEL.get();
@@ -1175,11 +1056,11 @@ class StatusCli extends CliApplicationHelper
     {
       if (isScriptFriendly())
       {
-        out.println("-");
+        getOutputStream().println("-");
       }
       else if (i > 0)
       {
-        out.println();
+        getOutputStream().println();
       }
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
@@ -1241,18 +1122,18 @@ class StatusCli extends CliApplicationHelper
         }
 
         boolean doWrite = true;
+        boolean isReplicated =
+          replicatedLabel.equals(tableModel.getValueAt(i, 3));
         if ((j == 4) || (j == 5))
         {
           // If the suffix is not replicated we do not have to display these
           // lines.
-          if (!replicatedLabel.equals(tableModel.getValueAt(i, 3)))
-          {
-            doWrite = false;
-          }
+          doWrite = isReplicated;
         }
         if (doWrite)
         {
-          writeLabelValue(labels[j], value, labelWidth);
+          writeLabelValue(labels[j], value,
+              isReplicated?labelWidth:labelWidthWithoutReplicated);
         }
       }
     }
@@ -1269,8 +1150,7 @@ class StatusCli extends CliApplicationHelper
       buf.append(" ");
     }
     buf.append(" ").append(String.valueOf(value));
-    out.println(wrap(buf.toMessage()));
-
+    getOutputStream().println(wrap(buf.toMessage()));
   }
 
   private Message centerTitle(Message text)
@@ -1299,19 +1179,68 @@ class StatusCli extends CliApplicationHelper
    * Returns the trust manager to be used by this application.
    * @return the trust manager to be used by this application.
    */
-  private ApplicationTrustManager getTrustManager()
+  private TrustManager getTrustManager()
   {
-    return argParser.getTrustManager();
+    if (interactiveTrustManager == null)
+    {
+      return argParser.getTrustManager();
+    }
+    else
+    {
+      return interactiveTrustManager;
+    }
   }
 
   /**
-   * Tells whether the user specified to have a script-friendly output or not.
-   * This method must be called after calling parseArguments.
-   * @return <CODE>true</CODE> if the user specified to have a script-friendly
-   * output and <CODE>false</CODE> otherwise.
+   * {@inheritDoc}
    */
-  private boolean isScriptFriendly()
-  {
+  public boolean isAdvancedMode() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive() {
+    return argParser.isInteractive();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isQuiet() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose() {
+    return true;
   }
 }
