@@ -65,7 +65,7 @@ attributeTypes: ( 1.2.840.113556.1.4.485 NAME 'calOtherCalAdrURIs'
   EQUALITY caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 USAGE userApplications
   X-ORIGIN 'RFC 2739' )
-objectClasses: ( 1.2.840.113556.1.5.87 NAME 'calEntry' TOP AUXILIARY
+objectClasses: ( 1.2.840.113556.1.5.87 NAME 'calEntry' SUP top AUXILIARY
   MAY ( calCalURI $ calFBURL $ calOtherCalURIs $ calOtherFBURLs $ calCAPURI $
   calOtherCAPURIs $ calCalAdrURI $ calOtherCalAdrURIs )
   X-ORIGIN 'RFC 2739' )
