@@ -1771,6 +1771,7 @@
       <arg value="${ant.file}" />
       <arg value="-quiet" />
       <arg value="compileadminsubtask" />
+      <env key="ANT_OPTS" value="-Xmx${MEM}" />
     </exec>
   </target>
 
