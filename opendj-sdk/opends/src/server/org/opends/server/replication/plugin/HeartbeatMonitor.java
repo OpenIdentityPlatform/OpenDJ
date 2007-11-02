@@ -101,6 +101,7 @@ public class HeartbeatMonitor extends DirectoryThread
   @Override
   public void run()
   {
+    boolean gotOneFailure = false;
     if (debugEnabled())
     {
       TRACER.debugInfo("Heartbeat monitor is starting, expected interval is " +
@@ -113,12 +114,23 @@ public class HeartbeatMonitor extends DirectoryThread
       {
         long now = System.currentTimeMillis();
         long lastReceiveTime = session.getLastReceiveTime();
-        if (now > lastReceiveTime + 2 * heartbeatInterval)
+        if (now > lastReceiveTime + heartbeatInterval)
         {
-          // Heartbeat is well overdue so the server is assumed to be dead.
-          logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
-          session.close();
+          if (gotOneFailure == true)
+          {
+            // Heartbeat is well overdue so the server is assumed to be dead.
+            logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
+            session.close();
+          }
+          else
+          {
+            gotOneFailure = true;
+          }
           break;
+        }
+        else
+        {
+          gotOneFailure = false;
         }
         try
         {
