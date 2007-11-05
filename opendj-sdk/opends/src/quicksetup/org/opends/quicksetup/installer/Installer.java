@@ -1894,7 +1894,7 @@ public abstract class Installer extends GuiApplication {
     Set<SuffixDescriptor> suffixes =
       getUserData().getSuffixesToReplicateOptions().getSuffixes();
 
-    /* Initialize local ADS contents using any replica. */
+    /* Initialize local ADS and schema contents using any replica. */
     {
       ServerDescriptor server
        = suffixes.iterator().next().getReplicas().iterator().next().getServer();
@@ -1905,11 +1905,14 @@ public abstract class Installer extends GuiApplication {
         ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
-          if (areDnsEqual(replica.getSuffix().getDN(),
-                  ADSContext.getAdministrationSuffixDN()))
+          String dn = replica.getSuffix().getDN();
+          if (areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
           {
             suffixes.add(replica.getSuffix());
-            break;
+          }
+          else if (areDnsEqual(dn, Constants.SCHEMA_DN))
+          {
+            suffixes.add(replica.getSuffix());
           }
         }
       }
@@ -1945,16 +1948,22 @@ public abstract class Installer extends GuiApplication {
       String hostPort = server.getHostPort(true);
 
       boolean isADS = areDnsEqual(dn, ADSContext.getAdministrationSuffixDN());
-      if(!isADS)
+      boolean isSchema = areDnsEqual(dn, Constants.SCHEMA_DN);
+      if(isADS)
+      {
+        notifyListeners(getFormattedWithPoints(
+            INFO_PROGRESS_INITIALIZING_ADS.get()));
+      }
+      else if (isSchema)
+      {
+        notifyListeners(getFormattedWithPoints(
+            INFO_PROGRESS_INITIALIZING_SCHEMA.get()));
+      }
+      else
       {
         notifyListeners(getFormattedProgress(
             INFO_PROGRESS_INITIALIZING_SUFFIX.get(dn, hostPort)));
         notifyListeners(getLineBreak());
-      }
-      else
-      {
-        notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_INITIALIZING_ADS.get()));
       }
       try
       {
@@ -2025,7 +2034,8 @@ public abstract class Installer extends GuiApplication {
             LOG.log(Level.INFO, "Try number: "+(6 - nTries));
             LOG.log(Level.INFO, "replicationId of source replica: "+
                 replicationId);
-            initializeSuffix(ctx, replicationId, dn, !isADS, hostPort);
+            initializeSuffix(ctx, replicationId, dn, !isADS && !isSchema,
+                hostPort);
             initDone = true;
           }
           catch (PeerNotFoundException pnfe)
@@ -2062,7 +2072,7 @@ public abstract class Installer extends GuiApplication {
         }
         throw ae;
       }
-      if (isADS)
+      if (isADS || isSchema)
       {
         notifyListeners(getFormattedDone());
       }

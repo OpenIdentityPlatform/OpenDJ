@@ -168,6 +168,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private BooleanArgument noSchemaReplicationArg;
 
   /**
+   * The 'useSecondServerAsSchemaSource' argument to not replicate schema.
+   */
+  private BooleanArgument useSecondServerAsSchemaSourceArg;
+
+  /**
    * The 'hostName' argument for the source server.
    */
   private StringArgument hostNameSourceArg = null;
@@ -558,6 +563,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "noschemareplication", null, "noSchemaReplication",
         INFO_DESCRIPTION_ENABLE_REPLICATION_NO_SCHEMA_REPLICATION.get());
 
+    useSecondServerAsSchemaSourceArg = new BooleanArgument(
+        "usesecondserverasschemasource", null, "useSecondServerAsSchemaSource",
+        INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SECOND_AS_SCHEMA_SOURCE.get(
+            noSchemaReplicationArg.getLongIdentifier()));
+
     enableReplicationSubCmd = new SubCommand(this,
         ENABLE_REPLICATION_SUBCMD_NAME,
         INFO_DESCRIPTION_SUBCMD_ENABLE_REPLICATION.get());
@@ -569,7 +579,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         hostName2Arg, port2Arg, bindDn2Arg, bindPassword2Arg,
         bindPasswordFile2Arg, useStartTLS2Arg, useSSL2Arg, replicationPort2Arg,
         secureReplication2Arg,
-        skipPortCheckArg, noSchemaReplicationArg
+        skipPortCheckArg, noSchemaReplicationArg,
+        useSecondServerAsSchemaSourceArg
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
@@ -1252,12 +1263,23 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
   /**
    * Returns whether the user asked to not replicate the schema between servers.
-   * @return <CODE>true</CODE> the user asked to not replicate schema and <CODE>
-   * false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the user asked to not replicate schema and
+   * <CODE>false</CODE> otherwise.
    */
   public boolean noSchemaReplication()
   {
     return noSchemaReplicationArg.isPresent();
+  }
+
+  /**
+   * Returns whether the user asked to use the second server to initialize the
+   * schema of the first server.
+   * @return <CODE>true</CODE> if the user asked to use the second server to
+   * initialize the schema of the first server and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSecondServerAsSchemaSource()
+  {
+    return useSecondServerAsSchemaSourceArg.isPresent();
   }
 
   /**
@@ -1709,7 +1731,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {bindPassword1Arg, bindPasswordFile1Arg},
         {useStartTLS1Arg, useSSL1Arg},
         {bindPassword2Arg, bindPasswordFile2Arg},
-        {useStartTLS2Arg, useSSL2Arg}
+        {useStartTLS2Arg, useSSL2Arg},
+        {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
     };
 
     for (int i=0; i< conflictingPairs.length; i++)

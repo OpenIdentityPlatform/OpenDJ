@@ -2957,9 +2957,9 @@ public final class Schema
   }
 
   /**
-   * Sets the Synchronization state for this schema.
+   * Sets the Synchronization generationId for this schema.
    *
-   * @param  values  Synchronization state for this schema.
+   * @param  values  Synchronization generationId for this schema.
    */
   public void setSynchronizationGenerationId(
               LinkedHashSet<AttributeValue> values)
