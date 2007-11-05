@@ -34,7 +34,7 @@
           CurrentTestPath['group']='core'
         </script>
         <call function="'testGroup_Preamble'" />
-        <iterate var="_test" in="['core_entry_cache','core_search_sizelimit','core_tf_filters','core_version_report']">
+        <iterate var="_test" in="['core_entry_cache','core_search_sizelimit','core_tf_filters','core_version_report','core_controls']">
           <sequence>
             <import machine="STAF_LOCAL_HOSTNAME"
                     file="'%s/testcases/core/%s.xml' % (TESTS_DIR,_test)" />
