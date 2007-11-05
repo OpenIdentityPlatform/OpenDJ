@@ -548,7 +548,7 @@ public class UserData
    * @return the free port of type X636 if it is available and we can use and -1
    * if not.
    */
-  static int getDefaultSslPort(int defaultLdapPort)
+  public static int getDefaultSslPort(int defaultLdapPort)
   {
     int defaultPort = -1;
 

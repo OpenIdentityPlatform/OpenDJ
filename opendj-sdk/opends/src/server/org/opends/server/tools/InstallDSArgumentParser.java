@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 import org.opends.messages.Message;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.util.SetupUtils;
@@ -209,10 +210,15 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_SAMPLE_DATA.get());
     addArgument(sampleDataArg);
 
+    int defaultPort = UserData.getDefaultPort();
+    if (defaultPort == -1)
+    {
+      defaultPort = 389;
+    }
     ldapPortArg = new IntegerArgument(
         "ldapport", OPTION_SHORT_PORT,
         "ldapPort", false, false,
-        true, OPTION_VALUE_PORT, 389,
+        true, OPTION_VALUE_PORT, defaultPort,
         null, true, 1, true, 65535,
         INFO_INSTALLDS_DESCRIPTION_LDAPPORT.get());
     addArgument(ldapPortArg);
@@ -274,10 +280,15 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_ENABLE_STARTTLS.get());
     addArgument(enableStartTLSArg);
 
+    int defaultSecurePort = UserData.getDefaultSslPort(defaultPort);
+    if (defaultSecurePort == -1)
+    {
+      defaultSecurePort = 636;
+    }
     ldapsPortArg = new IntegerArgument(
         "ldapsport", OPTION_SHORT_USE_SSL,
         "ldapsPort", false, false,
-        true, OPTION_VALUE_PORT, 636,
+        true, OPTION_VALUE_PORT, defaultSecurePort,
         null, true, 1, true, 65535,
         INFO_INSTALLDS_DESCRIPTION_LDAPSPORT.get());
     addArgument(ldapsPortArg);
