@@ -275,6 +275,29 @@ public final class ObjectClass
 
 
   /**
+   * Retrieves the definition string used to create this objectclass
+   * including the X-SCHEMA-FILE extension.
+   *
+   * @return  The definition string used to create this objectclass
+   *          including the X-SCHEMA-FILE extension.
+   */
+  public String getDefinitionWithFileName()
+  {
+    if (getSchemaFile() != null)
+    {
+      int pos = definition.lastIndexOf(')');
+      String defStr = definition.substring(0, pos).trim() + " " +
+                      SCHEMA_PROPERTY_FILENAME + " '" +
+                      getSchemaFile() + "' )";
+      return defStr;
+    }
+    else
+      return definition;
+  }
+
+
+
+  /**
    * Creates a new instance of this objectclass based on the
    * definition string.  It will also preserve other state information
    * associated with this objectclass that is not included in the

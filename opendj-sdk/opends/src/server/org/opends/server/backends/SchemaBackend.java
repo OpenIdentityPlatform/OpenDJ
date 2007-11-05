@@ -47,6 +47,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -80,18 +81,20 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -116,6 +119,9 @@ public class SchemaBackend
    */
   private static final String CLASS_NAME =
        "org.opends.server.backends.SchemaBackend";
+
+
+  private static final String CONFIG_SCHEMA_ELEMENTS_FILE = "02-config.ldif";
 
 
 
@@ -644,7 +650,7 @@ public class SchemaBackend
     {
       if (entryDN.equals(baseDN))
       {
-        return getSchemaEntry(entryDN);
+        return getSchemaEntry(entryDN, false);
       }
     }
 
@@ -658,11 +664,14 @@ public class SchemaBackend
   /**
    * Generates and returns a schema entry for the Directory Server.
    *
-   * @param  entryDN  The DN to use for the generated entry.
+   * @param  entryDN            The DN to use for the generated entry.
+   * @param  includeSchemaFile  A boolean indicating if the X-SCHEMA-FILE
+   *                            extension should be used when generating
+   *                            the entry.
    *
    * @return  The schema entry that was generated.
    */
-  public Entry getSchemaEntry(DN entryDN)
+  public Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile)
   {
     LinkedHashMap<AttributeType,List<Attribute>> userAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>();
@@ -699,15 +708,45 @@ public class SchemaBackend
       }
     }
 
+    Schema schema = DirectoryServer.getSchema();
 
     // Add the "attributeTypes" attribute.
     LinkedHashSet<AttributeValue> valueSet =
          DirectoryServer.getAttributeTypeSet();
 
+    // Add the file name to the description of the attribute type if this
+    // was requested by the caller.
+    if (includeSchemaFile)
+    {
+      LinkedHashSet<AttributeValue> newValueSet =
+        new LinkedHashSet<AttributeValue>(valueSet.size());
+
+      for (AttributeValue value : valueSet)
+      {
+        try
+        {
+          // Build a new attribute from this value,
+          // get the File name from this attribute, build a new attribute
+          // including this file name.
+          AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
+              value.getValue(), schema, false);
+          attrType = DirectoryServer.getAttributeType(attrType.getOID());
+
+          newValueSet.add(new AttributeValue(
+              attributeTypesType, attrType.getDefinitionWithFileName()));
+        }
+        catch (DirectoryException e)
+        {
+          newValueSet.add(value);
+        }
+      }
+      valueSet = newValueSet;
+    }
+
     Attribute attr;
     if(AttributeTypeSyntax.isStripSyntaxMinimumUpperBound())
         attr = stripMinUpperBoundValues(valueSet);
-   else
+    else
         attr = new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES,
               valueSet);
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
@@ -721,9 +760,37 @@ public class SchemaBackend
       userAttrs.put(attributeTypesType, attrList);
     }
 
-
     // Add the "objectClasses" attribute.
     valueSet = DirectoryServer.getObjectClassSet();
+
+    // Add the file name to the description if this was requested by the
+    // caller.
+    if (includeSchemaFile)
+    {
+      LinkedHashSet<AttributeValue> newValueSet =
+        new LinkedHashSet<AttributeValue>(valueSet.size());
+
+      for (AttributeValue value : valueSet)
+      {
+        try
+        {
+          // Build a new attribute from this value,
+          // get the File name from this attribute, build a new attribute
+          // including this file name.
+          ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
+              value.getValue(), schema, false);
+          oc = DirectoryServer.getObjectClass(oc.getOID());
+          newValueSet.add(new AttributeValue(
+              objectClassesType, oc.getDefinitionWithFileName()));
+        }
+        catch (DirectoryException e)
+        {
+          newValueSet.add(value);
+        }
+      }
+      valueSet = newValueSet;
+    }
+
     attr = new Attribute(objectClassesType, ATTR_OBJECTCLASSES, valueSet);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(attr);
@@ -1438,7 +1505,42 @@ public class SchemaBackend
     }
 
 
-    // If we've gotten here, then everything looks OK.  We'll re-write all
+    // If we've gotten here, then everything looks OK, re-write all the
+    // modified Schema Files.
+    updateSchemaFiles(newSchema, modifiedSchemaFiles);
+
+    // Finally set DirectoryServer to use the new Schema.
+    DirectoryServer.setSchema(newSchema);
+
+
+    DN authzDN = modifyOperation.getAuthorizationDN();
+    if (authzDN == null)
+    {
+      authzDN = DN.nullDN();
+    }
+
+    modifiersName = new AttributeValue(modifiersNameType, authzDN.toString());
+    modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
+                           System.currentTimeMillis());
+  }
+
+
+
+  /**
+   * Re-write all schema files using the provided new Schema and list of
+   * modified files.
+   *
+   * @param newSchema            The new schema that should be used.
+   *
+   * @param modifiedSchemaFiles  The list of files that should be modified.
+   *
+   * @throws DirectoryException  When the new file cannot be written.
+   */
+  private void updateSchemaFiles(
+               Schema newSchema, TreeSet<String> modifiedSchemaFiles)
+          throws DirectoryException
+  {
+    // We'll re-write all
     // impacted schema files by first creating them in a temporary location
     // and then replacing the existing schema files with the new versions.
     // If all that goes successfully, then activate the new schema.
@@ -1452,7 +1554,6 @@ public class SchemaBackend
       }
 
       installSchemaFiles(tempSchemaFiles);
-      DirectoryServer.setSchema(newSchema);
     }
     catch (DirectoryException de)
     {
@@ -1485,17 +1586,6 @@ public class SchemaBackend
     // that we can use on startup to detect whether the schema files have been
     // edited with the server offline.
     Schema.writeConcatenatedSchema();
-
-
-    DN authzDN = modifyOperation.getAuthorizationDN();
-    if (authzDN == null)
-    {
-      authzDN = DN.nullDN();
-    }
-
-    modifiersName = new AttributeValue(modifiersNameType, authzDN.toString());
-    modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
-                           System.currentTimeMillis());
   }
 
 
@@ -3914,7 +4004,7 @@ public class SchemaBackend
 
     // Get the schema entry and see if it matches the filter.  If so, then send
     // it to the client.
-    Entry schemaEntry = getSchemaEntry(baseDN);
+    Entry schemaEntry = getSchemaEntry(baseDN, false);
     SearchFilter filter = searchOperation.getFilter();
     if (filter.matchesEntry(schemaEntry))
     {
@@ -3989,7 +4079,7 @@ public class SchemaBackend
     // writer when we're done.
     try
     {
-      ldifWriter.writeEntry(getSchemaEntry(baseDNs[0]));
+      ldifWriter.writeEntry(getSchemaEntry(baseDNs[0], true));
     }
     catch (Exception e)
     {
@@ -4027,9 +4117,7 @@ public class SchemaBackend
   @Override()
   public boolean supportsLDIFImport()
   {
-    // This backend does not support LDIF imports.
-    // FIXME -- Should we support them?
-    return false;
+    return true;
   }
 
 
@@ -4041,9 +4129,330 @@ public class SchemaBackend
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    // This backend does not support LDIF imports.
-    Message message = ERR_SCHEMA_IMPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    LDIFReader reader;
+    try
+    {
+      reader = new LDIFReader(importConfig);
+    }
+    catch (Exception e)
+    {
+      Message message =
+          ERR_MEMORYBACKEND_CANNOT_CREATE_LDIF_READER.get(String.valueOf(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+
+
+    try
+    {
+      while (true)
+      {
+        Entry e = null;
+        try
+        {
+          e = reader.readEntry();
+          if (e == null)
+          {
+            break;
+          }
+        }
+        catch (LDIFException le)
+        {
+          if (! le.canContinueReading())
+          {
+            Message message =
+                ERR_MEMORYBACKEND_ERROR_READING_LDIF.get(String.valueOf(e));
+            throw new DirectoryException(
+                           DirectoryServer.getServerErrorResultCode(),
+                           message, le);
+          }
+          else
+          {
+            continue;
+          }
+        }
+
+        importEntry(e);
+      }
+
+      return new LDIFImportResult(reader.getEntriesRead(),
+                                  reader.getEntriesRejected(),
+                                  reader.getEntriesIgnored());
+    }
+    catch (DirectoryException de)
+    {
+      throw de;
+    }
+    catch (Exception e)
+    {
+      Message message =
+          ERR_MEMORYBACKEND_ERROR_DURING_IMPORT.get(String.valueOf(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+    finally
+    {
+      reader.close();
+    }
+  }
+
+
+  /**
+   * Import an entry in a new schema by :
+   *   - duplicating the schema
+   *   - iterating over each element of the newSchemaEntry and comparing
+   *     with the xisting schema
+   *   - if the new schema element do not exist : add it
+   *   - if the new schema.
+   *
+   *   FIXME : attributeTypes and objectClasses are the only elements
+   *   currently taken into account.
+   *
+   * @param newSchemaEntry   The entry to be imported.
+   */
+  private void importEntry(Entry newSchemaEntry)
+          throws DirectoryException
+  {
+    Schema schema = DirectoryServer.getSchema();
+    Schema newSchema = DirectoryServer.getSchema().duplicate();
+    TreeSet<String> modifiedSchemaFiles = new TreeSet<String>();
+
+    // Get the attributeTypes attribute from the entry.
+    AttributeTypeSyntax attrTypeSyntax;
+    try
+    {
+      attrTypeSyntax = (AttributeTypeSyntax)
+                       schema.getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);
+      if (attrTypeSyntax == null)
+      {
+        attrTypeSyntax = new AttributeTypeSyntax();
+        attrTypeSyntax.initializeSyntax(null);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      attrTypeSyntax = new AttributeTypeSyntax();
+    }
+
+    AttributeType attributeAttrType =
+         schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
+    if (attributeAttrType == null)
+    {
+      attributeAttrType =
+           DirectoryServer.getDefaultAttributeType(ATTR_ATTRIBUTE_TYPES,
+                                                   attrTypeSyntax);
+    }
+
+    // loop on the attribute types in the entry just received
+    // and add them in the existing schema.
+    List<Attribute> attrList = newSchemaEntry.getAttribute(attributeAttrType);
+    Set<String> oidList = new HashSet<String>(1000);
+    if ((attrList != null) && (! attrList.isEmpty()))
+    {
+      for (Attribute a : attrList)
+      {
+        // Look for attributetypes that could have been added to the schema
+        // or modified in the schema
+        for (AttributeValue v : a.getValues())
+        {
+          // Parse the attribute type.
+          AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
+              v.getValue(), schema, false);
+          String schemaFile = attrType.getSchemaFile();
+          if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+          {
+            // Don't import the file containing the definitions of the
+            // Schema elements used for configuration because these
+            // definitions may vary between versions of OpenDS.
+            continue;
+          }
+
+          oidList.add(attrType.getOID());
+          try
+          {
+            // Register this attribute type in the new schema
+            // unless it is already defined with the same syntax.
+            AttributeType oldAttrType =
+              schema.getAttributeType(attrType.getOID());
+            if ((oldAttrType == null) ||
+                (!oldAttrType.toString().equals(attrType.toString())))
+            {
+              newSchema.registerAttributeType(attrType, true);
+
+              if (schemaFile != null)
+              {
+                modifiedSchemaFiles.add(schemaFile);
+              }
+            }
+          }
+          catch (DirectoryException de)
+          {
+            Message message =
+              NOTE_SCHEMA_IMPORT_FAILED.get(
+                  attrType.toString(), de.getMessage());
+            logError(message);
+          }
+          catch (Exception e)
+          {
+            Message message =
+              NOTE_SCHEMA_IMPORT_FAILED.get(
+                  attrType.toString(), e.getMessage());
+            logError(message);
+          }
+        }
+      }
+    }
+
+    // loop on all the attribute types in the current schema and delete
+    // them from the new schema if they are not in the imported schema entry.
+    ConcurrentHashMap<String, AttributeType> currentAttrTypes =
+      newSchema.getAttributeTypes();
+
+    for (AttributeType removeType : currentAttrTypes.values())
+    {
+      String schemaFile = removeType.getSchemaFile();
+      if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+      {
+        // Don't import the file containing the definitiong of the
+        // Schema elements used for configuration because these
+        // definitions may vary between versions of OpenDS.
+        continue;
+      }
+      if (!oidList.contains(removeType.getOID()))
+      {
+        newSchema.deregisterAttributeType(removeType);
+
+        if (schemaFile != null)
+        {
+          modifiedSchemaFiles.add(schemaFile);
+        }
+      }
+    }
+
+    // loop on the objectClasses from the entry, search if they are
+    // already in the current schema, add them if not.
+    ObjectClassSyntax ocSyntax;
+    try
+    {
+      ocSyntax = (ObjectClassSyntax) schema.getSyntax(SYNTAX_OBJECTCLASS_OID);
+      if (ocSyntax == null)
+      {
+        ocSyntax = new ObjectClassSyntax();
+        ocSyntax.initializeSyntax(null);
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      ocSyntax = new ObjectClassSyntax();
+    }
+
+    AttributeType objectclassAttrType =
+      schema.getAttributeType(ATTR_OBJECTCLASSES_LC);
+    if (objectclassAttrType == null)
+    {
+      objectclassAttrType =
+        DirectoryServer.getDefaultAttributeType(ATTR_OBJECTCLASSES,
+                                                ocSyntax);
+    }
+
+    oidList.clear();
+    List<Attribute> ocList = newSchemaEntry.getAttribute(objectclassAttrType);
+    if ((ocList != null) && (! ocList.isEmpty()))
+    {
+      for (Attribute a : ocList)
+      {
+        for (AttributeValue v : a.getValues())
+        {
+          ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(
+              v.getValue(), schema, false);
+          String schemaFile = newObjectClass.getSchemaFile();
+          if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+          {
+            // Don't import the file containing the definitions of the
+            // Schema elements used for configuration because these
+            // definitions may vary between versions of OpenDS.
+            continue;
+          }
+
+          oidList.add(newObjectClass.getOID());
+          try
+          {
+            // Register this ObjectClass in the new schema
+            // unless it is already defined with the same syntax.
+            ObjectClass oldObjectClass =
+              schema.getObjectClass(newObjectClass.getOID());
+            if ((oldObjectClass == null) ||
+                (!oldObjectClass.toString().equals(newObjectClass.toString())))
+            {
+              newSchema.registerObjectClass(newObjectClass, true);
+
+              if (schemaFile != null)
+              {
+                modifiedSchemaFiles.add(schemaFile);
+              }
+            }
+          }
+          catch (DirectoryException de)
+          {
+            Message message =
+              NOTE_SCHEMA_IMPORT_FAILED.get(
+                  newObjectClass.toString(), de.getMessage());
+            logError(message);
+          }
+          catch (Exception e)
+          {
+            Message message =
+              NOTE_SCHEMA_IMPORT_FAILED.get(
+                  newObjectClass.toString(), e.getMessage());
+            logError(message);
+          }
+        }
+      }
+    }
+
+    // loop on all the attribute types in the current schema and delete
+    // them from the new schema if they are not in the imported schema entry.
+    ConcurrentHashMap<String, ObjectClass> currentObjectClasses =
+      newSchema.getObjectClasses();
+
+    for (ObjectClass removeClass : currentObjectClasses.values())
+    {
+      String schemaFile = removeClass.getSchemaFile();
+      if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
+      {
+        // Don't import the file containing the definitiong of the
+        // Schema elements used for configuration because these
+        // definitions may vary between versions of OpenDS.
+        continue;
+      }
+      if (!oidList.contains(removeClass.getOID()))
+      {
+        newSchema.deregisterObjectClass(removeClass);
+
+        if (schemaFile != null)
+        {
+          modifiedSchemaFiles.add(schemaFile);
+        }
+      }
+    }
+
+    // Finally, if there were some modifications, save the new schema
+    // in the Schema Files and update DirectoryServer.
+    if (!modifiedSchemaFiles.isEmpty())
+    {
+      updateSchemaFiles(newSchema, modifiedSchemaFiles);
+      DirectoryServer.setSchema(newSchema);
+    }
   }
 
 
@@ -4948,7 +5357,7 @@ public class SchemaBackend
     Set<DN> newBaseDNs;
     try
     {
-      newBaseDNs = backendCfg.getSchemaEntryDN();
+      newBaseDNs = new HashSet<DN>(backendCfg.getSchemaEntryDN());
       if (newBaseDNs.isEmpty())
       {
         newBaseDNs.add(DN.decode(DN_DEFAULT_SCHEMA_ROOT));

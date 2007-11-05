@@ -411,7 +411,26 @@ public final class AttributeType
     return definition;
   }
 
-
+  /**
+   * Retrieves the definition string used to create this attribute
+   * type and including the X-SCHEMA-FILE extension.
+   *
+   * @return  The definition string used to create this attribute
+   *          type including the X-SCHEMA-FILE extension.
+   */
+  public String getDefinitionWithFileName()
+  {
+    if (getSchemaFile() != null)
+    {
+      int pos = definition.lastIndexOf(')');
+      String defStr = definition.substring(0, pos).trim() + " " +
+                      SCHEMA_PROPERTY_FILENAME + " '" +
+                      getSchemaFile() + "' )";
+      return defStr;
+    }
+    else
+      return definition;
+  }
 
   /**
    * Creates a new instance of this attribute type based on the

@@ -130,7 +130,7 @@ extends InputStream
     }
     index += copiedLength;
 
-    if (copiedLength <= len)
+    if (receivedLength <= len)
       bytes = null;
 
     return copiedLength;

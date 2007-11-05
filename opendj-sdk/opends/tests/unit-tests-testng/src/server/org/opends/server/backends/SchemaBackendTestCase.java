@@ -185,7 +185,7 @@ public class SchemaBackendTestCase
          throws Exception
   {
     DN    schemaDN    = DN.decode("cn=schema");
-    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
+    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getDN(), schemaDN);
 
@@ -203,7 +203,7 @@ public class SchemaBackendTestCase
 
 
     schemaDN    = DN.decode("cn=subschema");
-    schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
+    schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertNotNull(schemaEntry);
     assertEquals(schemaEntry.getDN(), schemaDN);
 
@@ -316,7 +316,7 @@ public class SchemaBackendTestCase
                                true, null);
 
     schemaBackend.renameEntry(currentSchemaDN,
-                              schemaBackend.getSchemaEntry(newSchemaDN),
+                              schemaBackend.getSchemaEntry(newSchemaDN, false),
                               modifyDNOperation);
   }
 
@@ -462,7 +462,7 @@ public class SchemaBackendTestCase
     AttributeType s = DirectoryServer.getAttributeType("ldapsyntaxes");
 
     assertFalse(schemaBackend.showAllAttributes());
-    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
+    Entry schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertTrue(schemaEntry.hasOperationalAttribute(a));
     assertTrue(schemaEntry.hasOperationalAttribute(o));
     assertTrue(schemaEntry.hasOperationalAttribute(m));
@@ -470,7 +470,7 @@ public class SchemaBackendTestCase
 
     schemaBackend.setShowAllAttributes(true);
     assertTrue(schemaBackend.showAllAttributes());
-    schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
+    schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertFalse(schemaEntry.hasOperationalAttribute(a));
     assertFalse(schemaEntry.hasOperationalAttribute(o));
     assertFalse(schemaEntry.hasOperationalAttribute(m));
@@ -478,7 +478,7 @@ public class SchemaBackendTestCase
 
     schemaBackend.setShowAllAttributes(false);
     assertFalse(schemaBackend.showAllAttributes());
-    schemaEntry = schemaBackend.getSchemaEntry(schemaDN);
+    schemaEntry = schemaBackend.getSchemaEntry(schemaDN, false);
     assertTrue(schemaEntry.hasOperationalAttribute(a));
     assertTrue(schemaEntry.hasOperationalAttribute(o));
     assertTrue(schemaEntry.hasOperationalAttribute(m));
@@ -5399,16 +5399,22 @@ public class SchemaBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(expectedExceptions = { DirectoryException.class })
+  @Test()
   public void testImportLDIF()
          throws Exception
   {
     File tempFile = File.createTempFile("schema", "testImportLDIF");
     tempFile.deleteOnExit();
+    
+    LDIFExportConfig exportConfig =
+      new LDIFExportConfig(tempFile.getAbsolutePath(),
+                           ExistingFileBehavior.OVERWRITE);
+
+    schemaBackend.exportLDIF(exportConfig);
 
     LDIFImportConfig importConfig =
          new LDIFImportConfig(tempFile.getAbsolutePath());
-
+    
     schemaBackend.importLDIF(importConfig);
   }
 
