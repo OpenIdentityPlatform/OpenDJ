@@ -57,7 +57,6 @@ public class ServerDescriptor
   private Map<ServerProperty, Object> serverProperties =
     new HashMap<ServerProperty, Object>();
   private TopologyCacheException lastException;
-
   /**
    * Enumeration containing the different server properties that we can keep in
    * the ServerProperty object.
@@ -129,7 +128,11 @@ public class ServerDescriptor
      * The instance key-pair public-key certificate. The associated value is a
      * byte[] (ds-cfg-public-key-certificate;binary).
      */
-    INSTANCE_PUBLIC_KEY_CERTIFICATE
+    INSTANCE_PUBLIC_KEY_CERTIFICATE,
+    /**
+     * The schema generation ID.
+     */
+    SCHEMA_GENERATION_ID
   }
 
   private ServerDescriptor()
@@ -425,6 +428,15 @@ public class ServerDescriptor
   }
 
   /**
+   * Returns the schema generation ID of the server.
+   * @return the schema generation ID of the server.
+   */
+  public String getSchemaReplicationID()
+  {
+    return (String)serverProperties.get(ServerProperty.SCHEMA_GENERATION_ID);
+  }
+
+  /**
    * Returns the last exception that was encountered reading the configuration
    * of the server.  Returns null if there was no problem loading the
    * configuration of the server.
@@ -545,6 +557,7 @@ public class ServerDescriptor
     updateReplicas(desc, ctx);
     updateReplication(desc, ctx);
     updatePublicKeyCertificate(desc, ctx);
+    updateMiscellaneous(desc, ctx);
 
     desc.serverProperties.put(ServerProperty.HOST_NAME,
         ConnectionUtils.getHostName(ctx));
@@ -992,6 +1005,29 @@ public class ServerDescriptor
           throw x;
         }
       }
+    }
+  }
+
+  private static void updateMiscellaneous(ServerDescriptor desc,
+      InitialLdapContext ctx) throws NamingException
+  {
+    SearchControls ctls = new SearchControls();
+    ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
+    ctls.setReturningAttributes(
+        new String[] {
+            "ds-sync-generation-id"
+        });
+    String filter = "|(objectclass=*)(objectclass=ldapsubentry)";
+
+    LdapName jndiName = new LdapName("cn=schema");
+    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+
+    while(listeners.hasMore())
+    {
+      SearchResult sr = (SearchResult)listeners.next();
+
+      desc.serverProperties.put(ServerProperty.SCHEMA_GENERATION_ID,
+          getFirstValue(sr, "ds-sync-generation-id"));
     }
   }
 

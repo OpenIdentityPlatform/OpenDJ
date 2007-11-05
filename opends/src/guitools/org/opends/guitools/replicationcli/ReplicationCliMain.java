@@ -4144,6 +4144,30 @@ public class ReplicationCliMain extends CliApplicationHelper
       printProgressMessage(formatter.getFormattedDone());
       printProgressMessage(formatter.getLineBreak());
     }
+
+    // If we must initialize the schema do so.
+    if (mustInitializeSchema(server1, server2))
+    {
+      printProgressMessage(formatter.getFormattedWithPoints(
+          INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
+              ConnectionUtils.getHostPort(ctxDestination),
+              ConnectionUtils.getHostPort(ctxSource))));
+
+      if (argParser.useSecondServerAsSchemaSource())
+      {
+        ctxSource = ctx2;
+        ctxDestination = ctx1;
+      }
+      else
+      {
+        ctxSource = ctx1;
+        ctxDestination = ctx2;
+      }
+      initializeSuffix(Constants.SCHEMA_DN, ctxSource,
+          ctxDestination, false);
+      printProgressMessage(formatter.getFormattedDone());
+      printProgressMessage(formatter.getLineBreak());
+    }
   }
 
   /**
@@ -6062,5 +6086,25 @@ public class ReplicationCliMain extends CliApplicationHelper
       isLocalHost = true;
     }
     return isLocalHost;
+  }
+
+  private boolean mustInitializeSchema(ServerDescriptor server1,
+      ServerDescriptor server2)
+  {
+    boolean mustInitializeSchema = false;
+    if (!argParser.noSchemaReplication())
+    {
+      String id1 = server1.getSchemaReplicationID();
+      String id2 = server2.getSchemaReplicationID();
+      if (id1 != null)
+      {
+        mustInitializeSchema = id1.equals(id2);
+      }
+      else
+      {
+        mustInitializeSchema = true;
+      }
+    }
+    return mustInitializeSchema;
   }
 }

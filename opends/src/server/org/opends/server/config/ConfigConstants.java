@@ -1334,7 +1334,7 @@ public final class ConfigConstants
   public static final String ATTR_SYNCHRONIZATION_STATE_LC = "ds-sync-state";
 
   /**
-   * The name of the attribute that holds the relication generationId,
+   * The name of the attribute that holds the replication generationId,
    * formatted in lowercase.
    */
   public static final String ATTR_SYNCHRONIZATION_GENERATIONID_LC =
