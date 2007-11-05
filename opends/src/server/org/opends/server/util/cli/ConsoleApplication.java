@@ -463,7 +463,8 @@ public abstract class ConsoleApplication {
   throws CLIException {
     while (true) {
       if (defaultValue != null) {
-        prompt = Message.raw(prompt.toString()+EOL+"["+defaultValue+"]:");
+        prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(),
+            defaultValue);
       }
       String response = readLineOfInput(prompt);
 
@@ -549,9 +550,12 @@ public abstract class ConsoleApplication {
 
     };
 
-    println();
-    return readValidatedInput(INFO_LDAP_CONN_PROMPT_PORT_NUMBER
-        .get(defaultValue), callback);
+    if (defaultValue != -1) {
+      prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(),
+          String.valueOf(defaultValue));
+    }
+
+    return readValidatedInput(prompt, callback);
   }
 
   /**
