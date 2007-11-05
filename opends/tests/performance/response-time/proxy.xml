@@ -1,4 +1,4 @@
-<project name="opends-test-proxy" basedir="." default="usage">
+<project name="opends-test-proxy" basedir=".">
   <target name="check-proxy" unless="proxy.disabled">
     <echo>Checking for proxy [${proxy.host}:${proxy.port}] as user [${proxy.user}].</echo>
     <echo>Note: If these values do not match your environment, </echo>
