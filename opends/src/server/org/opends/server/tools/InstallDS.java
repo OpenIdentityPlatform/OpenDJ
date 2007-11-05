@@ -30,6 +30,7 @@ package org.opends.server.tools;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -42,8 +43,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.messages.Message;
+import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
@@ -66,7 +67,11 @@ import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
-
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 /**
  * This class provides a very simple mechanism for installing the OpenDS
  * Directory Service.  It performs the following tasks:
@@ -81,7 +86,7 @@ import org.opends.server.util.args.StringArgument;
  *   <LI>Ask the user if they want to start the server when done installing</LI>
  * </UL>
  */
-public class InstallDS  extends CliApplicationHelper
+public class InstallDS  extends ConsoleApplication
 {
   private PlainTextProgressMessageFormatter formatter =
     new PlainTextProgressMessageFormatter();
@@ -164,7 +169,7 @@ public class InstallDS  extends CliApplicationHelper
    */
   public InstallDS(PrintStream out, PrintStream err, InputStream in)
   {
-    super(out, err, in);
+    super(in, out, err);
   }
 
   /**
@@ -269,8 +274,9 @@ public class InstallDS  extends CliApplicationHelper
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      printErrorMessage(message);
+      Message message =
+        ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      println(message);
       return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
     }
 
@@ -282,9 +288,9 @@ public class InstallDS  extends CliApplicationHelper
     catch (ArgumentException ae)
     {
       Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      printErrorMessage(message);
-      printLineBreak();
-      printErrorMessage(argParser.getUsage());
+      println(message);
+      println();
+      println(Message.raw(argParser.getUsage()));
 
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
@@ -341,7 +347,7 @@ public class InstallDS  extends CliApplicationHelper
     }
     catch (InitializationException ie)
     {
-      printErrorMessage(ie.getMessageObject());
+      println(ie.getMessageObject());
       return ErrorReturnCode.ERROR_SERVER_ALREADY_INSTALLED.getReturnCode();
     }
 
@@ -354,7 +360,7 @@ public class InstallDS  extends CliApplicationHelper
       }
       catch (InitializationException ie)
       {
-        printErrorMessage(ie.getMessageObject());
+        println(ie.getMessageObject());
         return ErrorReturnCode.ERROR_INITIALIZING_SERVER.getReturnCode();
       }
     }
@@ -374,7 +380,7 @@ public class InstallDS  extends CliApplicationHelper
     }
     catch (UserDataException ude)
     {
-      printErrorMessage(ude.getMessageObject());
+      println(ude.getMessageObject());
       if (isPasswordTriesError(ude.getMessageObject()))
       {
         return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
@@ -393,11 +399,11 @@ public class InstallDS  extends CliApplicationHelper
           public void progressUpdate(ProgressUpdateEvent ev) {
             if (ev.getNewLogs() != null)
             {
-              printProgressMessage(ev.getNewLogs());
+              printProgress(ev.getNewLogs());
             }
           }
         });
-    printProgressLineBreak();
+    printlnProgress();
 
     installer.run();
 
@@ -419,10 +425,10 @@ public class InstallDS  extends CliApplicationHelper
           Installation.UNIX_BINARIES_PATH_RELATIVE);
       cmd = Utils.getPath(binDir, Installation.UNIX_STATUSCLI_FILE_NAME);
     }
-    printProgressLineBreak();
-    printProgressLineBreak();
-    printProgressMessage(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
-    printProgressLineBreak();
+    printlnProgress();
+    printlnProgress();
+    printProgress(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
+    printlnProgress();
 
     if (ue != null)
     {
@@ -447,15 +453,23 @@ public class InstallDS  extends CliApplicationHelper
     {
       if (isInteractive())
       {
-        printLine(installStatus.getInstallationMsg(), true);
-        if (!confirm(INFO_CLI_DO_YOU_WANT_TO_CONTINUE.get()))
+        println(installStatus.getInstallationMsg());
+        try
         {
+          if (!confirmAction(INFO_CLI_DO_YOU_WANT_TO_CONTINUE.get(), true))
+          {
+            throw new InitializationException(Message.EMPTY, null);
+          }
+        }
+        catch (CLIException ce)
+        {
+          LOG.log(Level.SEVERE, "Unexpected error: "+ce, ce);
           throw new InitializationException(Message.EMPTY, null);
         }
       }
       else
       {
-        printWarningMessage(installStatus.getInstallationMsg());
+        println(installStatus.getInstallationMsg());
       }
     }
     else if (installStatus.isInstalled())
@@ -478,11 +492,11 @@ public class InstallDS  extends CliApplicationHelper
   private void initializeDirectoryServer(String configFile, String configClass)
   throws InitializationException
   {
-    printProgressLineBreak();
-    printProgressMessage(DirectoryServer.getVersionString());
-    printProgressLineBreak();
-    printProgressMessage(INFO_INSTALLDS_INITIALIZING.get());
-    printProgressLineBreak();
+    printlnProgress();
+    printProgress(Message.raw(DirectoryServer.getVersionString()));
+    printlnProgress();
+    printProgress(INFO_INSTALLDS_INITIALIZING.get());
+    printlnProgress();
 
     // Perform a base-level initialization that will be required to get
     // minimal functionality like DN parsing to work.
@@ -526,7 +540,7 @@ public class InstallDS  extends CliApplicationHelper
   /**
    * {@inheritDoc}
    */
-  protected boolean isQuiet()
+  public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
   }
@@ -534,9 +548,39 @@ public class InstallDS  extends CliApplicationHelper
   /**
    * {@inheritDoc}
    */
-  protected boolean isInteractive()
+  public boolean isInteractive()
   {
     return !argParser.noPromptArg.isPresent();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly() {
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isAdvancedMode() {
+    return false;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose() {
+    return true;
   }
 
   /**
@@ -819,30 +863,40 @@ public class InstallDS  extends CliApplicationHelper
     String pwd = argParser.getDirectoryManagerPassword();
     while (pwd == null)
     {
-      printLineBreak();
+      println();
       String pwd1 = null;
       // Prompt for password and confirm.
+
       while (pwd1 == null)
       {
-        pwd1 = promptForPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
-        if ("".equals(pwd1))
+        try
+        {
+          pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
+          if ("".equals(pwd1))
+          {
+            pwd1 = null;
+            println();
+            println(INFO_EMPTY_PWD.get());
+          }
+
+          String pwd2 =
+            readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
+
+          if (pwd1.equals(pwd2))
+          {
+            pwd = pwd1;
+          }
+          else
+          {
+            println();
+            println(ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get());
+          }
+        }
+        catch (CLIException ce)
         {
           pwd1 = null;
-          printLineBreak();
-          printErrorMessage(INFO_EMPTY_PWD.get());
+          LOG.log(Level.WARNING, "Unexpected error reading passwords: "+ce, ce);
         }
-      }
-      String pwd2 =
-        promptForPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
-
-      if (pwd1.equals(pwd2))
-      {
-        pwd = pwd1;
-      }
-      else
-      {
-        printLineBreak();
-        printErrorMessage(ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get());
       }
     }
     uData.setDirectoryManagerPwd(pwd);
@@ -872,12 +926,19 @@ public class InstallDS  extends CliApplicationHelper
       {
         if (firstPrompt && includeLineBreak)
         {
-          printLineBreak();
+          println();
         }
-        String dn = promptForString(promptMsg, arg.getDefaultValue());
-        firstPrompt = false;
-        dns.add(dn);
-        prompted = true;
+        try
+        {
+          String dn = readInput(promptMsg, arg.getDefaultValue());
+          firstPrompt = false;
+          dns.add(dn);
+          prompted = true;
+        }
+        catch (CLIException ce)
+        {
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        }
       }
       else
       {
@@ -895,12 +956,12 @@ public class InstallDS  extends CliApplicationHelper
           toRemove.add(dn);
           Message message = prompted ? ERR_INSTALLDS_INVALID_DN_RESPONSE.get() :
             ERR_INSTALLDS_CANNOT_PARSE_DN.get(dn, e.getMessage());
-          printErrorMessage(message);
+          println(message);
         }
       }
       if (toRemove.size() > 0)
       {
-        printLineBreak();
+        println();
       }
       dns.removeAll(toRemove);
     }
@@ -968,9 +1029,21 @@ public class InstallDS  extends CliApplicationHelper
           }
           if (firstPrompt && includeLineBreak)
           {
-            printLineBreak();
+            println();
           }
-          portNumber = promptForPort(promptMsg, defaultValue);
+          portNumber = -1;
+          while (portNumber == -1)
+          {
+            try
+            {
+              portNumber = readPort(promptMsg, defaultValue);
+            }
+            catch (CLIException ce)
+            {
+              portNumber = -1;
+              LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            }
+          }
           prompted = true;
           firstPrompt = false;
         }
@@ -990,22 +1063,22 @@ public class InstallDS  extends CliApplicationHelper
             {
               if (prompted || includeLineBreak)
               {
-                printLineBreak();
+                println();
               }
               message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
                   portNumber);
-              printErrorMessage(message);
+              println(message);
               portNumber = -1;
             }
             else
             {
               if (prompted || includeLineBreak)
               {
-                printLineBreak();
+                println();
               }
               message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(portNumber);
-              printErrorMessage(message);
-              printLineBreak();
+              println(message);
+              println();
               portNumber = -1;
             }
           }
@@ -1016,15 +1089,15 @@ public class InstallDS  extends CliApplicationHelper
           {
             Message message = ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(
                 String.valueOf(portNumber));
-            printErrorMessage(message);
-            printLineBreak();
+            println(message);
+            println();
             portNumber = -1;
           }
         }
       }
       catch (ArgumentException ae)
       {
-        printErrorMessage(ae.getMessage());
+        println(ae.getMessageObject());
       }
     }
     return portNumber;
@@ -1062,23 +1135,30 @@ public class InstallDS  extends CliApplicationHelper
       }
       if (nonExistingFiles.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
+        println();
+        println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(
             Utils.getStringFromCollection(nonExistingFiles, ", ")));
       }
       while (importLDIFFiles.isEmpty())
       {
-        printLineBreak();
-        String path = promptForString(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
-            null);
-        if (!Utils.fileExists(path))
+        println();
+        try
         {
-          printLineBreak();
-          printErrorMessage(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path));
+          String path = readInput(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
+              null);
+          if (!Utils.fileExists(path))
+          {
+            println();
+            println(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path));
+          }
+          else
+          {
+            importLDIFFiles.add(path);
+          }
         }
-        else
+        catch (CLIException ce)
         {
-          importLDIFFiles.add(path);
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
         }
       }
       String rejectedFile = argParser.rejectedImportFileArg.getValue();
@@ -1086,12 +1166,18 @@ public class InstallDS  extends CliApplicationHelper
       {
         while (!Utils.canWrite(rejectedFile))
         {
-          printLineBreak();
-          printErrorMessage(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(
-              rejectedFile));
-          printLineBreak();
-          rejectedFile =
-            promptForString(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+          println();
+          println(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
+          println();
+          try
+          {
+            rejectedFile =
+              readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+          }
+          catch (CLIException ce)
+          {
+            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          }
         }
       }
       String skippedFile = argParser.skippedImportFileArg.getValue();
@@ -1099,12 +1185,18 @@ public class InstallDS  extends CliApplicationHelper
       {
         while (!Utils.canWrite(skippedFile))
         {
-          printLineBreak();
-          printErrorMessage(
-              ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
-          printLineBreak();
-          skippedFile =
-            promptForString(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+          println();
+          println(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
+          println();
+          try
+          {
+            skippedFile =
+              readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+          }
+          catch (CLIException ce)
+          {
+            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          }
         }
       }
 
@@ -1124,8 +1216,8 @@ public class InstallDS  extends CliApplicationHelper
       }
       catch (ArgumentException ae)
       {
-        printLineBreak();
-        printErrorMessage(ae.getMessageObject());
+        println();
+        println(ae.getMessageObject());
         Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
       }
@@ -1138,24 +1230,47 @@ public class InstallDS  extends CliApplicationHelper
       final int POPULATE_TYPE_LEAVE_EMPTY = 2;
       final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
       final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
-      Message[] options = new Message[] {
-          Message.raw(String.valueOf(POPULATE_TYPE_BASE_ONLY)),
-          Message.raw(String.valueOf(POPULATE_TYPE_LEAVE_EMPTY)),
-          Message.raw(String.valueOf(POPULATE_TYPE_IMPORT_FROM_LDIF)),
-          Message.raw(String.valueOf(POPULATE_TYPE_GENERATE_SAMPLE_DATA))
+      int[] indexes = {POPULATE_TYPE_BASE_ONLY, POPULATE_TYPE_LEAVE_EMPTY,
+          POPULATE_TYPE_IMPORT_FROM_LDIF, POPULATE_TYPE_GENERATE_SAMPLE_DATA};
+      Message[] msgs = new Message[] {
+          INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(),
+          INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(),
+          INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(),
+          INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get()
         };
-      printLineBreak();
-      printLine(INFO_INSTALLDS_HEADER_POPULATE_TYPE.get(), true);
-      printLine(INFO_INSTALLDS_POPULATE_OPTION_BASE_ONLY.get(), true);
-      printLine(INFO_INSTALLDS_POPULATE_OPTION_LEAVE_EMPTY.get(), true);
-      printLine(INFO_INSTALLDS_POPULATE_OPTION_IMPORT_LDIF.get(), true);
-      printLine(INFO_INSTALLDS_POPULATE_OPTION_GENERATE_SAMPLE.get(), true);
 
+      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+      builder.setPrompt(INFO_INSTALLDS_HEADER_POPULATE_TYPE.get());
 
-      Message answer = promptConfirm(
-          INFO_INSTALLDS_PROMPT_POPULATE_CHOICE.get(),
-            options[0], options);
-      int populateType = new Integer(answer.toString());
+      for (int i=0; i<indexes.length; i++)
+      {
+        builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
+      }
+
+      builder.setDefault(Message.raw(
+              String.valueOf(POPULATE_TYPE_BASE_ONLY)),
+              MenuResult.success(POPULATE_TYPE_BASE_ONLY));
+
+      Menu<Integer> menu = builder.toMenu();
+      int populateType;
+      try
+      {
+        MenuResult<Integer> m = menu.run();
+        if (m.isSuccess())
+        {
+          populateType = m.getValue();
+        }
+        else
+        {
+          // Should never happen.
+          throw new RuntimeException();
+        }
+      }
+      catch (CLIException ce)
+      {
+        populateType = POPULATE_TYPE_BASE_ONLY;
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
 
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
       {
@@ -1163,17 +1278,24 @@ public class InstallDS  extends CliApplicationHelper
         while (importLDIFFiles.isEmpty())
         {
           Message message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
-          printLineBreak();
-          String path = promptForString(message, null);
-          if (Utils.fileExists(path))
+          println();
+          try
           {
-            importLDIFFiles.add(path);
+            String path = readInput(message, null);
+            if (Utils.fileExists(path))
+            {
+              importLDIFFiles.add(path);
+            }
+            else
+            {
+              message = ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path);
+              println();
+              println(message);
+            }
           }
-          else
+          catch (CLIException ce)
           {
-            message = ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(path);
-            printLineBreak();
-            printErrorMessage(message);
+            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
           }
         }
         String rejectedFile = argParser.rejectedImportFileArg.getValue();
@@ -1181,12 +1303,19 @@ public class InstallDS  extends CliApplicationHelper
         {
           while (!Utils.canWrite(rejectedFile))
           {
-            printLineBreak();
-            printErrorMessage(
+            println();
+            println(
                 ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
-            printLineBreak();
-            rejectedFile =
-              promptForString(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+            println();
+            try
+            {
+              rejectedFile =
+                readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+            }
+            catch (CLIException ce)
+            {
+              LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            }
           }
         }
         String skippedFile = argParser.skippedImportFileArg.getValue();
@@ -1194,12 +1323,18 @@ public class InstallDS  extends CliApplicationHelper
         {
           while (!Utils.canWrite(skippedFile))
           {
-            printLineBreak();
-            printErrorMessage(
-                ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
-            printLineBreak();
-            skippedFile =
-              promptForString(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+            println();
+            println(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
+            println();
+            try
+            {
+              skippedFile =
+                readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+            }
+            catch (CLIException ce)
+            {
+              LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            }
           }
         }
         dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
@@ -1256,14 +1391,23 @@ public class InstallDS  extends CliApplicationHelper
 
     // Ask to enable SSL
     ldapsPort = -1;
+
     if (!argParser.ldapsPortArg.isPresent())
     {
-      printLineBreak();
-      enableSSL = confirm(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(), false);
-      if (enableSSL)
+      println();
+      try
       {
-        ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
-            INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
+        enableSSL = confirmAction(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(),
+            false);
+        if (enableSSL)
+        {
+          ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
+              INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
+        }
+      }
+      catch (CLIException ce)
+      {
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
       }
     }
     else
@@ -1276,9 +1420,16 @@ public class InstallDS  extends CliApplicationHelper
     // Ask to enable Start TLS
     if (!argParser.enableStartTLSArg.isPresent())
     {
-      printLineBreak();
-      enableStartTLS = confirm(INFO_INSTALLDS_ENABLE_STARTTLS.get(),
-          argParser.enableStartTLSArg.isPresent());
+      println();
+      try
+      {
+        enableStartTLS = confirmAction(INFO_INSTALLDS_ENABLE_STARTTLS.get(),
+            argParser.enableStartTLSArg.isPresent());
+      }
+      catch (CLIException ce)
+      {
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
     }
     else
     {
@@ -1323,24 +1474,46 @@ public class InstallDS  extends CliApplicationHelper
         final int JKS = 2;
         final int PKCS12 = 3;
         final int PKCS11 = 4;
-        Message[] options = new Message[] {
-            Message.raw(String.valueOf(SELF_SIGNED)),
-            Message.raw(String.valueOf(JKS)),
-            Message.raw(String.valueOf(PKCS12)),
-            Message.raw(String.valueOf(PKCS11))
-          };
-        printLineBreak();
-        printLine(INFO_INSTALLDS_HEADER_CERT_TYPE.get(), true);
-        printLine(INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(), true);
-        printLine(INFO_INSTALLDS_CERT_OPTION_JKS.get(), true);
-        printLine(INFO_INSTALLDS_CERT_OPTION_PKCS12.get(), true);
-        printLine(INFO_INSTALLDS_CERT_OPTION_PKCS11.get(), true);
+        int[] indexes = {SELF_SIGNED, JKS, PKCS12, PKCS11};
+        Message[] msgs = {
+            INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
+            INFO_INSTALLDS_CERT_OPTION_JKS.get(),
+            INFO_INSTALLDS_CERT_OPTION_PKCS12.get(),
+            INFO_INSTALLDS_CERT_OPTION_PKCS11.get()
+        };
 
-        Message answer = promptConfirm(
-            INFO_INSTALLDS_PROMPT_CERT_TYPE_CHOICE.get(),
-              options[0], options);
-        int certType = new Integer(answer.toString());
 
+        MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+        builder.setPrompt(INFO_INSTALLDS_HEADER_CERT_TYPE.get());
+
+        for (int i=0; i<indexes.length; i++)
+        {
+          builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
+        }
+
+        builder.setDefault(Message.raw(String.valueOf(SELF_SIGNED)),
+            MenuResult.success(SELF_SIGNED));
+
+        Menu<Integer> menu = builder.toMenu();
+        int certType;
+        try
+        {
+          MenuResult<Integer> m = menu.run();
+          if (m.isSuccess())
+          {
+            certType = m.getValue();
+          }
+          else
+          {
+            // Should never happen.
+            throw new RuntimeException();
+          }
+        }
+        catch (CLIException ce)
+        {
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          certType = SELF_SIGNED;
+        }
         if (certType == SELF_SIGNED)
         {
           securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
@@ -1394,9 +1567,16 @@ public class InstallDS  extends CliApplicationHelper
       }
       else
       {
-        printLineBreak();
+        println();
         Message message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
-        enableService = confirm(message, false);
+        try
+        {
+          enableService = confirmAction(message, false);
+        }
+        catch (CLIException ce)
+        {
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        }
       }
     }
     uData.setEnableWindowsService(enableService);
@@ -1414,9 +1594,17 @@ public class InstallDS  extends CliApplicationHelper
     boolean startServer = false;
     if (!argParser.doNotStartArg.isPresent())
     {
-      printLineBreak();
+      println();
       Message message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
-      startServer = confirm(message);
+      try
+      {
+        startServer = confirmAction(message, true);
+      }
+      catch (CLIException ce)
+      {
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        startServer = true;
+      }
     }
     uData.setStartServer(startServer);
   }
@@ -1620,8 +1808,8 @@ public class InstallDS  extends CliApplicationHelper
       boolean prompted = false;
       if (errorMessages.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(Utils.getMessageFromCollection(errorMessages,
+        println();
+        println(Utils.getMessageFromCollection(errorMessages,
             formatter.getLineBreak().toString()));
       }
 
@@ -1629,8 +1817,17 @@ public class InstallDS  extends CliApplicationHelper
       {
         if (containsKeyStorePathErrorMessage(errorMessages) || (path == null))
         {
-          printLineBreak();
-          path = promptForString(pathPrompt, defaultPathValue);
+          println();
+          try
+          {
+            path = readInput(pathPrompt, defaultPathValue);
+          }
+          catch (CLIException ce)
+          {
+            path = "";
+            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+          }
+
           prompted = true;
           if (pwd != null)
           {
@@ -1651,7 +1848,7 @@ public class InstallDS  extends CliApplicationHelper
       {
         if (!prompted)
         {
-          printLineBreak();
+          println();
         }
         pwd = null;
         while (pwd == null)
@@ -1662,8 +1859,16 @@ public class InstallDS  extends CliApplicationHelper
                 ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES.get(
                     String.valueOf(LIMIT_KEYSTORE_PASSWORD_PROMPT)));
           }
-          pwd = promptForPassword(
-              INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get());
+          try
+          {
+            pwd = readPassword(
+                INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get());
+          }
+          catch (CLIException ce)
+          {
+            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+            pwd = null;
+          }
           nPasswordPrompts ++;
         }
       }
@@ -1671,7 +1876,7 @@ public class InstallDS  extends CliApplicationHelper
       {
         if (!prompted)
         {
-          printLineBreak();
+          println();
         }
         certNickname = promptForCertificateNickname(keystoreAliases);
       }
@@ -1820,14 +2025,23 @@ public class InstallDS  extends CliApplicationHelper
     int returnValue = -1;
     while (returnValue == -1)
     {
-      String s = promptForString(prompt, String.valueOf(defaultValue));
+      String s;
+      try
+      {
+        s = readInput(prompt, String.valueOf(defaultValue));
+      }
+      catch (CLIException ce)
+      {
+        s = "";
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
       if (s.equals(""))
       {
         if (defaultValue == null)
         {
           Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
-          printErrorMessage(message);
-          printLineBreak();
+          println(message);
+          println();
         }
         else
         {
@@ -1843,15 +2057,15 @@ public class InstallDS  extends CliApplicationHelper
           {
             Message message =
                 ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound);
-            printErrorMessage(message);
-            printLineBreak();
+            println(message);
+            println();
           }
           else if ((upperBound != null) && (intValue > upperBound))
           {
             Message message =
                 ERR_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND.get(upperBound);
-            printErrorMessage(message);
-            printLineBreak();
+            println(message);
+            println();
           }
           else
           {
@@ -1861,8 +2075,8 @@ public class InstallDS  extends CliApplicationHelper
         catch (NumberFormatException nfe)
         {
           Message message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
-          printErrorMessage(message);
-          printLineBreak();
+          println(message);
+          println();
         }
       }
     }
@@ -1882,10 +2096,17 @@ public class InstallDS  extends CliApplicationHelper
     {
       for (String n : nicknames)
       {
-        if (confirm(INFO_INSTALLDS_PROMPT_CERTNICKNAME.get(n)))
+        try
         {
-          nickname = n;
-          break;
+          if (confirmAction(INFO_INSTALLDS_PROMPT_CERTNICKNAME.get(n), true))
+          {
+            nickname = n;
+            break;
+          }
+        }
+        catch (CLIException ce)
+        {
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
         }
       }
     }
