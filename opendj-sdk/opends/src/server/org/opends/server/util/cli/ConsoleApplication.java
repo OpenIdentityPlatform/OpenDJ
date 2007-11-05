@@ -28,6 +28,7 @@ package org.opends.server.util.cli;
 
 
 
+import static org.opends.messages.QuickSetupMessages.INFO_ERROR_EMPTY_RESPONSE;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -44,7 +45,6 @@ import java.io.Reader;
 import org.opends.messages.Message;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
-
 
 
 /**
@@ -362,6 +362,30 @@ public abstract class ConsoleApplication {
     err.print(wrapText(msg, MAX_LINE_WIDTH));
   }
 
+  /**
+   * Displays a blank line to the output stream if we are not in quiet mode.
+   */
+  public final void printlnProgress() {
+    if (!isQuiet())
+    {
+      out.println();
+    }
+  }
+
+
+  /**
+   * Displays a message to the output stream if we are not in quiet mode.
+   *
+   * @param msg
+   *          The message.
+   */
+  public final void printProgress(Message msg) {
+    if (!isQuiet())
+    {
+      out.print(wrapText(msg, MAX_LINE_WIDTH));
+    }
+  }
+
 
   /**
    * Displays a message to the error stream indented by the specified
@@ -419,6 +443,42 @@ public abstract class ConsoleApplication {
     }
   }
 
+  /**
+   * Commodity method that interactively prompts (on error output) the user to
+   * provide a string value.  Any non-empty string will be allowed (the empty
+   * string will indicate that the default should be used, if there is one).
+   *
+   * @param  prompt        The prompt to present to the user.
+   * @param  defaultValue  The default value to assume if the user presses ENTER
+   *                       without typing anything, or <CODE>null</CODE> if
+   *                       there should not be a default and the user must
+   *                       explicitly provide a value.
+   *
+   * @throws CLIException
+   *           If the line of input could not be retrieved for some
+   *           reason.
+   * @return  The string value read from the user.
+   */
+  public String readInput(Message prompt, String defaultValue)
+  throws CLIException {
+    while (true) {
+      if (defaultValue != null) {
+        prompt = Message.raw(prompt.toString()+EOL+"["+defaultValue+"]:");
+      }
+      String response = readLineOfInput(prompt);
+
+      if ("".equals(response)) {
+        if (defaultValue == null) {
+          print(INFO_ERROR_EMPTY_RESPONSE.get());
+        } else {
+          return defaultValue;
+        }
+      } else {
+        return response;
+      }
+    }
+  }
+
 
 
   /**
@@ -441,7 +501,58 @@ public abstract class ConsoleApplication {
     return new String(pwChars);
   }
 
+  /**
+   * Interactively retrieves a port value from the console.
+   *
+   * @param prompt
+   *          The port prompt.
+   * @param defaultValue
+   *          The port default value.
+   * @return Returns the port.
+   * @throws CLIException
+   *           If the port could not be retrieved for some reason.
+   */
+  public final int readPort(Message prompt, final int defaultValue)
+  throws CLIException
+  {
+    ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
+    {
+      public Integer validate(ConsoleApplication app, String input)
+          throws CLIException
+      {
+        String ninput = input.trim();
+        if (ninput.length() == 0)
+        {
+          return defaultValue;
+        }
+        else
+        {
+          try
+          {
+            int i = Integer.parseInt(ninput);
+            if (i < 1 || i > 65535)
+            {
+              throw new NumberFormatException();
+            }
+            return i;
+          }
+          catch (NumberFormatException e)
+          {
+            // Try again...
+            app.println();
+            app.println(ERR_LDAP_CONN_BAD_PORT_NUMBER.get(ninput));
+            app.println();
+            return null;
+          }
+        }
+      }
 
+    };
+
+    println();
+    return readValidatedInput(INFO_LDAP_CONN_PROMPT_PORT_NUMBER
+        .get(defaultValue), callback);
+  }
 
   /**
    * Interactively prompts for user input and continues until valid
