@@ -110,7 +110,22 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * {@inheritDoc}
+   * Initializes a new instance of the local backend workflow element.
+   * This method is intended to be called by DirectoryServer when
+   * workflow configuration mode is manual as opposed to
+   * initialize(String,Backend) which is invoked when workflow
+   * configuration mode is auto.
+   *
+   * @param  configuration  The configuration for this local backend
+   *                        workflow element.
+   *
+   * @throws  ConfigException  If there is a problem with the provided
+   *                           configuration.
+   *
+   * @throws  InitializationException  If an error occurs while trying
+   *                                   to initialize this workflow
+   *                                   element that is not related to
+   *                                   the provided configuration.
    */
   public void initializeWorkflowElement(
       LocalBackendWorkflowElementCfg configuration
