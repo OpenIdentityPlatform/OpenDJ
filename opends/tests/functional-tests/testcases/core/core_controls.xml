@@ -28,9 +28,9 @@
 
 <stax>
 
-  <defaultcall function="main_controls"/>
+  <defaultcall function="core_controls"/>
 
-  <function name="main_controls">
+  <function name="core_controls">
 
     <sequence>
 
@@ -52,7 +52,7 @@
           
           <!--- Test Suite information
           #@TestSuiteName       Core Controls 
-          #@TestSuitePurpose    Verify that the basic import functionality is working in the Directory Server.
+          #@TestSuitePurpose    Verify that the controls functionality is working in the Directory Server.
           #@TestSuiteID         Controls Tests
           #@TestSuiteGroup      Controls
           #@TestGroup           Core
@@ -63,16 +63,22 @@
                  
           <!--- Test Case information
           #@TestMarker          Core Controls Tests
-          #@TestName            Core: Controls: Password Policy
-          #@TestID              LDIF Default
-          #@TestPurpose         Verify an import of a LDIF file using the default backend.
+          #@TestName            Core: Controls: Force Change on Add
+          #@TestID              Core: Controls:
+          #@TestPurpose         Verify the pwpolicy control is returned in the ldapsearch
+                                when the password policy is changed to force-change-on-add.
           #@TestPreamble
-          #@TestSteps           ./import-ldif.sh -l ../ldif/Example.ldif -n "userRoot"
+          #@TestSteps           modify the Default Password Policy, using dsconfig, to set 
+                                force-change-on-add to true.  Next add a new user and do an
+                                ldapsearch of that user using the verbose flag. The search will 
+                                fail with a LDAP_CONSTRAINT_VIOLATION. Next do a substring search 
+                                of the output and look for the control's OID 1.3.6.1.4.1.42.2.27.8.5.1.
+                                Lastly, reset the password policy.
           #@TestPostamble
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('Controls Password Policy')">
+          <testcase name="getTestCaseName('Force Change on Add')">
     
             <sequence>
     
@@ -139,16 +145,22 @@
                            
           <!--- Test Case information
           #@TestMarker          Core Controls Tests
-          #@TestName            Core: Controls: Password Policy
-          #@TestID              LDIF Default
-          #@TestPurpose         Verify an import of a LDIF file using the default backend.
+          #@TestName            Core: Controls: Lockout Failure Count
+          #@TestID              Core: Controls:
+          #@TestPurpose         Verify the pwpolicy control is returned in the ldapsearch
+                                when the password policy lockout-failure-count is changed to 3
+                                allowing for only three tries using a bad password.
           #@TestPreamble
-          #@TestSteps           ./import-ldif.sh -l ../ldif/Example.ldif -n "userRoot"
+          #@TestSteps           modify the Default Password Policy, using dsconfig, to set 
+                                lockout-failure-count to 3.  Next add a new user and do three
+                                ldapsearchs of that user suppling bad passwords, and using the verbose flag. 
+                                The search will fail with a LDAP_INVALID_CREDENTIALS. Next do a substring search 
+                                of the output and look for the control's OID 1.3.6.1.4.1.42.2.27.8.5.1.
           #@TestPostamble
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('Controls Password Policy')">
+          <testcase name="getTestCaseName('Lockout Failure Count')">
     
             <sequence>
     
@@ -191,9 +203,9 @@
               </iterate>
               
               <call function="'ldapSearchWithScript'">
-                { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsControl'        : 'pwpolicy',
+                { 'dsInstanceHost'             : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstancePort'             : DIRECTORY_INSTANCE_PORT ,
+                  'dsUsePasswordPolicyControl' : 'True',
                   'dsVerbose'        : 'True',
                   'dsInstanceDn'     : 'uid=test.user2,ou=People,o=core tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'password' ,
