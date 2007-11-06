@@ -231,8 +231,9 @@
     
           </testcase>
           
-           
-      
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />                 
                 
           <call function="'testSuite_Postamble'"/>
   
