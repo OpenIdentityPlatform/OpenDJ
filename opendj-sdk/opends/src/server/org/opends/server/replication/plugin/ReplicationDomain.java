@@ -368,10 +368,6 @@ public class ReplicationDomain extends DirectoryThread
     replicationServers = configuration.getReplicationServer();
     serverId = (short) configuration.getServerId();
     baseDN = configuration.getBaseDN();
-    maxReceiveQueue = configuration.getMaxReceiveQueue();
-    maxReceiveDelay = (int) configuration.getMaxReceiveDelay();
-    maxSendQueue = configuration.getMaxSendQueue();
-    maxSendDelay = (int) configuration.getMaxSendDelay();
     window  = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
     isolationpolicy = configuration.getIsolationPolicy();
@@ -3417,10 +3413,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // The other parameters needs to be renegociated with the ReplicationServer.
     // so that requires restarting the session with the ReplicationServer.
     replicationServers = configuration.getReplicationServer();
-    maxReceiveQueue = configuration.getMaxReceiveQueue();
-    maxReceiveDelay = (int) configuration.getMaxReceiveDelay();
-    maxSendQueue = configuration.getMaxSendQueue();
-    maxSendDelay = (int) configuration.getMaxSendDelay();
     window = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
     broker.changeConfig(replicationServers, maxReceiveQueue, maxReceiveDelay,
