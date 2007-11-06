@@ -511,7 +511,7 @@ dn: cn=Get Connection ID,cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-extended-operation-handler
 objectClass: ds-cfg-get-connection-id-extended-operation-handler
-cn: Cancel
+cn: Get Connection ID
 ds-cfg-java-class: org.opends.server.extensions.GetConnectionIDExtendedOperation
 ds-cfg-enabled: true
 
