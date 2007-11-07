@@ -2201,7 +2201,9 @@ public abstract class Installer extends GuiApplication {
                   ADSContextException.ErrorType.ALREADY_REGISTERED)
           {
             notifyListeners(getFormattedWarning(
-                    INFO_ADMINISTRATOR_ALREADY_REGISTERED.get()));
+                INFO_ADMINISTRATOR_ALREADY_REGISTERED.get()));
+            adsContext.unregisterServer(server.getAdsProperties());
+            adsContext.registerServer(server.getAdsProperties());
           }
           else
           {
