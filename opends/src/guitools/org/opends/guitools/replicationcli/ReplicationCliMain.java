@@ -4148,11 +4148,6 @@ public class ReplicationCliMain extends CliApplicationHelper
     // If we must initialize the schema do so.
     if (mustInitializeSchema(server1, server2))
     {
-      printProgressMessage(formatter.getFormattedWithPoints(
-          INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
-              ConnectionUtils.getHostPort(ctxDestination),
-              ConnectionUtils.getHostPort(ctxSource))));
-
       if (argParser.useSecondServerAsSchemaSource())
       {
         ctxSource = ctx2;
@@ -4163,6 +4158,10 @@ public class ReplicationCliMain extends CliApplicationHelper
         ctxSource = ctx1;
         ctxDestination = ctx2;
       }
+      printProgressMessage(formatter.getFormattedWithPoints(
+          INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
+              ConnectionUtils.getHostPort(ctxDestination),
+              ConnectionUtils.getHostPort(ctxSource))));
       initializeSuffix(Constants.SCHEMA_DN, ctxSource,
           ctxDestination, false);
       printProgressMessage(formatter.getFormattedDone());
