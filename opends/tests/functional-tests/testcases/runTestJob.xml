@@ -89,7 +89,7 @@
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/stafcmd.xml' % TESTS_FUNCTIONS_DIR" />
       
-      <!--
+      <!-- FixMe
         dirty workaround because utils.xml now depends on environment.xml
         to avoid loading environment.xml I'll just set the required vars here
         allegedly ugly
@@ -406,6 +406,9 @@
         xmlfh.write('      &lt;os-label&gt;\n')
         xmlfh.write('        %s\n' % ServerOsString)
         xmlfh.write('      &lt;/os-label&gt;\n')                        
+        xmlfh.write('      &lt;tests-dir&gt;\n')
+        xmlfh.write('        %s\n' % logsDir)
+        xmlfh.write('      &lt;/tests-dir&gt;\n')
         xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>

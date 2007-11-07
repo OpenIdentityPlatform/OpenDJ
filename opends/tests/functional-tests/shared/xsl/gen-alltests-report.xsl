@@ -14,7 +14,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="pass-tests"   select="count($testcase[@result='pass'])"/>
   <xsl:variable name="fail-tests"   select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests" select="count($testcase[@result='unknown'])"/>
-
+  
   <xsl:element name="html">
   
   <xsl:element name="head">
@@ -377,6 +377,51 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
     </xsl:element>
 
+  <!-- Shaded Line -->
+  <xsl:element name="hr">
+    <xsl:attribute name="noshade">
+      <xsl:value-of select="'noshade'"/>
+    </xsl:attribute>
+    <xsl:attribute name="size">
+      <xsl:value-of select="1"/>
+    </xsl:attribute>
+  </xsl:element>
+
+  <!-- Additional Information -->
+  <xsl:element name="h2">
+    <xsl:value-of select="'Additional Information'"/>
+  </xsl:element>
+
+  <xsl:variable name="tests-dir" select="$identification/tests-dir"/>
+    
+  <xsl:element name="table">
+    <xsl:element name="tr">
+      <xsl:element name="td">
+        <xsl:element name="b">
+          <xsl:value-of select="'Test Archive: '"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
+          <xsl:value-of select="$tests-dir"/>
+        </xsl:element>
+      </xsl:element>          
+    </xsl:element>
+  </xsl:element>
+  
+  <!-- Shaded Line -->
+  <xsl:element name="hr">
+    <xsl:attribute name="noshade">
+      <xsl:value-of select="'noshade'"/>
+    </xsl:attribute>
+    <xsl:attribute name="size">
+      <xsl:value-of select="1"/>
+    </xsl:attribute>
+  </xsl:element>
+  
   </xsl:element>
       
   </xsl:element>
