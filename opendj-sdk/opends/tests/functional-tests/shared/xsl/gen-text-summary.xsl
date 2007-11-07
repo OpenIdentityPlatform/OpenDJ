@@ -13,15 +13,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="total"  select="count($testcase)"/>
   <xsl:variable name="pass"   select="count($testcase[@result='pass'])"/>
   <xsl:variable name="fail"   select="count($testcase[@result='fail'])"/>
-  <xsl:variable name="inconc" select="count($testcase[@result='unknown'])"
-/>
+  <xsl:variable name="inconc" select="count($testcase[@result='unknown'])"/>
 
   <!-- Overall Test Percentage -->
   <xsl:variable name="percent">
     <xsl:choose>
       <xsl:when test="$total &gt; 0">
-        <xsl:value-of select="round((($pass div $total) * 100) - 0.5
-)"/>
+        <xsl:value-of select="round((($pass div $total) * 100) - 0.5)"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:value-of select="0"/>
@@ -44,7 +42,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:value-of select="concat('jvm-label: ', normalize-space($identification/jvm-label),'&#xa;')"/>
   <xsl:value-of select="concat('jvm-vendor: ', normalize-space($identification/jvm-vendor),'&#xa;')"/>
   <xsl:value-of select="concat('jvm-arch: ', normalize-space($identification/jvm-arch),'&#xa;')"/>
-
+  <xsl:value-of select="concat('tests-dir: ', normalize-space($identification/tests-dir),'&#xa;')"/>
 </xsl:template>
 
 </xsl:stylesheet>

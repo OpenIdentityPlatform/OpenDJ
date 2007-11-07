@@ -585,5 +585,32 @@
         </p>
       </xsl:if>
     </xsl:for-each>
+
+    <!-- Additional Information -->
+    <xsl:element name="h2">
+      <xsl:value-of select="'Additional Information'"/>
+    </xsl:element>
+  
+    <xsl:variable name="tests-dir" select="$identification/tests-dir"/>
+      
+    <xsl:element name="table">
+      <xsl:element name="tr">
+        <xsl:element name="td">
+          <xsl:element name="b">
+            <xsl:value-of select="'Test Archive: '"/>
+          </xsl:element>
+        </xsl:element>
+        <xsl:element name="td">
+          <xsl:attribute name="align">
+            <xsl:value-of select="'center'"/>
+          </xsl:attribute>
+          <xsl:element name="b">
+            <xsl:value-of select="$tests-dir"/>
+          </xsl:element>
+        </xsl:element>          
+      </xsl:element>
+    </xsl:element>
+    <xsl:element name="br"/>
+
   </xsl:template>
 </xsl:stylesheet>
