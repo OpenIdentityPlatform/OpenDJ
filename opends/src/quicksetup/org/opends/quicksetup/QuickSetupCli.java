@@ -125,7 +125,7 @@ public class QuickSetupCli {
       }
     else
     {
-        // User cancelled installation.
+        // User cancelled operation.
         returnValue = ReturnCode.CANCELLED;
       }
     }

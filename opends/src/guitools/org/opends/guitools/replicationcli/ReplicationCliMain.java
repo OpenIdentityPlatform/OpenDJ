@@ -3792,11 +3792,11 @@ public class ReplicationCliMain extends CliApplicationHelper
           if (registry2.size() == 0)
           {
             server2.updateAdsPropertiesWithServerProperties();
-            adsCtx1.registerServer(server2.getAdsProperties());
+            registerServer(adsCtx1, server2.getAdsProperties());
           }
           else
           {
-            adsCtx1.registerServer(registry2.iterator().next());
+            registerServer(adsCtx1, registry2.iterator().next());
           }
 
           ctxSource = ctx1;
@@ -3813,11 +3813,11 @@ public class ReplicationCliMain extends CliApplicationHelper
           if (registry1.size() == 0)
           {
             server1.updateAdsPropertiesWithServerProperties();
-            adsCtx2.registerServer(server1.getAdsProperties());
+            registerServer(adsCtx2, server1.getAdsProperties());
           }
           else
           {
-            adsCtx2.registerServer(registry1.iterator().next());
+            registerServer(adsCtx2, registry1.iterator().next());
           }
 
           ctxSource = ctx2;
@@ -3849,7 +3849,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           adsCtx2.createAdministrator(getAdministratorProperties(uData));
         }
         server1.updateAdsPropertiesWithServerProperties();
-        adsCtx2.registerServer(server1.getAdsProperties());
+        registerServer(adsCtx2, server1.getAdsProperties());
 
         ctxSource = ctx2;
         ctxDestination = ctx1;
@@ -3863,7 +3863,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           adsCtx1.createAdministrator(getAdministratorProperties(uData));
         }
         server2.updateAdsPropertiesWithServerProperties();
-        adsCtx1.registerServer(server2.getAdsProperties());
+        registerServer(adsCtx1, server2.getAdsProperties());
 
         ctxSource = ctx1;
         ctxDestination = ctx2;
@@ -6105,5 +6105,39 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
     }
     return mustInitializeSchema;
+  }
+
+  /**
+   * This method registers a server in a given ADSContext.  If the server was
+   * already registered it unregisters it and registers again (some properties
+   * might have changed).
+   * @param adsContext the ADS Context to be used.
+   * @param server the server to be registered.
+   * @throws ADSContextException if an error occurs during the registration or
+   * unregistration of the server.
+   */
+  private void registerServer(ADSContext adsContext,
+      Map<ADSContext.ServerProperty, Object> serverProperties)
+  throws ADSContextException
+  {
+    try
+    {
+      adsContext.registerServer(serverProperties);
+    }
+    catch (ADSContextException ade)
+    {
+      if (ade.getError() ==
+        ADSContextException.ErrorType.ALREADY_REGISTERED)
+      {
+        LOG.log(Level.WARNING, "The server was already registered: "+
+            serverProperties);
+        adsContext.unregisterServer(serverProperties);
+        adsContext.registerServer(serverProperties);
+      }
+      else
+      {
+        throw ade;
+      }
+    }
   }
 }
