@@ -600,9 +600,12 @@ public class UserData
   }
 
   /**
-   * Provides the default host name that will be displayed.
+   * Provides the default host name that will be proposed to the user for the
+   * local host.
+   * @return the default host name that will be proposed to the user for the
+   * local host.
    */
-  private String getDefaultHostName()
+  public static String getDefaultHostName()
   {
     String name = "";
     try

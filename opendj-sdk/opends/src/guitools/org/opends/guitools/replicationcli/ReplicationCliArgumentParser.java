@@ -32,13 +32,13 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.args.Argument;
@@ -1905,14 +1905,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     if (defaultLocalHostValue == null)
     {
-      try
-      {
-        InetAddress localAddress = InetAddress.getLocalHost();
-        defaultLocalHostValue = localAddress.getHostName();
-      }
-      catch (Throwable t)
-      {
-      }
+      defaultLocalHostValue = UserData.getDefaultHostName();
       if (defaultLocalHostValue == null)
       {
         defaultLocalHostValue = "localhost";
