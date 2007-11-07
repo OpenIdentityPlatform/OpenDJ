@@ -3728,8 +3728,19 @@ public abstract class Installer extends GuiApplication {
    */
   private String getSelfSignedCertificateSubjectDN()
   {
-    return "cn="+Rdn.escapeValue(getUserData().getHostName())+
-    ",O=OpenDS Self-Signed Certificate";
+    int port;
+    SecurityOptions sec = getUserData().getSecurityOptions();
+    if (sec.getEnableSSL())
+    {
+      port = sec.getSslPort();
+    }
+    else
+    {
+      port = getUserData().getServerPort();
+    }
+
+    return "cn="+Rdn.escapeValue(getUserData().getHostName()+":"+port)+
+        ",O=OpenDS Self-Signed Certificate";
   }
 
   /**
