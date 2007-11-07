@@ -107,6 +107,7 @@ import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.tasks.InitializeTargetTask;
 import org.opends.server.tasks.InitializeTask;
 import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -2211,6 +2212,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
+   * Get the server ID.
+   * @return The server ID.
+   */
+  public int getServerId()
+  {
+    return serverId;
+  }
+
+  /**
    * Check if the domain solve conflicts.
    *
    * @return a boolean indicating if the domain should sove conflicts.
@@ -3175,8 +3185,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         importConfig.setAppendToExistingData(false);
 
         // TODO How to deal with rejected entries during the import
-        // importConfig.writeRejectedEntries("rejectedImport",
-        // ExistingFileBehavior.OVERWRITE);
+        importConfig.writeRejectedEntries("rejectedImport",
+         ExistingFileBehavior.OVERWRITE);
 
         // Process import
         backend.importLDIF(importConfig);

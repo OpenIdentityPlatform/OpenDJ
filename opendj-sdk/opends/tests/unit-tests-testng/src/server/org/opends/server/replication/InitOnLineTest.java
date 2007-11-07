@@ -79,6 +79,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -433,7 +434,7 @@ public class InitOnLineTest extends ReplicationTestCase
     char bigAttributeValue[] = new char[30240];
     for (int i=0; i<bigAttributeValue.length; i++)
       bigAttributeValue[i] = Integer.toString(i).charAt(0);
-    
+
     String[] entries =
     {
         "dn: dc=example,dc=com\n"
@@ -456,7 +457,8 @@ public class InitOnLineTest extends ReplicationTestCase
         + "cn: Fiona Jensen\n"
         + "sn: Jensen\n"
         + "uid: fiona\n"
-        + "telephonenumber: +1 408 555 1212\n"
+        + "telephonenumber:: "+ Base64.encode(
+            new String(bigAttributeValue).getBytes())+"\n"
         + "entryUUID: 21111111-1111-1111-1111-111111111113\n"
         + "\n",
           "dn: cn=Robert Langman,ou=people,dc=example,dc=com\n"

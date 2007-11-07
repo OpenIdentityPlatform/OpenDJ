@@ -373,6 +373,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     catch (NoSuchElementException e) {
       // done
     }
+    synchroServerEntry = null;
   }
 
   /**

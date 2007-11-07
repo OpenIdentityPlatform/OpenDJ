@@ -129,6 +129,10 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     addMonitorData(attributes, "unresolved-naming-conflicts",
                    domain.getNumUnresolvedNamingConflicts());
 
+    /* get server-id */
+    addMonitorData(attributes, "server-id",
+                   domain.getServerId());
+
     /* get window information */
     addMonitorData(attributes, "max-rcv-window", domain.getMaxRcvWindow());
     addMonitorData(attributes, "current-rcv-window",
