@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
+import javax.naming.TimeLimitExceededException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
@@ -124,7 +125,9 @@ public class ServerLoader extends Thread
         ldapUrl = getLdapUrl(serverProperties);
       }
       lastException = new TopologyCacheException(
-          TopologyCacheException.Type.TIMEOUT, null, trustManager, ldapUrl);
+          TopologyCacheException.Type.TIMEOUT,
+          new TimeLimitExceededException("Timeout reading server: "+ldapUrl),
+          trustManager, ldapUrl);
       LOG.log(Level.WARNING, "Timeout reading server: "+ldapUrl);
     }
     super.interrupt();

@@ -59,7 +59,7 @@ public class TopologyCache
   private Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
 
   private final boolean isMultiThreaded = true;
-  private final static int MULTITHREAD_TIMEOUT = 10000;
+  private final static int MULTITHREAD_TIMEOUT = 30000;
 
   private static final Logger LOG =
     Logger.getLogger(TopologyCache.class.getName());
