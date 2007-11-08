@@ -58,6 +58,7 @@ public class UninstallUserData extends UserData {
   private boolean useSSL;
   private boolean useStartTLS;
   private String replicationServer;
+  private String referencedHostName;
 
   /**
    * Sets the database directories located outside the installation which must
@@ -305,6 +306,23 @@ public class UninstallUserData extends UserData {
    */
   public void setReplicationServer(String replicationServer) {
     this.replicationServer = replicationServer;
+  }
+
+  /**
+   * Returns the server host name as referenced in other servers.
+   * @return the server host name as referenced in other servers.
+   */
+  public String getReferencedHostName() {
+    return referencedHostName;
+  }
+
+  /**
+   * Sets the server host name as referenced in other servers.
+   * @param referencedHostName server host name as referenced in other
+   * servers.
+   */
+  public void setReferencedHostName(String referencedHostName) {
+    this.referencedHostName = referencedHostName;
   }
 
   /**

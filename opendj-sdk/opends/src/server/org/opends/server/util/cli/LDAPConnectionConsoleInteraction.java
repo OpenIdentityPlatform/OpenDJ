@@ -66,7 +66,7 @@ public class LDAPConnectionConsoleInteraction {
   private String bindDN;
   private String bindPassword;
   private KeyManager keyManager;
-  private TrustManager trustManager;
+  private ApplicationTrustManager trustManager;
 
   // The SecureConnectionCliArgsList object.
   private SecureConnectionCliArgs secureArgsList = null;
@@ -1147,6 +1147,16 @@ public class LDAPConnectionConsoleInteraction {
   }
 
   /**
+   * Gets the key store that should be used for connections based on
+   * this interaction.
+   *
+   * @return key store for connections
+   */
+  public KeyStore getKeyStore() {
+    return this.truststore;
+  }
+
+  /**
    * Gets the key manager that should be used for connections based on
    * this interaction.
    *
@@ -1173,6 +1183,21 @@ public class LDAPConnectionConsoleInteraction {
    */
   public boolean checkServerCertificate(X509Certificate[] chain)
   {
+    return checkServerCertificate(chain, null, null);
+  }
+
+  /**
+   * Indicate if the certificate chain can be trusted.
+   *
+   * @param chain The certificate chain to validate
+   * @param authType the authentication type.
+   * @param host the host we tried to connect and that presented the
+   * certificate.
+   * @return true if the server certificate is trusted.
+   */
+  public boolean checkServerCertificate(X509Certificate[] chain,
+      String authType, String host)
+    {
     app.println();
     app.println(INFO_LDAP_CONN_PROMPT_SECURITY_SERVER_CERTIFICATE.get());
     app.println();
@@ -1259,8 +1284,20 @@ public class LDAPConnectionConsoleInteraction {
           }
 
           // Update the trust manager
-          trustManager = new ApplicationTrustManager(truststore);
-
+          if (trustManager == null)
+          {
+            trustManager = new ApplicationTrustManager(truststore);
+          }
+          if ((authType != null) && (host != null))
+          {
+            // Update the trust manager with the new certificate
+            trustManager.acceptCertificate(chain, authType, host);
+          }
+          else
+          {
+            // Do a full reset of the contents of the keystore.
+            trustManager = new ApplicationTrustManager(truststore);
+          }
           if (result.getValue().equals(TrustOption.PERMAMENT.getChoice()))
           {
             ValidationCallback<String> callback =

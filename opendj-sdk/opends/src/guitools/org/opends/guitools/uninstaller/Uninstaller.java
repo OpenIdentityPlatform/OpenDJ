@@ -40,6 +40,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.uninstaller.ui.ConfirmUninstallPanel;
 import org.opends.guitools.uninstaller.ui.LoginDialog;
 import org.opends.quicksetup.ui.*;
@@ -1362,6 +1363,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       getUninstallUserData().setReplicationServer(
           loginDialog.getHostName() + ":" +
           conf.getReplicationServerPort());
+      getUninstallUserData().setReferencedHostName(loginDialog.getHostName());
 
       BackgroundTask worker = new BackgroundTask()
       {
@@ -1890,6 +1892,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       if (adsContext.hasAdminData() && (serverADSProperties != null))
       {
+        LOG.log(Level.INFO, "Unregistering server on ADS of server "+
+            ConnectionUtils.getHostPort(ctx)+".  Properties: "+
+            serverADSProperties);
         adsContext.unregisterServer(serverADSProperties);
       }
     }
@@ -1943,7 +1948,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           property = ServerDescriptor.ServerProperty.LDAP_PORT;
         }
         ArrayList ports = (ArrayList)server.getServerProperties().get(property);
-        if (ports == null)
+        if (ports != null)
         {
           isServerToUninstall = ports.contains(port);
         }
@@ -1957,7 +1962,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
           else
           {
-            adsProperty = ADSContext.ServerProperty.LDAPS_PORT;
+            adsProperty = ADSContext.ServerProperty.LDAP_PORT;
           }
           String v = (String)server.getAdsProperties().get(adsProperty);
           if (v != null)
@@ -1983,7 +1988,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       // TODO: the host name comparison made here does not necessarily work in
       // all environments...
       String hostName = server.getHostName();
-      boolean hostNameEquals = false;
+      boolean hostNameEquals =
+        getUninstallUserData().getReferencedHostName().equals(hostName);
       try
       {
         InetAddress localAddress = InetAddress.getLocalHost();
@@ -1991,6 +1997,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         for (int i=0; i<addresses.length && !hostNameEquals; i++)
         {
           hostNameEquals = localAddress.equals(addresses[i]);
+        }
+        if (!hostNameEquals)
+        {
+          hostNameEquals =
+            localAddress.getHostName().equalsIgnoreCase(hostName) ||
+            localAddress.getCanonicalHostName().equalsIgnoreCase(hostName);
         }
       }
       catch (Throwable t)
