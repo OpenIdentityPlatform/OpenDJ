@@ -35,9 +35,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -212,12 +214,13 @@ public final class Schema
   // file.
   private long youngestModificationTime;
 
-  // The synchronization State.
-  private LinkedHashSet<AttributeValue> synchronizationState = null;
+  // A set of extra attributes that are not used directly by
+  // the schema but may be used by other component to store
+  // information in the schema.
+  // ex : Replication uses this to store its state and GenerationID.
 
-  // The synchronization generationId.
-  private LinkedHashSet<AttributeValue> synchronizationGenerationId
-    = null;
+  private Map<String, Attribute> extraAttributes =
+    new HashMap<String, Attribute>();
 
 
 
@@ -2931,15 +2934,10 @@ public final class Schema
     dupSchema.objectClassSet.addAll(objectClassSet);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
-    if (synchronizationState != null)
+    if (extraAttributes != null)
     {
-      dupSchema.synchronizationState =
-        new LinkedHashSet<AttributeValue>(synchronizationState);
-    }
-    if (synchronizationGenerationId != null)
-    {
-      dupSchema.synchronizationGenerationId = new
-        LinkedHashSet<AttributeValue>(synchronizationGenerationId);
+      dupSchema.extraAttributes =
+        new HashMap<String, Attribute>(extraAttributes);
     }
 
     return dupSchema;
@@ -2947,48 +2945,28 @@ public final class Schema
 
 
   /**
-   * Retrieves the Synchronization state for this schema.
+   * Get the extraAttributes stored in this schema.
    *
-   * @return  The Synchronization state for this schema.
+   * @return  The extraAttributes stored in this schema.
    */
-  public LinkedHashSet<AttributeValue> getSynchronizationState()
+  public Map<String, Attribute> getExtraAttributes()
   {
-    return synchronizationState;
+    return extraAttributes;
   }
+
 
   /**
-   * Sets the Synchronization generationId for this schema.
+   * Add a new extra Attribute for this schema.
    *
-   * @param  values  Synchronization generationId for this schema.
-   */
-  public void setSynchronizationGenerationId(
-              LinkedHashSet<AttributeValue> values)
-  {
-    synchronizationGenerationId = values;
-  }
-
-  /**
-   * Retrieves the Synchronization generationId for this schema.
+   * @param  name     The identifier of the extra Attribute.
    *
-   * @return  The Synchronization generationId for this schema.
+   * @param  attr     The extra attribute that must be added to
+   *                  this Schema.
    */
-  public LinkedHashSet<AttributeValue>
-    getSynchronizationGenerationId()
+  public void addExtraAttribute(String name, Attribute attr)
   {
-    return synchronizationGenerationId;
+    extraAttributes.put(name, attr);
   }
-
-  /**
-   * Sets the Synchronization state for this schema.
-   *
-   * @param  values  Synchronization state for this schema.
-   */
-  public void setSynchronizationState(
-              LinkedHashSet<AttributeValue> values)
-  {
-    synchronizationState = values;
-  }
-
 
 
   /**
@@ -3557,16 +3535,10 @@ public final class Schema
       substringMatchingRules = null;
     }
 
-    if (synchronizationGenerationId != null)
+    if (extraAttributes != null)
     {
-      synchronizationGenerationId.clear();
-      synchronizationGenerationId = null;
-    }
-
-    if (synchronizationState != null)
-    {
-      synchronizationState.clear();
-      synchronizationState = null;
+      extraAttributes.clear();
+      extraAttributes = null;
     }
 
     if (syntaxes != null)
