@@ -40,6 +40,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.args.Argument;
@@ -425,5 +426,16 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       returnValue = SUCCESSFUL_NOP.getReturnCode();
     }
     return returnValue;
+  }
+
+  /**
+   * Returns the SecureConnectionCliArgs object containing the arguments
+   * of this parser.
+   * @return the SecureConnectionCliArgs object containing the arguments
+   * of this parser.
+   */
+  SecureConnectionCliArgs getSecureArgsList()
+  {
+    return secureArgsList;
   }
 }

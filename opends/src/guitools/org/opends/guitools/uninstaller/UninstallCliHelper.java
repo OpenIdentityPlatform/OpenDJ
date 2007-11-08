@@ -28,28 +28,42 @@
 package org.opends.guitools.uninstaller;
 
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.statuspanel.ConfigException;
 import org.opends.guitools.statuspanel.ConfigFromFile;
+import org.opends.guitools.statuspanel.ConnectionProtocolPolicy;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
+import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 
 
+import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -60,7 +74,9 @@ import java.io.IOException;
 import java.net.URI;
 
 import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.TrustManager;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -72,19 +88,21 @@ import javax.naming.ldap.InitialLdapContext;
  * and launches it.
  *
  */
-class UninstallCliHelper extends CliApplicationHelper {
+class UninstallCliHelper extends ConsoleApplication {
 
   static private final Logger LOG =
           Logger.getLogger(UninstallCliHelper.class.getName());
 
   private UninstallerArgumentParser parser;
 
+  private LDAPConnectionConsoleInteraction ci = null;
+
   /**
    * Default constructor.
    */
   public UninstallCliHelper()
   {
-    super(System.out, System.err, System.in);
+    super(System.in, System.out, System.err);
   }
 
   /**
@@ -212,6 +230,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         UninstallData d = new UninstallData(Installation.getLocal());
         userData.setReplicationServer(
             referencedHostName+":"+d.getReplicationServerPort());
+        userData.setReferencedHostName(referencedHostName);
       }
       catch (Throwable t)
       {
@@ -237,7 +256,7 @@ class UninstallCliHelper extends CliApplicationHelper {
 
     if ((userData != null) && !args.isQuiet())
     {
-      printLineBreak();
+      println();
     }
 
 
@@ -261,18 +280,58 @@ class UninstallCliHelper extends CliApplicationHelper {
       Set<String> outsideDbs, Set<String> outsideLogs)
   {
     boolean cancelled = false;
-    Message[] options = new Message[] {
-      Message.raw("1"),
-      Message.raw("2"),
-      Message.raw("3")
-    };
-    Message answer = promptConfirm(INFO_CLI_UNINSTALL_WHAT_TO_DELETE.get(),
-        options[0], options);
-    if (options[2].toString().equals(answer.toString()))
+    final int REMOVE_ALL = 1;
+    final int SPECIFY_TO_REMOVE = 2;
+    int[] indexes = {REMOVE_ALL, SPECIFY_TO_REMOVE};
+    Message[] msgs = new Message[] {
+        INFO_CLI_UNINSTALL_REMOVE_ALL.get(),
+        INFO_CLI_UNINSTALL_SPECIFY_WHAT_REMOVE.get()
+      };
+
+    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+    builder.setPrompt(INFO_CLI_UNINSTALL_WHAT_TO_DELETE.get());
+
+    for (int i=0; i<indexes.length; i++)
     {
-      cancelled = true;
+      builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
     }
-    else if (options[0].toString().equals(answer.toString()))
+
+    builder.addQuitOption();
+
+    builder.setDefault(Message.raw(String.valueOf(REMOVE_ALL)),
+        MenuResult.success(REMOVE_ALL));
+
+    Menu<Integer> menu = builder.toMenu();
+    int choice;
+    try
+    {
+      MenuResult<Integer> m = menu.run();
+      if (m.isSuccess())
+      {
+        choice = m.getValue();
+      }
+      else if (m.isQuit())
+      {
+        choice = REMOVE_ALL;
+        cancelled = true;
+      }
+      else
+      {
+        // Should never happen.
+        throw new RuntimeException();
+      }
+    }
+    catch (CLIException ce)
+    {
+      choice = REMOVE_ALL;
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+
+    if (cancelled)
+    {
+      // Nothing to do
+    }
+    else if (choice == REMOVE_ALL)
     {
       userData.setRemoveBackups(true);
       userData.setRemoveConfigurationAndSchema(true);
@@ -289,9 +348,9 @@ class UninstallCliHelper extends CliApplicationHelper {
       boolean somethingSelected = false;
       while (!somethingSelected)
       {
-        printLineBreak();
+        println();
 //      Ask for confirmation for the different items
-        Message[] keys = {
+        msgs = new Message [] {
                 INFO_CLI_UNINSTALL_CONFIRM_LIBRARIES_BINARIES.get(),
                 INFO_CLI_UNINSTALL_CONFIRM_DATABASES.get(),
                 INFO_CLI_UNINSTALL_CONFIRM_LOGS.get(),
@@ -307,26 +366,14 @@ class UninstallCliHelper extends CliApplicationHelper {
                 )
         };
 
-
-        Message[] validValues = {
-                INFO_CLI_YES_LONG.get(),
-                INFO_CLI_NO_LONG.get(),
-                INFO_CLI_YES_SHORT.get(),
-                INFO_CLI_NO_SHORT.get()
-        };
-        boolean[] answers = new boolean[keys.length];
-        for (int i=0; i<keys.length; i++)
+        boolean[] answers = new boolean[msgs.length];
+        for (int i=0; i<msgs.length; i++)
         {
           boolean ignore = ((i == 6) && (outsideDbs.size() == 0)) ||
           ((i == 7) && (outsideLogs.size() == 0));
           if (!ignore)
           {
-            Message msg = keys[i];
-            answer = promptConfirm(msg, INFO_CLI_YES_LONG.get(), validValues);
-
-            answers[i] = INFO_CLI_YES_LONG.get().toString().equalsIgnoreCase(
-                answer.toString()) || INFO_CLI_YES_SHORT.get().toString().
-                equalsIgnoreCase(answer.toString());
+            answers[i] = confirm(msgs[i], true);
           }
           else
           {
@@ -387,8 +434,8 @@ class UninstallCliHelper extends CliApplicationHelper {
             !userData.getRemoveLogs())
         {
           somethingSelected = false;
-          printLineBreak();
-          printErrorMessage(ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
+          println();
+          println(ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
         }
         else
         {
@@ -436,12 +483,12 @@ class UninstallCliHelper extends CliApplicationHelper {
         {
           if (confirmToUpdateRemote())
           {
-            printLineBreak();
+            println();
             cancelled = !askForAuthenticationIfNeeded(userData);
             if (cancelled)
             {
               /* Ask for confirmation to stop server */
-              printLineBreak();
+              println();
               cancelled = !confirmToStopServer();
             }
             else
@@ -449,7 +496,7 @@ class UninstallCliHelper extends CliApplicationHelper {
               cancelled = !updateUserUninstallDataWithRemoteServers(userData);
               if (cancelled)
               {
-                printLineBreak();
+                println();
                 /* Ask for confirmation to stop server */
                 cancelled = !confirmToStopServer();
               }
@@ -457,7 +504,7 @@ class UninstallCliHelper extends CliApplicationHelper {
           }
           else
           {
-            printLineBreak();
+            println();
             /* Ask for confirmation to stop server */
             cancelled = !confirmToStopServer();
           }
@@ -472,7 +519,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         if (interactive)
         {
-          printLineBreak();
+          println();
           if (confirmToUpdateRemoteAndStart())
           {
             boolean startWorked = startServer(userData.isQuiet());
@@ -482,7 +529,7 @@ class UninstallCliHelper extends CliApplicationHelper {
               cancelled = !askForAuthenticationIfNeeded(userData);
               if (cancelled)
               {
-                printLineBreak();
+                println();
                 /* Ask for confirmation to stop server */
                 cancelled = !confirmToStopServer();
               }
@@ -491,7 +538,7 @@ class UninstallCliHelper extends CliApplicationHelper {
                 cancelled = !updateUserUninstallDataWithRemoteServers(userData);
                 if (cancelled)
                 {
-                  printLineBreak();
+                  println();
                   /* Ask for confirmation to stop server */
                   cancelled = !confirmToStopServer();
                 }
@@ -500,14 +547,14 @@ class UninstallCliHelper extends CliApplicationHelper {
             else
             {
               userData.setStopServer(false);
-              printLineBreak();
+              println();
               /* Ask for confirmation to delete files */
               cancelled = !confirmDeleteFiles();
             }
           }
           else
           {
-            printLineBreak();
+            println();
             /* Ask for confirmation to delete files */
             cancelled = !confirmDeleteFiles();
           }
@@ -542,7 +589,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         if (interactive)
         {
-          printLineBreak();
+          println();
           /* Ask for confirmation to stop server */
           cancelled = !confirmToStopServer();
         }
@@ -559,7 +606,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         userData.setStopServer(false);
         if (interactive)
         {
-          printLineBreak();
+          println();
           /* Ask for confirmation to delete files */
           cancelled = !confirmDeleteFiles();
         }
@@ -575,7 +622,7 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean confirmToStopServer()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_STOP.get());
+    return confirm(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true);
   }
 
   /**
@@ -585,7 +632,7 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean confirmDeleteFiles()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get());
+    return confirm(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true);
   }
 
   /**
@@ -595,7 +642,7 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean confirmToUpdateRemote()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get());
+    return confirm(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true);
   }
 
   /**
@@ -605,7 +652,8 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean confirmToUpdateRemoteAndStart()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get());
+    return confirm(
+        INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true);
   }
 
   /**
@@ -615,7 +663,22 @@ class UninstallCliHelper extends CliApplicationHelper {
    */
   private boolean promptToProvideAuthenticationAgain()
   {
-    return confirm(INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get());
+    return confirm(INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(),
+        true);
+  }
+
+  private boolean confirm(Message msg, boolean defaultValue)
+  {
+    boolean v = defaultValue;
+    try
+    {
+      v = confirmAction(msg, defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return v;
   }
 
   /**
@@ -632,17 +695,20 @@ class UninstallCliHelper extends CliApplicationHelper {
     String pwd = userData.getAdminPwd();
     boolean useSSL = userData.useSSL();
     boolean useStartTLS = userData.useStartTLS();
-    String host = "localhost";
-    int port = 389;
+
     boolean couldConnect = false;
     ConfigFromFile conf = new ConfigFromFile();
     conf.readConfiguration();
+
+    boolean canUseSSL = conf.getLDAPSURL() != null;
+    boolean canUseStartTLS = conf.getStartTLSURL() != null;
+
     while (!couldConnect && accepted)
     {
       boolean prompted = false;
       while (uid == null)
       {
-        printLineBreak();
+        println();
         uid = askForAdministratorUID(parser.getDefaultAdministratorUID());
         prompted = true;
       }
@@ -650,7 +716,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         if (!prompted)
         {
-          printLineBreak();
+          println();
         }
         pwd = askForAdministratorPwd();
       }
@@ -658,74 +724,110 @@ class UninstallCliHelper extends CliApplicationHelper {
       userData.setAdminPwd(pwd);
       userData.setUseSSL(useSSL);
       userData.setUseStartTLS(useStartTLS);
+
+      // This is done because we do not need to ask the user about these
+      // parameters.  If we force their presence the class
+      // LDAPConnectionConsoleInteraction will not prompt the user for
+      // them.
+      SecureConnectionCliArgs secureArgsList = parser.getSecureArgsList();
+
+      secureArgsList.hostNameArg.setPresent(true);
+      secureArgsList.portArg.setPresent(true);
+      secureArgsList.hostNameArg.clearValues();
+      secureArgsList.hostNameArg.addValue(
+          secureArgsList.hostNameArg.getDefaultValue());
+      secureArgsList.portArg.clearValues();
+      secureArgsList.portArg.addValue(
+          secureArgsList.portArg.getDefaultValue());
+      secureArgsList.bindDnArg.clearValues();
+      secureArgsList.bindDnArg.addValue(ADSContext.getAdministratorDN(uid));
+      secureArgsList.bindDnArg.setPresent(true);
+      secureArgsList.bindPasswordArg.clearValues();
+      secureArgsList.bindPasswordArg.addValue(pwd);
+      secureArgsList.bindPasswordArg.setPresent(true);
+
+      // We already know if SSL or StartTLS can be used.  If we cannot
+      // use them we will not propose them in the connection parameters
+      // and if none of them can be used we will just not ask for the
+      // protocol to be used.
+      if (!canUseSSL)
+      {
+        if (useSSL)
+        {
+          println();
+          println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+          println();
+          secureArgsList.useSSLArg.setPresent(false);
+        }
+        else
+        {
+          secureArgsList.useSSLArg.setValueSetByProperty(true);
+        }
+      }
+      if (!canUseStartTLS)
+      {
+        if (useStartTLS)
+        {
+          println();
+          println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+          println();
+          secureArgsList.useStartTLSArg.setPresent(false);
+        }
+        secureArgsList.useStartTLSArg.setValueSetByProperty(true);
+      }
+      if (ci == null)
+      {
+        ci =
+        new LDAPConnectionConsoleInteraction(this, parser.getSecureArgsList());
+      }
+
       InitialLdapContext ctx = null;
-      String ldapUrl = null;
       try
       {
-        ldapUrl = conf.getURL(getConnectionPolicy(useSSL, useStartTLS));
+        ci.run(canUseSSL, canUseStartTLS);
+        useSSL = ci.useSSL();
+        useStartTLS = ci.useStartTLS();
+
+        String ldapUrl = conf.getURL(
+            ConnectionProtocolPolicy.getConnectionPolicy(
+                useSSL, useStartTLS));
         try
         {
           URI uri = new URI(ldapUrl);
-          host = uri.getHost();
-          port = uri.getPort();
+          int port = uri.getPort();
+          secureArgsList.portArg.clearValues();
+          secureArgsList.portArg.addValue(String.valueOf(port));
+          ci.setPortNumber(port);
         }
         catch (Throwable t)
         {
           LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
         }
-        ctx = createContext(host, port, useSSL, useStartTLS,
-            ADSContext.getAdministratorDN(uid), pwd,
-            userData.getTrustManager());
-
+        LDAPManagementContextFactory factory =
+          new LDAPManagementContextFactory();
+        factory.getManagementContext(this, ci);
+        updateTrustManager(userData, ci);
+        ldapUrl = conf.getURL(
+            ConnectionProtocolPolicy.getConnectionPolicy(ci.useSSL(),
+                ci.useStartTLS()));
         userData.setLocalServerUrl(ldapUrl);
         couldConnect = true;
       }
-      catch (NamingException ne)
-      {
-        LOG.log(Level.WARNING, "Error connecting to server: "+ne, ne);
-
-        if (Utils.isCertificateException(ne))
-        {
-          printLineBreak();
-          accepted = promptForCertificateConfirmation(ne,
-              userData.getTrustManager(), ldapUrl, userData.getTrustManager());
-        }
-        else
-        {
-          uid = null;
-          pwd = null;
-          printLineBreak();
-          printErrorMessage(
-              Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne));
-          printLineBreak();
-          accepted = promptToProvideAuthenticationAgain();
-        }
+      catch (ArgumentException e) {
+        println(e.getMessageObject());
+        println();
+      }
+      catch (ClientException e) {
+        println(e.getMessageObject());
+        println();
       }
       catch (ConfigException ce)
       {
         LOG.log(Level.WARNING,
-        "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-        printLineBreak();
-        printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
-        printLineBreak();
-        useSSL = false;
-        useStartTLS = false;
-        useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
-        if (!useSSL)
-        {
-          useStartTLS =
-            confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-        }
-      }
-      catch (Throwable t)
-      {
-        LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
-        uid = null;
-        pwd = null;
-        printLineBreak();
-        printErrorMessage(Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
-        printLineBreak();
-        accepted = promptToProvideAuthenticationAgain();
+            "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
+        println();
+        println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+        println();
       }
       finally
       {
@@ -741,6 +843,16 @@ class UninstallCliHelper extends CliApplicationHelper {
           }
         }
       }
+
+      if (!couldConnect)
+      {
+        accepted = promptToProvideAuthenticationAgain();
+        if (accepted)
+        {
+          uid = null;
+          pwd = null;
+        }
+      }
     }
 
     if (accepted)
@@ -748,7 +860,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       String referencedHostName = parser.getReferencedHostName();
       while (referencedHostName == null)
       {
-        printLineBreak();
+        println();
         referencedHostName = askForReferencedHostName(userData.getHostName());
       }
       try
@@ -756,6 +868,7 @@ class UninstallCliHelper extends CliApplicationHelper {
         UninstallData d = new UninstallData(Installation.getLocal());
         userData.setReplicationServer(
             referencedHostName+":"+d.getReplicationServerPort());
+        userData.setReferencedHostName(referencedHostName);
       }
       catch (Throwable t)
       {
@@ -768,8 +881,17 @@ class UninstallCliHelper extends CliApplicationHelper {
 
   private String askForReferencedHostName(String defaultHostName)
   {
-    return promptForString(INFO_UNINSTALL_CLI_REFERENCED_HOSTNAME_PROMPT.get(),
-        defaultHostName);
+    String s = defaultHostName;
+    try
+    {
+      s = readInput(INFO_UNINSTALL_CLI_REFERENCED_HOSTNAME_PROMPT.get(),
+          defaultHostName);
+    }
+    catch (CLIException ce)
+    {
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return s;
   }
 
   private boolean startServer(boolean supressOutput)
@@ -850,12 +972,12 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (!supressOutput)
       {
-        printLineBreak();
+        printlnProgress();
       }
       controller.startServer(supressOutput);
       if (!supressOutput)
       {
-        printLineBreak();
+        printlnProgress();
       }
       serverStarted = Installation.getLocal().getStatus().isServerRunning();
     }
@@ -863,7 +985,7 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (!supressOutput)
       {
-        printErrorMessage(ae.getMessage());
+        println(ae.getMessageObject());
       }
     }
     return serverStarted;
@@ -904,7 +1026,7 @@ class UninstallCliHelper extends CliApplicationHelper {
       String dn = ADSContext.getAdministratorDN(adminUid);
 
       String ldapUrl = conf.getURL(
-          getConnectionPolicy(useSSL, useStartTLS));
+          ConnectionProtocolPolicy.getConnectionPolicy(useSSL, useStartTLS));
       try
       {
         URI uri = new URI(ldapUrl);
@@ -931,35 +1053,35 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       LOG.log(Level.WARNING,
           "Error retrieving a valid LDAP URL in conf file: "+ce, ce);
-      printLineBreak();
-      printErrorMessage(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
+      println();
+      println(ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
     }
     catch (NamingException ne)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+ne, ne);
       if (Utils.isCertificateException(ne))
       {
-        printLineBreak();
-        printErrorMessage(INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(
+        println();
+        println(INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(
             ne.getMessage()));
       }
       else
       {
-        printLineBreak();
-        printErrorMessage(
+        println();
+        println(
             Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne));
       }
     } catch (TopologyCacheException te)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+te, te);
-      printLineBreak();
-      printErrorMessage(Utils.getMessage(te));
+      println();
+      println(Utils.getMessage(te));
 
     } catch (Throwable t)
     {
       LOG.log(Level.WARNING, "Error connecting to server: "+t, t);
-      printLineBreak();
-      printErrorMessage(Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
+      println();
+      println(Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
     }
     finally
     {
@@ -981,14 +1103,14 @@ class UninstallCliHelper extends CliApplicationHelper {
       {
         if (forceOnError)
         {
-          printWarningMessage(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
+          println(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
               parser.adminUidArg.getLongIdentifier(),
               ToolConstants.OPTION_LONG_BINDPWD,
               ToolConstants.OPTION_LONG_BINDPWD_FILE));
         }
         else
         {
-          printErrorMessage(
+          println(
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
                   parser.adminUidArg.getLongIdentifier(),
                   ToolConstants.OPTION_LONG_BINDPWD,
@@ -1049,8 +1171,8 @@ class UninstallCliHelper extends CliApplicationHelper {
       switch (e.getType())
       {
       case NOT_GLOBAL_ADMINISTRATOR:
-        printLineBreak();
-        printErrorMessage(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
+        println();
+        println(INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
         stopProcessing = true;
         break;
       case GENERIC_CREATING_CONNECTION:
@@ -1059,13 +1181,13 @@ class UninstallCliHelper extends CliApplicationHelper {
         {
           if (interactive)
           {
-            printLineBreak();
+            println();
             if (promptForCertificateConfirmation(e.getCause(),
-                e.getTrustManager(), e.getLdapUrl(),
-                userData.getTrustManager()))
+                e.getTrustManager(), e.getLdapUrl(), true))
             {
               stopProcessing = true;
               reloadTopologyCache = true;
+              updateTrustManager(userData, ci);
             }
             else
             {
@@ -1075,9 +1197,8 @@ class UninstallCliHelper extends CliApplicationHelper {
           else
           {
             stopProcessing = true;
-            printLineBreak();
-            printErrorMessage(
-                INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
+            println();
+            println(INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
                 e.getHostPort(), e.getCause().getMessage()));
           }
         }
@@ -1094,11 +1215,11 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (!stopProcessing && (exceptionMsgs.size() > 0))
       {
-        printLineBreak();
+        println();
         returnValue = confirm(
             ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR).toString()));
+                  Constants.LINE_SEPARATOR).toString()), true);
       }
       else if (reloadTopologyCache)
       {
@@ -1113,8 +1234,8 @@ class UninstallCliHelper extends CliApplicationHelper {
     {
       if (exceptionMsgs.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(Utils.getMessageFromCollection(exceptionMsgs,
+        println();
+        println(Utils.getMessageFromCollection(exceptionMsgs,
             Constants.LINE_SEPARATOR));
         returnValue = false;
       }
@@ -1125,4 +1246,277 @@ class UninstallCliHelper extends CliApplicationHelper {
     }
     return returnValue;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isAdvancedMode() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive() {
+    return parser.isInteractive();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isQuiet() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose() {
+    return true;
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator UID.
+   * @param defaultValue the default value that will be proposed in the prompt
+   * message.
+   * @return the Global Administrator UID as provided by the user.
+   */
+  private String askForAdministratorUID(String defaultValue)
+  {
+    String s = defaultValue;
+    try
+    {
+      s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return s;
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator password.
+   * @return the Global Administrator password as provided by the user.
+   */
+  private String askForAdministratorPwd()
+  {
+    String pwd = null;
+    try
+    {
+      pwd = readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get());
+    }
+    catch (CLIException ce)
+    {
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return pwd;
+  }
+
+  /**
+   * Returns an InitialLdapContext using the provided parameters.  We try
+   * to guarantee that the connection is able to read the configuration.
+   * @param host the host name.
+   * @param port the port to connect.
+   * @param useSSL whether to use SSL or not.
+   * @param useStartTLS whether to use StartTLS or not.
+   * @param bindDn the bind dn to be used.
+   * @param pwd the password.
+   * @param trustManager the trust manager.
+   * @return an InitialLdapContext connected.
+   * @throws NamingException if there was an error establishing the connection.
+   */
+  private InitialLdapContext createContext(String host, int port,
+      boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
+      ApplicationTrustManager trustManager)
+  throws NamingException
+  {
+    InitialLdapContext ctx;
+    String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+    if (useSSL)
+    {
+      ctx = Utils.createLdapsContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null, trustManager);
+    }
+    else if (useStartTLS)
+    {
+      ctx = Utils.createStartTLSContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null, trustManager,
+          null);
+    }
+    else
+    {
+      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null);
+    }
+    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
+    {
+      throw new NoPermissionException(
+          ERR_NOT_ADMINISTRATIVE_USER.get().toString());
+    }
+    return ctx;
+  }
+
+  /**
+   * Prompts the user to accept the certificate.
+   * @param t the throwable that was generated because the certificate was
+   * not trusted.
+   * @param usedTrustManager the trustManager used when trying to establish the
+   * connection.
+   * @param usedUrl the LDAP URL used to connect to the server.
+   * @param displayErrorMessage whether to display an error message before
+   * asking to accept the certificate or not.
+   * @return <CODE>true</CODE> if the user accepted the certificate and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean promptForCertificateConfirmation(Throwable t,
+      ApplicationTrustManager usedTrustManager, String usedUrl,
+      boolean displayErrorMessage)
+  {
+    boolean returnValue = false;
+    ApplicationTrustManager.Cause cause;
+    if (usedTrustManager != null)
+    {
+      cause = usedTrustManager.getLastRefusedCause();
+    }
+    else
+    {
+      cause = null;
+    }
+
+    LOG.log(Level.INFO, "Certificate exception cause: "+cause);
+    UserDataCertificateException.Type excType = null;
+    if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+    {
+      excType = UserDataCertificateException.Type.NOT_TRUSTED;
+    }
+    else if (cause ==
+      ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+    {
+      excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+    }
+    else
+    {
+      Message msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
+          t);
+      println(msg);
+    }
+
+    if (excType != null)
+    {
+      String h;
+      int p;
+      try
+      {
+        URI uri = new URI(usedUrl);
+        h = uri.getHost();
+        p = uri.getPort();
+      }
+      catch (Throwable t1)
+      {
+        LOG.log(Level.WARNING, "Error parsing ldap url of ldap url.", t1);
+        h = INFO_NOT_AVAILABLE_LABEL.get().toString();
+        p = -1;
+      }
+      UserDataCertificateException udce =
+        new UserDataCertificateException(Step.REPLICATION_OPTIONS,
+            INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)), t, h, p,
+                usedTrustManager.getLastRefusedChain(),
+                usedTrustManager.getLastRefusedAuthType(), excType);
+
+      Message msg;
+      if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
+      {
+        msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(
+            udce.getHost(), String.valueOf(udce.getPort()),
+            udce.getHost(), String.valueOf(udce.getPort()));
+      }
+      else
+      {
+        msg = INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(
+            udce.getHost(), String.valueOf(udce.getPort()),
+            udce.getHost(),
+            udce.getHost(), String.valueOf(udce.getPort()),
+            udce.getHost(), String.valueOf(udce.getPort()));
+      }
+      if (displayErrorMessage)
+      {
+        println(msg);
+      }
+      X509Certificate[] chain = udce.getChain();
+      String authType = udce.getAuthType();
+      String host = udce.getHost();
+      if (chain == null)
+      {
+        LOG.log(Level.WARNING,
+        "The chain is null for the UserDataCertificateException");
+      }
+      if (authType == null)
+      {
+        LOG.log(Level.WARNING,
+        "The auth type is null for the UserDataCertificateException");
+      }
+      if (host == null)
+      {
+        LOG.log(Level.WARNING,
+        "The host is null for the UserDataCertificateException");
+      }
+      if (chain != null)
+      {
+        returnValue = ci.checkServerCertificate(chain, authType, host);
+      }
+    }
+    return returnValue;
+  }
+
+  /**
+   * Commodity method to update the user data with the trust manager in the
+   * LDAPConnectionConsoleInteraction object.
+   * @param userData the user data to be updated.
+   * @param ci the LDAPConnectionConsoleInteraction object to be used to update
+   * the user data object.
+   */
+   private void updateTrustManager(UninstallUserData userData,
+       LDAPConnectionConsoleInteraction ci)
+   {
+     ApplicationTrustManager trust = null;
+     TrustManager t = ci.getTrustManager();
+     if (t != null)
+     {
+       if (t instanceof ApplicationTrustManager)
+       {
+         trust = (ApplicationTrustManager)t;
+       }
+       else
+       {
+         trust = new ApplicationTrustManager(ci.getKeyStore());
+       }
+     }
+     userData.setTrustManager(trust);
+   }
 }
