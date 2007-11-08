@@ -710,28 +710,15 @@ public class SchemaConfigManager
       }
     }
 
-
-    AttributeType synchronizationStateType =
-      schema.getAttributeType(ATTR_SYNCHRONIZATION_STATE_LC);
-    if (synchronizationStateType == null)
+    // Loop on all the attribute of the schema entry to
+    // find the extra attribute that shoule be loaded in the Schema.
+    for (Attribute attribute : entry.getAttributes())
     {
-      synchronizationStateType =
-        DirectoryServer.getDefaultAttributeType(ATTR_SYNCHRONIZATION_STATE_LC,
-            new MatchingRuleUseSyntax());
+      if (!isSchemaAttribute(attribute))
+      {
+        schema.addExtraAttribute(attribute.getName(), attribute);
+      }
     }
-
-    AttributeType synchronizationGenerationIdType =
-      schema.getAttributeType(ATTR_SYNCHRONIZATION_GENERATIONID_LC);
-    if (synchronizationGenerationIdType == null)
-    {
-      synchronizationGenerationIdType = DirectoryServer.getDefaultAttributeType
-          (ATTR_SYNCHRONIZATION_GENERATIONID_LC, new MatchingRuleUseSyntax());
-    }
-
-    List<Attribute> synchronizationState =
-      entry.getAttribute(synchronizationStateType);
-    if (synchronizationState != null && !(synchronizationState.isEmpty()))
-      schema.setSynchronizationState(synchronizationState.get(0).getValues());
 
     // Parse the attribute type definitions if there are any.
     if (attrList != null)
@@ -744,7 +731,7 @@ public class SchemaConfigManager
           AttributeType attrType;
           try
           {
-            attrType = attrTypeSyntax.decodeAttributeType(v.getValue(),
+            attrType = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
                                                           schema, false);
             attrType.setExtraProperty(SCHEMA_PROPERTY_FILENAME, (String) null);
             attrType.setSchemaFile(schemaFile);
@@ -837,7 +824,8 @@ public class SchemaConfigManager
           ObjectClass oc;
           try
           {
-            oc = ocSyntax.decodeObjectClass(v.getValue(), schema, false);
+            oc =
+              ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, false);
             oc.setExtraProperty(SCHEMA_PROPERTY_FILENAME, (String) null);
             oc.setSchemaFile(schemaFile);
           }
@@ -931,7 +919,7 @@ public class SchemaConfigManager
           NameForm nf;
           try
           {
-            nf = nfSyntax.decodeNameForm(v.getValue(), schema, false);
+            nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, false);
             nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             nf.setSchemaFile(schemaFile);
           }
@@ -1023,7 +1011,8 @@ public class SchemaConfigManager
           DITContentRule dcr;
           try
           {
-            dcr = dcrSyntax.decodeDITContentRule(v.getValue(), schema, false);
+            dcr = DITContentRuleSyntax.decodeDITContentRule(
+                v.getValue(), schema, false);
             dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             dcr.setSchemaFile(schemaFile);
           }
@@ -1116,8 +1105,8 @@ public class SchemaConfigManager
           DITStructureRule dsr;
           try
           {
-            dsr = dsrSyntax.decodeDITStructureRule(v.getValue(), schema,
-                                                   false);
+            dsr = DITStructureRuleSyntax.decodeDITStructureRule(
+                v.getValue(), schema, false);
             dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             dsr.setSchemaFile(schemaFile);
           }
@@ -1210,8 +1199,8 @@ public class SchemaConfigManager
           MatchingRuleUse mru;
           try
           {
-            mru = mruSyntax.decodeMatchingRuleUse(v.getValue(), schema,
-                                                  false);
+            mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(
+                            v.getValue(), schema, false);
             mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             mru.setSchemaFile(schemaFile);
           }
@@ -1295,6 +1284,45 @@ public class SchemaConfigManager
 
 
     return mods;
+  }
+
+
+
+  /**
+   * This method checks if a given attribute is an attribute that
+   * is used by the definition of the schema.
+   *
+   * @param attribute   The attribute to be checked.
+   * @return            true if the attribute is part of the schema definition,
+   *                    false if the attribute is not part of the schema
+   *                    definition.
+   */
+  private static boolean isSchemaAttribute(Attribute attribute)
+  {
+    String attributeOid = attribute.getAttributeType().getOID();
+    if (attributeOid.equals("2.5.21.1") ||
+        attributeOid.equals("2.5.21.2") ||
+        attributeOid.equals("2.5.21.4") ||
+        attributeOid.equals("2.5.21.5") ||
+        attributeOid.equals("2.5.21.6") ||
+        attributeOid.equals("2.5.21.7") ||
+        attributeOid.equals("2.5.21.8") ||
+        attributeOid.equals("2.5.4.3")  ||
+        attributeOid.equals("attributetypes-oid")      ||
+        attributeOid.equals("objectclasses-oid")       ||
+        attributeOid.equals("matchingRules-oid")       ||
+        attributeOid.equals("matchingRuleUse-oid")     ||
+        attributeOid.equals("NameFormDescription-oid") ||
+        attributeOid.equals("dITContentRules-oid")     ||
+        attributeOid.equals("dITStructureRules")
+        )
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
   }
 }
 

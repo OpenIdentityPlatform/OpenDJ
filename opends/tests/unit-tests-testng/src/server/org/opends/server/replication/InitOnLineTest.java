@@ -1453,8 +1453,27 @@ public class InitOnLineTest extends ReplicationTestCase
   protected void afterTest()
   {
 
+    // Check that the domain hsa completed the import/export task.
     if (replDomain != null)
     {
+      // race condition could cause the main thread to reach 
+      // this code before the task is fully completed.
+      // in those cases, loop for a while waiting for completion.
+      for (int i = 0; i< 10; i++)
+      {
+        if (replDomain.ieRunning())
+        {
+          try
+          {
+            Thread.sleep(500);
+          } catch (InterruptedException e)
+          { }
+        }
+        else
+        {
+          break;
+        }
+      }
        assertTrue(!replDomain.ieRunning(),
          "ReplicationDomain: Import/Export is not expected to be running");
     }

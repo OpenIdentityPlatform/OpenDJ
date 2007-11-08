@@ -45,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -171,13 +172,6 @@ public class SchemaBackend
   // The attribute type that will be used to include the defined name forms.
   private AttributeType nameFormsType;
 
-  // The attribute type that will be used to save the synchronization state.
-  private AttributeType synchronizationStateType;
-
-  // The attribute type that will be used to save the synchronization
-  // generationId.
-  private AttributeType synchronizationGenerationIdType;
-
   // The value containing DN of the user we'll say created the configuration.
   private AttributeValue creatorsName;
 
@@ -272,12 +266,6 @@ public class SchemaBackend
     matchingRuleUsesType =
          DirectoryServer.getAttributeType(ATTR_MATCHING_RULE_USE_LC, true);
     nameFormsType = DirectoryServer.getAttributeType(ATTR_NAME_FORMS_LC, true);
-    synchronizationStateType =
-      DirectoryServer.getAttributeType(ATTR_SYNCHRONIZATION_STATE_LC, true);
-    synchronizationGenerationIdType =
-      DirectoryServer.getAttributeType(ATTR_SYNCHRONIZATION_GENERATIONID_LC,
-          true);
-
 
     // Initialize the lastmod attributes.
     creatorsNameType =
@@ -955,21 +943,15 @@ public class SchemaBackend
                                valueSet));
     operationalAttrs.put(modifyTimestampType, attrList);
 
-    //  Add the synchronization State attribute.
-    valueSet = DirectoryServer.getSchema().getSynchronizationState();
-    attr = new Attribute(synchronizationStateType,
-                         ATTR_SYNCHRONIZATION_STATE_LC, valueSet);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(attr);
-    operationalAttrs.put(synchronizationStateType, attrList);
-
-    //  Add the synchronization GenerationId attribute.
-    valueSet = DirectoryServer.getSchema().getSynchronizationGenerationId();
-    attr = new Attribute(synchronizationGenerationIdType,
-                         ATTR_SYNCHRONIZATION_GENERATIONID_LC, valueSet);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(attr);
-    operationalAttrs.put(synchronizationGenerationIdType, attrList);
+    //  Add the extra attributes.
+    Map<String, Attribute> attributes =
+      DirectoryServer.getSchema().getExtraAttributes();
+    for (Attribute attribute : attributes.values())
+    {
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(attribute);
+      operationalAttrs.put(attribute.getAttributeType(), attrList);
+    }
 
     // Add all the user-defined attributes.
     for (Attribute a : userDefinedAttributes)
@@ -1497,8 +1479,7 @@ public class SchemaBackend
           }
           else
           {
-            if (at.equals(synchronizationStateType))
-              newSchema.setSynchronizationState(a.getValues());
+            newSchema.addExtraAttribute(at.getNameOrOID(), a);
             modifiedSchemaFiles.add(FILE_USER_SCHEMA_ELEMENTS);
           }
       }
@@ -3441,14 +3422,12 @@ public class SchemaBackend
 
     if (schemaFile.equals(FILE_USER_SCHEMA_ELEMENTS))
     {
-      values = schema.getSynchronizationState();
-      if (values != null)
+      Map<String, Attribute> attributes = schema.getExtraAttributes();
+      for (Attribute attribute : attributes.values())
       {
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(new Attribute(synchronizationStateType,
-                                   synchronizationStateType.getPrimaryName(),
-                                   values));
-        schemaEntry.putAttribute(synchronizationStateType, attrList);
+        attrList.add(attribute);
+        schemaEntry.putAttribute(attribute.getAttributeType(), attrList);
       }
     }
 
