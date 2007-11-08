@@ -684,15 +684,27 @@ public class Utils
       buf.append(INFO_SERVER_ERROR.get(hostName));
       buf.append(" ");
     }
-    if (te.getCause() instanceof NamingException)
+    if (te.getType() == TopologyCacheException.Type.TIMEOUT)
+    {
+      buf.append(INFO_ERROR_CONNECTING_TIMEOUT.get());
+    }
+    else if (te.getCause() instanceof NamingException)
     {
       buf.append(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
           te.getCause()));
     }
     else
     {
+      LOG.log(Level.WARNING, "Unexpected error: "+te, te);
       // This is unexpected.
-      buf.append(getThrowableMsg(INFO_BUG_MSG.get(), te.getCause()));
+      if (te.getCause() != null)
+      {
+        buf.append(getThrowableMsg(INFO_BUG_MSG.get(), te.getCause()));
+      }
+      else
+      {
+        buf.append(getThrowableMsg(INFO_BUG_MSG.get(), te));
+      }
     }
     return buf.toMessage();
   }
