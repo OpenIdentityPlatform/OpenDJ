@@ -1265,7 +1265,8 @@ public class SubCommandArgumentParser extends ArgumentParser
         {
           String value = argumentProperties.getProperty(a.getPropertyName()
               .toLowerCase());
-          if (value != null)
+          MessageBuilder invalidReason =  new MessageBuilder();
+          if ( (value != null) && (a.valueIsAcceptable(value, invalidReason)))
           {
             a.addValue(value);
             if (a.needsValue())
@@ -1310,7 +1311,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           {
             String value = argumentProperties.getProperty(a.getPropertyName()
                 .toLowerCase());
-            if (value != null)
+            MessageBuilder invalidReason =  new MessageBuilder();
+            if ((value != null) && (a.valueIsAcceptable(value, invalidReason)))
             {
               a.addValue(value);
               if (a.needsValue())
