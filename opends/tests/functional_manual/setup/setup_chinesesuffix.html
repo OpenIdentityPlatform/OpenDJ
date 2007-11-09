@@ -1,0 +1,501 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>setup_chinesesuffix</title>
+</head>
+<body>
+<br>
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
+ cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">Test ID</td>
+      <td style="vertical-align: top;">setup_chinesesuffix<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Panel<br>
+      </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>
+OpenDS Graphical QuickSetUp -&gt; Directory Data Panel<br>
+      <small>Directory Base DN: o=&#21271;&#20140;&#22823;&#23398;<br>
+Import Data from LDIF File beijing.ldif<br>
+      </small><br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Items<br>
+      </td>
+      <td style="vertical-align: top;">- create a <span
+ style="font-weight: bold;">simplified</span>
+chinese suffix o=&#21271;&#20140;&#22823;&#23398; (Beijing University) using the beijing.ldif file<br>
+- run an ldap command on this suffix<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Specific checks</td>
+      <td style="vertical-align: top;">verify the suffix is created
+correctly and the&nbsp; characters are ok <br>
+      <span style="text-decoration: underline;">Note</span> : Set you
+locale to any UTF-8 locale. Set the encoding in your browser to UTF-8
+(View-&gt; Character Encoding -&gt; Unicode (UTF-8)<br>
+      <span style="text-decoration: underline;">Note</span> :
+attributes with multibyte characters (dn, postalAdress, street, sn, cn,
+description)<br>
+      <span style="text-decoration: underline;">Note</span> :
+userPassword: password<br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+<br>
+<br>
+<br>
+<span style="font-family: monospace;">beijing.ldif</span><br>
+<span style="font-family: monospace;">#</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;"># PROPRIETARY/CONFIDENTIAL. Use
+of this product is subject to</span><br style="font-family: monospace;">
+<span style="font-family: monospace;"># license terms. Copyright (c)
+2001 Sun Microsystems, Inc.</span><br style="font-family: monospace;">
+<span style="font-family: monospace;"># Some preexisting portions
+Copyright (c) 2001 Netscape Communications Corp.</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;"># All rights reserved.</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;"># </span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">dn: o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">o: &#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectclass: Top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectclass: organization</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalunit</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">ou: People</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=hbin,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: HB</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 010 154 3228</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 685 622 6202</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 225 216 5900</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: hbin@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 0</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#37085;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#23481;&#22120;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#37085; &#23481;&#22120;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: hbin</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Hao &#37085; Bin &#23481;&#22120;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=xchen,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: XC</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 680 734 6300</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 390 103 6917</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 280 375 4325</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: xchen@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 1</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#21439;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#38472;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn:&#21439; &#38472;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: xchen</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Xian &#21439;Chen &#38472;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=ycheng,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials:YC</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 279 618 3901</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 757 462 0301</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 003 428 0962</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: ycheng@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 2</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#23002;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#22478;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#23002; &#22478;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: ycheng</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Yao &#23002; Cheng &#22478;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=lcui,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: LC</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 890 430 9077</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 094 100 7524</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 332 432 4295</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: lcui@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 3</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#26446;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#23828;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#26446; &#23828;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: lcui</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Lee &#26446; Cui &#23828;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=jdong,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: JD</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 209 956 9394</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 548 762 2193</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 423 009 6628</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: jdong@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 4</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#20140;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#19996;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#20140; &#19996;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: jdong</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Jing &#20140; Dong &#19996;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=wduan,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: WD</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 516 926 3480</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 154 428 0080</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 563 061 6916</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: wduan@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 5</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#33485;&#30333;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#27573;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#33485;&#30333; &#27573;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: wduan</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Wan &#33485;&#30333; Duan &#27573;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=pfan,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: PF</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 496 091 6823</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 236 110 4271</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 030 104 9024</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: pfan@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 6</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#30768;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#39118;&#25159;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#30768; &#39118;&#25159;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: pfan</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Ping &#30768; Fan &#39118;&#25159;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=bhe,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: BH</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 005 264 0002</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 000 800 5137</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 941 161 6010</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: bhe@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 7</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#22534;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#20182;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#22534; &#20182;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: bhe</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Bing &#22534; He &#20182;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=ztang,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: ZT</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 407 301 6516</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 804 094 3356</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 884 320 6955</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: ztang@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 8</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#26417;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#29305;&#24615;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#26417; &#29305;&#24615;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: ztang</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Zhu &#26417; Tang &#29305;&#24615;</span><br
+ style="font-family: monospace;">
+<br style="font-family: monospace;">
+<span style="font-family: monospace;">dn: uid=cxiong,ou=People,o=&#21271;&#20140;&#22823;&#23398;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: inetorgperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: person</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: top</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">objectClass: organizationalperson</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalAddress: 43 &#21335;&#26446;&#36335;, Xicheng
+District, &#32592;&#22836; &#22823;&#21414;, 100045 &#21271;&#20140;, &#20013;&#22269;</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">initials: CX</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">street: 43 &#21335;&#26446;&#36335;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">postalCode: 100045</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mobile: +1 865 856 2932</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">telephoneNumber: +1 791 584 7150</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">homePhone: +1 104 644 6187</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">mail: cxiong@maildomain.net</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">employeeNumber: 9</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">givenName: &#38472;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">sn: &#29066;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">cn: &#38472; &#29066;</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">uid: cxiong</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">userPassword: password</span><br
+ style="font-family: monospace;">
+<span style="font-family: monospace;">description: Chen &#38472; Xiong &#29066;</span><span
+ style="font-family: monospace;"></span><br>
+</body>
+</html>
