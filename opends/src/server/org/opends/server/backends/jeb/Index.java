@@ -153,7 +153,7 @@ public class Index extends DatabaseContainer
     this.state = state;
 
     this.trusted = state.getIndexTrustState(null, this);
-    if(!trusted && entryContainer.getEntryCount() <= 0)
+    if(!trusted && entryContainer.getHighestEntryID().equals(new EntryID(0)))
     {
       // If there are no entries in the entry container then there
       // is no reason why this index can't be upgraded to trusted.

@@ -3831,7 +3831,32 @@ public class EntryContainer
    */
   public long getEntryCount() throws DatabaseException
   {
-    return id2entry.getRecordCount();
+    EntryID entryID = dn2id.get(null, baseDN);
+    if (entryID != null)
+    {
+      DatabaseEntry key =
+          new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+      EntryIDSet entryIDSet;
+      entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
+
+      long count = entryIDSet.size();
+      if(count != Long.MAX_VALUE)
+      {
+        // Add the base entry itself
+        return ++count;
+      }
+      else
+      {
+        // The count is not maintained. Fall back to the slow method
+        return id2entry.getRecordCount();
+      }
+    }
+    else
+    {
+      // Base entry doesn't not exist so this entry container
+      // must not have any entries
+      return 0;
+    }
   }
 
   /**
