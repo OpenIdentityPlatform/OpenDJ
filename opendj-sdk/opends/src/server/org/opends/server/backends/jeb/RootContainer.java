@@ -145,8 +145,18 @@ public class RootContainer
     // Determine the backend database directory.
     File backendDirectory = getFileForPath(config.getDBDirectory());
 
+    // Create the directory if it doesn't exist.
+    if (!backendDirectory.exists())
+    {
+      if(!backendDirectory.mkdirs())
+      {
+        Message message =
+            ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+        throw new ConfigException(message);
+      }
+    }
     //Make sure the directory is valid.
-    if (!backendDirectory.isDirectory())
+    else if (!backendDirectory.isDirectory())
     {
       Message message =
           ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
@@ -714,11 +724,26 @@ public class RootContainer
     boolean acceptable = true;
 
     File backendDirectory = getFileForPath(cfg.getDBDirectory());
+    //Make sure the directory either alreadly exists or is able to create.
+    if (!backendDirectory.exists())
+    {
+      if(!backendDirectory.mkdirs())
+      {
+        Message message =
+            ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+        unacceptableReasons.add(message);
+        acceptable = false;
+      }
+      else
+      {
+        backendDirectory.delete();
+      }
+    }
     //Make sure the directory is valid.
-    if (!backendDirectory.isDirectory())
+    else if (!backendDirectory.isDirectory())
     {
       Message message =
-              ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+          ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
       unacceptableReasons.add(message);
       acceptable = false;
     }
@@ -844,6 +869,101 @@ public class RootContainer
           TRACER.debugInfo(env.getConfig().toString());
         }
       }
+
+      // Create the directory if it doesn't exist.
+      if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
+      {
+        File backendDirectory = getFileForPath(cfg.getDBDirectory());
+
+        if (!backendDirectory.exists())
+        {
+          if(!backendDirectory.mkdirs())
+          {
+            messages.add(ERR_JEB_DIRECTORY_INVALID.get(
+                backendDirectory.getPath()));
+            ccr = new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(),
+                adminActionRequired,
+                messages);
+            return ccr;
+          }
+        }
+        //Make sure the directory is valid.
+        else if (!backendDirectory.isDirectory())
+        {
+          messages.add(ERR_JEB_DIRECTORY_INVALID.get(
+              backendDirectory.getPath()));
+          ccr = new ConfigChangeResult(
+              DirectoryServer.getServerErrorResultCode(),
+              adminActionRequired,
+              messages);
+          return ccr;
+        }
+
+        adminActionRequired = true;
+        messages.add(INFO_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
+                        this.config.getDBDirectory(), cfg.getDBDirectory()));
+      }
+
+      if(!cfg.getDBDirectoryPermissions().equalsIgnoreCase(
+          config.getDBDirectoryPermissions()) ||
+          !cfg.getDBDirectory().equals(this.config.getDBDirectory()))
+      {
+        FilePermission backendPermission;
+        try
+        {
+          backendPermission =
+              FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
+        }
+        catch(Exception e)
+        {
+          messages.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(
+              config.dn().toString()));
+          ccr = new ConfigChangeResult(
+              DirectoryServer.getServerErrorResultCode(),
+              adminActionRequired,
+              messages);
+          return ccr;
+        }
+
+        //Make sure the mode will allow the server itself access to
+        //the database
+        if(!backendPermission.isOwnerWritable() ||
+            !backendPermission.isOwnerReadable() ||
+            !backendPermission.isOwnerExecutable())
+        {
+          messages.add(WARN_CONFIG_BACKEND_INSANE_MODE.get());
+          ccr = new ConfigChangeResult(
+              DirectoryServer.getServerErrorResultCode(),
+              adminActionRequired,
+              messages);
+          return ccr;
+        }
+
+        // Get the backend database backendDirectory permissions and apply
+        if(FilePermission.canSetPermissions())
+        {
+          File backendDirectory = getFileForPath(cfg.getDBDirectory());
+          try
+          {
+            if(!FilePermission.setPermissions(backendDirectory,
+                backendPermission))
+            {
+              Message message = WARN_JEB_UNABLE_SET_PERMISSIONS.get(
+                  backendPermission.toString(), backendDirectory.toString());
+              logError(message);
+            }
+          }
+          catch(Exception e)
+          {
+            // Log an warning that the permissions were not set.
+            Message message = WARN_JEB_SET_PERMISSIONS_FAILED.get(
+                backendDirectory.toString(), e.toString());
+            logError(message);
+          }
+        }
+      }
+
       this.config = cfg;
     }
     catch (Exception e)
