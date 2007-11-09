@@ -1266,14 +1266,22 @@ public class SubCommandArgumentParser extends ArgumentParser
           String value = argumentProperties.getProperty(a.getPropertyName()
               .toLowerCase());
           MessageBuilder invalidReason =  new MessageBuilder();
-          if ( (value != null) && (a.valueIsAcceptable(value, invalidReason)))
+          if (value != null)
           {
-            a.addValue(value);
-            if (a.needsValue())
+            Boolean addValue = true;
+            if (!( a instanceof BooleanArgument))
             {
-              a.setPresent(true);
+              addValue = a.valueIsAcceptable(value, invalidReason);
             }
-            a.setValueSetByProperty(true);
+            if (addValue)
+            {
+              a.addValue(value);
+              if (a.needsValue())
+              {
+                a.setPresent(true);
+              }
+              a.setValueSetByProperty(true);
+            }
           }
         }
       }
@@ -1312,14 +1320,22 @@ public class SubCommandArgumentParser extends ArgumentParser
             String value = argumentProperties.getProperty(a.getPropertyName()
                 .toLowerCase());
             MessageBuilder invalidReason =  new MessageBuilder();
-            if ((value != null) && (a.valueIsAcceptable(value, invalidReason)))
+            if (value != null)
             {
-              a.addValue(value);
-              if (a.needsValue())
+              Boolean addValue = true;
+              if (!( a instanceof BooleanArgument))
               {
-                a.setPresent(true);
+                addValue = a.valueIsAcceptable(value, invalidReason);
               }
-              a.setValueSetByProperty(true);
+              if (addValue)
+              {
+                a.addValue(value);
+                if (a.needsValue())
+                {
+                  a.setPresent(true);
+                }
+                a.setValueSetByProperty(true);
+              }
             }
           }
         }
