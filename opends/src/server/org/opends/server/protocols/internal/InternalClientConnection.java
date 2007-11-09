@@ -846,7 +846,8 @@ public final class InternalClientConnection
   public AddOperation processAdd(String rawEntryDN,
                                  List<RawAttribute> rawAttributes)
   {
-    return processAdd(new ASN1OctetString(rawEntryDN), rawAttributes);
+    return processAdd(new ASN1OctetString(rawEntryDN), rawAttributes,
+                      null);
   }
 
 
@@ -865,10 +866,36 @@ public final class InternalClientConnection
   public AddOperation processAdd(ByteString rawEntryDN,
                                  List<RawAttribute> rawAttributes)
   {
+    return processAdd(rawEntryDN, rawAttributes, null);
+  }
+
+
+
+  /**
+   * Processes an internal add operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN     The DN to use for the entry to add.
+   * @param  rawAttributes  The set of attributes to include in the
+   *                        entry to add.
+   * @param  controls       The set of controls to include in the
+   *                        request.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public AddOperation processAdd(ByteString rawEntryDN,
+                                 List<RawAttribute> rawAttributes,
+                                 List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     AddOperationBasis addOperation =
          new AddOperationBasis(this, nextOperationID(),
-                          nextMessageID(),
-                          new ArrayList<Control>(0), rawEntryDN,
+                          nextMessageID(), controls, rawEntryDN,
                           rawAttributes);
     addOperation.setInternalOperation(true);
 
@@ -901,10 +928,46 @@ public final class InternalClientConnection
                            Map<AttributeType,List<Attribute>>
                                 operationalAttributes)
   {
+    return processAdd(entryDN, objectClasses, userAttributes,
+                      operationalAttributes, null);
+  }
+
+
+
+  /**
+   * Processes an internal add operation with the provided
+   * information.
+   *
+   * @param  entryDN                The entry DN for the add
+   *                                operation.
+   * @param  objectClasses          The set of objectclasses for the
+   *                                add operation.
+   * @param  userAttributes         The set of user attributes for the
+   *                                add operation.
+   * @param  operationalAttributes  The set of operational attributes
+   *                                for the add operation.
+   * @param  controls               The set of controls to include in
+   *                                the request.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public AddOperation processAdd(DN entryDN,
+                           Map<ObjectClass,String> objectClasses,
+                           Map<AttributeType,List<Attribute>>
+                                userAttributes,
+                           Map<AttributeType,List<Attribute>>
+                                operationalAttributes,
+                           List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     AddOperationBasis addOperation =
          new AddOperationBasis(this, nextOperationID(),
-                          nextMessageID(),
-                          new ArrayList<Control>(0), entryDN,
+                          nextMessageID(), controls, entryDN,
                           objectClasses, userAttributes,
                           operationalAttributes);
     addOperation.setInternalOperation(true);
@@ -926,6 +989,28 @@ public final class InternalClientConnection
    */
   public AddOperation processAdd(Entry entry)
   {
+    return processAdd(entry, null);
+  }
+
+
+
+  /**
+   * Processes an internal add operation with the provided
+   * information.
+   *
+   * @param  entry     The entry to be added.
+   * @param  controls  The set of controls to include in the request.
+   *
+   * @return  A reference to the add operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public AddOperation processAdd(Entry entry, List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     return processAdd(entry.getDN(), entry.getObjectClasses(),
                       entry.getUserAttributes(),
                       entry.getOperationalAttributes());
@@ -997,7 +1082,32 @@ public final class InternalClientConnection
                                          String password)
   {
     return processSimpleBind(new ASN1OctetString(rawBindDN),
-                             new ASN1OctetString(password));
+                             new ASN1OctetString(password),
+                             null);
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  rawBindDN  The bind DN for the operation.
+   * @param  password   The bind password for the operation.
+   * @param  controls   The set of controls to include in the
+   *                    request.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSimpleBind(String rawBindDN,
+                                         String password,
+                                         List<Control> controls)
+  {
+    return processSimpleBind(new ASN1OctetString(rawBindDN),
+                             new ASN1OctetString(password), controls);
   }
 
 
@@ -1017,10 +1127,36 @@ public final class InternalClientConnection
   public BindOperation processSimpleBind(ByteString rawBindDN,
                                          ByteString password)
   {
+    return processSimpleBind(rawBindDN, password, null);
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  rawBindDN  The bind DN for the operation.
+   * @param  password   The bind password for the operation.
+   * @param  controls   The set of controls to include in the request.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSimpleBind(ByteString rawBindDN,
+                                         ByteString password,
+                                         List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
-                           nextMessageID(),
-                           new ArrayList<Control>(0),
+                           nextMessageID(), controls,
                            PROTOCOL_VERSION, rawBindDN, password);
     bindOperation.setInternalOperation(true);
 
@@ -1045,10 +1181,36 @@ public final class InternalClientConnection
   public BindOperation processSimpleBind(DN bindDN,
                                          ByteString password)
   {
+    return processSimpleBind(bindDN, password, null);
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  bindDN    The bind DN for the operation.
+   * @param  password  The bind password for the operation.
+   * @param  controls  The set of controls to include in the request.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSimpleBind(DN bindDN,
+                                         ByteString password,
+                                         List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
-                           nextMessageID(),
-                           new ArrayList<Control>(0),
+                           nextMessageID(), controls,
                            PROTOCOL_VERSION, bindDN, password);
     bindOperation.setInternalOperation(true);
 
@@ -1075,10 +1237,40 @@ public final class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
+    return processSASLBind(rawBindDN, saslMechanism, saslCredentials,
+                           null);
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  rawBindDN        The bind DN for the operation.
+   * @param  saslMechanism    The SASL mechanism for the operation.
+   * @param  saslCredentials  The SASL credentials for the operation.
+   * @param  controls         The set of controls to include in the
+   *                          request.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSASLBind(ByteString rawBindDN,
+                            String saslMechanism,
+                            ASN1OctetString saslCredentials,
+                            List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
-                           nextMessageID(),
-                           new ArrayList<Control>(0),
+                           nextMessageID(), controls,
                            PROTOCOL_VERSION, rawBindDN, saslMechanism,
                            saslCredentials);
     bindOperation.setInternalOperation(true);
@@ -1106,10 +1298,40 @@ public final class InternalClientConnection
                             String saslMechanism,
                             ASN1OctetString saslCredentials)
   {
+    return processSASLBind(bindDN, saslMechanism, saslCredentials,
+                           null);
+  }
+
+
+
+  /**
+   * Processes an internal bind operation with the provided
+   * information.  Note that regardless of whether the bind is
+   * successful, the authentication state for this internal connection
+   * will not be altered in any way.
+   *
+   * @param  bindDN           The bind DN for the operation.
+   * @param  saslMechanism    The SASL mechanism for the operation.
+   * @param  saslCredentials  The SASL credentials for the operation.
+   * @param  controls         The set of controls to include in the
+   *                          request.
+   *
+   * @return  A reference to the bind operation that was processed and
+   *          contains information about the result of the processing.
+   */
+  public BindOperation processSASLBind(DN bindDN,
+                            String saslMechanism,
+                            ASN1OctetString saslCredentials,
+                            List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     BindOperationBasis bindOperation =
          new BindOperationBasis(this, nextOperationID(),
-                           nextMessageID(),
-                           new ArrayList<Control>(0),
+                           nextMessageID(), controls,
                            PROTOCOL_VERSION, bindDN, saslMechanism,
                            saslCredentials);
     bindOperation.setInternalOperation(true);
@@ -1140,7 +1362,36 @@ public final class InternalClientConnection
   {
     return processCompare(new ASN1OctetString(rawEntryDN),
                           attributeType,
-                          new ASN1OctetString(assertionValue));
+                          new ASN1OctetString(assertionValue), null);
+  }
+
+
+
+  /**
+   * Processes an internal compare operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN      The entry DN for the compare operation.
+   * @param  attributeType   The attribute type for the compare
+   *                         operation.
+   * @param  assertionValue  The assertion value for the compare
+   *                         operation.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   *
+   * @return  A reference to the compare operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public CompareOperation processCompare(String rawEntryDN,
+                                         String attributeType,
+                                         String assertionValue,
+                                         List<Control> controls)
+  {
+    return processCompare(new ASN1OctetString(rawEntryDN),
+                          attributeType,
+                          new ASN1OctetString(assertionValue),
+                          controls);
   }
 
 
@@ -1163,10 +1414,41 @@ public final class InternalClientConnection
                                          String attributeType,
                                          ByteString assertionValue)
   {
+    return processCompare(rawEntryDN, attributeType, assertionValue,
+                          null);
+  }
+
+
+
+  /**
+   * Processes an internal compare operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN      The entry DN for the compare operation.
+   * @param  attributeType   The attribute type for the compare
+   *                         operation.
+   * @param  assertionValue  The assertion value for the compare
+   *                         operation.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   *
+   * @return  A reference to the compare operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public CompareOperation processCompare(ByteString rawEntryDN,
+                                         String attributeType,
+                                         ByteString assertionValue,
+                                         List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(this, nextOperationID(),
-                              nextMessageID(),
-                              new ArrayList<Control>(0), rawEntryDN,
+                              nextMessageID(), controls, rawEntryDN,
                               attributeType, assertionValue);
     compareOperation.setInternalOperation(true);
 
@@ -1194,10 +1476,41 @@ public final class InternalClientConnection
                                          AttributeType attributeType,
                                          ByteString assertionValue)
   {
+    return processCompare(entryDN, attributeType, assertionValue,
+                          null);
+  }
+
+
+
+  /**
+   * Processes an internal compare operation with the provided
+   * information.
+   *
+   * @param  entryDN         The entry DN for the compare operation.
+   * @param  attributeType   The attribute type for the compare
+   *                         operation.
+   * @param  assertionValue  The assertion value for the compare
+   *                         operation.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   *
+   * @return  A reference to the compare operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public CompareOperation processCompare(DN entryDN,
+                                         AttributeType attributeType,
+                                         ByteString assertionValue,
+                                         List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     CompareOperationBasis compareOperation =
          new CompareOperationBasis(this, nextOperationID(),
-                              nextMessageID(),
-                              new ArrayList<Control>(0), entryDN,
+                              nextMessageID(), controls, entryDN,
                               attributeType, assertionValue);
     compareOperation.setInternalOperation(true);
 
@@ -1219,7 +1532,27 @@ public final class InternalClientConnection
    */
   public DeleteOperation processDelete(String rawEntryDN)
   {
-    return processDelete(new ASN1OctetString(rawEntryDN));
+    return processDelete(new ASN1OctetString(rawEntryDN), null);
+  }
+
+
+
+  /**
+   * Processes an internal delete operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN  The entry DN for the delete operation.
+   * @param  controls    The set of controls to include in the
+   *                     request.
+   *
+   * @return  A reference to the delete operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public DeleteOperation processDelete(String rawEntryDN,
+                                       List<Control> controls)
+  {
+    return processDelete(new ASN1OctetString(rawEntryDN), controls);
   }
 
 
@@ -1236,10 +1569,34 @@ public final class InternalClientConnection
    */
   public DeleteOperation processDelete(ByteString rawEntryDN)
   {
+    return processDelete(rawEntryDN, null);
+  }
+
+
+
+  /**
+   * Processes an internal delete operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN  The entry DN for the delete operation.
+   * @param  controls    The set of controls to include in the
+   *                     request.
+   *
+   * @return  A reference to the delete operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public DeleteOperation processDelete(ByteString rawEntryDN,
+                                       List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(this, nextOperationID(),
-                             nextMessageID(),
-                             new ArrayList<Control>(0), rawEntryDN);
+                             nextMessageID(), controls, rawEntryDN);
     deleteOperation.setInternalOperation(true);
 
     deleteOperation.run();
@@ -1260,10 +1617,33 @@ public final class InternalClientConnection
    */
   public DeleteOperation processDelete(DN entryDN)
   {
+    return processDelete(entryDN, null);
+  }
+
+
+
+  /**
+   * Processes an internal delete operation with the provided
+   * information.
+   *
+   * @param  entryDN   The entry DN for the delete operation.
+   * @param  controls  The set of controls to include in the request.
+   *
+   * @return  A reference to the delete operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public DeleteOperation processDelete(DN entryDN,
+                                       List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(this, nextOperationID(),
-                             nextMessageID(),
-                             new ArrayList<Control>(0), entryDN);
+                             nextMessageID(), controls, entryDN);
     deleteOperation.setInternalOperation(true);
 
     deleteOperation.run();
@@ -1296,7 +1676,7 @@ public final class InternalClientConnection
    * information.
    *
    * @param  requestOID    The OID for the extended request.
-   * @param  requestValue  The encoded +value for the extended
+   * @param  requestValue  The encoded value for the extended
    *                       operation, or <CODE>null</CODE> if there is
    *                       no value.
    *
@@ -1308,10 +1688,39 @@ public final class InternalClientConnection
                                 String requestOID,
                                 ASN1OctetString requestValue)
   {
+    return processExtendedOperation(requestOID, requestValue, null);
+  }
+
+
+
+  /**
+   * Processes an internal extended operation with the provided
+   * information.
+   *
+   * @param  requestOID    The OID for the extended request.
+   * @param  requestValue  The encoded value for the extended
+   *                       operation, or <CODE>null</CODE> if there is
+   *                       no value.
+   * @param  controls      The set of controls to include in the
+   *                       request.
+   *
+   * @return  A reference to the extended operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public ExtendedOperation processExtendedOperation(
+                                String requestOID,
+                                ASN1OctetString requestValue,
+                                List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     ExtendedOperationBasis extendedOperation =
          new ExtendedOperationBasis(this, nextOperationID(),
-                               nextMessageID(),
-                               new ArrayList<Control>(0), requestOID,
+                               nextMessageID(), controls, requestOID,
                                requestValue);
     extendedOperation.setInternalOperation(true);
     extendedOperation.run();
@@ -1337,7 +1746,32 @@ public final class InternalClientConnection
                               List<RawModification> rawModifications)
   {
     return processModify(new ASN1OctetString(rawEntryDN),
-                         rawModifications);
+                         rawModifications, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN        The raw entry DN for this modify
+   *                           operation.
+   * @param  rawModifications  The set of modifications for this
+   *                           modify operation.
+   * @param  controls          The set of controls to include in the
+   *                           request.
+   *
+   * @return  A reference to the modify operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public ModifyOperation processModify(String rawEntryDN,
+                              List<RawModification> rawModifications,
+                              List<Control> controls)
+  {
+    return processModify(new ASN1OctetString(rawEntryDN),
+                         rawModifications, controls);
   }
 
 
@@ -1358,10 +1792,38 @@ public final class InternalClientConnection
   public ModifyOperation processModify(ByteString rawEntryDN,
                               List<RawModification> rawModifications)
   {
+    return processModify(rawEntryDN, rawModifications, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN        The raw entry DN for this modify
+   *                           operation.
+   * @param  rawModifications  The set of modifications for this
+   *                           modify operation.
+   * @param  controls          The set of controls to include in the
+   *                           request.
+   *
+   * @return  A reference to the modify operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public ModifyOperation processModify(ByteString rawEntryDN,
+                              List<RawModification> rawModifications,
+                              List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(this, nextOperationID(),
-                             nextMessageID(),
-                             new ArrayList<Control>(0), rawEntryDN,
+                             nextMessageID(), controls, rawEntryDN,
                              rawModifications);
     modifyOperation.setInternalOperation(true);
     modifyOperation.run();
@@ -1386,10 +1848,37 @@ public final class InternalClientConnection
   public ModifyOperation processModify(DN entryDN,
                               List<Modification> modifications)
   {
+    return processModify(entryDN, modifications, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify operation with the provided
+   * information.
+   *
+   * @param  entryDN        The entry DN for this modify operation.
+   * @param  modifications  The set of modifications for this modify
+   *                        operation.
+   * @param  controls       The set of controls to include in the
+   *                        request.
+   *
+   * @return  A reference to the modify operation that was processed
+   *          and contains information about the result of the
+   *          processing.
+   */
+  public ModifyOperation processModify(DN entryDN,
+                              List<Modification> modifications,
+                              List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     ModifyOperationBasis modifyOperation =
          new ModifyOperationBasis(this, nextOperationID(),
-                             nextMessageID(),
-                             new ArrayList<Control>(0), entryDN,
+                             nextMessageID(), controls, entryDN,
                              modifications);
     modifyOperation.setInternalOperation(true);
     modifyOperation.run();
@@ -1438,7 +1927,34 @@ public final class InternalClientConnection
   {
     return processModifyDN(new ASN1OctetString(rawEntryDN),
                            new ASN1OctetString(rawNewRDN),
-                           deleteOldRDN, null);
+                           deleteOldRDN, null, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN    The current DN of the entry to rename.
+   * @param  rawNewRDN     The new RDN to use for the entry.
+   * @param  deleteOldRDN  The flag indicating whether the old RDN
+   *                       value is to be removed from the entry.
+   * @param  controls      The set of controls to include in the
+   *                       request.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(String rawEntryDN,
+                                           String rawNewRDN,
+                                           boolean deleteOldRDN,
+                                           List<Control> controls)
+  {
+    return processModifyDN(new ASN1OctetString(rawEntryDN),
+                           new ASN1OctetString(rawNewRDN),
+                           deleteOldRDN, null, controls);
   }
 
 
@@ -1460,7 +1976,8 @@ public final class InternalClientConnection
                                            ByteString rawNewRDN,
                                            boolean deleteOldRDN)
   {
-    return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
+    return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null,
+                           null);
   }
 
 
@@ -1489,7 +2006,40 @@ public final class InternalClientConnection
     return processModifyDN(new ASN1OctetString(rawEntryDN),
                            new ASN1OctetString(rawNewRDN),
                            deleteOldRDN,
-                           new ASN1OctetString(rawNewSuperior));
+                           new ASN1OctetString(rawNewSuperior), null);
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN      The current DN of the entry to rename.
+   * @param  rawNewRDN       The new RDN to use for the entry.
+   * @param  deleteOldRDN    The flag indicating whether the old RDN
+   *                         value is to be removed from the entry.
+   * @param  rawNewSuperior  The new superior for the modify DN
+   *                         operation, or <CODE>null</CODE> if the
+   *                         entry will remain below the same parent.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(String rawEntryDN,
+                                           String rawNewRDN,
+                                           boolean deleteOldRDN,
+                                           String rawNewSuperior,
+                                           List<Control> controls)
+  {
+    return processModifyDN(new ASN1OctetString(rawEntryDN),
+                           new ASN1OctetString(rawNewRDN),
+                           deleteOldRDN,
+                           new ASN1OctetString(rawNewSuperior),
+                           controls);
   }
 
 
@@ -1515,10 +2065,44 @@ public final class InternalClientConnection
                                            boolean deleteOldRDN,
                                            ByteString rawNewSuperior)
   {
+    return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN,
+                           rawNewSuperior, null);
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  rawEntryDN      The current DN of the entry to rename.
+   * @param  rawNewRDN       The new RDN to use for the entry.
+   * @param  deleteOldRDN    The flag indicating whether the old RDN
+   *                         value is to be removed from the entry.
+   * @param  rawNewSuperior  The new superior for the modify DN
+   *                         operation, or <CODE>null</CODE> if the
+   *                         entry will remain below the same parent.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
+                                           ByteString rawNewRDN,
+                                           boolean deleteOldRDN,
+                                           ByteString rawNewSuperior,
+                                           List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(this, nextOperationID(),
-                               nextMessageID(),
-                               new ArrayList<Control>(0), rawEntryDN,
+                               nextMessageID(), controls, rawEntryDN,
                                rawNewRDN, deleteOldRDN,
                                rawNewSuperior);
     modifyDNOperation.setInternalOperation(true);
@@ -1546,7 +2130,7 @@ public final class InternalClientConnection
                                            RDN newRDN,
                                            boolean deleteOldRDN)
   {
-    return processModifyDN(entryDN, newRDN, deleteOldRDN, null);
+    return processModifyDN(entryDN, newRDN, deleteOldRDN, null, null);
   }
 
 
@@ -1572,10 +2156,44 @@ public final class InternalClientConnection
                                            boolean deleteOldRDN,
                                            DN newSuperior)
   {
+    return processModifyDN(entryDN, newRDN, deleteOldRDN, newSuperior,
+                           null);
+  }
+
+
+
+  /**
+   * Processes an internal modify DN operation with the provided
+   * information.
+   *
+   * @param  entryDN       The current DN of the entry to rename.
+   * @param  newRDN        The new RDN to use for the entry.
+   * @param  deleteOldRDN  The flag indicating whether the old RDN
+   *                       value is to be removed from the entry.
+   * @param  newSuperior   The new superior for the modify DN
+   *                       operation, or <CODE>null</CODE> if the
+   *                       entry will remain below the same parent.
+   * @param  controls      The set of controls to include in the
+   *                       request.
+   *
+   * @return  A reference to the modify DN operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public ModifyDNOperation processModifyDN(DN entryDN,
+                                           RDN newRDN,
+                                           boolean deleteOldRDN,
+                                           DN newSuperior,
+                                           List<Control> controls)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(this, nextOperationID(),
-                               nextMessageID(),
-                               new ArrayList<Control>(0), entryDN,
+                               nextMessageID(), controls, entryDN,
                                newRDN, deleteOldRDN, newSuperior);
     modifyDNOperation.setInternalOperation(true);
 
@@ -1682,21 +2300,9 @@ public final class InternalClientConnection
                             LinkedHashSet<String> attributes)
          throws DirectoryException
   {
-    RawFilter rawFilter;
-    try
-    {
-      rawFilter = RawFilter.create(filterString);
-    }
-    catch (LDAPException le)
-    {
-      throw new DirectoryException(
-                     ResultCode.valueOf(le.getResultCode()),
-                     le.getErrorMessage(), le);
-    }
-
-    return processSearch(new ASN1OctetString(rawBaseDN), scope,
-                         derefPolicy, sizeLimit, timeLimit, typesOnly,
-                         rawFilter, attributes);
+    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
+                         timeLimit, typesOnly, filterString,
+                         attributes, null, null);
   }
 
 
@@ -1737,6 +2343,52 @@ public final class InternalClientConnection
                             InternalSearchListener searchListener)
          throws DirectoryException
   {
+    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
+                         timeLimit, typesOnly, filterString,
+                         attributes, null, searchListener);
+  }
+
+
+
+  /**
+   * Processes an internal search operation with the provided
+   * information.
+   *
+   * @param  rawBaseDN       The base DN for the search.
+   * @param  scope           The scope for the search.
+   * @param  derefPolicy     The alias dereferencing policy for the
+   *                         search.
+   * @param  sizeLimit       The size limit for the search.
+   * @param  timeLimit       The time limit for the search.
+   * @param  typesOnly       The typesOnly flag for the search.
+   * @param  filterString    The string representation of the filter
+   *                         for the search.
+   * @param  attributes      The set of requested attributes for the
+   *                         search.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   * @param  searchListener  The internal search listener that should
+   *                         be used to handle the matching entries
+   *                         and references.
+   *
+   * @return  A reference to the internal search operation that was
+   *          processed and contains information about the result of
+   *          the processing as well as lists of the matching entries
+   *          and search references.
+   *
+   * @throws  DirectoryException  If the provided filter string cannot
+   *                              be decoded as a search filter.
+   */
+  public InternalSearchOperation
+              processSearch(String rawBaseDN, SearchScope scope,
+                            DereferencePolicy derefPolicy,
+                            int sizeLimit, int timeLimit,
+                            boolean typesOnly, String filterString,
+                            LinkedHashSet<String> attributes,
+                            List<Control> controls,
+                            InternalSearchListener searchListener)
+         throws DirectoryException
+  {
     RawFilter rawFilter;
     try
     {
@@ -1751,7 +2403,8 @@ public final class InternalClientConnection
 
     return processSearch(new ASN1OctetString(rawBaseDN), scope,
                          derefPolicy, sizeLimit, timeLimit, typesOnly,
-                         rawFilter, attributes, searchListener);
+                         rawFilter, attributes, controls,
+                         searchListener);
   }
 
 
@@ -1810,17 +2463,9 @@ public final class InternalClientConnection
                             boolean typesOnly, RawFilter filter,
                             LinkedHashSet<String> attributes)
   {
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(0),
-                                     rawBaseDN, scope, derefPolicy,
-                                     sizeLimit, timeLimit,
-                                     typesOnly, filter, attributes,
-                                     null);
-
-    searchOperation.run();
-    return searchOperation;
+    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
+                         timeLimit, typesOnly, filter, attributes,
+                         null, null);
   }
 
 
@@ -1856,10 +2501,55 @@ public final class InternalClientConnection
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {
+    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
+                         timeLimit, typesOnly, filter, attributes,
+                         null, searchListener);
+  }
+
+
+
+  /**
+   * Processes an internal search operation with the provided
+   * information.
+   *
+   * @param  rawBaseDN       The base DN for the search.
+   * @param  scope           The scope for the search.
+   * @param  derefPolicy     The alias dereferencing policy for the
+   *                         search.
+   * @param  sizeLimit       The size limit for the search.
+   * @param  timeLimit       The time limit for the search.
+   * @param  typesOnly       The typesOnly flag for the search.
+   * @param  filter          The filter for the search.
+   * @param  attributes      The set of requested attributes for the
+   *                         search.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   * @param  searchListener  The internal search listener that should
+   *                         be used to handle the matching entries
+   *                         and references.
+   *
+   * @return  A reference to the internal search operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public InternalSearchOperation
+              processSearch(ByteString rawBaseDN,
+                            SearchScope scope,
+                            DereferencePolicy derefPolicy,
+                            int sizeLimit, int timeLimit,
+                            boolean typesOnly, RawFilter filter,
+                            LinkedHashSet<String> attributes,
+                            List<Control> controls,
+                            InternalSearchListener searchListener)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(0),
+                                     nextMessageID(), controls,
                                      rawBaseDN, scope, derefPolicy,
                                      sizeLimit, timeLimit,
                                      typesOnly, filter, attributes,
@@ -1924,17 +2614,9 @@ public final class InternalClientConnection
                             boolean typesOnly, SearchFilter filter,
                             LinkedHashSet<String> attributes)
   {
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(0),
-                                     baseDN, scope, derefPolicy,
-                                     sizeLimit, timeLimit,
-                                     typesOnly, filter, attributes,
-                                     null);
-
-    searchOperation.run();
-    return searchOperation;
+    return processSearch(baseDN, scope, derefPolicy, sizeLimit,
+                         timeLimit, typesOnly, filter, attributes,
+                         null, null);
   }
 
 
@@ -1969,10 +2651,54 @@ public final class InternalClientConnection
                             LinkedHashSet<String> attributes,
                             InternalSearchListener searchListener)
   {
+    return processSearch(baseDN, scope, derefPolicy, sizeLimit,
+                         timeLimit, typesOnly, filter, attributes,
+                         null, searchListener);
+  }
+
+
+
+  /**
+   * Processes an internal search operation with the provided
+   * information.
+   *
+   * @param  baseDN          The base DN for the search.
+   * @param  scope           The scope for the search.
+   * @param  derefPolicy     The alias dereferencing policy for the
+   *                         search.
+   * @param  sizeLimit       The size limit for the search.
+   * @param  timeLimit       The time limit for the search.
+   * @param  typesOnly       The typesOnly flag for the search.
+   * @param  filter          The filter for the search.
+   * @param  attributes      The set of requested attributes for the
+   *                         search.
+   * @param  controls        The set of controls to include in the
+   *                         request.
+   * @param  searchListener  The internal search listener that should
+   *                         be used to handle the matching entries
+   *                         and references.
+   *
+   * @return  A reference to the internal search operation that was
+   *          processed and contains information about the result of
+   *          the processing.
+   */
+  public InternalSearchOperation
+              processSearch(DN baseDN, SearchScope scope,
+                            DereferencePolicy derefPolicy,
+                            int sizeLimit, int timeLimit,
+                            boolean typesOnly, SearchFilter filter,
+                            LinkedHashSet<String> attributes,
+                            List<Control> controls,
+                            InternalSearchListener searchListener)
+  {
+    if (controls == null)
+    {
+      controls = new ArrayList<Control>(0);
+    }
+
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(0),
+                                     nextMessageID(), controls,
                                      baseDN, scope, derefPolicy,
                                      sizeLimit, timeLimit,
                                      typesOnly, filter, attributes,
