@@ -34,8 +34,10 @@ import static org.opends.server.replication.plugin.Historical.ENTRYUIDNAME;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.createEntry;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
@@ -3185,8 +3187,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         importConfig.setAppendToExistingData(false);
 
         // TODO How to deal with rejected entries during the import
-        importConfig.writeRejectedEntries("rejectedImport",
-         ExistingFileBehavior.OVERWRITE);
+        importConfig.writeRejectedEntries(
+          getFileForPath("logs" + File.separator +
+              "replInitRejectedEntries").getAbsolutePath(),
+          ExistingFileBehavior.OVERWRITE);
 
         // Process import
         backend.importLDIF(importConfig);
