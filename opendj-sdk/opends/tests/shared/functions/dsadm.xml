@@ -716,8 +716,31 @@
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
+        </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>            
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                
       <function-arg-def name="dsLdifFile" type="required">
         <function-arg-description>
           Path to the LDIF file to be imported
@@ -838,24 +861,36 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>      
+      <function-arg-def name="startTask" type="optional">
+        <function-arg-description>
+          Start time for task
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>            
     </function-map-args>
     
     <sequence>
           
       <!-- Build the Command -->
+
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />                     
         
+       <script>
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
           STAFCmd='%s/import-ldif%s' % (dsBinPath,fileExt)
-
+    
         if dsLdifFile:
-          STAFCmdParamsList.append('-l %s' % dsLdifFile)
+          STAFCmdParamsList.append('-l %s' % dsLdifFile)    
 
         if dsTemplateFile:
-          STAFCmdParamsList.append('-t %s' % dsTemplateFile)                  
+          STAFCmdParamsList.append('-A %s' % dsTemplateFile)                  
 
         if dsAppend:
           STAFCmdParamsList.append('-a')
@@ -913,11 +948,13 @@
            
         if dsBackEnd:
           STAFCmdParamsList.append('-n %s' % dsBackEnd)
- 
+  
+        if startTask:
+          STAFCmdParamsList.append('-t %s' % startTask)
+                  
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>
-
       <message>
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
@@ -929,17 +966,14 @@
           'arguments' : STAFCmdParams
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
       <call function="'checkRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason }
+        { 'returncode' : RC ,
+          'result'     : STAXResult }
       </call>
-      <return>STAXReason</return>      
+            
     </sequence>
   </function>
+
 
   <!-- Import Task Function -->
   <function name="importLdifTask">
@@ -1381,7 +1415,6 @@
     </sequence>
   </function>
     
-  <!-- Export LDIF Function -->
   <function name="exportLdif">
     <function-prolog>
       This function performs an export to an ldif file on or off line
@@ -1400,6 +1433,30 @@
         </function-arg-description>
         <function-arg-property name="type" value="pathname"/>
       </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>            
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                      
       <function-arg-def name="ldifFile" type="required">
         <function-arg-description>
           The name of the ldif file to be written
@@ -1418,36 +1475,78 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>      
+      <function-arg-def name="startTask" type="optional">
+        <function-arg-description>
+          Start time for task
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>        
     </function-map-args>
 
     <sequence>
-        
+
+
       <script>
-        if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder)   
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
       </script>
-      
-      <message> 
-        '%s/export-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />                     
+        
+       <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/export-ldif%s' % (dsBinPath,fileExt)
+         
+        if ldifFile:
+          STAFCmdParamsList.append('-l %s' % ldifFile)    
+
+       if backEnd:
+          STAFCmdParamsList.append('-n %s' % backEnd)             
+
+       if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)    
+
+        if startTask:
+          STAFCmdParamsList.append('-t %s' % startTask)
+                                                         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+      </script>
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
+            
       <call function="'runCommand'">
         { 'location'  : location,
-          'name'      : 'Ldif Export',
-          'command'   : '%s/export-ldif%s' % (dsBinPath,fileExt),
-          'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams)
+          'name'      : 'Export Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }              
+      </call> 
+      <message> 
+        '%s %s' % (STAFCmd,STAFCmdParams)
+      </message>
+
+     <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
         }
       </call>
-      <script>
-        exportRC=RC
-        exportResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-        { 'returncode' : exportRC ,
-          'result'     : exportResult }
-      </call>
-      <return>exportRC</return>
+      <return>
+        STAXReason
+      </return>                
     </sequence>
   </function>
+  
+        
+        
   
   <!-- Export Task Function -->
   <function name="exportLdifTask">
@@ -1667,6 +1766,8 @@
     </sequence>
   </function>
   
+
+  
   <!-- Backup Function -->
   <function name="backup">
     <function-prolog>
@@ -1685,6 +1786,30 @@
         </function-arg-description>
         <function-arg-property name="type" value="pathname"/>
       </function-arg-def>
+     <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>            
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                        
       <function-arg-def name="backEnd" type="optional" default="DIRECTORY_INSTANCE_BE">
         <function-arg-description>
           Optional the name of the database backend
@@ -1703,38 +1828,72 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def> 
+      <function-arg-def name="startTask" type="optional">
+        <function-arg-description>
+          Start time for task
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>             
     </function-map-args>
 
     <sequence>
     
-      <!-- Local variables -->
       <script>
-        myLocation=location
-        if dsPath:  
-          dsBinPath='%s/%s' % (dsPath,fileFolder)           
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />                     
+        
+       <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/backup%s' % (dsBinPath,fileExt)
+         
+        if backupDir:
+          STAFCmdParamsList.append('-d %s' % backupDir)    
+
+       if backEnd:
+          STAFCmdParamsList.append('-n %s' % backEnd)             
+
+       if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)    
+
+        if startTask:
+          STAFCmdParamsList.append('-t %s' % startTask)
+                                                         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
       </script>
       <message>
-        'backup%s -n %s -d %s %s' % (fileExt,backEnd,backupDir,extraParams)
+        '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
+            
       <call function="'runCommand'">
-        { 'name'      : 'Offline Backup',
-          'location'  : myLocation,
-          'command'   : '%s/backup%s' % (dsBinPath,fileExt),
-          'arguments' : '-d %s -n %s %s' % (backupDir,backEnd,extraParams)
+        { 'location'  : location,
+          'name'      : 'Backup Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }              
+      </call> 
+   
+    <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
         }
       </call>
-      <script>
-        backupRC=RC
-        backupResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-          { 'returncode' : backupRC ,
-            'result'     : backupResult }
-      </call>
-      <return>backupRC</return>
+      <return>
+        STAXReason
+      </return>                
     </sequence>
-  </function>
-
+  </function>      
+     
   <!-- Backup Task Function -->
   <function name="backupTask">
     <function-prolog>
@@ -1923,6 +2082,7 @@
     
   </function>
 
+
   <!-- Restore Function -->
   <function name="restore">
     <function-prolog>
@@ -1941,6 +2101,30 @@
         </function-arg-description>
         <function-arg-property name="type" value="pathname"/>
       </function-arg-def>
+    <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>            
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>                              
       <function-arg-def name="backupDir" type="required">
         <function-arg-description>
           The directory where the backup files will be placed
@@ -1953,37 +2137,67 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>    
+      <function-arg-def name="startTask" type="optional">
+        <function-arg-description>
+          Start time for task
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>         
     </function-map-args>
     <sequence>
-    
-      <!-- Local variables -->
-      <script>
-        myLocation=location
-        if dsPath:  
-          dsBinPath='%s/%s' % (dsPath,fileFolder)          
-      </script>    
 
+
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />                     
+        
+       <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/restore%s' % (dsBinPath,fileExt)
+         
+        if backupDir:
+          STAFCmdParamsList.append('-d %s' % backupDir)   
+
+       if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)    
+
+        if startTask:
+          STAFCmdParamsList.append('-t %s' % startTask)
+                                                         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+      </script>
       <message>
-        'restore%s -d %s %s' % (fileExt,backupDir,extraParams)
+        '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
+            
       <call function="'runCommand'">
-        { 'name'      : 'Offline Restore',
-          'location'  : myLocation,
-          'command'   : '%s/restore%s' % (dsBinPath,fileExt),
-          'arguments' : '-d %s %s' % (backupDir,extraParams)
+        { 'location'  : location,
+          'name'      : 'Restore Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }              
+      </call> 
+   
+    <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
         }
       </call>
-      <script>
-        restoreRC=RC
-        restoreResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-        { 'returncode' : restoreRC ,
-          'result'     : restoreResult }
-      </call>
-
-      <return>restoreRC</return>
-    </sequence>
+      <return>
+        STAXReason
+      </return>                
+    </sequence>      
   </function>
 
   <!-- Restore Task Function --> 
