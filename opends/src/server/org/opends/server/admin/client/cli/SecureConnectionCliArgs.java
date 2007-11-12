@@ -451,14 +451,13 @@ public final class SecureConnectionCliArgs
     argList.add(bindDnArg);
 
     // It is up to the classes that required admin UID to make this argument
-    // visible
+    // visible and add it.
     adminUidArg = new StringArgument("adminUID", 'I',
         "adminUID", false, false, true, "adminUID",
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_ADMIN_UID.get());
     adminUidArg.setPropertyName("adminUID");
     adminUidArg.setHidden(true);
-    argList.add(adminUidArg);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
