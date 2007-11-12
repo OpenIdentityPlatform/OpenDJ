@@ -32,22 +32,29 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.PrintStream;
 import java.io.InputStream;
 
 /**
  * Supports user interactions for a command line driven application.
  */
-public class CliUserInteraction extends CliApplicationHelper
+public class CliUserInteraction extends ConsoleApplication
         implements UserInteraction {
+  static private final Logger LOG =
+    Logger.getLogger(CliUserInteraction.class.getName());
+
   /**
    * Creates an instance that will use standard streams for interaction.
    */
   public CliUserInteraction() {
-    super(System.out, System.err, System.in);
+    super(System.in, System.out, System.err);
   }
 
   /**
@@ -57,7 +64,7 @@ public class CliUserInteraction extends CliApplicationHelper
    * @param in InputStream from which information will be read
    */
   public CliUserInteraction(PrintStream out, PrintStream err, InputStream in) {
-    super(out, err, in);
+    super(in, out, err);
   }
 
   /**
@@ -90,9 +97,9 @@ public class CliUserInteraction extends CliApplicationHelper
                       INFO_CLI_VIEW_DETAILS.get().toString()));
     }
 
-    println(String.valueOf(summary));
+    println(summary);
     println();
-    println(String.valueOf(details));
+    println(details);
 
     Object returnValue = null;
     while (returnValue == null) {
@@ -100,14 +107,20 @@ public class CliUserInteraction extends CliApplicationHelper
       for (String o : sOptions) {
         println(o);
       }
-      System.out.print(
-          Message.raw(CliApplicationHelper.PROMPT_DEFAULT_FORMAT,
+      print(
+          Message.raw("%s%n[%s]:",
               INFO_CLI_NUMBER_PROMPT.get().toString(),
               Integer.toString(defInt)));
 
-      System.out.flush();
-
-      String response = readLine(in, err);
+      String response = "";
+      try
+      {
+        response = readLineOfInput(null);
+      }
+      catch (CLIException ce)
+      {
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
       int respInt = -1;
       if (response.equals("")) {
         respInt = defInt;
@@ -150,7 +163,7 @@ public class CliUserInteraction extends CliApplicationHelper
   public String promptForString(Message prompt, Message title,
                                 String defaultValue) {
 
-    return promptForString(prompt, defaultValue);
+    return readInput(prompt, defaultValue, LOG);
   }
 
   private String createOption(int index, String option) {
@@ -160,15 +173,63 @@ public class CliUserInteraction extends CliApplicationHelper
             append(option).toString();
   }
 
-  private void println() {
-    out.println();
-  }
-
   private void println(String text) {
     text = Utils.convertHtmlBreakToLineSeparator(text);
     text = Utils.stripHtml(text);
     text = StaticUtils.wrapText(text, Utils.getCommandLineMaxLineWidth());
-    out.println(text);
+    getErrorStream().println(text);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isAdvancedMode() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive() {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isQuiet() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose() {
+    return true;
+  }
 }

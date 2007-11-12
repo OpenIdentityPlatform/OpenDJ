@@ -35,7 +35,6 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.statuspanel.ConfigException;
 import org.opends.guitools.statuspanel.ConfigFromFile;
 import org.opends.guitools.statuspanel.ConnectionProtocolPolicy;
@@ -63,7 +62,6 @@ import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
 
 
-import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -74,7 +72,6 @@ import java.io.IOException;
 import java.net.URI;
 
 import javax.naming.NamingException;
-import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.TrustManager;
 
@@ -705,27 +702,8 @@ class UninstallCliHelper extends ConsoleApplication {
 
     while (!couldConnect && accepted)
     {
-      boolean prompted = false;
-      while (uid == null)
-      {
-        println();
-        uid = askForAdministratorUID(parser.getDefaultAdministratorUID());
-        prompted = true;
-      }
-      while (pwd == null)
-      {
-        if (!prompted)
-        {
-          println();
-        }
-        pwd = askForAdministratorPwd();
-      }
-      userData.setAdminUID(uid);
-      userData.setAdminPwd(pwd);
-      userData.setUseSSL(useSSL);
-      userData.setUseStartTLS(useStartTLS);
 
-      // This is done because we do not need to ask the user about these
+            // This is done because we do not need to ask the user about these
       // parameters.  If we force their presence the class
       // LDAPConnectionConsoleInteraction will not prompt the user for
       // them.
@@ -779,6 +757,7 @@ class UninstallCliHelper extends ConsoleApplication {
       {
         ci =
         new LDAPConnectionConsoleInteraction(this, parser.getSecureArgsList());
+        ci.setDisplayLdapIfSecureParameters(true);
       }
 
       InitialLdapContext ctx = null;
@@ -787,6 +766,10 @@ class UninstallCliHelper extends ConsoleApplication {
         ci.run(canUseSSL, canUseStartTLS);
         useSSL = ci.useSSL();
         useStartTLS = ci.useStartTLS();
+        userData.setAdminUID(ci.getAdministratorUID());
+        userData.setAdminPwd(ci.getBindPassword());
+        userData.setUseSSL(useSSL);
+        userData.setUseStartTLS(useStartTLS);
 
         String ldapUrl = conf.getURL(
             ConnectionProtocolPolicy.getConnectionPolicy(
@@ -1037,8 +1020,8 @@ class UninstallCliHelper extends ConsoleApplication {
       {
         LOG.log(Level.SEVERE, "Error parsing url: "+ldapUrl);
       }
-      ctx = createContext(host, port, useSSL, useStartTLS, dn, pwd,
-          userData.getTrustManager());
+      ctx = createAdministrativeContext(host, port, useSSL, useStartTLS, dn,
+          pwd, userData.getTrustManager());
 
       ADSContext adsContext = new ADSContext(ctx);
       TopologyCache cache = new TopologyCache(adsContext,
@@ -1104,7 +1087,7 @@ class UninstallCliHelper extends ConsoleApplication {
         if (forceOnError)
         {
           println(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
-              parser.adminUidArg.getLongIdentifier(),
+              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
               ToolConstants.OPTION_LONG_BINDPWD,
               ToolConstants.OPTION_LONG_BINDPWD_FILE));
         }
@@ -1112,7 +1095,7 @@ class UninstallCliHelper extends ConsoleApplication {
         {
           println(
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
-                  parser.adminUidArg.getLongIdentifier(),
+                  parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
                   ToolConstants.OPTION_LONG_BINDPWD,
                   ToolConstants.OPTION_LONG_BINDPWD_FILE,
                   parser.forceOnErrorArg.getLongIdentifier()));
@@ -1182,8 +1165,8 @@ class UninstallCliHelper extends ConsoleApplication {
           if (interactive)
           {
             println();
-            if (promptForCertificateConfirmation(e.getCause(),
-                e.getTrustManager(), e.getLdapUrl(), true))
+            if (ci.promptForCertificateConfirmation(e.getCause(),
+                e.getTrustManager(), e.getLdapUrl(), true, LOG))
             {
               stopProcessing = true;
               reloadTopologyCache = true;
@@ -1298,200 +1281,6 @@ class UninstallCliHelper extends ConsoleApplication {
    */
   public boolean isVerbose() {
     return true;
-  }
-
-  /**
-   * Prompts the user to give the Global Administrator UID.
-   * @param defaultValue the default value that will be proposed in the prompt
-   * message.
-   * @return the Global Administrator UID as provided by the user.
-   */
-  private String askForAdministratorUID(String defaultValue)
-  {
-    String s = defaultValue;
-    try
-    {
-      s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
-    }
-    catch (CLIException ce)
-    {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-    }
-    return s;
-  }
-
-  /**
-   * Prompts the user to give the Global Administrator password.
-   * @return the Global Administrator password as provided by the user.
-   */
-  private String askForAdministratorPwd()
-  {
-    String pwd = null;
-    try
-    {
-      pwd = readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get());
-    }
-    catch (CLIException ce)
-    {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-    }
-    return pwd;
-  }
-
-  /**
-   * Returns an InitialLdapContext using the provided parameters.  We try
-   * to guarantee that the connection is able to read the configuration.
-   * @param host the host name.
-   * @param port the port to connect.
-   * @param useSSL whether to use SSL or not.
-   * @param useStartTLS whether to use StartTLS or not.
-   * @param bindDn the bind dn to be used.
-   * @param pwd the password.
-   * @param trustManager the trust manager.
-   * @return an InitialLdapContext connected.
-   * @throws NamingException if there was an error establishing the connection.
-   */
-  private InitialLdapContext createContext(String host, int port,
-      boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
-      ApplicationTrustManager trustManager)
-  throws NamingException
-  {
-    InitialLdapContext ctx;
-    String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
-    if (useSSL)
-    {
-      ctx = Utils.createLdapsContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null, trustManager);
-    }
-    else if (useStartTLS)
-    {
-      ctx = Utils.createStartTLSContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null, trustManager,
-          null);
-    }
-    else
-    {
-      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd,
-          Utils.getDefaultLDAPTimeout(), null);
-    }
-    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
-    {
-      throw new NoPermissionException(
-          ERR_NOT_ADMINISTRATIVE_USER.get().toString());
-    }
-    return ctx;
-  }
-
-  /**
-   * Prompts the user to accept the certificate.
-   * @param t the throwable that was generated because the certificate was
-   * not trusted.
-   * @param usedTrustManager the trustManager used when trying to establish the
-   * connection.
-   * @param usedUrl the LDAP URL used to connect to the server.
-   * @param displayErrorMessage whether to display an error message before
-   * asking to accept the certificate or not.
-   * @return <CODE>true</CODE> if the user accepted the certificate and
-   * <CODE>false</CODE> otherwise.
-   */
-  private boolean promptForCertificateConfirmation(Throwable t,
-      ApplicationTrustManager usedTrustManager, String usedUrl,
-      boolean displayErrorMessage)
-  {
-    boolean returnValue = false;
-    ApplicationTrustManager.Cause cause;
-    if (usedTrustManager != null)
-    {
-      cause = usedTrustManager.getLastRefusedCause();
-    }
-    else
-    {
-      cause = null;
-    }
-
-    LOG.log(Level.INFO, "Certificate exception cause: "+cause);
-    UserDataCertificateException.Type excType = null;
-    if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-    {
-      excType = UserDataCertificateException.Type.NOT_TRUSTED;
-    }
-    else if (cause ==
-      ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-    {
-      excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-    }
-    else
-    {
-      Message msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
-          t);
-      println(msg);
-    }
-
-    if (excType != null)
-    {
-      String h;
-      int p;
-      try
-      {
-        URI uri = new URI(usedUrl);
-        h = uri.getHost();
-        p = uri.getPort();
-      }
-      catch (Throwable t1)
-      {
-        LOG.log(Level.WARNING, "Error parsing ldap url of ldap url.", t1);
-        h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-        p = -1;
-      }
-      UserDataCertificateException udce =
-        new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-            INFO_CERTIFICATE_EXCEPTION.get(h, String.valueOf(p)), t, h, p,
-                usedTrustManager.getLastRefusedChain(),
-                usedTrustManager.getLastRefusedAuthType(), excType);
-
-      Message msg;
-      if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
-      {
-        msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(
-            udce.getHost(), String.valueOf(udce.getPort()),
-            udce.getHost(), String.valueOf(udce.getPort()));
-      }
-      else
-      {
-        msg = INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(
-            udce.getHost(), String.valueOf(udce.getPort()),
-            udce.getHost(),
-            udce.getHost(), String.valueOf(udce.getPort()),
-            udce.getHost(), String.valueOf(udce.getPort()));
-      }
-      if (displayErrorMessage)
-      {
-        println(msg);
-      }
-      X509Certificate[] chain = udce.getChain();
-      String authType = udce.getAuthType();
-      String host = udce.getHost();
-      if (chain == null)
-      {
-        LOG.log(Level.WARNING,
-        "The chain is null for the UserDataCertificateException");
-      }
-      if (authType == null)
-      {
-        LOG.log(Level.WARNING,
-        "The auth type is null for the UserDataCertificateException");
-      }
-      if (host == null)
-      {
-        LOG.log(Level.WARNING,
-        "The host is null for the UserDataCertificateException");
-      }
-      if (chain != null)
-      {
-        returnValue = ci.checkServerCertificate(chain, authType, host);
-      }
-    }
-    return returnValue;
   }
 
   /**

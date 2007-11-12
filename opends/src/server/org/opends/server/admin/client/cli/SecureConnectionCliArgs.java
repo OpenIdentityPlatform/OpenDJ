@@ -30,6 +30,7 @@ package org.opends.server.admin.client.cli;
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -54,6 +55,7 @@ import javax.net.ssl.KeyManager;
 
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.quicksetup.Constants;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.PasswordReader;
@@ -85,9 +87,14 @@ public final class SecureConnectionCliArgs
   public IntegerArgument portArg = null;
 
   /**
-   * The 'binDN' global argument.
+   * The 'bindDN' global argument.
    */
   public StringArgument bindDnArg = null;
+
+  /**
+   * The 'adminUID' global argument.
+   */
+  public StringArgument adminUidArg = null;
 
   /**
    * The 'bindPasswordFile' global argument.
@@ -202,6 +209,35 @@ public final class SecureConnectionCliArgs
       }
     }
     return present;
+  }
+
+  /**
+   * Get the admin UID which has to be used for the command.
+   *
+   * @return The admin UID specified by the command line argument, or the
+   *         default value, if not specified.
+   */
+  public String getAdministratorUID()
+  {
+    if (adminUidArg.isPresent())
+    {
+      return adminUidArg.getValue();
+    }
+    else
+    {
+      return adminUidArg.getDefaultValue();
+    }
+  }
+
+  /**
+   * Tells whether this parser uses the Administrator UID (instead of the
+   * bind DN) or not.
+   * @return <CODE>true</CODE> if this parser uses the Administrator UID and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean useAdminUID()
+  {
+    return !adminUidArg.isHidden();
   }
 
   /**
@@ -413,6 +449,16 @@ public final class SecureConnectionCliArgs
         "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
     bindDnArg.setPropertyName(OPTION_LONG_BINDDN);
     argList.add(bindDnArg);
+
+    // It is up to the classes that required admin UID to make this argument
+    // visible
+    adminUidArg = new StringArgument("adminUID", 'I',
+        "adminUID", false, false, true, "adminUID",
+        Constants.GLOBAL_ADMIN_UID, null,
+        INFO_DESCRIPTION_ADMIN_UID.get());
+    adminUidArg.setPropertyName("adminUID");
+    adminUidArg.setHidden(true);
+    argList.add(adminUidArg);
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,

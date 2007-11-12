@@ -79,6 +79,7 @@ public class ApplicationTrustManager implements X509TrustManager
   private String lastRefusedAuthType;
   private X509Certificate[] lastRefusedChain;
   private Cause lastRefusedCause = null;
+  private KeyStore keystore = null;
 
   /*
    * The following ArrayList contain information about the certificates
@@ -101,6 +102,7 @@ public class ApplicationTrustManager implements X509TrustManager
     TrustManagerFactory tmf = null;
     String algo = "SunX509";
     String provider = "SunJSSE";
+    this.keystore = keystore;
     try
     {
       tmf = TrustManagerFactory.getInstance(algo, provider);
@@ -306,7 +308,7 @@ public class ApplicationTrustManager implements X509TrustManager
    */
   public ApplicationTrustManager createCopy()
   {
-    ApplicationTrustManager copy = new ApplicationTrustManager(null);
+    ApplicationTrustManager copy = new ApplicationTrustManager(keystore);
     copy.lastRefusedAuthType = lastRefusedAuthType;
     copy.lastRefusedChain = lastRefusedChain;
     copy.lastRefusedCause = lastRefusedCause;
@@ -370,6 +372,22 @@ public class ApplicationTrustManager implements X509TrustManager
         Rdn rdn = dn.getRdn(0);
         String value = rdn.getValue().toString();
         matches = host.equalsIgnoreCase(value);
+        if (!matches)
+        {
+          // Try with the accepted hosts names
+          for (int i =0; i<acceptedHosts.size() && !matches; i++)
+          {
+            if (host.equalsIgnoreCase(acceptedHosts.get(i)))
+            {
+              X509Certificate[] current = acceptedChains.get(i);
+              matches = current.length == chain.length;
+              for (int j=0; j<chain.length && matches; j++)
+              {
+                matches = chain[j].equals(current[j]);
+              }
+            }
+          }
+        }
       }
       catch (Throwable t)
       {
