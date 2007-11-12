@@ -863,40 +863,31 @@ public class InstallDS  extends ConsoleApplication
     String pwd = argParser.getDirectoryManagerPassword();
     while (pwd == null)
     {
-      println();
       String pwd1 = null;
       // Prompt for password and confirm.
 
       while (pwd1 == null)
       {
-        try
-        {
-          pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
-          if ("".equals(pwd1))
-          {
-            pwd1 = null;
-            println();
-            println(INFO_EMPTY_PWD.get());
-          }
-
-          String pwd2 =
-            readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
-
-          if (pwd1.equals(pwd2))
-          {
-            pwd = pwd1;
-          }
-          else
-          {
-            println();
-            println(ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get());
-          }
-        }
-        catch (CLIException ce)
+        pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get(), LOG);
+        if ((pwd1 == null) || "".equals(pwd1))
         {
           pwd1 = null;
-          LOG.log(Level.WARNING, "Unexpected error reading passwords: "+ce, ce);
+          println();
+          println(INFO_EMPTY_PWD.get());
+          println();
         }
+      }
+      String pwd2 =
+        readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get(), LOG);
+
+      if (pwd1.equals(pwd2))
+      {
+        pwd = pwd1;
+      }
+      else
+      {
+        println();
+        println(ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get());
       }
     }
     uData.setDirectoryManagerPwd(pwd);
@@ -1859,16 +1850,8 @@ public class InstallDS  extends ConsoleApplication
                 ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES.get(
                     String.valueOf(LIMIT_KEYSTORE_PASSWORD_PROMPT)));
           }
-          try
-          {
-            pwd = readPassword(
-                INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get());
-          }
-          catch (CLIException ce)
-          {
-            LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-            pwd = null;
-          }
+          pwd = readPassword(
+                INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get(), LOG);
           nPasswordPrompts ++;
         }
       }

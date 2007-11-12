@@ -31,10 +31,9 @@ import static org.opends.guitools.replicationcli.ReplicationCliReturnCode.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.quicksetup.util.Utils.getFirstValue;
 import static org.opends.quicksetup.util.Utils.getThrowableMsg;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
 
 import java.io.File;
 import java.io.InputStream;
@@ -64,6 +63,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.TrustManager;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
@@ -77,8 +77,8 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.messages.UtilityMessages;
 import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.ReturnCode;
@@ -101,12 +101,22 @@ import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.tools.ClientException;
+import org.opends.server.tools.ToolConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.args.ArgumentException;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
 /**
  * This class provides a tool that can be used to enable and disable replication
@@ -114,7 +124,7 @@ import org.opends.server.util.args.ArgumentException;
  * of another suffix.  It also allows to display the replicated status of the
  * different base DNs of the servers that are registered in the ADS.
  */
-public class ReplicationCliMain extends CliApplicationHelper
+public class ReplicationCliMain extends ConsoleApplication
 {
   /**
    * The fully-qualified name of this class.
@@ -128,11 +138,11 @@ public class ReplicationCliMain extends CliApplicationHelper
   static public final String LOG_FILE_SUFFIX = ".log";
 
   private static final Logger LOG =
-    Logger.getLogger(CliApplicationHelper.class.getName());
+    Logger.getLogger(ReplicationCliMain.class.getName());
 
   // The argument parser to be used.
   private ReplicationCliArgumentParser argParser;
-
+  private LDAPConnectionConsoleInteraction ci = null;
   // The message formatter
   PlainTextProgressMessageFormatter formatter =
       new PlainTextProgressMessageFormatter();
@@ -146,7 +156,7 @@ public class ReplicationCliMain extends CliApplicationHelper
    */
   public ReplicationCliMain(PrintStream out, PrintStream err, InputStream in)
   {
-    super(out, err, in);
+    super(in, out, err);
   }
 
   /**
@@ -248,12 +258,13 @@ public class ReplicationCliMain extends CliApplicationHelper
     try
     {
       argParser = new ReplicationCliArgumentParser(CLASS_NAME);
-      argParser.initializeParser(out);
+      argParser.initializeParser(getOutputStream());
     }
     catch (ArgumentException ae)
     {
-      Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      printErrorMessage(message);
+      Message message =
+        UtilityMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      println(message);
       LOG.log(Level.SEVERE, "Complete error stack:", ae);
       returnValue = CANNOT_INITIALIZE_ARGS;
     }
@@ -269,9 +280,9 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
 
-        printErrorMessage(message);
-        printLineBreak();
-        printErrorMessage(argParser.getUsage());
+        println(message);
+        println();
+        println(Message.raw(argParser.getUsage()));
         LOG.log(Level.SEVERE, "Complete error stack:", ae);
         returnValue = ERROR_USER_DATA;
       }
@@ -287,8 +298,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         argParser.validateOptions(buf);
         if (buf.length() > 0)
         {
-          err.println(wrapText(buf.toMessage(), MAX_LINE_WIDTH));
-          err.println(argParser.getUsage());
+          println(buf.toMessage());
+          println(Message.raw(argParser.getUsage()));
           returnValue = ERROR_USER_DATA;
         }
       }
@@ -308,11 +319,18 @@ public class ReplicationCliMain extends CliApplicationHelper
         }
         catch (InitializationException ie)
         {
-          printErrorMessage(ie.getMessage());
+          println(ie.getMessageObject());
           returnValue = ERROR_INITIALIZING_ADMINISTRATION_FRAMEWORK;
         }
       }
 
+      if (returnValue == SUCCESSFUL_NOP)
+      {
+        ci = new LDAPConnectionConsoleInteraction(this,
+            argParser.getSecureArgsList());
+        ci.setDisplayLdapIfSecureParameters(
+            !argParser.isInitializeAllReplicationSubcommand());
+      }
       if (returnValue == SUCCESSFUL_NOP)
       {
         if (argParser.isEnableReplicationSubcommand())
@@ -337,22 +355,13 @@ public class ReplicationCliMain extends CliApplicationHelper
         }
         else
         {
-          err.println(wrapText(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(),
-              MAX_LINE_WIDTH));
-          err.println(argParser.getUsage());
+          println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get());
+          println(Message.raw(argParser.getUsage()));
           returnValue = ERROR_USER_DATA;
         }
       }
     }
     return returnValue.getReturnCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected boolean isQuiet()
-  {
-    return argParser.isQuiet();
   }
 
   /**
@@ -380,8 +389,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       catch (ReplicationCliException rce)
       {
         returnValue = rce.getErrorCode();
-        printLineBreak();
-        printErrorMessage(getCriticalExceptionMessage(rce));
+        println();
+        println(getCriticalExceptionMessage(rce));
       }
     }
     else
@@ -418,8 +427,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       catch (ReplicationCliException rce)
       {
         returnValue = rce.getErrorCode();
-        printLineBreak();
-        printErrorMessage(getCriticalExceptionMessage(rce));
+        println();
+        println(getCriticalExceptionMessage(rce));
       }
     }
     else
@@ -486,8 +495,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       catch (ReplicationCliException rce)
       {
         returnValue = rce.getErrorCode();
-        printLineBreak();
-        printErrorMessage(getCriticalExceptionMessage(rce));
+        println();
+        println(getCriticalExceptionMessage(rce));
       }
     }
     else
@@ -545,128 +554,69 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     boolean administratorDefined = false;
 
+    ci.setUseAdminOrBindDn(true);
+
     String adminPwd = argParser.getBindPasswordAdmin();
     String adminUid = argParser.getAdministratorUID();
-
-    boolean prompted = false;
-    /*
-     * Prompt for information on the first server.
-     */
-    String host1 = argParser.getHostName1();
-    if (host1 == null)
-    {
-      host1 = promptForString(
-          INFO_REPLICATION_ENABLE_HOSTNAME1_PROMPT.get(),
-          argParser.getDefaultHostName1(), false);
-      prompted = true;
-    }
-    int port1 = argParser.getPort1();
-    if (port1 == -1)
-    {
-      port1 = promptForPort(
-          INFO_REPLICATION_ENABLE_PORT1_PROMPT.get(),
-          argParser.getDefaultPort1(), false);
-      prompted = true;
-    }
-    boolean useSSL1 = argParser.useSSL1();
-    boolean useStartTLS1 = argParser.useStartTLS1();
-    if (!useSSL1 && !useStartTLS1)
-    {
-      useSSL1 = confirm(INFO_REPLICATION_ENABLE_USESSL1_PROMPT.get(), false);
-      prompted = true;
-      if (!useSSL1)
-      {
-        useStartTLS1 =
-          confirm(INFO_REPLICATION_ENABLE_USESTARTTLS1_PROMPT.get(), false);
-        prompted = true;
-      }
-    }
-
-    String bindDn1 = argParser.getBindDn1();
-    String pwd1 = argParser.getBindPassword1();
-    if ((bindDn1 == null) && (pwd1 == null) && (adminPwd != null) &&
-        (adminUid != null))
-    {
-      // No information provided to connect to the first server.  Try
-      // to use global administrator.
-      bindDn1 = ADSContext.getAdministratorDN(adminUid);
-      pwd1 = adminPwd;
-    }
-    else
-    {
-      // Ask for the bind dn to connect to server 1.
-      if (bindDn1 == null)
-      {
-      bindDn1 = promptForString(
-          INFO_REPLICATION_ENABLE_BINDDN1_PROMPT.get(),
-          getValue(bindDn1, argParser.getDefaultBindDn1()), false);
-      prompted = true;
-      }
-      if (pwd1 == null)
-      {
-        pwd1 = promptForPassword(
-            INFO_REPLICATION_ENABLE_PASSWORD1_PROMPT.get(bindDn1));
-        prompted = true;
-      }
-    }
 
     /*
      * Try to connect to the first server.
      */
+    String host1 = argParser.getHostName1();
+    int port1 = argParser.getPort1();
+    boolean useSSL1 = argParser.useSSL1();
+    boolean useStartTLS1 = argParser.useStartTLS1();
+    String bindDn1 = argParser.getBindDn1();
+    String pwd1 = argParser.getBindPassword1();
+
+    initializeGlobalArguments(host1, port1, useSSL1,
+        useStartTLS1, adminUid, bindDn1, (pwd1 != null) ? pwd1 : adminPwd);
     InitialLdapContext ctx1 = null;
-    // Boolean used to only ask for the information that was not explicitly
-    // provided the first time we ask.  After we ask for all the information.
 
     while ((ctx1 == null) && !cancelled)
     {
       try
       {
-        ctx1 = createContext(host1, port1, useSSL1, useStartTLS1, bindDn1,
-            pwd1, getTrustManager());
+        ci.setHeadingMessage(
+            INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
+        ci.run();
+        useSSL1 = ci.useSSL();
+        useStartTLS1 = ci.useStartTLS();
+        host1 = ci.getHostName();
+        port1 = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        if (adminUid != null)
+        {
+          adminPwd = ci.getBindPassword();
+        }
+        bindDn1 = ci.getBindDN();
+        pwd1 = ci.getBindPassword();
+
+        ctx1 = createInitialLdapContextInteracting(ci);
+
+        if (ctx1 == null)
+        {
+          cancelled = true;
+        }
       }
-      catch (NamingException ne)
+      catch (ClientException ce)
       {
-        prompted = true;
-        LOG.log(Level.WARNING, "Error connecting to "+host1+":"+port1, ne);
-        if (Utils.isCertificateException(ne))
-        {
-          String usedUrl = ConnectionUtils.getLDAPUrl(host1, port1, useSSL1);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
-          {
-            cancelled = true;
-          }
-        }
-        else
-        {
-          printLineBreak();
-          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              host1+":"+port1, ne.toString()));
-
-          printLineBreak();
-          host1 = promptForString(
-              INFO_REPLICATION_ENABLE_HOSTNAME1_PROMPT.get(),
-              getValue(host1, argParser.getDefaultHostName1()), false);
-          port1 = promptForPort(INFO_REPLICATION_ENABLE_PORT1_PROMPT.get(),
-              getValue(port1, argParser.getDefaultPort1()), false);
-
-          bindDn1 = promptForString(
-              INFO_REPLICATION_ENABLE_BINDDN1_PROMPT.get(),
-              getValue(bindDn1, argParser.getDefaultBindDn1()), false);
-          pwd1 = promptForPassword(
-              INFO_REPLICATION_ENABLE_PASSWORD1_PROMPT.get(bindDn1));
-
-          useSSL1 = confirm(INFO_REPLICATION_ENABLE_USESSL1_PROMPT.get(),
-              useSSL1);
-          if (!useSSL1)
-          {
-            useStartTLS1 = confirm(
-                INFO_REPLICATION_ENABLE_USESTARTTLS1_PROMPT.get(),
-                useStartTLS1);
-          }
-        }
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
       }
     }
+
     if (!cancelled)
     {
       uData.setHostName1(host1);
@@ -693,17 +643,18 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           else
           {
-            replicationPort1 = promptForPort(
+            replicationPort1 = askPort(
                 INFO_REPLICATION_ENABLE_REPLICATIONPORT1_PROMPT.get(),
-                argParser.getDefaultReplicationPort1(), false);
+                argParser.getDefaultReplicationPort1());
+            println();
           }
           if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
           {
             if (!SetupUtils.canUseAsPort(replicationPort1))
             {
-              printLineBreak();
-              printErrorMessage(getCannotBindToPortError(replicationPort1));
-              printLineBreak();
+              println();
+              println(getCannotBindToPortError(replicationPort1));
+              println();
               replicationPort1 = -1;
             }
           }
@@ -713,10 +664,11 @@ public class ReplicationCliMain extends CliApplicationHelper
             // already included when we call SetupUtils.canUseAsPort
             if (replicationPort1 == port1)
             {
-              printLineBreak();
-              printErrorMessage(
+              println();
+              println(
                   ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
                       host1, String.valueOf(replicationPort1)));
+              println();
               replicationPort1 = -1;
             }
           }
@@ -724,8 +676,9 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (!secureReplication1)
         {
           secureReplication1 =
-            confirm(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(
-                String.valueOf(replicationPort1)), false);
+            askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(
+                String.valueOf(replicationPort1)), false, LOG);
+          println();
         }
       }
       // If the server contains an ADS. Try to load it and only load it: if
@@ -739,6 +692,10 @@ public class ReplicationCliMain extends CliApplicationHelper
       if (!cancelled)
       {
         administratorDefined |= hasAdministrator(ctx1);
+        if (uData.getAdminPwd() != null)
+        {
+          adminPwd = uData.getAdminPwd();
+        }
       }
     }
     uData.setReplicationPort1(replicationPort1);
@@ -753,25 +710,50 @@ public class ReplicationCliMain extends CliApplicationHelper
     String pwd2 = null;
     boolean useSSL2 = false;
     boolean useStartTLS2 = false;
+    ci.resetHeadingDisplayed();
     if (!cancelled)
     {
       host2 = argParser.getHostName2();
-      if (prompted)
-      {
-        printLineBreak();
-      }
-      if (host2 == null)
-      {
-        host2 = promptForString(
-            INFO_REPLICATION_ENABLE_HOSTNAME2_PROMPT.get(),
-            argParser.getDefaultHostName2(), false);
-      }
       port2 = argParser.getPort2();
-      while (port2 == -1)
+      useSSL2 = argParser.useSSL2();
+      useStartTLS2 = argParser.useStartTLS2();
+      bindDn2 = argParser.getBindDn2();
+      pwd2 = argParser.getBindPassword2();
+      String pwd;
+      if (pwd2 != null)
       {
-        port2 = promptForPort(
-            INFO_REPLICATION_ENABLE_PORT2_PROMPT.get(),
-            argParser.getDefaultPort2(), false);
+        pwd = pwd2;
+      }
+      else if (bindDn2 != null)
+      {
+        pwd = null;
+      }
+      else
+      {
+        pwd = adminPwd;
+      }
+
+      initializeGlobalArguments(host2, port2, useSSL2, useStartTLS2, adminUid,
+          bindDn2, pwd);
+    }
+    InitialLdapContext ctx2 = null;
+
+    while ((ctx2 == null) && !cancelled)
+    {
+      try
+      {
+        ci.setHeadingMessage(
+            INFO_REPLICATION_ENABLE_HOST2_CONNECTION_PARAMETERS.get());
+        ci.run();
+        useSSL2 = ci.useSSL();
+        useStartTLS2 = ci.useStartTLS();
+        host2 = ci.getHostName();
+        port2 = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        bindDn2 = ci.getBindDN();
+        pwd2 = ci.getBindPassword();
+
+        boolean error = false;
         if (host1.equalsIgnoreCase(host2))
         {
           if (port1 == port2)
@@ -779,105 +761,41 @@ public class ReplicationCliMain extends CliApplicationHelper
             port2 = -1;
             Message message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
                 host1, String.valueOf(port1));
-            printLineBreak();
-            printErrorMessage(message);
-            printLineBreak();
+            println();
+            println(message);
+            println();
+            error = true;
           }
         }
-      }
-      useSSL2 = argParser.useSSL2();
-      useStartTLS2 = argParser.useStartTLS2();
-      if (!useSSL2 && !useStartTLS2)
-      {
-        useSSL2 = confirm(INFO_REPLICATION_ENABLE_USESSL2_PROMPT.get(), false);
-        if (!useSSL2)
-        {
-          useStartTLS2 =
-            confirm(INFO_REPLICATION_ENABLE_USESTARTTLS2_PROMPT.get(), false);
-        }
-      }
 
-      bindDn2 = argParser.getBindDn2();
-      pwd2 = argParser.getBindPassword2();
-      if ((bindDn2 == null) && (pwd2 == null) && (adminPwd != null) &&
-          (adminUid != null))
-      {
-        // No information provided to connect to the first server.  Try
-        // to use global administrator.
-        bindDn2 = ADSContext.getAdministratorDN(adminUid);
-        pwd2 = adminPwd;
-      }
-      else
-      {
-        // Ask for the bind dn to connect to server 2.
-        if (bindDn2 == null)
+        if (!error)
         {
-          bindDn2 = promptForString(
-              INFO_REPLICATION_ENABLE_BINDDN2_PROMPT.get(),
-              getValue(bindDn2, argParser.getDefaultBindDn2()), false);
-        }
-        if (pwd2 == null)
-        {
-          pwd2 = promptForPassword(
-              INFO_REPLICATION_ENABLE_PASSWORD2_PROMPT.get(bindDn1));
-        }
-      }
-    }
-    /**
-     * Try to connect to second server
-     */
-    InitialLdapContext ctx2 = null;
+          ctx2 = createInitialLdapContextInteracting(ci);
 
-    while ((ctx2 == null) && !cancelled)
-    {
-      try
-      {
-        ctx2 = createContext(host2, port2, useSSL2, useStartTLS2, bindDn2,
-            pwd2, getTrustManager());
-      }
-      catch (NamingException ne)
-      {
-        LOG.log(Level.WARNING, "Error connecting to "+host2+":"+port2, ne);
-        if (Utils.isCertificateException(ne))
-        {
-          String usedUrl = ConnectionUtils.getLDAPUrl(host2, port2, useSSL2);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
+          if (ctx2 == null)
           {
             cancelled = true;
           }
         }
-        else
-        {
-          if (pwd2 != null)
-          {
-            printLineBreak();
-            printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-                host2+":"+port2, ne.toString()));
-          }
-          printLineBreak();
-
-          host2 = promptForString(
-              INFO_REPLICATION_ENABLE_HOSTNAME2_PROMPT.get(),
-              getValue(host2, argParser.getDefaultHostName2()), false);
-          port2 = promptForPort(INFO_REPLICATION_ENABLE_PORT2_PROMPT.get(),
-              getValue(port2, argParser.getDefaultPort2()), false);
-          bindDn2 = promptForString(
-              INFO_REPLICATION_ENABLE_BINDDN2_PROMPT.get(),
-              getValue(bindDn2, argParser.getDefaultBindDn2()), false);
-          pwd2 = promptForPassword(
-              INFO_REPLICATION_ENABLE_PASSWORD2_PROMPT.get(bindDn2));
-          useSSL2 = confirm(INFO_REPLICATION_ENABLE_USESSL2_PROMPT.get(),
-              useSSL2);
-          if (!useSSL2)
-          {
-            useStartTLS2 = confirm(
-                INFO_REPLICATION_ENABLE_USESTARTTLS2_PROMPT.get(),
-                useStartTLS2);
-          }
-        }
+      }
+      catch (ClientException ce)
+      {
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
       }
     }
+
     if (!cancelled)
     {
       uData.setHostName2(host2);
@@ -887,6 +805,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       uData.setUseSSL2(useSSL2);
       uData.setUseStartTLS2(useStartTLS2);
     }
+
     int replicationPort2 = -1;
     boolean secureReplication2 = argParser.isSecureReplication2();
     if (ctx2 != null)
@@ -903,17 +822,18 @@ public class ReplicationCliMain extends CliApplicationHelper
           }
           else
           {
-            replicationPort2 = promptForPort(
+            replicationPort2 = askPort(
                 INFO_REPLICATION_ENABLE_REPLICATIONPORT2_PROMPT.get(),
-                argParser.getDefaultReplicationPort2(), false);
+                argParser.getDefaultReplicationPort2());
+            println();
           }
           if (!argParser.skipReplicationPortCheck() && isLocalHost(host2))
           {
             if (!SetupUtils.canUseAsPort(replicationPort2))
             {
-              printLineBreak();
-              printErrorMessage(getCannotBindToPortError(replicationPort2));
-              printLineBreak();
+              println();
+              println(getCannotBindToPortError(replicationPort2));
+              println();
               replicationPort2 = -1;
             }
           }
@@ -923,8 +843,8 @@ public class ReplicationCliMain extends CliApplicationHelper
             // already included when we call SetupUtils.canUseAsPort
             if (replicationPort2 == port2)
             {
-              printLineBreak();
-              printErrorMessage(
+              println();
+              println(
                   ERR_REPLICATION_PORT_AND_REPLICATION_PORT_EQUAL.get(
                       host2, String.valueOf(replicationPort2)));
               replicationPort2 = -1;
@@ -935,10 +855,10 @@ public class ReplicationCliMain extends CliApplicationHelper
             if ((replicationPort1 > 0) &&
                 (replicationPort1 == replicationPort2))
             {
-              printLineBreak();
-              printErrorMessage(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
+              println();
+              println(ERR_REPLICATION_SAME_REPLICATION_PORT.get(
                       String.valueOf(replicationPort2), host1));
-              printLineBreak();
+              println();
               replicationPort2 = -1;
             }
           }
@@ -946,8 +866,9 @@ public class ReplicationCliMain extends CliApplicationHelper
         if (!secureReplication2)
         {
           secureReplication2 =
-            confirm(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
-                String.valueOf(replicationPort2)), false);
+            askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
+                String.valueOf(replicationPort2)), false, LOG);
+          println();
         }
       }
       // If the server contains an ADS. Try to load it and only load it: if
@@ -979,33 +900,43 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       if (adminUid == null)
       {
-        printLine(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get(),
-            true);
+        println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
         promptedForAdmin = true;
         adminUid= askForAdministratorUID(
             argParser.getDefaultAdministratorUID());
+        println();
       }
       uData.setAdminUid(adminUid);
     }
 
     if (!cancelled && (uData.getAdminPwd() == null) && !administratorDefined)
     {
+      adminPwd = null;
       while (adminPwd == null)
       {
         if (!promptedForAdmin)
         {
-          printLineBreak();
-          printLine(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get(),
-            true);
+          println();
+          println(INFO_REPLICATION_ENABLE_ADMINISTRATOR_MUST_BE_CREATED.get());
+          println();
         }
-        adminPwd = askForAdministratorPwd();
-        String adminPwdConfirm =
-          promptForPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT.get());
+        while (adminPwd == null)
+        {
+          adminPwd = askForAdministratorPwd();
+          println();
+        }
+        String adminPwdConfirm = null;
+        while (adminPwdConfirm == null)
+        {
+          adminPwdConfirm =
+          readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT.get(), LOG);
+          println();
+        }
         if (!adminPwd.equals(adminPwdConfirm))
         {
-          printLineBreak();
-          printErrorMessage(ERR_ADMINISTRATOR_PWD_DO_NOT_MATCH.get());
-          printLineBreak();
+          println();
+          println(ERR_ADMINISTRATOR_PWD_DO_NOT_MATCH.get());
+          println();
           adminPwd = null;
         }
       }
@@ -1068,48 +999,12 @@ public class ReplicationCliMain extends CliApplicationHelper
     String adminUid = argParser.getAdministratorUID();
     String bindDn = argParser.getBindDNToDisable();
 
+    // This is done because we want to ask explicitly for this
+
     String host = argParser.getHostNameToDisable();
-    if (host == null)
-    {
-      host = promptForString(
-          INFO_REPLICATION_DISABLE_HOSTNAME_PROMPT.get(),
-          argParser.getDefaultHostNameToDisable(), false);
-    }
     int port = argParser.getPortToDisable();
-    if (port == -1)
-    {
-      port = promptForPort(
-          INFO_REPLICATION_DISABLE_PORT_PROMPT.get(),
-          argParser.getDefaultPortToDisable(), false);
-    }
     boolean useSSL = argParser.useSSLToDisable();
     boolean useStartTLS = argParser.useStartTLSToDisable();
-    if (!useSSL && !useStartTLS)
-    {
-      useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
-      if (!useSSL)
-      {
-        useStartTLS =
-          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
-      }
-    }
-    if ((adminUid == null) && (bindDn == null))
-    {
-      String v = askForBindDnDisable(argParser.getDefaultAdministratorUID());
-      if (Utils.isDn(v))
-      {
-        bindDn = v;
-      }
-      else
-      {
-        adminUid = v;
-      }
-    }
-
-    if (adminPwd == null)
-    {
-      adminPwd = askForPasswordDisable(adminUid != null ? adminUid : bindDn);
-    }
 
     /*
      * Try to connect to the server.
@@ -1118,66 +1013,43 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     while ((ctx == null) && !cancelled)
     {
-      String lastBindDn;
-      if (adminUid != null)
-      {
-        lastBindDn = ADSContext.getAdministratorDN(adminUid);
-      }
-      else
-      {
-        lastBindDn = bindDn;
-      }
       try
       {
-        ctx = createContext(host, port, useSSL, useStartTLS, lastBindDn,
-            adminPwd, getTrustManager());
+        ci.setUseAdminOrBindDn(true);
+        ci.run();
+        useSSL = ci.useSSL();
+        useStartTLS = ci.useStartTLS();
+        host = ci.getHostName();
+        port = ci.getPortNumber();
+        bindDn = ci.getBindDN();
+        adminUid = ci.getAdministratorUID();
+        adminPwd = ci.getBindPassword();
+
+        ctx = createInitialLdapContextInteracting(ci);
+
+        if (ctx == null)
+        {
+          cancelled = true;
+        }
       }
-      catch (NamingException ne)
+      catch (ClientException ce)
       {
-        LOG.log(Level.WARNING, "Error connecting to "+host+":"+port, ne);
-        if (Utils.isCertificateException(ne))
-        {
-          String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
-          {
-            cancelled = true;
-          }
-        }
-        else
-        {
-          printLineBreak();
-          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              host+":"+port, ne.toString()));
-          printLineBreak();
-          host = promptForString(
-                INFO_REPLICATION_DISABLE_HOSTNAME_PROMPT.get(),
-                getValue(host, argParser.getDefaultHostNameToDisable()), false);
-          port = promptForPort(
-                INFO_REPLICATION_DISABLE_PORT_PROMPT.get(),
-              getValue(port, argParser.getDefaultPortToDisable()), false);
-          useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
-          if (!useSSL)
-          {
-            useStartTLS =
-              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-          }
-          adminUid = null;
-          bindDn = null;
-          String v = askForBindDnDisable(lastBindDn);
-          if (Utils.isDn(v))
-          {
-            bindDn = v;
-          }
-          else
-          {
-            adminUid = v;
-          }
-          adminPwd = askForPasswordDisable(adminUid != null ?
-              adminUid : bindDn);
-        }
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
       }
     }
+
     if (!cancelled)
     {
       uData.setHostName(host);
@@ -1227,19 +1099,24 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (disableADS)
       {
-        printLineBreak();
-        cancelled = !confirm(INFO_REPLICATION_CONFIRM_DISABLE_ADS.get(
-            ADSContext.getAdministrationSuffixDN()));
+        println();
+        cancelled = !askConfirmation(INFO_REPLICATION_CONFIRM_DISABLE_ADS.get(
+            ADSContext.getAdministrationSuffixDN()), true, LOG);
+        println();
       }
       if (disableSchema)
       {
-        printLineBreak();
-        cancelled = !confirm(INFO_REPLICATION_CONFIRM_DISABLE_SCHEMA.get());
+        println();
+        cancelled = !askConfirmation(
+            INFO_REPLICATION_CONFIRM_DISABLE_SCHEMA.get(), true, LOG);
+        println();
       }
       if (!disableSchema && !disableADS)
       {
-        printLineBreak();
-        cancelled = !confirm(INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get());
+        println();
+        cancelled = !askConfirmation(
+            INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true, LOG);
+        println();
       }
     }
 
@@ -1274,40 +1151,9 @@ public class ReplicationCliMain extends CliApplicationHelper
     String adminUid = argParser.getAdministratorUID();
 
     String host = argParser.getHostNameToInitializeAll();
-    if (host == null)
-    {
-      host = promptForString(
-          INFO_REPLICATION_INITIALIZE_ALL_HOSTNAME_PROMPT.get(),
-          argParser.getDefaultHostNameToInitializeAll(), false);
-    }
     int port = argParser.getPortToInitializeAll();
-    if (port == -1)
-    {
-      port = promptForPort(
-          INFO_REPLICATION_INITIALIZE_ALL_PORT_PROMPT.get(),
-          argParser.getDefaultPortToInitializeAll(), false);
-    }
     boolean useSSL = argParser.useSSLToInitializeAll();
     boolean useStartTLS = argParser.useStartTLSToInitializeAll();
-    if (!useSSL && !useStartTLS)
-    {
-      useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
-      if (!useSSL)
-      {
-        useStartTLS =
-          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
-      }
-    }
-
-    if (adminUid == null)
-    {
-      adminUid = askForAdministratorUID(argParser.getDefaultAdministratorUID());
-    }
-
-    if (adminPwd == null)
-    {
-      adminPwd = askForAdministratorPwd();
-    }
 
     /*
      * Try to connect to the server.
@@ -1318,44 +1164,38 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       try
       {
-        ctx = createContext(host, port, useSSL, useStartTLS,
-            ADSContext.getAdministratorDN(adminUid), adminPwd,
-            getTrustManager());
+        ci.setHeadingMessage(
+            INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
+        ci.run();
+        useSSL = ci.useSSL();
+        useStartTLS = ci.useStartTLS();
+        host = ci.getHostName();
+        port = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        adminPwd = ci.getBindPassword();
+
+        ctx = createInitialLdapContextInteracting(ci);
+
+        if (ctx == null)
+        {
+          cancelled = true;
+        }
       }
-      catch (NamingException ne)
+      catch (ClientException ce)
       {
-        LOG.log(Level.WARNING, "Error connecting to "+host+":"+port, ne);
-        if (Utils.isCertificateException(ne))
-        {
-          String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
-          {
-            cancelled = true;
-          }
-        }
-        else
-        {
-          printLineBreak();
-          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              host+":"+port, ne.toString()));
-          printLineBreak();
-          host = promptForString(
-                INFO_REPLICATION_INITIALIZE_ALL_HOSTNAME_PROMPT.get(),
-                getValue(host, argParser.getDefaultHostNameToInitializeAll()),
-                false);
-          port = promptForPort(
-                INFO_REPLICATION_INITIALIZE_ALL_PORT_PROMPT.get(),
-              getValue(port, argParser.getDefaultPortToInitializeAll()), false);
-          useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
-          if (!useSSL)
-          {
-            useStartTLS =
-              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-          }
-          adminUid = askForAdministratorUID(adminUid);
-          adminPwd = askForAdministratorPwd();
-        }
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
       }
     }
     if (!cancelled)
@@ -1391,16 +1231,19 @@ public class ReplicationCliMain extends CliApplicationHelper
       String hostPortSource = ConnectionUtils.getHostPort(ctx);
       if (initializeADS)
       {
-        printLineBreak();
-        cancelled = !confirm(INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(
-            ADSContext.getAdministrationSuffixDN(), hostPortSource));
+        println();
+        cancelled = !askConfirmation(
+            INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(
+            ADSContext.getAdministrationSuffixDN(), hostPortSource), true, LOG);
+        println();
       }
       else
       {
-        printLineBreak();
-        cancelled = !confirm(
+        println();
+        cancelled = !askConfirmation(
             INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(
-                hostPortSource));
+                hostPortSource), true, LOG);
+        println();
       }
     }
 
@@ -1438,40 +1281,9 @@ public class ReplicationCliMain extends CliApplicationHelper
     String adminUid = argParser.getAdministratorUID();
 
     String host = argParser.getHostNameToStatus();
-    if (host == null)
-    {
-      host = promptForString(
-          INFO_REPLICATION_STATUS_HOSTNAME_PROMPT.get(),
-          argParser.getDefaultHostNameToStatus(), false);
-    }
     int port = argParser.getPortToStatus();
-    if (port == -1)
-    {
-      port = promptForPort(
-          INFO_REPLICATION_STATUS_PORT_PROMPT.get(),
-          argParser.getDefaultPortToStatus(), false);
-    }
     boolean useSSL = argParser.useSSLToStatus();
     boolean useStartTLS = argParser.useStartTLSToStatus();
-    if (!useSSL && !useStartTLS)
-    {
-      useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), false);
-      if (!useSSL)
-      {
-        useStartTLS =
-          confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), false);
-      }
-    }
-
-    if (adminUid == null)
-    {
-      adminUid = askForAdministratorUID(argParser.getDefaultAdministratorUID());
-    }
-
-    if (adminPwd == null)
-    {
-      adminPwd = askForAdministratorPwd();
-    }
 
     /*
      * Try to connect to the server.
@@ -1482,43 +1294,36 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       try
       {
-        ctx = createContext(host, port, useSSL, useStartTLS,
-            ADSContext.getAdministratorDN(adminUid), adminPwd,
-            getTrustManager());
+        ci.run();
+        useSSL = ci.useSSL();
+        useStartTLS = ci.useStartTLS();
+        host = ci.getHostName();
+        port = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        adminPwd = ci.getBindPassword();
+
+        ctx = createInitialLdapContextInteracting(ci);
+
+        if (ctx == null)
+        {
+          cancelled = true;
+        }
       }
-      catch (NamingException ne)
+      catch (ClientException ce)
       {
-        LOG.log(Level.WARNING, "Error connecting to "+host+":"+port, ne);
-        if (Utils.isCertificateException(ne))
-        {
-          String usedUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
-          {
-            cancelled = true;
-          }
-        }
-        else
-        {
-          printLineBreak();
-          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              host+":"+port, ne.toString()));
-          printLineBreak();
-          host = promptForString(
-                INFO_REPLICATION_STATUS_HOSTNAME_PROMPT.get(),
-                getValue(host, argParser.getDefaultHostNameToStatus()), false);
-          port = promptForPort(
-                INFO_REPLICATION_STATUS_PORT_PROMPT.get(),
-              getValue(port, argParser.getDefaultPortToStatus()), false);
-          useSSL = confirm(INFO_CLI_USESSL_PROMPT.get(), useSSL);
-          if (!useSSL)
-          {
-            useStartTLS =
-              confirm(INFO_CLI_USESTARTTLS_PROMPT.get(), useStartTLS);
-          }
-          adminUid = askForAdministratorUID(adminUid);
-          adminPwd = askForAdministratorPwd();
-        }
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
       }
     }
     if (!cancelled)
@@ -1578,113 +1383,55 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     String adminPwd = argParser.getBindPasswordAdmin();
     String adminUid = argParser.getAdministratorUID();
-    boolean promptedForAdmin = false;
-    if (adminUid == null)
-    {
-      adminUid = askForAdministratorUID(argParser.getDefaultAdministratorUID());
-      promptedForAdmin = true;
-    }
 
-    if (adminPwd == null)
-    {
-      adminPwd = askForAdministratorPwd();
-      promptedForAdmin = true;
-    }
-
-    boolean promptedFor1 = false;
     String hostSource = argParser.getHostNameSource();
-    if (hostSource == null)
-    {
-      if (promptedForAdmin)
-      {
-        printLineBreak();
-      }
-      hostSource = promptForString(
-          INFO_REPLICATION_INITIALIZE_HOSTNAMESOURCE_PROMPT.get(),
-          argParser.getDefaultHostNameSource(), false);
-      promptedFor1 = true;
-    }
     int portSource = argParser.getPortSource();
-    if (portSource == -1)
-    {
-      if (promptedForAdmin && !promptedFor1)
-      {
-        printLineBreak();
-      }
-      portSource = promptForPort(
-          INFO_REPLICATION_INITIALIZE_PORTSOURCE_PROMPT.get(),
-          argParser.getDefaultPortSource(), false);
-      promptedFor1 = true;
-    }
     boolean useSSLSource = argParser.useSSLSource();
     boolean useStartTLSSource = argParser.useStartTLSSource();
-    if (!useSSLSource && !useStartTLSSource)
-    {
-      if (promptedForAdmin && !promptedFor1)
-      {
-        printLineBreak();
-      }
-      useSSLSource = confirm(
-          INFO_REPLICATION_INITIALIZE_USESSLSOURCE_PROMPT.get(), false);
-      if (!useSSLSource)
-      {
-        useStartTLSSource =
-          confirm(INFO_REPLICATION_INITIALIZE_USESTARTTLSSOURCE_PROMPT.get(),
-              false);
-      }
-      promptedFor1 = true;
-    }
+
+    initializeGlobalArguments(hostSource, portSource, useSSLSource,
+        useStartTLSSource, adminUid, null, adminPwd);
     /*
      * Try to connect to the source server.
      */
     InitialLdapContext ctxSource = null;
+
     while ((ctxSource == null) && !cancelled)
     {
       try
       {
-        ctxSource = createContext(hostSource, portSource, useSSLSource,
-              useStartTLSSource, ADSContext.getAdministratorDN(adminUid),
-              adminPwd, getTrustManager());
+        ci.setHeadingMessage(
+            INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
+        ci.run();
+        useSSLSource = ci.useSSL();
+        useStartTLSSource = ci.useStartTLS();
+        hostSource = ci.getHostName();
+        portSource = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        adminPwd = ci.getBindPassword();
+
+        ctxSource = createInitialLdapContextInteracting(ci);
+
+        if (ctxSource == null)
+        {
+          cancelled = true;
+        }
       }
-      catch (NamingException ne)
+      catch (ClientException ce)
       {
-        LOG.log(Level.WARNING, "Error connecting to "+hostSource+":"+portSource,
-            ne);
-        if (Utils.isCertificateException(ne))
-        {
-          String usedUrl = ConnectionUtils.getLDAPUrl(hostSource, portSource,
-              useSSLSource);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
-          {
-            cancelled = true;
-          }
-        }
-        else
-        {
-          printLineBreak();
-          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              hostSource+":"+portSource, ne.toString()));
-          printLineBreak();
-          hostSource = promptForString(
-                INFO_REPLICATION_INITIALIZE_HOSTNAMESOURCE_PROMPT.get(),
-                getValue(hostSource, argParser.getDefaultHostNameSource()),
-                false);
-          portSource = promptForPort(
-              INFO_REPLICATION_INITIALIZE_PORTSOURCE_PROMPT.get(),
-              getValue(portSource, argParser.getDefaultPortSource()), false);
-          adminUid = askForAdministratorUID(adminUid);
-          adminPwd = askForAdministratorPwd();
-          useSSLSource = confirm(
-              INFO_REPLICATION_INITIALIZE_USESSLSOURCE_PROMPT.get(),
-              useSSLSource);
-          if (!useSSLSource)
-          {
-            useStartTLSSource = confirm(
-                INFO_REPLICATION_INITIALIZE_USESTARTTLSSOURCE_PROMPT.get(),
-                useStartTLSSource);
-          }
-        }
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
       }
     }
     if (!cancelled)
@@ -1699,116 +1446,54 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     /* Prompt for destination server credentials */
     String hostDestination = argParser.getHostNameDestination();
-    boolean promptedFor2 = false;
-    if (hostDestination == null)
-    {
-      if (promptedFor1 || promptedForAdmin)
-      {
-        printLineBreak();
-      }
-      hostDestination = promptForString(
-          INFO_REPLICATION_INITIALIZE_HOSTNAMEDESTINATION_PROMPT.get(),
-          argParser.getDefaultHostNameDestination(), false);
-      promptedFor2 = true;
-    }
     int portDestination = argParser.getPortDestination();
-    while (portDestination == -1)
-    {
-      if ((promptedFor1 || promptedForAdmin) && !promptedFor2)
-      {
-        printLineBreak();
-      }
-      portDestination = promptForPort(
-          INFO_REPLICATION_INITIALIZE_PORTDESTINATION_PROMPT.get(),
-          argParser.getDefaultPortDestination(), false);
-      if (hostSource.equalsIgnoreCase(hostDestination))
-      {
-        if (portSource == portDestination)
-        {
-          portDestination = -1;
-          Message message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
-              hostSource, String.valueOf(portSource));
-          printLineBreak();
-          printErrorMessage(message);
-          printLineBreak();
-        }
-      }
-      promptedFor2 = true;
-    }
-
     boolean useSSLDestination = argParser.useSSLDestination();
     boolean useStartTLSDestination = argParser.useStartTLSDestination();
-    if (!useSSLDestination && !useStartTLSDestination)
-    {
-      if ((promptedFor1 || promptedForAdmin) && !promptedFor2)
-      {
-        printLineBreak();
-      }
-      useSSLDestination = confirm(
-          INFO_REPLICATION_INITIALIZE_USESSLDESTINATION_PROMPT.get(), false);
-      if (!useSSLDestination)
-      {
-        useStartTLSDestination = confirm(
-            INFO_REPLICATION_INITIALIZE_USESTARTTLSDESTINATION_PROMPT.get(),
-            false);
-      }
-      promptedFor2 = true;
-    }
+
+    initializeGlobalArguments(hostDestination, portDestination,
+        useSSLDestination, useStartTLSDestination, adminUid, null, adminPwd);
     /*
      * Try to connect to the destination server.
      */
     InitialLdapContext ctxDestination = null;
+
+    ci.resetHeadingDisplayed();
     while ((ctxDestination == null) && !cancelled)
     {
       try
       {
-        ctxDestination = createContext(hostDestination, portDestination,
-            useSSLDestination, useStartTLSDestination,
-            ADSContext.getAdministratorDN(adminUid),
-            adminPwd, getTrustManager());
-      }
-      catch (NamingException ne)
-      {
-        LOG.log(Level.WARNING, "Error connecting to "+hostDestination+":"+
-            portDestination, ne);
+        ci.setHeadingMessage(
+           INFO_REPLICATION_INITIALIZE_DESTINATION_CONNECTION_PARAMETERS.get());
+        ci.run();
+        useSSLDestination = ci.useSSL();
+        useStartTLSDestination = ci.useStartTLS();
+        hostDestination = ci.getHostName();
+        portDestination = ci.getPortNumber();
 
-        if (Utils.isCertificateException(ne))
+        ctxDestination = createInitialLdapContextInteracting(ci);
+
+        if (ctxDestination == null)
         {
-          String usedUrl = ConnectionUtils.getLDAPUrl(hostDestination,
-              portDestination, useSSLDestination);
-          if (!promptForCertificateConfirmation(ne, getTrustManager(), usedUrl,
-              getTrustManager()))
-          {
-            cancelled = true;
-          }
-        }
-        else
-        {
-          printLineBreak();
-          printErrorMessage(ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
-              hostDestination+":"+portDestination, ne.toString()));
-          printLineBreak();
-          hostDestination = promptForString(
-              INFO_REPLICATION_INITIALIZE_HOSTNAMEDESTINATION_PROMPT.get(),
-              getValue(hostDestination,
-                  argParser.getDefaultHostNameDestination()), false);
-          portDestination = promptForPort(
-              INFO_REPLICATION_INITIALIZE_PORTDESTINATION_PROMPT.get(),
-              getValue(portDestination,
-                  argParser.getDefaultPortDestination()), false);
-          useSSLDestination = confirm(
-              INFO_REPLICATION_INITIALIZE_USESSLDESTINATION_PROMPT.get(),
-              useSSLDestination);
-          if (!useSSLDestination)
-          {
-            useStartTLSDestination = confirm(
-                INFO_REPLICATION_INITIALIZE_USESTARTTLSDESTINATION_PROMPT.get(),
-                useStartTLSDestination);
-          }
+          cancelled = true;
         }
       }
-    }
-    if (!cancelled)
+      catch (ClientException ce)
+      {
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
+      }
+    }    if (!cancelled)
     {
       uData.setHostNameDestination(hostDestination);
       uData.setPortDestination(portDestination);
@@ -1842,16 +1527,20 @@ public class ReplicationCliMain extends CliApplicationHelper
       String hostPortDestination = ConnectionUtils.getHostPort(ctxDestination);
       if (initializeADS)
       {
-        printLineBreak();
-        cancelled = !confirm(INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(
+        println();
+        cancelled = !askConfirmation(
+            INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(
             ADSContext.getAdministrationSuffixDN(), hostPortDestination,
-            hostPortSource));
+            hostPortSource), true, LOG);
+        println();
       }
       else
       {
-        printLineBreak();
-        cancelled = !confirm(INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(
-            hostPortDestination, hostPortSource));
+        println();
+        cancelled = !askConfirmation(
+            INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(
+            hostPortDestination, hostPortSource), true, LOG);
+        println();
       }
     }
 
@@ -1927,7 +1616,28 @@ public class ReplicationCliMain extends CliApplicationHelper
    */
   private ApplicationTrustManager getTrustManager()
   {
-    return argParser.getTrustManager();
+    ApplicationTrustManager trust;
+    if (isInteractive())
+    {
+      TrustManager t = ci.getTrustManager();
+      if (t == null)
+      {
+        trust = null;
+      }
+      else if (t instanceof ApplicationTrustManager)
+      {
+        trust = (ApplicationTrustManager)t;
+      }
+      else
+      {
+        trust = new ApplicationTrustManager(ci.getKeyStore());
+      }
+    }
+    else
+    {
+      trust = argParser.getTrustManager();
+    }
+    return trust;
   }
 
   /**
@@ -1964,10 +1674,10 @@ public class ReplicationCliMain extends CliApplicationHelper
       // Best-effort: try to use admin, if it does not work, use bind DN.
       try
       {
-        InitialLdapContext ctx = createContext(uData.getHostName1(),
-            uData.getPort1(), uData.useSSL1(), uData.useStartTLS1(),
-            ADSContext.getAdministratorDN(adminUid), adminPwd,
-            getTrustManager());
+        InitialLdapContext ctx = createAdministrativeContext(
+            uData.getHostName1(), uData.getPort1(), uData.useSSL1(),
+            uData.useStartTLS1(), ADSContext.getAdministratorDN(adminUid),
+            adminPwd, getTrustManager());
         uData.setBindDn1(ADSContext.getAdministratorDN(adminUid));
         uData.setPwd1(adminPwd);
         ctx.close();
@@ -2004,10 +1714,10 @@ public class ReplicationCliMain extends CliApplicationHelper
       // Best-effort: try to use admin, if it does not work, use bind DN.
       try
       {
-        InitialLdapContext ctx = createContext(uData.getHostName2(),
-            uData.getPort2(), uData.useSSL2(), uData.useStartTLS2(),
-            ADSContext.getAdministratorDN(adminUid), adminPwd,
-            getTrustManager());
+        InitialLdapContext ctx = createAdministrativeContext(
+            uData.getHostName2(), uData.getPort2(), uData.useSSL2(),
+            uData.useStartTLS2(), ADSContext.getAdministratorDN(adminUid),
+            adminPwd, getTrustManager());
         uData.setBindDn2(ADSContext.getAdministratorDN(adminUid));
         uData.setPwd2(adminPwd);
         ctx.close();
@@ -2225,11 +1935,14 @@ public class ReplicationCliMain extends CliApplicationHelper
       ADSContext adsContext = new ADSContext(ctx[0]);
       if (adsContext.hasAdminData())
       {
-        TopologyCache cache = new TopologyCache(adsContext, getTrustManager());
         boolean reloadTopology = true;
         LinkedList<Message> exceptionMsgs = new LinkedList<Message>();
         while (reloadTopology && !cancelled)
         {
+          // We must recreate the cache because the trust manager in the
+          // LDAPConnectionConsoleInteraction object might have changed.
+          TopologyCache cache = new TopologyCache(adsContext,
+              getTrustManager());
           cache.reloadTopology();
 
           reloadTopology = false;
@@ -2282,14 +1995,16 @@ public class ReplicationCliMain extends CliApplicationHelper
                   {
                     if (!errorDisplayed)
                     {
-                      printLineBreak();
-                      printErrorMessage(
+                      println();
+                      println(
                           INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get());
                       errorDisplayed = true;
                     }
                     adminUid = askForAdministratorUID(
                         argParser.getDefaultAdministratorUID());
+                    println();
                     adminPwd = askForAdministratorPwd();
+                    println();
                   }
                   try
                   {
@@ -2300,21 +2015,21 @@ public class ReplicationCliMain extends CliApplicationHelper
                   }
                   try
                   {
-                    ctx[0] = createContext(host, port, isSSL, isStartTLS,
-                        ADSContext.getAdministratorDN(adminUid), adminPwd,
-                        getTrustManager());
+                    ctx[0] = createAdministrativeContext(host, port, isSSL,
+                        isStartTLS, ADSContext.getAdministratorDN(adminUid),
+                        adminPwd, getTrustManager());
                     adsContext = new ADSContext(ctx[0]);
                     cache = new TopologyCache(adsContext, getTrustManager());
                     connected = true;
                   }
                   catch (Throwable t)
                   {
-                    printLineBreak();
-                    printErrorMessage(
+                    println();
+                    println(
                         ERR_ERROR_CONNECTING_TO_SERVER_PROMPT_AGAIN.get(
                         host+":"+port, t.getMessage()));
                     LOG.log(Level.WARNING, "Complete error stack:", t);
-                    printLineBreak();
+                    println();
                   }
                 }
                 uData.setAdminUid(adminUid);
@@ -2343,8 +2058,8 @@ public class ReplicationCliMain extends CliApplicationHelper
                   Utils.isCertificateException(e.getCause()))
               {
                 reloadTopology = true;
-                cancelled = !promptForCertificateConfirmation(e.getCause(),
-                    e.getTrustManager(), e.getLdapUrl(), getTrustManager());
+                cancelled = !ci.promptForCertificateConfirmation(e.getCause(),
+                    e.getTrustManager(), e.getLdapUrl(), true, LOG);
               }
               else
               {
@@ -2360,18 +2075,18 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           if (uData instanceof StatusReplicationUserData)
           {
-            printWarningMessage(
+            println(
                 ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
                     Utils.getMessageFromCollection(exceptionMsgs,
                         Constants.LINE_SEPARATOR).toString()));
-            printLineBreak();
+            println();
           }
           else
           {
-            cancelled = !confirm(
+            cancelled = !askConfirmation(
                ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
                 get(Utils.getMessageFromCollection(exceptionMsgs,
-                    Constants.LINE_SEPARATOR).toString()));
+                    Constants.LINE_SEPARATOR).toString()), true, LOG);
           }
         }
       }
@@ -2607,13 +2322,14 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     LinkedList<Message> errorMessages = new LinkedList<Message>();
 
-    printProgressLineBreak();
-    printProgressMessage(
+    printlnProgress();
+    printProgress(
         formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
     try
     {
-      ctx1 = createContext(host1, port1, uData.useSSL1(), uData.useStartTLS1(),
-          uData.getBindDn1(), uData.getPwd1(), getTrustManager());
+      ctx1 = createAdministrativeContext(host1, port1, uData.useSSL1(),
+          uData.useStartTLS1(), uData.getBindDn1(), uData.getPwd1(),
+          getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -2624,8 +2340,9 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     try
     {
-      ctx2 = createContext(host2, port2, uData.useSSL2(), uData.useStartTLS2(),
-          uData.getBindDn2(), uData.getPwd2(), getTrustManager());
+      ctx2 = createAdministrativeContext(host2, port2, uData.useSSL2(),
+          uData.useStartTLS2(), uData.getBindDn2(), uData.getPwd2(),
+          getTrustManager());
     }
     catch (NamingException ne)
     {
@@ -2643,8 +2360,8 @@ public class ReplicationCliMain extends CliApplicationHelper
     if (errorMessages.isEmpty())
     {
       // This done is for the message informing that we are connecting.
-      printProgressMessage(formatter.getFormattedDone());
-      printProgressMessage(formatter.getLineBreak());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
 
 //    If we are not in interactive mode do some checks...
       if (!argParser.isInteractive())
@@ -2720,8 +2437,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         catch (ReplicationCliException rce)
         {
           returnValue = rce.getErrorCode();
-          printLineBreak();
-          printErrorMessage(getCriticalExceptionMessage(rce));
+          println();
+          println(getCriticalExceptionMessage(rce));
           LOG.log(Level.SEVERE, "Complete error stack:", rce);
         }
       }
@@ -2735,8 +2452,8 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     for (Message msg : errorMessages)
     {
-      printLineBreak();
-      printErrorMessage(msg);
+      println();
+      println(msg);
     }
 
     long time1 = Utils.getServerClock(ctx1);
@@ -2746,7 +2463,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       if (Math.abs(time1 - time2) >
       (Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
       {
-        printWarningMessage(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
+        println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
             ConnectionUtils.getHostPort(ctx1),
             ConnectionUtils.getHostPort(ctx2),
             String.valueOf(
@@ -2792,29 +2509,29 @@ public class ReplicationCliMain extends CliApplicationHelper
   {
     ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
     InitialLdapContext ctx = null;
-    printProgressMessage(
+    printProgress(
         formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
     String bindDn = uData.getAdminUid() == null ? uData.getBindDn() :
       ADSContext.getAdministratorDN(uData.getAdminUid());
     try
     {
-      ctx = createContext(uData.getHostName(), uData.getPort(),
+      ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
           uData.useSSL(), uData.useStartTLS(), bindDn, uData.getAdminPwd(),
           getTrustManager());
     }
     catch (NamingException ne)
     {
       String hostPort = uData.getHostName()+":"+uData.getPort();
-      printLineBreak();
-      printErrorMessage(getMessageForException(ne, hostPort));
+      println();
+      println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
     }
 
     if (ctx != null)
     {
       // This done is for the message informing that we are connecting.
-      printProgressMessage(formatter.getFormattedDone());
-      printProgressMessage(formatter.getLineBreak());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
       LinkedList<String> suffixes = uData.getBaseDNs();
       checkSuffixesForDisableReplication(suffixes, ctx, false);
       if (!suffixes.isEmpty())
@@ -2828,8 +2545,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         catch (ReplicationCliException rce)
         {
           returnValue = rce.getErrorCode();
-          printLineBreak();
-          printErrorMessage(getCriticalExceptionMessage(rce));
+          println();
+          println(getCriticalExceptionMessage(rce));
           LOG.log(Level.SEVERE, "Complete error stack:", rce);
         }
       }
@@ -2872,7 +2589,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     InitialLdapContext ctx = null;
     try
     {
-      ctx = createContext(uData.getHostName(), uData.getPort(),
+      ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
           uData.useSSL(), uData.useStartTLS(),
           ADSContext.getAdministratorDN(uData.getAdminUid()),
           uData.getAdminPwd(), getTrustManager());
@@ -2880,8 +2597,8 @@ public class ReplicationCliMain extends CliApplicationHelper
     catch (NamingException ne)
     {
       String hostPort = uData.getHostName()+":"+uData.getPort();
-      printLineBreak();
-      printErrorMessage(getMessageForException(ne, hostPort));
+      println();
+      println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
     }
 
@@ -2896,8 +2613,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       catch (ReplicationCliException rce)
       {
         returnValue = rce.getErrorCode();
-        printLineBreak();
-        printErrorMessage(getCriticalExceptionMessage(rce));
+        println();
+        println(getCriticalExceptionMessage(rce));
         LOG.log(Level.SEVERE, "Complete error stack:", rce);
       }
     }
@@ -2937,7 +2654,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     InitialLdapContext ctxDestination = null;
     try
     {
-      ctxSource = createContext(uData.getHostNameSource(),
+      ctxSource = createAdministrativeContext(uData.getHostNameSource(),
           uData.getPortSource(), uData.useSSLSource(),
           uData.useStartTLSSource(),
           ADSContext.getAdministratorDN(uData.getAdminUid()),
@@ -2946,13 +2663,14 @@ public class ReplicationCliMain extends CliApplicationHelper
     catch (NamingException ne)
     {
       String hostPort = uData.getHostNameSource()+":"+uData.getPortSource();
-      printLineBreak();
-      printErrorMessage(getMessageForException(ne, hostPort));
+      println();
+      println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
     }
     try
     {
-      ctxDestination = createContext(uData.getHostNameDestination(),
+      ctxDestination = createAdministrativeContext(
+          uData.getHostNameDestination(),
           uData.getPortDestination(), uData.useSSLDestination(),
           uData.useStartTLSDestination(),
           ADSContext.getAdministratorDN(uData.getAdminUid()),
@@ -2962,8 +2680,8 @@ public class ReplicationCliMain extends CliApplicationHelper
     {
       String hostPort = uData.getHostNameDestination()+":"+
       uData.getPortDestination();
-      printLineBreak();
-      printErrorMessage(getMessageForException(ne, hostPort));
+      println();
+      println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
     }
     if ((ctxSource != null) && (ctxDestination != null))
@@ -2977,18 +2695,18 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           try
           {
-            printProgressLineBreak();
+            printlnProgress();
             Message msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctxSource)));
-            printProgressMessage(msg);
-            printProgressLineBreak();
+            printProgress(msg);
+            printlnProgress();
             initializeSuffix(baseDN, ctxSource, ctxDestination, true);
           }
           catch (ReplicationCliException rce)
           {
-            printLineBreak();
-            printErrorMessage(getCriticalExceptionMessage(rce));
+            println();
+            println(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
             LOG.log(Level.SEVERE, "Complete error stack:", rce);
           }
@@ -3045,16 +2763,16 @@ public class ReplicationCliMain extends CliApplicationHelper
     InitialLdapContext ctx = null;
     try
     {
-      ctx = createContext(uData.getHostName(), uData.getPort(), uData.useSSL(),
-          uData.useStartTLS(),
+      ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
+          uData.useSSL(), uData.useStartTLS(),
           ADSContext.getAdministratorDN(uData.getAdminUid()),
           uData.getAdminPwd(), getTrustManager());
     }
     catch (NamingException ne)
     {
       String hostPort = uData.getHostName()+":"+uData.getPort();
-      printLineBreak();
-      printErrorMessage(getMessageForException(ne, hostPort));
+      println();
+      println(getMessageForException(ne, hostPort));
       LOG.log(Level.SEVERE, "Complete error stack:", ne);
     }
     if (ctx != null)
@@ -3067,18 +2785,18 @@ public class ReplicationCliMain extends CliApplicationHelper
         {
           try
           {
-            printProgressLineBreak();
+            printlnProgress();
             Message msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctx)));
-            printProgressMessage(msg);
-            printProgressLineBreak();
+            printProgress(msg);
+            println();
             initializeAllSuffix(baseDN, ctx, true);
           }
           catch (ReplicationCliException rce)
           {
-            printLineBreak();
-            printErrorMessage(getCriticalExceptionMessage(rce));
+            println();
+            println(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
             LOG.log(Level.SEVERE, "Complete error stack:", rce);
           }
@@ -3133,8 +2851,8 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     if (availableSuffixes.size() == 0)
     {
-      printLineBreak();
-      printErrorMessage(
+      println();
+      println(
           ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
 
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
@@ -3152,8 +2870,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (userProvidedReplicatedSuffixes.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(
+        println();
+        println(
             INFO_ALREADY_REPLICATED_SUFFIXES.get(
                 Utils.getStringFromCollection(userProvidedReplicatedSuffixes,
                     Constants.LINE_SEPARATOR)));
@@ -3201,15 +2919,15 @@ public class ReplicationCliMain extends CliApplicationHelper
       suffixes.removeAll(alreadyReplicated);
       if (notFound.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(
+        println();
+        println(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(
               Utils.getStringFromCollection(notFound,
                   Constants.LINE_SEPARATOR)));
       }
       if (alreadyReplicated.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(INFO_ALREADY_REPLICATED_SUFFIXES.get(
+        println();
+        println(INFO_ALREADY_REPLICATED_SUFFIXES.get(
             Utils.getStringFromCollection(alreadyReplicated,
                 Constants.LINE_SEPARATOR)));
       }
@@ -3232,15 +2950,15 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
-            printLineBreak();
-            printErrorMessage(
+            println();
+            println(
                 ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
             break;
           }
           else
           {
-            printLineBreak();
-            printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_REPLICATE.get());
+            println();
+            println(ERR_NO_SUFFIXES_SELECTED_TO_REPLICATE.get());
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(dn,
@@ -3248,7 +2966,8 @@ public class ReplicationCliMain extends CliApplicationHelper
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (confirm(INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn)))
+                if (askConfirmation(
+                    INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn), true, LOG))
                 {
                   suffixes.add(dn);
                 }
@@ -3291,9 +3010,8 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     if (availableSuffixes.size() == 0)
     {
-      printLineBreak();
-      printErrorMessage(
-          ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+      println();
+      println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes =
         new TreeSet<String>();
@@ -3309,12 +3027,11 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (userProvidedNotReplicatedSuffixes.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(
-            INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-                Utils.getStringFromCollection(
-                    userProvidedNotReplicatedSuffixes,
-                    Constants.LINE_SEPARATOR)));
+        println();
+        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
+            Utils.getStringFromCollection(
+                userProvidedNotReplicatedSuffixes,
+                Constants.LINE_SEPARATOR)));
       }
       suffixes.clear();
     }
@@ -3359,15 +3076,15 @@ public class ReplicationCliMain extends CliApplicationHelper
       suffixes.removeAll(alreadyNotReplicated);
       if (notFound.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(
+        println();
+        println(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(
                 Utils.getStringFromCollection(notFound,
                     Constants.LINE_SEPARATOR)));
       }
       if (alreadyNotReplicated.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
+        println();
+        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
                 Utils.getStringFromCollection(alreadyNotReplicated,
                     Constants.LINE_SEPARATOR)));
       }
@@ -3389,15 +3106,14 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
-            printLineBreak();
-            printErrorMessage(
-                ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
+            println();
+            println(ERR_NO_SUFFIXES_AVAILABLE_TO_DISABLE_REPLICATION.get());
             break;
           }
           else
           {
-            printLineBreak();
-            printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
+            println();
+            println(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(dn,
@@ -3405,7 +3121,8 @@ public class ReplicationCliMain extends CliApplicationHelper
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (confirm(INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn)))
+                if (askConfirmation(
+                    INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn), true, LOG))
                 {
                   suffixes.add(dn);
                 }
@@ -3448,9 +3165,8 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     if (availableSuffixes.size() == 0)
     {
-      printLineBreak();
-      printErrorMessage(
-          ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+      println();
+      println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes =
         new TreeSet<String>();
@@ -3466,12 +3182,11 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (userProvidedNotReplicatedSuffixes.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(
-            INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-                Utils.getStringFromCollection(
-                    userProvidedNotReplicatedSuffixes,
-                    Constants.LINE_SEPARATOR)));
+        println();
+        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
+            Utils.getStringFromCollection(
+                userProvidedNotReplicatedSuffixes,
+                Constants.LINE_SEPARATOR)));
       }
       suffixes.clear();
     }
@@ -3516,15 +3231,15 @@ public class ReplicationCliMain extends CliApplicationHelper
       suffixes.removeAll(alreadyNotReplicated);
       if (notFound.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(ERR_REPLICATION_INITIALIZE_ALL_SUFFIXES_NOT_FOUND.get(
+        println();
+        println(ERR_REPLICATION_INITIALIZE_ALL_SUFFIXES_NOT_FOUND.get(
                 Utils.getStringFromCollection(notFound,
                     Constants.LINE_SEPARATOR)));
       }
       if (alreadyNotReplicated.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
+        println();
+        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
                 Utils.getStringFromCollection(alreadyNotReplicated,
                     Constants.LINE_SEPARATOR)));
       }
@@ -3546,15 +3261,15 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
-            printLineBreak();
-            printErrorMessage(
+            println();
+            println(
                 ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
             break;
           }
           else
           {
-            printLineBreak();
-            printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
+            println();
+            println(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(dn,
@@ -3562,8 +3277,9 @@ public class ReplicationCliMain extends CliApplicationHelper
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (confirm(INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(
-                    dn)))
+                if (askConfirmation(
+                    INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(dn),
+                    true, LOG))
                 {
                   suffixes.add(dn);
                 }
@@ -3595,9 +3311,8 @@ public class ReplicationCliMain extends CliApplicationHelper
             SuffixRelationType.REPLICATED));
     if (availableSuffixes.size() == 0)
     {
-      printLineBreak();
-      printErrorMessage(
-          ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
+      println();
+      println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
       suffixes.clear();
     }
     else
@@ -3623,8 +3338,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       suffixes.removeAll(notFound);
       if (notFound.size() > 0)
       {
-        printLineBreak();
-        printErrorMessage(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(
+        println();
+        println(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(
                 Utils.getStringFromCollection(notFound,
                     Constants.LINE_SEPARATOR)));
       }
@@ -3646,15 +3361,14 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
-            printLineBreak();
-            printErrorMessage(
-                ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
+            println();
+            println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
             break;
           }
           else
           {
-            printLineBreak();
-            printErrorMessage(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE.get());
+            println();
+            println(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE.get());
 
             for (String dn : availableSuffixes)
             {
@@ -3663,7 +3377,9 @@ public class ReplicationCliMain extends CliApplicationHelper
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (confirm(INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn)))
+                if (askConfirmation(
+                    INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn), true,
+                    LOG))
                 {
                   suffixes.add(dn);
                 }
@@ -3757,8 +3473,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (!messages.isEmpty())
       {
-        printWarningMessage(
-            ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
+        println(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
                 Utils.getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR).toString()));
       }
@@ -3772,7 +3487,7 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     boolean adsAlreadyReplicated = false;
 
-    printProgressMessage(formatter.getFormattedWithPoints(
+    printProgress(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_ADS_CONTENTS.get()));
     try
     {
@@ -3905,8 +3620,8 @@ public class ReplicationCliMain extends CliApplicationHelper
             ERROR_SEEDING_TRUSTORE, t);
       }
     }
-    printProgressMessage(formatter.getFormattedDone());
-    printProgressMessage(formatter.getLineBreak());
+    printProgress(formatter.getFormattedDone());
+    printlnProgress();
 
     LinkedList<String> baseDNs = uData.getBaseDNs();
     if (!adsAlreadyReplicated)
@@ -4134,15 +3849,15 @@ public class ReplicationCliMain extends CliApplicationHelper
     // done).
     if ((ctxSource != null) && (ctxDestination != null))
     {
-      printProgressMessage(formatter.getFormattedWithPoints(
+      printProgress(formatter.getFormattedWithPoints(
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
               ConnectionUtils.getHostPort(ctxDestination),
               ConnectionUtils.getHostPort(ctxSource))));
 
       initializeSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource,
           ctxDestination, false);
-      printProgressMessage(formatter.getFormattedDone());
-      printProgressMessage(formatter.getLineBreak());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
     }
 
     // If we must initialize the schema do so.
@@ -4158,14 +3873,14 @@ public class ReplicationCliMain extends CliApplicationHelper
         ctxSource = ctx1;
         ctxDestination = ctx2;
       }
-      printProgressMessage(formatter.getFormattedWithPoints(
+      printProgress(formatter.getFormattedWithPoints(
           INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
               ConnectionUtils.getHostPort(ctxDestination),
               ConnectionUtils.getHostPort(ctxSource))));
       initializeSuffix(Constants.SCHEMA_DN, ctxSource,
           ctxDestination, false);
-      printProgressMessage(formatter.getFormattedDone());
-      printProgressMessage(formatter.getLineBreak());
+      printProgress(formatter.getFormattedDone());
+      printlnProgress();
     }
   }
 
@@ -4228,7 +3943,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       if (!messages.isEmpty())
       {
-        printWarningMessage(
+        println(
             ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
                 Utils.getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR).toString()));
@@ -4324,7 +4039,7 @@ public class ReplicationCliMain extends CliApplicationHelper
             ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
                 Utils.getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR).toString());
-        printWarningMessage(msg);
+        println(msg);
       }
     }
 
@@ -4392,8 +4107,8 @@ public class ReplicationCliMain extends CliApplicationHelper
 
     if (replicaLists.isEmpty())
     {
-      printProgressMessage(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
-      printProgressLineBreak();
+      printProgress(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
+      printlnProgress();
     }
     else
     {
@@ -4420,14 +4135,14 @@ public class ReplicationCliMain extends CliApplicationHelper
       }
       for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
       {
-        printProgressLineBreak();
+        printlnProgress();
         displayStatus(replicas, uData.isScriptFriendly());
       }
       if (oneReplicated && !uData.isScriptFriendly())
       {
-        printProgressLineBreak();
-        printProgressMessage(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
-        printProgressLineBreak();
+        printlnProgress();
+        printProgress(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
+        printlnProgress();
       }
     }
   }
@@ -4516,14 +4231,7 @@ public class ReplicationCliMain extends CliApplicationHelper
     }
     Message[][] values = new Message[orderedReplicas.size()][headers.length];
 
-    int[] maxWidths = new int[headers.length];
-    int i;
-    for (i=0; i<maxWidths.length; i++)
-    {
-      maxWidths[i] = Message.toString(headers[i]).length();
-    }
-
-    i = 0;
+    int i = 0;
     for (ReplicaDescriptor replica : orderedReplicas)
     {
       Message v;
@@ -4592,19 +4300,8 @@ public class ReplicationCliMain extends CliApplicationHelper
           throw new IllegalStateException("Unknown index: "+j);
         }
         values[i][j] = v;
-        maxWidths[j] = Math.max(maxWidths[j], v.toString().length());
       }
       i++;
-    }
-
-    int totalWidth = 0;
-    for (i=0; i<maxWidths.length; i++)
-    {
-      if (i < maxWidths.length - 1)
-      {
-        maxWidths[i] += 5;
-      }
-      totalWidth += maxWidths[i];
     }
 
     String dn = replicas.iterator().next().getSuffix().getDN();
@@ -4621,80 +4318,59 @@ public class ReplicationCliMain extends CliApplicationHelper
       };
       for (i=0; i<labels.length; i++)
       {
-        printProgressMessage(labels[i]+" "+vs[i]);
-        printProgressLineBreak();
+        printProgress(Message.raw(labels[i]+" "+vs[i]));
+        printlnProgress();
       }
 
       for (i=0; i<values.length; i++)
       {
-        printProgressMessage("-");
-        printProgressLineBreak();
+        printProgress(Message.raw("-"));
+        printlnProgress();
         for (int j=0; j<values[i].length; j++)
         {
-          printProgressMessage(headers[j]+" "+values[i][j]);
-          printProgressLineBreak();
+          printProgress(Message.raw(headers[j]+" "+values[i][j]));
+          printlnProgress();
         }
       }
     }
     else
     {
+      Message msg;
       if (isReplicated)
       {
-        printProgressMessageNoWrap(
-            INFO_REPLICATION_STATUS_REPLICATED.get(dn));
-        printProgressLineBreak();
+        msg = INFO_REPLICATION_STATUS_REPLICATED.get(dn);
       }
       else
       {
-        printProgressMessageNoWrap(
-            INFO_REPLICATION_STATUS_NOT_REPLICATED.get(dn));
-        printProgressLineBreak();
+        msg = INFO_REPLICATION_STATUS_NOT_REPLICATED.get(dn);
       }
+      printProgressMessageNoWrap(msg);
+      printlnProgress();
+      int length = msg.length();
+      StringBuffer buf = new StringBuffer();
+      for (i=0; i<length; i++)
+      {
+        buf.append("=");
+      }
+      printProgressMessageNoWrap(Message.raw(buf.toString()));
+      printlnProgress();
 
-      MessageBuilder headerLine = new MessageBuilder();
-      for (i=0; i<maxWidths.length; i++)
+      TableBuilder table = new TableBuilder();
+      for (i=0; i< headers.length; i++)
       {
-        String header = headers[i].toString();
-        headerLine.append(header);
-        int extra = maxWidths[i] - header.length();
-        for (int j=0; j<extra; j++)
-        {
-          headerLine.append(" ");
-        }
+        table.appendHeading(headers[i]);
       }
-      StringBuilder builder = new StringBuilder();
-      for (i=0; i<headerLine.length(); i++)
-      {
-        builder.append("=");
-      }
-      printProgressMessageNoWrap(builder.toString());
-      printProgressLineBreak();
-      printProgressMessageNoWrap(headerLine.toMessage());
-      printProgressLineBreak();
-      builder = new StringBuilder();
-      for (i=0; i<headerLine.length(); i++)
-      {
-        builder.append("-");
-      }
-      printProgressMessageNoWrap(builder.toString());
-      printProgressLineBreak();
-
       for (i=0; i<values.length; i++)
       {
-        MessageBuilder line = new MessageBuilder();
-        for (int j=0; j<values[i].length; j++)
+        table.startRow();
+        for (int j=0; j<headers.length; j++)
         {
-          int extra = maxWidths[j];
-          line.append(values[i][j]);
-          extra -= values[i][j].length();
-          for (int k=0; k<extra; k++)
-          {
-            line.append(" ");
-          }
+          table.appendCell(values[i][j]);
         }
-        printProgressMessageNoWrap(line.toMessage());
-        printProgressLineBreak();
       }
+      TextTablePrinter printer = new TextTablePrinter(getOutputStream());
+      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      table.print(printer);
     }
   }
 
@@ -4837,7 +4513,7 @@ public class ReplicationCliMain extends CliApplicationHelper
       LinkedHashSet<String> replicationServers,
       Set<Integer> usedReplicationServerIds) throws OpenDsException
   {
-    printProgressMessage(formatter.getFormattedWithPoints(
+    printProgress(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(
             ConnectionUtils.getHostPort(ctx))));
 
@@ -4929,8 +4605,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       replicationServer.commit();
     }
 
-    printProgressMessage(formatter.getFormattedDone());
-    printProgressMessage(formatter.getLineBreak());
+    printProgress(formatter.getFormattedDone());
+    printlnProgress();
   }
 
   /**
@@ -4944,7 +4620,7 @@ public class ReplicationCliMain extends CliApplicationHelper
   private void updateReplicationServer(InitialLdapContext ctx,
       LinkedHashSet<String> replicationServers) throws OpenDsException
   {
-    printProgressMessage(formatter.getFormattedWithPoints(
+    printProgress(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(
             ConnectionUtils.getHostPort(ctx))));
 
@@ -4975,8 +4651,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       replicationServer.commit();
     }
 
-    printProgressMessage(formatter.getFormattedDone());
-    printProgressMessage(formatter.getLineBreak());
+    printProgress(formatter.getFormattedDone());
+    printlnProgress();
   }
 
   /**
@@ -5032,13 +4708,13 @@ public class ReplicationCliMain extends CliApplicationHelper
     if (!userSpecifiedAdminBaseDN && Utils.areDnsEqual(baseDN,
         ADSContext.getAdministrationSuffixDN()))
     {
-      printProgressMessage(formatter.getFormattedWithPoints(
+      printProgress(formatter.getFormattedWithPoints(
           INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(
               ConnectionUtils.getHostPort(ctx))));
     }
     else
     {
-      printProgressMessage(formatter.getFormattedWithPoints(
+      printProgress(formatter.getFormattedWithPoints(
           INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN,
               ConnectionUtils.getHostPort(ctx))));
     }
@@ -5106,8 +4782,8 @@ public class ReplicationCliMain extends CliApplicationHelper
       domain.commit();
     }
 
-    printProgressMessage(formatter.getFormattedDone());
-    printProgressMessage(formatter.getLineBreak());
+    printProgress(formatter.getFormattedDone());
+    printlnProgress();
   }
 
   /**
@@ -5257,8 +4933,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         if ((newLogDetails != null) &&
             !newLogDetails.toString().trim().equals(""))
         {
-          printProgressMessage(newLogDetails);
-          printProgressLineBreak();
+          printProgress(newLogDetails);
+          printlnProgress();
         }
       }
     });
@@ -5502,9 +5178,9 @@ public class ReplicationCliMain extends CliApplicationHelper
             if (((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
                 !msg.equals(lastDisplayedMsg))
             {
-              printProgressMessage(msg);
+              printProgress(msg);
               lastDisplayedMsg = msg;
-              printProgressLineBreak();
+              printlnProgress();
               lastTimeMsgDisplayed = currentTime;
             }
           }
@@ -5529,9 +5205,9 @@ public class ReplicationCliMain extends CliApplicationHelper
           LOG.log(Level.INFO, "Last task entry: "+sr);
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
-            printProgressMessage(msg);
+            printProgress(msg);
             lastDisplayedMsg = msg;
-            printProgressLineBreak();
+            printlnProgress();
           }
           if (lastLogMsg == null)
           {
@@ -5549,7 +5225,7 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             if (displayProgress)
             {
-              printWarningMessage(errorMsg);
+              println(errorMsg);
             }
           }
           else if (!helper.isSuccessful(state) ||
@@ -5576,8 +5252,8 @@ public class ReplicationCliMain extends CliApplicationHelper
           {
             if (displayProgress)
             {
-              printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
-              printProgressLineBreak();
+              printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+              printlnProgress();
             }
             LOG.log(Level.INFO, "Initialization completed successfully.");
           }
@@ -5589,8 +5265,8 @@ public class ReplicationCliMain extends CliApplicationHelper
         LOG.log(Level.INFO, "Initialization entry not found.");
         if (displayProgress)
         {
-          printProgressMessage(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
-          printProgressLineBreak();
+          printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+          printlnProgress();
         }
       }
       catch (NamingException ne)
@@ -5708,7 +5384,7 @@ public class ReplicationCliMain extends CliApplicationHelper
               if (Utils.areDnsEqual(domain.getBaseDN().toString(),
                   baseDN))
               {
-                printProgressMessage(formatter.getFormattedWithPoints(
+                printProgress(formatter.getFormattedWithPoints(
                     INFO_REPLICATION_REMOVING_REFERENCES_ON_REMOTE.get(baseDN,
                         hostPort)));
                 Set<String> replServers = domain.getReplicationServer();
@@ -5740,8 +5416,8 @@ public class ReplicationCliMain extends CliApplicationHelper
                     }
                   }
                 }
-                printProgressMessage(formatter.getFormattedDone());
-                printProgressMessage(formatter.getLineBreak());
+                printProgress(formatter.getFormattedDone());
+                printlnProgress();
               }
             }
           }
@@ -5825,14 +5501,14 @@ public class ReplicationCliMain extends CliApplicationHelper
               sync.getReplicationDomain(domainNames[i]);
             if (Utils.areDnsEqual(domain.getBaseDN().toString(), baseDN))
             {
-              printProgressMessage(formatter.getFormattedWithPoints(
+              printProgress(formatter.getFormattedWithPoints(
                   INFO_REPLICATION_DISABLING_BASEDN.get(baseDN,
                       hostPort)));
               sync.removeReplicationDomain(domainNames[i]);
               sync.commit();
 
-              printProgressMessage(formatter.getFormattedDone());
-              printProgressMessage(formatter.getLineBreak());
+              printProgress(formatter.getFormattedDone());
+              printlnProgress();
             }
           }
         }
@@ -5929,31 +5605,7 @@ public class ReplicationCliMain extends CliApplicationHelper
   }
 
   /**
-   * Asks the user to provide the global administrator UID or the bindDN to
-   * be used to bind to the server and disable replication.
-   * @param defaultValue the default value to be proposed.
-   * @return the UID or DN provided by the user.
-   */
-  private String askForBindDnDisable(String defaultValue)
-  {
-    return promptForString(INFO_REPLICATION_DISABLE_BINDDN_PROMPT.get(),
-        defaultValue, false);
-  }
-
-  /**
-   * Asks the user to provide the password to be used to bind to the server and
-   * disable replication.
-   * @param userId the user we are asking the password for.
-   * @return the password provided by the user.
-   */
-  private String askForPasswordDisable(String userId)
-  {
-    return promptForPassword(INFO_REPLICATION_DISABLE_PASSWORD_PROMPT.get(
-        userId));
-  }
-
-  /**
-   * REturns a message informing the user that the provided port cannot be used.
+   * Returns a message informing the user that the provided port cannot be used.
    * @param port the port that cannot be used.
    * @return a message informing the user that the provided port cannot be used.
    */
@@ -6138,6 +5790,346 @@ public class ReplicationCliMain extends CliApplicationHelper
       {
         throw ade;
       }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isAdvancedMode() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive() {
+    return argParser.isInteractive();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isQuiet()
+  {
+    return argParser.isQuiet();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly() {
+    return argParser.isScriptFriendly();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose() {
+    return true;
+  }
+
+  /**
+   * Prompts the user to give a value.
+   * @param defaultValue the default value that will be proposed in the prompt
+   * message.
+   * @return the String as provided by the user or the defaultValue if an error.
+   * occurred reading the input.
+   */
+  private String promptForString(Message prompt, String defaultValue)
+  {
+    String s = defaultValue;
+    try
+    {
+      s = readInput(prompt, defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return s;
+  }
+
+  /**
+   * Commodity method used to repeatidly ask the user to provide a port value.
+   * @param prompt the prompt message.
+   * @param defaultValue the default value of the port to be proposed to the
+   * user.
+   * @return the port value provided by the user.
+   */
+  private int askPort(Message prompt, int defaultValue)
+  {
+    int port = -1;
+    while (port == -1)
+    {
+      try
+      {
+        port = readPort(prompt, defaultValue);
+      }
+      catch (CLIException ce)
+      {
+        port = -1;
+        LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
+    }
+    return port;
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator UID.
+   * @param defaultValue the default value that will be proposed in the prompt
+   * message.
+   * @return the Global Administrator UID as provided by the user.
+   */
+  private String askForAdministratorUID(String defaultValue)
+  {
+    String s = defaultValue;
+    try
+    {
+      s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return s;
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator password.
+   * @return the Global Administrator password as provided by the user.
+   */
+  private String askForAdministratorPwd()
+  {
+    String pwd = readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get(), LOG);
+    return pwd;
+  }
+
+  /**
+   * Prints a message to the output with no wrapping if we are not in quiet
+   * mode.
+   * @param msg the message to be displayed.
+   */
+  private void printProgressMessageNoWrap(Message msg)
+  {
+    if (!isQuiet())
+    {
+      getOutputStream().print(msg.toString());
+    }
+  }
+
+  /**
+   * Enumeration description protocols for interactive CLI choices.
+   */
+  private enum Protocols
+  {
+    LDAP(1, INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()), SSL(2,
+        INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()), START_TLS(3,
+        INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
+
+    private Integer choice;
+
+    private Message msg;
+
+    /**
+     * Private constructor.
+     *
+     * @param i
+     *          the menu return value.
+     * @param msg
+     *          the message message.
+     */
+    private Protocols(int i, Message msg)
+    {
+      choice = i;
+      this.msg = msg;
+    }
+
+    /**
+     * Returns the choice number.
+     *
+     * @return the attribute name.
+     */
+    public Integer getChoice()
+    {
+      return choice;
+    }
+
+    /**
+     * Return the menu message.
+     *
+     * @return the menu message.
+     */
+    public Message getMenuMessage()
+    {
+      return msg;
+    }
+  }
+
+  private Protocols askProtocol(Message prompt, boolean isSecure,
+      boolean isStartTLS)
+  {
+    Protocols protocol;
+    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+    builder.setPrompt(prompt);
+
+    Protocols defaultProtocol = Protocols.LDAP;
+    if (isSecure)
+    {
+      defaultProtocol = Protocols.SSL;
+    }
+    else if (isStartTLS)
+    {
+      defaultProtocol = Protocols.START_TLS;
+    }
+    for (Protocols p : Protocols.values())
+    {
+      int i = builder.addNumberedOption(p.getMenuMessage(), MenuResult
+          .success(p.getChoice()));
+      if (p.equals(defaultProtocol))
+      {
+        builder.setDefault(
+            INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
+                .get(i), MenuResult.success(p.getChoice()));
+      }
+    }
+
+    Menu<Integer> menu = builder.toMenu();
+    try
+    {
+      MenuResult<Integer> result = menu.run();
+      if (result.isSuccess())
+      {
+        if (result.getValue().equals(Protocols.SSL.getChoice()))
+        {
+          protocol = Protocols.SSL;
+        }
+        else if (result.getValue()
+            .equals(Protocols.START_TLS.getChoice()))
+        {
+          protocol = Protocols.START_TLS;
+        }
+        else
+        {
+          protocol = Protocols.LDAP;
+        }
+      }
+      else
+      {
+        // Should never happen.
+        throw new RuntimeException();
+      }
+    }
+    catch (CLIException e)
+    {
+      throw new RuntimeException(e);
+    }
+    return protocol;
+  }
+
+  /**
+   * Displays the provided header if is was not already displayed.  This method
+   * just is used for refactoring this small bit of code.
+   * @param msg the heading to be displayed.
+   * @param wasDisplayed whether this heading was already displayed or not.
+   * @return <CODE>true</CODE> if the message was displayed and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean checkHeadingDisplay(Message msg, boolean wasDisplayed)
+  {
+    if (!wasDisplayed)
+    {
+      println(msg);
+      println();
+      println();
+    }
+    wasDisplayed = true;
+    return wasDisplayed;
+  }
+
+  /**
+   * Resets the connection parameters for the LDAPConsoleInteraction  object.
+   * The reset does not apply to the certificate parameters.  This is called
+   * in order the LDAPConnectionConsoleInteraction object to ask for all this
+   * connection parameters next time we call
+   * LDAPConnectionConsoleInteraction.run().
+   */
+  private void resetConnectionArguments()
+  {
+    argParser.getSecureArgsList().hostNameArg.clearValues();
+    argParser.getSecureArgsList().hostNameArg.setPresent(false);
+    argParser.getSecureArgsList().portArg.clearValues();
+    argParser.getSecureArgsList().portArg.setPresent(false);
+    //  This is done to be able to call IntegerArgument.getIntValue()
+    argParser.getSecureArgsList().portArg.addValue(
+        argParser.getSecureArgsList().portArg.getDefaultValue());
+    argParser.getSecureArgsList().bindDnArg.clearValues();
+    argParser.getSecureArgsList().bindDnArg.setPresent(false);
+    argParser.getSecureArgsList().bindPasswordArg.clearValues();
+    argParser.getSecureArgsList().bindPasswordArg.setPresent(false);
+    argParser.getSecureArgsList().bindPasswordFileArg.clearValues();
+    argParser.getSecureArgsList().bindPasswordFileArg.setPresent(false);
+    argParser.getSecureArgsList().adminUidArg.clearValues();
+    argParser.getSecureArgsList().adminUidArg.setPresent(false);
+  }
+
+  /**
+   * Initializes the global arguments in the parser with the provided values.
+   */
+  private void initializeGlobalArguments(String hostName, int port,
+      boolean useSSL, boolean useStartTLS, String adminUid, String bindDn,
+      String bindPwd)
+  {
+    resetConnectionArguments();
+    if (hostName != null)
+    {
+      argParser.getSecureArgsList().hostNameArg.addValue(hostName);
+      argParser.getSecureArgsList().hostNameArg.setPresent(true);
+    }
+    if (port != -1)
+    {
+      argParser.getSecureArgsList().portArg.addValue(String.valueOf(port));
+      argParser.getSecureArgsList().portArg.setPresent(true);
+    }
+    else
+    {
+      argParser.getSecureArgsList().portArg.clearValues();
+      // This is done to be able to call IntegerArgument.getIntValue()
+      argParser.getSecureArgsList().portArg.addValue(
+          argParser.getSecureArgsList().portArg.getDefaultValue());
+    }
+    argParser.getSecureArgsList().useSSLArg.setPresent(useSSL);
+    argParser.getSecureArgsList().useStartTLSArg.setPresent(useStartTLS);
+    if (adminUid != null)
+    {
+      argParser.getSecureArgsList().adminUidArg.addValue(adminUid);
+      argParser.getSecureArgsList().adminUidArg.setPresent(true);
+    }
+    if (bindDn != null)
+    {
+      argParser.getSecureArgsList().bindDnArg.addValue(bindDn);
+      argParser.getSecureArgsList().bindDnArg.setPresent(true);
+    }
+    if (bindPwd != null)
+    {
+      argParser.getSecureArgsList().bindPasswordArg.addValue(bindPwd);
+      argParser.getSecureArgsList().bindPasswordArg.setPresent(true);
     }
   }
 }

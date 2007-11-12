@@ -27,15 +27,15 @@
 
 package org.opends.quicksetup.upgrader;
 
-import org.opends.quicksetup.CliApplicationHelper;
 import org.opends.quicksetup.UserDataException;
+import org.opends.server.util.cli.ConsoleApplication;
 
 import java.util.logging.Logger;
 
 /**
  * Assists Upgrader utility in CLI drudgery.
  */
-public class UpgraderCliHelper extends CliApplicationHelper {
+public class UpgraderCliHelper extends ConsoleApplication {
 
   static private final Logger LOG =
           Logger.getLogger(UpgraderCliHelper.class.getName());
@@ -49,7 +49,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
    */
   public UpgraderCliHelper(UpgradeLauncher launcher)
   {
-    super(System.out, System.err, System.in);
+    super(System.in, System.out, System.err);
     this.launcher = launcher;
   }
 
@@ -63,7 +63,7 @@ public class UpgraderCliHelper extends CliApplicationHelper {
   public UpgradeUserData createUserData(String[] args)
     throws UserDataException {
     // It is assumed that if we got here that the build
-    // exptractor took care of extracting the file and
+    // extractor took care of extracting the file and
     // putting it in tmp/upgrade for us.  So there's
     // not too much to do at this point.
     UpgradeUserData uud = new UpgradeUserData();
@@ -72,4 +72,56 @@ public class UpgraderCliHelper extends CliApplicationHelper {
     return uud;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isAdvancedMode() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isInteractive() {
+    return launcher.isInteractive();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isMenuDrivenMode() {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isQuiet() {
+    return launcher.isQuiet();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isScriptFriendly() {
+    return false;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isVerbose() {
+    return true;
+  }
 }

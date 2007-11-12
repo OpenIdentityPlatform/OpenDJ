@@ -40,6 +40,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
@@ -218,21 +219,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private StringArgument baseDNsArg = null;
 
   /**
-   * The 'admin UID' global argument.
-   */
-  private StringArgument adminUidArg;
-
-  /**
-   * The 'admin Password' global argument.
-   */
-  private StringArgument adminPasswordArg;
-
-  /**
-   * The 'admin Password File' global argument.
-   */
-  private FileBasedArgument adminPasswordFileArg;
-
-  /**
    * The 'quiet' argument.
    */
   private BooleanArgument quietArg;
@@ -328,10 +314,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     int returnValue;
     super.validateGlobalOptions(buf);
     ArrayList<Message> errors = new ArrayList<Message>();
-    if (adminPasswordArg.isPresent() && adminPasswordFileArg.isPresent()) {
+    if (secureArgsList.bindPasswordArg.isPresent() &&
+        secureArgsList.bindPasswordFileArg.isPresent()) {
       Message message = ERR_TOOL_CONFLICTING_ARGS.get(
-          adminPasswordArg.getLongIdentifier(),
-          adminPasswordFileArg.getLongIdentifier());
+          secureArgsList.bindPasswordArg.getLongIdentifier(),
+          secureArgsList.bindPasswordFileArg.getLongIdentifier());
       errors.add(message);
     }
 
@@ -345,8 +332,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       if (getBindPasswordAdmin() == null)
       {
         errors.add(ERR_REPLICATION_NO_ADMINISTRATOR_PASSWORD_PROVIDED.get(
-                adminPasswordArg.getLongIdentifier(),
-                adminPasswordFileArg.getLongIdentifier()));
+            secureArgsList.bindPasswordArg.getLongIdentifier(),
+                secureArgsList.bindPasswordFileArg.getLongIdentifier()));
       }
     }
 
@@ -411,6 +398,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     }
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);
+    // Remove it from the default location and redefine it.
+    defaultArgs.remove(secureArgsList.adminUidArg);
 
     int index = 0;
 
@@ -420,25 +409,27 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     baseDNsArg.setPropertyName(OPTION_LONG_BASEDN);
     defaultArgs.add(index++, baseDNsArg);
 
-    adminUidArg = new StringArgument("adminUID", 'I',
+    secureArgsList.adminUidArg = new StringArgument("adminUID", 'I',
         "adminUID", false, false, true, "adminUID",
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
             ENABLE_REPLICATION_SUBCMD_NAME));
-    adminUidArg.setPropertyName("adminUID");
-    defaultArgs.add(index++, adminUidArg);
+    secureArgsList.adminUidArg.setPropertyName("adminUID");
+    secureArgsList.adminUidArg.setHidden(false);
+    defaultArgs.add(index++, secureArgsList.adminUidArg);
 
-    adminPasswordArg = new StringArgument("adminPassword",
+    secureArgsList.bindPasswordArg = new StringArgument("adminPassword",
         OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
         OPTION_VALUE_BINDPWD, null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-    defaultArgs.add(index++, adminPasswordArg);
+    defaultArgs.add(index++, secureArgsList.bindPasswordArg);
 
-    adminPasswordFileArg = new FileBasedArgument("adminPasswordFile",
+    secureArgsList.bindPasswordFileArg = new FileBasedArgument(
+        "adminPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
         OPTION_VALUE_BINDPWD_FILE, null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-    defaultArgs.add(index++, adminPasswordFileArg);
+    defaultArgs.add(index++, secureArgsList.bindPasswordFileArg);
 
     defaultArgs.remove(verboseArg);
     noPromptArg = new BooleanArgument(
@@ -792,7 +783,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getBindPasswordAdmin()
   {
-    return getBindPassword(adminPasswordArg, adminPasswordFileArg);
+    return getBindPassword(secureArgsList.bindPasswordArg,
+        secureArgsList.bindPasswordFileArg);
   }
 
   /**
@@ -857,8 +849,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public String getBindPasswordAdmin(
       String dn, OutputStream out, OutputStream err)
   {
-    return getBindPassword(dn, out, err, adminPasswordArg,
-        adminPasswordFileArg);
+    return getBindPassword(dn, out, err, secureArgsList.bindPasswordArg,
+        secureArgsList.bindPasswordFileArg);
   }
 
   /**
@@ -1039,7 +1031,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getAdministratorUID()
   {
-    return getValue(adminUidArg);
+    return getValue(secureArgsList.adminUidArg);
   }
 
   /**
@@ -1048,7 +1040,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public String getDefaultAdministratorUID()
   {
-    return getDefaultValue(adminUidArg);
+    return getDefaultValue(secureArgsList.adminUidArg);
   }
 
   /**
@@ -1774,7 +1766,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     Argument[][] conflictingPairs =
     {
         {secureArgsList.useStartTLSArg, secureArgsList.useSSLArg},
-        {adminUidArg, secureArgsList.bindDnArg}
+        {secureArgsList.adminUidArg, secureArgsList.bindDnArg}
     };
 
     for (int i=0; i< conflictingPairs.length; i++)
@@ -1912,5 +1904,16 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       }
     }
     return defaultLocalHostValue;
+  }
+
+  /**
+   * Returns the SecureConnectionCliArgs object containing the arguments
+   * of this parser.
+   * @return the SecureConnectionCliArgs object containing the arguments
+   * of this parser.
+   */
+  SecureConnectionCliArgs getSecureArgsList()
+  {
+    return secureArgsList;
   }
 }

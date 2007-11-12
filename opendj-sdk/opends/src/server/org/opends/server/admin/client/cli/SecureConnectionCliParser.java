@@ -141,6 +141,16 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     return secureArgsList.getBindDN();
   }
 
+
+  /**
+   * Returns the Administrator UID provided in the command-line.
+   * @return the Administrator UID provided in the command-line.
+   */
+  public String getAdministratorUID()
+  {
+    return secureArgsList.getAdministratorUID();
+  }
+
   /**
    * Get the password which has to be used for the command.
    *

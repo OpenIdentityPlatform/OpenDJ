@@ -38,7 +38,6 @@ import java.util.LinkedHashSet;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
@@ -66,10 +65,6 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   private BooleanArgument removeBackupFilesArg;
   private BooleanArgument removeLDIFFilesArg;
 
-  /**
-   * The 'admin UID' global argument.
-   */
-  StringArgument adminUidArg;
   private StringArgument referencedHostNameArg;
 
   /**
@@ -180,22 +175,19 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         INFO_UNINSTALLDS_DESCRIPTION_QUIET.get());
     args.add(quietArg);
 
-    adminUidArg = new StringArgument("adminUID", 'I',
-        OPTION_LONG_ADMIN_UID, false, false, true, "adminUID",
-        Constants.GLOBAL_ADMIN_UID, null, INFO_DESCRIPTION_ADMIN_UID.get());
-
     ArrayList<Argument> defaultArgs =
-      new ArrayList<Argument>(createGlobalArguments(System.err));
+      new ArrayList<Argument>(createGlobalArguments(outStream));
     int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
     if (index != -1)
     {
-      defaultArgs.add(index, adminUidArg);
+      defaultArgs.add(index, secureArgsList.adminUidArg);
       defaultArgs.remove(secureArgsList.bindDnArg);
     }
     else
     {
-      defaultArgs.add(adminUidArg);
+      defaultArgs.add(secureArgsList.adminUidArg);
     }
+    secureArgsList.adminUidArg.setHidden(false);
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
     defaultArgs.remove(verboseArg);
@@ -324,26 +316,12 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   }
 
   /**
-   * Returns the Administrator UID provided in the command-line.
-   * @return the Administrator UID provided in the command-line.
-   */
-  public String getAdministratorUID()
-  {
-    String uid = null;
-    if (adminUidArg.isPresent())
-    {
-      uid = adminUidArg.getValue();
-    }
-    return uid;
-  }
-
-  /**
    * Returns the default Administrator UID value.
    * @return the default Administrator UID value.
    */
   public String getDefaultAdministratorUID()
   {
-    return adminUidArg.getDefaultValue();
+    return secureArgsList.adminUidArg.getDefaultValue();
   }
 
   /**

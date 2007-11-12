@@ -26,6 +26,7 @@
  */
 package org.opends.server.tools.dsconfig;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
 
@@ -152,7 +153,15 @@ public final class LDAPManagementContextFactory implements
               {
                 OpendsCertificateException oce =
                   (OpendsCertificateException) e.getRootCause().getCause();
-                  if (ci.checkServerCertificate(oce.getChain()))
+                String authType = null;
+                if (trustManager instanceof ApplicationTrustManager)
+                {
+                  ApplicationTrustManager appTrustManager =
+                    (ApplicationTrustManager)trustManager;
+                  authType = appTrustManager.getLastRefusedAuthType();
+                }
+                  if (ci.checkServerCertificate(oce.getChain(), authType,
+                      hostName))
                   {
                     // If the certificate is trusted, update the trust manager.
                     trustManager = ci.getTrustManager();
@@ -199,9 +208,17 @@ public final class LDAPManagementContextFactory implements
                   && (e.getRootCause().getCause()
                       instanceof OpendsCertificateException))
               {
+                String authType = null;
+                if (trustManager instanceof ApplicationTrustManager)
+                {
+                  ApplicationTrustManager appTrustManager =
+                    (ApplicationTrustManager)trustManager;
+                  authType = appTrustManager.getLastRefusedAuthType();
+                }
                 OpendsCertificateException oce =
                   (OpendsCertificateException) e.getRootCause().getCause();
-                  if (ci.checkServerCertificate(oce.getChain()))
+                  if (ci.checkServerCertificate(oce.getChain(), authType,
+                      hostName))
                   {
                     // If the certificate is trusted, update the trust manager.
                     trustManager = ci.getTrustManager();

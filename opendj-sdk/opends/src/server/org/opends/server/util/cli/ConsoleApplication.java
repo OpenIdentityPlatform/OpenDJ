@@ -28,7 +28,9 @@ package org.opends.server.util.cli;
 
 
 
-import static org.opends.messages.QuickSetupMessages.INFO_ERROR_EMPTY_RESPONSE;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -41,8 +43,22 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
+import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
+
+import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.messages.Message;
+import org.opends.quicksetup.util.Utils;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.ClientException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
 
@@ -429,7 +445,10 @@ public abstract class ConsoleApplication {
    *           reason.
    */
   public final String readLineOfInput(Message prompt) throws CLIException {
-    err.print(wrapText(prompt + " ", MAX_LINE_WIDTH));
+    if (prompt != null)
+    {
+      err.print(wrapText(prompt + " ", MAX_LINE_WIDTH));
+    }
     try {
       String s = in.readLine();
       if (s == null) {
@@ -442,6 +461,7 @@ public abstract class ConsoleApplication {
       throw CLIException.adaptInputException(e);
     }
   }
+
 
   /**
    * Commodity method that interactively prompts (on error output) the user to
@@ -480,7 +500,34 @@ public abstract class ConsoleApplication {
     }
   }
 
-
+  /**
+   * Commodity method that interactively prompts (on error output) the user to
+   * provide a string value.  Any non-empty string will be allowed (the empty
+   * string will indicate that the default should be used, if there is one).
+   * If an error occurs a message will be logged to the provided logger.
+   *
+   * @param  prompt        The prompt to present to the user.
+   * @param  defaultValue  The default value to assume if the user presses ENTER
+   *                       without typing anything, or <CODE>null</CODE> if
+   *                       there should not be a default and the user must
+   *                       explicitly provide a value.
+   *
+   * @param logger the Logger to be used to log the error message.
+   * @return  The string value read from the user.
+   */
+  public String readInput(Message prompt, String defaultValue, Logger logger)
+  {
+    String s = defaultValue;
+    try
+    {
+      s = readInput(prompt, defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return s;
+  }
 
   /**
    * Interactively retrieves a password from the console.
@@ -500,6 +547,30 @@ public abstract class ConsoleApplication {
       throw CLIException.adaptInputException(e);
     }
     return new String(pwChars);
+  }
+
+  /**
+   * Commodity method that interactively retrieves a password from the
+   * console. If there is an error an error message is logged to the provided
+   * Logger and <CODE>null</CODE> is returned.
+   *
+   * @param prompt
+   *          The password prompt.
+   * @param logger the Logger to be used to log the error message.
+   * @return Returns the password.
+   */
+  protected final String readPassword(Message prompt, Logger logger)
+  {
+    String pwd = null;
+    try
+    {
+      pwd = readPassword(prompt);
+    }
+    catch (CLIException ce)
+    {
+      logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return pwd;
   }
 
   /**
@@ -584,5 +655,285 @@ public abstract class ConsoleApplication {
         return value;
       }
     }
+  }
+
+  /**
+   * Commodity method that interactively confirms whether a user wishes to
+   * perform an action. If the application is non-interactive, then the provided
+   * default is returned automatically.  If there is an error an error message
+   * is logged to the provided Logger and the defaul value is returned.
+   *
+   * @param prompt
+   *          The prompt describing the action.
+   * @param defaultValue
+   *          The default value for the confirmation message. This
+   *          will be returned if the application is non-interactive
+   *          or if the user just presses return.
+   * @param logger the Logger to be used to log the error message.
+   * @return Returns <code>true</code> if the user wishes the action
+   *         to be performed, or <code>false</code> if they refused.
+   */
+  protected final boolean askConfirmation(Message prompt, boolean defaultValue,
+      Logger logger)
+  {
+    boolean v = defaultValue;
+    try
+    {
+      v = confirmAction(prompt, defaultValue);
+    }
+    catch (CLIException ce)
+    {
+      logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return v;
+  }
+
+  /**
+   * Returns an InitialLdapContext using the provided parameters.  We try
+   * to guarantee that the connection is able to read the configuration.
+   * @param host the host name.
+   * @param port the port to connect.
+   * @param useSSL whether to use SSL or not.
+   * @param useStartTLS whether to use StartTLS or not.
+   * @param bindDn the bind dn to be used.
+   * @param pwd the password.
+   * @param trustManager the trust manager.
+   * @return an InitialLdapContext connected.
+   * @throws NamingException if there was an error establishing the connection.
+   */
+  protected InitialLdapContext createAdministrativeContext(String host,
+      int port, boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
+      ApplicationTrustManager trustManager)
+  throws NamingException
+  {
+    InitialLdapContext ctx;
+    String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+    if (useSSL)
+    {
+      ctx = Utils.createLdapsContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null, trustManager);
+    }
+    else if (useStartTLS)
+    {
+      ctx = Utils.createStartTLSContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null, trustManager,
+          null);
+    }
+    else
+    {
+      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd,
+          Utils.getDefaultLDAPTimeout(), null);
+    }
+    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
+    {
+      throw new NoPermissionException(
+          ERR_NOT_ADMINISTRATIVE_USER.get().toString());
+    }
+    return ctx;
+  }
+
+  /**
+   * Creates an Initial LDAP Context interacting with the user if the
+   * application is interactive.
+   * @param ci the LDAPConnectionConsoleInteraction object that is assumed
+   * to have been already run.
+   * @return the initial LDAP context or <CODE>null</CODE> if the user did
+   * not accept to trust the certificates.
+   * @throws ClientException if there was an error establishing the connection.
+   */
+  protected InitialLdapContext createInitialLdapContextInteracting(
+      LDAPConnectionConsoleInteraction ci) throws ClientException
+  {
+    // Interact with the user though the console to get
+    // LDAP connection information
+    String hostName = ci.getHostName();
+    Integer portNumber = ci.getPortNumber();
+    String bindDN = ci.getBindDN();
+    String bindPassword = ci.getBindPassword();
+    TrustManager trustManager = ci.getTrustManager();
+    KeyManager keyManager = ci.getKeyManager();
+
+    InitialLdapContext ctx;
+
+    if (ci.useSSL())
+    {
+      String ldapsUrl = "ldaps://" + hostName + ":" + portNumber;
+      while (true)
+      {
+        try
+        {
+          ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
+              bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+              trustManager, keyManager);
+          ctx.reconnect(null);
+          break;
+        }
+        catch (NamingException e)
+        {
+          if ( isInteractive() && ci.isTrustStoreInMemory())
+          {
+            if ((e.getRootCause() != null)
+                && (e.getRootCause().getCause()
+                    instanceof OpendsCertificateException))
+            {
+              OpendsCertificateException oce =
+                (OpendsCertificateException) e.getRootCause().getCause();
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              {
+                ApplicationTrustManager appTrustManager =
+                  (ApplicationTrustManager)trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+              }
+                if (ci.checkServerCertificate(oce.getChain(), authType,
+                    hostName))
+                {
+                  // If the certificate is trusted, update the trust manager.
+                  trustManager = ci.getTrustManager();
+
+                  // Try to connect again.
+                  continue ;
+                }
+                else
+                {
+                  // Assume user cancelled.
+                  return null;
+                }
+            }
+            else
+            {
+              Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                  hostName, String.valueOf(portNumber));
+              throw new ClientException(
+                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            }
+          }
+          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+              hostName, String.valueOf(portNumber));
+          throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+        }
+      }
+    }
+    else if (ci.useStartTLS())
+    {
+      String ldapUrl = "ldap://" + hostName + ":" + portNumber;
+      while (true)
+      {
+        try
+        {
+          ctx = ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
+              bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+              trustManager, keyManager, null);
+          ctx.reconnect(null);
+          break;
+        }
+        catch (NamingException e)
+        {
+          if ( isInteractive() && ci.isTrustStoreInMemory())
+          {
+            if ((e.getRootCause() != null)
+                && (e.getRootCause().getCause()
+                    instanceof OpendsCertificateException))
+            {
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              {
+                ApplicationTrustManager appTrustManager =
+                  (ApplicationTrustManager)trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+              }
+              OpendsCertificateException oce =
+                (OpendsCertificateException) e.getRootCause().getCause();
+                if (ci.checkServerCertificate(oce.getChain(), authType,
+                    hostName))
+                {
+                  // If the certificate is trusted, update the trust manager.
+                  trustManager = ci.getTrustManager();
+
+                  // Try to connect again.
+                  continue ;
+                }
+                else
+                {
+                  // Assume user cancelled.
+                  return null;
+                }
+            }
+            else
+            {
+              Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                  hostName, String.valueOf(portNumber));
+              throw new ClientException(
+                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            }
+          }
+          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+              hostName, String.valueOf(portNumber));
+          throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+        }
+      }
+    }
+    else
+    {
+      String ldapUrl = "ldap://" + hostName + ":" + portNumber;
+      while (true)
+      {
+        try
+        {
+          ctx = ConnectionUtils.createLdapContext(ldapUrl, bindDN,
+              bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null);
+          ctx.reconnect(null);
+          break;
+        }
+        catch (NamingException e)
+        {
+          if ( isInteractive() && ci.isTrustStoreInMemory())
+          {
+            if ((e.getRootCause() != null)
+                && (e.getRootCause().getCause()
+                    instanceof OpendsCertificateException))
+            {
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              {
+                ApplicationTrustManager appTrustManager =
+                  (ApplicationTrustManager)trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+              }
+              OpendsCertificateException oce =
+                (OpendsCertificateException) e.getRootCause().getCause();
+                if (ci.checkServerCertificate(oce.getChain(), authType,
+                    hostName))
+                {
+                  // If the certificate is trusted, update the trust manager.
+                  trustManager = ci.getTrustManager();
+
+                  // Try to connect again.
+                  continue ;
+                }
+                else
+                {
+                  // Assume user cancelled.
+                  return null;
+                }
+            }
+            else
+            {
+              Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+                  hostName, String.valueOf(portNumber));
+              throw new ClientException(
+                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            }
+          }
+          Message message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
+              hostName, String.valueOf(portNumber));
+          throw new ClientException(
+              LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+        }
+      }
+    }
+    return ctx;
   }
 }

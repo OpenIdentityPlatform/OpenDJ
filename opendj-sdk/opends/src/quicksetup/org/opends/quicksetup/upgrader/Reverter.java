@@ -52,6 +52,10 @@ import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.FileManager;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -183,11 +187,41 @@ public class Reverter extends Application implements CliApplication {
               Message[] raDirChoices =
                       raDirChoiceList.toArray(new Message[0]);
               if (raDirChoices.length > 0) {
-                int resp = ui.promptOptions(
-                        INFO_REVERSION_DIR_PROMPT.get(),
-                        raDirChoices[0],
-                        raDirChoices);
-                File raDir = raDirs[resp];
+                MenuBuilder<Integer> builder = new MenuBuilder<Integer>(ui);
+
+                builder.setPrompt(INFO_REVERSION_DIR_PROMPT.get());
+
+                for (int i=0; i<raDirChoices.length; i++)
+                {
+                  builder.addNumberedOption(raDirChoices[i],
+                      MenuResult.success(i+1));
+                }
+
+                builder.setDefault(Message.raw(String.valueOf("1")),
+                    MenuResult.success(1));
+
+                Menu<Integer> menu = builder.toMenu();
+                int resp;
+                try
+                {
+                  MenuResult<Integer> m = menu.run();
+                  if (m.isSuccess())
+                  {
+                    resp = m.getValue();
+                  }
+                  else
+                  {
+                    // Should never happen.
+                    throw new RuntimeException();
+                  }
+                }
+                catch (CLIException ce)
+                {
+                  resp = 1;
+                  LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+                }
+
+                File raDir = raDirs[resp - 1];
                 raDir = appendFilesDirIfNeccessary(raDir);
                 try {
                   ud.setReversionArchiveDirectory(

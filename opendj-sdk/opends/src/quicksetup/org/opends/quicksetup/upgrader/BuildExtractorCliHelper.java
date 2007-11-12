@@ -31,6 +31,10 @@ import static org.opends.messages.QuickSetupMessages.*;
 import org.opends.messages.Message;
 
 import org.opends.quicksetup.UserDataException;
+import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -65,19 +69,52 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
     if (launcher.isInteractive()) {
       if (!launcher.isNoPrompt()) {
         LOG.log(Level.INFO, "obtaining file information interactively");
+        final int UPGRADE = 1;
+        final int REVERT = 2;
+        int[] indexes = {UPGRADE, REVERT};
         Message[] options = new Message[] {
-                INFO_UPGRADE_OPERATION_UPGRADE.get(),
-                INFO_UPGRADE_OPERATION_REVERSION.get()
+            INFO_UPGRADE_OPERATION_UPGRADE.get(),
+            INFO_UPGRADE_OPERATION_REVERSION.get()
         };
-        int response = promptOptions(
-                INFO_UPGRADE_OPERATION_PROMPT.get(),
-                options[0],
-                options);
-        if (response == 0) {
+
+        MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+
+        builder.setPrompt(INFO_UPGRADE_OPERATION_PROMPT.get());
+
+        for (int i=0; i<indexes.length; i++)
+        {
+          builder.addNumberedOption(options[i], MenuResult.success(indexes[i]));
+        }
+
+        builder.setDefault(Message.raw(String.valueOf(UPGRADE)),
+            MenuResult.success(UPGRADE));
+
+        Menu<Integer> menu = builder.toMenu();
+        int choice;
+        try
+        {
+          MenuResult<Integer> m = menu.run();
+          if (m.isSuccess())
+          {
+            choice = m.getValue();
+          }
+          else
+          {
+            // Should never happen.
+            throw new RuntimeException();
+          }
+        }
+        catch (CLIException ce)
+        {
+          choice = UPGRADE;
+          LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+        }
+
+        if (choice == UPGRADE) {
           uud.setOperation(UpgradeUserData.Operation.UPGRADE);
           while(true) {
-            String fileName = promptForString(
-                    INFO_UPGRADE_FILE_PROMPT.get(), null);
+            String fileName = readInput(
+                    INFO_UPGRADE_FILE_PROMPT.get(), null, LOG);
             try {
               uud.setInstallPackage(validateInstallPackFile(fileName));
               LOG.log(Level.INFO, "file specified interactively: " +
