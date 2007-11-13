@@ -118,6 +118,9 @@ public class SubCommandArgumentParser extends ArgumentParser
   // The subcommand requested by the user as part of the command-line arguments.
   private SubCommand subCommand;
 
+  //Indicates whether the version argument was provided.
+  private boolean versionPresent;
+
   private final static String INDENT = "    ";
   private final static int MAX_LENGTH = SetupUtils.isWindows() ? 79 : 80;
 
@@ -810,6 +813,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               // information.
               try
               {
+                versionPresent = true;
                 DirectoryServer.printVersion(usageOutputStream);
                 usageOrVersionDisplayed = true ;
               } catch (Exception e) {}
@@ -847,6 +851,7 @@ public class SubCommandArgumentParser extends ArgumentParser
                 // information.
                 try
                 {
+                  versionPresent = true;
                   DirectoryServer.printVersion(usageOutputStream);
                   usageOrVersionDisplayed = true ;
                 } catch (Exception e) {}
@@ -990,6 +995,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               if (dashVAccepted)
               {
                 usageOrVersionDisplayed = true;
+                versionPresent = true;
                 try
                 {
                   DirectoryServer.printVersion(usageOutputStream);
@@ -1057,6 +1063,7 @@ public class SubCommandArgumentParser extends ArgumentParser
                 if (dashVAccepted)
                 {
                   usageOrVersionDisplayed = true;
+                  versionPresent = true;
                   try
                   {
                     DirectoryServer.printVersion(usageOutputStream);
@@ -1946,6 +1953,42 @@ public class SubCommandArgumentParser extends ArgumentParser
         buffer.append(EOL);
       }
     }
+  }
+
+  /**
+   * Returns whether the usage argument was provided or not.  This method
+   * should be called after a call to parseArguments.
+   * @return <CODE>true</CODE> if the usage argument was provided and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isUsageArgumentPresent()
+  {
+    boolean isUsageArgumentPresent = false;
+    if (usageArgument != null)
+    {
+      isUsageArgumentPresent = usageArgument.isPresent();
+    }
+    return isUsageArgumentPresent;
+  }
+
+  /**
+   * Returns whether the version argument was provided or not.  This method
+   * should be called after a call to parseArguments.
+   * @return <CODE>true</CODE> if the version argument was provided and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isVersionArgumentPresent()
+  {
+    boolean isPresent;
+    if (!super.isVersionArgumentPresent())
+    {
+      isPresent = versionPresent;
+    }
+    else
+    {
+      isPresent = true;
+    }
+    return isPresent;
   }
 }
 

@@ -28,6 +28,8 @@
 package org.opends.guitools.uninstaller;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
+
 import org.opends.messages.Message;
 import org.opends.messages.ToolMessages;
 
@@ -37,6 +39,7 @@ import org.opends.quicksetup.CliApplication;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.args.ArgumentException;
@@ -98,6 +101,38 @@ public class UninstallLauncher extends Launcher {
     System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
 
     initializeParser();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void launch() {
+    //  Validate user provided data
+    try
+    {
+      argParser.parseArguments(args);
+      if (argParser.isVersionArgumentPresent())
+      {
+        System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
+      }
+      else if (argParser.isUsageArgumentPresent())
+      {
+        System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
+      }
+      else
+      {
+        super.launch();
+      }
+    }
+    catch (ArgumentException ae)
+    {
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      System.err.println(message);
+      System.err.println();
+      System.err.println(argParser.getUsage());
+
+      System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
+    }
   }
 
   /**
@@ -163,6 +198,60 @@ public class UninstallLauncher extends Launcher {
    */
   protected Message getFrameTitle() {
     return INFO_FRAME_UNINSTALL_TITLE.get();
+  }
+
+  /**
+   * Indicates whether or not the launcher should print a usage
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates usage should be printed
+   */
+  protected boolean shouldPrintUsage() {
+    return argParser.isUsageArgumentPresent() &&
+    !argParser.usageOrVersionDisplayed();
+  }
+
+  /**
+   * Indicates whether or not the launcher should print a usage
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates usage should be printed
+   */
+  protected boolean isQuiet() {
+    return argParser.isQuiet();
+  }
+
+  /**
+   * Indicates whether or not the launcher should print a usage
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates usage should be printed
+   */
+  protected boolean isNoPrompt() {
+    return !argParser.isInteractive();
+  }
+
+  /**
+   * Indicates whether or not the launcher should print a version
+   * statement based on the content of the arguments passed into
+   * the constructor.
+   * @return boolean where true indicates version should be printed
+   */
+  protected boolean shouldPrintVersion() {
+    return argParser.isVersionArgumentPresent() &&
+    !argParser.usageOrVersionDisplayed();
+  }
+
+  /**
+   * Indicates whether the launcher will launch a command line versus
+   * a graphical application based on the contents of the arguments
+   * passed into the constructor.
+   *
+   * @return boolean where true indicates that a CLI application
+   *         should be launched
+   */
+  protected boolean isCli() {
+    return argParser.isCli();
   }
 
 }

@@ -30,7 +30,6 @@ package org.opends.server.tools;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.*;
 
 import java.io.File;
 import java.io.InputStream;

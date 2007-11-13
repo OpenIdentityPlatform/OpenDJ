@@ -93,6 +93,8 @@ public class QuickSetupLog {
     logger.setUseParentHandlers(false);
     logger = Logger.getLogger("org.opends.admin.ads");
     logger.setUseParentHandlers(false);
+    logger = Logger.getLogger("org.opends.server.tools");
+    logger.setUseParentHandlers(false);
   }
 
   /**

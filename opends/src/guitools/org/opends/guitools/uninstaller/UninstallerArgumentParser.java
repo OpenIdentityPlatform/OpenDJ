@@ -175,6 +175,11 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         INFO_UNINSTALLDS_DESCRIPTION_QUIET.get());
     args.add(quietArg);
 
+    for (Argument arg : args)
+    {
+      arg.setPropertyName(arg.getLongIdentifier());
+    }
+
     ArrayList<Argument> defaultArgs =
       new ArrayList<Argument>(createGlobalArguments(outStream));
     int index = defaultArgs.indexOf(secureArgsList.bindDnArg);
@@ -191,14 +196,13 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
     defaultArgs.remove(verboseArg);
-    defaultArgs.remove(noPropertiesFileArg);
-    defaultArgs.remove(propertiesFileArg);
     UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,
         OPTION_LONG_REFERENCED_HOST_NAME, false, false, true,
         ToolConstants.OPTION_VALUE_HOST,
-        uData.getHostName(), null, INFO_DESCRIPTION_REFERENCED_HOST.get());
+        uData.getHostName(), OPTION_LONG_REFERENCED_HOST_NAME,
+        INFO_DESCRIPTION_REFERENCED_HOST.get());
     defaultArgs.add(referencedHostNameArg);
 
     args.addAll(defaultArgs);
@@ -404,6 +408,16 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       returnValue = SUCCESSFUL_NOP.getReturnCode();
     }
     return returnValue;
+  }
+
+  /**
+   * Returns whether the command was launched in CLI mode or not.
+   * @return <CODE>true</CODE> if the command was launched to use CLI mode and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isCli()
+  {
+    return cliArg.isPresent();
   }
 
   /**
