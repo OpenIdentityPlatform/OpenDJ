@@ -217,6 +217,23 @@ public class DbHandler implements Runnable
   }
 
   /**
+   * Get the number of changes.
+   *
+   * @return Returns the number of changes.
+   */
+  public long getChangesCount()
+  {
+    try
+    {
+      return lastChange.getSeqnum() - firstChange.getSeqnum() + 1;
+    }
+    catch (Exception e)
+    {
+      return 0;
+    }
+  }
+
+  /**
    * Generate a new ReplicationIterator that allows to browse the db
    * managed by this dbHandler and starting at the position defined
    * by a given changeNumber.

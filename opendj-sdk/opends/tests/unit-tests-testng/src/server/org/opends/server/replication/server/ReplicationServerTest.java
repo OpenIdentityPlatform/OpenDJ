@@ -83,6 +83,10 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperat
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
+import org.opends.server.loggers.ErrorLogger;
 
 /**
  * Tests for the replicationServer code.
@@ -131,7 +135,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private void debugInfo(String s)
   {
-    // logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST **" + s));
+    // ErrorLogger.logError(Message.raw(Category.SYNC, Severity.NOTICE, "** TEST **" + s));
     if (debugEnabled())
     {
       TRACER.debugInfo("** TEST **" + s);
@@ -1258,7 +1262,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      ReplicationBackend b =
        (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
      b.setServer(replicationServer);
-     assertTrue(b.getEntryCount() == msgs.size());
+     assertEquals(b.getEntryCount(), msgs.size());
      assertTrue(b.entryExists(DN.decode("dc=replicationChanges")));
      SearchFilter filter=SearchFilter.createFilterFromString("(objectclass=*)");
      assertTrue(b.isIndexed(filter));

@@ -531,6 +531,21 @@ public class ReplicationCache
   }
 
   /**
+   * Returns the change count for that ReplicationCache.
+   *
+   * @return the change count.
+   */
+  public long getChangesCount()
+  {
+    long entryCount = 0;
+    for (DbHandler dbHandler : sourceDbHandlers.values())
+    {
+      entryCount += dbHandler.getChangesCount();
+    }
+    return entryCount;
+  }
+
+  /**
    * Get the baseDn.
    * @return Returns the baseDn.
    */
