@@ -331,23 +331,14 @@ public class ReplicationBackend
     //This method only returns the number of actual change entries, the
     //domain and any baseDN entries are not counted.
     long retNum=0;
-    try {
-        InternalClientConnection conn =
-                    InternalClientConnection.getRootConnection();
-        SearchFilter filter=
-                       SearchFilter.createFilterFromString("(changetype=*)");
-        InternalSearchOperation searchOperation =
-                new InternalSearchOperation(conn,
-                        InternalClientConnection.nextOperationID(),
-                        InternalClientConnection.nextMessageID(), null,
-                        baseDNs[0],
-                        SearchScope.WHOLE_SUBTREE,
-                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                        filter, null, null);
-      search(searchOperation);
-      retNum=searchOperation.getSearchEntries().size();
-    } catch (DirectoryException ex) {
-      retNum=0;
+    Iterator<ReplicationCache> rcachei = server.getCacheIterator();
+    if (rcachei != null)
+    {
+      while (rcachei.hasNext())
+      {
+        ReplicationCache rc = rcachei.next();
+        retNum += rc.getChangesCount();
+      }
     }
     return retNum;
 
