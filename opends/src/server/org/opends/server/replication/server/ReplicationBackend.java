@@ -328,6 +328,22 @@ public class ReplicationBackend
   @Override()
   public synchronized long getEntryCount()
   {
+    if (server==null)
+    {
+      try
+      {
+        server = retrievesReplicationServer();
+        if (server == null)
+        {
+          return 0;
+        }
+      }
+      catch(Exception e)
+      {
+        return 0;
+      }
+    }
+
     //This method only returns the number of actual change entries, the
     //domain and any baseDN entries are not counted.
     long retNum=0;
