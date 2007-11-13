@@ -95,6 +95,9 @@ public class LDAPConnectionConsoleInteraction {
   // Indicate if the truststore in in memory
   private boolean trustStoreInMemory = false;
 
+  // Indicate that the trust manager was created with the parameters provided
+  private boolean trustManagerInitialized;
+
   // The truststore to use for the SSL or STARTTLS connection
   private KeyStore truststore;
 
@@ -1684,6 +1687,20 @@ public class LDAPConnectionConsoleInteraction {
    isHeadingDisplayed = false;
  }
 
+ /**
+  * Forces the initialization of the trust manager with the arguments provided
+  * by the user.
+  * @throws ArgumentException if there is an error with the arguments provided
+  * by the user.
+  */
+ public void initializeTrustManagerIfRequired() throws ArgumentException
+ {
+   if (!trustManagerInitialized)
+   {
+     initializeTrustManager();
+   }
+ }
+
  private void initializeTrustManager() throws ArgumentException
  {
    // Get truststore info
@@ -1691,5 +1708,7 @@ public class LDAPConnectionConsoleInteraction {
 
    // Check if we need client side authentication
    keyManager = getKeyManagerInternal();
+
+   trustManagerInitialized = true;
  }
 }

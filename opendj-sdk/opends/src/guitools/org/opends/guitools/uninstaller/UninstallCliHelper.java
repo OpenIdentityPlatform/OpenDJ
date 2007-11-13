@@ -92,6 +92,8 @@ class UninstallCliHelper extends ConsoleApplication {
 
   private UninstallerArgumentParser parser;
 
+  private boolean forceNonInteractive;
+
   private LDAPConnectionConsoleInteraction ci = null;
 
   /**
@@ -370,7 +372,7 @@ class UninstallCliHelper extends ConsoleApplication {
           ((i == 7) && (outsideLogs.size() == 0));
           if (!ignore)
           {
-            answers[i] = confirm(msgs[i], true);
+            answers[i] = askConfirmation(msgs[i], true, LOG);
           }
           else
           {
@@ -619,7 +621,7 @@ class UninstallCliHelper extends ConsoleApplication {
    */
   private boolean confirmToStopServer()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true);
+    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true, LOG);
   }
 
   /**
@@ -629,7 +631,8 @@ class UninstallCliHelper extends ConsoleApplication {
    */
   private boolean confirmDeleteFiles()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true);
+    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true,
+        LOG);
   }
 
   /**
@@ -639,7 +642,8 @@ class UninstallCliHelper extends ConsoleApplication {
    */
   private boolean confirmToUpdateRemote()
   {
-    return confirm(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true);
+    return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true,
+        LOG);
   }
 
   /**
@@ -649,8 +653,8 @@ class UninstallCliHelper extends ConsoleApplication {
    */
   private boolean confirmToUpdateRemoteAndStart()
   {
-    return confirm(
-        INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true);
+    return askConfirmation(
+        INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true, LOG);
   }
 
   /**
@@ -660,22 +664,8 @@ class UninstallCliHelper extends ConsoleApplication {
    */
   private boolean promptToProvideAuthenticationAgain()
   {
-    return confirm(INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(),
-        true);
-  }
-
-  private boolean confirm(Message msg, boolean defaultValue)
-  {
-    boolean v = defaultValue;
-    try
-    {
-      v = confirmAction(msg, defaultValue);
-    }
-    catch (CLIException ce)
-    {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-    }
-    return v;
+    return askConfirmation(
+        INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(), true, LOG);
   }
 
   /**
@@ -1024,6 +1014,15 @@ class UninstallCliHelper extends ConsoleApplication {
           pwd, userData.getTrustManager());
 
       ADSContext adsContext = new ADSContext(ctx);
+      if (interactive && (userData.getTrustManager() == null))
+      {
+        // This is required when the user did  connect to the server using SSL
+        // or Start TLS in interactive mode.  In this case
+        // LDAPConnectionInteraction.run does not initialize the keystore and
+        // the trust manager is null.
+        forceTrustManagerInitialization();
+        updateTrustManager(userData, ci);
+      }
       TopologyCache cache = new TopologyCache(adsContext,
           userData.getTrustManager());
       cache.reloadTopology();
@@ -1103,7 +1102,8 @@ class UninstallCliHelper extends ConsoleApplication {
       }
       else
       {
-        accepted = confirm(ERR_UNINSTALL_NOT_UPDATE_REMOTE_PROMPT.get(), false);
+        accepted = askConfirmation(ERR_UNINSTALL_NOT_UPDATE_REMOTE_PROMPT.get(),
+            false, LOG);
       }
     }
     userData.setUpdateRemoteReplication(accepted);
@@ -1199,10 +1199,10 @@ class UninstallCliHelper extends ConsoleApplication {
       if (!stopProcessing && (exceptionMsgs.size() > 0))
       {
         println();
-        returnValue = confirm(
+        returnValue = askConfirmation(
             ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getMessageFromCollection(exceptionMsgs,
-                  Constants.LINE_SEPARATOR).toString()), true);
+                  Constants.LINE_SEPARATOR).toString()), true, LOG);
       }
       else if (reloadTopologyCache)
       {
@@ -1243,7 +1243,14 @@ class UninstallCliHelper extends ConsoleApplication {
    * {@inheritDoc}
    */
   public boolean isInteractive() {
-    return parser.isInteractive();
+    if (forceNonInteractive)
+    {
+      return false;
+    }
+    else
+    {
+      return parser.isInteractive();
+    }
   }
 
 
@@ -1307,5 +1314,25 @@ class UninstallCliHelper extends ConsoleApplication {
        }
      }
      userData.setTrustManager(trust);
+   }
+
+
+
+   /**
+    * Forces the initialization of the trust manager in the
+    * LDAPConnectionInteraction object.
+    */
+   private void forceTrustManagerInitialization()
+   {
+     forceNonInteractive = true;
+     try
+     {
+       ci.initializeTrustManagerIfRequired();
+     }
+     catch (ArgumentException ae)
+     {
+       LOG.log(Level.WARNING, "Error initializing trust store: "+ae, ae);
+     }
+     forceNonInteractive = false;
    }
 }
