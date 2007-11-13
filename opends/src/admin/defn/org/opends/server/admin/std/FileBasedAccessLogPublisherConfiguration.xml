@@ -98,6 +98,9 @@
       <adm:user-friendly-name />. The path to the file is relative to the server
       root.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:string />
     </adm:syntax>
