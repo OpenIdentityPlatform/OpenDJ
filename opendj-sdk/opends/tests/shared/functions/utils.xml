@@ -1538,5 +1538,68 @@
     </sequence>
   </function>
 
+  <function name="runSTAFCommand" >
+    <function-description>
+      A general wrapper to run a STAF command without having to write a 
+      dedicated function for it
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Which machine should the command be executed on
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="name" type="required">
+        <function-arg-description>
+          The name to give the process
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="service" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="request" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="arguments" type="optional" default="''">
+        <function-arg-description>
+          the arguments for the service request
+        </function-arg-description>
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <script>
+        import random
+        import java.util.Date
+        random.seed(java.util.Date().getTime())
+        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,99999))
+        
+      </script>
+      <message>
+        '%s: Running STAF command:\n %s %s %s\nlocation: %s\n' % (_id,service,request,arguments,location)
+      </message>
+
+      <block name="'%s:Wrapper for %s' % (_id,name)">
+        <stafcmd name="'STAF Command: %s' % name">
+          <location>'%s' % location</location>
+          <service>service</service>
+          <request>
+            '%s %s' % (request,arguments)
+          </request>
+        </stafcmd>
+      </block>
+      
+      <message level="'info'">
+        '%s: STAF Command returned:\n%s' % (_id,STAFResult)
+      </message>
+
+      <return>
+        STAFResult
+      </return>
+    </sequence>
+  </function>
                         
 </stax>
