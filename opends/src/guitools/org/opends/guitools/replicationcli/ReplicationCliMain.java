@@ -112,9 +112,6 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
@@ -136,6 +133,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
+
+  private boolean forceNonInteractive;
 
   private static final Logger LOG =
     Logger.getLogger(ReplicationCliMain.class.getName());
@@ -1930,6 +1929,13 @@ public class ReplicationCliMain extends ConsoleApplication
     int port = ConnectionUtils.getPort(ctx[0]);
     boolean isSSL = ConnectionUtils.isSSL(ctx[0]);
     boolean isStartTLS = ConnectionUtils.isStartTLS(ctx[0]);
+    if (getTrustManager() == null)
+    {
+      // This is required when the user did  connect to the server using SSL or
+      // Start TLS.  In this case LDAPConnectionInteraction.run does not
+      // initialize the keystore and the trust manager is null.
+      forceTrustManagerInitialization();
+    }
     try
     {
       ADSContext adsContext = new ADSContext(ctx[0]);
@@ -5806,10 +5812,15 @@ public class ReplicationCliMain extends ConsoleApplication
    * {@inheritDoc}
    */
   public boolean isInteractive() {
-    return argParser.isInteractive();
+    if (forceNonInteractive)
+    {
+      return false;
+    }
+    else
+    {
+      return argParser.isInteractive();
+    }
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -5843,27 +5854,6 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   public boolean isVerbose() {
     return true;
-  }
-
-  /**
-   * Prompts the user to give a value.
-   * @param defaultValue the default value that will be proposed in the prompt
-   * message.
-   * @return the String as provided by the user or the defaultValue if an error.
-   * occurred reading the input.
-   */
-  private String promptForString(Message prompt, String defaultValue)
-  {
-    String s = defaultValue;
-    try
-    {
-      s = readInput(prompt, defaultValue);
-    }
-    catch (CLIException ce)
-    {
-      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-    }
-    return s;
   }
 
   /**
@@ -5935,135 +5925,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Enumeration description protocols for interactive CLI choices.
-   */
-  private enum Protocols
-  {
-    LDAP(1, INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()), SSL(2,
-        INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()), START_TLS(3,
-        INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
-
-    private Integer choice;
-
-    private Message msg;
-
-    /**
-     * Private constructor.
-     *
-     * @param i
-     *          the menu return value.
-     * @param msg
-     *          the message message.
-     */
-    private Protocols(int i, Message msg)
-    {
-      choice = i;
-      this.msg = msg;
-    }
-
-    /**
-     * Returns the choice number.
-     *
-     * @return the attribute name.
-     */
-    public Integer getChoice()
-    {
-      return choice;
-    }
-
-    /**
-     * Return the menu message.
-     *
-     * @return the menu message.
-     */
-    public Message getMenuMessage()
-    {
-      return msg;
-    }
-  }
-
-  private Protocols askProtocol(Message prompt, boolean isSecure,
-      boolean isStartTLS)
-  {
-    Protocols protocol;
-    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
-    builder.setPrompt(prompt);
-
-    Protocols defaultProtocol = Protocols.LDAP;
-    if (isSecure)
-    {
-      defaultProtocol = Protocols.SSL;
-    }
-    else if (isStartTLS)
-    {
-      defaultProtocol = Protocols.START_TLS;
-    }
-    for (Protocols p : Protocols.values())
-    {
-      int i = builder.addNumberedOption(p.getMenuMessage(), MenuResult
-          .success(p.getChoice()));
-      if (p.equals(defaultProtocol))
-      {
-        builder.setDefault(
-            INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
-                .get(i), MenuResult.success(p.getChoice()));
-      }
-    }
-
-    Menu<Integer> menu = builder.toMenu();
-    try
-    {
-      MenuResult<Integer> result = menu.run();
-      if (result.isSuccess())
-      {
-        if (result.getValue().equals(Protocols.SSL.getChoice()))
-        {
-          protocol = Protocols.SSL;
-        }
-        else if (result.getValue()
-            .equals(Protocols.START_TLS.getChoice()))
-        {
-          protocol = Protocols.START_TLS;
-        }
-        else
-        {
-          protocol = Protocols.LDAP;
-        }
-      }
-      else
-      {
-        // Should never happen.
-        throw new RuntimeException();
-      }
-    }
-    catch (CLIException e)
-    {
-      throw new RuntimeException(e);
-    }
-    return protocol;
-  }
-
-  /**
-   * Displays the provided header if is was not already displayed.  This method
-   * just is used for refactoring this small bit of code.
-   * @param msg the heading to be displayed.
-   * @param wasDisplayed whether this heading was already displayed or not.
-   * @return <CODE>true</CODE> if the message was displayed and
-   * <CODE>false</CODE> otherwise.
-   */
-  private boolean checkHeadingDisplay(Message msg, boolean wasDisplayed)
-  {
-    if (!wasDisplayed)
-    {
-      println(msg);
-      println();
-      println();
-    }
-    wasDisplayed = true;
-    return wasDisplayed;
-  }
-
-  /**
    * Resets the connection parameters for the LDAPConsoleInteraction  object.
    * The reset does not apply to the certificate parameters.  This is called
    * in order the LDAPConnectionConsoleInteraction object to ask for all this
@@ -6131,5 +5992,24 @@ public class ReplicationCliMain extends ConsoleApplication
       argParser.getSecureArgsList().bindPasswordArg.addValue(bindPwd);
       argParser.getSecureArgsList().bindPasswordArg.setPresent(true);
     }
+  }
+
+
+  /**
+   * Forces the initialization of the trust manager in the
+   * LDAPConnectionInteraction object.
+   */
+  private void forceTrustManagerInitialization()
+  {
+    forceNonInteractive = true;
+    try
+    {
+      ci.initializeTrustManagerIfRequired();
+    }
+    catch (ArgumentException ae)
+    {
+      LOG.log(Level.WARNING, "Error initializing trust store: "+ae, ae);
+    }
+    forceNonInteractive = false;
   }
 }
