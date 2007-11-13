@@ -76,6 +76,7 @@ public class SetupLauncher extends Launcher {
       QuickSetupLog.initLogFileHandler(
               File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
               "org.opends.quicksetup.installer");
+      QuickSetupLog.disableConsoleLogging();
 
     } catch (Throwable t) {
       System.err.println("Unable to initialize log");
@@ -124,40 +125,49 @@ public class SetupLauncher extends Launcher {
    * {@inheritDoc}
    */
   public void launch() {
-    if (shouldPrintVersion())
+    //  Validate user provided data
+    try
     {
-      if (!argParser.usageOrVersionDisplayed())
+      argParser.parseArguments(args);
+
+      if (argParser.isVersionArgumentPresent())
       {
-        printVersion();
+        System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
       }
-      System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
-    }
-    else if (shouldPrintUsage()) {
-      if (!argParser.usageOrVersionDisplayed())
+      else if (argParser.isUsageArgumentPresent())
       {
-        printUsage(false);
+        System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
       }
-      System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
-    }
-    else if (isCli())
-    {
-      System.exit(InstallDS.mainCLI(args));
-    }
-    else {
-      willLaunchGui();
-      int exitCode = launchGui(args);
-      if (exitCode != 0) {
-        File logFile = QuickSetupLog.getLogFile();
-        if (logFile != null)
-        {
-          guiLaunchFailed(logFile.toString());
-        }
-        else
-        {
-          guiLaunchFailed(null);
-        }
+      else if (isCli())
+      {
         System.exit(InstallDS.mainCLI(args));
       }
+      else
+      {
+        willLaunchGui();
+        int exitCode = launchGui(args);
+        if (exitCode != 0) {
+          File logFile = QuickSetupLog.getLogFile();
+          if (logFile != null)
+          {
+            guiLaunchFailed(logFile.toString());
+          }
+          else
+          {
+            guiLaunchFailed(null);
+          }
+          System.exit(InstallDS.mainCLI(args));
+        }
+      }
+    }
+    catch (ArgumentException ae)
+    {
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      System.err.println(message);
+      System.err.println();
+      System.err.println(argParser.getUsage());
+
+      System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
     }
   }
 
@@ -204,5 +214,12 @@ public class SetupLauncher extends Launcher {
    */
   protected CliApplication createCliApplication() {
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected boolean isCli() {
+    return argParser.isCli();
   }
 }

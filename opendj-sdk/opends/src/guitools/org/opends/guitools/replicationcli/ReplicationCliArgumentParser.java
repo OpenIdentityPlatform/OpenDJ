@@ -439,11 +439,18 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_NO_PROMPT.get());
     defaultArgs.add(index++, noPromptArg);
 
+    for (int i=0; i<index; i++)
+    {
+      Argument arg = defaultArgs.get(i);
+      arg.setPropertyName(arg.getLongIdentifier());
+    }
+
     quietArg = new BooleanArgument(
         OPTION_LONG_QUIET,
         OPTION_SHORT_QUIET,
         OPTION_LONG_QUIET,
         INFO_REPLICATION_DESCRIPTION_QUIET.get());
+    quietArg.setPropertyName(OPTION_LONG_QUIET);
     defaultArgs.add(quietArg);
 
     StringArgument propertiesFileArgument = new StringArgument(
@@ -575,6 +582,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
+      argsToAdd[i].setPropertyName(argsToAdd[i].getLongIdentifier());
       enableReplicationSubCmd.addArgument(argsToAdd[i]);
     }
   }
@@ -594,7 +602,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     secureArgsList.bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
         OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
-        "cn=Directory Manager", null,
+        "cn=Directory Manager", OPTION_LONG_BINDDN,
         INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.useSSLArg,
@@ -658,6 +666,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     };
     for (int i=0; i<argsToAdd.length; i++)
     {
+      argsToAdd[i].setPropertyName(argsToAdd[i].getLongIdentifier());
       initializeReplicationSubCmd.addArgument(argsToAdd[i]);
     }
   }
@@ -701,6 +710,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         's',
         "script-friendly",
         INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+    scriptFriendlyArg.setPropertyName(scriptFriendlyArg.getLongIdentifier());
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.useSSLArg,

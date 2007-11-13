@@ -93,6 +93,9 @@ public class ArgumentParser
   // Indicates whether the usage or version information has been displayed.
   private boolean usageOrVersionDisplayed;
 
+  // Indicates whether the version argument was provided.
+  private boolean versionPresent;
+
   // The set of arguments defined for this parser, referenced by short ID.
   private HashMap<Character,Argument> shortIDMap;
 
@@ -198,6 +201,7 @@ public class ArgumentParser
     longIDMap               = new HashMap<String,Argument>();
     allowsTrailingArguments = false;
     usageOrVersionDisplayed = false;
+    versionPresent         = false;
     trailingArgsDisplayName = null;
     maxTrailingArguments    = 0;
     minTrailingArguments    = 0;
@@ -265,6 +269,7 @@ public class ArgumentParser
     longIDMap         = new HashMap<String,Argument>();
     trailingArguments = new ArrayList<String>();
     usageOrVersionDisplayed = false;
+    versionPresent   = false;
     rawArguments      = null;
     usageArgument     = null;
     usageOutputStream = System.out;
@@ -881,6 +886,7 @@ public class ArgumentParser
             // "--version" will always be interpreted as requesting version
             // information.
             usageOrVersionDisplayed = true;
+            versionPresent = true;
             try
             {
               DirectoryServer.printVersion(usageOutputStream);
@@ -1007,6 +1013,7 @@ public class ArgumentParser
             // version information except if it's already defined (e.g in
             // ldap tools).
             usageOrVersionDisplayed = true ;
+            versionPresent = true;
             try
             {
               DirectoryServer.printVersion(usageOutputStream);
@@ -1763,5 +1770,31 @@ public class ArgumentParser
     return general;
   }
 
+  /**
+   * Returns whether the usage argument was provided or not.  This method
+   * should be called after a call to parseArguments.
+   * @return <CODE>true</CODE> if the usage argument was provided and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isUsageArgumentPresent()
+  {
+    boolean isUsageArgumentPresent = false;
+    if (usageArgument != null)
+    {
+      isUsageArgumentPresent = usageArgument.isPresent();
+    }
+    return isUsageArgumentPresent;
+  }
+
+  /**
+   * Returns whether the version argument was provided or not.  This method
+   * should be called after a call to parseArguments.
+   * @return <CODE>true</CODE> if the version argument was provided and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isVersionArgumentPresent()
+  {
+    return versionPresent;
+  }
 }
 
