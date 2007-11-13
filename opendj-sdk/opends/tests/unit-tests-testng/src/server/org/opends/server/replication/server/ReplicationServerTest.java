@@ -1229,6 +1229,14 @@ public class ReplicationServerTest extends ReplicationTestCase
    {
      debugInfo("Starting searchBackend");
 
+     // General search
+     InternalSearchOperation op2 = connection.processSearch(
+         new ASN1OctetString("cn=monitor"),
+         SearchScope.WHOLE_SUBTREE,
+         LDAPFilter.decode("(objectclass=*)"));
+     assertEquals(op2.getResultCode(), ResultCode.SUCCESS, 
+         op2.getErrorMessage().toString());
+
      replicationServer.clearDb();
 
      LDIFWriter ldifWriter = null;
@@ -1290,6 +1298,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          SearchScope.WHOLE_SUBTREE,
          LDAPFilter.decode("(changetype=*)"));
      assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
+
 
      // General search
      op = connection.processSearch(
