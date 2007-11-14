@@ -31,7 +31,6 @@ import static org.opends.guitools.replicationcli.ReplicationCliReturnCode.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.*;
 import static org.opends.quicksetup.util.Utils.getFirstValue;
 import static org.opends.quicksetup.util.Utils.getThrowableMsg;
 
@@ -568,8 +567,22 @@ public class ReplicationCliMain extends ConsoleApplication
     String bindDn1 = argParser.getBindDn1();
     String pwd1 = argParser.getBindPassword1();
 
-    initializeGlobalArguments(host1, port1, useSSL1,
-        useStartTLS1, adminUid, bindDn1, (pwd1 != null) ? pwd1 : adminPwd);
+    String pwd = null;
+    if (pwd1 != null)
+    {
+      pwd = pwd1;
+    }
+    else if (bindDn1 != null)
+    {
+      pwd = null;
+    }
+    else
+    {
+      pwd = adminPwd;
+    }
+
+    initializeGlobalArguments(host1, port1, useSSL1, useStartTLS1, adminUid,
+        bindDn1, pwd);
     InitialLdapContext ctx1 = null;
 
     while ((ctx1 == null) && !cancelled)
@@ -583,10 +596,16 @@ public class ReplicationCliMain extends ConsoleApplication
         useStartTLS1 = ci.useStartTLS();
         host1 = ci.getHostName();
         port1 = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
-        if (adminUid != null)
+        if (ci.getProvidedAdminUID() != null)
         {
-          adminPwd = ci.getBindPassword();
+          adminUid = ci.getProvidedAdminUID();
+          if (ci.getProvidedBindDN() == null)
+          {
+            // If the explicitit bind DN is not null, the password corresponds
+            // to that bind DN.  We are in the case where the user provides
+            // bind DN on first server and admin UID globally.
+            adminPwd = ci.getBindPassword();
+          }
         }
         bindDn1 = ci.getBindDN();
         pwd1 = ci.getBindPassword();
@@ -718,7 +737,6 @@ public class ReplicationCliMain extends ConsoleApplication
       useStartTLS2 = argParser.useStartTLS2();
       bindDn2 = argParser.getBindDn2();
       pwd2 = argParser.getBindPassword2();
-      String pwd;
       if (pwd2 != null)
       {
         pwd = pwd2;
@@ -748,7 +766,11 @@ public class ReplicationCliMain extends ConsoleApplication
         useStartTLS2 = ci.useStartTLS();
         host2 = ci.getHostName();
         port2 = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
+        if (ci.getProvidedAdminUID() != null)
+        {
+          adminUid = ci.getProvidedAdminUID();
+          adminPwd = ci.getBindPassword();
+        }
         bindDn2 = ci.getBindDN();
         pwd2 = ci.getBindPassword();
 
@@ -1020,8 +1042,8 @@ public class ReplicationCliMain extends ConsoleApplication
         useStartTLS = ci.useStartTLS();
         host = ci.getHostName();
         port = ci.getPortNumber();
-        bindDn = ci.getBindDN();
-        adminUid = ci.getAdministratorUID();
+        bindDn = ci.getProvidedBindDN();
+        adminUid = ci.getProvidedAdminUID();
         adminPwd = ci.getBindPassword();
 
         ctx = createInitialLdapContextInteracting(ci);
@@ -5963,6 +5985,8 @@ public class ReplicationCliMain extends ConsoleApplication
       argParser.getSecureArgsList().hostNameArg.addValue(hostName);
       argParser.getSecureArgsList().hostNameArg.setPresent(true);
     }
+    // resetConnectionArguments does not clear the values for the port
+    argParser.getSecureArgsList().portArg.clearValues();
     if (port != -1)
     {
       argParser.getSecureArgsList().portArg.addValue(String.valueOf(port));
@@ -5970,7 +5994,6 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      argParser.getSecureArgsList().portArg.clearValues();
       // This is done to be able to call IntegerArgument.getIntValue()
       argParser.getSecureArgsList().portArg.addValue(
           argParser.getSecureArgsList().portArg.getDefaultValue());
