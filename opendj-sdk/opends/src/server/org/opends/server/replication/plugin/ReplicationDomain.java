@@ -2517,11 +2517,21 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Reset the generationId of this domain in the whole topology.
    * A message is sent to the Replication Servers for them to reset
    * their change dbs.
+   *
+   * @param generationIdNewValue The new value of the generation Id.
    */
-  public void resetGenerationId()
+  public void resetGenerationId(Long generationIdNewValue)
   {
+    ResetGenerationId genIdMessage = null;
     requestedResetSinceLastStart = true;
-    ResetGenerationId genIdMessage = new ResetGenerationId(this.generationId);
+    if (generationIdNewValue == null)
+    {
+      genIdMessage = new ResetGenerationId(this.generationId);
+    }
+    else
+    {
+      genIdMessage = new ResetGenerationId(generationIdNewValue);
+    }
     broker.publish(genIdMessage);
   }
 
