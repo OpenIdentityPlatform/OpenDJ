@@ -73,7 +73,9 @@ public class LDAPConnectionConsoleInteraction {
   private String hostName;
   private int portNumber;
   private String bindDN;
+  private String providedBindDN;
   private String adminUID;
+  private String providedAdminUID;
   private String bindPassword;
   private KeyManager keyManager;
   private ApplicationTrustManager trustManager;
@@ -530,9 +532,25 @@ public class LDAPConnectionConsoleInteraction {
     bindDN = secureArgsList.bindDnArg.getValue();
     adminUID = secureArgsList.adminUidArg.getValue();
     final boolean useAdmin = secureArgsList.useAdminUID();
-    boolean argIsPresent = useAdmin ?
-        secureArgsList.adminUidArg.isPresent() :
-          secureArgsList.bindDnArg.isPresent();
+    if (useAdmin && secureArgsList.adminUidArg.isPresent())
+    {
+      providedAdminUID = adminUID;
+    }
+    else
+    {
+      providedAdminUID = null;
+    }
+    if ((!useAdmin || useAdminOrBindDn) &&
+        secureArgsList.bindDnArg.isPresent())
+    {
+      providedBindDN = bindDN;
+    }
+    else
+    {
+      providedBindDN = null;
+    }
+    boolean argIsPresent = (providedAdminUID != null) ||
+    (providedBindDN != null);
     final String tmpBindDN = bindDN;
     final String tmpAdminUID = adminUID;
     if (keyManager == null)
@@ -579,12 +597,16 @@ public class LDAPConnectionConsoleInteraction {
             if (Utils.isDn(v))
             {
               bindDN = v;
+              providedBindDN = v;
               adminUID = null;
+              providedAdminUID = null;
             }
             else
             {
               bindDN = null;
+              providedBindDN = null;
               adminUID = v;
+              providedAdminUID = v;
             }
           }
           else if (useAdmin)
@@ -592,11 +614,13 @@ public class LDAPConnectionConsoleInteraction {
             adminUID = app.readValidatedInput(
                 INFO_LDAP_CONN_PROMPT_ADMINISTRATOR_UID.get(adminUID),
                 callback);
+            providedAdminUID = adminUID;
           }
           else
           {
             bindDN = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN
               .get(bindDN), callback);
+            providedBindDN = bindDN;
           }
         }
         catch (CLIException e)
@@ -647,24 +671,21 @@ public class LDAPConnectionConsoleInteraction {
         {
           app.println();
           Message prompt;
-          if (useAdminOrBindDn)
+          if (providedAdminUID != null)
           {
-            if (adminUID != null)
-            {
-              prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
-            }
-            else
-            {
-              prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
-            }
+            prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedAdminUID);
           }
-          else if (useAdmin)
+          else if (providedBindDN != null)
           {
-            prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
+            prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(providedBindDN);
+          }
+          else if (bindDN != null)
+          {
+            prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
           }
           else
           {
-            prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN);
+            prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
           }
           bindPassword = app.readPassword(prompt);
         }
@@ -1143,13 +1164,25 @@ public class LDAPConnectionConsoleInteraction {
     String dn;
     if (useAdminOrBindDn)
     {
-      if (this.adminUID != null)
+      if (providedBindDN != null)
+      {
+        dn = providedBindDN;
+      }
+      else if (providedAdminUID != null)
+      {
+        dn = ADSContext.getAdministratorDN(providedAdminUID);
+      }
+      else if (this.bindDN != null)
+      {
+        dn = this.bindDN;
+      }
+      else if (this.adminUID != null)
       {
         dn = ADSContext.getAdministratorDN(this.adminUID);
       }
       else
       {
-        dn = this.bindDN;
+        dn = null;
       }
     }
     else if (secureArgsList.useAdminUID())
@@ -1710,5 +1743,26 @@ public class LDAPConnectionConsoleInteraction {
    keyManager = getKeyManagerInternal();
 
    trustManagerInitialized = true;
+ }
+ /**
+  * Returns the explicitly provided Admin UID from the user (interactively
+  * or through the argument).
+  * @return the explicitly provided Admin UID from the user (interactively
+  * or through the argument).
+  */
+ public String getProvidedAdminUID()
+ {
+   return providedAdminUID;
+ }
+
+ /**
+  * Returns the explicitly provided bind DN from the user (interactively
+  * or through the argument).
+  * @return the explicitly provided bind DN from the user (interactively
+  * or through the argument).
+  */
+ public String getProvidedBindDN()
+ {
+   return providedBindDN;
  }
 }
