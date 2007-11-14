@@ -63,6 +63,7 @@ public class SetGenerationIdTask extends Task
   String  domainString            = null;
   ReplicationDomain domain        = null;
   TaskState initState;
+  Long generationId = null;
 
   private static final void debugInfo(String s)
   {
@@ -85,6 +86,8 @@ public class SetGenerationIdTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
+    List<Attribute> attrList;
+
     if (TaskState.isDone(getTaskState()))
     {
       return;
@@ -93,13 +96,32 @@ public class SetGenerationIdTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase;
+    // Retrieves the eventual generation-ID
+    AttributeType typeNewValue;
+    typeNewValue =
+      getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE, true);
+    attrList = taskEntry.getAttribute(typeNewValue);
+    if ((attrList != null) && !attrList.isEmpty())
+    {
+      try
+      {
+        generationId = new Long(TaskUtils.getSingleValueString(attrList));
+      }
+      catch(Exception e)
+      {
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_GENERATION_ID.get());
+        mb.append(e.getMessage());
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_PARAM_ERROR,
+            mb.toMessage());
+      }
+    }
 
     // Retrieves the replication domain
+    AttributeType typeDomainBase;
     typeDomainBase =
       getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN, true);
 
-    List<Attribute> attrList;
     attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
     DN domainDN = DN.nullDN();
@@ -128,7 +150,7 @@ public class SetGenerationIdTask extends Task
     debugInfo("setGenerationIdTask is starting on domain%s" +
         domain.getBaseDN());
 
-    domain.resetGenerationId();
+    domain.resetGenerationId(generationId);
 
     debugInfo("setGenerationIdTask is ending SUCCESSFULLY");
     return TaskState.COMPLETED_SUCCESSFULLY;

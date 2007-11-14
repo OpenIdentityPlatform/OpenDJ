@@ -4304,6 +4304,13 @@ public final class ConfigConstants
     OC_RESET_GENERATION_ID_TASK + "-domain-base-dn";
 
   /**
+   * The name of the attribute containing the new value of the generation ID
+   * related to the replication domain to which applies the task.
+   */
+  public static final String ATTR_TASK_SET_GENERATION_ID_NEW_VALUE =
+    OC_RESET_GENERATION_ID_TASK + "-new-value";
+
+  /**
    * The name of the attribute in an import task definition that specifies
    * whether the backend should be cleared before the import.
    */

@@ -1160,9 +1160,29 @@ public class GenerationIdTest extends ReplicationTestCase
 
     debugInfo("Verifying that all replservers genIds have been reset.");
     genId = readGenId();
-    assertEquals(replServer2.getGenerationId(baseDn), genId);
+    assertEquals(replServer1.getGenerationId(baseDn), genId);
     assertEquals(replServer2.getGenerationId(baseDn), genId);
     assertEquals(replServer3.getGenerationId(baseDn), genId);
+
+    debugInfo("Adding reset task to DS.");
+    taskReset = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=resetgenid"+ UUID.randomUUID() +
+        ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top",
+        "objectclass: ds-task",
+        "objectclass: ds-task-reset-generation-id",
+        "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
+        "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr,
+        "ds-task-reset-generation-id-new-value: -1");
+    addTask(taskReset, ResultCode.SUCCESS, null);
+    waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+    Thread.sleep(500);
+
+    debugInfo("Verifying that all replservers genIds have been reset.");
+    genId = readGenId();
+    assertEquals(replServer1.getGenerationId(baseDn), -1);
+    assertEquals(replServer2.getGenerationId(baseDn), -1);
+    assertEquals(replServer3.getGenerationId(baseDn), -1);
 
     debugInfo("Disconnect DS from replServer1 (required in order to DEL entries).");
     disconnectFromReplServer(changelog1ID);
