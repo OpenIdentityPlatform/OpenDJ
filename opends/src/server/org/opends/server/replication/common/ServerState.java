@@ -329,4 +329,14 @@ public class ServerState implements Iterable<Short>
     }
     return true;
   }
+
+  /**
+   * Tests if the state is empty.
+   *
+   * @return True if the state is empty.
+   */
+  public boolean isEmpty()
+  {
+    return list.isEmpty();
+  }
 }
