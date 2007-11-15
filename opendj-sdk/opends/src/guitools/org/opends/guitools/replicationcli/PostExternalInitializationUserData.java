@@ -29,11 +29,11 @@ package org.opends.guitools.replicationcli;
 
 /**
  * This class is used to store the information provided by the user to
- * initialize a complete replication topology.  It is required because when we
+ * perform the operations required after doing an initialization using
+ * import-ldif of the binary copy.  It is required because when we
  * are in interactive mode the ReplicationCliArgumentParser is not enough.
  *
  */
-class InitializeAllReplicationUserData extends MonoServerReplicationUserData
+class PostExternalInitializationUserData extends MonoServerReplicationUserData
 {
 }
-

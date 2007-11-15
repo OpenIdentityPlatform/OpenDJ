@@ -164,7 +164,19 @@ public enum ReplicationCliReturnCode
   /**
    * Error seeding trustore.
    */
-  ERROR_SEEDING_TRUSTORE(22, ERR_REPLICATION_NO_MESSAGE.get());
+  ERROR_SEEDING_TRUSTORE(22, ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * Error launching pre external initialization.
+   */
+  ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION(23,
+      ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * Error launching pre external initialization.
+   */
+  ERROR_LAUNCHING_POST_EXTERNAL_INITIALIZATION(24,
+      ERR_REPLICATION_NO_MESSAGE.get());
 
 
   private Message message;

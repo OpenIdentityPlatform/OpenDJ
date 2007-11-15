@@ -62,6 +62,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand disableReplicationSubCmd;
   private SubCommand initializeReplicationSubCmd;
   private SubCommand initializeAllReplicationSubCmd;
+  private SubCommand postExternalInitializationSubCmd;
+  private SubCommand preExternalInitializationSubCmd;
   private SubCommand statusReplicationSubCmd;
 
   private BooleanArgument noPromptArg;
@@ -219,6 +221,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private StringArgument baseDNsArg = null;
 
   /**
+   * The argument that specifies if the external initialization will be
+   * performed only on this server.
+   */
+  private BooleanArgument externalInitializationOnlyInLocalArg;
+
+  /**
    * The 'quiet' argument.
    */
   private BooleanArgument quietArg;
@@ -248,6 +256,18 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public static final String INITIALIZE_ALL_REPLICATION_SUBCMD_NAME =
     "initialize-all";
+
+  /**
+   * The text of the pre external initialization subcommand.
+   */
+  public static final String PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME =
+    "pre-external-initialization";
+
+  /**
+   * The text of the initialize all replication subcommand.
+   */
+  public static final String POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME =
+    "post-external-initialization";
 
   /**
    * The text of the status replication subcommand.
@@ -288,6 +308,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     createDisableReplicationSubCommand();
     createInitializeReplicationSubCommand();
     createInitializeAllReplicationSubCommand();
+    createPreExternalInitializationSubCommand();
+    createPostExternalInitializationSubCommand();
     createStatusReplicationSubCommand();
   }
 
@@ -695,6 +717,65 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Creates the subcommand that the user must launch before doing an external
+   * initialization of the topology ( and all the specific
+   * options for the subcommand.  Note: this method assumes that
+   * initializeGlobalArguments has already been called and that hostNameArg,
+   * portArg, startTLSArg and useSSLArg have been created.
+   */
+  private void createPreExternalInitializationSubCommand()
+  throws ArgumentException
+  {
+    preExternalInitializationSubCmd = new SubCommand(this,
+        PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
+        INFO_DESCRIPTION_SUBCMD_PRE_EXTERNAL_INITIALIZATION.get(
+            POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
+    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
+    externalInitializationOnlyInLocalArg = new BooleanArgument(
+        "only-local",
+        'l',
+        "only-local",
+        INFO_DESCRIPTION_EXTERNAL_INITIALIZATION_LOCAL.get());
+    externalInitializationOnlyInLocalArg.setPropertyName(
+        externalInitializationOnlyInLocalArg.getLongIdentifier());
+    Argument[] argsToAdd = { secureArgsList.hostNameArg,
+        secureArgsList.portArg, secureArgsList.useSSLArg,
+        secureArgsList.useStartTLSArg,
+        externalInitializationOnlyInLocalArg};
+
+    for (int i=0; i<argsToAdd.length; i++)
+    {
+      preExternalInitializationSubCmd.addArgument(argsToAdd[i]);
+    }
+  }
+
+  /**
+   * Creates the subcommand that the user must launch after doing an external
+   * initialization of the topology ( and all the specific
+   * options for the subcommand.  Note: this method assumes that
+   * initializeGlobalArguments has already been called and that hostNameArg,
+   * portArg, startTLSArg and useSSLArg have been created.
+   */
+  private void createPostExternalInitializationSubCommand()
+  throws ArgumentException
+  {
+    postExternalInitializationSubCmd = new SubCommand(this,
+        POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
+        INFO_DESCRIPTION_SUBCMD_POST_EXTERNAL_INITIALIZATION.get(
+            PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
+    secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
+    externalInitializationOnlyInLocalArg.setPropertyName(
+        externalInitializationOnlyInLocalArg.getLongIdentifier());
+    Argument[] argsToAdd = { secureArgsList.hostNameArg,
+        secureArgsList.portArg, secureArgsList.useSSLArg,
+        secureArgsList.useStartTLSArg};
+    for (int i=0; i<argsToAdd.length; i++)
+    {
+      postExternalInitializationSubCmd.addArgument(argsToAdd[i]);
+    }
+  }
+
+  /**
    * Creates the status replication subcommand and all the specific options
    * for the subcommand.  Note: this method assumes that
    * initializeGlobalArguments has already been called and that hostNameArg,
@@ -1007,6 +1088,56 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * the initialize all replication subcommand and <CODE>false</CODE> otherwise.
    */
   public boolean useStartTLSToInitializeAll()
+  {
+    return secureArgsList.useStartTLSArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the pre external
+   * initialization subcommand.
+   *
+   * @return <CODE>true</CODE> if SSL mode is required for the server in the
+   * pre external initialization subcommand and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSSLToPreExternalInitialization()
+  {
+    return secureArgsList.useSSLArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the pre external
+   * initialization subcommand.
+   *
+   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
+   * the pre external initialization subcommand and <CODE>false</CODE>
+   * otherwise.
+   */
+  public boolean useStartTLSToPreExternalInitialization()
+  {
+    return secureArgsList.useStartTLSArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the post external
+   * initialization subcommand.
+   *
+   * @return <CODE>true</CODE> if SSL mode is required for the server in the
+   * post external initialization subcommand and <CODE>false</CODE> otherwise.
+   */
+  public boolean useSSLToPostExternalInitialization()
+  {
+    return secureArgsList.useSSLArg.isPresent();
+  }
+
+  /**
+   * Indicate if the SSL mode is required for the server in the post external
+   * initialization subcommand.
+   *
+   * @return <CODE>true</CODE> if StartTLS mode is required for the server in
+   * the post external initialization subcommand and <CODE>false</CODE>
+   * otherwise.
+   */
+  public boolean useStartTLSToPostExternalInitialization()
   {
     return secureArgsList.useStartTLSArg.isPresent();
   }
@@ -1371,6 +1502,50 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns the host name explicitly provided in the pre external
+   * initialization subcommand.
+   * @return the host name explicitly provided in the pre external
+   * initialization subcommand.
+   */
+  public String getHostNameToPreExternalInitialization()
+  {
+    return getValue(secureArgsList.hostNameArg);
+  }
+
+  /**
+   * Returns the host name default value in the pre external initialization
+   * subcommand.
+   * @return the host name default value in the pre external initialization
+   * subcommand.
+   */
+  public String getDefaultHostNameToPreExternalInitialization()
+  {
+    return getDefaultValue(secureArgsList.hostNameArg);
+  }
+
+  /**
+   * Returns the host name explicitly provided in the post external
+   * initialization subcommand.
+   * @return the host name explicitly provided in the post external
+   * initialization subcommand.
+   */
+  public String getHostNameToPostExternalInitialization()
+  {
+    return getValue(secureArgsList.hostNameArg);
+  }
+
+  /**
+   * Returns the host name default value in the post external initialization
+   * subcommand.
+   * @return the host name default value in the post external initialization
+   * subcommand.
+   */
+  public String getDefaultHostNameToPostExternalInitialization()
+  {
+    return getDefaultValue(secureArgsList.hostNameArg);
+  }
+
+  /**
    * Returns the source host name explicitly provided in the initialize
    * replication subcommand.
    * @return the source host name explicitly provided in the initialize
@@ -1498,6 +1673,50 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * subcommand.
    */
   public int getDefaultPortToInitializeAll()
+  {
+    return getDefaultValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port explicitly provided in the pre external
+   * initialization subcommand.
+   * @return the server port explicitly provided in the pre external
+   * initialization subcommand.  Returns -1 if no port was explicitly provided.
+   */
+  public int getPortToPreExternalInitialization()
+  {
+    return getValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port default value in the pre external initialization
+   * subcommand.
+   * @return the server port default value in the pre external initialization
+   * subcommand.
+   */
+  public int getDefaultPortToPreExternalInitialization()
+  {
+    return getDefaultValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port explicitly provided in the post external
+   * initialization subcommand.
+   * @return the server port explicitly provided in the post external
+   * initialization subcommand.  Returns -1 if no port was explicitly provided.
+   */
+  public int getPortToPostExternalInitialization()
+  {
+    return getValue(secureArgsList.portArg);
+  }
+
+  /**
+   * Returns the server port default value in the post external initialization
+   * subcommand.
+   * @return the server port default value in the post external initialization
+   * subcommand.
+   */
+  public int getDefaultPortToPostExternalInitialization()
   {
     return getDefaultValue(secureArgsList.portArg);
   }
@@ -1634,6 +1853,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       validateInitializeAllReplicationOptions(buf);
     }
+    else if (isPreExternalInitializationSubcommand())
+    {
+      validatePreExternalInitializationOptions(buf);
+    }
+    else if (isPostExternalInitializationSubcommand())
+    {
+      validatePostExternalInitializationOptions(buf);
+    }
 
     else
     {
@@ -1688,6 +1915,28 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns whether the user provided subcommand is the pre external
+   * initialization or not.
+   * @return <CODE>true</CODE> if the user provided subcommand is the
+   * pre external initialization and <CODE>false</CODE> otherwise.
+   */
+  public boolean isPreExternalInitializationSubcommand()
+  {
+    return isSubcommand(PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME);
+  }
+
+  /**
+   * Returns whether the user provided subcommand is the post external
+   * initialization or not.
+   * @return <CODE>true</CODE> if the user provided subcommand is the
+   * post external initialization and <CODE>false</CODE> otherwise.
+   */
+  public boolean isPostExternalInitializationSubcommand()
+  {
+    return isSubcommand(POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME);
+  }
+
+  /**
    * Returns whether the user provided subcommand is the initialize replication
    * or not.
    * @return <CODE>true</CODE> if the user provided subcommand is the
@@ -1696,6 +1945,18 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean isInitializeReplicationSubcommand()
   {
     return isSubcommand(INITIALIZE_REPLICATION_SUBCMD_NAME);
+  }
+
+  /**
+   * Tells whether the user specified to apply the pre (or post) external
+   * initialization operations only on the local server.
+   * @return <CODE>true</CODE> if the user specified to apply the pre (or post)
+   * external initialization operations only on the local server and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isExternalInitializationOnlyInLocal()
+  {
+    return externalInitializationOnlyInLocalArg.isPresent();
   }
 
   /**
@@ -1820,6 +2081,36 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         addMessage(buf, message);
       }
     }
+  }
+
+  /**
+   * Checks the pre external initialization subcommand options and updates the
+   * provided MessageBuilder with the errors that were encountered with the
+   * subcommand options.
+   *
+   * This method assumes that the method parseArguments for the parser has
+   * already been called.
+   * @param buf the MessageBuilder object where we add the error messages
+   * describing the errors encountered.
+   */
+  private void validatePreExternalInitializationOptions(MessageBuilder buf)
+  {
+    validateInitializeAllReplicationOptions(buf);
+  }
+
+  /**
+   * Checks the post external initialization subcommand options and updates the
+   * provided MessageBuilder with the errors that were encountered with the
+   * subcommand options.
+   *
+   * This method assumes that the method parseArguments for the parser has
+   * already been called.
+   * @param buf the MessageBuilder object where we add the error messages
+   * describing the errors encountered.
+   */
+  private void validatePostExternalInitializationOptions(MessageBuilder buf)
+  {
+    validateInitializeAllReplicationOptions(buf);
   }
 
   /**
