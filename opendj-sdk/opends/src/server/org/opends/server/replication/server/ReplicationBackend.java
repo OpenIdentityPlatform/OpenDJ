@@ -1142,18 +1142,6 @@ public class ReplicationBackend
     ArrayList<ReplicationCache> searchContainers =
       new ArrayList<ReplicationCache>();
 
-    if (server==null)
-    {
-      server = retrievesReplicationServer();
-
-      if (server == null)
-      {
-        Message message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.
-        get(String.valueOf(searchBaseDN));
-        throw new DirectoryException(
-          ResultCode.NO_SUCH_OBJECT, message, null, null);
-      }
-    }
     //This check is for GroupManager initialization. It currently doesn't
     //come into play because the replication server variable is null in
     //the check above. But if the order of initialization of the server variable
@@ -1187,6 +1175,30 @@ public class ReplicationBackend
         get(String.valueOf(searchBaseDN));
       throw new DirectoryException(
           ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
+    }
+
+    if (server==null)
+    {
+      server = retrievesReplicationServer();
+
+      if (server == null)
+      {
+        if (baseDNSet.contains(searchBaseDN))
+        {
+          searchOperation.returnEntry(
+              new Entry(searchBaseDN, rootObjectclasses, attributes,
+                  operationalAttributes),
+                  new LinkedList<Control>());
+          return;
+        }
+        else
+        {
+          Message message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.
+          get(String.valueOf(searchBaseDN));
+          throw new DirectoryException(
+              ResultCode.NO_SUCH_OBJECT, message, null, null);
+        }
+      }
     }
 
     // Walk through all entries and send the ones that match.
