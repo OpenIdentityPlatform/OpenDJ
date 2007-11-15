@@ -359,7 +359,25 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         }
         else
         {
-          replicationCache.setGenerationId(generationId, false);
+          // We are an empty Replicationserver
+          if ((generationId>0)&&(!serverState.isEmpty()))
+          {
+            // If the LDAP server has already sent changes
+            // it is not expected to connect to an empty RS
+            Message message = NOTE_BAD_GENERATION_ID.get(
+                receivedMsg.getBaseDn().toNormalizedString(),
+                Short.toString(receivedMsg.getServerId()),
+                Long.toString(generationId),
+                Long.toString(localGenerationId));
+
+            ErrorMessage errorMsg =
+              new ErrorMessage(replicationServerId, serverId, message);
+            session.publish(errorMsg);
+          }
+          else
+          {
+            replicationCache.setGenerationId(generationId, false);
+          }
         }
       }
       else if (msg instanceof ReplServerStartMessage)
