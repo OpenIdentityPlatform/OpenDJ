@@ -327,7 +327,9 @@ public class ReplicationCliMain extends ConsoleApplication
         ci = new LDAPConnectionConsoleInteraction(this,
             argParser.getSecureArgsList());
         ci.setDisplayLdapIfSecureParameters(
-            !argParser.isInitializeAllReplicationSubcommand());
+            !argParser.isInitializeAllReplicationSubcommand() &&
+            !argParser.isPreExternalInitializationSubcommand() ||
+            !argParser.isPostExternalInitializationSubcommand());
       }
       if (returnValue == SUCCESSFUL_NOP)
       {
@@ -346,6 +348,14 @@ public class ReplicationCliMain extends ConsoleApplication
         else if (argParser.isInitializeAllReplicationSubcommand())
         {
           returnValue = initializeAllReplication();
+        }
+        else if (argParser.isPreExternalInitializationSubcommand())
+        {
+          returnValue = preExternalInitialization();
+        }
+        else if (argParser.isPostExternalInitializationSubcommand())
+        {
+          returnValue = postExternalInitialization();
         }
         else if (argParser.isStatusReplicationSubcommand())
         {
@@ -463,6 +473,66 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       initializeWithArgParser(uData);
       returnValue = initializeAllReplication(uData);
+    }
+    return returnValue;
+  }
+
+  /**
+   * Based on the data provided in the command-line execute the pre external
+   * initialization operation.
+   * @return the error code if the operation failed and SUCCESSFUL if it was
+   * successful.
+   */
+  private ReplicationCliReturnCode preExternalInitialization()
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    PreExternalInitializationUserData uData =
+      new PreExternalInitializationUserData();
+    if (argParser.isInteractive())
+    {
+      if (promptIfRequired(uData))
+      {
+        returnValue = preExternalInitialization(uData);
+      }
+      else
+      {
+        returnValue = USER_CANCELLED;
+      }
+    }
+    else
+    {
+      initializeWithArgParser(uData);
+      returnValue = preExternalInitialization(uData);
+    }
+    return returnValue;
+  }
+
+  /**
+   * Based on the data provided in the command-line execute the post external
+   * initialization operation.
+   * @return the error code if the operation failed and SUCCESSFUL if it was
+   * successful.
+   */
+  private ReplicationCliReturnCode postExternalInitialization()
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    PostExternalInitializationUserData uData =
+      new PostExternalInitializationUserData();
+    if (argParser.isInteractive())
+    {
+      if (promptIfRequired(uData))
+      {
+        returnValue = postExternalInitialization(uData);
+      }
+      else
+      {
+        returnValue = USER_CANCELLED;
+      }
+    }
+    else
+    {
+      initializeWithArgParser(uData);
+      returnValue = postExternalInitialization(uData);
     }
     return returnValue;
   }
@@ -1232,7 +1302,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled)
     {
       LinkedList<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForInitializeAllReplication(suffixes, ctx, true);
+      checkSuffixesForInitializeReplication(suffixes, ctx, true);
       cancelled = suffixes.isEmpty();
 
       uData.setBaseDNs(suffixes);
@@ -1266,6 +1336,210 @@ public class ReplicationCliMain extends ConsoleApplication
                 hostPortSource), true, LOG);
         println();
       }
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return !cancelled;
+  }
+
+  /**
+   * Updates the contents of the provided PreExternalInitializationUserData
+   * object with the information provided in the command-line.  If some
+   * information is missing, ask the user to provide valid data.
+   * We assume that if this method is called we are in interactive mode.
+   * @param uData the object to be updated.
+   * @return <CODE>true</CODE> if the object was successfully updated and
+   * <CODE>false</CODE> if the user cancelled the operation.
+   */
+  private boolean promptIfRequired(PreExternalInitializationUserData uData)
+  {
+    boolean cancelled = false;
+
+    String adminPwd = argParser.getBindPasswordAdmin();
+    String adminUid = argParser.getAdministratorUID();
+
+    String host = argParser.getHostNameToInitializeAll();
+    int port = argParser.getPortToInitializeAll();
+    boolean useSSL = argParser.useSSLToInitializeAll();
+    boolean useStartTLS = argParser.useStartTLSToInitializeAll();
+
+    /*
+     * Try to connect to the server.
+     */
+    InitialLdapContext ctx = null;
+
+    while ((ctx == null) && !cancelled)
+    {
+      try
+      {
+        ci.run();
+        useSSL = ci.useSSL();
+        useStartTLS = ci.useStartTLS();
+        host = ci.getHostName();
+        port = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        adminPwd = ci.getBindPassword();
+
+        ctx = createInitialLdapContextInteracting(ci);
+
+        if (ctx == null)
+        {
+          cancelled = true;
+        }
+      }
+      catch (ClientException ce)
+      {
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
+      }
+    }
+    if (!cancelled)
+    {
+      boolean onlyLocal = false;
+      if (!argParser.isExternalInitializationOnlyInLocal())
+      {
+        println();
+        onlyLocal = askConfirmation(
+            INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_LOCAL_PROMPT.get(
+                ConnectionUtils.getHostPort(ctx)), false, LOG);
+      }
+      else
+      {
+        onlyLocal = true;
+      }
+      uData.setOnlyLocal(onlyLocal);
+
+      uData.setHostName(host);
+      uData.setPort(port);
+      uData.setUseSSL(useSSL);
+      uData.setUseStartTLS(useStartTLS);
+      uData.setAdminUid(adminUid);
+      uData.setAdminPwd(adminPwd);
+    }
+
+    if (!cancelled)
+    {
+      LinkedList<String> suffixes = argParser.getBaseDNs();
+      checkSuffixesForInitializeReplication(suffixes, ctx, true);
+      cancelled = suffixes.isEmpty();
+
+      uData.setBaseDNs(suffixes);
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return !cancelled;
+  }
+
+  /**
+   * Updates the contents of the provided PostExternalInitializationUserData
+   * object with the information provided in the command-line.  If some
+   * information is missing, ask the user to provide valid data.
+   * We assume that if this method is called we are in interactive mode.
+   * @param uData the object to be updated.
+   * @return <CODE>true</CODE> if the object was successfully updated and
+   * <CODE>false</CODE> if the user cancelled the operation.
+   */
+  private boolean promptIfRequired(PostExternalInitializationUserData uData)
+  {
+    boolean cancelled = false;
+
+    String adminPwd = argParser.getBindPasswordAdmin();
+    String adminUid = argParser.getAdministratorUID();
+
+    String host = argParser.getHostNameToInitializeAll();
+    int port = argParser.getPortToInitializeAll();
+    boolean useSSL = argParser.useSSLToInitializeAll();
+    boolean useStartTLS = argParser.useStartTLSToInitializeAll();
+
+    /*
+     * Try to connect to the server.
+     */
+    InitialLdapContext ctx = null;
+
+    while ((ctx == null) && !cancelled)
+    {
+      try
+      {
+        ci.run();
+        useSSL = ci.useSSL();
+        useStartTLS = ci.useStartTLS();
+        host = ci.getHostName();
+        port = ci.getPortNumber();
+        adminUid = ci.getAdministratorUID();
+        adminPwd = ci.getBindPassword();
+
+        ctx = createInitialLdapContextInteracting(ci);
+
+        if (ctx == null)
+        {
+          cancelled = true;
+        }
+      }
+      catch (ClientException ce)
+      {
+        LOG.log(Level.WARNING, "Client exception "+ce);
+        println();
+        println(ce.getMessageObject());
+        println();
+        resetConnectionArguments();
+      }
+      catch (ArgumentException ae)
+      {
+        LOG.log(Level.WARNING, "Argument exception "+ae);
+        println();
+        println(ae.getMessageObject());
+        println();
+        cancelled = true;
+      }
+    }
+    if (!cancelled)
+    {
+      uData.setHostName(host);
+      uData.setPort(port);
+      uData.setUseSSL(useSSL);
+      uData.setUseStartTLS(useStartTLS);
+      uData.setAdminUid(adminUid);
+      uData.setAdminPwd(adminPwd);
+    }
+
+    if (!cancelled)
+    {
+      LinkedList<String> suffixes = argParser.getBaseDNs();
+      checkSuffixesForInitializeReplication(suffixes, ctx, true);
+      cancelled = suffixes.isEmpty();
+
+      uData.setBaseDNs(suffixes);
     }
 
     if (ctx != null)
@@ -1827,9 +2101,63 @@ public class ReplicationCliMain extends ConsoleApplication
    * Initializes the contents of the provided initialize all replication user
    * data object with what was provided in the command-line without prompting to
    * the user.
-   * @param uData the disable replication user data object to be initialized.
+   * @param uData the initialize all replication user data object to be
+   * initialized.
    */
   private void initializeWithArgParser(InitializeAllReplicationUserData uData)
+  {
+    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    String adminUid = getValue(argParser.getAdministratorUID(),
+        argParser.getDefaultAdministratorUID());
+    uData.setAdminUid(adminUid);
+    String adminPwd = argParser.getBindPasswordAdmin();
+    uData.setAdminPwd(adminPwd);
+
+    String hostName = getValue(argParser.getHostNameToInitializeAll(),
+        argParser.getDefaultHostNameToInitializeAll());
+    uData.setHostName(hostName);
+    int port = getValue(argParser.getPortToInitializeAll(),
+        argParser.getDefaultPortToInitializeAll());
+    uData.setPort(port);
+    uData.setUseSSL(argParser.useSSLToInitializeAll());
+    uData.setUseStartTLS(argParser.useStartTLSToInitializeAll());
+  }
+
+  /**
+   * Initializes the contents of the provided pre external replication user
+   * data object with what was provided in the command-line without prompting to
+   * the user.
+   * @param uData the pre external replication user data object to be
+   * initialized.
+   */
+  private void initializeWithArgParser(PreExternalInitializationUserData uData)
+  {
+    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    String adminUid = getValue(argParser.getAdministratorUID(),
+        argParser.getDefaultAdministratorUID());
+    uData.setAdminUid(adminUid);
+    String adminPwd = argParser.getBindPasswordAdmin();
+    uData.setAdminPwd(adminPwd);
+
+    String hostName = getValue(argParser.getHostNameToInitializeAll(),
+        argParser.getDefaultHostNameToInitializeAll());
+    uData.setHostName(hostName);
+    int port = getValue(argParser.getPortToInitializeAll(),
+        argParser.getDefaultPortToInitializeAll());
+    uData.setPort(port);
+    uData.setUseSSL(argParser.useSSLToInitializeAll());
+    uData.setUseStartTLS(argParser.useStartTLSToInitializeAll());
+    uData.setOnlyLocal(argParser.isExternalInitializationOnlyInLocal());
+  }
+
+  /**
+   * Initializes the contents of the provided post external replication user
+   * data object with what was provided in the command-line without prompting to
+   * the user.
+   * @param uData the pre external replication user data object to be
+   * initialized.
+   */
+  private void initializeWithArgParser(PostExternalInitializationUserData uData)
   {
     uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
     String adminUid = getValue(argParser.getAdministratorUID(),
@@ -2333,8 +2661,8 @@ public class ReplicationCliMain extends ConsoleApplication
    * user for information if something is missing.
    * @param uData the EnableReplicationUserData object.
    * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
-   * successful.
-   * and the replication could be enabled and an error code otherwise.
+   * successful and the replication could be enabled and an error code
+   * otherwise.
    */
   private ReplicationCliReturnCode enableReplication(
       EnableReplicationUserData uData)
@@ -2529,8 +2857,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * to the user for information if something is missing.
    * @param uData the DisableReplicationUserData object.
    * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
-   * successful.
-   * and the replication could be enabled and an error code otherwise.
+   * successful and an error code otherwise.
    */
   private ReplicationCliReturnCode disableReplication(
       DisableReplicationUserData uData)
@@ -2607,8 +2934,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * to the user for information if something is missing.
    * @param uData the StatusReplicationUserData object.
    * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
-   * successful.
-   * and the replication could be enabled and an error code otherwise.
+   * successful and an error code otherwise.
    */
   private ReplicationCliReturnCode statusReplication(
       StatusReplicationUserData uData)
@@ -2671,8 +2997,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * missing.
    * @param uData the InitializeReplicationUserData object.
    * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
-   * successful.
-   * and the replication could be enabled and an error code otherwise.
+   * successful and an error code otherwise.
    */
   private ReplicationCliReturnCode initializeReplication(
       InitializeReplicationUserData uData)
@@ -2781,8 +3106,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * missing.
    * @param uData the InitializeAllReplicationUserData object.
    * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
-   * successful.
-   * and the replication could be enabled and an error code otherwise.
+   * successful and an error code otherwise.
    */
   private ReplicationCliReturnCode initializeAllReplication(
       InitializeAllReplicationUserData uData)
@@ -2806,7 +3130,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (ctx != null)
     {
       LinkedList<String> baseDNs = uData.getBaseDNs();
-      checkSuffixesForInitializeAllReplication(baseDNs, ctx, false);
+      checkSuffixesForInitializeReplication(baseDNs, ctx, false);
       if (!baseDNs.isEmpty())
       {
         for (String baseDN : baseDNs)
@@ -2829,6 +3153,189 @@ public class ReplicationCliMain extends ConsoleApplication
             LOG.log(Level.SEVERE, "Complete error stack:", rce);
           }
         }
+      }
+      else
+      {
+        returnValue = REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
+      }
+    }
+    else
+    {
+      returnValue = ERROR_CONNECTING;
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return returnValue;
+  }
+
+  /**
+   * Performs the operation that must be made before initializing the topology
+   * using the import-ldif command or the binary copy.  The operation uses
+   * the parameters in the provided InitializeAllReplicationUserData.
+   * This method does not prompt to the user for information if something is
+   * missing.
+   * @param uData the PreExternalInitializationUserData object.
+   * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
+   * successful and an error code otherwise.
+   */
+  private ReplicationCliReturnCode preExternalInitialization(
+      PreExternalInitializationUserData uData)
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
+          uData.useSSL(), uData.useStartTLS(),
+          ADSContext.getAdministratorDN(uData.getAdminUid()),
+          uData.getAdminPwd(), getTrustManager());
+    }
+    catch (NamingException ne)
+    {
+      String hostPort = uData.getHostName()+":"+uData.getPort();
+      println();
+      println(getMessageForException(ne, hostPort));
+      LOG.log(Level.SEVERE, "Complete error stack:", ne);
+    }
+    if (ctx != null)
+    {
+      LinkedList<String> baseDNs = uData.getBaseDNs();
+      checkSuffixesForInitializeReplication(baseDNs, ctx, false);
+      if (!baseDNs.isEmpty())
+      {
+        for (String baseDN : baseDNs)
+        {
+          try
+          {
+            printlnProgress();
+            Message msg = formatter.getFormattedWithPoints(
+                INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN));
+            printProgress(msg);
+            preExternalInitialization(baseDN, ctx, uData.isOnlyLocal(), false);
+            printProgress(formatter.getFormattedDone());
+            printlnProgress();
+          }
+          catch (ReplicationCliException rce)
+          {
+            println();
+            println(getCriticalExceptionMessage(rce));
+            returnValue = rce.getErrorCode();
+            LOG.log(Level.SEVERE, "Complete error stack:", rce);
+          }
+        }
+        if (uData.isOnlyLocal())
+        {
+          printlnProgress();
+          printProgress(
+              INFO_PROGRESS_PRE_INITIALIZATION_LOCAL_FINISHED_PROCEDURE.get(
+                  ConnectionUtils.getHostPort(ctx),
+                  ReplicationCliArgumentParser.
+                  POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
+          printlnProgress();
+        }
+        else
+        {
+          printlnProgress();
+          printProgress(
+            INFO_PROGRESS_PRE_INITIALIZATION_FINISHED_PROCEDURE.get(
+                ReplicationCliArgumentParser.
+                POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
+          printlnProgress();
+        }
+      }
+      else
+      {
+        returnValue = REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
+      }
+    }
+    else
+    {
+      returnValue = ERROR_CONNECTING;
+    }
+
+    if (ctx != null)
+    {
+      try
+      {
+        ctx.close();
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+
+    return returnValue;
+  }
+
+  /**
+   * Performs the operation that must be made after initializing the topology
+   * using the import-ldif command or the binary copy.  The operation uses
+   * the parameters in the provided InitializeAllReplicationUserData.
+   * This method does not prompt to the user for information if something is
+   * missing.
+   * @param uData the PostExternalInitializationUserData object.
+   * @return ReplicationCliReturnCode.SUCCESSFUL if the operation was
+   * successful and an error code otherwise.
+   */
+  private ReplicationCliReturnCode postExternalInitialization(
+      PostExternalInitializationUserData uData)
+  {
+    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    InitialLdapContext ctx = null;
+    try
+    {
+      ctx = createAdministrativeContext(uData.getHostName(), uData.getPort(),
+          uData.useSSL(), uData.useStartTLS(),
+          ADSContext.getAdministratorDN(uData.getAdminUid()),
+          uData.getAdminPwd(), getTrustManager());
+    }
+    catch (NamingException ne)
+    {
+      String hostPort = uData.getHostName()+":"+uData.getPort();
+      println();
+      println(getMessageForException(ne, hostPort));
+      LOG.log(Level.SEVERE, "Complete error stack:", ne);
+    }
+    if (ctx != null)
+    {
+      LinkedList<String> baseDNs = uData.getBaseDNs();
+      checkSuffixesForInitializeReplication(baseDNs, ctx, false);
+      if (!baseDNs.isEmpty())
+      {
+        for (String baseDN : baseDNs)
+        {
+          try
+          {
+            printlnProgress();
+            Message msg = formatter.getFormattedWithPoints(
+                INFO_PROGRESS_POST_EXTERNAL_INITIALIZATION.get(baseDN));
+            printProgress(msg);
+            postExternalInitialization(baseDN, ctx, false);
+            printProgress(formatter.getFormattedDone());
+            printlnProgress();
+          }
+          catch (ReplicationCliException rce)
+          {
+            println();
+            println(getCriticalExceptionMessage(rce));
+            returnValue = rce.getErrorCode();
+            LOG.log(Level.SEVERE, "Complete error stack:", rce);
+          }
+        }
+        printlnProgress();
+        printProgress(
+            INFO_PROGRESS_POST_INITIALIZATION_FINISHED_PROCEDURE.get());
+        printlnProgress();
       }
       else
       {
@@ -3172,7 +3679,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param interactive whether to ask the user to provide interactively
    * base DNs if none of the provided base DNs can be initialized.
    */
-  private void checkSuffixesForInitializeAllReplication(
+  private void checkSuffixesForInitializeReplication(
       Collection<String> suffixes, InitialLdapContext ctx, boolean interactive)
   {
     TreeSet<String> availableSuffixes = new TreeSet<String>();
@@ -3194,7 +3701,15 @@ public class ReplicationCliMain extends ConsoleApplication
     if (availableSuffixes.size() == 0)
     {
       println();
-      println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+      if (argParser.isInitializeAllReplicationSubcommand())
+      {
+        println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+      }
+      else
+      {
+        println(
+            ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
+      }
       LinkedList<String> userProvidedSuffixes = argParser.getBaseDNs();
       TreeSet<String> userProvidedNotReplicatedSuffixes =
         new TreeSet<String>();
@@ -3260,7 +3775,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (notFound.size() > 0)
       {
         println();
-        println(ERR_REPLICATION_INITIALIZE_ALL_SUFFIXES_NOT_FOUND.get(
+        println(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(
                 Utils.getStringFromCollection(notFound,
                     Constants.LINE_SEPARATOR)));
       }
@@ -3290,14 +3805,35 @@ public class ReplicationCliMain extends ConsoleApplication
             // In interactive mode we do not propose to manage the
             // administration suffix.
             println();
-            println(
+            if (argParser.isInitializeAllReplicationSubcommand())
+            {
+              println(
                 ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+            }
+            else
+            {
+              println(
+               ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
+            }
             break;
           }
           else
           {
             println();
-            println(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
+            if (argParser.isInitializeAllReplicationSubcommand())
+            {
+              println(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE_ALL.get());
+            }
+            else if (argParser.isPreExternalInitializationSubcommand())
+            {
+              println(
+                 ERR_NO_SUFFIXES_SELECTED_TO_PRE_EXTERNAL_INITIALIZATION.get());
+            }
+            else if (argParser.isPostExternalInitializationSubcommand())
+            {
+              println(
+                ERR_NO_SUFFIXES_SELECTED_TO_POST_EXTERNAL_INITIALIZATION.get());
+            }
             for (String dn : availableSuffixes)
             {
               if (!Utils.areDnsEqual(dn,
@@ -3305,9 +3841,26 @@ public class ReplicationCliMain extends ConsoleApplication
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (askConfirmation(
-                    INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(dn),
-                    true, LOG))
+                boolean addSuffix;
+                if (argParser.isPreExternalInitializationSubcommand())
+                {
+                  addSuffix = askConfirmation(
+                    INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_SUFFIX_PROMPT.
+                    get(dn), true, LOG);
+                }
+                else if (argParser.isPostExternalInitializationSubcommand())
+                {
+                  addSuffix = askConfirmation(
+                    INFO_REPLICATION_POST_EXTERNAL_INITIALIZATION_SUFFIX_PROMPT.
+                    get(dn), true, LOG);
+                }
+                else
+                {
+                  addSuffix = askConfirmation(
+                      INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(dn),
+                      true, LOG);
+                }
+                if (addSuffix)
                 {
                   suffixes.add(dn);
                 }
@@ -5043,6 +5596,211 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
+   * Launches the pre external initialization operation using the provided
+   * connection on a given base DN.
+   * @param baseDN the base DN that we want to reset.
+   * @param ctx the connection to the server.
+   * @param onlyLocal whether the resetting internal operations must only apply
+   * to the server to which we are connected.
+   * @param displayProgress whether to display operation progress or not.
+   * @throws ReplicationCliException if there is an error performing the
+   * operation.
+   */
+  private void preExternalInitialization(String baseDN, InitialLdapContext ctx,
+      boolean onlyLocal, boolean displayProgress) throws ReplicationCliException
+  {
+    postPreExternalInitialization(baseDN, ctx, onlyLocal, displayProgress,
+        true);
+  }
+
+  /**
+   * Launches the post external initialization operation using the provided
+   * connection on a given base DN required for replication to work.
+   * @param baseDN the base DN that we want to reset.
+   * @param ctx the connection to the server.
+   * @param displayProgress whether to display operation progress or not.
+   * @throws ReplicationCliException if there is an error performing the
+   * operation.
+   */
+  private void postExternalInitialization(String baseDN, InitialLdapContext ctx,
+      boolean displayProgress) throws ReplicationCliException
+  {
+    postPreExternalInitialization(baseDN, ctx, false, displayProgress, false);
+  }
+
+  /**
+   * Launches the pre or post external initialization operation using the
+   * provided connection on a given base DN.
+   * @param baseDN the base DN that we want to reset.
+   * @param ctx the connection to the server.
+   * @param onlyLocal whether the resetting internal operations must only apply
+   * to the server to which we are connected.
+   * @param displayProgress whether to display operation progress or not.
+   * @param isPre whether this is the pre operation or the post operation.
+   * @throws ReplicationCliException if there is an error performing the
+   * operation.
+   */
+  private void postPreExternalInitialization(String baseDN,
+      InitialLdapContext ctx, boolean onlyLocal, boolean displayProgress,
+      boolean isPre) throws ReplicationCliException
+  {
+    boolean taskCreated = false;
+    int i = 1;
+    boolean isOver = false;
+    String dn = null;
+    BasicAttributes attrs = new BasicAttributes();
+    Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top");
+    oc.add("ds-task");
+    oc.add("ds-task-reset-generation-id");
+    attrs.put(oc);
+    attrs.put("ds-task-class-name",
+        "org.opends.server.tasks.SetGenerationIdTask");
+    if (isPre)
+    {
+      if (!onlyLocal)
+      {
+        attrs.put("ds-task-reset-generation-id-new-value", "-1");
+      }
+      else
+      {
+        try
+        {
+          attrs.put("ds-task-reset-generation-id-new-value",
+            String.valueOf(getReplicationDomainId(ctx, baseDN)));
+        }
+        catch (NamingException ne)
+        {
+          LOG.log(Level.SEVERE, "Error get replication domain id for base DN "+
+              baseDN+" on server "+ConnectionUtils.getHostPort(ctx), ne);
+
+          throw new ReplicationCliException(getThrowableMsg(
+              ERR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION.get(), ne),
+              ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION, ne);
+        }
+      }
+    }
+    attrs.put("ds-task-reset-generation-id-domain-base-dn", baseDN);
+    while (!taskCreated)
+    {
+      String id = "dsreplication-reset-generation-id-"+i;
+      dn = "ds-task-id="+id+",cn=Scheduled Tasks,cn=Tasks";
+      attrs.put("ds-task-id", id);
+      try
+      {
+        DirContext dirCtx = ctx.createSubcontext(dn, attrs);
+        taskCreated = true;
+        LOG.log(Level.INFO, "created task entry: "+attrs);
+        dirCtx.close();
+      }
+      catch (NameAlreadyBoundException x)
+      {
+      }
+      catch (NamingException ne)
+      {
+        LOG.log(Level.SEVERE, "Error creating task "+attrs, ne);
+        Message msg = isPre ?
+        ERR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION.get():
+          ERR_LAUNCHING_POST_EXTERNAL_INITIALIZATION.get();
+        ReplicationCliReturnCode code = isPre?
+            ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION:
+              ERROR_LAUNCHING_POST_EXTERNAL_INITIALIZATION;
+        throw new ReplicationCliException(
+            getThrowableMsg(msg, ne), code, ne);
+      }
+      i++;
+    }
+    // Wait until it is over
+    SearchControls searchControls = new SearchControls();
+    searchControls.setCountLimit(1);
+    searchControls.setSearchScope(
+        SearchControls. OBJECT_SCOPE);
+    String filter = "objectclass=*";
+    searchControls.setReturningAttributes(
+        new String[] {
+            "ds-task-log-message",
+            "ds-task-state"
+        });
+    String lastLogMsg = null;
+    while (!isOver)
+    {
+      try
+      {
+        Thread.sleep(500);
+      }
+      catch (Throwable t)
+      {
+      }
+      try
+      {
+        NamingEnumeration res = ctx.search(dn, filter, searchControls);
+        SearchResult sr = (SearchResult)res.next();
+        String logMsg = getFirstValue(sr, "ds-task-log-message");
+        if (logMsg != null)
+        {
+          if (!logMsg.equals(lastLogMsg))
+          {
+            LOG.log(Level.INFO, logMsg);
+            lastLogMsg = logMsg;
+          }
+        }
+        InstallerHelper helper = new InstallerHelper();
+        String state = getFirstValue(sr, "ds-task-state");
+
+        if (helper.isDone(state) || helper.isStoppedByError(state))
+        {
+          isOver = true;
+          Message errorMsg;
+          String server = ConnectionUtils.getHostPort(ctx);
+          if (lastLogMsg == null)
+          {
+            errorMsg = isPre ?
+                INFO_ERROR_DURING_PRE_EXTERNAL_INITIALIZATION_NO_LOG.get(
+                state, server) :
+                  INFO_ERROR_DURING_POST_EXTERNAL_INITIALIZATION_NO_LOG.get(
+                      state, server);
+          }
+          else
+          {
+            errorMsg = isPre ?
+                INFO_ERROR_DURING_PRE_EXTERNAL_INITIALIZATION_LOG.get(
+                lastLogMsg, state, server) :
+                  INFO_ERROR_DURING_POST_EXTERNAL_INITIALIZATION_LOG.get(
+                      lastLogMsg, state, server);
+          }
+
+          if (helper.isCompletedWithErrors(state))
+          {
+            LOG.log(Level.WARNING, "Completed with error: "+errorMsg);
+            println(errorMsg);
+          }
+          else if (!helper.isSuccessful(state) ||
+              helper.isStoppedByError(state))
+          {
+            LOG.log(Level.WARNING, "Error: "+errorMsg);
+            ReplicationCliReturnCode code = isPre?
+                ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION:
+                  ERROR_LAUNCHING_POST_EXTERNAL_INITIALIZATION;
+            throw new ReplicationCliException(errorMsg, code, null);
+          }
+        }
+      }
+      catch (NameNotFoundException x)
+      {
+        isOver = true;
+      }
+      catch (NamingException ne)
+      {
+        Message msg = isPre ?
+            ERR_POOLING_PRE_EXTERNAL_INITIALIZATION.get():
+              ERR_POOLING_POST_EXTERNAL_INITIALIZATION.get();
+            throw new ReplicationCliException(
+                getThrowableMsg(msg, ne), ERROR_CONNECTING, ne);
+      }
+    }
+  }
+
+  /**
    * Initializes a suffix with the contents of a replica that has a given
    * replication id.
    * @param ctx the connection to the server whose suffix we want to initialize.
@@ -6034,5 +6792,30 @@ public class ReplicationCliMain extends ConsoleApplication
       LOG.log(Level.WARNING, "Error initializing trust store: "+ae, ae);
     }
     forceNonInteractive = false;
+  }
+
+  /**
+   * Returns the replication domain ID for a given baseDN on the server.
+   * @param ctx the connection to the server.
+   * @param baseDN the baseDN for which we want the replication domain ID.
+   * @return the replication domain ID or -1 if the replication domain ID
+   * could not be found.
+   * @throws NamingException if an error occurred reading the configuration
+   * information.
+   */
+  private int getReplicationDomainId(InitialLdapContext ctx, String baseDN)
+  throws NamingException
+  {
+    int domainId = -1;
+    ServerDescriptor server = ServerDescriptor.createStandalone(ctx);
+    for (ReplicaDescriptor replica : server.getReplicas())
+    {
+      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      {
+        domainId = replica.getReplicationId();
+        break;
+      }
+    }
+    return domainId;
   }
 }

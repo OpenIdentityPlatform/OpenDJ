@@ -29,11 +29,33 @@ package org.opends.guitools.replicationcli;
 
 /**
  * This class is used to store the information provided by the user to
- * initialize a complete replication topology.  It is required because when we
+ * perform the operations required before doing an initialization using
+ * import-ldif of the binary copy.  It is required because when we
  * are in interactive mode the ReplicationCliArgumentParser is not enough.
  *
  */
-class InitializeAllReplicationUserData extends MonoServerReplicationUserData
+class PreExternalInitializationUserData extends MonoServerReplicationUserData
 {
-}
+  private boolean onlyLocal;
 
+  /**
+   * Whether the operation must be applied only on the local server or not.
+   * @return <CODE>true</CODE> if the operation must be applied only on the
+   * local server and <CODE>false</CODE> otherwise.
+   */
+  public boolean isOnlyLocal()
+  {
+    return onlyLocal;
+  }
+
+  /**
+   * Sets whether the operation must be applied only on the local server or not.
+   * @param onlyLocal whether the operation must be applied only on the local
+   * server or not.
+   */
+  public void setOnlyLocal(boolean onlyLocal)
+  {
+    this.onlyLocal = onlyLocal;
+  }
+
+}
