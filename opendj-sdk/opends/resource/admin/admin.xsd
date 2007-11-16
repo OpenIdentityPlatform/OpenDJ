@@ -577,6 +577,20 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="advanced" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Optionally override the advanced option defined in the
+          overridden property definition. Indicates whether or not this
+          property should be treated as an advanced property and hidden
+          by default in client applications. Advanced properties should
+          either be optional (i.e. not mandatory) or be mandatory with
+          default values. This constraint is required so that users do
+          not have to specify values for advanced properties.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
   <xsd:complexType name="relation-type">
     <xsd:annotation>

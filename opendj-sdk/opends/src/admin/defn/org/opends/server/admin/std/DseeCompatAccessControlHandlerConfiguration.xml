@@ -1,51 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="dsee-compat-access-control-handler"
   plural-name="dseecompat-access-control-handlers"
   package="org.opends.server.admin.std" extends="access-control-handler"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is the provider class for the dseecompat ACI.
+    provides a Sun Java System Directory Server Enterprise Edition
+    compatible access control implementation.
   </adm:synopsis>
-
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-dsee-compat-access-control-handler</ldap:name>
       <ldap:superior>ds-cfg-access-control-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -54,22 +51,21 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
-  <adm:property name="global-aci" mandatory="false"
-    multi-valued="true">
-    <adm:synopsis>
-      Defines a global access control rule, which will always be interpreted for
-      any entry anywhere in the server (although it may be overridden by more
-      specific access control rules placed in the data).
-    </adm:synopsis>
+  <adm:property name="global-aci" multi-valued="true">
+    <adm:synopsis>Defines global access control rules.</adm:synopsis>
     <adm:description>
+      Global access control rules apply to all entries anywhere in the
+      data managed by the Directory Server. The global access control
+      rules may be overridden by more specific access control rules
+      placed in the data.
     </adm:description>
-       <adm:default-behavior>
+    <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          No global ACIs will be defined, which means that no access will be
-          allowed for any data in the server unless granted by access control
-          rules in the user data.
+          No global access control rules will be defined, which means
+          that no access will be allowed for any data in the server
+          unless specifically granted by access control rules in the
+          data.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -83,4 +79,3 @@
     </adm:profile>
   </adm:property>
 </adm:managed-object>
-

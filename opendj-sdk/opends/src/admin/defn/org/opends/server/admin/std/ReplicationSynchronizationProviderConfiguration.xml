@@ -31,12 +31,12 @@
   extends="synchronization-provider"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap"
-  xmlns:cli="http://www.opends.org/admin-cli" abstract="false">
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to provide Multimaster Replication of several OpenDS copies
-    of the same data
+    is used to provide multi-master replication of data across multiple
+    Directory Server instances.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -70,7 +70,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

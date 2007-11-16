@@ -1,66 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="task-backend" plural-name="task-backends"
-  package="org.opends.server.admin.std"
-  extends="backend"
+  package="org.opends.server.admin.std" extends="backend"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The task backend provides a mechanism for processing tasks in the
-    OpenDS Directory Server. Tasks are intended to provide access to certain
-    types of administrative functions in the server that may not otherwise be
-    convenient to perform remotely.
+    OpenDS Directory Server. Tasks are intended to provide access to
+    certain types of administrative functions in the server that may not
+    otherwise be convenient to perform remotely.
   </adm:synopsis>
   <adm:description>
-    Tasks that are currently available for use provide the ability to backup
-    and restore backends, to import and export LDIF files, and to stop and
-    restart the server. The details of the task to perform are held in an
-    entry that is added below the root of the task backend, and then the
-    task backend is responsible for decoding that task entry and ensuring
-    that it is processed as requested. Tasks may be invoked immediately,
-    but they may also be scheduled for execution at some future time.
-    It is also expected that task backend will be given the ability process
-    recurring tasks, which can be used to help ensure that maintenance
-    operations (e.g., backups) are performed automatically on a regular basis.
-    The org.opends.server.backends.task.TaskBackend class provides the entry
-    point for the task backend implementation.
+    Tasks that are currently available for use provide the ability to
+    backup and restore backends, to import and export LDIF files, and to
+    stop and restart the server. The details of the task to perform are
+    held in an entry that is added below the root of the task backend,
+    and then the task backend is responsible for decoding that task
+    entry and ensuring that it is processed as requested. Tasks may be
+    invoked immediately, but they may also be scheduled for execution at
+    some future time. It is also expected that task backend will be
+    given the ability to process recurring tasks, which can be used to
+    help ensure that maintenance operations (e.g., backups) are
+    performed automatically on a regular basis.
   </adm:description>
-
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-task-backend</ldap:name>
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -69,16 +63,22 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
-  <adm:property name="task-backing-file"
-    mandatory="true"
-    multi-valued="false">
+  <adm:property-override name="writability-mode">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>enabled</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="task-backing-file" mandatory="true">
     <adm:synopsis>
-      This specifies the path to the backing file for storing information about
-      the tasks configured in the server. It may be either an absolute path or
-      a path that is relative to the base of the OpenDS Directory Server
-      instance.
+      This specifies the path to the backing file for storing
+      information about the tasks configured in the server.
     </adm:synopsis>
+    <adm:description>
+      It may be either an absolute path or a path that is relative to
+      the base of the OpenDS Directory Server instance.
+    </adm:description>
     <adm:syntax>
       <adm:string />
     </adm:syntax>
@@ -88,13 +88,11 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="task-retention-time"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="task-retention-time">
     <adm:synopsis>
-      This specifies the length of time that task entries should be retained
-      after processing on the associated task has been completed.
+      This specifies the length of time that task entries should be
+      retained after processing on the associated task has been
+      completed.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -110,21 +108,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="notification-sender-address"
-  mandatory="false"
-  multi-valued="false">
+  <adm:property name="notification-sender-address">
     <adm:synopsis>
-      This specifies the e-mail address to use as the sender (i.e., "From:")
-      address for notification mail messages generated when a task completes
-      execution.
+      This specifies the e-mail address to use as the sender (i.e.,
+      "From:") address for notification mail messages generated when a
+      task completes execution.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The default sender address used will be "opends-task-notification@"
-          followed by the canonical address of the system on which the server is
-          running.
+          The default sender address used will be
+          "opends-task-notification@" followed by the canonical address
+          of the system on which the server is running.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -137,6 +132,4 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-

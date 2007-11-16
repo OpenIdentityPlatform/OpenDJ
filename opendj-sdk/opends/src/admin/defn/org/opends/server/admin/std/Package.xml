@@ -310,7 +310,9 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-trust-store-pin-environment-variable</ldap:name>
+        <ldap:name>
+          ds-cfg-trust-store-pin-environment-variable
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -344,8 +346,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="include-filter" mandatory="false"
-    multi-valued="true">
+  <adm:property name="include-filter" multi-valued="true">
     <adm:synopsis>
       The set of filters that define the entries that should be included
       in the cache.
@@ -362,8 +363,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="exclude-filter" mandatory="false"
-    multi-valued="true">
+  <adm:property name="exclude-filter" multi-valued="true">
     <adm:synopsis>
       The set of filters that define the entries that should be excluded
       from the cache.

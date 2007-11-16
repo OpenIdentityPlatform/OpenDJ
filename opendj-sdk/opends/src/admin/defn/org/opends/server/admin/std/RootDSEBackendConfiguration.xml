@@ -1,62 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object name="root-dse-backend" plural-name="root-dse-backends"
-  package="org.opends.server.admin.std"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="root-dse-backend"
+  plural-name="root-dse-backends" package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    This class defines a backend to hold the Directory Server root DSE.
+    The
+    <adm:user-friendly-name />
+    contains the Directory Server root DSE.
   </adm:synopsis>
   <adm:description>
-    This is a special meta-backend that will dynamically generate the root DSE
-    entry for base-level searches, and will simply redirect to other backends
-    for operations in other scopes.
+    This is a special meta-backend that will dynamically generate the
+    root DSE entry for base-level searches, and will simply redirect to
+    other backends for operations in other scopes.
   </adm:description>
-  <adm:tag name="core"/>
-  <adm:tag name="database"/>
+  <adm:tag name="core" />
+  <adm:tag name="database" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-root-dse-backend</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property name="subordinate-base-dn"
-    mandatory="false"
-    multi-valued="true">
+  <adm:property name="subordinate-base-dn" multi-valued="true">
     <adm:synopsis>
       Specifies the set of base DNs that will be used for singleLevel,
-      wholeSubtree, and subordinateSubtree searches based at the root DSE.  If
-      this is not provided, then the set of all user-defined suffixes will be
-      used.
+      wholeSubtree, and subordinateSubtree searches based at the root
+      DSE.
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:undefined/>
+      <adm:alias>
+        <adm:synopsis>
+          The set of all user-defined suffixes will be used.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:dn />
@@ -67,13 +69,11 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="show-all-attributes"
-    mandatory="true"
-    multi-valued="false">
+  <adm:property name="show-all-attributes" mandatory="true">
     <adm:synopsis>
-      Indicates whether all attributes in the root DSE should be treated like
-      user attributes (and therefore returned to clients by default)
-      regardless of the Directory Server schema configuration.
+      Indicates whether all attributes in the root DSE should be treated
+      like user attributes (and therefore returned to clients by
+      default) regardless of the Directory Server schema configuration.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />

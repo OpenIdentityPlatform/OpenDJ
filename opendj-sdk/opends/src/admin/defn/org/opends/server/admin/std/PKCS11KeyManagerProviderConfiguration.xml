@@ -1,59 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="pkcs11-key-manager-provider"
   plural-name="pkcs11-key-manager-providers"
   package="org.opends.server.admin.std" extends="key-manager-provider"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-  <adm:TODO>
-    The key manager must be able to get a pin from somewhere. It looks
-    in property, then an environment variable, then a file, and finally
-    in a configuration attribute. At least one must be present. Can we
-    express this ordering and this "at least one" constraint? Perhaps
-    support a "one-of" element which can be used to group a set of
-    properties.
-  </adm:TODO>
   <adm:synopsis>
     The
     <adm:user-friendly-name />
     provider provides the ability for the server to access the private
-    key information through the PKCS11 interface. This standard
-    interface is used by cryptographic accelerators and hardware
-    security modules.
+    key information through the PKCS11 interface.
   </adm:synopsis>
+  <adm:description>
+    This standard interface is used by cryptographic accelerators and
+    hardware security modules.
+  </adm:description>
+  <adm:constraint>
+    <adm:synopsis>
+      The key store pin must be specified using one of the key-store-pin
+      properties when the
+      <adm:user-friendly-name />
+      is enabled.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:contains property="enabled" value="true" />
+        <adm:or>
+          <adm:is-present property="key-store-pin-property" />
+          <adm:is-present property="key-store-pin-environment-variable" />
+          <adm:is-present property="key-store-pin-file" />
+          <adm:is-present property="key-store-pin" />
+        </adm:or>
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-pkcs11-key-manager-provider</ldap:name>
       <ldap:superior>ds-cfg-key-manager-provider</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>

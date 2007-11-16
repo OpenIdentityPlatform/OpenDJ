@@ -1,57 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-! CDDL HEADER START
-!
-! The contents of this file are subject to the terms of the
-! Common Development and Distribution License, Version 1.0 only
-! (the "License").  You may not use this file except in compliance
-! with the License.
-!
-! You can obtain a copy of the license at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
-! See the License for the specific language governing permissions
-! and limitations under the License.
-!
-! When distributing Covered Code, include this CDDL HEADER in each
-! file and include the License file at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-! add the following below this CDDL HEADER, with the fields enclosed
-! by brackets "[]" replaced with your own identifying information:
-!      Portions Copyright [yyyy] [name of copyright owner]
-!
-! CDDL HEADER END
-!
-!
-!      Portions Copyright 2007 Sun Microsystems, Inc.
-! -->
-
-<adm:managed-object name="debug-target"
-  plural-name="debug-targets"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="debug-target" plural-name="debug-targets"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     define the types of messages logged by the debug logPublisher.
   </adm:synopsis>
-
-  <adm:tag name="logging"/>
-
+  <adm:tag name="logging" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-debug-target</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:property name="debug-scope" mandatory="true" read-only="true">
     <adm:synopsis>
-      The fully-qualified OpenDS Java package, class, or method affected by
-      the settings in this target definition. Use the number character (#) to
-      separate the class name and the method name.
-      (ie. org.opends.server.core.DirectoryServer#startUp)
+      The fully-qualified OpenDS Java package, class, or method affected
+      by the settings in this target definition. Use the number
+      character (#) to separate the class name and the method name. (ie.
+      org.opends.server.core.DirectoryServer#startUp)
     </adm:synopsis>
     <adm:syntax>
       <adm:string>
@@ -61,20 +55,18 @@
           </adm:regex>
           <adm:usage>JAVA_NAME</adm:usage>
           <adm:synopsis>
-            A fully-qualified OpenDS Java package, class, or method name.
+            A fully-qualified OpenDS Java package, class, or method
+            name.
           </adm:synopsis>
         </adm:pattern>
       </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>
-          ds-cfg-debug-scope
-        </ldap:name>
+        <ldap:name>ds-cfg-debug-scope</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="debug-level" mandatory="true">
     <adm:synopsis>
       The lowest severity level of debug messages to log.
@@ -82,28 +74,30 @@
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="disabled">
-          <adm:synopsis>
-            No messages will be logged.
-          </adm:synopsis>
+          <adm:synopsis>No messages will be logged.</adm:synopsis>
         </adm:value>
         <adm:value name="error">
           <adm:synopsis>
-            Messages with severity level of ERROR or higher will be logged.
+            Messages with severity level of ERROR or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warning">
           <adm:synopsis>
-            Messages with severity level of WARNING or higher will be logged.
+            Messages with severity level of WARNING or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="info">
           <adm:synopsis>
-            Messages with severity level of INFO or higher will be logged.
+            Messages with severity level of INFO or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="verbose">
           <adm:synopsis>
-            Messages with severity level of VERBOSE or higher will be logged.
+            Messages with severity level of VERBOSE or higher will be
+            logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="all">
@@ -119,7 +113,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="debug-category" multi-valued="true">
     <adm:synopsis>
       The debug message categories to be logged.
@@ -127,57 +120,39 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Messages with any category will be logged if they have a sufficient
-          debug level.
+          Messages with any category will be logged if they have a
+          sufficient debug level.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="caught">
-          <adm:synopsis>
-            Exception caught.
-          </adm:synopsis>
+          <adm:synopsis>Exception caught.</adm:synopsis>
         </adm:value>
         <adm:value name="constructor">
-          <adm:synopsis>
-            Constructor entry.
-          </adm:synopsis>
+          <adm:synopsis>Constructor entry.</adm:synopsis>
         </adm:value>
         <adm:value name="data">
-          <adm:synopsis>
-            Raw data dump.
-          </adm:synopsis>
+          <adm:synopsis>Raw data dump.</adm:synopsis>
         </adm:value>
         <adm:value name="database-access">
-          <adm:synopsis>
-            Access to a backend database.
-          </adm:synopsis>
+          <adm:synopsis>Access to a backend database.</adm:synopsis>
         </adm:value>
         <adm:value name="enter">
-          <adm:synopsis>
-            Method entry.
-          </adm:synopsis>
+          <adm:synopsis>Method entry.</adm:synopsis>
         </adm:value>
         <adm:value name="exit">
-          <adm:synopsis>
-            Method exit.
-          </adm:synopsis>
+          <adm:synopsis>Method exit.</adm:synopsis>
         </adm:value>
         <adm:value name="message">
-          <adm:synopsis>
-            Arbitrary debug message.
-          </adm:synopsis>
+          <adm:synopsis>Arbitrary debug message.</adm:synopsis>
         </adm:value>
         <adm:value name="protocol">
-          <adm:synopsis>
-            Protocol element dump.
-          </adm:synopsis>
+          <adm:synopsis>Protocol element dump.</adm:synopsis>
         </adm:value>
         <adm:value name="thrown">
-          <adm:synopsis>
-            Exception throw from method.
-          </adm:synopsis>
+          <adm:synopsis>Exception throw from method.</adm:synopsis>
         </adm:value>
       </adm:enumeration>
     </adm:syntax>
@@ -187,7 +162,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="omit-method-entry-arguments">
     <adm:synopsis>
       Property to indicate whether to include method arguments in debug
@@ -195,9 +169,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -209,7 +181,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="omit-method-return-value">
     <adm:synopsis>
       Property to indicate whether to include the return value in debug
@@ -217,9 +188,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -231,7 +200,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="include-throwable-cause">
     <adm:synopsis>
       Property to indicate whether to include the cause of exceptions in
@@ -239,9 +207,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -253,17 +219,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="throwable-stack-frames">
     <adm:synopsis>
-      Property to indicate the number of stack frames to include in the stack
-      trace for method entry and exception thrown messages.
+      Property to indicate the number of stack frames to include in the
+      stack trace for method entry and exception thrown messages.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          0
-        </adm:value>
+        <adm:value>0</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>

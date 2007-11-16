@@ -1,55 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="member-virtual-attribute"
   plural-name="user-defined-virtual-attributes"
   package="org.opends.server.admin.std" extends="virtual-attribute"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to generate a member or uniqueMember attribute whose values are the
-    DNs of the members of a specified group.  This is used to implement virtual
-    static group functionality, in which it is possible to create an entry which
-    looks like a static group but obtains all of its membership from a dynamic
-    group (or some other type of group, including another static group).
+    is used to generate a member or uniqueMember attribute whose values
+    are the DNs of the members of a specified group.
   </adm:synopsis>
-
+  <adm:description>
+    This is used to implement virtual static group functionality, in
+    which it is possible to create an entry which looks like a static
+    group but obtains all of its membership from a dynamic group (or
+    some other type of group, including another static group).
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-member-virtual-attribute</ldap:name>
       <ldap:superior>ds-cfg-virtual-attribute</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -58,15 +57,29 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
+  <adm:property-override name="conflict-behavior">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>virtual-overrides-real</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="allow-retrieving-membership" mandatory="true">
     <adm:synopsis>
-      Indicates whether to handle requests that request all values for the
-      virtual attribute.  This can be a very expensive operation in some cases,
-      and is not in-line with the primary function of virtual static groups,
-      which is to make it possible to use static group idioms to determine
-      whether a given user is a member.
+      Indicates whether to handle requests that request all values for
+      the virtual attribute.
     </adm:synopsis>
+    <adm:description>
+      This can be a very expensive operation in some cases, and is not
+      in-line with the primary function of virtual static groups, which
+      is to make it possible to use static group idioms to determine
+      whether a given user is a member.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:boolean />
     </adm:syntax>
@@ -76,15 +89,4 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property-override name="conflict-behavior">
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>
-          virtual-overrides-real
-        </adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-  </adm:property-override>
 </adm:managed-object>
-

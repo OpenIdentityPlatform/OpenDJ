@@ -1,65 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-! CDDL HEADER START
-!
-! The contents of this file are subject to the terms of the
-! Common Development and Distribution License, Version 1.0 only
-! (the "License").  You may not use this file except in compliance
-! with the License.
-!
-! You can obtain a copy of the license at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
-! See the License for the specific language governing permissions
-! and limitations under the License.
-!
-! When distributing Covered Code, include this CDDL HEADER in each
-! file and include the License file at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-! add the following below this CDDL HEADER, with the fields enclosed
-! by brackets "[]" replaced with your own identifying information:
-!      Portions Copyright [yyyy] [name of copyright owner]
-!
-! CDDL HEADER END
-!
-!
-!      Portions Copyright 2007 Sun Microsystems, Inc.
-! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="root-dn" plural-name="root-dns"
-package="org.opends.server.admin.std"
-xmlns:adm="http://www.opends.org/admin"
-xmlns:ldap="http://www.opends.org/admin-ldap">
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    This class defines the parent entry for all root DN users in the server.  It
-    also defines the set of privileges that root users will automatically
-    inherit.
+    The
+    <adm:user-friendly-name />
+    configuration contains all the Root DN Users defined in the
+    Directory Server. In addition, it also defines the default set of
+    privileges that Root DN Users will automatically inherit.
   </adm:synopsis>
-
-  <adm:tag name="core"/>
-
+  <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-root-dn</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:relation name="root-dn-user" hidden="true">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence />
-      <ldap:naming-attribute>
-        cn
-      </ldap:naming-attribute>
+      <ldap:naming-attribute>cn</ldap:naming-attribute>
     </adm:profile>
   </adm:relation>
-
-  <adm:property name="default-root-privilege-name" mandatory="false"
+  <adm:property name="default-root-privilege-name"
     multi-valued="true">
     <adm:synopsis>
-      Specifies the names of the privileges that root users will be granted by
-      default.
+      Specifies the names of the privileges that root users will be
+      granted by default.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -85,14 +80,14 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       <adm:enumeration>
         <adm:value name="bypass-acl">
           <adm:synopsis>
-            Allows the associated user to bypass access control checks performed
-            by the server.
+            Allows the associated user to bypass access control checks
+            performed by the server.
           </adm:synopsis>
         </adm:value>
         <adm:value name="modify-acl">
           <adm:synopsis>
-            Allows the associated user to modify the server's access control
-            configuration.
+            Allows the associated user to modify the server's access
+            control configuration.
           </adm:synopsis>
         </adm:value>
         <adm:value name="config-read">
@@ -102,8 +97,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
         </adm:value>
         <adm:value name="config-write">
           <adm:synopsis>
-            Allows the associated user to update the server configuration.  The
-            config-read privilege is also required.
+            Allows the associated user to update the server
+            configuration. The config-read privilege is also required.
           </adm:synopsis>
         </adm:value>
         <adm:value name="jmx-read">
@@ -124,24 +119,26 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
         </adm:value>
         <adm:value name="ldif-import">
           <adm:synopsis>
-            Allows the user to request that the server process LDIF import
-            tasks.
+            Allows the user to request that the server process LDIF
+            import tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="ldif-export">
           <adm:synopsis>
-            Allows the user to request that the server process LDIF export
-            tasks.
+            Allows the user to request that the server process LDIF
+            export tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="backend-backup">
           <adm:synopsis>
-            Allows the user to request that the server process backup tasks.
+            Allows the user to request that the server process backup
+            tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="backend-restore">
           <adm:synopsis>
-            Allows the user to request that the server process restore tasks.
+            Allows the user to request that the server process restore
+            tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="server-shutdown">
@@ -151,14 +148,15 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
         </adm:value>
         <adm:value name="server-restart">
           <adm:synopsis>
-            Allows the user to request that the server perform an in-core
-            restart.
+            Allows the user to request that the server perform an
+            in-core restart.
           </adm:synopsis>
         </adm:value>
         <adm:value name="proxied-auth">
           <adm:synopsis>
-            Allows the user to use the proxied authorization control, or to
-            perform a bind that specifies an alternate authorization identity.
+            Allows the user to use the proxied authorization control, or
+            to perform a bind that specifies an alternate authorization
+            identity.
           </adm:synopsis>
         </adm:value>
         <adm:value name="disconnect-client">
@@ -168,8 +166,8 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
         </adm:value>
         <adm:value name="cancel-request">
           <adm:synopsis>
-            Allows the user to cancel operations in progress on other client
-            connections.
+            Allows the user to cancel operations in progress on other
+            client connections.
           </adm:synopsis>
         </adm:value>
         <adm:value name="password-reset">
@@ -190,13 +188,14 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
         <adm:value name="privilege-change">
           <adm:synopsis>
             Allows the user to make changes to the set of defined root
-            privileges, as well as to grant and revoke privileges for users.
+            privileges, as well as to grant and revoke privileges for
+            users.
           </adm:synopsis>
         </adm:value>
         <adm:value name="unindexed-search">
           <adm:synopsis>
-            Allows the user to request that the server process a search that
-            cannot be optimized using server indexes.
+            Allows the user to request that the server process a search
+            that cannot be optimized using server indexes.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -207,6 +206,4 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-

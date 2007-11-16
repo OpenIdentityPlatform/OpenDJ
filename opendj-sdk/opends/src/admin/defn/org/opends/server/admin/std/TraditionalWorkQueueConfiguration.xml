@@ -1,54 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-! CDDL HEADER START
-!
-! The contents of this file are subject to the terms of the
-! Common Development and Distribution License, Version 1.0 only
-! (the "License").  You may not use this file except in compliance
-! with the License.
-!
-! You can obtain a copy of the license at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
-! See the License for the specific language governing permissions
-! and limitations under the License.
-!
-! When distributing Covered Code, include this CDDL HEADER in each
-! file and include the License file at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-! add the following below this CDDL HEADER, with the fields enclosed
-! by brackets "[]" replaced with your own identifying information:
-!      Portions Copyright [yyyy] [name of copyright owner]
-!
-! CDDL HEADER END
-!
-!
-!      Portions Copyright 2007 Sun Microsystems, Inc.
-! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="traditional-work-queue"
-plural-name="traditional-work-queues" extends="work-queue"
-package="org.opends.server.admin.std"
-xmlns:adm="http://www.opends.org/admin"
-xmlns:ldap="http://www.opends.org/admin-ldap">
+  plural-name="traditional-work-queues" extends="work-queue"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is a type of work queue that uses a number of worker threads that watch a
-    queue and pick up an operation to process whenever one becomes available.
+    is a type of work queue that uses a number of worker threads that
+    watch a queue and pick up an operation to process whenever one
+    becomes available.
   </adm:synopsis>
-
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-traditional-work-queue</ldap:name>
       <ldap:superior>ds-cfg-work-queue</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:property name="num-worker-threads" mandatory="true">
     <adm:synopsis>
-      The number of worker threads that should be used to process operations
-      placed into the queue.
+      The number of worker threads that should be used to process
+      operations placed into the queue.
     </adm:synopsis>
     <adm:syntax>
       <adm:integer lower-limit="1" />
@@ -59,18 +57,20 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="max-work-queue-capacity" mandatory="false">
+  <adm:property name="max-work-queue-capacity">
     <adm:synopsis>
-      The maximum number of queued operations that can be in the work queue at
-      any given time.  If the work queue is already full and additional requests
-      are received by the server, they will be rejected.
+      The maximum number of queued operations that can be in the work
+      queue at any given time.
     </adm:synopsis>
+    <adm:description>
+      If the work queue is already full and additional requests are
+      received by the server, they will be rejected.
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The work queue will not impose any limit on the number of operations
-          that can be enqueued at any one time.
+          The work queue will not impose any limit on the number of
+          operations that can be enqueued at any one time.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -83,6 +83,4 @@ xmlns:ldap="http://www.opends.org/admin-ldap">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-

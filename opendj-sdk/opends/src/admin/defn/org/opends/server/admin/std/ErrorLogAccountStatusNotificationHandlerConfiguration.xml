@@ -47,7 +47,7 @@
       </ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -59,8 +59,7 @@
   <adm:property name="account-status-notification-type" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      <adm:user-friendly-name />
-      is a possible event type that can trigger an account status
+      Indicates which types of event can trigger an account status
       notification.
     </adm:synopsis>
     <adm:syntax>

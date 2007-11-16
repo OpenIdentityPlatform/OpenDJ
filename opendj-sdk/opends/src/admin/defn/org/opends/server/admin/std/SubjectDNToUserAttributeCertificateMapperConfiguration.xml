@@ -1,52 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object name="subject-dn-to-user-attribute-certificate-mapper"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object
+  name="subject-dn-to-user-attribute-certificate-mapper"
   plural-name="subject-dn-to-user-attribute-certificate-mappers"
   package="org.opends.server.admin.std" extends="certificate-mapper"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    maps client certificates to user entries by looking for the certificate
-    subject DN in a specified attribute of user entries.
+    maps client certificates to user entries by looking for the
+    certificate subject DN in a specified attribute of user entries.
   </adm:synopsis>
-
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:name>ds-cfg-subject-dn-to-user-attribute-certificate-mapper</ldap:name>
+      <ldap:name>
+        ds-cfg-subject-dn-to-user-attribute-certificate-mapper
+      </ldap:name>
       <ldap:superior>ds-cfg-certificate-mapper</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -55,15 +54,11 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
   <adm:property name="subject-attribute" mandatory="true">
     <adm:synopsis>
-      Specifies the attribute in which to look for the subject DN.
+      Specifies the name or OID of the attribute whose value should
+      exactly match the certificate subject DN.
     </adm:synopsis>
-    <adm:description>
-      Specifies the name or OID of the attribute whose value should exactly
-      match the certificate subject DN.
-    </adm:description>
     <adm:syntax>
       <adm:attribute-type />
     </adm:syntax>
@@ -73,20 +68,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="user-base-dn" mandatory="false" multi-valued="true">
+  <adm:property name="user-base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the set of base DNs below which to search for users.
+      Specifies the base DNs that should be used when performing
+      searches to map the client certificate to a user entry.
     </adm:synopsis>
-    <adm:description>
-      Specifies the base DN(s) that should be used when performing searches to
-      map the client certificate to a user entry.  If no values are provided,
-      then the server will search below all public naming contexts.
-    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will perform the search in all public naming contexts.
+          The server will perform the search in all public naming
+          contexts.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -100,4 +91,3 @@
     </adm:profile>
   </adm:property>
 </adm:managed-object>
-

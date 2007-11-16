@@ -1,41 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object name="profiler-plugin" 
-  plural-name="profiler-plugins"
-  package="org.opends.server.admin.std" extends="plugin"
-  xmlns:adm="http://www.opends.org/admin"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="profiler-plugin"
+  plural-name="profiler-plugins" package="org.opends.server.admin.std"
+  extends="plugin" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to capture profiling information about operations performed inside
-    the JVM while the Directory Server is running.
+    is used to capture profiling information about operations performed
+    inside the JVM while the Directory Server is running.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -43,7 +41,7 @@
       <ldap:superior>ds-cfg-plugin</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -52,22 +50,33 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property-override name="plugin-type">
+  <adm:property-override name="plugin-type" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>startup</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+  <adm:property-override name="invoke-for-internal-operations">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="profile-sample-interval" mandatory="true">
     <adm:synopsis>
-      Specifies the profiler sample interval.
-    </adm:synopsis>
-    <adm:description>
       Specifies the sample interval that should be used when capturing
-      profiling information in the server.  Changes to this configuration
-      attribute will take effect the next time the profiler is started.
-    </adm:description>
+      profiling information in the server.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this configuration attribute will take effect the
+          next time the profiler is started.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:duration lower-limit="1" base-unit="ms" />
     </adm:syntax>
@@ -79,13 +88,12 @@
   </adm:property>
   <adm:property name="profile-directory" mandatory="true">
     <adm:synopsis>
-      Specifies the directory for writing profile information.
+      Specifies the path to the directory into which profile information
+      will be written.
     </adm:synopsis>
     <adm:description>
-      Specifies the path to the directory into which profile information will
-      be written.  The directory must exist and the Directory Server must have
-      permission to create new files in it.  Changes to this configuration
-      attribute will take effect immediately.
+      The directory must exist and the Directory Server must have
+      permission to create new files in it.
     </adm:description>
     <adm:syntax>
       <adm:string />
@@ -98,14 +106,12 @@
   </adm:property>
   <adm:property name="enable-profiling-on-startup" mandatory="true">
     <adm:synopsis>
-      Indicates whether to automatically begin capturing profile data when the
-      server is started.
+      Indicates whether the profiler plugin should start collecting data
+      automatically when the Directory Server is started.
     </adm:synopsis>
     <adm:description>
-      Indicates whether the profiler plugin should start collecting data
-      automatically when the Directory Server is started.  This will only be
-      read when the server is started, and any changes will take effect on the
-      next restart.
+      This will only be read when the server is started, and any changes
+      will take effect on the next restart.
     </adm:description>
     <adm:syntax>
       <adm:boolean />
@@ -116,17 +122,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="profile-action" mandatory="false">
+  <adm:property name="profile-action">
     <adm:synopsis>
       Specifies the action that should be taken by the profiler.
     </adm:synopsis>
     <adm:description>
-      Specifies the action that should be taken by the profiler.  A value of
-      "start" will cause the profiler thread to start collecting data if it is
-      not already active.  A value of "stop" will cause the profiler thread to
-      stop collecting data and write it do disk, and a value of "cancel" will
-      cause the profiler thread to stop collecting data and discard anything
-      that has been captured.  These operations will occur immediately.
+      A value of "start" will cause the profiler thread to start
+      collecting data if it is not already active. A value of "stop"
+      will cause the profiler thread to stop collecting data and write
+      it do disk, and a value of "cancel" will cause the profiler thread
+      to stop collecting data and discard anything that has been
+      captured. These operations will occur immediately.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -136,24 +142,21 @@
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="none">
-          <adm:synopsis>
-            Do not take any action.
-          </adm:synopsis>
+          <adm:synopsis>Do not take any action.</adm:synopsis>
         </adm:value>
         <adm:value name="start">
-          <adm:synopsis>
-            Start collecting profile data.
-          </adm:synopsis>
+          <adm:synopsis>Start collecting profile data.</adm:synopsis>
         </adm:value>
         <adm:value name="stop">
           <adm:synopsis>
-            Stop collecting profile data and write what has been captured to
-            a file in the profile directory.
+            Stop collecting profile data and write what has been
+            captured to a file in the profile directory.
           </adm:synopsis>
         </adm:value>
         <adm:value name="cancel">
           <adm:synopsis>
-            Stop collecting profile data and discard what has been captured.
+            Stop collecting profile data and discard what has been
+            captured.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -165,4 +168,3 @@
     </adm:profile>
   </adm:property>
 </adm:managed-object>
-

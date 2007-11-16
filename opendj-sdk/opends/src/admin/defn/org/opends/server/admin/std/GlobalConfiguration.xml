@@ -1,69 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:user-friendly-name>Global Configuration</adm:user-friendly-name>
-
   <adm:user-friendly-plural-name>
     Global Configurations
   </adm:user-friendly-plural-name>
-
   <adm:synopsis>
     The global configuration contains properties that affect the overall
     operation of the
     <adm:product-name />
     .
   </adm:synopsis>
-  <adm:tag name="core"/>
-
+  <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-root-config</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property name="check-schema" mandatory="true">
+  <adm:property name="check-schema" advanced="true">
     <adm:synopsis>
       Indicates whether schema enforcement is active.
     </adm:synopsis>
     <adm:description>
-      This property indicates whether the
-      <adm:product-name />
-      should ensure that all operations result in entries that are valid
+      When schema enforcement is activate the Directory Server will
+      ensure that all operations result in entries that are valid
       according to the defined server schema. It is strongly recommended
       that this option be left enabled to prevent the inadvertent
       addition of invalid data into the server.
     </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:boolean />
     </adm:syntax>
@@ -73,7 +71,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="default-password-policy" mandatory="true">
     <adm:synopsis>
       Specifies the name of the password policy that will be in effect
@@ -89,18 +86,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="add-missing-rdn-attributes" mandatory="false">
+  <adm:property name="add-missing-rdn-attributes" advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should automatically add any
-      attribute values contained in the entry's RDN into that entry when
-      processing an add request.
+      Indicates whether the Directory Server should automatically add
+      any attribute values contained in the entry's RDN into that entry
+      when processing an add request.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          true
-        </adm:value>
+        <adm:value>true</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -112,18 +106,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="allow-attribute-name-exceptions" mandatory="false">
+  <adm:property name="allow-attribute-name-exceptions"
+    advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should allow the use of underscores
-      in attribute names, and should allow attribute names to begin with
-      numeric digits (both of which are violations of the LDAP standards).
+      Indicates whether the Directory Server should allow the use of
+      underscores in attribute names, and should allow attribute names
+      to begin with numeric digits (both of which are violations of the
+      LDAP standards).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -135,41 +128,40 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="invalid-attribute-syntax-behavior" mandatory="false">
+  <adm:property name="invalid-attribute-syntax-behavior"
+    advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations which would
-      result in an attribute value that violates the associated attribute
-      syntax.
+      Specifies how the Directory Server should handle operations which
+      would result in an attribute value that violates the associated
+      attribute syntax.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          reject
-        </adm:value>
+        <adm:value>reject</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="accept">
           <adm:synopsis>
-            The Directory Server will silently accept attribute values that are
-            invalid according to their associated syntax.  Matching operations
-            targeting those values may not behave as expected.
+            The Directory Server will silently accept attribute values
+            that are invalid according to their associated syntax.
+            Matching operations targeting those values may not behave as
+            expected.
           </adm:synopsis>
         </adm:value>
         <adm:value name="reject">
           <adm:synopsis>
-            The Directory Server will reject attribute values that are invalid
-            according to their associated syntax.
+            The Directory Server will reject attribute values that are
+            invalid according to their associated syntax.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warn">
           <adm:synopsis>
-            The Directory Server will accept attribute values that are invalid
-            according to their associated syntax, but will also log a warning
-            message to the error log.  Matching operations targeting those
-            values may not behave as expected.
+            The Directory Server will accept attribute values that are
+            invalid according to their associated syntax, but will also
+            log a warning message to the error log. Matching operations
+            targeting those values may not behave as expected.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -180,17 +172,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="server-error-result-code" mandatory="false">
+  <adm:property name="server-error-result-code" advanced="true">
     <adm:synopsis>
-      Specifies the numeric value of the result code that should be used for
-      cases in which request processing fails due to an internal server error.
+      Specifies the numeric value of the result code that should be used
+      for cases in which request processing fails due to an internal
+      server error.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          80
-        </adm:value>
+        <adm:value>80</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -202,42 +192,41 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="single-structural-objectclass-behavior" mandatory="false">
+  <adm:property name="single-structural-objectclass-behavior"
+    advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations which would
-      result in an entry without any structural object class, or that would
-      result in an entry containing multiple structural classes.
+      Specifies how the Directory Server should handle operations which
+      would result in an entry without any structural object class, or
+      that would result in an entry containing multiple structural
+      classes.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          reject
-        </adm:value>
+        <adm:value>reject</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="accept">
           <adm:synopsis>
-            The Directory Server will silently accept entries that do not
-            contain exactly one structural object class.  Certain schema
-            features that depend on the entry's structural class may not behave
-            as expected.
+            The Directory Server will silently accept entries that do
+            not contain exactly one structural object class. Certain
+            schema features that depend on the entry's structural class
+            may not behave as expected.
           </adm:synopsis>
         </adm:value>
         <adm:value name="reject">
           <adm:synopsis>
-            The Directory Server will reject entries that do not contain exactly
-            one structural object class.
+            The Directory Server will reject entries that do not contain
+            exactly one structural object class.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warn">
           <adm:synopsis>
-            The Directory Server will accept entries that do not contain exactly
-            one structural object class, but will also log a warning message to
-            the error log.  Certain schema features that depend on the entry's
-            structural class may not behave
+            The Directory Server will accept entries that do not contain
+            exactly one structural object class, but will also log a
+            warning message to the error log. Certain schema features
+            that depend on the entry's structural class may not behave
             as expected.
           </adm:synopsis>
         </adm:value>
@@ -245,24 +234,26 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-single-structural-objectclass-behavior</ldap:name>
+        <ldap:name>
+          ds-cfg-single-structural-objectclass-behavior
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="notify-abandoned-operations" mandatory="false">
+  <adm:property name="notify-abandoned-operations" advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should send a response to any
-      operation that is interrupted via an abandon request.  The LDAP
-      specification states that abandoned operations should not receive any
-      response, but this may cause problems with client applications that
-      always expect to receive a response to each request.
+      Indicates whether the Directory Server should send a response to
+      any operation that is interrupted via an abandon request.
     </adm:synopsis>
+    <adm:description>
+      The LDAP specification states that abandoned operations should not
+      receive any response, but this may cause problems with client
+      applications that always expect to receive a response to each
+      request.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -274,20 +265,21 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="size-limit" mandatory="false">
+  <adm:property name="size-limit">
     <adm:synopsis>
-      Specifies the maximum number of entries that the Directory Server should
-      return to the client in the course of processing a search operation.  A
-      value of 0 indicates that no size limit will be enforced.  Note that this
-      is the default server-wide limit, but it may be overridden on a per-user
-      basis using the ds-rlim-size-limit operational attribute.
+      Specifies the maximum number of entries that the Directory Server
+      should return to the client in the course of processing a search
+      operation.
     </adm:synopsis>
+    <adm:description>
+      A value of 0 indicates that no size limit will be enforced. Note
+      that this is the default server-wide limit, but it may be
+      overridden on a per-user basis using the ds-rlim-size-limit
+      operational attribute.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          1000
-        </adm:value>
+        <adm:value>1000</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -299,20 +291,20 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="time-limit" mandatory="false">
+  <adm:property name="time-limit">
     <adm:synopsis>
-      Specifies the maximum length of time that the Directory Server should
-      spend processing a search operation.  A value of 0 seconds indicates that
-      no time limit will be enforced.  Note that this is the default server-wide
-      time limit, but it may be overridden on a per-user basis using the
-      ds-rlim-time-limit operational attribute.
+      Specifies the maximum length of time that the Directory Server
+      should spend processing a search operation.
     </adm:synopsis>
+    <adm:description>
+      A value of 0 seconds indicates that no time limit will be
+      enforced. Note that this is the default server-wide time limit,
+      but it may be overridden on a per-user basis using the
+      ds-rlim-time-limit operational attribute.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          60 seconds
-        </adm:value>
+        <adm:value>60 seconds</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -324,7 +316,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="proxied-authorization-identity-mapper"
     mandatory="true">
     <adm:synopsis>
@@ -342,42 +333,43 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-proxied-authorization-identity-mapper</ldap:name>
+        <ldap:name>
+          ds-cfg-proxied-authorization-identity-mapper
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="writability-mode" mandatory="false">
+  <adm:property name="writability-mode">
     <adm:synopsis>
-      Specifies which kinds of write operations the Directory Server should
-      attempt to process.
+      Specifies which kinds of write operations the Directory Server
+      should attempt to process.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          enabled
-        </adm:value>
+        <adm:value>enabled</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="enabled">
           <adm:synopsis>
-            The Directory Server will attempt to process all write operations
-            that are requested of it, regardless of their origin.
+            The Directory Server will attempt to process all write
+            operations that are requested of it, regardless of their
+            origin.
           </adm:synopsis>
         </adm:value>
         <adm:value name="disabled">
           <adm:synopsis>
-            The Directory Server will reject all write operations that are
-            requested of it, regardless of their origin.
+            The Directory Server will reject all write operations that
+            are requested of it, regardless of their origin.
           </adm:synopsis>
         </adm:value>
         <adm:value name="internal-only">
           <adm:synopsis>
-            The Directory Server will attempt to process write operations
-            requested as internal operations or through synchronization, but
-            will reject any such operations requested from external clients.
+            The Directory Server will attempt to process write
+            operations requested as internal operations or through
+            synchronization, but will reject any such operations
+            requested from external clients.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -388,19 +380,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="reject-unauthenticated-requests" mandatory="false">
+  <adm:property name="reject-unauthenticated-requests">
     <adm:synopsis>
-      Indicates whether the Directory Server should reject any request (other
-      than bind or StartTLS requests) received from a client that has not yet
-      authenticated, whose last authentication attempt was unsuccessful, or
-      whose last authentication attempt used anonymous authentication.
+      Indicates whether the Directory Server should reject any request
+      (other than bind or StartTLS requests) received from a client that
+      has not yet authenticated, whose last authentication attempt was
+      unsuccessful, or whose last authentication attempt used anonymous
+      authentication.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -412,21 +402,21 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="bind-with-dn-requires-password" mandatory="false">
+  <adm:property name="bind-with-dn-requires-password">
     <adm:synopsis>
-      Indicates whether the Directory Server should reject any simple bind
-      request that contains a DN but no password.  Although such bind requests
-      are technically allowed by the LDAPv3 specification (and should be treated
-      as anonymous simple authentication), they may introduce security problems
-      in applications that do not verify that the client actually provided a
-      password.
+      Indicates whether the Directory Server should reject any simple
+      bind request that contains a DN but no password.
     </adm:synopsis>
+    <adm:description>
+      Although such bind requests are technically allowed by the LDAPv3
+      specification (and should be treated as anonymous simple
+      authentication), they may introduce security problems in
+      applications that do not verify that the client actually provided
+      a password.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          true
-        </adm:value>
+        <adm:value>true</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -438,23 +428,23 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="lookthrough-limit" mandatory="false">
+  <adm:property name="lookthrough-limit">
     <adm:synopsis>
-      Specifies the maximum number of entries that the Directory Server should
-      "look through" in the course of processing a search request.  This
-      includes any entry that the server must examine in the course of
-      processing the request, regardless of whether it actually matches the
-      search criteria.  A value of 0 indicates that no lookthrough limit will
-      be enforced.  Note that this is the default server-wide limit, but it may
-      be overridden on a per-user basis using the ds-rlim-lookthrough-limit
-      operational attribute.
+      Specifies the maximum number of entries that the Directory Server
+      should "look through" in the course of processing a search
+      request.
     </adm:synopsis>
+    <adm:description>
+      This includes any entry that the server must examine in the course
+      of processing the request, regardless of whether it actually
+      matches the search criteria. A value of 0 indicates that no
+      lookthrough limit will be enforced. Note that this is the default
+      server-wide limit, but it may be overridden on a per-user basis
+      using the ds-rlim-lookthrough-limit operational attribute.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          5000
-        </adm:value>
+        <adm:value>5000</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -466,24 +456,35 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="smtp-server" mandatory="false" multi-valued="true">
+  <adm:property name="smtp-server" multi-valued="true">
     <adm:synopsis>
-      Specifies the address (and optional port number) for a mail server that
-      can be used to send e-mail messages via SMTP.  It may be an IP address or
-      resolvable hostname, optionally followed by a colon and a port number.
+      Specifies the address (and optional port number) for a mail server
+      that can be used to send e-mail messages via SMTP.
     </adm:synopsis>
+    <adm:description>
+      It may be an IP address or resolvable hostname, optionally
+      followed by a colon and a port number.
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
           If no values are defined, then it will not be possible to take
-          advantage of server features that may provide the ability to send
-          e-mail via SMTP.
+          advantage of server features that may provide the ability to
+          send e-mail via SMTP.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>^.+(:[0-9]+)?$</adm:regex>
+          <adm:usage>HOST[:PORT]</adm:usage>
+          <adm:synopsis>
+            A hostname, optionally followed by a ":" followed by a port
+            number.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -491,18 +492,21 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="allowed-task" mandatory="false" multi-valued="true">
+  <adm:property name="allowed-task" advanced="true"
+    multi-valued="true">
     <adm:synopsis>
-      Specifies the fully-qualified name of a Java class that may be invoked in
-      the server.  Any attempt to invoke a task not included in the list of
-      allowed tasks will be rejected.
+      Specifies the fully-qualified name of a Java class that may be
+      invoked in the server.
     </adm:synopsis>
+    <adm:description>
+      Any attempt to invoke a task not included in the list of allowed
+      tasks will be rejected.
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          If no values are defined, then the server will not allow any tasks to
-          be invoked.
+          If no values are defined, then the server will not allow any
+          tasks to be invoked.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -515,17 +519,21 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="disabled-privilege" mandatory="false" multi-valued="true">
+  <adm:property name="disabled-privilege" multi-valued="true">
     <adm:synopsis>
-      Specifies the name of a privilege that should not be evaluated by the
-      server.  If a privilege is disabled, then it will be assumed that all
-      clients (including unauthenticated clients) will have that privilege.
+      Specifies the name of a privilege that should not be evaluated by
+      the server.
     </adm:synopsis>
+    <adm:description>
+      If a privilege is disabled, then it will be assumed that all
+      clients (including unauthenticated clients) will have that
+      privilege.
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          If no values are defined, then the server will enforce all privileges.
+          If no values are defined, then the server will enforce all
+          privileges.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -533,14 +541,14 @@
       <adm:enumeration>
         <adm:value name="bypass-acl">
           <adm:synopsis>
-            Allows the associated user to bypass access control checks performed
-            by the server.
+            Allows the associated user to bypass access control checks
+            performed by the server.
           </adm:synopsis>
         </adm:value>
         <adm:value name="modify-acl">
           <adm:synopsis>
-            Allows the associated user to modify the server's access control
-            configuration.
+            Allows the associated user to modify the server's access
+            control configuration.
           </adm:synopsis>
         </adm:value>
         <adm:value name="config-read">
@@ -550,8 +558,8 @@
         </adm:value>
         <adm:value name="config-write">
           <adm:synopsis>
-            Allows the associated user to update the server configuration.  The
-            config-read privilege is also required.
+            Allows the associated user to update the server
+            configuration. The config-read privilege is also required.
           </adm:synopsis>
         </adm:value>
         <adm:value name="jmx-read">
@@ -572,24 +580,26 @@
         </adm:value>
         <adm:value name="ldif-import">
           <adm:synopsis>
-            Allows the user to request that the server process LDIF import
-            tasks.
+            Allows the user to request that the server process LDIF
+            import tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="ldif-export">
           <adm:synopsis>
-            Allows the user to request that the server process LDIF export
-            tasks.
+            Allows the user to request that the server process LDIF
+            export tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="backend-backup">
           <adm:synopsis>
-            Allows the user to request that the server process backup tasks.
+            Allows the user to request that the server process backup
+            tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="backend-restore">
           <adm:synopsis>
-            Allows the user to request that the server process restore tasks.
+            Allows the user to request that the server process restore
+            tasks.
           </adm:synopsis>
         </adm:value>
         <adm:value name="server-shutdown">
@@ -599,14 +609,15 @@
         </adm:value>
         <adm:value name="server-restart">
           <adm:synopsis>
-            Allows the user to request that the server perform an in-core
-            restart.
+            Allows the user to request that the server perform an
+            in-core restart.
           </adm:synopsis>
         </adm:value>
         <adm:value name="proxied-auth">
           <adm:synopsis>
-            Allows the user to use the proxied authorization control, or to
-            perform a bind that specifies an alternate authorization identity.
+            Allows the user to use the proxied authorization control, or
+            to perform a bind that specifies an alternate authorization
+            identity.
           </adm:synopsis>
         </adm:value>
         <adm:value name="disconnect-client">
@@ -616,8 +627,8 @@
         </adm:value>
         <adm:value name="cancel-request">
           <adm:synopsis>
-            Allows the user to cancel operations in progress on other client
-            connections.
+            Allows the user to cancel operations in progress on other
+            client connections.
           </adm:synopsis>
         </adm:value>
         <adm:value name="password-reset">
@@ -638,13 +649,14 @@
         <adm:value name="privilege-change">
           <adm:synopsis>
             Allows the user to make changes to the set of defined root
-            privileges, as well as to grant and revoke privileges for users.
+            privileges, as well as to grant and revoke privileges for
+            users.
           </adm:synopsis>
         </adm:value>
         <adm:value name="unindexed-search">
           <adm:synopsis>
-            Allows the user to request that the server process a search that
-            cannot be optimized using server indexes.
+            Allows the user to request that the server process a search
+            that cannot be optimized using server indexes.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -655,20 +667,20 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="return-bind-error-messages" mandatory="false">
+  <adm:property name="return-bind-error-messages">
     <adm:synopsis>
-      Indicates whether responses for failed bind operations should include a
-      message string providing the reason for the authentication failure.  Note
-      that these messages may include information that could potentially be used
-      by an attacker.  If this option is disabled, then these messages will
-      appear only in the server's access log.
+      Indicates whether responses for failed bind operations should
+      include a message string providing the reason for the
+      authentication failure.
     </adm:synopsis>
+    <adm:description>
+      Note that these messages may include information that could
+      potentially be used by an attacker. If this option is disabled,
+      then these messages will appear only in the server's access log.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          false
-        </adm:value>
+        <adm:value>false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -680,20 +692,22 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="idle-time-limit" mandatory="false" multi-valued="false">
+  <adm:property name="idle-time-limit">
     <adm:synopsis>
-      Specifies the maximum length of time that a client connection may remain
-      established since its last completed operation.  A value of "0 seconds"
-      indicates that no idle time limit will be enforced.
+      Specifies the maximum length of time that a client connection may
+      remain established since its last completed operation.
     </adm:synopsis>
+    <adm:description>
+      A value of "0 seconds" indicates that no idle time limit will be
+      enforced.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>0 seconds</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:duration base-unit="ms" lower-limit="0"/>
+      <adm:duration base-unit="ms" lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -701,15 +715,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="save-config-on-successful-startup" mandatory="false">
+  <adm:property name="save-config-on-successful-startup">
     <adm:synopsis>
       Indicates whether the Directory Server should save a copy of its
-      configuration whenever the startup process completes successfully.  This
-      can ensure that the server provides a "last known good" configuration,
-      which can be used as a reference (or copied into the active config) if the
-      server fails to start with the current "active" configuration.
+      configuration whenever the startup process completes successfully.
     </adm:synopsis>
+    <adm:description>
+      This can ensure that the server provides a "last known good"
+      configuration, which can be used as a reference (or copied into
+      the active config) if the server fails to start with the current
+      "active" configuration.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>true</adm:value>
@@ -724,7 +740,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="workflow-configuration-mode">
     <adm:synopsis>
       Specifies the workflow configuration mode (auto vs. manual).
@@ -738,16 +753,16 @@
       <adm:enumeration>
         <adm:value name="auto">
           <adm:synopsis>
-             In the "auto" configuration mode there is no workflow
-             configuration. The workflows are created automatically
-             based on the backend configuration. There will be one
-             workflow per backend base DN.
+            In the "auto" configuration mode there is no workflow
+            configuration. The workflows are created automatically based
+            on the backend configuration. There will be one workflow per
+            backend base DN.
           </adm:synopsis>
         </adm:value>
         <adm:value name="manual">
           <adm:synopsis>
-             In the "manual" configuration mode each workflow is created
-             according to its description in the configuration.
+            In the "manual" configuration mode each workflow is created
+            according to its description in the configuration.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -758,6 +773,4 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-
