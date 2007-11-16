@@ -671,7 +671,7 @@ public class ReplicationCliMain extends ConsoleApplication
           adminUid = ci.getProvidedAdminUID();
           if (ci.getProvidedBindDN() == null)
           {
-            // If the explicitit bind DN is not null, the password corresponds
+            // If the explicit bind DN is not null, the password corresponds
             // to that bind DN.  We are in the case where the user provides
             // bind DN on first server and admin UID globally.
             adminPwd = ci.getBindPassword();
@@ -839,7 +839,13 @@ public class ReplicationCliMain extends ConsoleApplication
         if (ci.getProvidedAdminUID() != null)
         {
           adminUid = ci.getProvidedAdminUID();
-          adminPwd = ci.getBindPassword();
+          if (ci.getProvidedBindDN() == null)
+          {
+            // If the explicit bind DN is not null, the password corresponds
+            // to that bind DN.  We are in the case where the user provides
+            // bind DN on first server and admin UID globally.
+            adminPwd = ci.getBindPassword();
+          }
         }
         bindDn2 = ci.getBindDN();
         pwd2 = ci.getBindPassword();
@@ -1000,6 +1006,10 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setAdminUid(adminUid);
     }
 
+    if (uData.getAdminPwd() == null)
+    {
+      uData.setAdminPwd(adminPwd);
+    }
     if (!cancelled && (uData.getAdminPwd() == null) && !administratorDefined)
     {
       adminPwd = null;
