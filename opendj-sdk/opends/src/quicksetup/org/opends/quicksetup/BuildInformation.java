@@ -90,7 +90,8 @@ public class BuildInformation implements Comparable {
           throws ApplicationException {
     BuildInformation bi = new BuildInformation();
     List<String> args = new ArrayList<String>();
-    args.add(Utils.getPath(installation.getServerStartCommandFile()));
+    args.add(Utils.getScriptPath(
+        Utils.getPath(installation.getServerStartCommandFile())));
     args.add("-F"); // full verbose
     ProcessBuilder pb = new ProcessBuilder(args);
     InputStream is = null;

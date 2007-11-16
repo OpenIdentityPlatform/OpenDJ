@@ -124,7 +124,8 @@ public class ServerController {
       LOG.log(Level.INFO, "stopping server");
 
       ArrayList<String> argList = new ArrayList<String>();
-      argList.add(Utils.getPath(installation.getServerStopCommandFile()));
+      argList.add(Utils.getScriptPath(
+          Utils.getPath(installation.getServerStopCommandFile())));
       String[] args = new String[argList.size()];
       argList.toArray(args);
       ProcessBuilder pb = new ProcessBuilder(args);
@@ -285,7 +286,8 @@ public class ServerController {
     LOG.log(Level.INFO, "starting server");
 
     ArrayList<String> argList = new ArrayList<String>();
-    argList.add(Utils.getPath(installation.getServerStartCommandFile()));
+    argList.add(Utils.getScriptPath(
+        Utils.getPath(installation.getServerStartCommandFile())));
     String[] args = new String[argList.size()];
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);
@@ -298,7 +300,6 @@ public class ServerController {
     // when it starts.  Since we're just calling the start-ds script
     // it will figure out the correct classpath for the server.
     env.remove("CLASSPATH");
-
     try
     {
       String startedId = getStartedId();

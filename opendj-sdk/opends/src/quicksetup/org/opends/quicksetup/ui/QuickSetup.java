@@ -398,10 +398,12 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           if (isMacOS()) {
             ArrayList<String> cmd = new ArrayList<String>();
             cmd.add(MAC_APPLICATIONS_OPENER);
-            cmd.add(getPath(installation.getStatusPanelCommandFile()));
+            cmd.add(getScriptPath(
+                getPath(installation.getStatusPanelCommandFile())));
             pb = new ProcessBuilder(cmd);
           } else {
-            String cmd = getPath(installation.getStatusPanelCommandFile());
+            String cmd = getScriptPath(
+                getPath(installation.getStatusPanelCommandFile()));
             pb = new ProcessBuilder(cmd);
           }
           Map<String, String> env = pb.environment();

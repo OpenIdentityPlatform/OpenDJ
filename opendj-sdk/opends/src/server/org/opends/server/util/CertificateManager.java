@@ -152,7 +152,7 @@ public final class CertificateManager
       keytoolCommand = null;
     }
 
-    KEYTOOL_COMMAND = keytoolCommand;
+    KEYTOOL_COMMAND = SetupUtils.getScriptPath(keytoolCommand);
   }
 
 

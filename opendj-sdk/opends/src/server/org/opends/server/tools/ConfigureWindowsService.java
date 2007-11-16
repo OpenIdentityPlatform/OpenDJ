@@ -773,7 +773,8 @@ public class ConfigureWindowsService
    */
   private static String getBinaryFullPath()
   {
-    return getServerRoot()+"\\lib\\opends_service.exe";
+    return SetupUtils.getScriptPath(
+        getServerRoot()+"\\lib\\opends_service.exe");
   }
 
   /**
