@@ -54,18 +54,19 @@
     <message>
              '----  Configure the SASL EXTERNAL mechanism -----'
     </message>      
-    
-    <call function="'modifyAnAttribute'">
-          { 'dsInstanceHost'       :  DIRECTORY_INSTANCE_HOST ,
-             'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
-             'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-             'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-mapper',
-             'newAttributeValue'  : 'cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config',
-             'changetype' : 'replace',
-             'expectedRC'           :  0 }      
-    </call>
+
+
+     <call function="'dsconfig'">
+    	{ 'dsInstanceHost'	: DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'	: DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'		: DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'	: DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'		: 'set-sasl-mechanism-handler-prop' ,
+        'objectType'		 : 'handler-name' ,
+        'objectName'		: 'EXTERNAL',
+        'optionsString'		 : '--set certificate-mapper:"Subject DN to User Attribute"',
+       'expectedRC'		: 0 }
+      </call>
  
     <call function="'testCase_Postamble'"/>
   </sequence>
@@ -288,17 +289,19 @@
     
     <message>'----- Configure  the mapping to be done on the attribute description' </message>
           
-    <call function="'modifyAnAttribute'">
-    { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-    'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
-    'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'        : 'cn=Subject DN to User Attribute,cn=Certificate Mappers,cn=config',  
-    'attributeName'      : 'ds-cfg-subject-attribute',
-    'newAttributeValue'  : 'description',
-    'changetype' : 'replace',
-    'expectedRC'           :  0 }  
-    </call>
+
+     <call function="'dsconfig'">
+    	{ 'dsInstanceHost'	: DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'	: DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'		: DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'	: DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'		: 'set-certificate-mapper-prop' ,
+        'objectType'		 : 'mapper-name' ,
+        'objectName'		: 'Subject DN to User Attribute',
+        'optionsString'		 : '--set subject-attribute:description',
+       'expectedRC'		: 0 }
+      </call>
+
 
     <message>'----- Configure the attribute ds-certificate-subject-dn  for user %s ---' % USER_1_DN</message>      
     
