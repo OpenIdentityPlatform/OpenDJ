@@ -5271,7 +5271,7 @@ public class SchemaBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test(enabled=false)
   public void testLastModAttributes()
          throws Exception
   {
