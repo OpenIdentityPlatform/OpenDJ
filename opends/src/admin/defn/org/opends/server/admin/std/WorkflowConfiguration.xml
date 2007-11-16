@@ -1,59 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object
-  name="workflow"
-  plural-name="workflows"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="workflow" plural-name="workflows"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The <adm:user-friendly-name /> is list of tasks applied on a DIT.
+    The
+    <adm:user-friendly-name />
+    is a list of processing steps (Work Flow Elements) which are applied
+    to data as it is retrieved from the Directory Server.
   </adm:synopsis>
-  <adm:tag name="user-management"/>
+  <adm:tag name="user-management" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-workflow</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property name="enabled"
-    mandatory="true"
-    read-only="false"
-    multi-valued="false">
+  <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicates whether the <adm:user-friendly-name />
+      Indicates whether the
+      <adm:user-friendly-name />
       is enabled for use in the server.
     </adm:synopsis>
     <adm:description>
-      If a workflow is not enabled, then its contents will not be
-      accessible when processing operations.
+      If a
+      <adm:user-friendly-name />
+      is not enabled, then its contents will not be accessible when
+      processing operations.
     </adm:description>
     <adm:syntax>
       <adm:boolean />
@@ -64,17 +63,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="workflow-id"
-    mandatory="true"
-    read-only="true"
-    multi-valued="false">
+  <adm:property name="workflow-id" mandatory="true" read-only="true">
     <adm:synopsis>
-      Provides a name that will be used to identify the associated
-      <adm:user-friendly-name />.
+      Provides a name that will be used to identify the
+      <adm:user-friendly-name />
+      .
     </adm:synopsis>
     <adm:description>
-      The name must be unique among all <adm:user-friendly-name />
+      The name must be unique among all
+      <adm:user-friendly-plural-name />
       in the server.
     </adm:description>
     <adm:syntax>
@@ -86,20 +83,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="workflow-element"
-    mandatory="true"
-    read-only="false"
-    multi-valued="false">
+  <adm:property name="workflow-element" mandatory="true">
     <adm:synopsis>
-      The <adm:user-friendly-name /> identifies the root task of the worklfow.
+      Specifies the root Work Flow Element in the
+      <adm:user-friendly-name />
+      .
     </adm:synopsis>
-    <adm:description>
-      All the tasks in the worklfow are organized in a tree. The root element
-      of the tree is identified by the <adm:user-friendly-name />.
-    </adm:description>
     <adm:syntax>
-      <adm:aggregation relation-name="workflow-element" parent-path="/">
+      <adm:aggregation relation-name="workflow-element"
+        parent-path="/">
         <adm:target-is-enabled-condition>
           <adm:contains property="enabled" value="true" />
         </adm:target-is-enabled-condition>
@@ -111,14 +103,11 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="base-dn"
-    mandatory="true"
-    read-only="false"
-    multi-valued="false">
+  <adm:property name="base-dn" mandatory="true">
     <adm:synopsis>
-      The <adm:user-friendly-name /> specifies the base DN of the data
-      targeted by the worlflow.
+      Specifies the base DN of the data targeted by the
+      <adm:user-friendly-name />
+      .
     </adm:synopsis>
     <adm:syntax>
       <adm:string />
@@ -128,5 +117,5 @@
         <ldap:name>ds-cfg-base-dn</ldap:name>
       </ldap:attribute>
     </adm:profile>
-  </adm:property></adm:managed-object>
-
+  </adm:property>
+</adm:managed-object>

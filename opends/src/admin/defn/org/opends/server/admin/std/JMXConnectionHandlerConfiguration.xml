@@ -40,12 +40,15 @@
     <adm:synopsis>
       A Key Manager Provider must be specified when this
       <adm:user-friendly-name />
-      is configured to use SSL.
+      is enabled and it is configured to use SSL.
     </adm:synopsis>
     <adm:condition>
       <adm:implies>
-        <adm:contains property="use-ssl" value="true" />
-        <adm:is-present property="key-manager-provider" />
+        <adm:contains property="enabled" value="true" />
+        <adm:implies>
+          <adm:contains property="use-ssl" value="true" />
+          <adm:is-present property="key-manager-provider" />
+        </adm:implies>
       </adm:implies>
     </adm:condition>
   </adm:constraint>
@@ -55,7 +58,7 @@
       <ldap:superior>ds-cfg-connection-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -69,8 +72,10 @@
   <adm:property-reference name="ssl-cert-nickname" />
   <adm:property name="key-manager-provider">
     <adm:synopsis>
-      Specifies the name of the key manager that should be used
-      with this <adm:user-friendly-name />.
+      Specifies the name of the key manager that should be used with
+      this
+      <adm:user-friendly-name />
+      .
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
@@ -85,7 +90,8 @@
       <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
-      <adm:aggregation relation-name="key-manager-provider" parent-path="/">
+      <adm:aggregation relation-name="key-manager-provider"
+        parent-path="/">
         <adm:target-needs-enabling-condition>
           <adm:and>
             <adm:contains property="enabled" value="true" />

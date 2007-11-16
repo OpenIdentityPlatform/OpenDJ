@@ -1,60 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-! CDDL HEADER START
-!
-! The contents of this file are subject to the terms of the
-! Common Development and Distribution License, Version 1.0 only
-! (the "License").  You may not use this file except in compliance
-! with the License.
-!
-! You can obtain a copy of the license at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
-! See the License for the specific language governing permissions
-! and limitations under the License.
-!
-! When distributing Covered Code, include this CDDL HEADER in each
-! file and include the License file at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-! add the following below this CDDL HEADER, with the fields enclosed
-! by brackets "[]" replaced with your own identifying information:
-!      Portions Copyright [yyyy] [name of copyright owner]
-!
-! CDDL HEADER END
-!
-!
-!      Portions Copyright 2007 Sun Microsystems, Inc.
-! -->
-
-<adm:managed-object name="plugin-root"
-plural-name="plugin-roots"
-package="org.opends.server.admin.std" abstract="false"
-xmlns:adm="http://www.opends.org/admin"
-xmlns:ldap="http://www.opends.org/admin-ldap"
-xmlns:cli="http://www.opends.org/admin-cli">
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="plugin-root" plural-name="plugin-roots"
+  package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    defines the parent entry for all plugins defined in the server.  It may also
-    include configuration attributes that define the order in which those
-    plugins should be loaded and invoked.
+    defines the parent entry for all plugins defined in the server.
   </adm:synopsis>
-  <adm:tag name="core"/>
-
+  <adm:description>
+    It may also include configuration attributes that define the order
+    in which those plugins should be loaded and invoked.
+  </adm:description>
+  <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-plugin-root</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:relation name="plugin">
     <adm:one-to-many />
     <adm:profile name="ldap">
       <ldap:rdn-sequence />
-      <ldap:naming-attribute>
-        cn
-      </ldap:naming-attribute>
+      <ldap:naming-attribute>cn</ldap:naming-attribute>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -62,21 +58,20 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </cli:relation>
     </adm:profile>
   </adm:relation>
-
-  <adm:property name="plugin-order-startup" mandatory="false">
+  <adm:property name="plugin-order-startup">
     <adm:synopsis>
-      Specifies the order in which startup plugins should be loaded and invoked.
-      The value should be a comma-delimited list of plugin names (where the
-      plugin name is the RDN value from the plugin configuration entry DN).
-      The list may include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified plugins
-      will  be undefined).
+      Specifies the order in which startup plugins should be loaded and
+      invoked. The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN). The list may include at most one asterisk
+      to indicate the position of any unspecified plugin (and the
+      relative order of those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which startup plugins are loaded and invoked will be
-          undefined.
+          The order in which startup plugins are loaded and invoked will
+          be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -89,21 +84,20 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-shutdown" mandatory="false">
+  <adm:property name="plugin-order-shutdown">
     <adm:synopsis>
       Specifies the order in which shutdown plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      invoked. The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN). The list may include at most one asterisk
+      to indicate the position of any unspecified plugin (and the
+      relative order of those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which shutdown plugins are loaded and invoked will be
-          undefined.
+          The order in which shutdown plugins are loaded and invoked
+          will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -116,21 +110,20 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-connect" mandatory="false">
+  <adm:property name="plugin-order-post-connect">
     <adm:synopsis>
-      Specifies the order in which post-connect plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which post-connect plugins should be loaded
+      and invoked. The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN). The list may include at most one asterisk
+      to indicate the position of any unspecified plugin (and the
+      relative order of those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-connect plugins are loaded and invoked will be
-          undefined.
+          The order in which post-connect plugins are loaded and invoked
+          will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -143,21 +136,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-disconnect" mandatory="false">
+  <adm:property name="plugin-order-post-disconnect">
     <adm:synopsis>
-      Specifies the order in which post-disconnect plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which post-disconnect plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-disconnect plugins are loaded and invoked will
-          be undefined.
+          The order in which post-disconnect plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -170,21 +163,20 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-ldif-import" mandatory="false">
+  <adm:property name="plugin-order-ldif-import">
     <adm:synopsis>
-      Specifies the order in which LDIF import plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which LDIF import plugins should be loaded
+      and invoked. The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN). The list may include at most one asterisk
+      to indicate the position of any unspecified plugin (and the
+      relative order of those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which LDIF import plugins are loaded and invoked will be
-          undefined.
+          The order in which LDIF import plugins are loaded and invoked
+          will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -197,21 +189,20 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-ldif-export" mandatory="false">
+  <adm:property name="plugin-order-ldif-export">
     <adm:synopsis>
-      Specifies the order in which LDIF export plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which LDIF export plugins should be loaded
+      and invoked. The value should be a comma-delimited list of plugin
+      names (where the plugin name is the RDN value from the plugin
+      configuration entry DN). The list may include at most one asterisk
+      to indicate the position of any unspecified plugin (and the
+      relative order of those unspecified plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which LDIF export plugins are loaded and invoked will be
-          undefined.
+          The order in which LDIF export plugins are loaded and invoked
+          will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -224,21 +215,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-abandon" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-abandon">
     <adm:synopsis>
-      Specifies the order in which pre-parse abandon plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse abandon plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse abandon plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse abandon plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -251,21 +242,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-add" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-add">
     <adm:synopsis>
-      Specifies the order in which pre-parse add plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse add plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse add plugins are loaded and invoked will
-          be undefined.
+          The order in which pre-parse add plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -278,21 +269,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-bind" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-bind">
     <adm:synopsis>
-      Specifies the order in which pre-parse bind plugins should be loaded and
-      invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse bind plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse bind plugins are loaded and invoked will
-          be undefined.
+          The order in which pre-parse bind plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -305,21 +296,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-compare" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-compare">
     <adm:synopsis>
-      Specifies the order in which pre-parse compare plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse compare plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse compare plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse compare plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -332,21 +323,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-delete" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-delete">
     <adm:synopsis>
-      Specifies the order in which pre-parse delete plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse delete plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse delete plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse delete plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -359,21 +350,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-extended" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-extended">
     <adm:synopsis>
-      Specifies the order in which pre-parse extended operation plugins should
-      be loaded and invoked.  The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which pre-parse extended operation plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse extended operation plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse extended operation plugins are
+          loaded and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -386,21 +377,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-modify" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-modify">
     <adm:synopsis>
-      Specifies the order in which pre-parse modify plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse modify plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse modify plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse modify plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -413,21 +404,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-modify-dn" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-modify-dn">
     <adm:synopsis>
-      Specifies the order in which pre-parse modify DN plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse modify DN plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse modify DN plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse modify DN plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -440,21 +431,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-search" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-search">
     <adm:synopsis>
-      Specifies the order in which pre-parse search plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse search plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse search plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse search plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -467,21 +458,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-parse-unbind" mandatory="false">
+  <adm:property name="plugin-order-pre-parse-unbind">
     <adm:synopsis>
-      Specifies the order in which pre-parse unbind plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-parse unbind plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse unbind plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-parse unbind plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -494,21 +485,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-add" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-add">
     <adm:synopsis>
-      Specifies the order in which pre-operation add plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-operation add plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation add plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-operation add plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -521,21 +512,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-bind" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-bind">
     <adm:synopsis>
-      Specifies the order in which pre-operation bind plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-operation bind plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation bind plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-operation bind plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -548,21 +539,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-compare" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-compare">
     <adm:synopsis>
-      Specifies the order in which pre-operation compare plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which pre-operation compare plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation compare plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation compare plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -575,15 +566,15 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-delete" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-delete">
     <adm:synopsis>
-      Specifies the order in which pre-operation delete plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which pre-operation delete plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -602,21 +593,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-extended" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-extended">
     <adm:synopsis>
-      Specifies the order in which pre-operation extended operation plugins
-      should be loaded and invoked.  The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which pre-operation extended operation
+      plugins should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation extended operation plugins are loaded
-          and invoked will be undefined.
+          The order in which pre-operation extended operation plugins
+          are loaded and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -625,25 +616,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-pre-operation-extended</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-pre-operation-extended
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-modify" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-modify">
     <adm:synopsis>
-      Specifies the order in which pre-operation modify plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which pre-operation modify plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation modify plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-operation modify plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -656,21 +649,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-modify-dn" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-modify-dn">
     <adm:synopsis>
-      Specifies the order in which pre-operation modify DN plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which pre-operation modify DN plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation modify DN plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation modify DN plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -679,25 +672,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-pre-operation-modify-dn</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-pre-operation-modify-dn
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-pre-operation-search" mandatory="false">
+  <adm:property name="plugin-order-pre-operation-search">
     <adm:synopsis>
-      Specifies the order in which pre-operation search plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which pre-operation search plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation searc plugins are loaded and invoked
-          will be undefined.
+          The order in which pre-operation searc plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -710,21 +705,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-abandon" mandatory="false">
+  <adm:property name="plugin-order-post-operation-abandon">
     <adm:synopsis>
-      Specifies the order in which post-operation abandon plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation abandon plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation abandon plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation abandon plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -733,25 +728,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-operation-abandon</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-post-operation-abandon
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-add" mandatory="false">
+  <adm:property name="plugin-order-post-operation-add">
     <adm:synopsis>
-      Specifies the order in which post-operation add plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which post-operation add plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation add plugins are loaded and invoked
-          will be undefined.
+          The order in which post-operation add plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -764,21 +761,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-bind" mandatory="false">
+  <adm:property name="plugin-order-post-operation-bind">
     <adm:synopsis>
-      Specifies the order in which post-operation bind plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which post-operation bind plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation bind plugins are loaded and invoked
-          will be undefined.
+          The order in which post-operation bind plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -791,21 +788,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-compare" mandatory="false">
+  <adm:property name="plugin-order-post-operation-compare">
     <adm:synopsis>
-      Specifies the order in which post-operation compare plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation compare plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation compare plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation compare plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -814,25 +811,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-operation-compare</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-post-operation-compare
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-delete" mandatory="false">
+  <adm:property name="plugin-order-post-operation-delete">
     <adm:synopsis>
-      Specifies the order in which post-operation delete plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation delete plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation delete plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation delete plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -845,21 +844,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-extended" mandatory="false">
+  <adm:property name="plugin-order-post-operation-extended">
     <adm:synopsis>
-      Specifies the order in which post-operation extended operation plugins
-      should be loaded and invoked.  The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation extended operation
+      plugins should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation extended operation plugins are
-          loaded and invoked will be undefined.
+          The order in which post-operation extended operation plugins
+          are loaded and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -868,25 +867,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-operation-extended</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-post-operation-extended
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-modify" mandatory="false">
+  <adm:property name="plugin-order-post-operation-modify">
     <adm:synopsis>
-      Specifies the order in which post-operation modify plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation modify plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation modify plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation modify plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -899,21 +900,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-modify-dn" mandatory="false">
+  <adm:property name="plugin-order-post-operation-modify-dn">
     <adm:synopsis>
-      Specifies the order in which post-operation modify DN plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation modify DN plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation modify DN plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation modify DN plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -922,25 +923,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-operation-modify-dn</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-post-operation-modify-dn
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-search" mandatory="false">
+  <adm:property name="plugin-order-post-operation-search">
     <adm:synopsis>
-      Specifies the order in which post-operation search plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation search plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation search plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation search plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -953,21 +956,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-operation-unbind" mandatory="false">
+  <adm:property name="plugin-order-post-operation-unbind">
     <adm:synopsis>
-      Specifies the order in which post-operation unbind plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-operation unbind plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation unbind plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation unbind plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -980,21 +983,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-add" mandatory="false">
+  <adm:property name="plugin-order-post-response-add">
     <adm:synopsis>
-      Specifies the order in which post-response add plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which post-response add plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response add plugins are loaded and invoked
-          will be undefined.
+          The order in which post-response add plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1007,15 +1010,15 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-bind" mandatory="false">
+  <adm:property name="plugin-order-post-response-bind">
     <adm:synopsis>
-      Specifies the order in which post-response bind plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which post-response bind plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
@@ -1034,21 +1037,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-compare" mandatory="false">
+  <adm:property name="plugin-order-post-response-compare">
     <adm:synopsis>
-      Specifies the order in which post-response compare plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-response compare plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response compare plugins are loaded and
-          invoked will be undefined.
+          The order in which post-response compare plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1061,21 +1064,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-delete" mandatory="false">
+  <adm:property name="plugin-order-post-response-delete">
     <adm:synopsis>
-      Specifies the order in which post-response delete plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-response delete plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response delete plugins are loaded and invoked
-          will be undefined.
+          The order in which post-response delete plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1088,21 +1091,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-extended" mandatory="false">
+  <adm:property name="plugin-order-post-response-extended">
     <adm:synopsis>
-      Specifies the order in which post-response extended operation plugins
-      should be loaded and invoked.  The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-response extended operation
+      plugins should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response extended operation plugins are loaded
-          and invoked will be undefined.
+          The order in which post-response extended operation plugins
+          are loaded and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1111,25 +1114,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-response-extended</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-post-response-extended
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-modify" mandatory="false">
+  <adm:property name="plugin-order-post-response-modify">
     <adm:synopsis>
-      Specifies the order in which post-response modify plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-response modify plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response modify plugins are loaded and invoked
-          will be undefined.
+          The order in which post-response modify plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1142,132 +1147,137 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-modify-dn" mandatory="false">
+  <adm:property name="plugin-order-post-response-modify-dn">
     <adm:synopsis>
-      Specifies the order in which post-response modify DN plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-response modify DN plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response modify DN plugins are loaded and
-          invoked will be undefined.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-response-modify-dn</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-
-  <adm:property name="plugin-order-post-synchronization-add" mandatory="false">
-    <adm:synopsis>
-      Specifies the order in which post-synchronization add plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The order in which post-synchronization add plugins are loaded and
-          invoked will be undefined.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-synchronization-add</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-
-  <adm:property name="plugin-order-post-synchronization-delete"
-    mandatory="false">
-    <adm:synopsis>
-      Specifies the order in which post-synchronization delete plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The order in which post-synchronization delete plugins are loaded and
-          invoked will be undefined.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-synchronization-delete</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-
-  <adm:property name="plugin-order-post-synchronization-modify"
-    mandatory="false">
-    <adm:synopsis>
-      Specifies the order in which post-synchronization modify plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The order in which post-synchronization modify plugins are loaded and
-          invoked will be undefined.
-        </adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-post-synchronization-modify</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-
-  <adm:property name="plugin-order-post-synchronization-modify-dn"
-    mandatory="false">
-    <adm:synopsis>
-      Specifies the order in which post-synchronization modify DN plugins should
-      be loaded and invoked.  The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The order in which post-synchronization modify DN plugins are loaded
+          The order in which post-response modify DN plugins are loaded
           and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-plugin-order-post-response-modify-dn
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="plugin-order-post-synchronization-add">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization add plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization add plugins are loaded
+          and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-plugin-order-post-synchronization-add
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="plugin-order-post-synchronization-delete">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization delete plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization delete plugins are
+          loaded and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-plugin-order-post-synchronization-delete
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="plugin-order-post-synchronization-modify">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization modify plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization modify plugins are
+          loaded and invoked will be undefined.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-plugin-order-post-synchronization-modify
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="plugin-order-post-synchronization-modify-dn">
+    <adm:synopsis>
+      Specifies the order in which post-synchronization modify DN
+      plugins should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          The order in which post-synchronization modify DN plugins are
+          loaded and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1282,21 +1292,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-post-response-search" mandatory="false">
+  <adm:property name="plugin-order-post-response-search">
     <adm:synopsis>
-      Specifies the order in which post-response search plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which post-response search plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response search plugins are loaded and invoked
-          will be undefined.
+          The order in which post-response search plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1309,21 +1319,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-search-result-entry" mandatory="false">
+  <adm:property name="plugin-order-search-result-entry">
     <adm:synopsis>
-      Specifies the order in which search result entry plugins should be loaded
-      and invoked.  The value should be a comma-delimited list of plugin names
-      (where the plugin name is the RDN value from the plugin configuration
-      entry DN).  The list may include at most one asterisk to indicate the
-      position of any unspecified plugin (and the relative order of those
-      unspecified plugins will be undefined).
+      Specifies the order in which search result entry plugins should be
+      loaded and invoked. The value should be a comma-delimited list of
+      plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which search result entry plugins are loaded and invoked
-          will be undefined.
+          The order in which search result entry plugins are loaded and
+          invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1336,21 +1346,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-search-result-reference" mandatory="false">
+  <adm:property name="plugin-order-search-result-reference">
     <adm:synopsis>
-      Specifies the order in which search result reference plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which search result reference plugins
+      should be loaded and invoked. The value should be a
+      comma-delimited list of plugin names (where the plugin name is the
+      RDN value from the plugin configuration entry DN). The list may
+      include at most one asterisk to indicate the position of any
+      unspecified plugin (and the relative order of those unspecified
+      plugins will be undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which search result reference plugins are loaded and
-          invoked will be undefined.
+          The order in which search result reference plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1359,25 +1369,27 @@ xmlns:cli="http://www.opends.org/admin-cli">
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-plugin-order-search-result-reference</ldap:name>
+        <ldap:name>
+          ds-cfg-plugin-order-search-result-reference
+        </ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-subordinate-modify-dn" mandatory="false">
+  <adm:property name="plugin-order-subordinate-modify-dn">
     <adm:synopsis>
-      Specifies the order in which subordinate modify DN plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which subordinate modify DN plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which subordinate modify DN plugins are loaded and
-          invoked will be undefined.
+          The order in which subordinate modify DN plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1390,21 +1402,21 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-order-intermediate-response" mandatory="false">
+  <adm:property name="plugin-order-intermediate-response">
     <adm:synopsis>
-      Specifies the order in which intermediate response plugins should be
-      loaded and invoked.  The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN).  The list may include at most one asterisk to
-      indicate the position of any unspecified plugin (and the relative order of
-      those unspecified plugins will be undefined).
+      Specifies the order in which intermediate response plugins should
+      be loaded and invoked. The value should be a comma-delimited list
+      of plugin names (where the plugin name is the RDN value from the
+      plugin configuration entry DN). The list may include at most one
+      asterisk to indicate the position of any unspecified plugin (and
+      the relative order of those unspecified plugins will be
+      undefined).
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which intermediate response plugins are loaded and
-          invoked will be undefined.
+          The order in which intermediate response plugins are loaded
+          and invoked will be undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1417,6 +1429,4 @@ xmlns:cli="http://www.opends.org/admin-cli">
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-

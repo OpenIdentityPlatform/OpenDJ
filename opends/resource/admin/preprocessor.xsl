@@ -590,7 +590,15 @@
     <xsl:variable name="property"
       select="$hierarchy/adm:managed-object/adm:property[@name=$name]" />
     <xsl:element name="adm:property">
-      <xsl:copy-of select="$property/@*" />
+      <xsl:copy-of select="$property/@*[local-name() != 'advanced']" />
+      <xsl:choose>
+        <xsl:when test="@advanced">
+          <xsl:copy-of select="@advanced" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:copy-of select="$property/@advanced" />
+        </xsl:otherwise>
+      </xsl:choose>
       <xsl:apply-templates
         select="$property/adm:TODO | $property/adm:synopsis | $property/adm:description"
         mode="pre-process">
@@ -855,7 +863,6 @@
     <xsl:if test="@naming-property">
       <xsl:variable name="naming-property-name"
         select="@naming-property" />
-
       <!--
         FIXME: this does not cope with the situation where the property
         is inherited, referenced, or overridden.

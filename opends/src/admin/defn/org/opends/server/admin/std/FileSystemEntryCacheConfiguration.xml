@@ -1,85 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object
-  name="file-system-entry-cache"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="file-system-entry-cache"
   plural-name="file-system-entry-caches"
-  package="org.opends.server.admin.std"
-  extends="entry-cache"
+  package="org.opends.server.admin.std" extends="entry-cache"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap"
-  >
-
+  xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The <adm:user-friendly-name/> is an entry cache implementation which uses
-    a JE database to keep track of the entries.
+    The
+    <adm:user-friendly-name />
+    is an entry cache implementation which uses a JE database to keep
+    track of the entries.
   </adm:synopsis>
-
   <adm:description>
-    For the best performance the JE database should reside in a memory based
-    file system, although any file system will do for this cache to function.
-    Entries are maintained either by FIFO (default) or LRU (configurable)
-    based list implementation.
-
-    Cache sizing is based on the size or percentage of free space available in
-    the file system, such that if enough memory is free, then adding an entry
-    to the cache will not require purging, but if more than a specified
-    percentage of the file system available space is already consumed, then
-    one or more entries will need to be removed in order to make room for a
-    new entry.  It is also possible to configure a maximum number of entries
-    for the cache. If this is specified, then the number of entries will not
-    be allowed to exceed this value, but it may not be possible to hold this
-    many entries if the available memory fills up first.
-
-    Other configurable parameters for this cache include the maximum length of
-    time to block while waiting to acquire a lock, and a set of filters that
-    may be used to define criteria for determining which entries are stored in
-    the cache. If a set of filters are provided then an entry must match at
-    least one of them in order to be stored in the cache.
-
-    JE environment cache size can also be configured either as percentage of
-    the free memory available in the JVM, or as an absolute size in bytes.
-
-    This cache has a persistence property which, if enabled, allows for the
-    contents of the cache to persist across server or cache restarts.
+    For the best performance the JE database should reside in a memory
+    based file system, although any file system will do for this cache
+    to function. Entries are maintained either by FIFO (default) or LRU
+    (configurable) based list implementation. Cache sizing is based on
+    the size or percentage of free space available in the file system,
+    such that if enough memory is free, then adding an entry to the
+    cache will not require purging, but if more than a specified
+    percentage of the file system available space is already consumed,
+    then one or more entries will need to be removed in order to make
+    room for a new entry. It is also possible to configure a maximum
+    number of entries for the cache. If this is specified, then the
+    number of entries will not be allowed to exceed this value, but it
+    may not be possible to hold this many entries if the available
+    memory fills up first. Other configurable parameters for this cache
+    include the maximum length of time to block while waiting to acquire
+    a lock, and a set of filters that may be used to define criteria for
+    determining which entries are stored in the cache. If a set of
+    filters are provided then an entry must match at least one of them
+    in order to be stored in the cache. JE environment cache size can
+    also be configured either as percentage of the free memory available
+    in the JVM, or as an absolute size in bytes. This cache has a
+    persistence property which, if enabled, allows for the contents of
+    the cache to persist across server or cache restarts.
   </adm:description>
-
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-file-system-entry-cache</ldap:name>
       <ldap:superior>ds-cfg-entry-cache</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property name="lock-timeout">
+  <adm:property name="lock-timeout" advanced="true">
     <adm:synopsis>
-      The length of time in milliseconds to wait while
-      attempting to acquire a read or write lock.
+      The length of time to wait while attempting to acquire a read or
+      write lock.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -87,7 +78,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:duration base-unit="ms" allow-unlimited="true"/>
+      <adm:duration base-unit="ms" allow-unlimited="true" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -95,7 +86,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="max-memory-size">
     <adm:synopsis>
       The maximum size of the entry cache in bytes.
@@ -106,7 +96,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size/>
+      <adm:size />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -114,7 +104,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="max-entries">
     <adm:synopsis>
       The maximum number of entries allowed in the cache.
@@ -125,7 +114,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0"/>
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -133,14 +122,13 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="cache-type">
     <adm:synopsis>
-      Specifies the policy which should be used for purging entries from the
-      cache. FIFO by default and LRU as configurable.
+      Specifies the policy which should be used for purging entries from
+      the cache.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -150,14 +138,10 @@
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="fifo">
-          <adm:synopsis>
-            FIFO based entry cache.
-          </adm:synopsis>
+          <adm:synopsis>FIFO based entry cache.</adm:synopsis>
         </adm:value>
         <adm:value name="lru">
-        <adm:synopsis>
-            LRU based entry cache.
-        </adm:synopsis>
+          <adm:synopsis>LRU based entry cache.</adm:synopsis>
         </adm:value>
       </adm:enumeration>
     </adm:syntax>
@@ -167,14 +151,13 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="cache-directory">
+  <adm:property name="cache-directory" mandatory="true">
     <adm:synopsis>
-      Specifies the directory in which the JE environment should store the
-      cache.
+      Specifies the directory in which the JE environment should store
+      the cache.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -182,7 +165,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string/>
+      <adm:string />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -190,7 +173,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="persistent-cache">
     <adm:synopsis>
       Specifies whether the cache should persist across restarts.
@@ -201,7 +183,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:boolean/>
+      <adm:boolean />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -209,20 +191,22 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="compact-encoding">
     <adm:synopsis>
-      Indicates whether the cache should use a compact form when encoding
-      cache entries by compressing the attribute descriptions and object
-      class sets. Note that compression does not preserve user-supplied
-      capitalization in the object class and attribute type names.
+      Indicates whether the cache should use a compact form when
+      encoding cache entries by compressing the attribute descriptions
+      and object class sets.
     </adm:synopsis>
+    <adm:description>
+      Note that compression does not preserve user-supplied
+      capitalization in the object class and attribute type names.
+    </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changing this property will only affect the encoding of the cache
-          entries put in the cache after the change is made. It will not be
-          retroactively applied to existing cache entries.
+          Changing this property will only affect the encoding of the
+          cache entries put in the cache after the change is made. It
+          will not be retroactively applied to existing cache entries.
         </adm:synopsis>
       </adm:none>
     </adm:requires-admin-action>
@@ -232,7 +216,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:boolean/>
+      <adm:boolean />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -240,7 +224,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="db-cache-percent">
     <adm:synopsis>
       The maximum memory usage for the internal JE cache as a percentage
@@ -252,7 +235,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0" upper-limit="100"/>
+      <adm:integer lower-limit="0" upper-limit="100" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -260,7 +243,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="db-cache-size">
     <adm:synopsis>
       The maximum JVM memory usage in bytes for the internal JE cache.
@@ -271,7 +253,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size/>
+      <adm:size />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -279,20 +261,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="je-property"
-    multi-valued="true">
+  <adm:property name="je-property" multi-valued="true"
+    advanced="true">
     <adm:synopsis>
       Specifies the environment properties for the Berkeley DB Java
       Edition database providing the backend for this entry cache.
     </adm:synopsis>
     <adm:description>
       Any Berkeley DB Java Edition property can be specified using the
-      following form: property-name=property-value
-      Refer to OpenDS documentation for further information on related
-      properties, their implications and range values. The definitive
-      identification of all the property parameters available in the
-      example.properties file of Berkeley DB Java Edition distribution.
+      following form: property-name=property-value Refer to OpenDS
+      documentation for further information on related properties, their
+      implications and range values. The definitive identification of
+      all the property parameters available in the example.properties
+      file of Berkeley DB Java Edition distribution.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -313,11 +294,9 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property-reference name="include-filter"/>
-  <adm:property-reference name="exclude-filter"/>
-
-  <adm:property-override name="java-class">
+  <adm:property-reference name="include-filter" />
+  <adm:property-reference name="exclude-filter" />
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -326,5 +305,4 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
 </adm:managed-object>

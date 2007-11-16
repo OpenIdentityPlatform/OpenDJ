@@ -1,54 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object name="plugin"
-  plural-name="plugins"
-  package="org.opends.server.admin.std" abstract="false"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="plugin" plural-name="plugins"
+  package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     provide a mechanism for executing custom code at specified points in
-    operation processing and in the course of other events like connection
-    establishment and termination, server startup and shutdown, and LDIF import
-    and export.
+    operation processing and in the course of other events like
+    connection establishment and termination, server startup and
+    shutdown, and LDIF import and export.
   </adm:synopsis>
-
-  <adm:tag name="core"/>
-
+  <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-plugin</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicate whether the
@@ -83,12 +77,11 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="plugin-type" mandatory="true" multi-valued="true">
+  <adm:property name="plugin-type" mandatory="true"
+    multi-valued="true">
     <adm:synopsis>
-      The plugin types, which define the conditions under which this plugin
-      should be invoked.  The plugin must be disabled and re-enabled for plugin
-      type changes to take effect.
+      The plugin types, which define the conditions under which this
+      plugin should be invoked.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:component-restart />
@@ -107,13 +100,14 @@
         </adm:value>
         <adm:value name="postconnect">
           <adm:synopsis>
-            Invoked whenever a new connection is established to the server.
+            Invoked whenever a new connection is established to the
+            server.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postdisconnect">
           <adm:synopsis>
-            Invoked whenever an existing connection is terminated (by either
-            the client or the server).
+            Invoked whenever an existing connection is terminated (by
+            either the client or the server).
           </adm:synopsis>
         </adm:value>
         <adm:value name="ldifimport">
@@ -123,7 +117,8 @@
         </adm:value>
         <adm:value name="ldifexport">
           <adm:synopsis>
-            Invoked for each operation to be written during an LDIF export.
+            Invoked for each operation to be written during an LDIF
+            export.
           </adm:synopsis>
         </adm:value>
         <adm:value name="preparseabandon">
@@ -223,8 +218,8 @@
         </adm:value>
         <adm:value name="postoperationadd">
           <adm:synopsis>
-            Invoked after completing the core add processing but before sending
-            the response to the client.
+            Invoked after completing the core add processing but before
+            sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationbind">
@@ -235,38 +230,38 @@
         </adm:value>
         <adm:value name="postoperationcompare">
           <adm:synopsis>
-            Invoked after completing the core compare processing but before
-            sending the response to the client.
+            Invoked after completing the core compare processing but
+            before sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationdelete">
           <adm:synopsis>
-            Invoked after completing the core delete processing but before
-            sending the response to the client.
+            Invoked after completing the core delete processing but
+            before sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationextended">
           <adm:synopsis>
-            Invoked after completing the core extended processing but before
-            sending the response to the client.
+            Invoked after completing the core extended processing but
+            before sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationmodify">
           <adm:synopsis>
-            Invoked after completing the core modify processing but before
-            sending the response to the client.
+            Invoked after completing the core modify processing but
+            before sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationmodifydn">
           <adm:synopsis>
-            Invoked after completing the core modify DN processing but before
-            sending the response to the client.
+            Invoked after completing the core modify DN processing but
+            before sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationsearch">
           <adm:synopsis>
-            Invoked after completing the core search processing but before
-            sending the response to the client.
+            Invoked after completing the core search processing but
+            before sending the response to the client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postoperationunbind">
@@ -311,31 +306,32 @@
         </adm:value>
         <adm:value name="postresponsesearch">
           <adm:synopsis>
-            Invoked after sending the search result done message to the client.
+            Invoked after sending the search result done message to the
+            client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postsynchronizationadd">
           <adm:synopsis>
-            Invoked after completing post-synchronization processing for an add
-            operation.
+            Invoked after completing post-synchronization processing for
+            an add operation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postsynchronizationdelete">
           <adm:synopsis>
-            Invoked after completing post-synchronization processing for a
-            delete operation.
+            Invoked after completing post-synchronization processing for
+            a delete operation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postsynchronizationmodify">
           <adm:synopsis>
-            Invoked after completing post-synchronization processing for a
-            modify operation.
+            Invoked after completing post-synchronization processing for
+            a modify operation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postsynchronizationmodifydn">
           <adm:synopsis>
-            Invoked after completing post-synchronization processing for a
-            modify DN operation.
+            Invoked after completing post-synchronization processing for
+            a modify DN operation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="searchresultentry">
@@ -345,19 +341,20 @@
         </adm:value>
         <adm:value name="searchresultreference">
           <adm:synopsis>
-            Invoked before sending a search result reference to the client.
+            Invoked before sending a search result reference to the
+            client.
           </adm:synopsis>
         </adm:value>
         <adm:value name="subordinatemodifydn">
           <adm:synopsis>
-            Invoked in the course of moving or renaming an entry subordinate to
-            the target of a modify DN operation.
+            Invoked in the course of moving or renaming an entry
+            subordinate to the target of a modify DN operation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="intermediateresponse">
           <adm:synopsis>
-            Invoked before sending an intermediate repsonse message to the
-            client.
+            Invoked before sending an intermediate repsonse message to
+            the client.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -368,14 +365,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="invoke-for-internal-operations" mandatory="false">
+  <adm:property name="invoke-for-internal-operations" advanced="true">
     <adm:synopsis>
-      Indicates whether the plugin should be invoked for internal operations.
-      Note that any plugin which may be invoked for internal operations should
-      be careful to ensure that they do not create any new internal operatons
-      that can cause the same plugin to be re-invoked.
+      Indicates whether the plugin should be invoked for internal
+      operations.
     </adm:synopsis>
+    <adm:description>
+      Note that any plugin which may be invoked for internal operations
+      should be careful to ensure that they do not create any new
+      internal operatons that can cause the same plugin to be
+      re-invoked.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>true</adm:value>
@@ -390,6 +390,4 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
 </adm:managed-object>
-

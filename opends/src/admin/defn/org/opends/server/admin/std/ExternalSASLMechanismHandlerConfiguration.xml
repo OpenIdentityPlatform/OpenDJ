@@ -1,51 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="external-sasl-mechanism-handler"
   plural-name="external-sasl-mechanism-handlers"
   package="org.opends.server.admin.std" extends="sasl-mechanism-handler"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to perform all processing related to SASL EXTERNAL authentication.
+    is used to perform all processing related to SASL EXTERNAL
+    authentication.
   </adm:synopsis>
-
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-external-sasl-mechanism-handler</ldap:name>
       <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -54,41 +51,29 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
   <adm:property name="certificate-validation-policy" mandatory="true">
     <adm:synopsis>
-      Indicates whether to attempt to validate the peer certificate against a
-      value held in the user's entry.
+      Indicates whether to attempt to validate the peer certificate
+      against a certificate held in the user's entry.
     </adm:synopsis>
-    <adm:description>
-      Indicates whether the SASL EXTERNAL mechanism handler should attempt to
-      validate the peer certificate against a certificate in the corresponding
-      user's entry.  The value must be one of "true" (which will always
-      attempt to validate the certificate and will fail if no certificates are
-      present), "false" (which will never attempt to validate the peer
-      certificate), and "ifpresent" (which will validate the peer certificate
-      if there are one or more certificates in the user's entry, but will not
-      fail if there are no certificates in the entry.  Changes to this
-      configuration attribute will take effect immediately.
-    </adm:description>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="always">
           <adm:synopsis>
-            Always require the peer certificate to be present in the user's
-            entry.
+            Always require the peer certificate to be present in the
+            user's entry.
           </adm:synopsis>
         </adm:value>
         <adm:value name="ifpresent">
           <adm:synopsis>
-            If the user's entry contains one or more certificates, require that
-            one of them match the peer certificate.
+            If the user's entry contains one or more certificates,
+            require that one of them match the peer certificate.
           </adm:synopsis>
         </adm:value>
         <adm:value name="never">
           <adm:synopsis>
-            Do not look for the peer certificate to be present in the user's
-            entry.
+            Do not look for the peer certificate to be present in the
+            user's entry.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -99,17 +84,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="certificate-attribute" mandatory="false">
+  <adm:property name="certificate-attribute">
     <adm:synopsis>
-      Specifies the attribute that should hold user certificates.
+      Specifies the name of the attribute that should hold user
+      certificates.
     </adm:synopsis>
     <adm:description>
-      Specifies the name of the attribute that will be used to hold the
-      certificate information in user entries for the purpose of validation.
-      This must specify the name of a valid attribute type defined in the
-      server schema.  Changes to this configuration attribute will take effect
-      immediately.
+      This must specify the name of a valid attribute type defined in
+      the server schema.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -125,7 +107,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="certificate-mapper" mandatory="true">
     <adm:synopsis>
       Specifies the name of the certificate mapper that should be used
@@ -149,4 +130,3 @@
     </adm:profile>
   </adm:property>
 </adm:managed-object>
-

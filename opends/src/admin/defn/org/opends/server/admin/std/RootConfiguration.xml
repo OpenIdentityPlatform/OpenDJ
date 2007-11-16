@@ -84,9 +84,7 @@
   <adm:relation name="crypto-manager">
     <adm:one-to-one />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Crypto Manager,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Crypto Manager,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -232,9 +230,7 @@
   <adm:relation name="alert-handler">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Alert Handlers,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Alert Handlers,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -256,7 +252,7 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="backend">
-    <adm:one-to-many naming-property="backend-id"/>
+    <adm:one-to-many naming-property="backend-id" />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Backends,cn=config</ldap:rdn-sequence>
     </adm:profile>
@@ -349,9 +345,7 @@
   <adm:relation name="matching-rule">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Matching Rules,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Matching Rules,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -362,9 +356,7 @@
   <adm:relation name="attribute-syntax">
     <adm:one-to-many />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Syntaxes,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Syntaxes,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -422,13 +414,10 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  
   <adm:relation name="network-group">
-    <adm:one-to-many naming-property="network-group-id"/>
+    <adm:one-to-many naming-property="network-group-id" />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Network Groups,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Network Groups,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -437,11 +426,9 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="workflow">
-    <adm:one-to-many naming-property="workflow-id"/>
+    <adm:one-to-many naming-property="workflow-id" />
     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Workflows,cn=config
-      </ldap:rdn-sequence>
+      <ldap:rdn-sequence>cn=Workflows,cn=config</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -450,7 +437,7 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="workflow-element">
-    <adm:one-to-many naming-property="workflow-element-id"/>
+    <adm:one-to-many naming-property="workflow-element-id" />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
         cn=Workflow elements,cn=config
@@ -462,7 +449,6 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-
   <adm:product-name>OpenDS Directory Server</adm:product-name>
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>

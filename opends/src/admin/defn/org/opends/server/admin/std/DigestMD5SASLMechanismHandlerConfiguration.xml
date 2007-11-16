@@ -1,31 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="digest-md5-sasl-mechanism-handler"
   plural-name="digest-md5-sasl-mechanism-handlers"
   package="org.opends.server.admin.std" extends="sasl-mechanism-handler"
@@ -43,7 +42,7 @@
       <ldap:superior>ds-cfg-sasl-mechanism-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -52,21 +51,20 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="realm" mandatory="false">
+  <adm:property name="realm">
     <adm:synopsis>
-      The realm that should be used for DIGEST-MD5 authentication.
+      Specifies the realm that should be used by the server for
+      DIGEST-MD5 authentication.
     </adm:synopsis>
     <adm:description>
-      Specifies the realm that should be used by the server for DIGEST-MD5
-      authentication.  If this is not provided, then the server will default
-      to using a set of realm names that correspond to the defined suffixes.
-      Changes to this configuration attribute will take effect immediately.
+      If this is not provided, then the server will default to using a
+      set of realm names that correspond to the defined suffixes.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will default to a set of realm names that correspond to the
-          defined suffixes.
+          The server will default to a set of realm names that
+          correspond to the defined suffixes.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -101,23 +99,20 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="server-fqdn" mandatory="false">
+  <adm:property name="server-fqdn">
     <adm:synopsis>
-      Specifies the fully-qualified domain name for the system.  This is the
-      value expected to be present in the host field of the digest-uri-value
-      element.
+      Specifies the DNS-resolvable fully-qualified domain name for the
+      system.
     </adm:synopsis>
     <adm:description>
-      Specifies the DNS-resolvable fully-qualified domain name for the system.
-      If this is not provided, then the server will attempt to determine this
-      dynamically.  Changes to this configuration attribute will take effect
-      immediately.
+      This is the value expected to be present in the host field of the
+      digest-uri-value element.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will attempt to dynamically determine the fully-qualified
-          domain name.
+          The server will attempt to dynamically determine the
+          fully-qualified domain name.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -131,4 +126,3 @@
     </adm:profile>
   </adm:property>
 </adm:managed-object>
-

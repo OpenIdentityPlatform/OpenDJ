@@ -1,63 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-! CDDL HEADER START
-!
-! The contents of this file are subject to the terms of the
-! Common Development and Distribution License, Version 1.0 only
-! (the "License").  You may not use this file except in compliance
-! with the License.
-!
-! You can obtain a copy of the license at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
-! See the License for the specific language governing permissions
-! and limitations under the License.
-!
-! When distributing Covered Code, include this CDDL HEADER in each
-! file and include the License file at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-! add the following below this CDDL HEADER, with the fields enclosed
-! by brackets "[]" replaced with your own identifying information:
-!      Portions Copyright [yyyy] [name of copyright owner]
-!
-! CDDL HEADER END
-!
-!
-!      Portions Copyright 2007 Sun Microsystems, Inc.
-! -->
-
-<adm:managed-object
-  name="static-group-implementation"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="static-group-implementation"
   plural-name="static-group-implementations"
-  package="org.opends.server.admin.std"
-  extends="group-implementation"
+  package="org.opends.server.admin.std" extends="group-implementation"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
-    The <adm:user-friendly-name /> provides a grouping mechanism in which the
-    group membership is based on an explicit list of the DNs of the users that
-    are members of the group.  Note that it is possible to nest static groups,
-    which can be accomplished by including the DN of a nested group in the
-    member list for the parent group.
+    The
+    <adm:user-friendly-name />
+    provides a grouping mechanism in which the group membership is based
+    on an explicit list of the DNs of the users that are members of the
+    group.
   </adm:synopsis>
-
+  <adm:description>
+    Note that it is possible to nest static groups, which can be
+    accomplished by including the DN of a nested group in the member
+    list for the parent group.
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-static-group-implementation</ldap:name>
       <ldap:superior>ds-cfg-group-implementation</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>
-          org.opends.server.extensions.StaticGroup
-        </adm:value>
+        <adm:value>org.opends.server.extensions.StaticGroup</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
 </adm:managed-object>
-

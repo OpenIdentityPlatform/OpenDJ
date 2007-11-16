@@ -30,24 +30,20 @@
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for establishing a mapping between a client
     certificate and the entry for the user that corresponds to that
     certificate.
   </adm:synopsis>
-
-  <adm:tag name="security"/>
-  <adm:tag name="user-management"/>
-
+  <adm:tag name="security" />
+  <adm:tag name="user-management" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-certificate-mapper</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicate whether the
@@ -63,7 +59,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the

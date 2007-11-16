@@ -1,52 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-! CDDL HEADER START
-!
-! The contents of this file are subject to the terms of the
-! Common Development and Distribution License, Version 1.0 only
-! (the "License").  You may not use this file except in compliance
-! with the License.
-!
-! You can obtain a copy of the license at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
-! See the License for the specific language governing permissions
-! and limitations under the License.
-!
-! When distributing Covered Code, include this CDDL HEADER in each
-! file and include the License file at
-! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-! add the following below this CDDL HEADER, with the fields enclosed
-! by brackets "[]" replaced with your own identifying information:
-!      Portions Copyright [yyyy] [name of copyright owner]
-!
-! CDDL HEADER END
-!
-!
-!      Portions Copyright 2007 Sun Microsystems, Inc.
-! -->
-
-<adm:managed-object
-    name="free-disk-space-log-retention-policy"
-    plural-name="free-disk-space-log-retention-policies"
-    package="org.opends.server.admin.std"
-    extends="log-retention-policy"
-    xmlns:adm="http://www.opends.org/admin"
-    xmlns:ldap="http://www.opends.org/admin-ldap">
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="free-disk-space-log-retention-policy"
+  plural-name="free-disk-space-log-retention-policies"
+  package="org.opends.server.admin.std" extends="log-retention-policy"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     Retention policy based on the free disk space available.
-    This policy is only available on Java 6.
   </adm:synopsis>
-
+  <adm:description>
+    This policy is only available on Java 6.
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-free-disk-space-log-retention-policy</ldap:name>
       <ldap:superior>ds-cfg-log-retention-policy</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -55,11 +51,8 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-
   <adm:property name="free-disk-space" mandatory="true">
-    <adm:synopsis>
-      The size of free disk space needed.
-    </adm:synopsis>
+    <adm:synopsis>The size of free disk space needed.</adm:synopsis>
     <adm:syntax>
       <adm:size lower-limit="1" />
     </adm:syntax>
@@ -70,4 +63,3 @@
     </adm:profile>
   </adm:property>
 </adm:managed-object>
-

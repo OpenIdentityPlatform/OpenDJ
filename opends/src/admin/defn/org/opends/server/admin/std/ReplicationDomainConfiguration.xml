@@ -1,43 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
+    A
     <adm:user-friendly-name />
-    is used to provide Multimaster Replication of several OpenDS copies
-    of the same data
+    comprises of several Directory Servers sharing the same synchronized
+    set of data.
   </adm:synopsis>
-  <adm:tag name="replication"/>
+  <adm:tag name="replication" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-replication-domain</ldap:name>
@@ -47,23 +46,21 @@
   <adm:property name="replication-server" multi-valued="true"
     mandatory="true">
     <adm:synopsis>
-      Specifies the addresses of the replication server to which this
+      Specifies the addresses of the Replication Servers within the
       <adm:user-friendly-name />
-      should try to connect at startup time.
+      to which the Directory Server should try to connect at startup
+      time.
     </adm:synopsis>
     <adm:description>
       Addresses must be specified using the syntax: hostname:port
     </adm:description>
-    <adm:requires-admin-action>
-      <adm:none />
-    </adm:requires-admin-action>
     <adm:syntax>
       <adm:string>
         <adm:pattern>
-          <adm:regex>.+:[0-9]+</adm:regex>
+          <adm:regex>^.+:[0-9]+$</adm:regex>
           <adm:usage>HOST:PORT</adm:usage>
           <adm:synopsis>
-            A hostname, followed by a ":" followed by a port number.
+            A host name followed by a ":" and a port number.
           </adm:synopsis>
         </adm:pattern>
       </adm:string>
@@ -74,17 +71,22 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="server-id" multi-valued="false" mandatory="true"
-    read-only="true">
+  <adm:property name="server-id" mandatory="true" read-only="true">
     <adm:synopsis>
-      Specifies the server ID of this multimaster provider.
+      Specifies a unique identifier for the Directory Server within the
+      <adm:user-friendly-name />
+      .
     </adm:synopsis>
     <adm:description>
-      Each multimaster provider must have a different server ID.
+      Each Directory Server within the same
+      <adm:user-friendly-name />
+      must have a different server ID. A Directory Server which is a
+      member of multiple
+      <adm:user-friendly-plural-name />
+      may use the same server ID for each of its
+      <adm:user-friendly-name />
+      configurations.
     </adm:description>
-    <adm:requires-admin-action>
-      <adm:none />
-    </adm:requires-admin-action>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
     </adm:syntax>
@@ -94,13 +96,12 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="base-dn" mandatory="true"
-    multi-valued="false" read-only="true">
+  <adm:property name="base-dn" mandatory="true" read-only="true">
     <adm:synopsis>
-      Specifies the base dn of the Multimaster Domain
+      Specifies the base DN of the replicated data.
     </adm:synopsis>
     <adm:syntax>
-      <adm:dn></adm:dn>
+      <adm:dn />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -108,11 +109,10 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="window-size" mandatory="false"
-    multi-valued="false">
+  <adm:property name="window-size" advanced="true">
     <adm:synopsis>
-      Specifies the window size that this domain will use when
-      communicating with replication servers.
+      Specifies the window size that the Directory Server will use when
+      communicating with Replication Servers.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -120,7 +120,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer></adm:integer>
+      <adm:integer />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -128,23 +128,25 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="heartbeat-interval" mandatory="false"
-    multi-valued="false">
+  <adm:property name="heartbeat-interval" advanced="true">
     <adm:synopsis>
-      Specifies the heartbeat interval that this Domain must use when
-      communicating with replication servers. The Domain will expect
-      regular heartbeat coming from the replication server with this
-      interval if they are not received it will close its connection and
-      connect to another replication server.
+      Specifies the heart-beat interval that the Directory Server will
+      use when communicating with Replication Servers.
     </adm:synopsis>
+    <adm:description>
+      The Directory Server will expect a regular heart-beat coming from
+      the Replication Server within the specified interval. If a
+      heartbeat is not received within the interval, the Directory
+      Server will close its connection and connect to another
+      Replication Server.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>1000ms</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:duration base-unit="ms" allow-unlimited="false"
-        lower-limit="100" />
+      <adm:duration base-unit="ms" lower-limit="100" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -152,24 +154,25 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="isolation-policy" mandatory="false"
-    multi-valued="false">
+  <adm:property name="isolation-policy">
     <adm:synopsis>
+      Specifies the behavior of the Directory Server if a write
+      operation is attempted on the data within the
       <adm:user-friendly-name />
-      indicates the behavior of the LDAP server if an update is attempted
-      when replication has been configured but none of the configured
-      Replication Servers are up an running when the update is received.
+      when none of the configured Replication Servers are available.
     </adm:synopsis>
     <adm:default-behavior>
-    	<adm:defined>
-    		<adm:value>reject-all-updates</adm:value></adm:defined></adm:default-behavior>
+      <adm:defined>
+        <adm:value>reject-all-updates</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="accept-all-updates">
           <adm:synopsis>
             Indicates that updates should be accepted even though it is
-            not possible to send them to any Replication Server.
-            Best effort will be made to re-send those updates to a
+            not possible to send them to any Replication Server. Best
+            effort will be made to re-send those updates to a
             Replication Servers when one of them is available, however
             those changes will be at risk because they will only be
             available from the historical information. This mode may
@@ -178,9 +181,9 @@
         </adm:value>
         <adm:value name="reject-all-updates">
           <adm:synopsis>
-            Indicates that all updates attempted on this replicated
-            base-dn on this server when no Replication Server is
-            available will be denied.
+            Indicates that all updates attempted on this
+            <adm:user-friendly-name />
+            will be rejected when no Replication Server is available.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>

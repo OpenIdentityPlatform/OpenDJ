@@ -33,32 +33,28 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to interact with clients using LDAP. In particular, it
-    provides full support for LDAPv3 and limited support for LDAPv2.
+    is used to interact with clients using LDAP.
   </adm:synopsis>
+  <adm:description>
+    In particular, it provides full support for LDAPv3 and limited
+    support for LDAPv2.
+  </adm:description>
   <adm:constraint>
     <adm:synopsis>
       A Key Manager Provider must be specified when this
       <adm:user-friendly-name />
-      is configured to use SSL.
+      is enabled and it is configured to use SSL or StartTLS.
     </adm:synopsis>
     <adm:condition>
       <adm:implies>
-        <adm:contains property="use-ssl" value="true" />
-        <adm:is-present property="key-manager-provider" />
-      </adm:implies>
-    </adm:condition>
-  </adm:constraint>
-  <adm:constraint>
-    <adm:synopsis>
-      A Key Manager Provider must be specified when this
-      <adm:user-friendly-name />
-      is configured to allow StartTLS.
-    </adm:synopsis>
-    <adm:condition>
-      <adm:implies>
-        <adm:contains property="allow-start-tls" value="true" />
-        <adm:is-present property="key-manager-provider" />
+        <adm:contains property="enabled" value="true" />
+        <adm:implies>
+          <adm:or>
+            <adm:contains property="use-ssl" value="true" />
+            <adm:contains property="allow-start-tls" value="true" />
+          </adm:or>
+          <adm:is-present property="key-manager-provider" />
+        </adm:implies>
       </adm:implies>
     </adm:condition>
   </adm:constraint>
@@ -66,25 +62,18 @@
     <adm:synopsis>
       A Trust Manager Provider must be specified when this
       <adm:user-friendly-name />
-      is configured to use SSL.
+      is enabled and it is configured to use SSL or StartTLS.
     </adm:synopsis>
     <adm:condition>
       <adm:implies>
-        <adm:contains property="use-ssl" value="true" />
-        <adm:is-present property="trust-manager-provider" />
-      </adm:implies>
-    </adm:condition>
-  </adm:constraint>
-  <adm:constraint>
-    <adm:synopsis>
-      A Trust Manager Provider must be specified when this
-      <adm:user-friendly-name />
-      is configured to allow StartTLS.
-    </adm:synopsis>
-    <adm:condition>
-      <adm:implies>
-        <adm:contains property="allow-start-tls" value="true" />
-        <adm:is-present property="trust-manager-provider" />
+        <adm:contains property="enabled" value="true" />
+        <adm:implies>
+          <adm:or>
+            <adm:contains property="use-ssl" value="true" />
+            <adm:contains property="allow-start-tls" value="true" />
+          </adm:or>
+          <adm:is-present property="trust-manager-provider" />
+        </adm:implies>
       </adm:implies>
     </adm:condition>
   </adm:constraint>
@@ -98,12 +87,15 @@
       to be used.
     </adm:synopsis>
     <adm:condition>
-      <adm:not>
-        <adm:and>
-          <adm:contains property="use-ssl" value="true" />
-          <adm:contains property="allow-start-tls" value="true" />
-        </adm:and>
-      </adm:not>
+      <adm:implies>
+        <adm:contains property="enabled" value="true" />
+        <adm:not>
+          <adm:and>
+            <adm:contains property="use-ssl" value="true" />
+            <adm:contains property="allow-start-tls" value="true" />
+          </adm:and>
+        </adm:not>
+      </adm:implies>
     </adm:condition>
   </adm:constraint>
   <adm:profile name="ldap">
@@ -112,7 +104,7 @@
       <ldap:superior>ds-cfg-connection-handler</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -288,7 +280,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="use-tcp-keep-alive">
+  <adm:property name="use-tcp-keep-alive" advanced="true">
     <adm:synopsis>
       Indicates whether the
       <adm:user-friendly-name />
@@ -318,7 +310,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="use-tcp-no-delay">
+  <adm:property name="use-tcp-no-delay" advanced="true">
     <adm:synopsis>
       Indicates whether the
       <adm:user-friendly-name />
@@ -348,7 +340,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="allow-tcp-reuse-address">
+  <adm:property name="allow-tcp-reuse-address" advanced="true">
     <adm:synopsis>
       Indicates whether the
       <adm:user-friendly-name />
@@ -379,7 +371,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="send-rejection-notice">
+  <adm:property name="send-rejection-notice" advanced="true">
     <adm:synopsis>
       Indicates whether the
       <adm:user-friendly-name />
@@ -404,7 +396,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="max-request-size">
+  <adm:property name="max-request-size" advanced="true">
     <adm:synopsis>
       Specifies the size of the largest LDAP request message that will
       be allowed by this
@@ -432,7 +424,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="num-request-handlers">
+  <adm:property name="num-request-handlers" advanced="true">
     <adm:synopsis>
       Specifies the number of request handlers that will be used to read
       requests from clients.
@@ -540,7 +532,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="accept-backlog">
+  <adm:property name="accept-backlog" advanced="true">
     <adm:synopsis>
       Specifies the maximum number of pending connection attempts that
       will be allowed to queue up in the accept backlog before the
@@ -635,13 +627,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="max-blocked-write-time-limit" mandatory="false">
+  <adm:property name="max-blocked-write-time-limit" advanced="true">
     <adm:synopsis>
       Specifies the maximum length of time that attempts to write data
-      to LDAP clients should be allowed to block. If an attempt to write
-      data to a client takes longer than this length of time, then the
-      client connection will be terminated.
+      to LDAP clients should be allowed to block.
     </adm:synopsis>
+    <adm:description>
+      If an attempt to write data to a client takes longer than this
+      length of time, then the client connection will be terminated.
+    </adm:description>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>2 minutes</adm:value>

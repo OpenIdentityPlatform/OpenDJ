@@ -1,53 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
 <adm:managed-object name="connection-handler"
   plural-name="connection-handlers"
-  package="org.opends.server.admin.std" abstract="true"
+  package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for handling all interaction with the clients,
     including accepting the connections, reading requests, and sending
     responses.
   </adm:synopsis>
-
-  <adm:tag name="core"/>
-
+  <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-connection-handler</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicate whether the
@@ -63,8 +58,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
-  <adm:property name="java-class" mandatory="true" advanced="true">
+  <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
@@ -83,24 +77,27 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="allowed-client" multi-valued="true">
     <adm:synopsis>
       This property specifies a set of address masks that may be used to
       determine the addresses of the clients that are allowed to
       establish connections to this connection handler.
     </adm:synopsis>
-    <adm:description>
-      Changes to this configuration attribute will take effect
-      immediately but will not interfere with connections that may
-      already be established.
-    </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this configuration attribute will take effect
+          immediately but will not interfere with connections that may
+          already be established.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
           All clients with addresses that do not match an address on the
-          deny list will be allowed.  If there is no deny list, then all clients
-          will be allowed.
+          deny list will be allowed. If there is no deny list, then all
+          clients will be allowed.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -113,7 +110,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-
   <adm:property name="denied-client" multi-valued="true">
     <adm:synopsis>
       This property specifies a set of address masks that may be used to
@@ -125,15 +121,22 @@
       connection matches one or more masks in both lists, then the
       connection will be denied. If only a denied list is specified,
       then any client not matching a mask in that list will be allowed.
-      Changes to this configuration attribute will take effect
-      immediately but will not interfere with connections that may
-      already be established.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          Changes to this configuration attribute will take effect
+          immediately but will not interfere with connections that may
+          already be established.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          If an allow list is specified, then only clients with addresses on the
-          allow list will be allowed.  Otherwise, all clients will be allowed.
+          If an allow list is specified, then only clients with
+          addresses on the allow list will be allowed. Otherwise, all
+          clients will be allowed.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

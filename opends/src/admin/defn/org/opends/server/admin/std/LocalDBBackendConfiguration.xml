@@ -1,50 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- ! CDDL HEADER START
- !
- ! The contents of this file are subject to the terms of the
- ! Common Development and Distribution License, Version 1.0 only
- ! (the "License").  You may not use this file except in compliance
- ! with the License.
- !
- ! You can obtain a copy of the license at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
- ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
- ! See the License for the specific language governing permissions
- ! and limitations under the License.
- !
- ! When distributing Covered Code, include this CDDL HEADER in each
- ! file and include the License file at
- ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- ! add the following below this CDDL HEADER, with the fields enclosed
- ! by brackets "[]" replaced with your own identifying information:
- !      Portions Copyright [yyyy] [name of copyright owner]
- !
- ! CDDL HEADER END
- !
- !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
-
-<adm:managed-object name="local-db-backend" plural-name="local-db-backends"
-  package="org.opends.server.admin.std"
-  extends="backend"
-  xmlns:adm="http://www.opends.org/admin"
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  ! -->
+<adm:managed-object name="local-db-backend"
+  plural-name="local-db-backends" package="org.opends.server.admin.std"
+  extends="backend" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap"
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     The primary backend provided by the OpenDS Directory Server uses the
-    Berkeley DB Java Edition to store user-provided data in a local repository.
-    It is the traditional "directory server" backend and is similar to the
-    backends provided by the Sun Java System Directory Server.
+    Berkeley DB Java Edition to store user-provided data in a local
+    repository.
   </adm:synopsis>
   <adm:description>
-    The <adm:user-friendly-name/> stores the entries in an encoded form and
-    also provides indexes that can be used to quickly locate target entries
-    based on different kinds of criteria.
-    The org.opends.server.backends.jeb.BackendImpl class provides the
-    implementation for this backend, and therefore should be used as the
-    value of the java-class property.
+    It is the traditional "directory server" backend and is similar to
+    the backends provided by the Sun Java System Directory Server. The
+    <adm:user-friendly-name />
+    stores the entries in an encoded form and also provides indexes that
+    can be used to quickly locate target entries based on different
+    kinds of criteria.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -53,11 +50,9 @@
     </ldap:object-class>
   </adm:profile>
   <adm:relation name="local-db-index">
-    <adm:one-to-many naming-property="attribute"/>
-     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Index
-      </ldap:rdn-sequence>
+    <adm:one-to-many naming-property="attribute" />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Index</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -66,11 +61,9 @@
     </adm:profile>
   </adm:relation>
   <adm:relation name="local-db-vlv-index">
-    <adm:one-to-many naming-property="name"/>
-     <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=VLV Index
-      </ldap:rdn-sequence>
+    <adm:one-to-many naming-property="name" />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=VLV Index</ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
       <cli:relation>
@@ -81,7 +74,7 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:property-override name="java-class">
+  <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -90,13 +83,19 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="deadlock-retry-limit"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property-override name="writability-mode">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>enabled</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="deadlock-retry-limit" advanced="true">
     <adm:synopsis>
-      Specifies the number of times that the server should retry an attempted
-      operation in the backend if a deadlock results from two concurrent
-      requests that interfere with each other in a conflicting manner.
+      Specifies the number of times that the server should retry an
+      attempted operation in the backend if a deadlock results from two
+      concurrent requests that interfere with each other in a
+      conflicting manner.
     </adm:synopsis>
     <adm:description>
       A value of "0" indicates no limit.
@@ -107,7 +106,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="0" />
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -115,23 +114,22 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-directory"
-    mandatory="true"
-    multi-valued="false">
+  <adm:property name="db-directory" mandatory="true">
+    <adm:TODO>Default this to the db/backend-id</adm:TODO>
     <adm:synopsis>
-      Specifies the path to the filesystem directory that will be used to hold
-      the Berkeley DB Java Edition database files containing the data for this
-      backend.
+      Specifies the path to the filesystem directory that will be used
+      to hold the Berkeley DB Java Edition database files containing the
+      data for this backend.
     </adm:synopsis>
     <adm:description>
       The path may be either an absolute path or a path relative to the
-      directory containing the base of the OpenDS Directory Server installation.
-      The path may be any valid directory path in which the server has
-      appropriate permissions to read and write files and has sufficient space
-      to hold the database contents.
+      directory containing the base of the OpenDS Directory Server
+      installation. The path may be any valid directory path in which
+      the server has appropriate permissions to read and write files and
+      has sufficient space to hold the database contents.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:syntax>
       <adm:string />
@@ -142,25 +140,24 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="compact-encoding"
-                mandatory="false"
-                multi-valued="false">
+  <adm:property name="compact-encoding">
     <adm:synopsis>
-      Indicates whether the backend should use a compact form when encoding
-      entries by compressing the attribute descriptions and object class sets.
+      Indicates whether the backend should use a compact form when
+      encoding entries by compressing the attribute descriptions and
+      object class sets.
     </adm:synopsis>
     <adm:description>
-      Note that this property applies only to the entries themselves
-      and does not impact the index data.
+      Note that this property applies only to the entries themselves and
+      does not impact the index data.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          Changes to this setting will only take effect for writes that occur
-          after the change is made.  It will not be retroactively applied to
-          existing data.
+          Changes to this setting will only take effect for writes that
+          occur after the change is made. It will not be retroactively
+          applied to existing data.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -176,26 +173,25 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="entries-compressed"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="entries-compressed" advanced="true">
     <adm:synopsis>
-      Indicates whether the backend should attempt to compress entries before
-      storing them in the database.
+      Indicates whether the backend should attempt to compress entries
+      before storing them in the database.
     </adm:synopsis>
     <adm:description>
-      Note that this property applies only to the entries themselves
-      and does not impact the index data.  Further, the effectiveness of the
-      compression will be based on the type of data contained in the entry.
+      Note that this property applies only to the entries themselves and
+      does not impact the index data. Further, the effectiveness of the
+      compression will be based on the type of data contained in the
+      entry.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          Changes to this setting will only take effect for writes that occur
-          after the change is made.  It will not be retroactively applied to
-          existing data.
+          Changes to this setting will only take effect for writes that
+          occur after the change is made. It will not be retroactively
+          applied to existing data.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -211,20 +207,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-buffer-size"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="import-buffer-size" advanced="true">
     <adm:synopsis>
       Specifies the amount of memory that should be used as an internal
       buffer for index information when processing an LDIF import.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          No admin action required, although changes will not take effect for
-          any import that may already be in progress.
+          Changes will not take effect for any import that may already
+          be in progress.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -232,7 +226,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size lower-limit="10mb"/>
+      <adm:size lower-limit="10mb" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -240,30 +234,28 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-pass-size"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="import-pass-size" advanced="true">
     <adm:synopsis>
-      Specifies the maximum number of entries that should be imported in each
-      import pass.
+      Specifies the maximum number of entries that should be imported in
+      each import pass.
     </adm:synopsis>
     <adm:description>
-      An import pass consists of the processing required to import a set of
-      entries as well as the index post-processing required to index those
-      entries.  A value of zero for this property indicates that all entries
-      should be processed in a single pass, which is the recommended
-      configuration for most deployments, although a non-zero value may be
-      required when importing a very large number of entries if the amount
-      of memory required for index post-processing exceeds the total amount
-      available to the server.
+      An import pass consists of the processing required to import a set
+      of entries as well as the index post-processing required to index
+      those entries. A value of zero for this property indicates that
+      all entries should be processed in a single pass, which is the
+      recommended configuration for most deployments, although a
+      non-zero value may be required when importing a very large number
+      of entries if the amount of memory required for index
+      post-processing exceeds the total amount available to the server.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          No admin action required, although changes will not take effect for
-          any import that may already be in progress.
+          Changes will not take effect for any import that may already
+          be in progress.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -271,7 +263,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="0"  upper-limit="2147483647" />
+      <adm:integer lower-limit="0" upper-limit="2147483647" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -279,20 +271,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-queue-size"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="import-queue-size" advanced="true">
     <adm:synopsis>
-      Specifies the size (in number of entries) of the queue that will be used
-      to hold the entries read during an LDIF import.
+      Specifies the size (in number of entries) of the queue that will
+      be used to hold the entries read during an LDIF import.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          No admin action required, although changes will not take effect for
-          any import that may already be in progress.
+          Changes will not take effect for any import that may already
+          be in progress.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -300,7 +290,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="1" />
+      <adm:integer lower-limit="1" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -308,30 +298,31 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-temp-directory"
-    mandatory="true"
-    multi-valued="false">
+  <adm:property name="import-temp-directory" mandatory="true">
+    <adm:TODO>
+      Default to something derived from the backend-id
+    </adm:TODO>
     <adm:synopsis>
       Specifies the location of the directory that will be used for the
-      files used to hold temporary information that will be used during the
-      index post-processing phase of an LDIF import.
+      files used to hold temporary information that will be used during
+      the index post-processing phase of an LDIF import.
     </adm:synopsis>
     <adm:description>
-      The specified directory will only be used while an import is in progress
-      and the files created in this directory will be deleted as they are
-      processed. It may be an absolute path or one that is relative to the
-      instance root directory.
+      The specified directory will only be used while an import is in
+      progress and the files created in this directory will be deleted
+      as they are processed. It may be an absolute path or one that is
+      relative to the instance root directory.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          No admin action required, although changes will not take effect for
-          any import that may already be in progress.
+          Changes will not take effect for any import that may already
+          be in progress.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:undefined/>
+      <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />
@@ -342,25 +333,23 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-thread-count"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="import-thread-count" advanced="true">
     <adm:synopsis>
       Specifies the number of threads that will be used for concurrent
       processing during an LDIF import.
     </adm:synopsis>
     <adm:description>
-      This should generally be a small multiple (e.g., 2x) of the number of CPUs
-      in the system for a traditional system, or equal to the number of CPU
-      strands for a CMT system.
+      This should generally be a small multiple (e.g., 2x) of the number
+      of CPUs in the system for a traditional system, or equal to the
+      number of CPU strands for a CMT system.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          No admin action required, although changes will not take effect for
-          any import that may already be in progress.
+          Changes will not take effect for any import that may already
+          be in progress.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -368,7 +357,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="1" />
+      <adm:integer lower-limit="1" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -376,28 +365,26 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="index-entry-limit"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="index-entry-limit">
     <adm:synopsis>
       Specifies the maximum number of entries that will be allowed to
-      match a given index key before that particular index key is no longer
-      maintained (i.e., it is analogous to the ALL IDs threshold in the Sun
-      Java System Directory Server). Note that this is the default limit for
-      the backend, and it may be overridden on a per-attribute basis.
+      match a given index key before that particular index key is no
+      longer maintained.
     </adm:synopsis>
     <adm:description>
-      Note that this is the default limit for the backend, and it may be
-      overridden on a per-attribute basis. A value of 0 means there is no limit.
+      This property is analogous to the ALL IDs threshold in the Sun
+      Java System Directory Server. Note that this is the default limit
+      for the backend, and it may be overridden on a per-attribute
+      basis.A value of 0 means there is no limit.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:other>
+      <adm:none>
         <adm:synopsis>
-          No admin action is required, although if any index keys have already
-          reached this limit, indexes will need to be rebuilt before they will
-          be allowed to use the new limit.
+          If any index keys have already reached this limit, indexes
+          will need to be rebuilt before they will be allowed to use the
+          new limit.
         </adm:synopsis>
-      </adm:other>
+      </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -405,7 +392,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="0" />
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -413,26 +400,24 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-directory-permissions"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-directory-permissions" advanced="true">
     <adm:synopsis>
       Specifies the permissions that should be applied to the directory
-      containing the server database files.  They should be expressed as
-      three-digit octal values, which is the traditional representation for
-      UNIX file permissions.
+      containing the server database files.
     </adm:synopsis>
     <adm:description>
-      The three digits represent the permissions that will be available for the
-      directory's owner, group members, and other users (in that order), and
-      each digit is the octal representation of the read, write, and execute
-      bits.
-      Note that this only impacts permissions on the database directory and
-      not on the files written into that directory. On UNIX systems, the
-      user's umask will control permissions given to the database files.
+      They should be expressed as three-digit octal values, which is the
+      traditional representation for UNIX file permissions. The three
+      digits represent the permissions that will be available for the
+      directory's owner, group members, and other users (in that order),
+      and each digit is the octal representation of the read, write, and
+      execute bits. Note that this only impacts permissions on the
+      database directory and not on the files written into that
+      directory. On UNIX systems, the user's umask will control
+      permissions given to the database files.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:server-restart/>
+      <adm:server-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -442,11 +427,11 @@
     <adm:syntax>
       <adm:string>
         <adm:pattern>
-          <adm:regex>7[0-7][0-7]</adm:regex>
+          <adm:regex>^7[0-7][0-7]$</adm:regex>
           <adm:usage>MODE</adm:usage>
           <adm:synopsis>
-            Any octal value between 700 and 777 (the owner must always have
-            read, write, and execute permissions on the directory).
+            Any octal value between 700 and 777 (the owner must always
+            have read, write, and execute permissions on the directory).
           </adm:synopsis>
         </adm:pattern>
       </adm:string>
@@ -457,17 +442,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="preload-time-limit"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="preload-time-limit" advanced="true">
     <adm:synopsis>
       Specifies the length of time that the backend will be allowed to
       spend "pre-loading" data when it is initialized.
     </adm:synopsis>
     <adm:description>
-      The pre-load process may be used to pre-populate the database cache so
-      that it can be more quickly available when the server is processing
-      requests.  A duration of zero means there will be no pre-load.
+      The pre-load process may be used to pre-populate the database
+      cache so that it can be more quickly available when the server is
+      processing requests. A duration of zero means there will be no
+      pre-load.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -475,7 +459,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:duration base-unit="ms" lower-limit="0"/>
+      <adm:duration base-unit="ms" lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -483,17 +467,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="subtree-delete-size-limit"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="subtree-delete-size-limit" advanced="true">
     <adm:synopsis>
-      Specifies the maximum number of entries that may be deleted from the
-      backend when using the subtree delete control.
+      Specifies the maximum number of entries that may be deleted from
+      the backend when using the subtree delete control.
     </adm:synopsis>
     <adm:description>
-      If a subtree delete operation targets a subtree with more than this
-      number of entries, then multiple passes may be required to remove all
-      entries in that subtree.
+      If a subtree delete operation targets a subtree with more than
+      this number of entries, then multiple passes may be required to
+      remove all entries in that subtree.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -501,7 +483,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="0" />
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -509,17 +491,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="subtree-delete-batch-size"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="subtree-delete-batch-size" advanced="true">
     <adm:synopsis>
-      Specifies the maximum number of entries that may be deleted from the
-      backend when using the subtree delete control within a single transaction.
+      Specifies the maximum number of entries that may be deleted from
+      the backend when using the subtree delete control within a single
+      transaction.
     </adm:synopsis>
     <adm:description>
-      If a subtree delete operation targets a subtree with more than this
-      number of entries, then additional transactions are used to remove the
-      remaining entries in that subtree.
+      If a subtree delete operation targets a subtree with more than
+      this number of entries, then additional transactions are used to
+      remove the remaining entries in that subtree.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -527,7 +508,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="0" />
+      <adm:integer lower-limit="0" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -535,18 +516,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-cache-percent"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-cache-percent">
     <adm:synopsis>
       The percentage of JVM memory to allocate to the database cache.
     </adm:synopsis>
     <adm:description>
-      Specifies the percentage of memory available to the JVM that should
-      be used for caching database contents. Note that this will only be used
-      if the value of the db-cache-size property is set to "0 MB".
-      Otherwise, the value of that property will be used instead to control
-      the cache size configuration.
+      Specifies the percentage of memory available to the JVM that
+      should be used for caching database contents. Note that this will
+      only be used if the value of the db-cache-size property is set to
+      "0 MB". Otherwise, the value of that property will be used instead
+      to control the cache size configuration.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -554,7 +533,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="1"  upper-limit="90" />
+      <adm:integer lower-limit="1" upper-limit="90" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -562,16 +541,15 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-cache-size"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-cache-size">
     <adm:synopsis>
       The amount of JVM memory to allocate to the database cache.
     </adm:synopsis>
     <adm:description>
-      Specifies the amount of memory that should be used for caching database
-      contents. A value of "0 MB" indicates that the db-cache-percent
-      property should be used instead to specify the cache size.
+      Specifies the amount of memory that should be used for caching
+      database contents. A value of "0 MB" indicates that the
+      db-cache-percent property should be used instead to specify the
+      cache size.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -587,18 +565,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-cleaner-min-utilization"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-cleaner-min-utilization" advanced="true">
     <adm:synopsis>
-      Specifies the minimum percentage of "live" data that the database cleaner
-      will attempt to keep in database log files.
+      Specifies the minimum percentage of "live" data that the database
+      cleaner will attempt to keep in database log files.
     </adm:synopsis>
     <adm:description>
-      If the amount of live data in any database log file drops below this
-      percentage, then the cleaner will move the remaining live data in that
-      file to the end of the database and will delete the original file in
-      order to keep the database relatively compact.
+      If the amount of live data in any database log file drops below
+      this percentage, then the cleaner will move the remaining live
+      data in that file to the end of the database and will delete the
+      original file in order to keep the database relatively compact.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -606,7 +582,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="0"  upper-limit="90" />
+      <adm:integer lower-limit="0" upper-limit="90" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -614,18 +590,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-run-cleaner"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-run-cleaner" advanced="true">
     <adm:synopsis>
-      This indicates whether the database cleaner threads should be enabled.
+      This indicates whether the database cleaner threads should be
+      enabled.
     </adm:synopsis>
     <adm:description>
-      The cleaner threads will be used to periodically compact the database by
-      identifying database files with a low (i.e., less than the amount
-      specified by the db-cleaner-min-utilization property)
-      percentage of live data, moving the remaining live data to the end of the
-      log and deleting that file.
+      The cleaner threads will be used to periodically compact the
+      database by identifying database files with a low (i.e., less than
+      the amount specified by the db-cleaner-min-utilization property)
+      percentage of live data, moving the remaining live data to the end
+      of the log and deleting that file.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -641,23 +616,22 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-evictor-lru-only"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-evictor-lru-only" advanced="true">
     <adm:synopsis>
-      Indicates whether the database should evict existing data from the cache
-      based on an LRU policy (where the least recently used information will be
-      evicted first).
+      Indicates whether the database should evict existing data from the
+      cache based on an LRU policy (where the least recently used
+      information will be evicted first).
     </adm:synopsis>
     <adm:description>
-      If the value of this configuration property is set to "false", then
-      eviction will prefer to keep internal nodes of the underlying Btree in
-      the cache over leaf notes, even if the leaf nodes have been accessed
-      more recently, which may be a better configuration for databases in
-      which only a very small portion of the data is cached.
+      If the value of this configuration property is set to "false",
+      then eviction will prefer to keep internal nodes of the underlying
+      Btree in the cache over leaf notes, even if the leaf nodes have
+      been accessed more recently, which may be a better configuration
+      for databases in which only a very small portion of the data is
+      cached.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -673,28 +647,28 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-evictor-nodes-per-scan"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-evictor-nodes-per-scan" advanced="true">
     <adm:synopsis>
-      Specifies the number of Btree nodes that should be evicted from the
-      cache in a single pass if it is determined that it is necessary to
-      free existing data in order to make room for new information.
+      Specifies the number of Btree nodes that should be evicted from
+      the cache in a single pass if it is determined that it is
+      necessary to free existing data in order to make room for new
+      information.
     </adm:synopsis>
     <adm:description>
       Changes to this property do not take effect until the backend is
-      restarted.  It is recommended that you also change this property when you
-      set db-evictor-lru-only to false. This setting controls the number
-      of Btree nodes that are considered, or sampled, each time a node is
-      evicted. A setting of 100 often produces good results, but this may vary
-      from application to application. The larger the nodesPerScan, the more
-      accurate the algorithm. However, setting it too high is detrimental;
-      the need to consider larger numbers of nodes for each eviction may
-      delay the completion of a given database operation, which will impact
-      the response time of the application thread.
+      restarted. It is recommended that you also change this property
+      when you set db-evictor-lru-only to false. This setting controls
+      the number of Btree nodes that are considered, or sampled, each
+      time a node is evicted. A setting of 100 often produces good
+      results, but this may vary from application to application. The
+      larger the nodes per scan, the more accurate the algorithm.
+      However, setting it too high is detrimental; the need to consider
+      larger numbers of nodes for each eviction may delay the completion
+      of a given database operation, which will impact the response time
+      of the application thread.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -702,7 +676,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="1"  upper-limit="1000" />
+      <adm:integer lower-limit="1" upper-limit="1000" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -710,14 +684,13 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-log-file-max"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-log-file-max" advanced="true">
     <adm:synopsis>
-      Specifies the maximum size that may be used for a database log file.
+      Specifies the maximum size that may be used for a database log
+      file.
     </adm:synopsis>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -725,7 +698,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size lower-limit="1mb" upper-limit="4gib"/>
+      <adm:size lower-limit="1mb" upper-limit="4gib" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -733,17 +706,17 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-logging-file-handler-on"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-logging-file-handler-on" advanced="true">
     <adm:synopsis>
-      Indicates whether the database should maintain a je.info file in the same
-      directory as the database log directory. This file will contain
-      information about the internal processing performed by the underlying
-      database.
+      Indicates whether the database should maintain a je.info file in
+      the same directory as the database log directory.
     </adm:synopsis>
+    <adm:description>
+      This file will contain information about the internal processing
+      performed by the underlying database.
+    </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -759,19 +732,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-logging-level"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-logging-level" advanced="true">
+    <adm:TODO>Use an enumeration</adm:TODO>
     <adm:synopsis>
-      This specifies the log level that should be used by the database when
-      it is writing information into the je.info file.
+      This specifies the log level that should be used by the database
+      when it is writing information into the je.info file.
     </adm:synopsis>
     <adm:description>
-      The database trace logging level is (in increasing order of verbosity)
-      chosen from: OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL.
+      The database trace logging level is (in increasing order of
+      verbosity) chosen from: OFF, SEVERE, WARNING, INFO, CONFIG, FINE,
+      FINER, FINEST, ALL.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -787,22 +760,20 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-checkpointer-bytes-interval"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-checkpointer-bytes-interval" advanced="true">
     <adm:synopsis>
-      Specifies the maximum number of bytes that may be written to the database
-      before it will be forced to perform a checkpoint.
+      Specifies the maximum number of bytes that may be written to the
+      database before it will be forced to perform a checkpoint.
     </adm:synopsis>
     <adm:description>
-      This can be used to bound the recovery time that may be required if the
-      database environment is opened without having been properly closed.
-      If this property is set to a non-zero value, the checkpointer wakeup
-      interval is not used.  To use time based checkpointing, set this
-      property to zero.
+      This can be used to bound the recovery time that may be required
+      if the database environment is opened without having been properly
+      closed. If this property is set to a non-zero value, the
+      checkpointer wakeup interval is not used. To use time based
+      checkpointing, set this property to zero.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:server-restart/>
+      <adm:server-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -810,7 +781,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:size lower-limit="0b" upper-limit="9223372036854775807b"/>
+      <adm:size lower-limit="0b" upper-limit="9223372036854775807b" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -819,17 +790,17 @@
     </adm:profile>
   </adm:property>
   <adm:property name="db-checkpointer-wakeup-interval"
-    mandatory="false"
-    multi-valued="false">
+    advanced="true">
     <adm:synopsis>
-      Specifies the maximum length of time that may pass between checkpoints.
+      Specifies the maximum length of time that may pass between
+      checkpoints.
     </adm:synopsis>
     <adm:description>
-      Note that this will only be used if the value of the checkpointer bytes
-      interval is zero.
+      Note that this will only be used if the value of the checkpointer
+      bytes interval is zero.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -837,7 +808,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:duration base-unit="s" lower-limit="1" upper-limit="4294"/>
+      <adm:duration base-unit="s" lower-limit="1" upper-limit="4294" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -845,22 +816,20 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-num-lock-tables"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-num-lock-tables" advanced="true">
     <adm:synopsis>
-      This specifies the number of lock tables that should be used by the
-      underlying database.
+      This specifies the number of lock tables that should be used by
+      the underlying database.
     </adm:synopsis>
     <adm:description>
       This can be particularly important to help improve scalability by
-      avoiding contention on systems with large numbers of CPUs. The value of
-      this configuration property should be set to a prime number that is less
-      than or equal to the number of worker threads configured for use in the
-      server.
+      avoiding contention on systems with large numbers of CPUs. The
+      value of this configuration property should be set to a prime
+      number that is less than or equal to the number of worker threads
+      configured for use in the server.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:component-restart/>
+      <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
@@ -868,7 +837,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="1"  upper-limit="32767" />
+      <adm:integer lower-limit="1" upper-limit="32767" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -876,16 +845,14 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-num-cleaner-threads"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-num-cleaner-threads" advanced="true">
     <adm:synopsis>
-      Specifies the number of threads that the backend should maintain to
-      keep the database log files at or near the desired utilization.
+      Specifies the number of threads that the backend should maintain
+      to keep the database log files at or near the desired utilization.
     </adm:synopsis>
     <adm:description>
-      In environments with high write throughput, multiple cleaner threads may
-      be required to maintain the desired utilization.
+      In environments with high write throughput, multiple cleaner
+      threads may be required to maintain the desired utilization.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -893,7 +860,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer  lower-limit="1" />
+      <adm:integer lower-limit="1" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -901,20 +868,18 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-txn-no-sync"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-txn-no-sync" advanced="true">
     <adm:synopsis>
-      Indicates whether database writes should be primarily written to an
-      internal buffer but not immediately written to disk.
+      Indicates whether database writes should be primarily written to
+      an internal buffer but not immediately written to disk.
     </adm:synopsis>
     <adm:description>
-      Setting the value of this configuration attribute to "true" may improve
-      write performance but could cause some number of the most recent changes
-      to be lost if the OpenDS Directory Server or the underlying JVM exits
-      abnormally, or if an OS or hardware failure occurs (a behavior similar
-      to running with transaction durability disabled in the Sun Java System
-      Directory Server).
+      Setting the value of this configuration attribute to "true" may
+      improve write performance but could cause some number of the most
+      recent changes to be lost if the OpenDS Directory Server or the
+      underlying JVM exits abnormally, or if an OS or hardware failure
+      occurs (a behavior similar to running with transaction durability
+      disabled in the Sun Java System Directory Server).
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -930,22 +895,21 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="db-txn-write-no-sync"
-    mandatory="false"
-    multi-valued="false">
+  <adm:property name="db-txn-write-no-sync" advanced="true">
     <adm:synopsis>
-      Indicates whether the database should synchronously flush data as it is
-      written to disk.
+      Indicates whether the database should synchronously flush data as
+      it is written to disk.
     </adm:synopsis>
     <adm:description>
-      If this value is set to "false", then all data written to disk will be
-      synchronously flushed to persistent storage and thereby providing full
-      durability. If it is set to "true", then data may be cached for a period
-      of time by the underlying operating system before actually being written
-      to disk. This may improve performance, but could cause some number of
-      the most recent changes to be lost in the event of an underlying OS or
-      hardware failure (but not in the case that the OpenDS Directory Server
-      or the JVM exits abnormally).
+      If this value is set to "false", then all data written to disk
+      will be synchronously flushed to persistent storage and thereby
+      providing full durability. If it is set to "true", then data may
+      be cached for a period of time by the underlying operating system
+      before actually being written to disk. This may improve
+      performance, but could cause some number of the most recent
+      changes to be lost in the event of an underlying OS or hardware
+      failure (but not in the case that the OpenDS Directory Server or
+      the JVM exits abnormally).
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -961,20 +925,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="je-property"
-    mandatory="false"
+  <adm:property name="je-property" advanced="true"
     multi-valued="true">
     <adm:synopsis>
-      Specifies the database and environment properties for the Berkeley DB
-      Java Edition database serving the data for this backend.
+      Specifies the database and environment properties for the Berkeley
+      DB Java Edition database serving the data for this backend.
     </adm:synopsis>
     <adm:description>
       Any Berkeley DB Java Edition property can be specified using the
-      following form: property-name=property-value
-      Refer to OpenDS documentation for further information on related
-      properties, their implications and range values. The definitive
-      identification of all the property parameters available in the
-      example.properties file of Berkeley DB Java Edition distribution.
+      following form: property-name=property-value Refer to OpenDS
+      documentation for further information on related properties, their
+      implications and range values. The definitive identification of
+      all the property parameters available in the example.properties
+      file of Berkeley DB Java Edition distribution.
     </adm:description>
     <adm:default-behavior>
       <adm:undefined />
