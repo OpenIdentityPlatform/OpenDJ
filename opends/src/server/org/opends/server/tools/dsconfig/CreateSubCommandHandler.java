@@ -55,6 +55,7 @@ import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.ManagedObjectOption;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
@@ -254,6 +255,20 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
      * {@inheritDoc}
      */
     public void display(ConsoleApplication app) {
+      app.println(INFO_DSCFG_CREATE_TYPE_HELP_HEADING.get(d
+          .getUserFriendlyPluralName()));
+
+      app.println();
+      app.println(d.getSynopsis());
+
+      if (d.getDescription() != null) {
+        app.println();
+        app.println(d.getDescription());
+      }
+
+      app.println();
+      app.println();
+
       // Create a table containing a description of each component
       // type.
       TableBuilder builder = new TableBuilder();
@@ -266,6 +281,30 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
       boolean isFirst = true;
       for (ManagedObjectDefinition<?, ?> mod : getSubTypes(d).values()) {
+        // Only display advanced types and custom types in advanced mode.
+        if (!app.isAdvancedMode()) {
+          if (mod.hasOption(ManagedObjectOption.ADVANCED)) {
+            continue;
+          }
+
+          if (CLIProfile.getInstance().isForCustomization(mod)) {
+            continue;
+          }
+        }
+
+        Message ufn = mod.getUserFriendlyName();
+        Message synopsis = mod.getSynopsis();
+        Message description = mod.getDescription();
+        if (CLIProfile.getInstance().isForCustomization(mod)) {
+          ufn = INFO_DSCFG_CUSTOM_TYPE_OPTION.get(ufn);
+          synopsis = INFO_DSCFG_CUSTOM_TYPE_SYNOPSIS.get(ufn);
+          description = null;
+        } else if (mod == d) {
+          ufn = INFO_DSCFG_GENERIC_TYPE_OPTION.get(ufn);
+          synopsis = INFO_DSCFG_GENERIC_TYPE_SYNOPSIS.get(ufn);
+          description = null;
+        }
+
         if (!isFirst) {
           builder.startRow();
           builder.startRow();
@@ -274,13 +313,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
 
         builder.startRow();
-        builder.appendCell(mod.getUserFriendlyName());
-        builder.appendCell(mod.getSynopsis());
-        if (mod.getDescription() != null) {
+        builder.appendCell(ufn);
+        builder.appendCell(synopsis);
+        if (description != null) {
           builder.startRow();
           builder.startRow();
           builder.appendCell();
-          builder.appendCell(mod.getDescription());
+          builder.appendCell(description);
         }
       }
 
@@ -294,12 +333,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   }
 
 
-
-  /**
-   * The value for the -t argument which will be used for the most
-   * generic managed object when it is instantiable.
-   */
-  private static final String GENERIC_TYPE = "generic";
 
   /**
    * The value for the long option set.
@@ -815,17 +848,27 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       new TreeMap<String, ManagedObjectDefinition<? extends C, ? extends S>>();
 
     // If the top-level definition is instantiable, we use the value
-    // "generic".
-    if (d instanceof ManagedObjectDefinition) {
-      ManagedObjectDefinition<? extends C, ? extends S> mod =
-        (ManagedObjectDefinition<? extends C, ? extends S>) d;
-      map.put(GENERIC_TYPE, mod);
+    // "generic" or "custom".
+    if (!d.hasOption(ManagedObjectOption.HIDDEN)) {
+      if (d instanceof ManagedObjectDefinition) {
+        ManagedObjectDefinition<? extends C, ? extends S> mod =
+          (ManagedObjectDefinition<? extends C, ? extends S>) d;
+        if (CLIProfile.getInstance().isForCustomization(mod)) {
+          map.put(DSConfig.CUSTOM_TYPE, mod);
+        } else {
+          map.put(DSConfig.GENERIC_TYPE, mod);
+        }
+      }
     }
 
     // Process its sub-definitions.
     String suffix = "-" + d.getName();
     for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
         .getAllChildren()) {
+      if (d.hasOption(ManagedObjectOption.HIDDEN)) {
+        continue;
+      }
+
       if (c instanceof ManagedObjectDefinition) {
         ManagedObjectDefinition<? extends C, ? extends S> mod =
           (ManagedObjectDefinition<? extends C, ? extends S>) c;
@@ -836,6 +879,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         String name = mod.getName();
         if (name.endsWith(suffix)) {
           name = name.substring(0, name.length() - suffix.length());
+        }
+
+        // If this type is intended for customization, prefix it with
+        // "custom".
+        if (CLIProfile.getInstance().isForCustomization(mod)) {
+          name = String.format("%s-%s", DSConfig.CUSTOM_TYPE, name);
         }
 
         map.put(name, mod);
@@ -869,8 +918,21 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       builder.setPrompt(msg);
 
       for (ManagedObjectDefinition<? extends C, ? extends S> mod : types) {
+        // Only display advanced types and custom types in advanced mode.
+        if (!app.isAdvancedMode()) {
+          if (mod.hasOption(ManagedObjectOption.ADVANCED)) {
+            continue;
+          }
+
+          if (CLIProfile.getInstance().isForCustomization(mod)) {
+            continue;
+          }
+        }
+
         Message option = mod.getUserFriendlyName();
-        if ((mod == d) && (mod instanceof ManagedObjectDefinition)) {
+        if (CLIProfile.getInstance().isForCustomization(mod)) {
+          option = INFO_DSCFG_CUSTOM_TYPE_OPTION.get(option);
+        } else if (mod == d) {
           option = INFO_DSCFG_GENERIC_TYPE_OPTION.get(option);
         }
         builder.addNumberedOption(option,
@@ -963,7 +1025,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     }
     this.typeUsage = builder.toString();
 
-    if (!types.containsKey(GENERIC_TYPE)) {
+    if (!types.containsKey(DSConfig.GENERIC_TYPE)) {
       // The option is mandatory when non-interactive.
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
           OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", null, null,
@@ -972,9 +1034,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     } else {
       // The option has a sensible default "generic".
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
-          OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", GENERIC_TYPE,
-          null, INFO_DSCFG_DESCRIPTION_TYPE_DEFAULT.get(r.getChildDefinition()
-              .getUserFriendlyName(), GENERIC_TYPE, typeUsage));
+          OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}",
+          DSConfig.GENERIC_TYPE, null, INFO_DSCFG_DESCRIPTION_TYPE_DEFAULT.get(
+              r.getChildDefinition().getUserFriendlyName(),
+              DSConfig.GENERIC_TYPE, typeUsage));
 
       // Hide the option if it defaults to generic and generic is the
       // only possible value.

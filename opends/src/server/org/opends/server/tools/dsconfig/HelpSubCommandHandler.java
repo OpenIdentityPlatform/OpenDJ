@@ -52,6 +52,7 @@ import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.EnumPropertyDefinition;
+import org.opends.server.admin.ManagedObjectOption;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
 import org.opends.server.admin.PropertyDefinitionVisitor;
@@ -357,11 +358,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       pd.accept(pimpl, out);
     }
   }
-
-  /**
-   * The type component name to be used for top-level definitions.
-   */
-  private static final String GENERIC_TYPE = "generic";
 
   // Strings used in property help.
   private final static String HEADING_SEPARATOR = " : ";
@@ -765,7 +761,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     String typeName = null;
     if (parent == d) {
       // This was a top-level definition.
-      typeName = GENERIC_TYPE;
+      typeName = DSConfig.GENERIC_TYPE;
     } else {
       // For the type name we shorten it, if possible, by stripping
       // off the trailing part of the name which matches the
@@ -836,7 +832,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         }
       } else {
         // Cache the generic definition for improved errors later on.
-        tmp = subTypes.get(GENERIC_TYPE);
+        tmp = subTypes.get(DSConfig.GENERIC_TYPE);
       }
 
       if (typeName != null) {
@@ -959,6 +955,17 @@ final class HelpSubCommandHandler extends SubCommandHandler {
         // Display help for each property.
         AbstractManagedObjectDefinition<?, ?> mod = subTypes.get(type);
 
+        // Skip hidden types.
+        if (mod.hasOption(ManagedObjectOption.HIDDEN)) {
+          continue;
+        }
+
+        // Skip advanced types if required.
+        if (!app.isAdvancedMode()
+            && mod.hasOption(ManagedObjectOption.ADVANCED)) {
+          continue;
+        }
+
         // Skip if this does not have the required tag.
         if (tag != null && !mod.hasTag(tag)) {
           continue;
@@ -1061,6 +1068,17 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
         // Display help for each property.
         AbstractManagedObjectDefinition<?, ?> mod = subTypes.get(type);
+
+        // Skip hidden types.
+        if (mod.hasOption(ManagedObjectOption.HIDDEN)) {
+          continue;
+        }
+
+        // Skip advanced types if required.
+        if (!app.isAdvancedMode()
+            && mod.hasOption(ManagedObjectOption.ADVANCED)) {
+          continue;
+        }
 
         // Skip if this does not have the required tag.
         if (tag != null && !mod.hasTag(tag)) {

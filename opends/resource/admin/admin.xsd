@@ -754,6 +754,16 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="advanced" type="xsd:boolean" use="optional"
+      default="false">
+      <xsd:annotation>
+        <xsd:documentation>
+          Indicates whether or not managed objects referenced by this
+          relation should be treated as advanced and be hidden by
+          default in client applications.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="hidden" type="xsd:boolean" use="optional"
       default="false">
       <xsd:annotation>
@@ -1836,11 +1846,34 @@
               </xsd:documentation>
             </xsd:annotation>
           </xsd:attribute>
+          <xsd:attribute name="advanced" type="xsd:boolean"
+            use="optional" default="false">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this managed object should be
+                treated as advanced and therefore should be hidden by
+                default in client applications. This feature is not
+                inherited by child managed objects.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
+          <xsd:attribute name="hidden" type="xsd:boolean" use="optional"
+            default="false">
+            <xsd:annotation>
+              <xsd:documentation>
+                Indicates whether or not this managed object should be
+                hidden from client applications. Hidden managed objects
+                should rarely be used but are sometimes required in
+                order to provide functionality that needs to be exposed
+                in management APIs but not in front-ends such as CLIs.
+              </xsd:documentation>
+            </xsd:annotation>
+          </xsd:attribute>
           <xsd:attribute name="extends" type="tns:name-type"
             use="optional">
             <xsd:annotation>
               <xsd:documentation>
-                Indicates whether or not this managed object is inherits
+                Indicates whether or not this managed object inherits
                 from a parent managed object and, if so, the name of the
                 parent. If specified, this managed object will inherit
                 all of the properties and relations defined in the

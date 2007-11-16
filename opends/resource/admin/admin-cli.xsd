@@ -14,6 +14,30 @@
       experience.
     </xsd:documentation>
   </xsd:annotation>
+  <xsd:element name="managed-object">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines CLI annotations for use with managed object definitions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:attribute name="custom" default="false" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+            Indicates whether the CLI should refer to this managed
+            object type as "custom" as opposed to "generic". Custom
+            managed object types generally are the top-level type of
+            component (e.g. connection-handler but not
+            ldap-connection-handler) having a non-advanced java-class
+            property. Users create this type of component with a custom
+            implementation class. It is better to refer to these as
+            "custom" since the term "generic" can mislead users (e.g.
+            many users confuse a generic backend as being a JE backend).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
   <xsd:element name="relation">
     <xsd:annotation>
       <xsd:documentation>

@@ -1123,6 +1123,10 @@
     select="$_this_tmp/adm:managed-object | $_this_tmp/adm:root-managed-object" />
   <xsl:variable name="this-is-abstract"
     select="boolean(string($this/@abstract) = 'true')" />
+  <xsl:variable name="this-is-advanced"
+    select="boolean(string($this/@advanced) = 'true')" />
+  <xsl:variable name="this-is-hidden"
+    select="boolean(string($this/@hidden) = 'true')" />
   <xsl:variable name="this-is-root"
     select="not(local-name($this) = 'managed-object')" />
   <xsl:variable name="this-package">

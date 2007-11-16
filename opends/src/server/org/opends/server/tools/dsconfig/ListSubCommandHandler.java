@@ -42,6 +42,7 @@ import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.ManagedObjectOption;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
@@ -322,6 +323,20 @@ final class ListSubCommandHandler extends SubCommandHandler {
     if (app.isScriptFriendly()) {
       // Output just the names of the children.
       for (String name : children.keySet()) {
+        // Skip advanced and hidden components in non-advanced mode.
+        if (!app.isAdvancedMode()) {
+          ManagedObject<?> child = children.get(name);
+          ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
+
+          if (d.hasOption(ManagedObjectOption.HIDDEN)) {
+            continue;
+          }
+
+          if (d.hasOption(ManagedObjectOption.ADVANCED)) {
+            continue;
+          }
+        }
+
         app.println(Message.raw(name));
       }
     } else {
@@ -341,6 +356,17 @@ final class ListSubCommandHandler extends SubCommandHandler {
         ManagedObject<?> child = children.get(name);
         ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
 
+        // Skip advanced and hidden components in non-advanced mode.
+        if (!app.isAdvancedMode()) {
+          if (d.hasOption(ManagedObjectOption.HIDDEN)) {
+            continue;
+          }
+
+          if (d.hasOption(ManagedObjectOption.ADVANCED)) {
+            continue;
+          }
+        }
+
         // First output the name.
         builder.startRow();
         builder.appendCell(name);
@@ -348,11 +374,20 @@ final class ListSubCommandHandler extends SubCommandHandler {
         // Output the managed object type in the form used in
         // create-xxx commands.
         String childType = d.getName();
+        boolean isCustom = CLIProfile.getInstance().isForCustomization(d);
         if (baseType.equals(childType)) {
-          builder.appendCell("generic");
+          if (isCustom) {
+            builder.appendCell(DSConfig.CUSTOM_TYPE);
+          } else {
+            builder.appendCell(DSConfig.GENERIC_TYPE);
+          }
         } else if (childType.endsWith(typeSuffix)) {
-          builder.appendCell(childType.substring(0, childType.length()
-              - typeSuffix.length()));
+          String ctname = childType.substring(0, childType.length()
+              - typeSuffix.length());
+          if (isCustom) {
+            ctname = String.format("%s-%s", DSConfig.CUSTOM_TYPE, ctname);
+          }
+          builder.appendCell(ctname);
         } else {
           builder.appendCell(childType);
         }

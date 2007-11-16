@@ -35,6 +35,18 @@
   -->
   <xsl:template match="/">
     <!--
+      Determine if the managed object is for customization.
+    -->
+    <xsl:choose>
+      <xsl:when
+        test="$this/adm:profile[@name='cli']/cli:managed-object/@custom='true'">
+        <xsl:value-of select="'is-for-customization=true&#xa;'" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="'is-for-customization=false&#xa;'" />
+      </xsl:otherwise>
+    </xsl:choose>
+    <!--
       Process each relation definition.
     -->
     <xsl:for-each select="$this-all-relations">

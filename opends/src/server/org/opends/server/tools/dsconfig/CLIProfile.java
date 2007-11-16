@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectDefinitionResource;
 import org.opends.server.admin.RelationDefinition;
 
@@ -82,5 +83,22 @@ class CLIProfile {
     String s = resource.getString(r.getParentDefinition(), "relation."
         + r.getName() + ".list-properties");
     return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
+  }
+
+
+
+  /**
+   * Determines if instances of the specified managed object
+   * definition are to be used for customization.
+   *
+   * @param d
+   *          The managed object definition.
+   * @return Returns <code>true</code> if instances of the specified
+   *         managed object definition are to be used for
+   *         customization.
+   */
+  public boolean isForCustomization(AbstractManagedObjectDefinition<?, ?> d) {
+    String s = resource.getString(d, "is-for-customization");
+    return Boolean.parseBoolean(s);
   }
 }

@@ -250,6 +250,20 @@ public final class DSConfig extends ConsoleApplication {
   }
 
   /**
+   * The type name which will be used for the most generic managed
+   * object types when they are instantiable and intended for
+   * customization only.
+   */
+  public static final String CUSTOM_TYPE = "custom";
+
+  /**
+   * The type name which will be used for the most generic managed
+   * object types when they are instantiable and not intended for
+   * customization.
+   */
+  public static final String GENERIC_TYPE = "generic";
+
+  /**
    * The value for the long option advanced.
    */
   private static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
