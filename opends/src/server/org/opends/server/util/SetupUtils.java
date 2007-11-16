@@ -487,5 +487,28 @@ public class SetupUtils
   {
     return "true".equals(System.getProperty(IS_WEBSTART));
   }
+
+  /**
+   * Returns the String that can be used to launch an script using Runtime.exec.
+   * This method is required because in Windows the script that contain a "="
+   * in their path must be quoted.
+   * @param script the script name
+   * @return the absolute path for the given parentPath and relativePath.
+   */
+  public static String getScriptPath(String script)
+  {
+    String s = script;
+    if (isWindows())
+    {
+      if (s != null)
+      {
+        if (!s.startsWith("\"") || !s.endsWith("\""))
+        {
+          s = "\""+script+"\"";
+        }
+      }
+    }
+    return s;
+  }
 }
 

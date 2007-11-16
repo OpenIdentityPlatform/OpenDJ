@@ -560,7 +560,8 @@ public class StatusPanelController implements ServerStatusChangeListener,
 
     ArrayList<String> argList = new ArrayList<String>();
     Installation installation = Installation.getLocal();
-    argList.add(Utils.getPath(installation.getServerStartCommandFile()));
+    argList.add(Utils.getScriptPath(
+        Utils.getPath(installation.getServerStartCommandFile())));
 
     String[] args = new String[argList.size()];
     argList.toArray(args);
@@ -674,7 +675,8 @@ public class StatusPanelController implements ServerStatusChangeListener,
 
     ArrayList<String> argList = new ArrayList<String>();
     Installation installation = Installation.getLocal();
-    argList.add(Utils.getPath(installation.getServerStopCommandFile()));
+    argList.add(Utils.getScriptPath(
+        Utils.getPath(installation.getServerStopCommandFile())));
     String[] args = new String[argList.size()];
     argList.toArray(args);
     ProcessBuilder pb = new ProcessBuilder(args);

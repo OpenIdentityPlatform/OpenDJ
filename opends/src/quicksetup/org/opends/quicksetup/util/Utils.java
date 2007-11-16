@@ -134,6 +134,18 @@ public class Utils
   }
 
   /**
+   * Returns the String that can be used to launch an script using Runtime.exec.
+   * This method is required because in Windows the script that contain a "="
+   * in their path must be quoted.
+   * @param script the script name
+   * @return the absolute path for the given parentPath and relativePath.
+   */
+  public static String getScriptPath(String script)
+  {
+    return SetupUtils.getScriptPath(script);
+  }
+
+  /**
    * Returns the absolute path for the given parentPath and relativePath.
    * @param f File to get the path
    * @return the absolute path for the given parentPath and relativePath.

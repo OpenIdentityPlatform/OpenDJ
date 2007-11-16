@@ -72,7 +72,8 @@ public class ExternalTools {
           throws IOException, InterruptedException {
     String toolName = Installation.BACKUP;
     List<String> args = new ArrayList<String>();
-    args.add(Utils.getPath(installation.getCommandFile(toolName)));
+    args.add(Utils.getScriptPath(
+        Utils.getPath(installation.getCommandFile(toolName))));
     args.add("-a"); // backup all
     args.add("-d"); // backup to directory
     args.add(Utils.getPath(backupDir));
@@ -94,7 +95,7 @@ public class ExternalTools {
     List<String> args = new ArrayList<String>();
     args.add(Utils.getPath(installation.getCommandFile(toolName)));
     args.add("-s"); // source LDIF
-    args.add(Utils.getPath(source));
+    args.add(Utils.getScriptPath(Utils.getPath(source)));
     args.add("-t"); // target LDIF
     args.add(Utils.getPath(target));
     if (otherArgs != null) {
