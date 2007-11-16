@@ -27,7 +27,8 @@
   ! -->
 <adm:managed-object name="monitor-backend"
   plural-name="monitor-backends" package="org.opends.server.admin.std"
-  extends="backend" xmlns:adm="http://www.opends.org/admin"
+  extends="backend" advanced="true"
+  xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The monitor backend allows clients to access the information made

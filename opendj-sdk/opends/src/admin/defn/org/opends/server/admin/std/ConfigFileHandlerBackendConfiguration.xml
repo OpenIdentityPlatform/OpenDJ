@@ -28,7 +28,7 @@
 <adm:managed-object name="config-file-handler-backend"
   plural-name="config-file-handler-backends"
   package="org.opends.server.admin.std" extends="backend"
-  xmlns:adm="http://www.opends.org/admin"
+  advanced="true" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The config file handler backend provides the ability for clients to
