@@ -42,6 +42,9 @@
       <ldap:superior>ds-cfg-log-publisher</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:profile name="cli">
+    <cli:managed-object custom="true" />
+  </adm:profile>
   <adm:relation name="debug-target">
     <adm:one-to-many naming-property="debug-scope" />
     <adm:profile name="ldap">

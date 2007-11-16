@@ -28,7 +28,8 @@
 <adm:managed-object name="backend" plural-name="backends"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for providing access to the underlying data
@@ -45,6 +46,9 @@
       <ldap:name>ds-cfg-backend</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
+  </adm:profile>
+  <adm:profile name="cli">
+    <cli:managed-object custom="true" />
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>

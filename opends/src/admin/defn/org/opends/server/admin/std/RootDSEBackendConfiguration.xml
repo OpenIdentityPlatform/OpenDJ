@@ -27,7 +27,7 @@
   ! -->
 <adm:managed-object name="root-dse-backend"
   plural-name="root-dse-backends" package="org.opends.server.admin.std"
-  xmlns:adm="http://www.opends.org/admin"
+  advanced="true" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The

@@ -29,7 +29,8 @@
   plural-name="sasl-mechanism-handlers"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for the processing associated with SASL bind
@@ -41,6 +42,9 @@
       <ldap:name>ds-cfg-sasl-mechanism-handler</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
+  </adm:profile>
+  <adm:profile name="cli">
+    <cli:managed-object custom="true" />
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>

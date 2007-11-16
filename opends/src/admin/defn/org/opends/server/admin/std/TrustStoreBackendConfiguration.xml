@@ -27,7 +27,7 @@
   ! -->
 <adm:managed-object name="trust-store-backend"
   plural-name="trust-store-backends" extends="backend"
-  package="org.opends.server.admin.std"
+  package="org.opends.server.admin.std" advanced="true"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>

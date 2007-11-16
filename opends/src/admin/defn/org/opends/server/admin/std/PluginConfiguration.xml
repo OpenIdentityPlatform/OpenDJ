@@ -28,7 +28,8 @@
 <adm:managed-object name="plugin" plural-name="plugins"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap">
+  xmlns:ldap="http://www.opends.org/admin-ldap"
+  xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     provide a mechanism for executing custom code at specified points in
@@ -42,6 +43,9 @@
       <ldap:name>ds-cfg-plugin</ldap:name>
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
+  </adm:profile>
+  <adm:profile name="cli">
+    <cli:managed-object custom="true" />
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
