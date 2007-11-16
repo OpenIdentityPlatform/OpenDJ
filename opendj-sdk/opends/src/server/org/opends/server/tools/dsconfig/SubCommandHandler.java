@@ -40,6 +40,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -48,7 +50,9 @@ import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.DurationUnit;
 import org.opends.server.admin.InstantiableRelationDefinition;
+import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.ManagedObjectOption;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.ManagedObjectPathSerializer;
 import org.opends.server.admin.OptionalRelationDefinition;
@@ -987,8 +991,41 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
     app.println();
     app.println();
-    String[] children = parent.listChildren(r, d);
-    switch (children.length) {
+
+    // Filter out advanced and hidden types if required.
+    String[] childNames = parent.listChildren(r, d);
+    SortedSet<String> children = new TreeSet<String>(
+        String.CASE_INSENSITIVE_ORDER);
+
+    for (String childName : childNames) {
+      ManagedObject<?> child;
+      try {
+        child = parent.getChild(r, childName);
+
+        ManagedObjectDefinition<?, ?> cd = child.getManagedObjectDefinition();
+
+        if (cd.hasOption(ManagedObjectOption.HIDDEN)) {
+          continue;
+        }
+
+        if (!app.isAdvancedMode()
+            && cd.hasOption(ManagedObjectOption.ADVANCED)) {
+          continue;
+        }
+
+        children.add(childName);
+      } catch (DefinitionDecodingException e) {
+        // Add it anyway: maybe the user is trying to fix the problem.
+        children.add(childName);
+      } catch (ManagedObjectDecodingException e) {
+        // Add it anyway: maybe the user is trying to fix the problem.
+        children.add(childName);
+      } catch (ManagedObjectNotFoundException e) {
+        // Skip it - the managed object has been concurrently removed.
+      }
+    }
+
+    switch (children.size()) {
     case 0: {
       // No options available - abort.
       Message msg =
@@ -999,9 +1036,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       // Only one option available so confirm that the user wishes to
       // access it.
       Message msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
-              d.getUserFriendlyName(), children[0]);
+              d.getUserFriendlyName(), children.first());
       if (app.confirmAction(msg, true)) {
-        return MenuResult.success(children[0]);
+        return MenuResult.success(children.first());
       } else {
         return MenuResult.cancel();
       }
@@ -1013,7 +1050,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       builder.setPrompt(INFO_DSCFG_FINDER_PROMPT_MANY.get(d
           .getUserFriendlyName()));
 
-      Arrays.sort(children, String.CASE_INSENSITIVE_ORDER);
       for (String child : children) {
         Message option = Message.raw("%s", child);
         builder.addNumberedOption(option, MenuResult.success(child));

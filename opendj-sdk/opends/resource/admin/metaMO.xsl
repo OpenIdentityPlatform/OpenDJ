@@ -153,6 +153,26 @@
       <xsl:call-template name="generate-relation-constructor" />
     </xsl:for-each>
     <!--
+      Register any optins associated with this managed object definition.
+    -->
+    <xsl:if test="$this-is-advanced or $this-is-hidden">
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:text>&#xa;</xsl:text>
+      <xsl:value-of
+        select="'  // Register the options associated with this managed object definition.&#xa;'" />
+      <xsl:value-of select="'  static {&#xa;'" />
+      <xsl:if test="$this-is-advanced">
+        <xsl:value-of
+          select="concat('    INSTANCE.registerOption(ManagedObjectOption.ADVANCED);&#xa;')" />
+      </xsl:if>
+      <xsl:if test="$this-is-hidden">
+        <xsl:value-of
+          select="concat('    INSTANCE.registerOption(ManagedObjectOption.HIDDEN);&#xa;')" />
+      </xsl:if>
+      <xsl:value-of select="'  }&#xa;'" />
+    </xsl:if>
+    <!--
       Register any tags associated with this managed object definition.
     -->
     <xsl:if test="$this/adm:tag">
@@ -923,6 +943,10 @@
                            'CfgDefn.getInstance().get',
                            $java-property-name, 'PropertyDefinition());&#xa;')" />
     </xsl:if>
+    <xsl:if test="@advanced='true'">
+      <xsl:value-of
+        select="'    builder.setOption(RelationOption.ADVANCED);&#xa;'" />
+    </xsl:if>
     <xsl:if test="@hidden='true'">
       <xsl:value-of
         select="'    builder.setOption(RelationOption.HIDDEN);&#xa;'" />
@@ -1615,26 +1639,39 @@
         </xsl:message>
       </xsl:if>
       <!--
-        Check that all advanced properties are non-mandatory or have a default.
+        Check that all advanced properties conform to one of
+        the following rules:
+        
+        * is mandatory and has a defined default value(s)
+        * is mandatory and is part of an advanced managed object
+        * is mandatory and is part of an abstract managed object
+        * is not mandatory
       -->
-      <xsl:if
-        test="not($this-is-abstract) and @advanced='true' and @mandatory='true'">
-        <xsl:choose>
-          <xsl:when test="adm:default-behavior/adm:defined">
-            <!--  OK  -->
-          </xsl:when>
-          <xsl:when test="adm:default-behavior/adm:inherited">
-            <!--  OK  -->
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:message terminate="yes">
-              <xsl:value-of
-                select="concat('Property &quot;', @name,
-                         '&quot; is advanced and mandatory but has no default values.')" />
-            </xsl:message>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:if>
+      <xsl:choose>
+        <xsl:when test="$this-is-advanced">
+          <!--  OK  -->
+        </xsl:when>
+        <xsl:when test="$this-is-abstract">
+          <!--  OK  -->
+        </xsl:when>
+        <xsl:when test="@advanced='true' and @mandatory='true'">
+          <xsl:choose>
+            <xsl:when test="adm:default-behavior/adm:defined">
+              <!--  OK  -->
+            </xsl:when>
+            <xsl:when test="adm:default-behavior/adm:inherited">
+              <!--  OK  -->
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:message terminate="yes">
+                <xsl:value-of
+                  select="concat('Advanced property &quot;', @name,
+                         '&quot; must have defined or inherited default values.')" />
+              </xsl:message>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:when>
+      </xsl:choose>
     </xsl:for-each>
     <!-- 
       Now generate the definition.
@@ -1750,8 +1787,12 @@
               select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
           </xsl:element>
         </xsl:for-each>
-        <xsl:if test="$this-local-relations[@hidden='true']">
+        <xsl:if
+          test="$this-local-relations[@advanced='true' or @hidden='true']">
           <import>org.opends.server.admin.RelationOption</import>
+        </xsl:if>
+        <xsl:if test="$this-is-hidden or $this-is-advanced">
+          <import>org.opends.server.admin.ManagedObjectOption</import>
         </xsl:if>
         <xsl:if test="$this-all-relations/adm:one-to-many">
           <import>

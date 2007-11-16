@@ -32,6 +32,7 @@ package org.opends.server.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -92,6 +93,9 @@ public abstract class AbstractManagedObjectDefinition
   // The set of tags associated with this managed object.
   private final Set<Tag> allTags;
 
+  // Options applicable to this definition.
+  private final Set<ManagedObjectOption> options;
+
   // The set of managed object definitions which inherit from this definition.
   private final Map<String,
     AbstractManagedObjectDefinition<? extends C, ? extends S>> children;
@@ -120,6 +124,8 @@ public abstract class AbstractManagedObjectDefinition
     this.allRelationDefinitions =
       new HashMap<String, RelationDefinition<?, ?>>();
     this.allTags = new HashSet<Tag>();
+    this.options = EnumSet.noneOf(ManagedObjectOption.class);
+
     this.children = new HashMap<String,
         AbstractManagedObjectDefinition<? extends C, ? extends S>>();
 
@@ -592,6 +598,21 @@ public abstract class AbstractManagedObjectDefinition
 
   /**
    * Determines whether or not this managed object definition has the
+   * specified option.
+   *
+   * @param option
+   *          The option to test.
+   * @return Returns <code>true</code> if the option is set, or
+   *         <code>false</code> otherwise.
+   */
+  public final boolean hasOption(ManagedObjectOption option) {
+    return options.contains(option);
+  }
+
+
+
+  /**
+   * Determines whether or not this managed object definition has the
    * specified tag.
    *
    * @param t
@@ -749,7 +770,7 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Register a constraint with the managed object definition.
+   * Register a constraint with this managed object definition.
    * <p>
    * This method <b>must not</b> be called by applications.
    *
@@ -763,7 +784,7 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Register a property definition with the managed object definition,
+   * Register a property definition with this managed object definition,
    * overriding any existing property definition with the same name.
    * <p>
    * This method <b>must not</b> be called by applications.
@@ -781,7 +802,7 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Register a relation definition with the managed object definition,
+   * Register a relation definition with this managed object definition,
    * overriding any existing relation definition with the same name.
    * <p>
    * This method <b>must not</b> be called by applications.
@@ -799,15 +820,29 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Register a tag with the managed object definition.
+   * Register an option with this managed object definition.
    * <p>
    * This method <b>must not</b> be called by applications.
    *
-   * @param t
+   * @param option
+   *          The option to be registered.
+   */
+  protected final void registerOption(ManagedObjectOption option) {
+    options.add(option);
+  }
+
+
+
+  /**
+   * Register a tag with this managed object definition.
+   * <p>
+   * This method <b>must not</b> be called by applications.
+   *
+   * @param tag
    *          The tag to be registered.
    */
-  protected final void registerTag(Tag t) {
-    allTags.add(t);
+  protected final void registerTag(Tag tag) {
+    allTags.add(tag);
   }
 
 

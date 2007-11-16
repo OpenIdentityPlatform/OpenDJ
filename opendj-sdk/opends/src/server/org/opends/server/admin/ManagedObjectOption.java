@@ -31,19 +31,19 @@ package org.opends.server.admin;
 
 /**
  * This enumeration contains various options that can be associated
- * with relation definitions.
+ * with managed object definitions.
  */
-public enum RelationOption {
+public enum ManagedObjectOption {
   /**
-   * Use this option to identify relations which should be considered
-   * as advanced and should not be exposed by default in client
-   * applications.
+   * Use this option to identify managed object types which should be
+   * considered as advanced and should not be exposed by default in
+   * client applications.
    */
   ADVANCED,
 
   /**
-   * Use this option to identify relations which must not be directly
-   * exposed in client applications.
+   * Use this option to identify managed object types which must not
+   * be directly exposed in client applications.
    */
   HIDDEN;
 }
