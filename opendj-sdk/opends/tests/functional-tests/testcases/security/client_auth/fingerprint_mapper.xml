@@ -54,19 +54,19 @@
     <message>
              '----  Configure the SASL EXTERNAL mechanism -----'
     </message>      
-    
-    <call function="'modifyAnAttribute'">
-          { 'dsInstanceHost'       :  DIRECTORY_INSTANCE_HOST ,
-             'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-             'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
-             'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-             'DNToModify'          :  'cn=EXTERNAL,cn=SASL Mechanisms,cn=config',
-             'attributeName'        : 'ds-cfg-certificate-mapper',
-             'newAttributeValue'  : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
-             'changetype' : 'replace',
-             'expectedRC'           :  0 }    
-    </call>
- 
+
+    <call function="'dsconfig'">
+    	{ 'dsInstanceHost'	: DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'	: DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'		: DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'	: DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'		: 'set-sasl-mechanism-handler-prop' ,
+        'objectType'		 : 'handler-name' ,
+        'objectName'		: 'EXTERNAL',
+        'optionsString'		 : '--set certificate-mapper:"Fingerprint Mapper"',
+       'expectedRC'		: 0 }
+      </call>
+  
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
@@ -144,25 +144,23 @@
    <message>'MD5 fingerprint for %s is  : %s ' %  (USER_2_CERT,MD5_fingerprint_cert2)</message>      
    <message>'SHA1 fingerprint for %s is  : %s ' %  (USER_2_CERT,SHA1_fingerprint_cert2)</message>          
 
-  <!--   Configure the mapper to map MD5 -->        
-     <script>
-            listAttr = []   
-            listAttr.append('ds-cfg-fingerprint-attribute:ds-certificate-fingerprint')
-            listAttr.append('ds-cfg-fingerprint-algorithm:MD5')
-     </script>    
-
+     <!--   Configure the mapper to map MD5 -->       
+     <!-- fingerprint-attribute:ds-certificate-fingerprint   -->
+     <!-- fingerprint-algorithm:MD5-->  
     <message>'----- Configure the mapper to map MD5 fingerprint '</message>       
-    
-     <call function="'modifyAnAttribute'">
-    { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
-    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'          : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
-    'listAttributes' : listAttr,
-    'changetype'              : 'replace',
-    'expectedRC'           :  0 }       
-    </call>          
+
+    <call function="'dsconfig'">
+    	{ 'dsInstanceHost'	: DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'	: DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'		: DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'	: DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'		: 'set-certificate-mapper-prop' ,
+        'objectType'		 : 'mapper-name' ,
+        'objectName'		: 'fingerPrint Mapper',
+        'optionsString'		 : '--set fingerprint-attribute:ds-certificate-fingerprint --set fingerprint-algorithm:MD5',
+       'expectedRC'		: 0 }
+      </call> 
+               
    
    <!-- configure the user entries -->
    <message>'----- Configure the attribute ds-certificate-fingerprint  for user %s ---' % USER_1_DN</message>
@@ -300,24 +298,21 @@
     
    <!--     Configure the mapper to map SHA1  fingerprint   -->
    <message>'----- Configure the mapper to map SHA1 fingerprint '</message>       
-       <script>
-            listAttr = []   
-            listAttr.append('ds-cfg-fingerprint-attribute:ds-certificate-fingerprint')
-            listAttr.append('ds-cfg-fingerprint-algorithm:SHA1')
-      </script>      
-        
- 
-     <call function="'modifyAnAttribute'">
-    { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-    'dsInstancePort'        : DIRECTORY_INSTANCE_PORT ,
-    'dsInstanceDn'          : DIRECTORY_INSTANCE_DN ,
-    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
-    'DNToModify'          : 'cn=Fingerprint Mapper,cn=Certificate Mappers,cn=config',
-    'listAttributes' : listAttr,
-    'changetype'              : 'replace',
-    'expectedRC'           :  0 }       
-    </call>              
-    
+
+     <!-- fingerprint-attribute:ds-certificate-fingerprint   -->
+     <!-- fingerprint-algorithm:SHA1-->         
+    <call function="'dsconfig'">
+    	{ 'dsInstanceHost'	: DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'	: DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'		: DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'	: DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'		: 'set-certificate-mapper-prop' ,
+        'objectType'		 : 'mapper-name' ,
+        'objectName'		: 'fingerPrint Mapper',
+        'optionsString'		 : '--set fingerprint-attribute:ds-certificate-fingerprint --set fingerprint-algorithm:SHA1',
+       'expectedRC'		: 0 }
+      </call> 
+               
     
 <!--  Check mapping is working -->         
     <message>'--- Check SSL communication with SASL EXTERNAL authentication'</message>
