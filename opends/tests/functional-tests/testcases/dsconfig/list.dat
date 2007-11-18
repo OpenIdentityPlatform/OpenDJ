@@ -1,7 +1,7 @@
 list-account-status-notification-handlers:Account Status Notification Handler:Error Log Handler:
 list-alert-handlers:Alert Handler:JMX Alert Handler:
 list-attribute-syntaxes:Attribute Syntax:Object Class Description:
-list-backends:monitor:tasks:
+list-backends:adminRoot:userRoot:
 list-certificate-mappers:Fingerprint Mapper:Subject Attribute to User Attribute:
 list-connection-handlers:LDAP Connection Handler:LDAPS Connection Handler:
 list-extended-operation-handlers:Get Connection ID:Password Policy State:
