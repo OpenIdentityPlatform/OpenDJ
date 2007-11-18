@@ -1,6 +1,6 @@
 get-entry-cache-prop:exclude-filter:include-filter:
 get-root-dse-backend-prop:show-all-attributes:subordinate-base-dn:
-get-access-control-handler-prop:java-class:global-aci:
+get-access-control-handler-prop:global-aci:
 get-global-configuration-prop:default-password-policy:time-limit:
 get-plugin-root-prop:plugin-order-ldif-import:plugin-order-post-operation-modify:
 get-root-dn-prop:Property:default-root-privilege-name:
