@@ -91,40 +91,6 @@
             [_topologyServerList]
           </call>            
 
-          <!-- Special setup for testcase:   Replication: Total Update: Schema total update
-            Modify schema in one server before replication is enabled.  -->        
-          <if expr="CurrentTestPath['suite'] == 'main.replication.total-update'">
-            <sequence>
-              <script>
-                newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
-                newAttributetype = '( testattribute1-oid NAME \'testattribute-1\' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN \'user defined\' )'
-              </script>
-                
-              <!-- Modify schema  in "master" server -->
-              <call function="'modifyAnAttribute'">
-                { 'dsPath' : masterPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'    : master.getPort(),
-                  'dsInstanceDn'  : master.getRootDn(),
-                  'dsInstancePswd'    : master.getRootPwd(),
-                  'DNToModify'    : 'cn=schema',
-                  'attributeName' : 'attributeTypes',
-                  'newAttributeValue' : newAttributetype, 
-                  'changetype' : 'add' }
-              </call>                
-              <call function="'modifyAnAttribute'">
-                { 'dsPath' : masterPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'    : master.getPort(),
-                  'dsInstanceDn'  : master.getRootDn(),
-                  'dsInstancePswd'    : master.getRootPwd(),
-                  'DNToModify'    : 'cn=schema',
-                  'attributeName' : 'objectClasses',
-                  'newAttributeValue' : newObjectclass, 
-                  'changetype' : 'add' }
-              </call>                
-            </sequence>
-          </if>
               
           <iterate var="server" in="consumerList">
             <sequence>
@@ -162,7 +128,8 @@
                       'refInstanceDn'  :  master.getRootDn(),
                       'refInstancePswd'  :  master.getRootPwd(),
                       'refReplicationPort'  :  masterReplicationServer.getPort(),
-                      'replicationDnList'  :  replicatedDnList }                      
+                      'replicationDnList'  :  replicatedDnList,
+                      'useSecondServerAsSchemaSource'  :  True }                      
                   </call>
                 </sequence>
               </if>                

@@ -64,7 +64,10 @@
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()    
             
             currentSchemaFile = '%s/config/schema/99-user.ldif' % masterPath
-            provSchemaFile = '%s/../last-99-user.ldif' % masterPath                            
+            provSchemaFile = '%s/../last-99-user.ldif' % masterPath                    
+            
+            consumer = consumerList[0]
+            consumerHost = consumer.getHostname()                 
           </script>            
               
                                     
@@ -113,14 +116,14 @@
                   'changetype' : 'add' }
               </call>
 
-              <!-- Add entry to "master" server -->                       
+              <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
+                  'dsInstanceHost' : consumerHost,
+                  'dsInstancePort' : consumer.getPort(), 
+                  'dsInstanceDn'   : consumer.getRootDn(),
+                  'dsInstancePswd' : consumer.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/testuser-0.ldif' % clientDataDir }
               </call>           
                        
@@ -133,6 +136,10 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
+                
+              <script>
+                knownIssue(2599)
+              </script>                      
                                 
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -187,14 +194,14 @@
                   'changetype' : 'add' }
               </call>
 
-              <!-- Add entry to "master" server -->                       
+              <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
+                  'dsInstanceHost' : consumerHost,
+                  'dsInstancePort' : consumer.getPort(), 
+                  'dsInstanceDn'   : consumer.getRootDn(),
+                  'dsInstancePswd' : consumer.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/testuser-1.ldif' % clientDataDir }
               </call>           
                        
@@ -207,7 +214,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+              <script>
+                knownIssue(2599)
+              </script>                      
+                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                                           
@@ -283,7 +294,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+              <script>
+                knownIssue(2599)
+              </script>                      
+                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                                                                     
@@ -359,7 +374,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+              <script>
+                knownIssue(2599)
+              </script>                      
+                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                                                                     
@@ -412,14 +431,14 @@
                   'sleepForMilliSeconds'  :  1000 }
               </call>
                 
-              <!-- Add entry to "master" server -->                       
+              <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
+                  'dsInstanceHost' : consumerHost,
+                  'dsInstancePort' : consumer.getPort(), 
+                  'dsInstanceDn'   : consumer.getRootDn(),
+                  'dsInstancePswd' : consumer.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/newtestuser-0.ldif' % clientDataDir }
               </call>           
                        
@@ -432,7 +451,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+              <script>
+                knownIssue(2599)
+              </script>                      
+                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                     
@@ -486,14 +509,14 @@
                   'sleepForMilliSeconds'  :  1000 }
               </call>
                                 
-              <!-- Add entry to "master" server -->                       
+              <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
-                  'dsInstanceHost' : masterHost,
-                  'dsInstancePort' : master.getPort(), 
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
+                  'dsInstanceHost' : consumerHost,
+                  'dsInstancePort' : consumer.getPort(), 
+                  'dsInstanceDn'   : consumer.getRootDn(),
+                  'dsInstancePswd' : consumer.getRootPwd(),
                   'entryToBeAdded' : '%s/replication/newtestuser-1.ldif' % clientDataDir }
               </call>           
                        
@@ -506,7 +529,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+              <script>
+                knownIssue(2599)
+              </script>                      
+                                                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>                                           

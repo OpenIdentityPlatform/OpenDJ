@@ -188,7 +188,7 @@
               <script>
                 consumer = consumerList[0]
               </script>                
-                
+                                       
               <!-- Try to add entry belonging to new schema (see replication setup)
                 to "consumer" server; should be rejected with error 65 (objectclass violation) -->                       
               <call function="'addEntry'">
@@ -202,21 +202,60 @@
                   'expectedRC'  :  65 }
               </call>                     
 
-              <!-- Perform the total update on every server -->
-              <iterate var="server" in="consumerList">
-                <sequence>     
-                  <call function="'initializeReplication'">
-                    { 'location'  :  clientHost,
-                      'dsPath'  :  clientPath,
-                      'dsInstanceHost'  :  server.getHostname(),
-                      'dsInstancePort'  :  server.getPort(),
-                      'sourceInstanceHost'  :  masterHost,
-                      'sourceInstancePort'  :  master.getPort(),
-                      'replicationDnList'  :  ['cn=schema']
-                    }
-                  </call>
-                </sequence>
-              </iterate>       
+
+              <!-- Disable schema replication on "master" server -->       
+              <call function="'disableReplication'">
+                { 'location'  :  clientHost,
+                  'dsPath'  :  clientPath,
+                  'dsInstanceHost'  :  masterHost,
+                  'dsInstancePort'  :  master.getPort(),
+                  'replicationDnList'  :  ['cn=schema'] }                      
+              </call>         
+                
+              <script>
+                newObjectclass = '( testobjectclass1-oid NAME \'testobjectclass-1\' SUP person MAY ( street $ testattribute-1 $ c ) X-ORIGIN \'user defined\' )'
+                newAttributetype = '( testattribute1-oid NAME \'testattribute-1\' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN \'user defined\' )'
+              </script>
+                
+              <!-- Modify schema  in "master" server -->
+              <call function="'modifyAnAttribute'">
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
+                  'attributeName' : 'attributeTypes',
+                  'newAttributeValue' : newAttributetype, 
+                  'changetype' : 'add' }
+              </call>                
+              <call function="'modifyAnAttribute'">
+                { 'dsPath' : masterPath,
+                  'dsInstanceHost'   : masterHost ,
+                  'dsInstancePort'    : master.getPort(),
+                  'dsInstanceDn'  : master.getRootDn(),
+                  'dsInstancePswd'    : master.getRootPwd(),
+                  'DNToModify'    : 'cn=schema',
+                  'attributeName' : 'objectClasses',
+                  'newAttributeValue' : newObjectclass, 
+                  'changetype' : 'add' }
+              </call>                
+                
+              <!-- Re-enable schema replication on "master" server, and 
+                   at the same time initialise the schema across the topology -->
+              <call function="'enableReplication'">
+                { 'location'  :  clientHost,
+                  'dsPath'  :  clientPath,
+                  'dsInstanceHost'  :  masterHost,
+                  'dsInstancePort'  :  master.getPort(),
+                  'dsInstanceDn'  :  master.getRootDn(),
+                  'dsInstancePswd'  :  master.getRootPwd(),
+                  'refInstanceHost'  :  consumer.getHostname(),
+                  'refInstancePort'  :  consumer.getPort(),
+                  'refInstanceDn'  :  consumer.getRootDn(),
+                  'refInstancePswd'  :  consumer.getRootPwd(),
+                  'replicationDnList'  :  ['cn=schema'] }                      
+              </call>                
                 
               <!-- Add entry to "consumer" server -->                       
               <call function="'addEntry'">
@@ -240,7 +279,7 @@
               </call>                 
 
               <script>
-                knownIssue(2263)
+                knownIssue(2587)
               </script>                 
                                                                            
               <call function="'testCase_Postamble'"/>
@@ -359,11 +398,11 @@
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, 'o=example' ]
               </call>                 
-
+<!--
               <script>
                 knownIssue(2425)
               </script> 
-                
+-->                
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
