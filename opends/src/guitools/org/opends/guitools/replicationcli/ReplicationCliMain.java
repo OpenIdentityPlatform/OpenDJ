@@ -1426,19 +1426,19 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (!cancelled)
     {
-      boolean onlyLocal = false;
-      if (!argParser.isExternalInitializationOnlyInLocal())
+      boolean localOnly = false;
+      if (!argParser.isExternalInitializationLocalOnly())
       {
         println();
-        onlyLocal = askConfirmation(
+        localOnly = askConfirmation(
             INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_LOCAL_PROMPT.get(
                 ConnectionUtils.getHostPort(ctx)), false, LOG);
       }
       else
       {
-        onlyLocal = true;
+        localOnly = true;
       }
-      uData.setOnlyLocal(onlyLocal);
+      uData.setLocalOnly(localOnly);
 
       uData.setHostName(host);
       uData.setPort(port);
@@ -2157,7 +2157,7 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setPort(port);
     uData.setUseSSL(argParser.useSSLToInitializeAll());
     uData.setUseStartTLS(argParser.useStartTLSToInitializeAll());
-    uData.setOnlyLocal(argParser.isExternalInitializationOnlyInLocal());
+    uData.setLocalOnly(argParser.isExternalInitializationLocalOnly());
   }
 
   /**
@@ -3231,7 +3231,7 @@ public class ReplicationCliMain extends ConsoleApplication
             Message msg = formatter.getFormattedWithPoints(
                 INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN));
             printProgress(msg);
-            preExternalInitialization(baseDN, ctx, uData.isOnlyLocal(), false);
+            preExternalInitialization(baseDN, ctx, uData.isLocalOnly(), false);
             printProgress(formatter.getFormattedDone());
             printlnProgress();
           }
@@ -3243,7 +3243,7 @@ public class ReplicationCliMain extends ConsoleApplication
             LOG.log(Level.SEVERE, "Complete error stack:", rce);
           }
         }
-        if (uData.isOnlyLocal())
+        if (uData.isLocalOnly())
         {
           printlnProgress();
           printProgress(
@@ -5610,16 +5610,16 @@ public class ReplicationCliMain extends ConsoleApplication
    * connection on a given base DN.
    * @param baseDN the base DN that we want to reset.
    * @param ctx the connection to the server.
-   * @param onlyLocal whether the resetting internal operations must only apply
+   * @param localOnly whether the resetting internal operations must only apply
    * to the server to which we are connected.
    * @param displayProgress whether to display operation progress or not.
    * @throws ReplicationCliException if there is an error performing the
    * operation.
    */
   private void preExternalInitialization(String baseDN, InitialLdapContext ctx,
-      boolean onlyLocal, boolean displayProgress) throws ReplicationCliException
+      boolean localOnly, boolean displayProgress) throws ReplicationCliException
   {
-    postPreExternalInitialization(baseDN, ctx, onlyLocal, displayProgress,
+    postPreExternalInitialization(baseDN, ctx, localOnly, displayProgress,
         true);
   }
 
@@ -5643,7 +5643,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * provided connection on a given base DN.
    * @param baseDN the base DN that we want to reset.
    * @param ctx the connection to the server.
-   * @param onlyLocal whether the resetting internal operations must only apply
+   * @param localOnly whether the resetting internal operations must only apply
    * to the server to which we are connected.
    * @param displayProgress whether to display operation progress or not.
    * @param isPre whether this is the pre operation or the post operation.
@@ -5651,7 +5651,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * operation.
    */
   private void postPreExternalInitialization(String baseDN,
-      InitialLdapContext ctx, boolean onlyLocal, boolean displayProgress,
+      InitialLdapContext ctx, boolean localOnly, boolean displayProgress,
       boolean isPre) throws ReplicationCliException
   {
     boolean taskCreated = false;
@@ -5668,7 +5668,7 @@ public class ReplicationCliMain extends ConsoleApplication
         "org.opends.server.tasks.SetGenerationIdTask");
     if (isPre)
     {
-      if (!onlyLocal)
+      if (!localOnly)
       {
         attrs.put("ds-task-reset-generation-id-new-value", "-1");
       }

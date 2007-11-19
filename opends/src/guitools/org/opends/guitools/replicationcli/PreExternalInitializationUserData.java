@@ -36,16 +36,16 @@ package org.opends.guitools.replicationcli;
  */
 class PreExternalInitializationUserData extends MonoServerReplicationUserData
 {
-  private boolean onlyLocal;
+  private boolean localOnly;
 
   /**
    * Whether the operation must be applied only on the local server or not.
    * @return <CODE>true</CODE> if the operation must be applied only on the
    * local server and <CODE>false</CODE> otherwise.
    */
-  public boolean isOnlyLocal()
+  public boolean isLocalOnly()
   {
-    return onlyLocal;
+    return localOnly;
   }
 
   /**
@@ -53,9 +53,9 @@ class PreExternalInitializationUserData extends MonoServerReplicationUserData
    * @param onlyLocal whether the operation must be applied only on the local
    * server or not.
    */
-  public void setOnlyLocal(boolean onlyLocal)
+  public void setLocalOnly(boolean onlyLocal)
   {
-    this.onlyLocal = onlyLocal;
+    this.localOnly = onlyLocal;
   }
 
 }
