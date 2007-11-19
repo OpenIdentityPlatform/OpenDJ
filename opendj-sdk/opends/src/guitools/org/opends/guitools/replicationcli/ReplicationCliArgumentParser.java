@@ -224,7 +224,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * The argument that specifies if the external initialization will be
    * performed only on this server.
    */
-  private BooleanArgument externalInitializationOnlyInLocalArg;
+  private BooleanArgument externalInitializationLocalOnlyArg;
 
   /**
    * The 'quiet' argument.
@@ -731,17 +731,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_PRE_EXTERNAL_INITIALIZATION.get(
             POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    externalInitializationOnlyInLocalArg = new BooleanArgument(
-        "only-local",
+    externalInitializationLocalOnlyArg = new BooleanArgument(
+        "local-only",
         'l',
-        "only-local",
+        "local-only",
         INFO_DESCRIPTION_EXTERNAL_INITIALIZATION_LOCAL.get());
-    externalInitializationOnlyInLocalArg.setPropertyName(
-        externalInitializationOnlyInLocalArg.getLongIdentifier());
+    externalInitializationLocalOnlyArg.setPropertyName(
+        externalInitializationLocalOnlyArg.getLongIdentifier());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.useSSLArg,
         secureArgsList.useStartTLSArg,
-        externalInitializationOnlyInLocalArg};
+        externalInitializationLocalOnlyArg};
 
     for (int i=0; i<argsToAdd.length; i++)
     {
@@ -764,8 +764,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_POST_EXTERNAL_INITIALIZATION.get(
             PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    externalInitializationOnlyInLocalArg.setPropertyName(
-        externalInitializationOnlyInLocalArg.getLongIdentifier());
+    externalInitializationLocalOnlyArg.setPropertyName(
+        externalInitializationLocalOnlyArg.getLongIdentifier());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.useSSLArg,
         secureArgsList.useStartTLSArg};
@@ -1954,9 +1954,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * external initialization operations only on the local server and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isExternalInitializationOnlyInLocal()
+  public boolean isExternalInitializationLocalOnly()
   {
-    return externalInitializationOnlyInLocalArg.isPresent();
+    return externalInitializationLocalOnlyArg.isPresent();
   }
 
   /**
