@@ -125,8 +125,8 @@ public class TaskEntry {
     depends =    getMultiStringValue(entry,  p + "dependency-id");
     depFailAct = getSingleStringValue(entry, p + "failed-dependency-action");
     logs =       getMultiStringValue(entry,  p + "log-message");
-    notifyErr =  getMultiStringValue(entry,  p + "notify-on-completion");
-    notifyComp = getMultiStringValue(entry,  p + "notify-on-error");
+    notifyErr =  getMultiStringValue(entry,  p + "notify-on-error");
+    notifyComp = getMultiStringValue(entry,  p + "notify-on-completion");
 
 
     // Build a map of non-superior attribute value pairs for display
