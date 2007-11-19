@@ -76,11 +76,31 @@ import static org.opends.messages.QuickSetupMessages.*;
  */
 public class CertificateDialog extends JDialog implements HyperlinkListener
 {
+  /**
+   * The enumeration that defines the different answers that the user can
+   * provide for this dialog.
+   */
+  public enum ReturnType
+  {
+    /**
+     * The user did not accept the certificate.
+     */
+    NOT_ACCEPTED,
+    /**
+     * The user accepted the certificate only for this session.
+     */
+    ACCEPTED_FOR_SESSION,
+    /**
+     * The user accepted the certificate permanently.
+     */
+    ACCEPTED_PERMANENTLY
+  };
   private static final long serialVersionUID = -8989965057591475064L;
-  private boolean isAccepted;
+  private ReturnType returnValue = ReturnType.NOT_ACCEPTED;
   private UserDataCertificateException ce;
-  private JButton cancelButton;
-  private JButton okButton;
+  private JButton doNotAcceptButton;
+  private JButton acceptSessionButton;
+  private JButton acceptPermanentlyButton;
   private JComponent certificateDetails;
   private JEditorPane explanationPane;
   private boolean detailsAlreadyClicked;
@@ -107,7 +127,7 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     pack();
     if (getPreferredSize().width > parent.getWidth())
     {
-      setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 400),
+      setPreferredSize(new Dimension(Math.max(parent.getWidth() - 20, 600),
           getPreferredSize().height));
     }
     pack();
@@ -115,13 +135,13 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     int minHeight = (int) getPreferredSize().getHeight();
     addComponentListener(new MinimumSizeComponentListener(this, minWidth,
         minHeight));
-    getRootPane().setDefaultButton(cancelButton);
+    getRootPane().setDefaultButton(doNotAcceptButton);
 
     addWindowListener(new WindowAdapter()
     {
       public void windowClosing(WindowEvent e)
       {
-        cancelClicked();
+        doNotAccept();
       }
     });
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -131,12 +151,12 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
 
   /**
    * Wheter the user accepted the certificate or not.
-   * @return <CODE>true</CODE> ir the user accepted the certificate and
-   * <CODE>false</CODE> otherwise.
+   * @return the ReturnType object defining what the user chose to do with the
+   * certificate.
    */
-  public boolean isAccepted()
+  public ReturnType getUserAnswer()
   {
-    return isAccepted;
+    return returnValue;
   }
 
   /**
@@ -313,8 +333,10 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
   }
 
   /**
-   * Creates and returns the buttons OK/CANCEL sub panel.
-   * @return the buttons OK/CANCEL sub panel.
+   * Creates and returns the buttons DO NOT ACCEPT/ACCEPT FOR THIS SESSION/
+   * ACCEPT PERMANENTLY sub panel.
+   * @return the buttons DO NOT ACCEPT/ACCEPT FOR THIS SESSION/ACCEPT
+   * PERMANENTLY sub panel.
    */
   private Component createButtonsPanel()
   {
@@ -331,32 +353,48 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
     gbc.gridwidth--;
     gbc.insets.left = 0;
     buttonsPanel.add(Box.createHorizontalGlue(), gbc);
-    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.gridwidth = 3;
     gbc.fill = GridBagConstraints.NONE;
     gbc.weightx = 0.0;
-    okButton =
-      UIFactory.makeJButton(INFO_OK_BUTTON_LABEL.get(),
-          INFO_CERTIFICATE_DIALOG_OK_BUTTON_TOOLTIP.get());
-    buttonsPanel.add(okButton, gbc);
-    okButton.addActionListener(new ActionListener()
+    acceptSessionButton =
+      UIFactory.makeJButton(
+          INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_LABEL.get(),
+          INFO_CERTIFICATE_DIALOG_ACCEPT_FOR_SESSION_BUTTON_TOOLTIP.get());
+    buttonsPanel.add(acceptSessionButton, gbc);
+    acceptSessionButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
       {
-        okClicked();
+        acceptForSession();
+      }
+    });
+
+    gbc.gridwidth = GridBagConstraints.RELATIVE;
+    gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
+    acceptPermanentlyButton =
+      UIFactory.makeJButton(
+          INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_LABEL.get(),
+          INFO_CERTIFICATE_DIALOG_ACCEPT_PERMANENTLY_BUTTON_TOOLTIP.get());
+    buttonsPanel.add(acceptPermanentlyButton, gbc);
+    acceptPermanentlyButton.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ev)
+      {
+        acceptPermanently();
       }
     });
 
     gbc.gridwidth = GridBagConstraints.REMAINDER;
-    gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
-    cancelButton =
-      UIFactory.makeJButton(INFO_CANCEL_BUTTON_LABEL.get(),
-          INFO_CERTIFICATE_DIALOG_CANCEL_BUTTON_TOOLTIP.get());
-    buttonsPanel.add(cancelButton, gbc);
-    cancelButton.addActionListener(new ActionListener()
+    doNotAcceptButton =
+      UIFactory.makeJButton(
+          INFO_CERTIFICATE_DIALOG_DO_NOT_ACCEPT_BUTTON_LABEL.get(),
+          INFO_CERTIFICATE_DIALOG_DO_NOT_ACCEPT_BUTTON_TOOLTIP.get());
+    buttonsPanel.add(doNotAcceptButton, gbc);
+    doNotAcceptButton.addActionListener(new ActionListener()
     {
       public void actionPerformed(ActionEvent ev)
       {
-        cancelClicked();
+        doNotAccept();
       }
     });
 
@@ -739,9 +777,9 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    * Method called when user clicks on ok.
    *
    */
-  private void okClicked()
+  private void acceptForSession()
   {
-    isAccepted = true;
+    returnValue = ReturnType.ACCEPTED_FOR_SESSION;
     dispose();
   }
 
@@ -749,9 +787,19 @@ public class CertificateDialog extends JDialog implements HyperlinkListener
    * Method called when user clicks on cancel.
    *
    */
-  private void cancelClicked()
+  private void doNotAccept()
   {
-    isAccepted = false;
+    returnValue = ReturnType.NOT_ACCEPTED;
+    dispose();
+  }
+
+  /**
+   * Method called when user clicks on ok.
+   *
+   */
+  private void acceptPermanently()
+  {
+    returnValue = ReturnType.ACCEPTED_PERMANENTLY;
     dispose();
   }
 

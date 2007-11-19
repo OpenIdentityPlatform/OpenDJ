@@ -65,6 +65,7 @@ import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
+import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.messages.Message;
@@ -660,7 +661,7 @@ public class LoginDialog extends JDialog
     CertificateDialog dlg = new CertificateDialog(parent, ce);
     dlg.pack();
     dlg.setVisible(true);
-    if (dlg.isAccepted())
+    if (dlg.getUserAnswer() != CertificateDialog.ReturnType.NOT_ACCEPTED)
     {
       X509Certificate[] chain = ce.getChain();
       String authType = ce.getAuthType();
@@ -695,6 +696,22 @@ public class LoginDialog extends JDialog
         {
           LOG.log(Level.WARNING,
               "The host is null for the UserDataCertificateException");
+        }
+      }
+    }
+    if (dlg.getUserAnswer() ==
+      CertificateDialog.ReturnType.ACCEPTED_PERMANENTLY)
+    {
+      X509Certificate[] chain = ce.getChain();
+      if (chain != null)
+      {
+        try
+        {
+          UIKeyStore.acceptCertificate(chain);
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
         }
       }
     }

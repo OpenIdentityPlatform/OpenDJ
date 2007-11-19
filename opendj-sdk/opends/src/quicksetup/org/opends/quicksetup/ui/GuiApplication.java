@@ -30,6 +30,7 @@ package org.opends.quicksetup.ui;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.InProcessServerController;
+import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.UserInteraction;
 import org.opends.quicksetup.webstart.WebStartDownloader;
@@ -435,8 +436,11 @@ public abstract class GuiApplication extends Application {
    * when trying to connect in secure mode.
    * @param ce the UserDataCertificateException that contains the information to
    * be used.
+   * @param acceptPermanently whether the certificate must be accepted
+   * permanently or not.
    */
-  protected void acceptCertificateForException(UserDataCertificateException ce)
+  protected void acceptCertificateForException(UserDataCertificateException ce,
+      boolean acceptPermanently)
   {
     X509Certificate[] chain = ce.getChain();
     String authType = ce.getAuthType();
@@ -463,6 +467,20 @@ public abstract class GuiApplication extends Application {
       {
         LOG.log(Level.WARNING,
             "The host is null for the UserDataCertificateException");
+      }
+    }
+    if (acceptPermanently)
+    {
+      if (chain != null)
+      {
+        try
+        {
+          UIKeyStore.acceptCertificate(chain);
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
+        }
       }
     }
   }
