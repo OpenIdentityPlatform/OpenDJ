@@ -51,7 +51,7 @@
               </message>
           
         <call function="'createTopology'">
-          { 'initialiseInstance' : True }
+          { 'initialiseInstance' : False }
         </call>
                     
         <call function="'checkRC'">
