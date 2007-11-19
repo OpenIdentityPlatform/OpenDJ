@@ -758,12 +758,23 @@
         <function-arg-property name="type" value="string" />
       </function-arg-def>
       
-      <function-arg-def name="dsReplicationPort" type="required">
+      <function-arg-def name="dsReplicationPort" 
+                        type="optional"
+                        default="None">
         <function-arg-description>
           Replication port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
+
+      <function-arg-def name="dsSecureReplication"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Encrypt communications over dsReplicationPort (secure replication)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>                        
         
       <function-arg-def name="refInstanceHost"
                         type="optional"
@@ -795,12 +806,23 @@
         <function-arg-property name="type" value="string" />
       </function-arg-def>
       
-      <function-arg-def name="refReplicationPort" type="required">
+      <function-arg-def name="refReplicationPort" 
+                        type="optional" 
+                        default="None">
         <function-arg-description>
           Reference server Replication port number
         </function-arg-description>
         <function-arg-property name="type" value="Port number" />
       </function-arg-def>
+        
+      <function-arg-def name="refSecureReplication"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Encrypt communications over refReplicationPort (secure replication)
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>        
                         
       <function-arg-def name="replicationDnList" type="required">
         <function-arg-description>
@@ -826,7 +848,25 @@
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>        
-      
+
+      <function-arg-def name="noSchemaReplication"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Do not enable schema replication
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+        
+      <function-arg-def name="useSecondServerAsSchemaSource"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Take the refInstanceHost as the source for the schema initialisation
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>
+                                      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
         Expected return code value. Default value is 0
@@ -851,22 +891,25 @@
         STAFCmdParamsList.append('-Q')
           
         if dsInstanceHost:
-          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          STAFCmdParamsList.append('--host1 %s' % dsInstanceHost)
       
         if dsInstancePort:
-          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+          STAFCmdParamsList.append('--port1 %s' % dsInstancePort)
       
         if dsInstanceDn:
-          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+          STAFCmdParamsList.append('--bindDN1 "%s"' % dsInstanceDn)
       
         if dsInstancePswd:
           STAFCmdParamsList.append('--bindPassword1 "%s"' % dsInstancePswd)
 
         if dsReplicationPort:
-          STAFCmdParamsList.append('-r %s' % dsReplicationPort)                    
+          STAFCmdParamsList.append('--replicationPort1 %s' % dsReplicationPort)                    
+          
+        if dsSecureReplication:
+          STAFCmdParamsList.append('--secureReplication1')          
 
         if refInstanceHost:
-          STAFCmdParamsList.append('-O %s' % refInstanceHost)
+          STAFCmdParamsList.append('--host2 %s' % refInstanceHost)
       
         if refInstancePort:
           STAFCmdParamsList.append('--port2 %s' % refInstancePort)
@@ -878,7 +921,10 @@
           STAFCmdParamsList.append('--bindPassword2 "%s"' % refInstancePswd)
 
         if refReplicationPort:
-          STAFCmdParamsList.append('-R %s' % refReplicationPort)                    
+          STAFCmdParamsList.append('--replicationPort2 %s' % refReplicationPort)                    
+
+        if refSecureReplication:
+          STAFCmdParamsList.append('--secureReplication2') 
 
         if replicationDnList:
           for dn in replicationDnList:
@@ -889,6 +935,12 @@
       
         if adminPswd:
           STAFCmdParamsList.append('-w "%s"' % adminPswd)          
+          
+        if noSchemaReplication:
+          STAFCmdParamsList.append('--noSchemaReplication')
+          
+        if useSecondServerAsSchemaSource:
+          STAFCmdParamsList.append('--useSecondServerAsSchemaSource')
                     
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
@@ -1076,6 +1128,137 @@
   </function>
 
 
+
+  <!-- Disable replication for given baseDN  on server using dsreplication -->
+  <function name="disableReplication">
+    <function-prolog>
+      This function disables replication for a given baseDN on a server using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="DN list" />
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" 
+                                   type="optional"
+                                   default="AdminUID">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+        <function-arg-property name="type" value="UID" />
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" 
+                                   type="optional"
+                                   default="AdminPswd">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSREPLICATION,fileExt)
+        
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('disable')
+        STAFCmdParamsList.append('-n')                    
+        STAFCmdParamsList.append('-Q')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+      
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+                    
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+      
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)          
+                              
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Disable Replication',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>        
+      
+            
                                           
   
   <function name="readTopology">
