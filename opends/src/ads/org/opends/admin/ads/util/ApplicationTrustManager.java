@@ -369,11 +369,13 @@ public class ApplicationTrustManager implements X509TrustManager
       {
         LdapName dn =
           new LdapName(chain[0].getSubjectX500Principal().getName());
-        Rdn rdn = dn.getRdn(0);
+        Rdn rdn = dn.getRdn(dn.getRdns().size() - 1);
         String value = rdn.getValue().toString();
         matches = host.equalsIgnoreCase(value);
         if (!matches)
         {
+          LOG.log(Level.WARNING, "Subject DN RDN value is: "+value+
+              " and does not match host value: "+host);
           // Try with the accepted hosts names
           for (int i =0; i<acceptedHosts.size() && !matches; i++)
           {

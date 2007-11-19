@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
@@ -52,6 +54,7 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.HtmlProgressMessageFormatter;
+import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 
 import org.opends.messages.Message;
@@ -100,6 +103,9 @@ public class StatusPanelController implements ServerStatusChangeListener,
   private static final ConnectionProtocolPolicy CONNECTION_POLICY =
     ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
 
+  private static final Logger LOG = Logger.getLogger(
+      StatusPanelController.class.getName());
+
   /**
    * This method creates the control panel dialogs and to check the current
    * install status. This method must be called outside the event thread because
@@ -119,7 +125,16 @@ public class StatusPanelController implements ServerStatusChangeListener,
   {
     DirectoryServer.bootstrapClient();
     initLookAndFeel();
-    trustManager = new ApplicationTrustManager(null);
+    try
+    {
+      trustManager = new ApplicationTrustManager(UIKeyStore.getInstance());
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error retrieving UI key store: "+t, t);
+      trustManager = new ApplicationTrustManager(null);
+    }
+
     /* Call this methods to create the dialogs (the control panel dialog
      * is generated when we call getLoginDialog()). */
     getLoginDialog();

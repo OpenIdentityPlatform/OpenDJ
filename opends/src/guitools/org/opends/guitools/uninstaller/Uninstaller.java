@@ -44,9 +44,11 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.uninstaller.ui.ConfirmUninstallPanel;
 import org.opends.guitools.uninstaller.ui.LoginDialog;
 import org.opends.quicksetup.ui.*;
+
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -150,7 +152,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * {@inheritDoc}
    */
   public UserData createUserData() {
-    return new UninstallUserData();
+    UninstallUserData data = new UninstallUserData();
+    data.setTrustManager(super.getTrustManager());
+    return data;
   }
 
   /**
@@ -1554,7 +1558,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       new CertificateDialog(qs.getDialog().getFrame(), ce);
     dlg.pack();
     dlg.setVisible(true);
-    if (dlg.isAccepted())
+    if (dlg.getUserAnswer() != CertificateDialog.ReturnType.NOT_ACCEPTED)
     {
       X509Certificate[] chain = ce.getChain();
       String authType = ce.getAuthType();
@@ -1614,6 +1618,22 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         {
           LOG.log(Level.WARNING,
               "The host is null for the UserDataCertificateException");
+        }
+      }
+    }
+    if (dlg.getUserAnswer() ==
+      CertificateDialog.ReturnType.ACCEPTED_PERMANENTLY)
+    {
+      X509Certificate[] chain = ce.getChain();
+      if (chain != null)
+      {
+        try
+        {
+          UIKeyStore.acceptCertificate(chain);
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error accepting certificate: "+t, t);
         }
       }
     }

@@ -595,27 +595,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * Displays a dialog asking the user to accept a certificate.
-   *
-   * @param ce
-   *          the certificate exception that occurred.
-   * @return <CODE>true</CODE> if the user confirms the message, or
-   * <CODE>false</CODE> if not.
-   */
-  private boolean askToAcceptCertificate(UserDataCertificateException ce)
-  {
-    boolean accept = false;
-    CertificateDialog dlg = new CertificateDialog(getDialog().getFrame(), ce);
-    dlg.pack();
-    dlg.setVisible(true);
-    if (dlg.isAccepted())
-    {
-      accept = true;
-    }
-    return accept;
-  }
-
-  /**
    * Gets the string value for a given field name.
    *
    * @param fieldName
@@ -756,12 +735,18 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           {
             final UserDataCertificateException ce =
               (UserDataCertificateException)ude;
-            if (askToAcceptCertificate(ce))
+            CertificateDialog dlg =
+              new CertificateDialog(getDialog().getFrame(), ce);
+            dlg.pack();
+            dlg.setVisible(true);
+            CertificateDialog.ReturnType answer = dlg.getUserAnswer();
+            if (answer != CertificateDialog.ReturnType.NOT_ACCEPTED)
             {
               /*
                * Retry the click but now with the certificate accepted.
                */
-              application.acceptCertificateForException(ce);
+              application.acceptCertificateForException(ce,
+                  answer == CertificateDialog.ReturnType.ACCEPTED_PERMANENTLY);
               application.nextClicked(cStep, QuickSetup.this);
               BackgroundTask worker = new NextClickedBackgroundTask(cStep);
               getDialog().workerStarted();

@@ -39,6 +39,7 @@ import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
+import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.util.Utils;
 
@@ -562,7 +563,22 @@ public abstract class Application implements ProgressNotifier, Runnable {
   {
     if (trustManager == null)
     {
-      trustManager = new ApplicationTrustManager(null);
+      if (!Utils.isCli())
+      {
+        try
+        {
+          trustManager = new ApplicationTrustManager(UIKeyStore.getInstance());
+        }
+        catch (Throwable t)
+        {
+          LOG.log(Level.WARNING, "Error retrieving UI key store: "+t, t);
+          trustManager = new ApplicationTrustManager(null);
+        }
+      }
+      else
+      {
+        trustManager = new ApplicationTrustManager(null);
+      }
     }
     return trustManager;
   }

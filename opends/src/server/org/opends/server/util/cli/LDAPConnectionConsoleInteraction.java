@@ -877,7 +877,7 @@ public class LDAPConnectionConsoleInteraction {
         }
       }
     }
-    // We'we got all the information to get the truststore manager
+    // We've got all the information to get the truststore manager
     try
     {
       truststore = KeyStore.getInstance(KeyStore.getDefaultType());
