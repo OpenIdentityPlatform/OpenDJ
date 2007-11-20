@@ -212,8 +212,6 @@ public class InstallerHelper {
    * Configures the replication on a given server.
    * @param remoteCtx the conection to the server where we want to configure
    * the replication.
-   * @param dns the suffix base dns for which we want to configure the
-   * replication.
    * @param replicationServers a Map where the key value is the base dn and
    * the value is the list of replication servers for that base dn (or domain).
    * @param replicationPort the replicationPort of the server that is being
@@ -229,8 +227,7 @@ public class InstallerHelper {
    * @return a ConfiguredReplication object describing what has been configured.
    */
   public ConfiguredReplication configureReplication(
-      InitialLdapContext remoteCtx, Set<String> dns,
-      Map<String,Set<String>> replicationServers,
+      InitialLdapContext remoteCtx, Map<String,Set<String>> replicationServers,
       int replicationPort, boolean useSecureReplication, String serverDisplay,
       Set<Integer> usedReplicationServerIds, Set<Integer> usedServerIds)
   throws ApplicationException
@@ -365,7 +362,7 @@ public class InstallerHelper {
       {
         domains[i] = sync.getReplicationDomain(domainNames[i]);
       }
-      for (String dn : dns)
+      for (String dn : replicationServers.keySet())
       {
         ReplicationDomainCfgClient domain = null;
         boolean isCreated;

@@ -1438,7 +1438,6 @@ public abstract class Installer extends GuiApplication {
        is a degenerate case. Also, collect a set of all observed replication
        servers as the set of ADS suffix replicas (all instances hosting the
        replication server also replicate ADS). */
-    Set<String> dns = new HashSet<String>();
     Map<String, Set<String>> replicationServers
             = new HashMap<String, Set<String>>();
     HashSet<String> adsServers = new HashSet<String>();
@@ -1448,13 +1447,12 @@ public abstract class Installer extends GuiApplication {
     {
       LinkedList<String> baseDns =
         getUserData().getNewSuffixOptions().getBaseDns();
-      dns.addAll(baseDns);
       HashSet<String> h = new HashSet<String>();
       h.add(getLocalReplicationServer());
       adsServers.add(getLocalReplicationServer());
       for (String dn : baseDns)
       {
-        replicationServers.put(dn, h);
+        replicationServers.put(dn, new HashSet<String>(h));
       }
     }
     else
@@ -1463,7 +1461,6 @@ public abstract class Installer extends GuiApplication {
         getUserData().getSuffixesToReplicateOptions().getSuffixes();
       for (SuffixDescriptor suffix : suffixes)
       {
-        dns.add(suffix.getDN());
         HashSet<String> h = new HashSet<String>();
         h.addAll(suffix.getReplicationServers());
         adsServers.addAll(suffix.getReplicationServers());
@@ -1483,10 +1480,9 @@ public abstract class Installer extends GuiApplication {
         replicationServers.put(suffix.getDN(), h);
       }
     }
-    dns.add(ADSContext.getAdministrationSuffixDN());
     replicationServers.put(ADSContext.getAdministrationSuffixDN(), adsServers);
-    dns.add(Constants.SCHEMA_DN);
-    replicationServers.put(Constants.SCHEMA_DN, adsServers);
+    replicationServers.put(Constants.SCHEMA_DN,
+        new HashSet<String>(adsServers));
 
     InitialLdapContext ctx = null;
     long localTime = -1;
@@ -1495,7 +1491,7 @@ public abstract class Installer extends GuiApplication {
     try
     {
       ctx = createLocalContext();
-      helper.configureReplication(ctx, dns, replicationServers,
+      helper.configureReplication(ctx, replicationServers,
           getUserData().getReplicationOptions().getReplicationPort(),
           getUserData().getReplicationOptions().useSecureReplication(),
           getLocalHostPort(),
@@ -1582,16 +1578,46 @@ public abstract class Installer extends GuiApplication {
                 server.getHostPort(true));
           }
         }
-        dns = new HashSet<String>();
+        HashSet<String> dns = new HashSet<String>();
         for (ReplicaDescriptor replica : hm.get(server))
         {
           dns.add(replica.getSuffix().getDN());
         }
         dns.add(ADSContext.getAdministrationSuffixDN());
         dns.add(Constants.SCHEMA_DN);
+        Map<String, Set<String>> remoteReplicationServers
+        = new HashMap<String, Set<String>>();
+        for (String dn : dns)
+        {
+          Set<String> repServer = replicationServers.get(dn);
+          if (repServer == null)
+          {
+            // Do the comparison manually
+            for (String dn1 : replicationServers.keySet())
+            {
+              if (Utils.areDnsEqual(dn, dn1))
+              {
+                repServer = replicationServers.get(dn1);
+                dn = dn1;
+                break;
+              }
+            }
+          }
+          if (repServer != null)
+          {
+            remoteReplicationServers.put(dn, repServer);
+          }
+          else
+          {
+            LOG.log(Level.WARNING, "Could not find replication server for: "+
+                dn);
+          }
+        }
+
+
         ctx = getRemoteConnection(server, getTrustManager());
         ConfiguredReplication repl =
-          helper.configureReplication(ctx, dns, replicationServers,
+          helper.configureReplication(ctx, remoteReplicationServers,
               replicationPort, enableSecureReplication,
               server.getHostPort(true), knownReplicationServerIds,
               knownServerIds);
