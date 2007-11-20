@@ -365,9 +365,18 @@ public enum SizeUnit {
    * @param amount
    *          The size as a quantity of this unit.
    * @return Returns the number of bytes that the size represents.
+   *
+   * @throws NumberFormatException
+   *           If the provided size exceeded long.MAX_VALUE.
    */
-  public long toBytes(double amount) {
-    return (long) (sz * amount);
+  public long toBytes(double amount) throws NumberFormatException {
+    double value =  sz * amount;
+    if (value > Long.MAX_VALUE)
+    {
+      throw new NumberFormatException
+        ("number too big (exceeded long.MAX_VALUE");
+    }
+    return (long) (value);
   }
 
 
