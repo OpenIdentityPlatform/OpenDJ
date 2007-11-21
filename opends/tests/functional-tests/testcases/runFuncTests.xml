@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE stax SYSTEM "../shared/stax.dtd">
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
 <!--
  ! CDDL HEADER START
  !
@@ -114,11 +114,17 @@
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
-		file="'%s/testcases/tasks/tasks.xml' % (TESTS_DIR)" />
-	<!--
-      <call function="'main_tasks'" />
-	-->
-
+              file="'%s/testcases/tasks/tasks.xml' % (TESTS_DIR)" />
+      <!--
+      add keyword 'main_tasks' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
+<!--
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/virtualAttributes/virtualAttributes.xml' % (TESTS_DIR)" />
+-->
+      <!--
+      add keyword 'main_virtualAttributes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
 
 
       <import machine="STAF_LOCAL_HOSTNAME"
