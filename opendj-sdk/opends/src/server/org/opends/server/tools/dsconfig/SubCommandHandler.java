@@ -1030,7 +1030,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       // No options available - abort.
       Message msg =
           ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
-      throw new CLIException(msg);
+      app.println(msg);
+      return MenuResult.cancel();
     }
     case 1: {
       // Only one option available so confirm that the user wishes to
