@@ -50,8 +50,6 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -462,44 +460,48 @@ public class ListBackends
         return 1;
       }
 
-      TableBuilder table = new TableBuilder();
-      Message[] headers = {backendIDLabel, baseDNLabel};
-      for (int i=0; i< headers.length; i++)
+      // Print the header line and the separator line.
+      out.print(backendIDLabel);
+      for (int i=backendIDLabel.length(); i < backendIDLength+2; i++)
       {
-        table.appendHeading(headers[i]);
+        out.print(" ");
       }
+      out.println(baseDNLabel);
+
+      for (int i=0; i < backendIDLength; i++)
+      {
+        out.print("-");
+      }
+      out.print("  ");
+
+      for (int i=0; i < baseDNLength; i++)
+      {
+        out.print("-");
+      }
+      out.println();
+
+
+      // Iterate through the backends and the base DNs for each backend.
       for (String id : backendIDs)
       {
-        table.startRow();
-        table.appendCell(id);
-        StringBuffer buf = new StringBuffer();
+        out.print(id);
+        for (int i=id.length(); i < backendIDLength+2; i++)
+        {
+          out.print(" ");
+        }
 
         TreeSet<DN> baseDNs = backends.get(id);
-        boolean isFirst = true;
-        for (DN dn : baseDNs)
+        Iterator<DN> dnIterator = baseDNs.iterator();
+        out.println(dnIterator.next().toString());
+        while (dnIterator.hasNext())
         {
-          if (!isFirst)
+          for (int i=0; i < backendIDLength+2; i++)
           {
-            buf.append(",");
+            out.print(" ");
           }
-          else
-          {
-            isFirst = false;
-          }
-          if (dn.getNumComponents() > 1)
-          {
-            buf.append("\""+dn.toString()+"\"");
-          }
-          else
-          {
-            buf.append(dn.toString());
-          }
+          out.println(dnIterator.next().toString());
         }
-        table.appendCell(buf.toString());
       }
-      TextTablePrinter printer = new TextTablePrinter(out);
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
-      table.print(printer);
     }
 
 
