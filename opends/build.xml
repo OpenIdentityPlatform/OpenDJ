@@ -1065,7 +1065,90 @@
   </target>
 
 
-
+  <!-- Internal target to run directly the Directory Server. -->
+  <target name="run-server" depends="dynamicconstants">
+          <!-- Set properties needed to find the packaged files -->
+      <property name="pdir"
+                location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+    <java fork="true" classname="org.opends.server.core.DirectoryServer" failonerror="true">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <dirset dir="${classes.dir}" />            
+      </classpath>
+      <jvmarg  value="-Dorg.opends.server.BuildRoot=${pdir}" />
+      <jvmarg  value="-Dorg.opends.server.scriptName=start-ds" />
+      <jvmarg  value="-Dorg.opends.server.ServerRoot=${pdir}" />
+      <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
+      <arg value="--configFile=${pdir}/config/config.ldif"/>
+    </java>      
+  </target>
+  
+  <!-- Netbeans target to debug the DS server. -->
+  <target name="nb-debug-server" depends="dynamicconstants">
+    <!-- Set properties needed to find the packaged files -->
+    <property name="pdir"
+              location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+    <path id="cp">
+      <fileset dir="${lib.dir}">
+        <include name="*.jar" />
+      </fileset>
+      <dirset dir="${classes.dir}" />            
+    </path>
+    <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
+      <classpath refid="cp"/>
+    </nbjpdastart>
+    <java classname="org.opends.server.core.DirectoryServer" fork="true">
+      <classpath refid="cp"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+      <jvmarg  value="-Dorg.opends.server.BuildRoot=${pdir}" />
+      <jvmarg  value="-Dorg.opends.server.scriptName=start-ds" />
+      <jvmarg  value="-Dorg.opends.server.ServerRoot=${pdir}" />
+      <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
+      <arg value="--configFile=${pdir}/config/config.ldif"/>     
+    </java>
+  </target>
+  
+   <!-- Internal target to run directly dsconfig. -->
+  <target name="run-dsconfig" depends="dynamicconstants">
+          <!-- Set properties needed to find the packaged files -->
+      <property name="pdir"
+                location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+    <java fork="true" classname="org.opends.server.tools.dsconfig.DSConfig" failonerror="true">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <dirset dir="${classes.dir}" />            
+      </classpath>
+      <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
+    </java>      
+  </target>
+  
+ <!-- Netbeans target to debug dsconfig. -->
+  <target name="nb-debug-dsconfig" depends="dynamicconstants">
+    <!-- Set properties needed to find the packaged files -->
+    <property name="pdir"
+              location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+    <path id="cp">
+      <fileset dir="${lib.dir}">
+        <include name="*.jar" />
+      </fileset>
+      <dirset dir="${classes.dir}" />            
+    </path>
+    <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
+      <classpath refid="cp"/>
+    </nbjpdastart>
+    <java classname="org.opends.server.tools.dsconfig.DSConfig" fork="true">
+      <classpath refid="cp"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+      <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
+    </java>
+  </target>
+   
   <!-- Internal target to prepare to generate a code coverage report. -->
   <target name="coverage">
     <property name="coverage.enabled" value="true" />
