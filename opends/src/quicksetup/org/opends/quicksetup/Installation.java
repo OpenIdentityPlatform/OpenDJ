@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup;
 
+import org.opends.admin.ads.ADSContext;
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -134,6 +135,12 @@ public class Installation {
    * The relative path to the current Configuration LDIF file.
    */
   public static final String BASE_CONFIG_FILE_PREFIX ="config.ldif.";
+
+  /**
+   * The relative path to the tools.properties file.
+   */
+  public static final String TOOLS_PROPERTIES =
+    CONFIG_PATH_RELATIVE+File.separator+"tools.properties";
 
   /**
    * The UNIX setup script file name.
@@ -464,6 +471,15 @@ public class Installation {
   }
 
   /**
+   * Returns the path to the tools properties file.
+   *
+   * @return the path to the tools properties file.
+   */
+  public File getToolsPropertiesFile() {
+    return new File(getRootDirectory(), TOOLS_PROPERTIES);
+  }
+
+  /**
    * Creates a File object representing config/upgrade/schema.ldif.current
    * which the server creates the first time it starts if there are schema
    * customizations.
@@ -523,6 +539,16 @@ public class Installation {
    */
   public File getCurrentConfigurationFile() {
     return new File(getConfigurationDirectory(), CURRENT_CONFIG_FILE_NAME);
+  }
+
+  /**
+   * Returns the path to the ADS file of the directory server.  Note
+   * that this method assumes that this code is being run locally.
+   *
+   * @return the path of the ADS file of the directory server.
+   */
+  public File getADSBackendFile() {
+    return new File(getRootDirectory(), ADSContext.getAdminLDIFFile());
   }
 
   /**
