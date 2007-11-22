@@ -29,10 +29,10 @@ __version__ = "$Revision$"
 # $Source$
 
 # public symbols
-__all__ = [ "format_testcase", "directory_server_information" ]
+__all__ = [ "format_testcase", "directory_server_information", "test_time", "report_generation" ]
 
 class format_testcase:
-  "Format the Test name objects"
+  'Format the Test name objects'
   def group(self,string):
     self.group=string.lower()
     self.group=self.group.strip()
@@ -48,7 +48,7 @@ class format_testcase:
     return '%s' % self.name
 
 class directory_server_information:
-  "Container for Information about Directory Servers"
+  'Container for Information about Directory Servers'
   def __init__(self):
     self.line=''
     self.key=''
@@ -78,4 +78,35 @@ class directory_server_information:
 
   def getServerValueFromKey(self,string,result):
     return result[string]
+
+class test_time:
+  'Simple time related manipulation objects'
+  def __init__(self):
+    self.seconds=0
+    self.minutes=0
+    self.hours=0
+
+  def timeToSeconds(self,clocktime):
+    self.hours,self.minutes,self.seconds=clocktime.split(':')
+    return int(self.hours)*7200+int(self.minutes)*60+int(self.seconds)
+
+class report_generation:
+  'Test Report Generation'
+  def transformReport(self,stylesheet,xml,output):
+    from java.io import FileInputStream
+    from java.io import FileOutputStream
+    from java.io import ByteArrayOutputStream
+
+    from javax.xml.transform import TransformerFactory
+    from javax.xml.transform.stream import StreamSource
+    from javax.xml.transform.stream import StreamResult
+
+    self.xslSource = StreamSource(FileInputStream("%s" % stylesheet))
+    self.xslTemplate = TransformerFactory.newInstance().newTemplates(self.xslSource)
+    self.transformer = self.xslTemplate.newTransformer()
+
+    self.source = StreamSource(FileInputStream("%s" % xml))
+    self.result = StreamResult(FileOutputStream("%s" % output))
+
+    self.transformer.transform(self.source, self.result)
 

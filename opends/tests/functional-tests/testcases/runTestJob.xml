@@ -31,6 +31,7 @@
   <function name="start_job">
 
     <sequence>
+
       <script>
         STAXLogMessage = 1
       </script>
@@ -45,6 +46,15 @@
           <return></return>
         </sequence>
       </if>
+
+      <!-- Load in the local shared python objects -->
+      <script>
+        import sys
+        sys.path.append("%s/shared/python" % TESTS_ROOT )
+        from common import *
+      </script>
+
+      <message>'PATH= %s' % sys.path</message>
 
       <!-- Check some of the optional variables from config.py -->
       <script>
@@ -310,7 +320,7 @@
               startValueDict['start']=timestamp
               testDict[tcname]=startValueDict
               
-              testCaseList.append(tcname)
+              testCaseList.append(tcname.strip())
             
             else:
               errorfh.write('Warning: No match Start element %s.\n' % element)
@@ -420,14 +430,14 @@
           if testDict.has_key(tcname):
             tcnamesplit=tcname.split(":")
             if tcnamesplit[0]:
-              testgroup=tcnamesplit[0]
+              tcgroup=tcnamesplit[0].strip()
               if tcnamesplit[1]:
-                testsuite=tcnamesplit[1]
+                tcsuite=tcnamesplit[1].strip()
               else:
-                testsuite=testgroup
+                tcsuite=tcgroup
             else:
-              testgroup=tcname
-              testsuite=tcname
+              tcgroup=tcname
+              tcsuite=tcname
             
             if testDict[tcname].has_key('pass'):
               tcpass=testDict[tcname]['pass']
@@ -463,10 +473,12 @@
             tcresult='unknown'
           else:
             tcresult='fail'
+
+          tcdurationsecs=test_time().timeToSeconds(tcduration)
           
-          xmlfh.write('      &lt;testgroup name="%s"&gt;\n' % testgroup)
-          xmlfh.write('        &lt;testsuite name="%s"&gt;\n' % testsuite)
-          xmlfh.write('          &lt;testcase name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcname,tcresult,tcstart,tcstop,tcduration))
+          xmlfh.write('      &lt;testgroup name="%s"&gt;\n' % tcgroup)
+          xmlfh.write('        &lt;testsuite name="%s"&gt;\n' % tcsuite)
+          xmlfh.write('          &lt;testcase group="%s" suite="%s" name="%s" result="%s" start="%s" stop="%s" duration="%s"/&gt;\n' % (tcgroup,tcsuite,tcname,tcresult,tcstart,tcstop,tcdurationsecs))
           xmlfh.write('        &lt;/testsuite&gt;\n')
           xmlfh.write('      &lt;/testgroup&gt;\n')
       </script>
@@ -487,35 +499,13 @@
         'XML Report Written to %s.' % xmlfile
       </message>
 
-      <script>      
-        class reportGeneration:
-          'Test Report Generation'
-          def transformReport(self,stylesheet,xml,output):
-            from java.io import FileInputStream
-            from java.io import FileOutputStream
-            from java.io import ByteArrayOutputStream
-            
-            from javax.xml.transform import TransformerFactory
-            from javax.xml.transform.stream import StreamSource
-            from javax.xml.transform.stream import StreamResult
-              
-            self.xslSource = StreamSource(FileInputStream("%s" % stylesheet))
-            self.xslTemplate = TransformerFactory.newInstance().newTemplates(self.xslSource)
-            self.transformer = self.xslTemplate.newTransformer()
-            
-            self.source = StreamSource(FileInputStream("%s" % xml))
-            self.result = StreamResult(FileOutputStream("%s" % output))
-
-            self.transformer.transform(self.source, self.result)        
-      </script>            
-
       <!-- Generate the standard test report showing all testcases -->      
       <script>
         _message='Generated standard test report.'
         xslfile= '%s/xsl/gen-alltests-report.xsl' % TESTS_SHARED_DIR
         htmlfile= '%s/results.html' % logsReportDir
 
-        standardReport=reportGeneration()      
+        standardReport=report_generation()      
 
         try:
           standardReport.transformReport(xslfile,xmlfile,htmlfile)
@@ -531,7 +521,7 @@
         myreporthtml='%s/my-report.html' % logsReportDir
         mytestslog='%s/tests-log.xml' % logsTestsDir
 
-        drillDownReport=reportGeneration()      
+        drillDownReport=report_generation()      
 
         try:
           drillDownReport.transformReport(myreportxsl,mytestslog,myreporthtml)
@@ -547,7 +537,7 @@
         mysummarytext='%s/summary.txt' % logsReportDir
         mysummaryxml=xmlfile
 
-        summaryReport=reportGeneration()      
+        summaryReport=report_generation()      
 
         try:
           summaryReport.transformReport(mysummaryxsl,mysummaryxml,mysummarytext)
