@@ -422,4 +422,15 @@ public abstract class ManagementContext {
    *         context.
    */
   protected abstract Driver getDriver();
+
+
+
+ /**
+   * Close the associated management context.
+   *
+   */
+  public void close() {
+    this.getDriver().close();
+  }
+
 }
