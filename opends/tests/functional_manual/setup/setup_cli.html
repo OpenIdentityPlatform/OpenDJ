@@ -12,24 +12,38 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">unregister_as_service</td>
+      <td style="vertical-align: top;">setup_cli</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small>OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;">OpenDS CLI setup command: test install and uninstall<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;">
-       - OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;">- run setup command to install in CLI<br>
+	enter expected data at each prompt (cn=Directory Manager, password, LDAP port, default base DN)<br>
+	Choose option 4 to populate de database Load automatically-generated sample data, with 200 entries<br>
+	no SSL<br>
+	no Start TLS<br>
+	start the server when the configuration is completed<br>
+	<br>
+	- open status in CLI <br>
+	<br>
+	- run setup command to uninstall in CLI and in interactive mode (-r and -a options are broken, see issue 2506 and 2508)<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;"><br>
+      <td style="vertical-align: top;">-Check the install is successfull<br>
+	Check the server is running<br>
+	Check the Base DN has been created<br>
+	<br>
+	- Check status data are valid<br>
+	<br>
+	- Check uninstall is successfull<br>
       </td>
     </tr>
   </tbody>
