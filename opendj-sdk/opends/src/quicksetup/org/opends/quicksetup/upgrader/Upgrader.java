@@ -30,6 +30,8 @@ package org.opends.quicksetup.upgrader;
 import org.opends.quicksetup.CliApplication;
 import static org.opends.quicksetup.Installation.*;
 import static org.opends.messages.QuickSetupMessages.*;
+
+import org.opends.admin.ads.ADSContext;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
@@ -132,6 +134,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOCKS_PATH_RELATIVE, // locks
           HISTORY_PATH_RELATIVE, // history
           TMP_PATH_RELATIVE // tmp
+  };
+
+  // Files that will be ignored during backup
+  static final String[] FILES_TO_IGNORE_DURING_BACKUP = {
+          TOOLS_PROPERTIES, // tools.properties
+          ADSContext.getAdminLDIFFile() // admin-backend.ldif
   };
 
   private ProgressStep currentProgressStep = UpgradeProgressStep.NOT_STARTED;
@@ -821,6 +829,40 @@ public class Upgrader extends GuiApplication implements CliApplication {
             notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO,
                     "Error applying configuration customizations", e);
+            throw e;
+          }
+        }
+
+        checkAbort();
+
+        if (migration.mustMigrateADS())
+        {
+          try {
+            LOG.log(Level.INFO, "Applying registration changes");
+            migration.migrateADS(
+                getStagedInstallation().getADSBackendFile());
+            LOG.log(Level.INFO, "custom registration application finished");
+          } catch (ApplicationException e) {
+            notifyListeners(getFormattedErrorWithLineBreak());
+            LOG.log(Level.INFO,
+                "Error applying registration customizations", e);
+            throw e;
+          }
+        }
+
+        checkAbort();
+
+        if (migration.mustMigrateToolProperties())
+        {
+          try {
+            LOG.log(Level.INFO, "Applying tools properties");
+            migration.migrateToolPropertiesFile(
+                getStagedInstallation().getToolsPropertiesFile());
+            LOG.log(Level.INFO, "tools properties application finished");
+          } catch (ApplicationException e) {
+            notifyListeners(getFormattedErrorWithLineBreak());
+            LOG.log(Level.INFO,
+                "Error applying tools properties changes", e);
             throw e;
           }
         }

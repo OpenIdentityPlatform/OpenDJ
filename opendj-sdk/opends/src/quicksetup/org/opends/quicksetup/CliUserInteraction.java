@@ -28,15 +28,19 @@
 package org.opends.quicksetup;
 
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+
 import static org.opends.messages.AdminToolMessages.*;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.Menu;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.PrintStream;
@@ -82,61 +86,74 @@ public class CliUserInteraction extends ConsoleApplication
   public Object confirm(Message summary, Message details, Message fineDetails,
                         Message title, MessageType type, Message[] options,
                         Message def, Message viewDetailsOption) {
-    List<String> sOptions = new ArrayList<String>();
+    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+
+    MessageBuilder b = new MessageBuilder();
+    b.append(summary);
+    b.append(Constants.LINE_SEPARATOR);
+    b.append(details);
+    builder.setPrompt(b.toMessage());
+
     int defInt = -1;
-    for (int i = 0; i < options.length; i++) {
-      sOptions.add(createOption(i + 1, options[i].toString()));
-      if (options[i].equals(def)) {
-        defInt = i + 1;
+    for (int i=0; i<options.length; i++)
+    {
+      builder.addNumberedOption(options[i], MenuResult.success(i+1));
+      if (options[i].equals(def))
+      {
+        defInt = i+1;
       }
     }
+
     if (fineDetails != null) {
-      sOptions.add(createOption(options.length + 1,
-              viewDetailsOption != null ?
-                      viewDetailsOption.toString() :
-                      INFO_CLI_VIEW_DETAILS.get().toString()));
+      Message detailsPrompt = viewDetailsOption;
+      if (detailsPrompt == null)
+      {
+        detailsPrompt = INFO_CLI_VIEW_DETAILS.get();
+      }
+      builder.addNumberedOption(detailsPrompt,
+          MenuResult.success(options.length + 1));
     }
 
-    println(summary);
-    println();
-    println(details);
+    builder.setDefault(Message.raw(String.valueOf(defInt)),
+        MenuResult.success(defInt));
+
+    Menu<Integer> menu = builder.toMenu();
 
     Object returnValue = null;
+    boolean menuDisplayed = false;
     while (returnValue == null) {
-      println();
-      for (String o : sOptions) {
-        println(o);
-      }
-      print(
-          Message.raw("%s%n[%s]:",
-              INFO_CLI_NUMBER_PROMPT.get().toString(),
-              Integer.toString(defInt)));
-
-      String response = "";
+      int respInt = -1;
       try
       {
-        response = readLineOfInput(null);
+        if (menuDisplayed)
+        {
+          println();
+          builder.setPrompt(null);
+          menu = builder.toMenu();
+        }
+        MenuResult<Integer> m = menu.run();
+        menuDisplayed = true;
+
+        if (m.isSuccess())
+        {
+          respInt = m.getValue();
+        }
+        else
+        {
+          // Should never happen.
+          throw new RuntimeException();
+        }
       }
       catch (CLIException ce)
       {
+        respInt = defInt;
         LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
       }
-      int respInt = -1;
-      if (response.equals("")) {
-        respInt = defInt;
-      } else {
-        try {
-          respInt = Integer.parseInt(response);
-        } catch (Exception e) {
-          // do nothing;
-        }
-      }
       if (fineDetails != null && respInt == options.length + 1) {
+        println();
         println(String.valueOf(fineDetails));
-      } else if (respInt > 0 && respInt <= options.length) {
-        returnValue = options[respInt - 1];
       } else {
-        println(INFO_CLI_INVALID_RESPONSE.get()+" " + response);
+        returnValue = options[respInt - 1];
       }
     }
     return returnValue;
@@ -164,13 +181,6 @@ public class CliUserInteraction extends ConsoleApplication
                                 String defaultValue) {
 
     return readInput(prompt, defaultValue, LOG);
-  }
-
-  private String createOption(int index, String option) {
-    return new StringBuilder().
-            append(Integer.toString(index)).
-            append(". ").
-            append(option).toString();
   }
 
   private void println(String text) {

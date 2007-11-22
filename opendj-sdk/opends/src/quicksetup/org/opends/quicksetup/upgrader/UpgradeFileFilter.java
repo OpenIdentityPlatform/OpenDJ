@@ -53,6 +53,10 @@ class UpgradeFileFilter implements FileFilter {
             Upgrader.ROOT_FILES_TO_IGNORE_DURING_BACKUP) {
       filesToIgnore.add(new File(root, rootFileNamesToIgnore));
     }
+    for (String rootFileNamesToIgnore :
+      Upgrader.FILES_TO_IGNORE_DURING_BACKUP) {
+      filesToIgnore.add(new File(root, rootFileNamesToIgnore));
+    }
   }
 
   /**
