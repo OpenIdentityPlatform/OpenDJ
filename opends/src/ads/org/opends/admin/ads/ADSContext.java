@@ -420,6 +420,12 @@ public class ADSContext
     BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
     try
     {
+      // This check is required because by default the server container entry
+      // does not exist.
+      if (!isExistingEntry(nameFromDN(getServerContainerDN())))
+      {
+        createContainerEntry(getServerContainerDN());
+      }
       dirContext.createSubcontext(dn, attrs).close();
       if (serverProperties.containsKey(
                                 ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
