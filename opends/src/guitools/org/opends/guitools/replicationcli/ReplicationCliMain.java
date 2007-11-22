@@ -4598,17 +4598,8 @@ public class ReplicationCliMain extends ConsoleApplication
     TopologyCache cache = null;
     try
     {
-      if (adsCtx.hasAdminData())
-      {
-        cache = new TopologyCache(adsCtx, getTrustManager());
-        cache.reloadTopology();
-      }
-    }
-    catch (ADSContextException adce)
-    {
-      throw new ReplicationCliException(
-          ERR_REPLICATION_READING_ADS.get(adce.getMessage()),
-          ERROR_READING_ADS, adce);
+      cache = new TopologyCache(adsCtx, getTrustManager());
+      cache.reloadTopology();
     }
     catch (TopologyCacheException tce)
     {
