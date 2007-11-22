@@ -240,4 +240,16 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     return dirContext.getAttributes(dn, attrIdList);
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void unbind() {
+    try {
+      dirContext.close();
+    } catch (NamingException e) {
+      // nothing to do
+    }
+  }
 }

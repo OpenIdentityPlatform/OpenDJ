@@ -139,4 +139,11 @@ public abstract class LDAPConnection {
    */
   public abstract Attributes readEntry(LdapName dn, Collection<String> attrIds)
       throws NamingException;
+
+
+  /**
+   * Close the associated management context.
+   *
+   */
+  public abstract void unbind();
 }

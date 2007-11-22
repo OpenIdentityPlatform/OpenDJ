@@ -656,6 +656,13 @@ public abstract class Driver {
       CommunicationException;
 
 
+  /**
+   * Close the associated management context.
+   *
+   */
+  public void close() {
+    // do nothing by default
+  }
 
   /**
    * Deletes the named managed object.

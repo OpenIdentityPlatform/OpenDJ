@@ -719,26 +719,36 @@ public final class DSConfig extends ConsoleApplication {
       return 1;
     }
 
+    int retCode = 0;
     if (parser.getSubCommand() == null) {
       hasSubCommand = false;
 
       if (isInteractive()) {
-        // Top-level interactive mode.
-        return runInteractiveMode();
+          // Top-level interactive mode.
+          retCode = runInteractiveMode();
+        } else {
+          Message message = ERR_ERROR_PARSING_ARGS
+              .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
+          displayMessageAndUsageReference(message);
+          retCode = 1;
+        }
       } else {
-        Message message = ERR_ERROR_PARSING_ARGS
-            .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
-        displayMessageAndUsageReference(message);
-        return 1;
-      }
-    } else {
-      hasSubCommand = true;
+        hasSubCommand = true;
 
-      // Retrieve the sub-command implementation and run it.
-      SubCommandHandler handler = handlers.get(parser.getSubCommand());
-      return runSubCommand(handler);
+        // Retrieve the sub-command implementation and run it.
+        SubCommandHandler handler = handlers.get(parser.getSubCommand());
+        retCode = runSubCommand(handler);
+      }
+
+      try {
+        // Close the Management context ==> an LDAP UNBIND is sent
+        factory.getManagementContext(this).close();
+      } catch (Exception e) {
+      // Nothing to report in this case
+      }
+
+      return retCode;
     }
-  }
 
 
 

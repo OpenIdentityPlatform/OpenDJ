@@ -355,4 +355,9 @@ public class MockLDAPConnection extends LDAPConnection {
     return entries.get(name);
   }
 
+  @Override
+  public void unbind() {
+    // nothing to do
+  }
+
 }

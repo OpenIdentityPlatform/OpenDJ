@@ -408,6 +408,15 @@ final class LDAPDriver extends Driver {
   }
 
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void close() {
+    connection.unbind();
+  }
+
+
 
   /**
    * {@inheritDoc}
