@@ -43,6 +43,7 @@ import org.opends.server.admin.std.server.LDIFConnectionHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
@@ -133,7 +134,14 @@ public final class LDIFConnectionHandler
   public void initializeConnectionHandler(LDIFConnectionHandlerCfg
                                                configuration)
   {
-    ldifDirectory = new File(configuration.getLDIFDirectory());
+    String ldifDirectoryPath = configuration.getLDIFDirectory();
+    ldifDirectory = new File(ldifDirectoryPath);
+
+    // If we have a relative path to the instance, get the absolute one.
+    if ( ! ldifDirectory.isAbsolute() ) {
+      ldifDirectory = new File(DirectoryServer.getServerRoot() + File.separator
+          + ldifDirectoryPath);
+    }
 
     if (ldifDirectory.exists())
     {
