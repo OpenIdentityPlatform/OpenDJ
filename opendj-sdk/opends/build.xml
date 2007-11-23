@@ -1065,36 +1065,35 @@
   </target>
 
 
-  <!-- Internal target to run directly the Directory Server. -->
+  <!-- Internal target to run the Directory Server directly. -->
   <target name="run-server" depends="dynamicconstants">
-          <!-- Set properties needed to find the packaged files -->
-      <property name="pdir"
-                location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+    <!-- Set properties needed to find the packaged files -->
+    <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     <java fork="true" classname="org.opends.server.core.DirectoryServer" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
-          <include name="*.jar" />
+          <include name="*.jar"/>
         </fileset>
-        <dirset dir="${classes.dir}" />            
+        <dirset dir="${classes.dir}"/>
       </classpath>
-      <jvmarg  value="-Dorg.opends.server.BuildRoot=${pdir}" />
-      <jvmarg  value="-Dorg.opends.server.scriptName=start-ds" />
-      <jvmarg  value="-Dorg.opends.server.ServerRoot=${pdir}" />
+      <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.scriptName=start-ds"/>
+      <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
       <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
       <arg value="--configFile=${pdir}/config/config.ldif"/>
-    </java>      
+      <arg value="--nodetach"/>
+    </java>
   </target>
-  
-  <!-- Netbeans target to debug the DS server. -->
+
+  <!-- Netbeans target to debug the Directory Server. -->
   <target name="nb-debug-server" depends="dynamicconstants">
     <!-- Set properties needed to find the packaged files -->
-    <property name="pdir"
-              location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
+    <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     <path id="cp">
       <fileset dir="${lib.dir}">
-        <include name="*.jar" />
+        <include name="*.jar"/>
       </fileset>
-      <dirset dir="${classes.dir}" />            
+      <dirset dir="${classes.dir}"/>
     </path>
     <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
       <classpath refid="cp"/>
@@ -1103,14 +1102,47 @@
       <classpath refid="cp"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
-      <jvmarg  value="-Dorg.opends.server.BuildRoot=${pdir}" />
-      <jvmarg  value="-Dorg.opends.server.scriptName=start-ds" />
-      <jvmarg  value="-Dorg.opends.server.ServerRoot=${pdir}" />
+      <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.scriptName=start-ds"/>
+      <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.debug.enabled=true"/>
       <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
-      <arg value="--configFile=${pdir}/config/config.ldif"/>     
+      <arg value="--configFile=${pdir}/config/config.ldif"/>
+      <arg value="--nodetach"/>
     </java>
   </target>
-  
+
+  <!-- Netbeans target to profile the Directory Server. -->
+  <target name="nb-profile-server" depends="dynamicconstants">
+    <!-- Set properties needed to find the packaged files -->
+    <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
+    <path id="cp">
+      <fileset dir="${lib.dir}">
+        <include name="*.jar"/>
+      </fileset>
+      <dirset dir="${classes.dir}"/>
+    </path>
+    <nbprofiledirect>
+      <classpath refid="cp"/>
+    </nbprofiledirect>
+    <java fork="true" classname="org.opends.server.core.DirectoryServer"
+      jvm="${profiler.info.jvm}">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar"/>
+        </fileset>
+        <dirset dir="${classes.dir}"/>
+      </classpath>
+      <jvmarg value="${profiler.info.jvmargs.agent}"/>
+      <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+      <jvmarg value="-Dorg.opends.server.scriptName=start-ds"/>
+      <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
+      <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
+      <arg value="--configFile=${pdir}/config/config.ldif"/>
+      <arg value="--nodetach"/>
+    </java>
+  </target>
+
    <!-- Internal target to run directly dsconfig. -->
   <target name="run-dsconfig" depends="dynamicconstants">
           <!-- Set properties needed to find the packaged files -->
@@ -1121,12 +1153,12 @@
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
         </fileset>
-        <dirset dir="${classes.dir}" />            
+        <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
-    </java>      
+    </java>
   </target>
-  
+
  <!-- Netbeans target to debug dsconfig. -->
   <target name="nb-debug-dsconfig" depends="dynamicconstants">
     <!-- Set properties needed to find the packaged files -->
@@ -1136,7 +1168,7 @@
       <fileset dir="${lib.dir}">
         <include name="*.jar" />
       </fileset>
-      <dirset dir="${classes.dir}" />            
+      <dirset dir="${classes.dir}" />
     </path>
     <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
       <classpath refid="cp"/>
@@ -1148,7 +1180,7 @@
       <jvmarg  value="-Dorg.opends.server.scriptName=dsconfig" />
     </java>
   </target>
-   
+
   <!-- Internal target to prepare to generate a code coverage report. -->
   <target name="coverage">
     <property name="coverage.enabled" value="true" />
@@ -1206,7 +1238,7 @@
         <path refid="quickSetup.classpath" />
       </classpath>
     </javac>
-    
+
     <copy todir="${unittest.classes.dir}">
       <fileset dir="${unittest.testng.src.dir}"
                includes="**/*.properties" />
