@@ -825,7 +825,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
           throw ArgumentExceptionFactory.unknownCategory(categoryName);
         }
 
-        categoryName = null;
         subTypes = tagMap.get(tag);
         if (subTypes == null) {
           throw ArgumentExceptionFactory.unknownCategory(categoryName);
@@ -838,8 +837,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       if (typeName != null) {
         AbstractManagedObjectDefinition<?, ?> d = subTypes.get(typeName);
         if (d == null) {
-          throw ArgumentExceptionFactory.unknownTypeInCategory(categoryName,
-              typeName);
+          throw ArgumentExceptionFactory.unknownTypeForCategory(typeName,
+              categoryName);
         }
         dlist.add(d);
 
@@ -863,7 +862,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       }
 
       if (!isFound) {
-        throw ArgumentExceptionFactory.unknownType(typeName);
+        throw ArgumentExceptionFactory.unknownTypeForCategory(typeName,
+            categoryName);
       }
     } else {
       // User did not specify a category nor a sub-type.
