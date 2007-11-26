@@ -175,7 +175,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           // definition.
           if (!child.getManagedObjectDefinition().isChildOf(d)) {
             clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
-                .getManagedObjectDefinition());
+                .getManagedObjectDefinition(), getSubCommand().getName());
             result = MenuResult.quit();
           } else {
             result = MenuResult.<ManagedObject<?>>success(child);
@@ -219,7 +219,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           // definition.
           if (!child.getManagedObjectDefinition().isChildOf(d)) {
             clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
-                .getManagedObjectDefinition());
+                .getManagedObjectDefinition(), getSubCommand().getName());
             result = MenuResult.quit();
           } else {
             result = MenuResult.<ManagedObject<?>>success(child);
@@ -263,7 +263,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           // definition.
           if (!child.getManagedObjectDefinition().isChildOf(d)) {
             clie = ArgumentExceptionFactory.wrongManagedObjectType(r, child
-                .getManagedObjectDefinition());
+                .getManagedObjectDefinition(), getSubCommand().getName());
             result = MenuResult.quit();
           } else {
             result = MenuResult.<ManagedObject<?>>success(child);

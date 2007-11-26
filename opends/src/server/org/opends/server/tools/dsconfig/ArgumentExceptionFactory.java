@@ -584,22 +584,6 @@ public final class ArgumentExceptionFactory {
   }
 
 
-
-  /**
-   * Creates an argument exception which should be used when a managed
-   * object type argument is not recognized.
-   *
-   * @param typeName
-   *          The unrecognized component type.
-   * @return Returns an argument exception.
-   */
-  public static ArgumentException unknownType(String typeName) {
-    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED.get(typeName);
-    return new ArgumentException(msg);
-  }
-
-
-
   /**
    * Creates an argument exception which should be used when a managed
    * object type argument is not associated with a category.
@@ -610,8 +594,8 @@ public final class ArgumentExceptionFactory {
    *          The unrecognized component type.
    * @return Returns an argument exception.
    */
-  public static ArgumentException unknownTypeInCategory(String categoryName,
-      String typeName) {
+  public static ArgumentException unknownTypeForCategory(String typeName,
+      String categoryName) {
     Message msg =
         ERR_DSCFG_ERROR_CATEGORY_TYPE_UNRECOGNIZED.get(typeName, categoryName);
     return new ArgumentException(msg);
@@ -628,12 +612,14 @@ public final class ArgumentExceptionFactory {
    *          The relation definition.
    * @param d
    *          The definition of the managed object that was retrieved.
+   *
+   * @param subcommandName the sub-command name.
    * @return Returns a CLI exception.
    */
   public static CLIException wrongManagedObjectType(RelationDefinition<?, ?> r,
-      ManagedObjectDefinition<?, ?> d) {
-    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED
-        .get(d.getUserFriendlyName());
+      ManagedObjectDefinition<?, ?> d, String subcommandName) {
+    Message msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED_FOR_SUBCOMMAND.get(
+        d.getUserFriendlyName(), subcommandName);
     return new CLIException(msg);
   }
 
