@@ -1191,6 +1191,37 @@ public class  UpdateOperationTest extends ReplicationTestCase
     assertEquals(DummyAlertHandler.getAlertCount(), AlertCount,
         "An alert was incorrectly generated when resolving conflicts");
 
+    /*
+     * Check that a conflict is detected when an entry is 
+     * moved below an entry that does not exist.
+     */
+    updateMonitorCount(baseDn, unresolvedMonitorAttr);
+    AlertCount = DummyAlertHandler.getAlertCount();
+    modDnMsg = new ModifyDNMsg(
+        "uid=new person,ou=People,dc=example,dc=com", gen.newChangeNumber(),
+        "33333333-3333-3333-3333-333333333333",
+        "12343333-3533-3633-3333-333333833333" , false,
+        "uid=wrong, ou=people,dc=example,dc=com",
+        "uid=newrdn");
+    broker.publish(modDnMsg);
+    
+    count = 0;
+    while ((count<2000) && getMonitorDelta() == 0)
+    {
+      // it is possible that the update has not yet been applied
+      // wait a short time and try again.
+      Thread.sleep(100);
+      count++;
+    }
+    // if the monitor counter did not get incremented after 200sec
+    // then something got wrong.
+    assertTrue(count < 200);
+    
+    // check that the entry have been correctly marked as conflicting.
+    assertTrue(checkEntryHasAttribute(
+        DN.decode("uid=new person,ou=baseDn2,"+baseDn),
+        ReplicationDomain.DS_SYNC_CONFLICT,
+        "uid=newrdn,ou=People,dc=example,dc=com", 1000, true));
     
     broker.stop();
   }

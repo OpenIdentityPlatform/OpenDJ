@@ -1772,6 +1772,18 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return true;
   }
 
+  // If we could not find the new parent entry, we missed this entry
+  // earlier or it has disappeared from the database
+  // Log this information for the repair tool and mark the entry
+  // as conflicting.
+  // stop the processing.
+  if (newSuperior == null)
+  {
+    markConflictEntry(op, currentDN, newDN);
+    numUnresolvedNamingConflicts.incrementAndGet();
+    return true;
+  }
+
   if ((result == ResultCode.NO_SUCH_OBJECT) ||
       (result == ResultCode.OBJECTCLASS_VIOLATION))
   {
