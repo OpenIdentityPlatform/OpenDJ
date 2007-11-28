@@ -27,6 +27,7 @@
 import java.io.*;
 import java.lang.*;
 import java.util.ArrayList;
+import javax.xml.transform.*;
 
 public class GenerateOpenDSTestSpecs 
 {
@@ -40,7 +41,7 @@ public class GenerateOpenDSTestSpecs
   public GenerateOpenDSTestSpecs()
   {
   }
-
+    
   public static void main(String[] args)
   {
     // retrieve input
@@ -58,6 +59,7 @@ public class GenerateOpenDSTestSpecs
 
     // validate input
     File fileDirName = new File(strParentDirName);
+    
     if(!fileDirName.isDirectory())
     {
       fatalMsg(fileDirName + " is not a directory.");
@@ -179,18 +181,84 @@ public class GenerateOpenDSTestSpecs
          else if(strFileFormat.startsWith("xml"))
          { 
             WriteXMLFile_xml xmlFile = new WriteXMLFile_xml(arrayData.getTestSuite(0));
+            WriteHTMLFile htmlFile = new WriteHTMLFile(arrayData.getTestSuite(0));
             try
             {
               xmlFile.MakeXMLFile(arrayData, strOutputDirName);
+              htmlFile.MakeHTMLFile(arrayData, strOutputDirName,strParentDirName);
             }
             catch(Exception e)
             {
               e.printStackTrace();
             }
          }
+           
       }
+         
     }
+
+    // Write the index file
+    if(strFileFormat.startsWith("xml"))
+    {
+
+      // Index.xml
+      try {
+      File indexFile = new File(strOutputDirName + "/index.xml");
+      FileWriter indexFileout = new FileWriter(indexFile);
+
+      indexFileout.write("<?xml version=\"1.0\"?>\n\n");
+      indexFileout.write("<qa>\n");
+      indexFileout.write("  <doc>\n");
       
+      for(int k = 0; k < arrayTests.size(); k++)
+      {
+
+        ArrayData testSuitePath = (ArrayData)(arrayTests.get(k));
+        if(testSuitePath.size() > 0)
+        {   
+ 
+          String specPath=testSuitePath.getTestSuite(0);
+          
+          String specName = (new File(specPath)).getName();
+
+          String specFile=strOutputDirName + "/" + specPath + "/" + specName + ".html";
+          
+          indexFileout.write("    <testspec name=\"" + specName + "\" location=\"" + specFile + "\"/>\n");
+        }
+      }
+      
+      indexFileout.write("  </doc>\n");
+      indexFileout.write("</qa>\n");
+      indexFileout.close(); 
+      
+      }
+      catch (Exception e) {
+        e.printStackTrace( );
+      }
+    
+      // Index.html
+      File xmlFilename= new File(strOutputDirName + "/index.xml");
+      File xslFilename = new File(strParentDirName + "/../shared/xsl/testspec-index-stylesheet.xsl");
+      File htmlFilename = new File(strOutputDirName + "/index.html");
+      try{
+        TransformerFactory transFactory = TransformerFactory.newInstance();
+
+        Transformer transformer = transFactory.newTransformer
+          (new javax.xml.transform.stream.StreamSource(xslFilename));
+
+        transformer.transform
+          (new javax.xml.transform.stream.StreamSource(xmlFilename),
+           new javax.xml.transform.stream.StreamResult
+           (new FileOutputStream(htmlFilename))
+        );
+      }
+
+      catch (Exception e) {
+        e.printStackTrace( );
+      }
+
+    }
+    
     System.out.println("Files successfully written to the output directory.");
 
   }
@@ -211,7 +279,7 @@ public class GenerateOpenDSTestSpecs
     System.out.println(str);
     System.out.println("exiting.....");
   }
-  
+
   private static String parseSuite(File inDir, String strParentDir)
   {
       String tmpStr = new String(inDir.toString());
@@ -221,5 +289,5 @@ public class GenerateOpenDSTestSpecs
       return subStr;
       
   }
-
+  
 }
