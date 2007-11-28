@@ -150,7 +150,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Note : Other tests in this file depends on this test and may need to
    *        change if this test is modified.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void changelogBasic() throws Exception
   {
     debugInfo("Starting changelogBasic");
@@ -271,7 +271,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a new client see the change that was sent in the
    * previous test.
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClient() throws Exception
   {
     debugInfo("Starting newClient");
@@ -344,7 +344,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first change now see the
    * second change
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientWithFirstChanges() throws Exception
   {
     debugInfo("Starting newClientWithFirstChanges");
@@ -364,7 +364,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test with a client that has already seen a Change that the
    * ReplicationServer has not seen.
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientWithUnknownChanges() throws Exception
   {
     /*
@@ -381,7 +381,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first change from server 1
    * now see the first change from server 2
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientWithChangefromServer1() throws Exception
   {
     /*
@@ -397,7 +397,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first chaneg from server 2
    * now see the first change from server 1
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientWithChangefromServer2() throws Exception
   {
     /*
@@ -413,7 +413,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has not seen the second change from server 1
    * now receive it.
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void newClientLateServer1() throws Exception
   {
     /*
@@ -430,7 +430,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that newClient() and newClientWithFirstChange() still works
    * after stopping and restarting the replicationServer.
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
   public void stopChangelog() throws Exception
   {
     replicationServer.remove();
@@ -451,7 +451,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test i sconfigured by a relatively low stress
    * but can be changed using TOTAL_MSG and CLIENT_THREADS consts.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void oneWriterMultipleReader() throws Exception
   {
     ReplicationBroker server = null;
@@ -533,7 +533,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is sconfigured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void multipleWriterMultipleReader() throws Exception
   {
     ReplicationBroker server = null;
@@ -608,7 +608,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * - Check that client 2 receives the changes published by client 1
    *
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void changelogChaining() throws Exception
   {
     for (int itest = 0; itest <2; itest++)
@@ -798,7 +798,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that the Replication sends back correctly WindowsUpdate
    * when we send a WindowProbe.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void windowProbeTest() throws Exception
   {
     final int WINDOW = 10;
@@ -997,7 +997,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   /*
    * Test backup and restore of the Replication server backend
    */
-   @Test(enabled=false)
+   @Test(enabled=true)
    public void backupRestore() throws Exception
    {
      debugInfo("Starting backupRestore");
@@ -1021,7 +1021,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Launch a full export
     * - Launch a partial export on one of the 2 domains
     */
-    @Test(enabled=false)
+    @Test(enabled=true)
     public void exportBackend() throws Exception
     {
       debugInfo("Starting exportBackend");
@@ -1224,7 +1224,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * Testing searches on the backend of the replication server.
     * @throws Exception
     */
-   @Test(enabled=true)
+   @Test(enabled=false)
    public void searchBackend() throws Exception
    {
      debugInfo("Starting searchBackend");
