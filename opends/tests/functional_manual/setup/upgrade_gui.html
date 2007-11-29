@@ -3,7 +3,7 @@
 <head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
-  <title>upgrade_gui</title>
+  <title>upgrage_gui</title>
 </head>
 <body>
 <br>
@@ -12,24 +12,38 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">unregister_as_service</td>
+      <td style="vertical-align: top;">upgrade_gui</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small>OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+GUI upgrade command : upgrade and revert<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;">
-       - OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;">- Install&nbsp; OpenDS previous
+build in {opends-path}, using&nbsp; setup GUI command or QuickSetup<br>
+- Verify the server is running <br>
+- Upgrade using the QuickSetup, open a browser on the test machine and
+go to this URL<br>
+      <a href="http://builds.opends.org/install/QuickSetup.jnlp">http://builds.opends.org/install/QuickSetup.jnlp</a><br>
+On the first panel of the QuickSetup, select the second bullet "Upgrade
+Existing Server Instance" <br>
+and enter the path of the Server to Upgrade {opends-path}<br>
+- After the upgrade, verify that the server is running and that it's
+the correct build&nbsp; (for example run start-ds --version)<br>
+      <br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;"><br>
+      <td style="vertical-align: top;">Notes:<br>
+- QuickSetup is the only way to
+upgrade using GUI mode<br>
+- There is no GUI mode available for the&nbsp; revert the upgrade<br>
       </td>
     </tr>
   </tbody>
