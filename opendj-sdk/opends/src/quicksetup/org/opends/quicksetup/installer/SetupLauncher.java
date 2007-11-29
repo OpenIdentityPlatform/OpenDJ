@@ -134,7 +134,9 @@ public class SetupLauncher extends Launcher {
       {
         System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
       }
-      else if (argParser.isUsageArgumentPresent())
+      // The second condition is required when the user specifies '?'
+      else if (argParser.isUsageArgumentPresent() ||
+          argParser.usageOrVersionDisplayed())
       {
         System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
       }
