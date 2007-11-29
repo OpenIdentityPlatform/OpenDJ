@@ -881,7 +881,15 @@
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/README" />
     </copy>
-
+    
+    <copy todir="${pdir}">
+      <fileset file="${resource.dir}/install.html" />
+    </copy>
+    
+    <copy todir="${pdir}">
+      <fileset file="${resource.dir}/images/opends_logo.png" />
+    </copy>  
+   
     <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall,upgrade"
          eol="lf" />
     <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat,upgrade.bat"

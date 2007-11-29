@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>OpenDS Wiki: How To Install Open DS</title>
+<style type="text/css">
+<!--
+body                     { font-family: Arial, Helvetica, sans-serif;
+                           font-size: 12px;
+                           color: #333; background-color: #fff; }
+h1                       { font-size: 2.0em; font-weight: normal;
+                                 margin-top: 0em; margin-bottom: 0em; }
+h2                       { font-size: 1.7em; font-weight: normal;
+                           margin: 1.2em 0em .8em 0em;
+                                 border-bottom: 1px #D9D9D9 solid; }
+h3                       { font-size: 1.4em; font-weight: bold;
+                           margin: 1.2em 0em .8em 0em; }
+
+a:link                  {color:#069;text-decoration:none;}
+a:visited               {color:#069;text-decoration:none;}
+a:active, a:hover       {color:#069;text-decoration:underline;}
+
+-->
+</style>
+</head>
+
+<body>
+
+<img src="opends_logo.png" alt="OpenDS logo" border="0" align=right>
+
+<br>
+
+<h2>How To Install OpenDS</h2>
+<p>If you are reading this page, you have already downloaded and unzipped 
+an OpenDS build. 
+<p>You can install OpenDS in two modes:
+<ul>
+  <li><b>Graphical User Interface (GUI) mode</b>. The GUI mode uses
+QuickSetup, a Java-based graphical tool that enables you to install and configure an 
+OpenDS directory server, load it with data and get it running in very little time.
+  </li>
+  <li><b>Interactive Command-line mode</b>. The interactive command-line utility 
+  prompts you for required information before the installation and configuration begin.
+  </li>
+</ul>
+
+<h3>Before You Install</h3>
+It is recommended that your system have at least 100MB of disk space and
+256MB of free memory to run OpenDS for evaluation purposes. Note that
+you can configure OpenDS in such a way that it requires substantially
+less, or more, disk space.
+
+<h3>To Install OpenDS in GUI mode</h3>
+You can run QuickSetup remotely via Java Web Start, or locally from within the 
+build that you have downloaded and unzipped.
+<p>If you run QuickSetup remotely, it automatically downloads and
+unzips the latest weekly build, and handles server configuration. 
+
+<a class="external" href="http://opends.org/install/QuickSetup.jnlp">Launch QuickSetup via Java Web Start</a><img class="outlink" src="Install_files/out.png" alt="">.
+</p>
+<p>To run QuickSetup locally:
+</p>
+<ol>
+  <li>From the top level of your installation directory, type the following command:
+  <span style="font-family: monospace; white-space: pre;">
+(Unix, Linux) setup
+(Windows)     setup.bat
+  </span>
+</li><li>Answer the questions in the installation wizard.
+</li></ol>
+
+<h3>To Install OpenDS in Command-Line Mode</h3>
+<ol>
+  <li>From the top level of your installation directory, type the following command:
+  <br>
+  <span style="font-family: monospace; white-space: pre;">
+(Unix, Linux) setup --cli
+(Windows)     setup.bat --cli
+  </span>
+  </li>
+  <li>Follow the prompts to provide the required installation information.
+  </li>
+</ol>
+
+<h3>See Also</h3>
+<ul>
+  <li><a href="https://www.opends.org/wiki//page/InstallationGuide">OpenDS Installation Guide</a>
+  <br>
+  <li> <a href="https://www.opends.org/wiki//page/OverviewOfTheQuickSetupTool">Overview of the QuickSetup Tool</a>
+  <br>
+  </li>
+  <li> <a href="https://www.opends.org/wiki//page/Setup">setup</a>
+  </li>
+</ul>
+</body>
+</html>
