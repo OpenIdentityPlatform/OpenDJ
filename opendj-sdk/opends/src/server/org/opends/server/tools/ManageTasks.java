@@ -255,7 +255,7 @@ public class ManageTasks extends ConsoleApplication {
           // Keep prompting the user until they specify quit of
           // there is a fatal exception
           while (true) {
-            println();
+            getOutputStream().println();
             Menu<Void> menu = getSummaryMenu();
             MenuResult<Void> result = menu.run();
             if (result.isQuit()) {
@@ -264,12 +264,12 @@ public class ManageTasks extends ConsoleApplication {
           }
 
         } else if (task.isPresent()) {
-          println();
+          getOutputStream().println();
           MenuResult<TaskEntry> r =
                   new PrintTaskInfo(task.getValue()).invoke(this);
           if (r.isAgain()) return 1;
         } else if (summary.isPresent()) {
-          println();
+          getOutputStream().println();
           printSummaryTable();
         } else if (cancel.isPresent()) {
           MenuResult<TaskEntry> r =
@@ -367,10 +367,10 @@ public class ManageTasks extends ConsoleApplication {
       tablePrinter.setIndentWidth(INDENT);
       tablePrinter.setTotalWidth(80);
       table.print(tablePrinter);
-      println(Message.raw(sw.getBuffer()));
+      getOutputStream().println(Message.raw(sw.getBuffer()));
     } else {
-      println(INFO_TASKINFO_NO_TASKS.get());
-      println();
+      getOutputStream().println(INFO_TASKINFO_NO_TASKS.get());
+      getOutputStream().println();
     }
   }
 
@@ -420,8 +420,8 @@ public class ManageTasks extends ConsoleApplication {
       }
     } else {
       // println();
-      println(INFO_TASKINFO_NO_TASKS.get());
-      println();
+      getOutputStream().println(INFO_TASKINFO_NO_TASKS.get());
+      getOutputStream().println();
     }
 
     menuBuilder.addCharOption(
@@ -676,8 +676,8 @@ public class ManageTasks extends ConsoleApplication {
         tablePrinter.setIndentWidth(INDENT);
         tablePrinter.setColumnWidth(1, 0);
         table.print(tablePrinter);
-        app.println();
-        app.println(Message.raw(sw.getBuffer().toString()));
+        app.getOutputStream().println();
+        app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
 
         // Create a table for the task options
         table = new TableBuilder();
@@ -705,7 +705,7 @@ public class ManageTasks extends ConsoleApplication {
         tablePrinter.setIndentWidth(INDENT);
         tablePrinter.setColumnWidth(1, 0);
         table.print(tablePrinter);
-        app.println(Message.raw(sw.getBuffer().toString()));
+        app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
 
         // Print the last log message if any
         List<Message> logs = taskEntry.getLogMessages();
@@ -723,10 +723,10 @@ public class ManageTasks extends ConsoleApplication {
           tablePrinter.setIndentWidth(INDENT);
           tablePrinter.setColumnWidth(0, 0);
           table.print(tablePrinter);
-          app.println(Message.raw(sw.getBuffer().toString()));
+          app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
         }
 
-        app.println();
+        app.getOutputStream().println();
       } catch (Exception e) {
         app.println(ERR_TASKINFO_RETRIEVING_TASK_ENTRY.get(
                     taskId, e.getMessage()));
@@ -800,7 +800,7 @@ public class ManageTasks extends ConsoleApplication {
       try {
         taskEntry = app.getTaskClient().getTaskEntry(taskId);
         List<Message> logs = taskEntry.getLogMessages();
-        app.println();
+        app.getOutputStream().println();
 
         // Create a table for the last log entry
         TableBuilder table = new TableBuilder();
@@ -820,8 +820,8 @@ public class ManageTasks extends ConsoleApplication {
         tablePrinter.setIndentWidth(INDENT);
         tablePrinter.setColumnWidth(0, 0);
         table.print(tablePrinter);
-        app.println(Message.raw(sw.getBuffer().toString()));
-        app.println();
+        app.getOutputStream().println(Message.raw(sw.getBuffer().toString()));
+        app.getOutputStream().println();
       } catch (Exception e) {
         app.println(ERR_TASKINFO_ACCESSING_LOGS.get(taskId, e.getMessage()));
       }
