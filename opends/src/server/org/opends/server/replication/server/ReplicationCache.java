@@ -1004,7 +1004,7 @@ public class ReplicationCache
       {
         for (ServerHandler handler : connectedServers.values())
         {
-          handler.resetGenerationId();
+          handler.warnBadGenerationId();
         }
       }
 
@@ -1027,45 +1027,44 @@ public class ReplicationCache
 
       if (debugEnabled())
         TRACER.debugInfo(
-          "In " + this.replicationServer.getMonitorInstanceName() +
-          " baseDN=" + baseDn +
-          " RCache.resetGenerationId received new ref genId="  + newGenId);
+            "In " + this.replicationServer.getMonitorInstanceName() +
+            " baseDN=" + baseDn +
+            " RCache.resetGenerationId received new ref genId="  + newGenId);
 
-      // Notifies the others LDAP servers that from now on
-      // they have the bad generationId
+      // Notifies the remote LDAP servers that from now on
+      // they have a generationId different from the reference one
       for (ServerHandler handler : connectedServers.values())
       {
         if (newGenId != handler.getGenerationId())
         {
-          handler.resetGenerationId();
+          handler.warnBadGenerationId();
         }
       }
 
-      // Propagates the reset message to the others replication servers
-      // dealing with the same domain.
-      if (senderHandler.isLDAPserver())
+      // If we are the first replication server warned,
+      // then forwards the reset message to the remote replication servers
+      for (ServerHandler rsHandler : replicationServers.values())
       {
-        for (ServerHandler handler : replicationServers.values())
+        try
         {
-          try
+          rsHandler.setGenerationId(newGenId);
+          if (senderHandler.isLDAPserver())
           {
-            handler.sendGenerationId(genIdMsg);
+            rsHandler.forwardGenerationIdToRS(genIdMsg);
           }
-          catch (IOException e)
-          {
-            logError(ERR_CHANGELOG_ERROR_SENDING_INFO.
-                get(handler.getMonitorInstanceName()));
-           }
+        }
+        catch (IOException e)
+        {
+          logError(ERR_CHANGELOG_ERROR_SENDING_INFO.
+              get(rsHandler.getMonitorInstanceName()));
         }
       }
 
-      if (this.generationId != newGenId)
-      {
-        clearDbs();
+      clearDbs();
 
-        // Reset the in memory domain generationId
-        generationId = newGenId;
-      }
+      // Reset the in memory domain generationId
+      generationId = newGenId;
+
     }
 
     /**

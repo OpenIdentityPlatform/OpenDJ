@@ -110,6 +110,9 @@ public final class LDIFConnectionHandler
   // The thread used to run the connection handler.
   private Thread connectionHandlerThread;
 
+  // Help to not warn permanently and fullfill the log file
+  // in debug mode.
+  private boolean alreadyWarn = false;
 
 
   /**
@@ -123,6 +126,7 @@ public final class LDIFConnectionHandler
     isStopped               = true;
     stopRequested           = false;
     connectionHandlerThread = null;
+    alreadyWarn = false;
   }
 
 
@@ -288,11 +292,12 @@ public final class LDIFConnectionHandler
           }
           else
           {
-            if (debugEnabled())
+            if (!alreadyWarn && debugEnabled())
             {
               TRACER.debugInfo("LDIF connection handler directory " +
                                dir.getAbsolutePath() +
                                "doesn't exist or isn't a file");
+              alreadyWarn = true;
             }
           }
 

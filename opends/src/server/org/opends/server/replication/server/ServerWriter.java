@@ -108,7 +108,9 @@ public class ServerWriter extends DirectoryThread
 
         // Ignore update to be sent to a replica with a bad generation ID
         long referenceGenerationId = replicationCache.getGenerationId();
-        if (referenceGenerationId != handler.getGenerationId())
+        if ((referenceGenerationId != handler.getGenerationId())
+            || (referenceGenerationId == -1)
+            || (handler.getGenerationId() == -1))
         {
           logError(ERR_IGNORING_UPDATE_TO.get(
               update.getDn(),
