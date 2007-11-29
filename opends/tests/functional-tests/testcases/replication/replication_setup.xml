@@ -31,11 +31,22 @@
 
   <function name="replication_setup">
     <function-map-args>
-      <function-arg-def name="topologyFile" type="optional" default="'%s/config/replication/basic_topology.txt' % TESTS_DIR">
+      <function-arg-def name="topologyFile" 
+                        type="optional" 
+                        default="'%s/config/replication/basic_topology.txt' 
+                          % TESTS_DIR">
         <function-arg-description>
           Pathname to file describing the topology.
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="secureReplication" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Encrypt replication channels
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>          
       </function-arg-def>
     </function-map-args>    
     
@@ -95,7 +106,8 @@
           <iterate var="server" in="consumerList">
             <sequence>
               <!-- Configure replication if required so by the server
-              !  (i.e. server is a changelog server and/or has synchronized suffixes) 
+              !  (i.e. server is a changelog server and/or has synchronized 
+              !  suffixes) 
               -->
               <if expr="server.requiresSynchronization()">
                 <sequence>          
@@ -112,7 +124,10 @@
                   </script>
                                         
                   <message>
-                    'Enable replication for server:\nHost: %s\nLdap port: %s\nReplication port: %s\nReplicated DN list: %s' % (server.getHostname(), server.getPort(), replicationServer.getPort(), replicatedDnList)
+                    'Enable replication for server:\nHost: %s\nLdap port: %s\n\
+                    Replication port: %s\nReplicated DN list: %s' \
+                      % (server.getHostname(), server.getPort(), 
+                         replicationServer.getPort(), replicatedDnList)
                   </message>
                                         
                   <call function="'enableReplication'">
@@ -123,11 +138,13 @@
                       'dsInstanceDn'  :  server.getRootDn(),
                       'dsInstancePswd'  :  server.getRootPwd(),
                       'dsReplicationPort'  :  replicationServer.getPort(),
+                      'dsSecureReplication'  :  secureReplication,
                       'refInstanceHost'  :  masterHost,
                       'refInstancePort'  :  master.getPort(),
                       'refInstanceDn'  :  master.getRootDn(),
                       'refInstancePswd'  :  master.getRootPwd(),
                       'refReplicationPort'  :  masterReplicationServer.getPort(),
+                      'refSecureReplication'  :  secureReplication,
                       'replicationDnList'  :  replicatedDnList,
                       'useSecondServerAsSchemaSource'  :  True }                      
                   </call>

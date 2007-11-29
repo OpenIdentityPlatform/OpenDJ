@@ -63,8 +63,7 @@
           </call>
                                     
           <script>
-            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()    
-            replServerList = master.getSynchronizedSuffixList()[0].getChangelogServerList()           
+            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()      
           </script>            
 
             
