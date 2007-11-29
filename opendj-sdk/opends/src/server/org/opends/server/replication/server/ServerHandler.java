@@ -146,7 +146,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   private short replicationServerId;
 
   private short protocolVersion;
-  private long generationId=-1;
+  private long generationId = -1;
 
 
   /**
@@ -219,7 +219,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     rcvWindowSizeHalf = windowSize/2;
     maxRcvWindow = windowSize;
     rcvWindow = windowSize;
-    long localGenerationId=-1;
+    long localGenerationId = -1;
     try
     {
       if (baseDn != null)
@@ -557,7 +557,9 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         // Create a thread to send heartbeat messages.
         if (heartbeatInterval > 0)
         {
-          heartbeatThread = new HeartbeatThread("replication Heartbeat",
+          heartbeatThread = new HeartbeatThread(
+              "replication Heartbeat to " + serverURL +
+              " for " + this.baseDn,
               session, heartbeatInterval);
           heartbeatThread.start();
         }
@@ -1738,7 +1740,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Resets the generationId for this domain.
    */
-  public void resetGenerationId()
+  public void warnBadGenerationId()
   {
     // Notify the peer that it is now invalid regarding the generationId
     // We are now waiting a startServer message from this server with
@@ -1764,10 +1766,20 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    * @throws IOException When it occurs while sending the message,
    *
    */
-   public void sendGenerationId(ResetGenerationId msg)
-   throws IOException
-   {
-     generationId = msg.getGenerationId();
-     session.publish(msg);
-   }
+  public void forwardGenerationIdToRS(ResetGenerationId msg)
+  throws IOException
+  {
+    session.publish(msg);
+  }
+
+  /**
+   * Set a new generation ID.
+   *
+   * @param generationId The new generation ID
+   *
+   */
+  public void setGenerationId(long generationId)
+  {
+    this.generationId = generationId;
+  }
 }

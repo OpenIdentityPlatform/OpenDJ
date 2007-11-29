@@ -203,8 +203,6 @@ public class ReplicationDomain extends DirectoryThread
 
   private long generationId = -1;
   private boolean generationIdSavedStatus = false;
-  private long rejectedGenerationId = -1;
-  private boolean requestedResetSinceLastStart = false;
 
   /**
    * This object is used to store the list of update currently being
@@ -901,29 +899,6 @@ public class ReplicationDomain extends DirectoryThread
                 ErrorMessage errorMsg = (ErrorMessage)msg;
                 logError(ERR_ERROR_MSG_RECEIVED.get(
                            errorMsg.getDetails()));
-
-                if (errorMsg.getMsgID() == NOTE_RESET_GENERATION_ID.getId())
-                {
-                  TRACER.debugInfo("requestedResetSinceLastStart=" +
-                             requestedResetSinceLastStart +
-                            "rejectedGenerationId=" + rejectedGenerationId);
-
-                  if (requestedResetSinceLastStart && (rejectedGenerationId>0))
-                  {
-                    // When the last generation presented was refused and we are
-                    // the 'reseter' server then restart automatically to become
-                    // the 'master'
-                    state.clear();
-                    rejectedGenerationId = -1;
-                    requestedResetSinceLastStart = false;
-                    broker.stop();
-                    broker.start(replicationServers);
-                  }
-                }
-                if (errorMsg.getMsgID() == NOTE_BAD_GENERATION_ID.getId())
-                {
-                  rejectedGenerationId = generationId;
-                }
               }
             }
             else if (msg instanceof UpdateMessage)
@@ -2534,8 +2509,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public void resetGenerationId(Long generationIdNewValue)
   {
+    if (debugEnabled())
+      TRACER.debugInfo(
+          this.getName() + "resetGenerationId" + generationIdNewValue);
+
     ResetGenerationId genIdMessage = null;
-    requestedResetSinceLastStart = true;
     if (generationIdNewValue == null)
     {
       genIdMessage = new ResetGenerationId(this.generationId);
@@ -3267,7 +3245,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             baseDN.toNormalizedString(),
             e.getLocalizedMessage()));
       }
-      rejectedGenerationId = -1;
 
       if (debugEnabled())
         TRACER.debugInfo(
