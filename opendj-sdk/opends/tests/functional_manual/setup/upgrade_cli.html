@@ -12,25 +12,40 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">unregister_as_service</td>
+      <td style="vertical-align: top;">upgrade_cli</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small>OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>
+OpenDS CLI upgrade command : upgrade and revert<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;">
-       - OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;">- Install&nbsp; OpenDS previous
+build in {opends-path}, using&nbsp; setup CLI command <br>
+- Verify the server is running <br>
+- In the {opends-path}, run the command upgrade<br>
+$ ./upgrade -f {path to latest build zip file}<br>
+- After the upgrade, verify that the server is running and that it's
+the correct build&nbsp; (for example run start-ds --version)<br>
+      <br>
+Then revert the upgrade using upgrade CLI command<br>
+- In the {opends-path}, run the command upgrade<br>
+$ ./upgrade -r <br>
+- After the revert upgrade, verify that the server is running and that
+it's the correct build&nbsp; (for example run start-ds --version)<br>
+      <br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;"><br>
-      </td>
+      <td style="vertical-align: top;">You can also use the interactive
+mode<br>
+Note: Today 29/11/2007 , for revert feature, interactive mode is OK but
+the non interactive mode FAIL (see issues 2506 and 2508) </td>
     </tr>
   </tbody>
 </table>

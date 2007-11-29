@@ -12,25 +12,35 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">unregister_as_service</td>
+      <td style="vertical-align: top;">quicksetup_ssl<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small>OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+QuickSetup Installer, SSL panel<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;">
-       - OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;"> - Click on the
+install/QuickSetup.jnlp link on the Build page <br>
+      <a href="http://builds.opends.org/install/QuickSetup.jnlp">http://builds.opends.org/install/QuickSetup.jnlp</a><br>
+- install OpenDS using the same procedure than in the <a
+ href="setup_ssl.html">setup_ssl</a> testcase<br>
+      <br>
+      <small><big>- verify SSL
+connection</big><br>
+./ldapsearch -Z -p SSLPORT -D "cn=directory manager" -w password -b
+"cn=config" -v "(objectclass=*)"</small></td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;"><br>
-      </td>
+      <td style="vertical-align: top;">- verify that LDAPS is enabled
+in
+the status-panel </td>
     </tr>
   </tbody>
 </table>

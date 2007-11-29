@@ -12,20 +12,50 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">unregister_as_service</td>
+      <td style="vertical-align: top;">setup_replication</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small>OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;">OpenDS GUI setup replication
+panel</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;">
-       - OpenDS is unregistered as a Windows service on uninstall
-      </small></big></big> </td>
+      <td style="vertical-align: top;">- if possible use 2 HOSTS<br>
+- install with setup-gui on HOST1, enabling SSL, enabling replication
+by importing data with the&nbsp; ldif file below testrepl.ldif with 10
+entries , change the base DN value to o=testrepl<br>
+- install with setup-gui on HOST2, enabling SSL, enabling replication
+with HOST1.<br>
+- check the status-panel for both servers: replication enabled, restart
+both servers<br>
+- export the data<br>
+$ ./export-ldif -b "o=testrepl" -h HOST -p LDAPPORT1 -D "cn=directory
+manager" -w password -n userRoot -l ../ldif/testrepl.ldif<br>
+      <br>
+check replication works:<br>
+      <br>
+- edit an entry on HOST1<br>
+$ ./ldapmodify -p LDAPPORT1 -D "cn=Directory Manager" -w password
+--filename {yourpath}/modify-user.ldif (see below)<br>
+      <br>
+- delete an entry on HOST1<br>
+$ ./ldapmodify -p LDAPPORT1 -D "cn=Directory Manager" -w password<br>
+dn: uid=user.6,ou=People,o=testrepl<br>
+changetype: delete<br>
+      <br>
+=&gt; verify those 2 changes have been applied on HOST2<br>
+      <br>
+- add an entry on HOST2<br>
+$ ./ldapmodify -p LDAPPORT2 --bindDN "cn=Directory manager"
+--bindPassword password --filename {yourpath}/add-user.ldif (see below)<br>
+      <br>
+=&gt; verify the changes have been applied on HOST1<br>
+$ ./ldapsearch -p LDAPPORT1 -D "cn=Directory Manager" -w password -b
+"o=testrepl" "(givenname=Marcia)"<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
@@ -35,6 +65,309 @@
   </tbody>
 </table>
 <br>
+testrepl.ldif<br>
+dn: o=testrepl<br>
+objectClass: organization<br>
+objectClass: top<br>
+o: testrepl<br>
+ds-sync-generation-id: 9830500<br>
+entryUUID: 8ccb5696-42ae-3cc1-a6a5-dadb5d7ddff9<br>
+<br>
+dn: ou=People,o=testrepl<br>
+objectClass: top<br>
+objectClass: organizationalunit<br>
+ou: People<br>
+entryUUID: 3bfbf89a-dc23-347b-b47d-ce74a94ef195<br>
+<br>
+dn: uid=user.0,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Aaccf Amar$01251 Chestnut Street$Panama City, DE&nbsp;
+50369<br>
+initials: ASA<br>
+street: 01251 Chestnut Street<br>
+mobile: +1 010 154 3228<br>
+mail: user.0@maildomain.net<br>
+employeeNumber: 0<br>
+pager: +1 779 041 6341<br>
+sn: Amar<br>
+postalCode: 50369<br>
+userPassword: {SSHA}vtfHTwhl/EXB+qvWRa1XxuX3B75PJPPKHXQ/Vg==<br>
+description: This is the description for Aaccf Amar.<br>
+l: Panama City<br>
+cn: Aaccf Amar<br>
+st: DE<br>
+telephoneNumber: +1 685 622 6202<br>
+givenName: Aaccf<br>
+uid: user.0<br>
+homePhone: +1 225 216 5900<br>
+entryUUID: 65959f73-c8a9-3e9d-b507-0002ff0657e3<br>
+<br>
+dn: uid=user.1,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Aaren Atp$70110 Fourth Street$New Haven, OH&nbsp; 93694<br>
+initials: ALA<br>
+street: 70110 Fourth Street<br>
+mobile: +1 680 734 6300<br>
+mail: user.1@maildomain.net<br>
+employeeNumber: 1<br>
+pager: +1 850 883 8888<br>
+sn: Atp<br>
+postalCode: 93694<br>
+userPassword: {SSHA}c4m8EWfT2CyDJtKL2fkZ2fWhW5ROaHHy2+2y9g==<br>
+description: This is the description for Aaren Atp.<br>
+l: New Haven<br>
+cn: Aaren Atp<br>
+st: OH<br>
+telephoneNumber: +1 390 103 6917<br>
+givenName: Aaren<br>
+uid: user.1<br>
+homePhone: +1 280 375 4325<br>
+entryUUID: dfe896bc-d37a-36a1-8054-98c76ceba2f9<br>
+<br>
+dn: uid=user.2,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Aarika Atpco$00900 Maple Street$New Orleans, KS&nbsp;
+10857<br>
+initials: AOA<br>
+street: 00900 Maple Street<br>
+mobile: +1 279 618 3901<br>
+mail: user.2@maildomain.net<br>
+employeeNumber: 2<br>
+pager: +1 053 688 9803<br>
+sn: Atpco<br>
+postalCode: 10857<br>
+userPassword: {SSHA}H33lSlA2gszsjncHLxKLvcukDGtOQZNLDGIhFw==<br>
+description: This is the description for Aarika Atpco.<br>
+l: New Orleans<br>
+cn: Aarika Atpco<br>
+st: KS<br>
+telephoneNumber: +1 757 462 0301<br>
+givenName: Aarika<br>
+uid: user.2<br>
+homePhone: +1 003 428 0962<br>
+entryUUID: fa55af3d-b885-360e-b5d8-fd79cb462c17<br>
+<br>
+dn: uid=user.3,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Aaron Atrc$59748 Willow Street$Green Bay, TN&nbsp; 66239<br>
+initials: AKA<br>
+street: 59748 Willow Street<br>
+mobile: +1 890 430 9077<br>
+mail: user.3@maildomain.net<br>
+employeeNumber: 3<br>
+pager: +1 197 025 3730<br>
+sn: Atrc<br>
+postalCode: 66239<br>
+userPassword: {SSHA}bl/QucwEF6nk+XXxXG7/iHUzRjVUTUZMp5LKvA==<br>
+description: This is the description for Aaron Atrc.<br>
+l: Green Bay<br>
+cn: Aaron Atrc<br>
+st: TN<br>
+telephoneNumber: +1 094 100 7524<br>
+givenName: Aaron<br>
+uid: user.3<br>
+homePhone: +1 332 432 4295<br>
+entryUUID: 9b20c746-c6d5-3e40-a857-473c5e133a2d<br>
+<br>
+dn: uid=user.4,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Aartjan Aalders$77810 Adams Street$Bryan, NC&nbsp; 72311<br>
+initials: ALA<br>
+street: 77810 Adams Street<br>
+mobile: +1 209 956 9394<br>
+mail: user.4@maildomain.net<br>
+employeeNumber: 4<br>
+pager: +1 951 150 0057<br>
+sn: Aalders<br>
+postalCode: 72311<br>
+userPassword: {SSHA}xuME0/r3pEEMiUzEODgnO9WNfkxx+0J9vHWWOA==<br>
+description: This is the description for Aartjan Aalders.<br>
+l: Bryan<br>
+cn: Aartjan Aalders<br>
+st: NC<br>
+telephoneNumber: +1 548 762 2193<br>
+givenName: Aartjan<br>
+uid: user.4<br>
+homePhone: +1 423 009 6628<br>
+entryUUID: 28d2592a-ffa6-323b-988b-d22329cb0875<br>
+<br>
+dn: uid=user.5,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Abagael Aasen$80905 Meadow Street$Salem, NJ&nbsp; 76132<br>
+initials: AHA<br>
+street: 80905 Meadow Street<br>
+mobile: +1 516 926 3480<br>
+mail: user.5@maildomain.net<br>
+employeeNumber: 5<br>
+pager: +1 928 034 3047<br>
+sn: Aasen<br>
+postalCode: 76132<br>
+userPassword: {SSHA}Kzzf+kyqu9GgcZn8lCjeXICo0G6tZxnCyr3iMA==<br>
+description: This is the description for Abagael Aasen.<br>
+l: Salem<br>
+cn: Abagael Aasen<br>
+st: NJ<br>
+telephoneNumber: +1 154 428 0080<br>
+givenName: Abagael<br>
+uid: user.5<br>
+homePhone: +1 563 061 6916<br>
+entryUUID: 319e0b04-6ae7-3555-a3d1-ad64dbdd0b70<br>
+<br>
+dn: uid=user.6,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Abagail Abadines$61394 Adams Street$Lynchburg, MA&nbsp;
+68438<br>
+initials: ASA<br>
+street: 61394 Adams Street<br>
+mobile: +1 496 091 6823<br>
+mail: user.6@maildomain.net<br>
+employeeNumber: 6<br>
+pager: +1 431 570 9544<br>
+sn: Abadines<br>
+postalCode: 68438<br>
+userPassword: {SSHA}+hoIn6O3HFe2CXXTmn7MgcEkJG0s4gqp+UtvLg==<br>
+description: This is the description for Abagail Abadines.<br>
+l: Lynchburg<br>
+cn: Abagail Abadines<br>
+st: MA<br>
+telephoneNumber: +1 236 110 4271<br>
+givenName: Abagail<br>
+uid: user.6<br>
+homePhone: +1 030 104 9024<br>
+entryUUID: fc4abc82-ef69-3bb3-8615-de71b77ae899<br>
+<br>
+dn: uid=user.7,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Abahri Abazari$03401 Ninth Street$Hattiesburg, IA&nbsp;
+04882<br>
+initials: AOA<br>
+street: 03401 Ninth Street<br>
+mobile: +1 005 264 0002<br>
+mail: user.7@maildomain.net<br>
+employeeNumber: 7<br>
+pager: +1 603 439 2066<br>
+sn: Abazari<br>
+postalCode: 04882<br>
+userPassword: {SSHA}mxeVi3naPjsIadVhxbw/DEfDstxjl+WS8y/7PA==<br>
+description: This is the description for Abahri Abazari.<br>
+l: Hattiesburg<br>
+cn: Abahri Abazari<br>
+st: IA<br>
+telephoneNumber: +1 000 800 5137<br>
+givenName: Abahri<br>
+uid: user.7<br>
+homePhone: +1 941 161 6010<br>
+entryUUID: 4dad918b-d932-3133-b216-e654ae5b1f75<br>
+<br>
+dn: uid=user.8,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Abbas Abbatantuono$00468 Second Street$Eau Claire,
+WY&nbsp; 56890<br>
+initials: ADA<br>
+street: 00468 Second Street<br>
+mobile: +1 407 301 6516<br>
+mail: user.8@maildomain.net<br>
+employeeNumber: 8<br>
+pager: +1 054 898 2244<br>
+sn: Abbatantuono<br>
+postalCode: 56890<br>
+userPassword: {SSHA}yvKSU2HvYqz4DrpRb3U6BJD1DV2SxWqGcDK0pg==<br>
+description: This is the description for Abbas Abbatantuono.<br>
+l: Eau Claire<br>
+cn: Abbas Abbatantuono<br>
+st: WY<br>
+telephoneNumber: +1 804 094 3356<br>
+givenName: Abbas<br>
+uid: user.8<br>
+homePhone: +1 884 320 6955<br>
+entryUUID: cb502e5c-8e0e-3cdf-9f9f-5e0bc50177ff<br>
+<br>
+dn: uid=user.9,ou=People,o=testrepl<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Abbe Abbate$05257 Tenth Street$Dallas, CT&nbsp; 36027<br>
+initials: AEA<br>
+street: 05257 Tenth Street<br>
+mobile: +1 865 856 2932<br>
+mail: user.9@maildomain.net<br>
+employeeNumber: 9<br>
+pager: +1 015 006 1231<br>
+sn: Abbate<br>
+postalCode: 36027<br>
+userPassword: {SSHA}uN+diiSW9uJYR5KNsRgZwyNwuGHoa211sgJMjg==<br>
+description: This is the description for Abbe Abbate.<br>
+l: Dallas<br>
+cn: Abbe Abbate<br>
+st: CT<br>
+telephoneNumber: +1 791 584 7150<br>
+givenName: Abbe<br>
+uid: user.9<br>
+homePhone: +1 104 644 6187<br>
+entryUUID: aa710faf-7aaf-3aa7-a770-5fd75cec5268<br>
+<br>
+<br>
+../ldif/modify-user.ldif<br>
+dn: uid=user.1,ou=People,o=testrepl<br>
+changetype: modify<br>
+replace: telephonenumber<br>
+telephoneNumber: +1 390 103 8488<br>
+<br>
+<br>
+../ldif/add-user.ldif<br>
+dn: uid=user.10,ou=People,o=testrepl<br>
+changetype: add<br>
+cn: Marcia Garza<br>
+sn: Garza<br>
+givenName: Marcia<br>
+objectClass: inetorgperson<br>
+objectClass: person<br>
+objectClass: top<br>
+objectClass: organizationalperson<br>
+postalAddress: Marcia Garza$115 W First Street$Elmhurst, IL 60126<font
+ size="-1"><span class="street-address"><br>
+</span></font>initials: MG<br>
+street: 115 W First Street<br>
+mobile: +1 630 856 2932<br>
+mail: user.10@maildomain.net<br>
+employeeNumber: 10<br>
+pager: +1 044 006 1286<br>
+postalCode: 60126<br>
+userPassword: password<br>
+description: This is the description for Marcia Garza<br>
+l: Elmhurst<br>
+st: IL<br>
+<span style="font-weight: bold;"></span>telephoneNumber: +1 788 305 8485<br>
+uid: user.10<br>
+homePhone: +1 630 644 6187<br>
 <br>
 <br>
 </body>
