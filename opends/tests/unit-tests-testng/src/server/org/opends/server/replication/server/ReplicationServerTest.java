@@ -87,6 +87,8 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPSearch;
 
 /**
  * Tests for the replicationServer code.
@@ -1160,16 +1162,17 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // - Add
        String luentry = new String(
-             "dn: uid=new person,ou=People,"+suffix+"\n"
+             "dn: cn=Fiona Jensen,ou=People,"+suffix+"\n"
            + "objectClass: top\n"
            + "objectclass: person\n"
            + "objectclass: organizationalPerson\n"
            + "objectclass: inetOrgPerson\n"
            + "cn: Fiona Jensen\n"
            + "sn: Jensen\n"
-           + "uid: new person\n"
+           + "givenName: fjensen\n"
            + "telephonenumber: +1 408 555 1212\n"
-           + "entryUUID: " + user1entryUUID +"\n");
+           + "entryUUID: " + user1entryUUID +"\n"
+           + "userpassword: fjen$$en"+"\n");
        Entry uentry = TestCaseUtils.entryFromLdifString(luentry);
        cn = new ChangeNumber(time, ts++, serverId);
        AddMsg addMsg2 = new AddMsg(
@@ -1299,14 +1302,13 @@ public class ReplicationServerTest extends ReplicationTestCase
          LDAPFilter.decode("(changetype=*)"));
      assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
 
+     testReplicationBackendACIs();
 
      // General search
      op = connection.processSearch(
          new ASN1OctetString("dc=replicationChanges"),
          SearchScope.WHOLE_SUBTREE,
          LDAPFilter.decode("(changetype=*)"));
-     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-     assertEquals(op.getSearchEntries().size(), 5);
 
      debugInfo("Search result");
      LinkedList<SearchResultEntry> entries = op.getSearchEntries();
@@ -1319,6 +1321,9 @@ public class ReplicationServerTest extends ReplicationTestCase
        }
      }
      debugInfo("\n" + stream.toString());
+
+     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+     assertEquals(op.getSearchEntries().size(), 5);
 
      debugInfo("Query / filter based on changetype");
      op = connection.processSearch(
@@ -1400,9 +1405,84 @@ public class ReplicationServerTest extends ReplicationTestCase
      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
      assertEquals(op.getSearchEntries().size(), 5);
 
+     
      if (server1 != null)
        server1.stop();
 
      debugInfo("Successfully ending searchBackend");
+   }
+
+   private static final ByteArrayOutputStream oStream = 
+     new ByteArrayOutputStream();
+   private static final ByteArrayOutputStream eStream = 
+     new ByteArrayOutputStream();
+
+   private void testReplicationBackendACIs()
+   {
+     // test search as anonymous
+     String[] args =
+     {
+       "-h", "127.0.0.1",
+       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+       "-b", "dc=replicationChanges",
+       "-s", "sub",
+       "(objectClass=*)"
+     };
+
+     oStream.reset();
+     eStream.reset();
+     int retVal =
+       LDAPSearch.mainSearch(args, false, oStream, eStream);
+     String entries = oStream.toString();
+
+     debugInfo("Entries:" + entries);
+     assertEquals(0, retVal,  "Returned error: " + eStream);
+     assertEquals(entries, "",  "Returned entries: " + entries);
+       
+     // test search as directory manager returns content
+     String[] args3 =
+     {
+       "-h", "127.0.0.1",
+       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+       "-D", "cn=Directory Manager",
+       "-w", "password",
+       "-b", "dc=replicationChanges",
+       "-s", "sub",
+       "(objectClass=*)"
+     };
+
+     oStream.reset();
+     eStream.reset();
+     retVal =
+       LDAPSearch.mainSearch(args3, false, oStream, eStream);
+     entries = oStream.toString();
+
+     debugInfo("Entries:" + entries);
+     assertEquals(0, retVal,  "Returned error: " + eStream);
+     assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
+     
+     // test write fails : unwilling to perform
+     try
+     {
+       String ldif = new String(
+           "dn: dc=foo, dc=replicationchanges\n"
+           + "objectclass: top\n"
+           + "objectClass: domain\n"
+           + "dc:foo\n");
+       String path = TestCaseUtils.createTempFile(ldif);
+       String[] args4 =
+       {
+           "-h", "127.0.0.1",
+           "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+           "-D", "cn=Directory Manager",
+           "-w", "password",
+           "-a",
+           "-f", path
+       };
+
+       retVal = 
+         LDAPModify.mainModify(args4, false, oStream, eStream);
+       assertEquals(retVal, 53, "Returned error: " + eStream);
+     } catch(Exception e) {}
    }
 }
