@@ -80,4 +80,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="cache-level" mandatory="true">
+    <adm:synopsis>
+      The entry cache level which specifies this cache position in the
+      cache order if more than one instance of the cache is configured.
+    </adm:synopsis>
+    <adm:syntax>
+      <adm:integer lower-limit="1" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-cache-level</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
 </adm:managed-object>

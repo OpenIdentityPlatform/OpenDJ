@@ -31,8 +31,11 @@ import org.opends.messages.Message;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -44,13 +47,18 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.EntryCacheCfgDefn;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
-import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.messages.MessageBuilder;
+import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.extensions.DefaultEntryCache;
+import org.opends.server.monitors.EntryCacheMonitorProvider;
+import org.opends.server.types.DN;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -61,8 +69,8 @@ import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the configuration
- * for the Directory Server entry cache.  Only a single entry cache may be
- * defined, but if it is absent or disabled, then a default cache will be used.
+ * for the Directory Server entry cache.  The default entry cache is always
+ * enabled.
  */
 public class EntryCacheConfigManager
        implements
@@ -75,13 +83,21 @@ public class EntryCacheConfigManager
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The current entry cache registered in the server
-  private EntryCache _entryCache = null;
+  // The default entry cache.
+  private DefaultEntryCache _defaultEntryCache = null;
 
-  // The default entry cache to use when no entry cache has been configured
-  // or when the configured entry cache could not be initialized.
-  private EntryCache _defaultEntryCache = null;
+  // The entry cache order map sorted by the cache level.
+  private static SortedMap<Integer, EntryCache<? extends
+    EntryCacheCfg>> cacheOrderMap = new TreeMap<Integer,
+    EntryCache<? extends EntryCacheCfg>>();
 
+  // The entry cache name to level map.
+  private static HashMap<String, Integer>
+    cacheNameToLevelMap = new HashMap<String, Integer>();
+
+  // Global entry cache monitor provider name.
+  private static final String
+    DEFAULT_ENTRY_CACHE_MONITOR_PROVIDER = "Entry Caches";
 
   /**
    * Creates a new instance of this entry cache config manager.
@@ -127,8 +143,8 @@ public class EntryCacheConfigManager
   /**
    * Initializes the configuration associated with the Directory Server entry
    * cache.  This should only be called at Directory Server startup.  If an
-   * error occurs, then a message will be logged and the default entry cache
-   * will be installed.
+   * error occurs, then a message will be logged for each entry cache that is
+   * failed to initialize.
    *
    * @throws  ConfigException  If a configuration problem causes the entry
    *                           cache initialization process to fail.
@@ -152,34 +168,61 @@ public class EntryCacheConfigManager
     rootConfiguration.addEntryCacheAddListener(this);
     rootConfiguration.addEntryCacheDeleteListener(this);
 
-    // If the entry cache configuration is not present then keep the
-    // default entry cache already installed.
-    if (!rootConfiguration.hasEntryCache())
+    // Get the base entry cache configuration entry.
+    ConfigEntry entryCacheBase;
+    try {
+      DN configEntryDN = DN.decode(ConfigConstants.DN_ENTRY_CACHE_BASE);
+      entryCacheBase   = DirectoryServer.getConfigEntry(configEntryDN);
+    } catch (Exception e) {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      logError(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
+      return;
+    }
+
+    // If the configuration base entry is null, then assume it doesn't exist.
+    // At least that entry must exist in the configuration, even if there are
+    // no entry cache defined below it.
+    if (entryCacheBase == null)
     {
       logError(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
       return;
     }
 
-    // Get the entry cache configuration.
-    EntryCacheCfg configuration = rootConfiguration.getEntryCache();
-
-    // At this point, we have a configuration entry. Register a change
-    // listener with it so we can be notified of changes to it over time.
-    configuration.addChangeListener(this);
-
-    // Initialize the entry cache.
-    if (configuration.isEnabled())
+    // Initialize every entry cache configured.
+    for (String cacheName : rootConfiguration.listEntryCaches())
     {
-      // Load the entry cache implementation class and install the entry
-      // cache with the server.
-      String className = configuration.getJavaClass();
-      try
-      {
-        loadAndInstallEntryCache (className);
+      // Get the entry cache configuration.
+      EntryCacheCfg configuration = rootConfiguration.getEntryCache(cacheName);
+
+      // At this point, we have a configuration entry. Register a change
+      // listener with it so we can be notified of changes to it over time.
+      configuration.addChangeListener(this);
+
+      // Check if there is another entry cache installed at the same level.
+      if (!cacheOrderMap.isEmpty()) {
+        if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
+          // Log error and skip this cache.
+          logError(ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
+            String.valueOf(configuration.dn()),
+            configuration.getCacheLevel()));
+          continue;
+        }
       }
-      catch (InitializationException ie)
-      {
-        logError(ie.getMessageObject());
+
+      // Initialize the entry cache.
+      if (configuration.isEnabled()) {
+        // Load the entry cache implementation class and install the entry
+        // cache with the server.
+        String className = configuration.getJavaClass();
+        try {
+          loadAndInstallEntryCache(className, configuration);
+        } catch (InitializationException ie) {
+          logError(ie.getMessageObject());
+        }
       }
     }
   }
@@ -207,6 +250,23 @@ public class EntryCacheConfigManager
       status = false;
     }
 
+    if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty() &&
+      (cacheNameToLevelMap.get(
+       configuration.dn().toNormalizedString()) != null)) {
+      int currentCacheLevel = cacheNameToLevelMap.get(
+        configuration.dn().toNormalizedString());
+
+      // Check if there any existing cache at the same level.
+      if ((currentCacheLevel != configuration.getCacheLevel()) &&
+        (cacheOrderMap.containsKey(configuration.getCacheLevel()))) {
+        unacceptableReasons.add(
+          ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
+            String.valueOf(configuration.dn()),
+            configuration.getCacheLevel()));
+        status = false;
+      }
+    }
+
     return status;
   }
 
@@ -218,34 +278,64 @@ public class EntryCacheConfigManager
       EntryCacheCfg configuration
       )
   {
+    EntryCache<? extends EntryCacheCfg> entryCache = null;
+
+    // If we this entry cache is already installed and active it
+    // should be present in the cache maps, if so use it.
+    if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty() &&
+      (cacheNameToLevelMap.get(
+       configuration.dn().toNormalizedString()) != null)) {
+      int currentCacheLevel = cacheNameToLevelMap.get(
+        configuration.dn().toNormalizedString());
+      entryCache = cacheOrderMap.get(currentCacheLevel);
+
+      // Check if the existing cache just shifted its level.
+      if (currentCacheLevel != configuration.getCacheLevel()) {
+        // Update the maps then.
+        cacheOrderMap.remove(currentCacheLevel);
+        cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
+        cacheNameToLevelMap.put(configuration.dn().toNormalizedString(),
+          configuration.getCacheLevel());
+      }
+    }
+
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
         ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
-    // If the new configuration has the entry cache disabled, then install
-    // the default entry cache with the server.
-    if (! configuration.isEnabled())
+    // If an entry cache was installed then remove it.
+    if (!configuration.isEnabled())
     {
-      DirectoryServer.setEntryCache (_defaultEntryCache);
-
-      // If an entry cache was installed then clean it.
-      if (_entryCache != null)
+      configuration.getCacheLevel();
+      if (entryCache != null)
       {
-        _entryCache.finalizeEntryCache();
-        _entryCache = null;
+        EntryCacheMonitorProvider monitor = entryCache.getEntryCacheMonitor();
+        if (monitor != null)
+        {
+          String instanceName = toLowerCase(monitor.getMonitorInstanceName());
+          DirectoryServer.deregisterMonitorProvider(instanceName);
+          monitor.finalizeMonitorProvider();
+          entryCache.setEntryCacheMonitor(null);
+        }
+        entryCache.finalizeEntryCache();
+        cacheOrderMap.remove(configuration.getCacheLevel());
+        entryCache = null;
       }
       return changeResult;
     }
+
+    // Push any changes made to the cache order map.
+    _defaultEntryCache.setCacheOrder(cacheOrderMap);
 
     // At this point, new configuration is enabled...
     // If the current entry cache is already enabled then we don't do
     // anything unless the class has changed in which case we should
     // indicate that administrative action is required.
     String newClassName = configuration.getJavaClass();
-    if (_entryCache !=null)
+    if ( entryCache != null)
     {
-      String curClassName = _entryCache.getClass().getName();
+      String curClassName = entryCache.getClass().getName();
       boolean classIsNew = (! newClassName.equals (curClassName));
       if (classIsNew)
       {
@@ -258,7 +348,7 @@ public class EntryCacheConfigManager
     // Instantiate the new class and initalize it.
     try
     {
-      loadAndInstallEntryCache (newClassName);
+      loadAndInstallEntryCache (newClassName, configuration);
     }
     catch (InitializationException ie)
     {
@@ -281,6 +371,18 @@ public class EntryCacheConfigManager
   {
     // returned status -- all is fine by default
     boolean status = true;
+
+    // Check if there is another entry cache installed at the same level.
+    if (!cacheOrderMap.isEmpty()) {
+      if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
+        unacceptableReasons.add(
+          ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
+            String.valueOf(configuration.dn()),
+            configuration.getCacheLevel()));
+        status = false;
+        return status;
+      }
+    }
 
     if (configuration.isEnabled())
     {
@@ -325,7 +427,7 @@ public class EntryCacheConfigManager
       String className = configuration.getJavaClass();
       try
       {
-        loadAndInstallEntryCache (className);
+        loadAndInstallEntryCache (className, configuration);
       }
       catch (InitializationException ie)
       {
@@ -361,18 +463,38 @@ public class EntryCacheConfigManager
       EntryCacheCfg configuration
       )
   {
+    EntryCache<? extends EntryCacheCfg> entryCache = null;
+
+    // If we this entry cache is already installed and active it
+    // should be present in the current cache order map, use it.
+    if (!cacheOrderMap.isEmpty()) {
+      entryCache = cacheOrderMap.get(configuration.getCacheLevel());
+    }
+
     // Returned result.
     ConfigChangeResult changeResult = new ConfigChangeResult(
         ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
 
-    // If the entry cache was installed then replace it with the
-    // default entry cache, and clean it.
-    if (_entryCache != null)
+    // If the entry cache was installed then remove it.
+    if (entryCache != null)
     {
-      DirectoryServer.setEntryCache (_defaultEntryCache);
-      _entryCache.finalizeEntryCache();
-      _entryCache = null;
+      EntryCacheMonitorProvider monitor = entryCache.getEntryCacheMonitor();
+      if (monitor != null)
+      {
+        String instanceName = toLowerCase(monitor.getMonitorInstanceName());
+        DirectoryServer.deregisterMonitorProvider(instanceName);
+        monitor.finalizeMonitorProvider();
+        entryCache.setEntryCacheMonitor(null);
+      }
+      entryCache.finalizeEntryCache();
+      cacheOrderMap.remove(configuration.getCacheLevel());
+      cacheNameToLevelMap.remove(configuration.dn().toNormalizedString());
+
+      // Push any changes made to the cache order map.
+      _defaultEntryCache.setCacheOrder(cacheOrderMap);
+
+      entryCache = null;
     }
 
     return changeResult;
@@ -394,34 +516,47 @@ public class EntryCacheConfigManager
    *                                   to initialize the entry cache.
    */
   private void loadAndInstallEntryCache(
-    String        className
+    String        className,
+    EntryCacheCfg configuration
     )
     throws InitializationException
   {
-    EntryCacheCfg configuration;
-
     // Get the root configuration object.
     ServerManagementContext managementContext =
       ServerManagementContext.getInstance();
     RootCfg rootConfiguration =
       managementContext.getRootConfiguration();
 
-    // Get the entry cache configuration.
-    try {
-      configuration = rootConfiguration.getEntryCache();
-    } catch (ConfigException ce) {
-      Message message = ERR_CONFIG_ENTRYCACHE_CANNOT_INITIALIZE_CACHE.get(
-        className, (ce.getCause() != null ? ce.getCause().getMessage() :
-          stackTraceToSingleLineString(ce)));
-      throw new InitializationException(message, ce);
-    }
-
     // Load the entry cache class...
-    EntryCache entryCache = loadEntryCache (className, configuration, true);
+    EntryCache<? extends EntryCacheCfg> entryCache =
+      loadEntryCache (className, configuration, true);
 
     // ... and install the entry cache in the server.
-    DirectoryServer.setEntryCache(entryCache);
-    _entryCache = entryCache;
+
+    // Add this entry cache to the current cache config maps.
+    cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
+    cacheNameToLevelMap.put(configuration.dn().toNormalizedString(),
+      configuration.getCacheLevel());
+
+    // Push any changes made to the cache order map.
+    _defaultEntryCache.setCacheOrder(cacheOrderMap);
+
+    // Install and register the monitor for this cache.
+    EntryCacheMonitorProvider monitor = new EntryCacheMonitorProvider(
+        configuration.definition().getUserFriendlyName().toString(),
+        entryCache);
+    try {
+      monitor.initializeMonitorProvider((EntryCacheMonitorProviderCfg)
+        rootConfiguration.getMonitorProvider(
+        DEFAULT_ENTRY_CACHE_MONITOR_PROVIDER));
+    } catch (ConfigException ce) {
+      // ConfigException here means that either the entry cache monitor
+      // config entry is not present or the monitor is not enabled. In
+      // either case that means no monitor provider for this cache.
+      return;
+    }
+    entryCache.setEntryCacheMonitor(monitor);
+    DirectoryServer.registerMonitorProvider(monitor);
   }
 
 
@@ -448,6 +583,14 @@ public class EntryCacheConfigManager
     )
     throws InitializationException
   {
+    EntryCache entryCache = null;
+
+    // If we this entry cache is already installed and active it
+    // should be present in the current cache order map, use it.
+    if (!cacheOrderMap.isEmpty()) {
+      entryCache = cacheOrderMap.get(configuration.getCacheLevel());
+    }
+
     try
     {
       EntryCacheCfgDefn                   definition;
@@ -461,10 +604,10 @@ public class EntryCacheConfigManager
 
       // If there is some entry cache instance already initialized work with
       // it instead of creating a new one unless explicit init is requested.
-      if (initialize || (_entryCache == null)) {
+      if (initialize || (entryCache == null)) {
         cache = (EntryCache<? extends EntryCacheCfg>) cacheClass.newInstance();
       } else {
-        cache = (EntryCache<? extends EntryCacheCfg>) _entryCache;
+        cache = (EntryCache<? extends EntryCacheCfg>) entryCache;
       }
 
       if (initialize)

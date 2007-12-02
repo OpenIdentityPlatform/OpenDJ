@@ -195,6 +195,10 @@ public class SoftReferenceEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
+    if (entryDN == null) {
+      return false;
+    }
+
     // Indicate whether the DN map contains the specified DN.
     return dnMap.containsKey(entryDN);
   }
@@ -210,7 +214,7 @@ public class SoftReferenceEntryCache
     if (ref == null)
     {
       // Indicate cache miss.
-      cacheMisses.set(cacheMisses.incrementAndGet());
+      cacheMisses.getAndIncrement();
       return null;
     }
     else
@@ -219,13 +223,13 @@ public class SoftReferenceEntryCache
       if (cacheEntry == null)
       {
         // Indicate cache miss.
-        cacheMisses.set(cacheMisses.incrementAndGet());
+        cacheMisses.getAndIncrement();
         return null;
       }
       else
       {
         // Indicate cache hit.
-        cacheHits.set(cacheHits.incrementAndGet());
+        cacheHits.getAndIncrement();
         return cacheEntry.getEntry();
       }
     }
@@ -262,7 +266,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
-  protected DN getEntryDN(Backend backend, long entryID)
+  public DN getEntryDN(Backend backend, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
     ConcurrentHashMap<Long,SoftReference<CacheEntry>>
@@ -286,11 +290,6 @@ public class SoftReferenceEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    // Check exclude and include filters first.
-    if (!filtersAllowCaching(entry)) {
-      return;
-    }
-
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
     SoftReference<CacheEntry> ref =
@@ -327,11 +326,6 @@ public class SoftReferenceEntryCache
   public boolean putEntryIfAbsent(Entry entry, Backend backend,
                                   long entryID)
   {
-    // Check exclude and include filters first.
-    if (!filtersAllowCaching(entry)) {
-      return true;
-    }
-
     // See if the entry already exists.  If so, then return false.
     if (dnMap.containsKey(entry.getDN()))
     {
@@ -667,7 +661,9 @@ public class SoftReferenceEntryCache
     try {
       attrs = EntryCacheCommon.getGenericMonitorData(
         new Long(cacheHits.longValue()),
-        new Long(cacheMisses.longValue()),
+        // If cache misses is maintained by default cache
+        // get it from there and if not point to itself.
+        DirectoryServer.getEntryCache().getCacheMisses(),
         null,
         null,
         new Long(dnMap.size()),
@@ -680,6 +676,16 @@ public class SoftReferenceEntryCache
     }
 
     return attrs;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Long getCacheCount()
+  {
+    return new Long(dnMap.size());
   }
 
 

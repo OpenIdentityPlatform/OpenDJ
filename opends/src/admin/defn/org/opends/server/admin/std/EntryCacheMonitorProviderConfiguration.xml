@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    exposes monitor information about Directory Server entry cache
+    exposes monitor information about Directory Server entry caches
     state.
   </adm:synopsis>
   <adm:profile name="ldap">

@@ -65,11 +65,12 @@ public class SoftReferenceEntryCacheTestCase
 
     // Configure this entry cache.
     Entry cacheConfigEntry = TestCaseUtils.makeEntry(
-      "dn: cn=Entry Cache,cn=config",
+      "dn: cn=Soft Reference,cn=Entry Caches,cn=config",
       "objectClass: ds-cfg-soft-reference-entry-cache",
       "objectClass: ds-cfg-entry-cache",
       "objectClass: top",
-      "cn: Entry Cache",
+      "cn: Soft Reference",
+      "ds-cfg-cache-level: 1",
       "ds-cfg-java-class: " +
       "org.opends.server.extensions.SoftReferenceEntryCache",
       "ds-cfg-enabled: true");

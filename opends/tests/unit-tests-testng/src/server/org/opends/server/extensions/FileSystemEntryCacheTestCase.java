@@ -40,9 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.OperatingSystem;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterGroups;
 import org.testng.annotations.BeforeGroups;
@@ -200,11 +198,12 @@ public class FileSystemEntryCacheTestCase
 
     // Configure this entry cache.
     cacheConfigEntry = TestCaseUtils.makeEntry(
-      "dn: cn=Entry Cache,cn=config",
+      "dn: cn=File System,cn=Entry Caches,cn=config",
       "objectClass: ds-cfg-file-system-entry-cache",
       "objectClass: ds-cfg-entry-cache",
       "objectClass: top",
-      "cn: Entry Cache",
+      "cn: File System",
+      "ds-cfg-cache-level: 1",
       "ds-cfg-java-class: " +
       "org.opends.server.extensions.FileSystemEntryCache",
       "ds-cfg-enabled: true",

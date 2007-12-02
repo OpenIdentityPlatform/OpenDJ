@@ -30,10 +30,10 @@ import org.opends.messages.Message;
 
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.opends.server.core.DirectoryServer;
@@ -45,9 +45,10 @@ import org.opends.server.types.LockType;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.Attribute;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.monitors.EntryCacheMonitorProvider;
+import org.opends.server.types.Attribute;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 
@@ -70,8 +71,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  *       mechanism to determine which entries to store, and entries
  *       not matching the appropriate criteria may not be stored.</LI>
  *   <LI>The entry cache may not actually store any entries (this is
- *       the behavior of the default cache that will be used if none
- *       is configured).</LI>
+ *       the behavior of the default cache if no implementation
+ *       specific entry cache is available).</LI>
  * </UL>
  *
  * @param  <T>  The type of configuration handled by this entry
@@ -92,14 +93,12 @@ public abstract class EntryCache
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  //  The set of filters that define the entries that should be
+  // The set of filters that define the entries that should be
   // excluded from the cache.
   private Set<SearchFilter> excludeFilters =
        new HashSet<SearchFilter>(0);
 
-  //  The set of filters that define the entries that should be
+  // The set of filters that define the entries that should be
   // included in the cache.
   private Set<SearchFilter> includeFilters =
        new HashSet<SearchFilter>(0);
@@ -118,6 +117,8 @@ public abstract class EntryCache
    */
   protected AtomicLong cacheMisses = new AtomicLong(0);
 
+  // The monitor associated with this entry cache.
+  private EntryCacheMonitorProvider entryCacheMonitor = null;
 
 
   /**
@@ -253,7 +254,7 @@ public abstract class EntryCache
 
     if (!containsEntry(entryDN)) {
       // Indicate cache miss.
-      cacheMisses.set(cacheMisses.incrementAndGet());
+      cacheMisses.getAndIncrement();
 
       return null;
     }
@@ -408,7 +409,7 @@ public abstract class EntryCache
     DN entryDN = getEntryDN(backend, entryID);
     if (entryDN == null) {
       // Indicate cache miss.
-      cacheMisses.set(cacheMisses.incrementAndGet());
+      cacheMisses.getAndIncrement();
 
       return null;
     }
@@ -450,7 +451,7 @@ public abstract class EntryCache
    * @return  The entry DN for the requested entry, or
    *          {@code null} if it is not present in the cache.
    */
-  protected abstract DN getEntryDN(Backend backend, long entryID);
+  public abstract DN getEntryDN(Backend backend, long entryID);
 
 
 
@@ -545,6 +546,33 @@ public abstract class EntryCache
 
 
   /**
+   * Retrieves the monitor that is associated with this entry
+   * cache.
+   *
+   * @return  The monitor that is associated with this entry
+   *          cache, or {@code null} if none has been assigned.
+   */
+  public final EntryCacheMonitorProvider getEntryCacheMonitor()
+  {
+    return entryCacheMonitor;
+  }
+
+
+
+  /**
+   * Sets the monitor for this entry cache.
+   *
+   * @param  entryCacheMonitor  The monitor for this entry cache.
+   */
+  public final void setEntryCacheMonitor(
+    EntryCacheMonitorProvider entryCacheMonitor)
+  {
+    this.entryCacheMonitor = entryCacheMonitor;
+  }
+
+
+
+  /**
    * Retrieves a set of attributes containing monitor data that should
    * be returned to the client if the corresponding monitor entry is
    * requested.
@@ -554,6 +582,39 @@ public abstract class EntryCache
    *          entry is requested.
    */
   public abstract ArrayList<Attribute> getMonitorData();
+
+
+
+  /**
+   * Retrieves the curent number of entries stored within the cache.
+   *
+   * @return  The current number of entries stored within the cache.
+   */
+  public abstract Long getCacheCount();
+
+
+
+  /**
+   * Retrieves the curent number of cache hits for this cache.
+   *
+   * @return  The current number of cache hits for this cache.
+   */
+  public Long getCacheHits()
+  {
+    return new Long(cacheHits.longValue());
+  }
+
+
+
+  /**
+   * Retrieves the curent number of cache misses for this cache.
+   *
+   * @return  The current number of cache misses for this cache.
+   */
+  public Long getCacheMisses()
+  {
+    return new Long(cacheMisses.longValue());
+  }
 
 
 
@@ -667,7 +728,7 @@ public abstract class EntryCache
    * @return  {@code true} if current set of filters allow caching the
    *          entry and {@code false} otherwise.
    */
-  protected boolean filtersAllowCaching(Entry entry)
+  public boolean filtersAllowCaching(Entry entry)
   {
     // If there is a set of exclude filters, then make sure that the
     // provided entry doesn't match any of them.

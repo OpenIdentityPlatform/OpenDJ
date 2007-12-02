@@ -78,8 +78,8 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.Attribute;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -607,6 +607,10 @@ public class FileSystemEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
+    if (entryDN == null) {
+      return false;
+    }
+
     // Indicate whether the DN map contains the specified DN.
     boolean containsEntry = false;
     cacheReadLock.lock();
@@ -631,10 +635,10 @@ public class FileSystemEntryCache
       if (dnMap.get(entryDN) != null) {
         entry = getEntryFromDB(entryDN);
         // Indicate cache hit.
-        cacheHits.set(cacheHits.incrementAndGet());
+        cacheHits.getAndIncrement();
       } else {
         // Indicate cache miss.
-        cacheMisses.set(cacheMisses.incrementAndGet());
+        cacheMisses.getAndIncrement();
       }
     } finally {
       cacheReadLock.unlock();
@@ -662,7 +666,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
-  protected DN getEntryDN(Backend backend, long entryID) {
+  public DN getEntryDN(Backend backend, long entryID) {
 
     DN entryDN = null;
     cacheReadLock.lock();
@@ -684,13 +688,8 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
-  public void putEntry(Entry entry, Backend backend, long entryID) {
-
-    // Check exclude and include filters first.
-    if (!filtersAllowCaching(entry)) {
-      return;
-    }
-
+  public void putEntry(Entry entry, Backend backend, long entryID)
+  {
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try {
       if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
@@ -714,11 +713,6 @@ public class FileSystemEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    // Check exclude and include filters first.
-    if (!filtersAllowCaching(entry)) {
-      return true;
-    }
-
     try {
       // Obtain a lock on the cache.  If this fails, then don't do anything.
       if (! cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
@@ -1350,7 +1344,9 @@ public class FileSystemEntryCache
     try {
       attrs = EntryCacheCommon.getGenericMonitorData(
         new Long(cacheHits.longValue()),
-        new Long(cacheMisses.longValue()),
+        // If cache misses is maintained by default cache
+        // get it from there and if not point to itself.
+        DirectoryServer.getEntryCache().getCacheMisses(),
         new Long(entryCacheEnv.getStats(
           entryCacheEnvStatsConfig).getTotalLogSize()),
         new Long(maxAllowedMemory),
@@ -1366,6 +1362,14 @@ public class FileSystemEntryCache
     }
 
     return attrs;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public Long getCacheCount()
+  {
+    return new Long(dnMap.size());
   }
 
   /**
