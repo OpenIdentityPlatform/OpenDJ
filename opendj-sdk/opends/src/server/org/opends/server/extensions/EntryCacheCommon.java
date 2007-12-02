@@ -381,7 +381,7 @@ public class EntryCacheCommon
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 
-    if ((cacheHits != null) && (cacheMisses != null)) {
+    if (cacheHits != null) {
       AttributeType hitsAttrType =
         DirectoryServer.getDefaultAttributeType("entryCacheHits");
       LinkedHashSet<AttributeValue> hitsValues =
@@ -390,29 +390,31 @@ public class EntryCacheCommon
         cacheHits.toString()));
       attrs.add(new Attribute(hitsAttrType, "entryCacheHits",
         hitsValues));
+      // Cache misses is required to get cache tries and hit ratio.
+      if (cacheMisses != null) {
+        AttributeType triesAttrType =
+          DirectoryServer.getDefaultAttributeType("entryCacheTries");
+        LinkedHashSet<AttributeValue> triesValues =
+          new LinkedHashSet<AttributeValue>();
+        Long cacheTries = cacheHits + cacheMisses;
+        triesValues.add(new AttributeValue(triesAttrType,
+          cacheTries.toString()));
+        attrs.add(new Attribute(triesAttrType, "entryCacheTries",
+          triesValues));
 
-      AttributeType triesAttrType =
-        DirectoryServer.getDefaultAttributeType("entryCacheTries");
-      LinkedHashSet<AttributeValue> triesValues =
-        new LinkedHashSet<AttributeValue>();
-      Long cacheTries = cacheHits + cacheMisses;
-      triesValues.add(new AttributeValue(triesAttrType,
-        cacheTries.toString()));
-      attrs.add(new Attribute(triesAttrType, "entryCacheTries",
-        triesValues));
-
-      AttributeType hitRatioAttrType =
-        DirectoryServer.getDefaultAttributeType("entryCacheHitRatio");
-      LinkedHashSet<AttributeValue> hitRatioValues =
-        new LinkedHashSet<AttributeValue>();
-      Double hitRatioRaw = cacheTries > 0 ?
-        cacheHits.doubleValue() / cacheTries.doubleValue() :
-        cacheHits.doubleValue() / 1;
-      Double hitRatio = hitRatioRaw * 100D;
-      hitRatioValues.add(new AttributeValue(hitRatioAttrType,
-        Long.toString(hitRatio.longValue())));
-      attrs.add(new Attribute(hitRatioAttrType, "entryCacheHitRatio",
-        hitRatioValues));
+        AttributeType hitRatioAttrType =
+          DirectoryServer.getDefaultAttributeType("entryCacheHitRatio");
+        LinkedHashSet<AttributeValue> hitRatioValues =
+          new LinkedHashSet<AttributeValue>();
+        Double hitRatioRaw = cacheTries > 0 ?
+          cacheHits.doubleValue() / cacheTries.doubleValue() :
+          cacheHits.doubleValue() / 1;
+        Double hitRatio = hitRatioRaw * 100D;
+        hitRatioValues.add(new AttributeValue(hitRatioAttrType,
+          Long.toString(hitRatio.longValue())));
+        attrs.add(new Attribute(hitRatioAttrType, "entryCacheHitRatio",
+          hitRatioValues));
+      }
     }
 
     if (cacheSize != null) {

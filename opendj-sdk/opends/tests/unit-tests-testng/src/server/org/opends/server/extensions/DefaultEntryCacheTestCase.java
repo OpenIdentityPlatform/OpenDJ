@@ -22,315 +22,507 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
 
 
+import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.concurrent.locks.Lock;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import java.util.SortedMap;
+import java.util.TreeMap;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.testng.annotations.BeforeClass;
+import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.server.EntryCacheCfg;
+import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LockType;
-
+import org.opends.server.util.ServerConstants;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterGroups;
+import org.testng.annotations.BeforeGroups;
+import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 
 
 /**
- * A set of test cases for the default entry cache.
+ * A set of test cases for default entry cache implementation.
  */
+@Test(groups = "entrycache", sequential=true)
 public class DefaultEntryCacheTestCase
-       extends ExtensionsTestCase
+       extends CommonEntryCacheTestCase
 {
+  // Entry cache implementations participating in this test.
+  private EntryCache softRefCache = null;
+  private EntryCache fifoCache = null;
+  private EntryCache fsCache = null;
+
+  // ... and their configuration entries.
+  Entry cacheSoftReferenceConfigEntry = null;
+  Entry cacheFIFOConfigEntry = null;
+  Entry cacheFSConfigEntry = null;
+
+  // The entry cache order map sorted by the cache level.
+  private SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
+    cacheOrderMap = new TreeMap<Integer,
+    EntryCache<? extends EntryCacheCfg>>();
+
+  // Dummy test entries for each participating implementation.
+  private ArrayList<Entry> testSoftRefEntriesList = null;
+  private ArrayList<Entry> testFIFOEntriesList = null;
+  private ArrayList<Entry> testFSEntriesList = null;
+
   /**
-   * Ensures that the Directory Server is running.
+   * Initialize the entry cache test.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
-  public void startServer()
+  @SuppressWarnings("unchecked")
+  public void entryCacheTestInit()
          throws Exception
   {
+    // Ensure that the server is running.
     TestCaseUtils.startServer();
+
+    // Get default cache.
+    super.cache = DirectoryServer.getEntryCache();
+
+    // Configure and initialize all entry cache implementations.
+    softRefCache = new SoftReferenceEntryCache();
+    cacheSoftReferenceConfigEntry = TestCaseUtils.makeEntry(
+      "dn: cn=Soft Reference,cn=Entry Caches,cn=config",
+      "objectClass: ds-cfg-soft-reference-entry-cache",
+      "objectClass: ds-cfg-entry-cache",
+      "objectClass: top",
+      "cn: Soft Reference",
+      "ds-cfg-cache-level: 1",
+      "ds-cfg-java-class: " +
+      "org.opends.server.extensions.SoftReferenceEntryCache",
+      "ds-cfg-enabled: true",
+      "ds-cfg-include-filter: uid=softref*",
+      "ds-cfg-include-filter: uid=test1*",
+      "ds-cfg-exclude-filter: uid=test0*");
+    softRefCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
+      EntryCacheCfgDefn.getInstance(), cacheSoftReferenceConfigEntry));
+    cacheOrderMap.put(1, softRefCache);
+
+    fifoCache = new FIFOEntryCache();
+    cacheFIFOConfigEntry = TestCaseUtils.makeEntry(
+      "dn: cn=FIFO,cn=Entry Caches,cn=config",
+      "objectClass: ds-cfg-fifo-entry-cache",
+      "objectClass: ds-cfg-entry-cache",
+      "objectClass: top",
+      "cn: FIFO",
+      "ds-cfg-cache-level: 2",
+      "ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache",
+      "ds-cfg-enabled: true",
+      "ds-cfg-include-filter: uid=fifo*",
+      "ds-cfg-include-filter: uid=test2*",
+      "ds-cfg-exclude-filter: uid=test0*");
+    fifoCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
+      EntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
+    cacheOrderMap.put(2, fifoCache);
+
+    fsCache = new FileSystemEntryCache();
+    cacheFSConfigEntry = TestCaseUtils.makeEntry(
+      "dn: cn=File System,cn=Entry Caches,cn=config",
+      "objectClass: ds-cfg-file-system-entry-cache",
+      "objectClass: ds-cfg-entry-cache",
+      "objectClass: top",
+      "cn: File System",
+      "ds-cfg-cache-level: 3",
+      "ds-cfg-java-class: " +
+      "org.opends.server.extensions.FileSystemEntryCache",
+      "ds-cfg-enabled: true",
+      "ds-cfg-include-filter: uid=fs*",
+      "ds-cfg-include-filter: uid=test3*",
+      "ds-cfg-include-filter: uid=test0*");
+    fsCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
+      EntryCacheCfgDefn.getInstance(), cacheFSConfigEntry));
+    cacheOrderMap.put(3, fsCache);
+
+    // Plug all cache implementations into default entry cache.
+    final Method[] defaultCacheMethods =
+        super.cache.getClass().getDeclaredMethods();
+    for (int i = 0; i < defaultCacheMethods.length; ++i) {
+      if (defaultCacheMethods[i].getName().equals("setCacheOrder")) {
+        defaultCacheMethods[i].setAccessible(true);
+        Object arglist[] = new Object[] { cacheOrderMap };
+        defaultCacheMethods[i].invoke(cache, arglist);
+      }
+    }
+
+    // Make some dummy test entries.
+    super.testEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
+      super.testEntriesList.add(TestCaseUtils.makeEntry(
+        "dn: uid=test" + Integer.toString(i) + ".user" + Integer.toString(i)
+         + ",ou=test" + Integer.toString(i) + ",o=test",
+        "objectClass: person",
+        "objectClass: inetorgperson",
+        "objectClass: top",
+        "objectClass: organizationalperson",
+        "postalAddress: somewhere in Testville" + Integer.toString(i),
+        "street: Under Construction Street" + Integer.toString(i),
+        "l: Testcounty" + Integer.toString(i),
+        "st: Teststate" + Integer.toString(i),
+        "telephoneNumber: +878 8378 8378" + Integer.toString(i),
+        "mobile: +878 8378 8378" + Integer.toString(i),
+        "homePhone: +878 8378 8378" + Integer.toString(i),
+        "pager: +878 8378 8378" + Integer.toString(i),
+        "mail: test" + Integer.toString(i) + ".user" + Integer.toString(i)
+         + "@testdomain.net",
+        "postalCode: 8378" + Integer.toString(i),
+        "userPassword: testpassword" + Integer.toString(i),
+        "description: description for Test" + Integer.toString(i) + "User"
+         + Integer.toString(i),
+        "cn: Test" + Integer.toString(i) + "User" + Integer.toString(i),
+        "sn: User" + Integer.toString(i),
+        "givenName: Test" + Integer.toString(i),
+        "initials: TST" + Integer.toString(i),
+        "employeeNumber: 8378" + Integer.toString(i),
+        "uid: test" + Integer.toString(i) + ".user" + Integer.toString(i))
+      );
+    }
+    testSoftRefEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
+      testSoftRefEntriesList.add(TestCaseUtils.makeEntry(
+        "dn: uid=softref" + Integer.toString(i) + ".user" + Integer.toString(i)
+         + ",ou=test" + Integer.toString(i) + ",o=test",
+        "objectClass: person",
+        "objectClass: inetorgperson",
+        "objectClass: top",
+        "objectClass: organizationalperson",
+        "uid: softref" + Integer.toString(i) + ".user" + Integer.toString(i))
+      );
+    }
+    testFIFOEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
+      testFIFOEntriesList.add(TestCaseUtils.makeEntry(
+        "dn: uid=fifo" + Integer.toString(i) + ".user" + Integer.toString(i)
+         + ",ou=test" + Integer.toString(i) + ",o=test",
+        "objectClass: person",
+        "objectClass: inetorgperson",
+        "objectClass: top",
+        "objectClass: organizationalperson",
+        "uid: fifo" + Integer.toString(i) + ".user" + Integer.toString(i))
+      );
+    }
+    testFSEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
+    for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
+      testFSEntriesList.add(TestCaseUtils.makeEntry(
+        "dn: uid=fs" + Integer.toString(i) + ".user" + Integer.toString(i)
+         + ",ou=test" + Integer.toString(i) + ",o=test",
+        "objectClass: person",
+        "objectClass: inetorgperson",
+        "objectClass: top",
+        "objectClass: organizationalperson",
+        "uid: fs" + Integer.toString(i) + ".user" + Integer.toString(i))
+      );
+    }
+
+    // Force GC to make sure we have enough memory for
+    // the cache capping constraints to work properly.
+    System.gc();
   }
 
 
 
   /**
-   * Tests the process of creating, initializing, and finalizing the cache.
+   * Finalize the entry cache test.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testInitializeAndFinalizeCache()
+  @AfterClass()
+  public void entryCacheTestFini()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-    cache.finalizeEntryCache();
+    // Finilize all entry cache implementations.
+    for (EntryCache entryCache : cacheOrderMap.values()) {
+      entryCache.finalizeEntryCache();
+    }
+
+    // Remove default FS cache JE environment.
+    FileSystemEntryCacheCfg config = (FileSystemEntryCacheCfg)
+      AdminTestCaseUtils.getConfiguration(EntryCacheCfgDefn.getInstance(),
+      cacheFSConfigEntry);
+    TestCaseUtils.deleteDirectory(new File(config.getCacheDirectory()));
   }
 
 
 
   /**
-   * Tests the <CODE>containsEntry</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testContainsEntry()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    assertFalse(cache.containsEntry(DN.decode("uid=test,o=test")));
-
-    cache.finalizeEntryCache();
+    super.testContainsEntry();
   }
 
 
 
   /**
-   * Tests the first <CODE>getEntry</CODE> method, which takes a single DN
-   * argument.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testGetEntry1()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    assertNull(cache.getEntry(DN.decode("uid=test,o=test")));
-
-    cache.finalizeEntryCache();
+    super.testGetEntry1();
   }
 
 
 
   /**
-   * Tests the second <CODE>getEntry</CODE> method, which takes a DN, lock type,
-   * and list attributes.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testGetEntry2()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    assertNull(cache.getEntry(DN.decode("uid=test,o=test"), LockType.NONE,
-                              new ArrayList<Lock>()));
-
-    cache.finalizeEntryCache();
+    super.testGetEntry2();
   }
 
 
 
   /**
-   * Tests the third <CODE>getEntry</CODE> method, which takes a backend, entry
-   * ID, lock type, and list attributes.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testGetEntry3()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(false);
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
-
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    assertNull(cache.getEntry(b, -1, LockType.NONE, new ArrayList<Lock>()));
-
-    cache.finalizeEntryCache();
+    super.testGetEntry3();
   }
 
 
 
   /**
-   * Tests the <CODE>getEntryID</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testGetEntryID()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    assertEquals(cache.getEntryID(DN.decode("uid=test,o=test")), -1);
-
-    cache.finalizeEntryCache();
+    super.testGetEntryID();
   }
 
 
 
   /**
-   * Tests the <CODE>putEntry</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testPutEntry()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(false);
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
-
-    Entry e = TestCaseUtils.makeEntry("dn: o=test",
-                                      "objectClass: top",
-                                      "objectClass: organization",
-                                      "o: test");
-
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    cache.putEntry(e, b, 1);
-
-    cache.finalizeEntryCache();
+    super.testPutEntry();
   }
 
 
 
   /**
-   * Tests the <CODE>putEntryIfAbsent</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testPutEntryIfAbsent()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(false);
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
-
-    Entry e = TestCaseUtils.makeEntry("dn: o=test",
-                                      "objectClass: top",
-                                      "objectClass: organization",
-                                      "o: test");
-
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    assertTrue(cache.putEntryIfAbsent(e, b, 1));
-
-    cache.finalizeEntryCache();
+    super.testPutEntryIfAbsent();
   }
 
 
 
   /**
-   * Tests the <CODE>removeEntry</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testRemoveEntry()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    cache.removeEntry(DN.decode("uid=test,o=test"));
-
-    cache.finalizeEntryCache();
+    super.testRemoveEntry();
   }
 
 
 
   /**
-   * Tests the <CODE>clear</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testClear()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    cache.clear();
-
-    cache.finalizeEntryCache();
+    super.testClear();
   }
 
 
 
   /**
-   * Tests the <CODE>clearBackend</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testClearBackend()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(false);
-    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
-
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    cache.clearBackend(b);
-
-    cache.finalizeEntryCache();
+    super.testClearBackend();
   }
 
 
 
   /**
-   * Tests the <CODE>clearSubtree</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * {@inheritDoc}
    */
   @Test()
+  @Override
   public void testClearSubtree()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
-
-    cache.clearSubtree(DN.decode("o=test"));
-
-    cache.finalizeEntryCache();
+    super.testClearSubtree();
   }
 
 
 
   /**
-   * Tests the <CODE>handleLowMemory</CODE> method.
+   * {@inheritDoc}
+   */
+  @Test()
+  @Override
+  public void testHandleLowMemory()
+         throws Exception
+  {
+    super.testHandleLowMemory();
+  }
+
+
+
+  /**
+   * Tests the entry cache level functionality where each set
+   * of entries land on a specific cache level by some form
+   * of selection criteria such as include / exclude filters.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void handleLowMemory()
+  public void testCacheLevels()
          throws Exception
   {
-    DefaultEntryCache cache = new DefaultEntryCache();
-    cache.initializeEntryCache(null);
+    assertNull(toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      toVerboseString());
 
-    cache.handleLowMemory();
+    TestCaseUtils.initializeTestBackend(false);
+    Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
 
-    cache.finalizeEntryCache();
+    // Spread test entries among all cache levels via default cache.
+    for (int i = 0; i < NUMTESTENTRIES; i++) {
+      super.cache.putEntry(testSoftRefEntriesList.get(i), b, i);
+      super.cache.putEntry(testFIFOEntriesList.get(i), b, i);
+      super.cache.putEntry(testFSEntriesList.get(i), b, i);
+    }
+
+    // Ensure all test entries are available via default cache.
+    for (int i = 0; i < NUMTESTENTRIES; i++) {
+      assertNotNull(super.cache.getEntry(
+        testSoftRefEntriesList.get(0).getDN()),
+        "Expected to find " +
+        testSoftRefEntriesList.get(0).getDN().toString() +
+        " in the cache.  Cache contents:" +
+        ServerConstants.EOL + toVerboseString());
+      assertNotNull(super.cache.getEntry(
+        testFIFOEntriesList.get(0).getDN()),
+        "Expected to find " +
+        testFIFOEntriesList.get(0).getDN().toString() +
+        " in the cache.  Cache contents:" +
+        ServerConstants.EOL + toVerboseString());
+      assertNotNull(super.cache.getEntry(
+        testFSEntriesList.get(0).getDN()),
+        "Expected to find " +
+        testFSEntriesList.get(0).getDN().toString() +
+        " in the cache.  Cache contents:" +
+        ServerConstants.EOL + toVerboseString());
+    }
+
+    // Ensure all test entries landed on their levels.
+    for (int i = 0; i < NUMTESTENTRIES; i++) {
+      assertNotNull(softRefCache.getEntry(
+        testSoftRefEntriesList.get(0).getDN()),
+        "Expected to find " +
+        testSoftRefEntriesList.get(0).getDN().toString() +
+        " in the cache.  Cache contents:" +
+        ServerConstants.EOL + toVerboseString());
+      assertNotNull(fifoCache.getEntry(
+        testFIFOEntriesList.get(0).getDN()),
+        "Expected to find " +
+        testFIFOEntriesList.get(0).getDN().toString() +
+        " in the cache.  Cache contents:" +
+        ServerConstants.EOL + toVerboseString());
+      assertNotNull(fsCache.getEntry(
+        testFSEntriesList.get(0).getDN()),
+        "Expected to find " +
+        testFSEntriesList.get(0).getDN().toString() +
+        " in the cache.  Cache contents:" +
+        ServerConstants.EOL + toVerboseString());
+    }
+
+    // Clear the cache so that other tests can start from scratch.
+    super.cache.clear();
+  }
+
+
+
+  @BeforeGroups(groups = "testDefaultCacheConcurrency")
+  public void cacheConcurrencySetup()
+         throws Exception
+  {
+    assertNull(super.toVerboseString(),
+      "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
+      super.toVerboseString());
+  }
+
+
+
+  @AfterGroups(groups = "testDefaultCacheConcurrency")
+  public void cacheConcurrencyCleanup()
+         throws Exception
+  {
+    // Clear the cache so that other tests can start from scratch.
+    super.cache.clear();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Test(groups = { "slow", "testDefaultCacheConcurrency" },
+        threadPoolSize = 10,
+        invocationCount = 10,
+        timeOut = 60000)
+  @Override
+  public void testCacheConcurrency()
+         throws Exception
+  {
+    super.testCacheConcurrency();
   }
 }
-

@@ -2771,8 +2771,8 @@ public final class ConfigConstants
    * The DN of the entry that will hold the configuration for the Directory
    * Server entry cache.
    */
-  public static final String DN_ENTRY_CACHE_CONFIG =
-       "cn=Entry Cache," + DN_CONFIG_ROOT;
+  public static final String DN_ENTRY_CACHE_BASE =
+       "cn=Entry Caches," + DN_CONFIG_ROOT;
 
 
 
@@ -2978,6 +2978,15 @@ public final class ConfigConstants
    */
   public static final String DN_MONITOR_CONFIG_BASE =
        "cn=Monitor Providers," + DN_CONFIG_ROOT;
+
+
+
+  /**
+   * The DN of the entry that will serve as the entry cache monitor provider
+   * configuration for all Directory Server entry cache monitors.
+   */
+  public static final String DN_ENTRY_CACHE_MONITOR_CONFIG =
+       "cn=Entry Caches," + DN_MONITOR_CONFIG_BASE;
 
 
 

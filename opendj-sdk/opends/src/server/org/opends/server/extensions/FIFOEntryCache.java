@@ -213,6 +213,10 @@ public class FIFOEntryCache
    */
   public boolean containsEntry(DN entryDN)
   {
+    if (entryDN == null) {
+      return false;
+    }
+
     // Indicate whether the DN map contains the specified DN.
     return dnMap.containsKey(entryDN);
   }
@@ -229,13 +233,13 @@ public class FIFOEntryCache
     if (e == null)
     {
       // Indicate cache miss.
-      cacheMisses.set(cacheMisses.incrementAndGet());
+      cacheMisses.getAndIncrement();
       return null;
     }
     else
     {
       // Indicate cache hit.
-      cacheHits.set(cacheHits.incrementAndGet());
+      cacheHits.getAndIncrement();
       return e.getEntry();
     }
   }
@@ -264,7 +268,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
-  protected DN getEntryDN(Backend backend, long entryID)
+  public DN getEntryDN(Backend backend, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
     HashMap<Long,CacheEntry> backendMap = idMap.get(backend);
@@ -284,11 +288,6 @@ public class FIFOEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    // Check exclude and include filters first.
-    if (!filtersAllowCaching(entry)) {
-      return;
-    }
-
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
 
@@ -400,11 +399,6 @@ public class FIFOEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    // Check exclude and include filters first.
-    if (!filtersAllowCaching(entry)) {
-      return true;
-    }
-
     // Create the cache entry based on the provided information.
     CacheEntry cacheEntry = new CacheEntry(entry, backend, entryID);
 
@@ -1004,7 +998,9 @@ public class FIFOEntryCache
     try {
       attrs = EntryCacheCommon.getGenericMonitorData(
         new Long(cacheHits.longValue()),
-        new Long(cacheMisses.longValue()),
+        // If cache misses is maintained by default cache
+        // get it from there and if not point to itself.
+        DirectoryServer.getEntryCache().getCacheMisses(),
         null,
         new Long(maxAllowedMemory),
         new Long(dnMap.size()),
@@ -1019,6 +1015,16 @@ public class FIFOEntryCache
     }
 
     return attrs;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Long getCacheCount()
+  {
+    return new Long(dnMap.size());
   }
 
 

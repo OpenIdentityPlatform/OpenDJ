@@ -151,7 +151,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="cache-directory" mandatory="true">
+  <adm:property name="cache-directory">
     <adm:synopsis>
       Specifies the directory in which the JE environment should store
       the cache.

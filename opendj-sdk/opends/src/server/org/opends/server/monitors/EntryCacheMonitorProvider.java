@@ -27,21 +27,20 @@
 package org.opends.server.monitors;
 
 import java.util.ArrayList;
+import org.opends.messages.Message;
 
-import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines a Directory Server monitor provider that can be used to
@@ -51,29 +50,73 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class EntryCacheMonitorProvider
        extends MonitorProvider<EntryCacheMonitorProviderCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  // The name for this monitor.
+  private String monitorName;
+
+  // The entry cache common name.
+  private String entryCacheName;
+
+  // The entry cache with which this monitor is associated.
+  private EntryCache<? extends EntryCacheCfg> entryCache;
+
+  // Global entry cache monitor configuration.
+  private static EntryCacheMonitorProviderCfg monitorConfiguration;
 
   /**
-   * Creates an instance of this monitor provider.
+   * Creates default instance of this monitor provider.
    */
   public EntryCacheMonitorProvider()
   {
-    super("Entry Cache Monitor Provider");
+    super("Entry Caches Monitor Provider");
+    this.entryCacheName = "Entry Caches";
+    this.entryCache = (EntryCache<? extends EntryCacheCfg>)
+      DirectoryServer.getEntryCache();
+  }
 
-    // No initialization should be performed here.
+  /**
+   * Creates implementation specific instance of this monitor provider.
+   *
+   * @param  entryCacheName  The name to use for this monitor provider.
+   * @param  entryCache      The entry cache to associate this monitor
+   *                         provider with.
+   */
+  public EntryCacheMonitorProvider(
+    String entryCacheName,
+    EntryCache<? extends EntryCacheCfg> entryCache)
+  {
+    super(entryCacheName + " Entry Cache Monitor Provider");
+    this.entryCacheName = entryCacheName;
+    this.entryCache = entryCache;
   }
 
   /**
    * {@inheritDoc}
    */
   public void initializeMonitorProvider(
-                   EntryCacheMonitorProviderCfg configuration)
-         throws ConfigException, InitializationException
+    EntryCacheMonitorProviderCfg configuration)
+    throws ConfigException
   {
-    // No initialization is required.
+    monitorName = entryCacheName;
+
+    if (configuration != null) {
+      monitorConfiguration = configuration;
+    }
+    if (monitorConfiguration == null) {
+      Message message =
+        INFO_WARN_CONFIG_ENTRYCACHE_NO_MONITOR_CONFIG_ENTRY.get(
+        ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG,
+        monitorName);
+      logError(message);
+      throw new ConfigException(message);
+    }
+    if (!monitorConfiguration.isEnabled()) {
+      Message message =
+        INFO_WARN_CONFIG_ENTRYCACHE_MONITOR_CONFIG_DISABLED.get(
+        ConfigConstants.DN_ENTRY_CACHE_MONITOR_CONFIG,
+        monitorName);
+      logError(message);
+      throw new ConfigException(message);
+    }
   }
 
   /**
@@ -81,7 +124,7 @@ public class EntryCacheMonitorProvider
    */
   public String getMonitorInstanceName()
   {
-    return "Entry Cache";
+    return monitorName;
   }
 
   /**
@@ -108,35 +151,12 @@ public class EntryCacheMonitorProvider
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-    EntryCacheCfg configuration = null;
 
-    // Get the root configuration object.
-    ServerManagementContext managementContext =
-      ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-      managementContext.getRootConfiguration();
-
-    // Get the entry cache configuration.
-    try {
-      configuration = rootConfiguration.getEntryCache();
-    } catch (Exception e) {
-      if (debugEnabled()) {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      return attrs;
-    }
-
-    // Get the entry cache.
-    EntryCache<? extends EntryCacheCfg> cache =
-      (EntryCache<? extends EntryCacheCfg>)
-       DirectoryServer.getEntryCache();
-
-    if ((cache != null) &&
-        (configuration != null) &&
-         configuration.isEnabled()) {
-      // Get data from the cache.
-      attrs = cache.getMonitorData();
+    if ((entryCache != null) &&
+        (monitorConfiguration != null) &&
+        (monitorConfiguration.isEnabled())) {
+      // Get monitor data from the cache.
+      attrs = entryCache.getMonitorData();
     }
 
     return attrs;

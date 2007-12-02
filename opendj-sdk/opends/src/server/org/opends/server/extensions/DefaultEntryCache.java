@@ -22,41 +22,58 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
+import java.lang.reflect.Method;
 import org.opends.messages.Message;
 
 
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.concurrent.locks.Lock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LockType;
 import org.opends.server.types.ResultCode;
 
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
- * This class defines the default entry cache that will be used in the server if
- * none is configured.  It does not actually store any entries, so all calls to
- * <CODE>getEntry</CODE> will return <CODE>null</CODE>, and all calls to
- * <CODE>putEntry</CODE> will return immediately without doing anything.
+ * This class defines the default entry cache which acts as an arbiter for
+ * every entry cache implemenation configured and installed withhin the
+ * Directory Server or acts an an empty cache if no implementation specific
+ * entry cache is configured.  It does not actually store any entries, so
+ * all calls to the entry cache public API are routed to underlying entry
+ * cache according to the current configuration order and preferences.
  */
 public class DefaultEntryCache
        extends EntryCache<EntryCacheCfg>
        implements ConfigurationChangeListener<EntryCacheCfg>
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
+
+  // The entry cache order array reflects all currently configured and
+  // active entry cache implementations in cache level specific order.
+  private static EntryCache<? extends EntryCacheCfg>[] cacheOrder =
+    new EntryCache<?>[0];
 
 
   /**
@@ -65,9 +82,7 @@ public class DefaultEntryCache
   public DefaultEntryCache()
   {
     super();
-
   }
-
 
 
   /**
@@ -80,7 +95,6 @@ public class DefaultEntryCache
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -90,16 +104,76 @@ public class DefaultEntryCache
   }
 
 
-
   /**
    * {@inheritDoc}
    */
   public boolean containsEntry(DN entryDN)
   {
-    // This implementation does not store any entries.
+    if (entryDN == null) {
+      return false;
+    }
+
+    for (EntryCache entryCache : cacheOrder) {
+      if (entryCache.containsEntry(entryDN)) {
+        return true;
+      }
+    }
+
     return false;
   }
 
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Entry getEntry(DN entryDN,
+                        LockType lockType,
+                        List<Lock> lockList)
+  {
+    Entry entry = null;
+
+    for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder) {
+      entry = entryCache.getEntry(entryDN, lockType, lockList);
+      if (entry != null) {
+        break;
+      }
+    }
+
+    // Indicate global cache miss.
+    if ((entry == null) && (cacheOrder.length != 0)) {
+      cacheMisses.getAndIncrement();
+    }
+
+    return entry;
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Entry getEntry(Backend backend, long entryID,
+                                 LockType lockType,
+                                 List<Lock> lockList)
+  {
+    Entry entry = null;
+
+    for (EntryCache<? extends EntryCacheCfg> entryCache : cacheOrder) {
+      entry = entryCache.getEntry(backend, entryID, lockType,
+          lockList);
+      if (entry != null) {
+        break;
+      }
+    }
+
+    // Indicate global cache miss.
+    if ((entry == null) && (cacheOrder.length != 0)) {
+      cacheMisses.getAndIncrement();
+    }
+
+    return entry;
+  }
 
 
   /**
@@ -107,8 +181,21 @@ public class DefaultEntryCache
    */
   public Entry getEntry(DN entryDN)
   {
-    // This implementation does not store any entries.
-    return null;
+    Entry entry = null;
+
+    for (EntryCache entryCache : cacheOrder) {
+      entry = entryCache.getEntry(entryDN);
+      if (entry != null) {
+        break;
+      }
+    }
+
+    // Indicate global cache miss.
+    if ((entry == null) && (cacheOrder.length != 0)) {
+      cacheMisses.getAndIncrement();
+    }
+
+    return entry;
   }
 
 
@@ -118,8 +205,16 @@ public class DefaultEntryCache
    */
   public long getEntryID(DN entryDN)
   {
-    // This implementation does not store any entries.
-    return -1;
+    long entryID = -1;
+
+    for (EntryCache entryCache : cacheOrder) {
+      entryID = entryCache.getEntryID(entryDN);
+      if (entryID != -1) {
+        break;
+      }
+    }
+
+    return entryID;
   }
 
 
@@ -127,10 +222,18 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
-  protected DN getEntryDN(Backend backend, long entryID)
+  public DN getEntryDN(Backend backend, long entryID)
   {
-    // This implementation does not store any entries.
-    return null;
+    DN entryDN = null;
+
+    for (EntryCache entryCache : cacheOrder) {
+      entryDN = entryCache.getEntryDN(backend, entryID);
+      if (entryDN != null) {
+        break;
+      }
+    }
+
+    return entryDN;
   }
 
 
@@ -140,7 +243,14 @@ public class DefaultEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    // This implementation does not store entries.
+    for (EntryCache entryCache : cacheOrder) {
+      // The first cache in the order which can take this entry
+      // gets it.
+      if (entryCache.filtersAllowCaching(entry)) {
+        entryCache.putEntry(entry, backend, entryID);
+        break;
+      }
+    }
   }
 
 
@@ -150,9 +260,15 @@ public class DefaultEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
-    // This implementation does not store entries, so we will never have a
-    // conflict.
-    return true;
+    for (EntryCache entryCache : cacheOrder) {
+      // The first cache in the order which can take this entry
+      // gets it.
+      if (entryCache.filtersAllowCaching(entry)) {
+        return entryCache.putEntryIfAbsent(entry, backend, entryID);
+      }
+    }
+
+    return false;
   }
 
 
@@ -162,7 +278,12 @@ public class DefaultEntryCache
    */
   public void removeEntry(DN entryDN)
   {
-    // This implementation does not store entries.
+    for (EntryCache entryCache : cacheOrder) {
+      if (entryCache.containsEntry(entryDN)) {
+        entryCache.removeEntry(entryDN);
+        break;
+      }
+    }
   }
 
 
@@ -172,7 +293,9 @@ public class DefaultEntryCache
    */
   public void clear()
   {
-    // This implementation does not store entries.
+    for (EntryCache entryCache : cacheOrder) {
+      entryCache.clear();
+    }
   }
 
 
@@ -182,7 +305,9 @@ public class DefaultEntryCache
    */
   public void clearBackend(Backend backend)
   {
-    // This implementation does not store entries.
+    for (EntryCache entryCache : cacheOrder) {
+      entryCache.clearBackend(backend);
+    }
   }
 
 
@@ -192,7 +317,9 @@ public class DefaultEntryCache
    */
   public void clearSubtree(DN baseDN)
   {
-    // This implementation does not store entries.
+    for (EntryCache entryCache : cacheOrder) {
+      entryCache.clearSubtree(baseDN);
+    }
   }
 
 
@@ -202,8 +329,9 @@ public class DefaultEntryCache
    */
   public void handleLowMemory()
   {
-    // This implementation does not store entries, so there are no resources
-    // that it can free.
+    for (EntryCache entryCache : cacheOrder) {
+      entryCache.handleLowMemory();
+    }
   }
 
 
@@ -230,7 +358,6 @@ public class DefaultEntryCache
       )
   {
     // No implementation required.
-
     ConfigChangeResult changeResult = new ConfigChangeResult(
         ResultCode.SUCCESS, false, new ArrayList<Message>()
         );
@@ -245,9 +372,124 @@ public class DefaultEntryCache
    */
   public ArrayList<Attribute> getMonitorData()
   {
-    // This implementation does not store entries,
-    // so there is no monitoring data to provide.
-    return new ArrayList<Attribute>();
+    ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+
+    // The sum of cache hits of all active entry cache
+    // implementations.
+    Long entryCacheHits = new Long(0);
+    // Common for all active entry cache implementations.
+    Long entryCacheMisses = new Long(cacheMisses.longValue());
+    // The sum of cache counts of all active entry cache
+    // implementations.
+    Long currentEntryCacheCount = new Long(0);
+
+    for (EntryCache entryCache : cacheOrder) {
+      // Get cache hits and counts from every active cache.
+      entryCacheHits += entryCache.getCacheHits();
+      currentEntryCacheCount += entryCache.getCacheCount();
+    }
+
+    try {
+      attrs = EntryCacheCommon.getGenericMonitorData(
+        entryCacheHits,
+        entryCacheMisses,
+        null,
+        null,
+        currentEntryCacheCount,
+        null
+        );
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+
+    return attrs;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Long getCacheCount()
+  {
+    Long cacheCount = new Long(0);
+
+    for (EntryCache entryCache : cacheOrder) {
+      cacheCount += entryCache.getCacheCount();
+    }
+
+    return cacheCount;
+  }
+
+
+
+  /**
+   * Return a verbose string representation of the current cache maps.
+   * This is useful primary for debugging and diagnostic purposes such
+   * as in the entry cache unit tests.
+   * @return String verbose string representation of the current cache
+   *                maps in the following format: dn:id:backend
+   *                one cache entry map representation per line
+   *                or <CODE>null</CODE> if all maps are empty.
+   */
+  private String toVerboseString()
+  {
+    String verboseString = new String();
+    StringBuilder sb = new StringBuilder();
+
+    for (EntryCache entryCache : cacheOrder) {
+      final Method[] cacheMethods =
+        entryCache.getClass().getDeclaredMethods();
+      for (int i = 0; i < cacheMethods.length; ++i) {
+        if (cacheMethods[i].getName().equals("toVerboseString")) {
+          cacheMethods[i].setAccessible(true);
+          try {
+            Object cacheVerboseString =
+              cacheMethods[i].invoke(entryCache, (Object[]) null);
+            if (cacheVerboseString != null) {
+              sb.append((String) cacheVerboseString);
+            }
+          } catch (Exception e) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+    }
+
+    verboseString = sb.toString();
+
+    return (verboseString.length() > 0 ? verboseString : null);
+  }
+
+
+
+  /**
+   * Retrieves the current cache order array.
+   *
+   * @return  The current cache order array.
+   */
+  public final EntryCache<? extends EntryCacheCfg>[] getCacheOrder()
+  {
+    return this.cacheOrder;
+  }
+
+
+
+  /**
+   * Sets the current cache order array.
+   *
+   * @param  cacheOrderMap  The current cache order array.
+   */
+  public final void setCacheOrder(
+    SortedMap<Integer,
+    EntryCache<? extends EntryCacheCfg>> cacheOrderMap)
+  {
+    this.cacheOrder =
+      cacheOrderMap.values().toArray(new EntryCache<?>[0]);
   }
 }
 

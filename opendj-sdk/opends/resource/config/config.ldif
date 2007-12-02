@@ -487,13 +487,37 @@ ds-cfg-use-ssl: false
 ds-cfg-listen-port: 1689
 ds-cfg-ssl-cert-nickname: server-cert
 
-dn: cn=Entry Cache,cn=config
+dn: cn=Entry Caches,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Entry Caches
+
+dn: cn=Soft Reference,cn=Entry Caches,cn=config
 objectClass: top
 objectClass: ds-cfg-entry-cache
 objectClass: ds-cfg-soft-reference-entry-cache
-cn: Entry Cache
-ds-cfg-java-class: org.opends.server.extensions.SoftReferenceEntryCache
+cn: Soft Reference
 ds-cfg-enabled: false
+ds-cfg-cache-level: 1
+ds-cfg-java-class: org.opends.server.extensions.SoftReferenceEntryCache
+
+dn: cn=FIFO,cn=Entry Caches,cn=config
+objectClass: top
+objectClass: ds-cfg-entry-cache
+objectClass: ds-cfg-fifo-entry-cache
+cn: FIFO
+ds-cfg-enabled: false
+ds-cfg-cache-level: 2
+ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache
+
+dn: cn=File System,cn=Entry Caches,cn=config
+objectClass: top
+objectClass: ds-cfg-entry-cache
+objectClass: ds-cfg-file-system-entry-cache
+cn: File System
+ds-cfg-enabled: false
+ds-cfg-cache-level: 3
+ds-cfg-java-class: org.opends.server.extensions.FileSystemEntryCache
 
 dn: cn=Extended Operations,cn=config
 objectClass: top
@@ -1171,11 +1195,11 @@ cn: Client Connections
 ds-cfg-java-class: org.opends.server.monitors.ClientConnectionMonitorProvider
 ds-cfg-enabled: true
 
-dn: cn=Entry Cache,cn=Monitor Providers,cn=config
+dn: cn=Entry Caches,cn=Monitor Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-monitor-provider
 objectClass: ds-cfg-entry-cache-monitor-provider
-cn: Entry Cache
+cn: Entry Caches
 ds-cfg-java-class: org.opends.server.monitors.EntryCacheMonitorProvider
 ds-cfg-enabled: true
 
