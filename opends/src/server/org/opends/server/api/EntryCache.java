@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -86,7 +85,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
      notes="Entry cache methods may only be invoked by backends")
 public abstract class EntryCache
        <T extends EntryCacheCfg>
-       implements BackendInitializationListener
 {
   /**
    * The tracer object for the debug logger.
@@ -127,9 +125,7 @@ public abstract class EntryCache
    */
   public EntryCache()
   {
-    // Register with backend initialization listener to clear cache
-    // entries belonging to given backend that about to go offline.
-    DirectoryServer.registerBackendInitializationListener(this);
+    // No implementation required.
   }
 
 
@@ -792,39 +788,5 @@ public abstract class EntryCache
     }
 
     return true;
-  }
-
-
-
-  /**
-   * Performs any processing that may be required whenever a backend
-   * is initialized for use in the Directory Server.  This method will
-   * be invoked after the backend has been initialized but before it
-   * has been put into service.
-   *
-   * @param  backend  The backend that has been initialized and is
-   *                  about to be put into service.
-   */
-  public void performBackendInitializationProcessing(Backend backend)
-  {
-    // Do nothing.
-  }
-
-
-
-  /**
-   * Performs any processing that may be required whenever a backend
-   * is finalized.  This method will be invoked after the backend has
-   * been taken out of service but before it has been finalized.
-   *
-   * @param  backend  The backend that has been taken out of service
-   *                  and is about to be finalized.
-   */
-  public void performBackendFinalizationProcessing(Backend backend)
-  {
-    // Do not clear any backends if the server is shutting down.
-    if ( !(DirectoryServer.getInstance().isShuttingDown()) ) {
-      clearBackend(backend);
-    }
   }
 }
