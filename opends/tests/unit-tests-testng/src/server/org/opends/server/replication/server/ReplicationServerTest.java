@@ -273,7 +273,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a new client see the change that was sent in the
    * previous test.
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
   public void newClient() throws Exception
   {
     debugInfo("Starting newClient");
@@ -383,7 +383,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first change from server 1
    * now see the first change from server 2
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
   public void newClientWithChangefromServer1() throws Exception
   {
     /*
@@ -399,7 +399,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first chaneg from server 2
    * now see the first change from server 1
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
+  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
   public void newClientWithChangefromServer2() throws Exception
   {
     /*
@@ -437,10 +437,10 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     replicationServer.remove();
     configure();
-    newClient();
+    //newClient();
     newClientWithFirstChanges();
     newClientWithChangefromServer1();
-    newClientWithChangefromServer2();
+    //newClientWithChangefromServer2();
   }
 
   /**
