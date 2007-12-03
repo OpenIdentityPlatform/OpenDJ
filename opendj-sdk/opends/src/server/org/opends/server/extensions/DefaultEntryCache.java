@@ -38,8 +38,10 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ConfigChangeResult;
@@ -62,7 +64,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class DefaultEntryCache
        extends EntryCache<EntryCacheCfg>
-       implements ConfigurationChangeListener<EntryCacheCfg>
+       implements ConfigurationChangeListener<EntryCacheCfg>,
+       BackendInitializationListener
 {
   /**
    * The tracer object for the debug logger.
@@ -82,6 +85,10 @@ public class DefaultEntryCache
   public DefaultEntryCache()
   {
     super();
+
+    // Register with backend initialization listener to clear cache
+    // entries belonging to given backend that about to go offline.
+    DirectoryServer.registerBackendInitializationListener(this);
   }
 
 
@@ -490,6 +497,40 @@ public class DefaultEntryCache
   {
     this.cacheOrder =
       cacheOrderMap.values().toArray(new EntryCache<?>[0]);
+  }
+
+
+
+  /**
+   * Performs any processing that may be required whenever a backend
+   * is initialized for use in the Directory Server.  This method will
+   * be invoked after the backend has been initialized but before it
+   * has been put into service.
+   *
+   * @param  backend  The backend that has been initialized and is
+   *                  about to be put into service.
+   */
+  public void performBackendInitializationProcessing(Backend backend)
+  {
+    // Do nothing.
+  }
+
+
+
+  /**
+   * Performs any processing that may be required whenever a backend
+   * is finalized.  This method will be invoked after the backend has
+   * been taken out of service but before it has been finalized.
+   *
+   * @param  backend  The backend that has been taken out of service
+   *                  and is about to be finalized.
+   */
+  public void performBackendFinalizationProcessing(Backend backend)
+  {
+    // Do not clear any backends if the server is shutting down.
+    if ( !(DirectoryServer.getInstance().isShuttingDown()) ) {
+      clearBackend(backend);
+    }
   }
 }
 
