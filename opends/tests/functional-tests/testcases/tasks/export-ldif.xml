@@ -169,7 +169,14 @@
 							<script>
                 mydate=strftime("%Y%m%d%H%M%S",localtime())
               </script>                      
-                            
+              
+             <message>'Wait ...'</message>      
+              <call function="'Sleep'">
+                 { 'location'  :	 STAF_REMOTE_HOSTNAME,
+                    'sleepForMilliSeconds'  :  90000 }
+              </call>
+            
+                                                  
               <call function="'exportLdif'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
                   'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,

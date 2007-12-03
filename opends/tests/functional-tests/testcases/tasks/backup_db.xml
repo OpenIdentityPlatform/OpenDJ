@@ -62,8 +62,7 @@
           <testcase name="getTestCaseName('schedule backup task for immediate execution in asynchronous mode')">
             <sequence>
               <call function="'testCase_Preamble'"/>              
-                  
-          
+                         
                             
               <call function="'backup'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
@@ -91,12 +90,7 @@
                     <call function="'testPassed'"/>          
               </else>
               </if>   
-                       
-              <script>
-                mydate=strftime("%Y%m%d%H%M%S",localtime())
-              </script>                     
-              <message>'mydate %s' % mydate</message>
-                
+   
 	 			     <call function="'testCase_Postamble'"/>
 	      </sequence>
       </testcase>
@@ -167,8 +161,12 @@
 							<script>
                 mydate=strftime("%Y%m%d%H%M%S",localtime())
               </script>                      
-                            
-
+                           
+              <message>'Wait ...'</message>
+              <call function="'Sleep'">
+                 { 'location'  :	 STAF_REMOTE_HOSTNAME,
+                    'sleepForMilliSeconds'  :  90000 }
+              </call>
                                     
               <call function="'backup'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
