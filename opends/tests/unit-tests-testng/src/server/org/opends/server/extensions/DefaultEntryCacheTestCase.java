@@ -246,6 +246,20 @@ public class DefaultEntryCacheTestCase
   public void entryCacheTestFini()
          throws Exception
   {
+    // Unplug all cache implementations from default entry cache.
+    SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
+      emptyCacheOrderMap = new TreeMap<Integer,
+      EntryCache<? extends EntryCacheCfg>>();
+    final Method[] defaultCacheMethods =
+        super.cache.getClass().getDeclaredMethods();
+    for (int i = 0; i < defaultCacheMethods.length; ++i) {
+      if (defaultCacheMethods[i].getName().equals("setCacheOrder")) {
+        defaultCacheMethods[i].setAccessible(true);
+        Object arglist[] = new Object[] { emptyCacheOrderMap };
+        defaultCacheMethods[i].invoke(cache, arglist);
+      }
+    }
+
     // Finilize all entry cache implementations.
     for (EntryCache entryCache : cacheOrderMap.values()) {
       entryCache.finalizeEntryCache();
