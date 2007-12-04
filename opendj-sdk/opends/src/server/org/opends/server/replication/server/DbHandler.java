@@ -89,7 +89,7 @@ public class DbHandler implements Runnable
   private boolean done = false;
   private DirectoryThread thread = null;
   private Object flushLock = new Object();
-  private ReplicationDbEnv dbenv;
+  private ReplicationServer replicationServer;
 
 
   // The High and low water mark for the max size of the msgQueue.
@@ -122,7 +122,6 @@ public class DbHandler implements Runnable
       ReplicationDbEnv dbenv, long generationId)
          throws DatabaseException
   {
-    this.dbenv = dbenv;
     this.serverId = id;
     this.baseDn = baseDn;
     this.trimage = replicationServer.getTrimage();
@@ -314,6 +313,11 @@ public class DbHandler implements Runnable
    */
   public void shutdown()
   {
+    if (shutdown == true)
+    {
+      return;
+    }
+
     shutdown  = true;
     synchronized (this)
     {
@@ -365,6 +369,7 @@ public class DbHandler implements Runnable
         mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
         mb.append(stackTraceToSingleLineString(end));
         logError(mb.toMessage());
+        replicationServer.shutdown();
         break;
       }
     }
@@ -424,6 +429,9 @@ public class DbHandler implements Runnable
       cursor.close();
     } catch (DatabaseException e)
     {
+      // mark shutdown for this db so that we don't try again to
+      // stop it from cursor.close() or methods called by cursor.close()
+      shutdown = true;
       cursor.close();
       throw (e);
     }
