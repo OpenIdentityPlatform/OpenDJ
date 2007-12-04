@@ -45,7 +45,9 @@
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
-               'Check the response of OpenDS when an ldap search request is conducted with a single pipe character ("|") for an existing entry'
+               'Check the response of OpenDS when an ldap search request is \
+                conducted with a single pipe character ("|") \
+                for an existing entry'
               </message>
               <call function="'SearchObject'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
@@ -54,126 +56,162 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'dsBaseDN'       : 'cn=version,cn=monitor',
                   'dsFilter'       : '|' ,
-                  'extraParams'     : ''
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+                  'extraParams'    : ''
                 }
               </call>
               <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
-          <!--- Test Case : Entry Cache: Enable Default -->
-          <testcase name="getTestCaseName('Enable Default')">
+          <!--- Test Case : Entry Cache: Enable Default Soft Reference -->
+          <testcase name="getTestCaseName('Enable Default Soft Reference')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
-               'Enable the default entry cache'
+               'Enable the default Soft Reference entry cache'
               </message>
+              <script>
+                arg1 = '--cache-name "Soft Reference"'
+                arg2 = '--set enabled:true'
+                options = '%s %s' % (arg1,arg2)
+              </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : '--set enabled:true'
+                  'optionsString'  : options
                 }
               </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+              <script>
+                arg1 = '--cache-name "Soft Reference"'
+                arg2 = '--property enabled'
+                options = '%s %s' % (arg1,arg2)
+              </script>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'get-entry-cache-prop',
+                  'optionsString'  : options
+                }
+              </call>
+              <call function="'CheckMatches'">
+                { 'string2find' : 'true' ,
+                'mainString'    : STAXResult[0][1] ,
+                'nbExpected'    : 1
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'" />
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case : Entry Cache: Add Attributes for Soft Reference -->
+          <testcase name="getTestCaseName
+                          ('Add Attributes for Soft Reference')">
+            <sequence>
+              <call function="'testCase_Preamble'" />
+              <message>
+               'Add three attributes to Soft Reference default entry cache'
+              </message>
+              <script>
+                arg1 = '--cache-name "Soft Reference"'
+                arg2 = '--set lock-timeout:60s'
+                arg3 = '--set exclude-filter:telephonenumber=*'
+                arg4 = '--set include-filter:roomNumber=*'
+                options = '%s %s %s %s' % (arg1,arg2,arg3,arg4)
+              </script>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'set-entry-cache-prop',
+                  'optionsString'  : options
                 }
               </call>
               <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
           
-          <!--- Test Case : Entry Cache: Add Attributes -->
-          <testcase name="getTestCaseName('Add Attributes')">
+          <!--- Test Case : Entry Cache: Attribute not allowed 
+                                         for default Soft Reference -->
+          <testcase name="getTestCaseName
+          ('Attribute not allowed for default Soft Reference')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
-               'Add three attributes to cn=Entry Cache,cn=config'
+               'Add one attribute that is not allowed \
+               for default Soft Reference'
               </message>
+              <script>
+                arg1 = '--cache-name "Soft Reference"'
+                arg2 = '--add max-entries:100000'
+                options = '%s %s' % (arg1,arg2)
+              </script>
               <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : '--set lock-timeout:60s'
-                }
-              </call>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : '--set exclude-filter:telephonenumber=*'
-                }
-              </call>
-                            
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : '--set include-filter:roomNumber=*'
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
-              <call function="'testCase_Postamble'" />
-            </sequence>
-          </testcase>
-          
-          <!--- Test Case : Entry Cache: Attribute Already Exists -->
-          <testcase name="getTestCaseName('Attribute Already Exists')">
-            <sequence>
-              <call function="'testCase_Preamble'" />
-              <message>
-               'Add one attribute that is not allowed under cn=Entry Cache,cn=config'
-              </message>
-              <call function="'dsconfig'">
-                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'subcommand'     : 'set-entry-cache-prop',
-                  'optionsString'  : '--add max-entries:100000',
+                  'optionsString'  : options,
                   'expectedRC'     : 1  
                 }
               </call>
+              <call function="'CheckMatches'">
+                { 'string2find' : 'is not a recognized property' ,
+                'mainString'    : STAXResult[0][1] ,
+                'nbExpected'    : 1
+                }
+              </call>
               <call function="'testCase_Postamble'" />
             </sequence>
           </testcase>
-           
-          <!--- Test Case : Entry Cache: FIFO Cache-->
-          <testcase name="getTestCaseName('FIFO Cache')">
+          
+          <!--- Test Case : Entry Cache: add a FIFO Cache-->
+          <testcase name="getTestCaseName('Add a FIFO Cache')">
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
-               'Add second entry cache which is an object of the ds-cfg-fifo-entry-cache class'
+               'Add a new FIFO entry cache'
               </message>
-              <call function="'addEntry'">
+              <script>
+                arg1 = '--cache-name myFIFO'
+                arg2 = '--type fifo'
+                arg3 = '--set cache-level:50 --set enabled:false'
+                options = '%s %s %s' % (arg1,arg2,arg3)
+              </script>
+              <call function="'dsconfig'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/mod_entrycache5.ldif' % logsRemoteDataDir
+                  'subcommand'     : 'create-entry-cache',
+                  'optionsString'  : options
                 }
               </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+              <script>
+                arg1 = '--cache-name myFIFO'
+                arg2 = '--property cache-level'
+                options = '%s %s' % (arg1,arg2)
+              </script>
+              <call function="'dsconfig'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'subcommand'     : 'get-entry-cache-prop',
+                  'optionsString'  : options
+                }
+              </call>
+              <call function="'CheckMatches'">
+                { 'string2find' : '50' ,
+                'mainString'    : STAXResult[0][1] ,
+                'nbExpected'    : 1
                 }
               </call>
               <call function="'testCase_Postamble'" />
@@ -185,21 +223,17 @@
             <sequence>
               <call function="'testCase_Preamble'" />
               <message>
-               'Check the response of OpenDS when an ldap search request is conducted'
+               'Check the response of OpenDS when an ldap search request \
+               is conducted'
               </message>
               <call function="'SearchObject'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'ou=People,o=core tests,dc=example,dc=com',
+                  'dsBaseDN'       : 'uid=mschneid,ou=People,o=core tests,dc=example,dc=com',
                   'dsFilter'       : 'objectclass=*',
-                  'extraParams'     : ''
-                }
-              </call>
-              <call function="'checktestRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
+                  'extraParams'    : ''
                 }
               </call>
               <call function="'testCase_Postamble'" />
