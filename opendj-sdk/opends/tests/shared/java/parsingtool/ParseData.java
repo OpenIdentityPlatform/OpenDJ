@@ -81,7 +81,7 @@ public class ParseData
                   }
                   else if(tmpStr.indexOf("#@TestGroupPurpose") >= 0)
                   {
-                    arrayData.setGroupPurpose(StripSubstring(tmpStr, "#@TestGroupPurpose"));
+                    arrayData.setGroupPurpose(MultipleLines(tmpStr, "#@TestGroupPurpose", fin));
                   }
                   else if(tmpStr.indexOf("#@TestSubgroupName") >= 0)
                   {
@@ -89,7 +89,7 @@ public class ParseData
                   }
                   else if(tmpStr.indexOf("#@TestSuitePurpose") >= 0)
                   {
-                    arrayData.setTestSuitePurpose(StripSubstring(tmpStr, "#@TestSuitePurpose"));
+                    arrayData.setTestSuitePurpose(MultipleLines(tmpStr, "#@TestSuitePurpose", fin));
                   }
                   else if(tmpStr.indexOf("#@TestSuiteID") >= 0)
                   {
@@ -175,24 +175,13 @@ public class ParseData
                   }
                   else if(tmpStr.indexOf("#@TestPurpose") >= 0)
                   {
-                    arrayData.setTestPurpose(StripSubstring(tmpStr, "#@TestPurpose"));
+                    arrayData.setTestPurpose(MultipleLines(tmpStr, "#@TestPurpose", fin));
                   }
                   else if(tmpStr.indexOf("#@TestResult") >= 0)
                   {
                     if(fileFormat.startsWith("xml"))
                     {
-                        String currTestResult = StripSubstring(tmpStr, "#@TestResult");
-                        fin.mark(1000);
-
-                        String oneMoLine = new String(fin.readLine().trim());
-                        while((oneMoLine.indexOf("#@") < 0) && (oneMoLine.indexOf("-->") < 0))
-                        {
-                            currTestResult = currTestResult + " " + oneMoLine;
-                            oneMoLine = new String(fin.readLine().trim());
-                        }
-
-                        arrayData.setTestResult(currTestResult);
-                        fin.reset();
+                        arrayData.setTestResult(MultipleLines(tmpStr, "#@TestResult", fin));
                     }
                     else if(fileFormat.startsWith("java"))
                     {
@@ -248,4 +237,21 @@ public class ParseData
     return (retStr.trim());
   }
 
+  private String MultipleLines(String tmpStr, String tag, LineNumberReader fin) throws IOException
+  {
+    String currValue = StripSubstring(tmpStr, tag);
+    
+    fin.mark(1000);
+    
+    String oneMoLine = new String(fin.readLine().trim());
+    while((oneMoLine.indexOf("#@") < 0) && (oneMoLine.indexOf("-->") < 0)) {
+      currValue = currValue + " " + oneMoLine;
+      oneMoLine = new String(fin.readLine().trim());
+    }
+    
+    fin.reset();
+    
+    return currValue;
+  }
+  
 }
