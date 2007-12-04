@@ -50,7 +50,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.extensions.EntryDNirtualAttributeProvider
+          org.opends.server.extensions.EntryDNVirtualAttributeProvider
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
