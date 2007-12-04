@@ -30,73 +30,73 @@
   <defaultcall function="clu_cleanup"/>
 
   <function name="clu_cleanup">
-    <function-map-args>
-      <function-arg-def name="stopDS" type="optional" default="True">
-        <function-arg-description>
-          Optional stop the Directory Server
-        </function-arg-description>
-        <function-arg-property name="type" value="boolean"/>
-      </function-arg-def>    
-  </function-map-args>    
+
+    <function-description>
+      Cleanup for the command line test suite
+    </function-description>
 
     <sequence>
 
       <block name="'cleanup'">
-      
+
         <sequence>
 
-          <if expr="stopDS == True">      
-          <block name="'Block DS Process Stop'">        
+          <script>
+            CurrentTestPath['group']='clu'
+          </script>
+
           <!--- Stop DS -->
-        <sequence>
+          <block name="'Block DS Process Stop'">
+
+            <sequence>
+
               <message>
-                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
 
               <call function="'StopDsWithScript'">
-                { 'location'  : STAF_REMOTE_HOSTNAME,
-                  'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                  'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                  'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                  'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                {
+                'location'  : STAF_REMOTE_HOSTNAME,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+                }
               </call>
+
+            </sequence>
+
+          </block>
+          <!--- End Block DS Process Stop -->
+
+          <!-- Remove  the topology created for the test suite -->
+          <block name="'Block Remove DS Topology'">
+
+            <sequence>
+
+              <message>
+                'Remove DS topology created for the Test Suite'
+              </message>
+
+              <call function="'removeTopology'"/>
 
               <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
               </call>
 
-        </sequence>        
-          <!--- End Block DS Process Stop -->
+            </sequence>
+
           </block>
-      </if>
-      
-                              
+          <!-- End Block Remove DS Topology-->
 
-      <block name="'Block Remove DS Topology'">
-      <!-- Remove  the topology created for the test suite -->
-      <sequence>
-        
-              <message>
-                 'Remove DS topology created for the Test Suite'
-              </message>          
+        </sequence>
 
-        <call function="'removeTopology'"/>
-        
-        <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-              </call>
-      
-      </sequence>        
-      <!-- End Block Remove DS Topology-->  
-      </block>                                  
-              
-      
-        </sequence>        
       </block>
-            
-     </sequence>
+
+    </sequence>
 
   </function>
 

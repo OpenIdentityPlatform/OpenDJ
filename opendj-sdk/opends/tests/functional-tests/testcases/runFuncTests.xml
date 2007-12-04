@@ -58,17 +58,17 @@
       <!--
       add keyword 'main_dsconfig' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
-      
+
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/backends/backends.xml' % TESTS_DIR" />
       <!--
       add keyword 'main_backends' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
-      
+
       <import machine="STAF_LOCAL_HOSTNAME"
-              file="'%s/testcases/clu/commands.xml' % TESTS_DIR" />
+              file="'%s/testcases/clu/clu.xml' % TESTS_DIR" />
       <!--
-      add keyword 'main_commands' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      add keyword 'main_clu' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
       <import machine="STAF_LOCAL_HOSTNAME"
@@ -133,30 +133,30 @@
         # this function return a well-formatted testcase name
         def getTestCaseName(name):
           return '%s: %s: %s' % (CurrentTestPath['group'],CurrentTestPath['suite'],name)
-          
+
         # this functions adds a known issue to a testcase's known issues list
         issuesList=[]
         def knownIssue(issue):
           issuesList.append(issue)
-        
+
         class functionToRun:
           def __init__(self, name):
             self.name = name
-          
+
           def getName(self):
             return self.name
-          
+
         testlog=open('%s/tests-log.xml' % logsTestsDir,'w')
         testlog.write('&lt;qa&gt;\n')
         testlog.write('  &lt;functional-tests&gt;\n')
         testlog.write('    &lt;results&gt;\n')
         testlog.close()
-          
+
         suitesFileName='%s/testcases/run-custom-suites.dat' % TESTS_DIR
-        
+
         if not os.path.exists(suitesFileName):
           suitesFileName='%s/testcases/run-default-suites.dat' % TESTS_DIR
-          
+
         f = open(suitesFileName, 'r')
         functionsToRun = []
         for line in f.readlines():
@@ -169,7 +169,7 @@
           <call function="function.getName()" />
         </sequence>
       </iterate>
-      
+
       <!-- in this section we'll compute the coverage for all the tests
            if coverage is turned on
            so far I could only get through this on either machines with a lot
@@ -195,10 +195,10 @@
             from javax.xml.transform.stream import StreamResult
             from javax.xml.parsers import DocumentBuilderFactory
             from org.w3c.dom import *
-            
-            factory = DocumentBuilderFactory.newInstance() 
+
+            factory = DocumentBuilderFactory.newInstance()
             builder = factory.newDocumentBuilder()
-            
+
             input = FileInputStream("%s/coverage/coverage.xml" % TMPDIR)
             document = builder.parse(input)
             dom = document.getDocumentElement()
@@ -247,9 +247,9 @@
           STAFResult='{}'
         </script>
       </if>
-            
+
       <!-- Build the Servers Information Dictionary -->
-      <script> 
+      <script>
         ServersInfoDict=eval(STAFResult)
 
         ServerVersion='unknown'
@@ -262,22 +262,22 @@
         ServerSystemOS='unknown'
         ServerSystemName='unknown'
         ServerSvnRevision='unknown'
-        
+
         if ServersInfoDict.has_key('%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)):
           ServerInfoDict=ServersInfoDict['%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)]
-          
+
           ServerInfoKey='server version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerVersion=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='server buildid'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerBuildId=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='java version'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJavaVersion=ServerInfoDict[ServerInfoKey]
-          
+
           ServerInfoKey='java vendor'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerJavaVendor=ServerInfoDict[ServerInfoKey]
@@ -305,10 +305,10 @@
           ServerInfoKey='svn revision'
           if ServerInfoDict.has_key(ServerInfoKey):
             ServerSvnRevision=ServerInfoDict[ServerInfoKey]
-          
+
         else:
           ServerInfoDict='No key found (%s/%s)' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        
+
         # Platform and JVM can be overridden from config file
         try:
           if TEST_OS_STRING:
@@ -332,13 +332,13 @@
         testlog.write('    &lt;identification&gt;\n')
         testlog.write('      &lt;version&gt;\n')
         testlog.write('        %s\n' % ServerVersion)
-        testlog.write('      &lt;/version&gt;\n')    
+        testlog.write('      &lt;/version&gt;\n')
         testlog.write('      &lt;buildid&gt;\n')
         testlog.write('        %s\n' % ServerBuildId)
         testlog.write('      &lt;/buildid&gt;\n')
         testlog.write('      &lt;revision&gt;\n')
         testlog.write('        %s\n' % ServerSvnRevision)
-        testlog.write('      &lt;/revision&gt;\n')                 
+        testlog.write('      &lt;/revision&gt;\n')
         testlog.write('      &lt;platform&gt;\n')
         testlog.write('        %s\n' % ServerSystemOS)
         testlog.write('      &lt;/platform&gt;\n')
@@ -353,10 +353,10 @@
         testlog.write('      &lt;/jvm-label&gt;\n')
         testlog.write('      &lt;jvm-vendor&gt;\n')
         testlog.write('        %s\n' % ServerJVMVendor)
-        testlog.write('      &lt;/jvm-vendor&gt;\n')        
+        testlog.write('      &lt;/jvm-vendor&gt;\n')
         testlog.write('      &lt;tests-dir&gt;\n')
         testlog.write('        %s\n' % logsDir)
-        testlog.write('      &lt;/tests-dir&gt;\n')    
+        testlog.write('      &lt;/tests-dir&gt;\n')
         testlog.write('    &lt;/identification&gt;\n')
         testlog.write('  &lt;/functional-tests&gt;\n')
         testlog.write('&lt;/qa&gt;\n')
