@@ -275,6 +275,11 @@ public class ManageTasks extends ConsoleApplication {
           MenuResult<TaskEntry> r =
                   new CancelTask(cancel.getValue()).invoke(this);
           if (r.isAgain()) return 1;
+        } else if (!isInteractive()) {
+           // no-prompt option
+           getOutputStream().println();
+           printSummaryTable();
+           return 0;
         }
 
       } catch (LDAPConnectionException lce) {
@@ -306,7 +311,8 @@ public class ManageTasks extends ConsoleApplication {
    * {@inheritDoc}
    */
   public boolean isMenuDrivenMode() {
-    return !task.isPresent() && !cancel.isPresent() && !summary.isPresent();
+    return !task.isPresent() && !cancel.isPresent() && !summary.isPresent() &&
+           !noPrompt.isPresent();
   }
 
   /**
