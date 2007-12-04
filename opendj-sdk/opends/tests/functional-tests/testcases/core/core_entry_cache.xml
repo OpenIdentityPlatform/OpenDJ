@@ -40,7 +40,24 @@
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
           <call function="'core_setup'" />
-          <!--- Test Case : Entry Cache: Default Search -->
+          
+          <!--- Test Suite information
+          #@TestSuiteName       core: entry cache Group Tests
+          #@TestSuitePurpose    Test this feature
+          #@TestSuiteGroup      core: entry cache Group Tests
+          #@TestScript          core_entry_cache.xml
+          -->
+          
+          <!--- Test Case information
+          #@TestMarker          core: entry cache Group Tests
+          #@TestName            core: entry cache: Default Search
+          #@TestIssue           none
+          #@TestPurpose         search single pipe character
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if ldapsearch returns 0
+          -->
           <testcase name="getTestCaseName('Default Search')">
             <sequence>
               <call function="'testCase_Preamble'" />
@@ -63,7 +80,17 @@
             </sequence>
           </testcase>
           
-          <!--- Test Case : Entry Cache: Enable Default Soft Reference -->
+          <!--- Test Case information
+          #@TestMarker          core: entry cache Group Tests
+          #@TestName            core: entry cache: Enable Default SoftReference
+          #@TestIssue           none
+          #@TestPurpose         Enable Default Soft Reference entry cache
+          #@TestPreamble        none
+          #@TestSteps           use dsconfig to enable the entry cache
+          #@TestSteps           use dsconfig to check entry cache is enabled
+          #@TestPostamble       none
+          #@TestResult          Success if returns error code 0
+          -->
           <testcase name="getTestCaseName('Enable Default Soft Reference')">
             <sequence>
               <call function="'testCase_Preamble'" />
@@ -109,7 +136,16 @@
             </sequence>
           </testcase>
           
-          <!--- Test Case : Entry Cache: Add Attributes for Soft Reference -->
+          <!--- Test Case information
+          #@TestMarker          core: entry cache Group Tests
+          #@TestName            core: entry cache: Add Attributes
+          #@TestIssue           none
+          #@TestPurpose         Add Attributes for Soft Reference entry cache
+          #@TestPreamble        none
+          #@TestSteps           use dsconfig to add attributes
+          #@TestPostamble       none
+          #@TestResult          Success if returns error code 0
+          -->
           <testcase name="getTestCaseName
                           ('Add Attributes for Soft Reference')">
             <sequence>
@@ -137,8 +173,17 @@
             </sequence>
           </testcase>
           
-          <!--- Test Case : Entry Cache: Attribute not allowed 
-                                         for default Soft Reference -->
+          <!--- Test Case information
+          #@TestMarker          core: entry cache Group Tests
+          #@TestName            core: entry cache: Attribute not allowed
+          #@TestIssue           none
+          #@TestPurpose         add not allowed attribute for 
+                                default Soft Reference
+          #@TestPreamble        none
+          #@TestSteps           use dsconfig to add attribute
+          #@TestPostamble       none
+          #@TestResult          Success if returns error code 0
+          -->
           <testcase name="getTestCaseName
           ('Attribute not allowed for default Soft Reference')">
             <sequence>
@@ -172,6 +217,17 @@
             </sequence>
           </testcase>
           
+          <!--- Test Case information
+          #@TestMarker          core: entry cache Group Tests
+          #@TestName            core: entry cache: create custom entry cache
+          #@TestIssue           none
+          #@TestPurpose         create a custom FIFO entry cache
+          #@TestPreamble        none
+          #@TestSteps           use dsconfig to create the entry cache
+          #@TestSteps           use dsconfig to check entry cache is created
+          #@TestPostamble       none
+          #@TestResult          Success if returns error code 0
+          -->
           <!--- Test Case : Entry Cache: add a FIFO Cache-->
           <testcase name="getTestCaseName('Add a FIFO Cache')">
             <sequence>
@@ -218,6 +274,16 @@
             </sequence>
           </testcase>
           
+          <!--- Test Case information
+          #@TestMarker          core: entry cache Group Tests
+          #@TestName            core: entry cache: ldapsearch
+          #@TestIssue           none
+          #@TestPurpose         do a ldapsearch to check server is responding
+          #@TestPreamble        none
+          #@TestSteps           do a ldapsearch
+          #@TestPostamble       none
+          #@TestResult          Success if returns error code 0
+          -->
           <!--- Test Case : Entry Cache: Search -->
           <testcase name="getTestCaseName('Cache Search')">
             <sequence>
@@ -226,12 +292,15 @@
                'Check the response of OpenDS when an ldap search request \
                is conducted'
               </message>
+              <script>
+                dn = 'uid=mschneid,ou=People,o=core tests,dc=example,dc=com'
+              </script>
               <call function="'SearchObject'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'dsBaseDN'       : 'uid=mschneid,ou=People,o=core tests,dc=example,dc=com',
+                  'dsBaseDN'       : dn,
                   'dsFilter'       : 'objectclass=*',
                   'extraParams'    : ''
                 }
