@@ -542,9 +542,9 @@ public class EntryCacheConfigManager
     _defaultEntryCache.setCacheOrder(cacheOrderMap);
 
     // Install and register the monitor for this cache.
-    EntryCacheMonitorProvider monitor = new EntryCacheMonitorProvider(
-        configuration.definition().getUserFriendlyName().toString(),
-        entryCache);
+    EntryCacheMonitorProvider monitor =
+        new EntryCacheMonitorProvider(configuration.dn().
+        getRDN().getAttributeValue(0).toString(), entryCache);
     try {
       monitor.initializeMonitorProvider((EntryCacheMonitorProviderCfg)
         rootConfiguration.getMonitorProvider(
