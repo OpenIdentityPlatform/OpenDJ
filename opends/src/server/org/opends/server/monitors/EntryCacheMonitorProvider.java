@@ -85,7 +85,7 @@ public class EntryCacheMonitorProvider
     EntryCache<? extends EntryCacheCfg> entryCache)
   {
     super(entryCacheName + " Entry Cache Monitor Provider");
-    this.entryCacheName = entryCacheName;
+    this.entryCacheName = entryCacheName + " Entry Cache";
     this.entryCache = entryCache;
   }
 
