@@ -5567,6 +5567,8 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         initializeAllSuffixTry(baseDN, ctx, displayProgress);
+        postPreExternalInitialization(baseDN, ctx, false, displayProgress,
+            false);
         initDone = true;
       }
       catch (PeerNotFoundException pnfe)
