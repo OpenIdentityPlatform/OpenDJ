@@ -347,13 +347,13 @@ public class ReplicationBackend
     //This method only returns the number of actual change entries, the
     //domain and any baseDN entries are not counted.
     long retNum=0;
-    Iterator<ReplicationCache> rcachei = server.getCacheIterator();
+    Iterator<ReplicationServerDomain> rcachei = server.getCacheIterator();
     if (rcachei != null)
     {
       while (rcachei.hasNext())
       {
-        ReplicationCache rc = rcachei.next();
-        retNum += rc.getChangesCount();
+        ReplicationServerDomain rsd = rcachei.next();
+        retNum += rsd.getChangesCount();
       }
     }
     return retNum;
@@ -531,18 +531,18 @@ public class ReplicationBackend
   {
     List<DN> includeBranches = exportConfig.getIncludeBranches();
     DN baseDN;
-    ArrayList<ReplicationCache> exportContainers =
-      new ArrayList<ReplicationCache>();
+    ArrayList<ReplicationServerDomain> exportContainers =
+      new ArrayList<ReplicationServerDomain>();
     if(server == null) {
        Message message = ERR_REPLICATONBACKEND_EXPORT_LDIF_FAILED.get();
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,message);
     }
-    Iterator<ReplicationCache> rcachei = server.getCacheIterator();
-    if (rcachei != null)
+    Iterator<ReplicationServerDomain> rsdi = server.getCacheIterator();
+    if (rsdi != null)
     {
-      while (rcachei.hasNext())
+      while (rsdi.hasNext())
       {
-        ReplicationCache rc = rcachei.next();
+        ReplicationServerDomain rc = rsdi.next();
 
         // Skip containers that are not covered by the include branches.
         baseDN = DN.decode(rc.getBaseDn().toString() + "," + EXPORT_BASE_DN);
@@ -598,7 +598,7 @@ public class ReplicationBackend
     // Iterate through the containers.
     try
     {
-      for (ReplicationCache exportContainer : exportContainers)
+      for (ReplicationServerDomain exportContainer : exportContainers)
       {
         if (exportConfig.isCancelled())
         {
@@ -642,7 +642,7 @@ public class ReplicationBackend
   /*
    * Exports the root changes of the export, and one entry by domain.
    */
-  private void exportRootChanges(List<ReplicationCache> exportContainers,
+  private void exportRootChanges(List<ReplicationServerDomain> exportContainers,
       LDIFExportConfig exportConfig, LDIFWriter ldifWriter)
   {
     Map<AttributeType,List<Attribute>> attributes =
@@ -668,7 +668,7 @@ public class ReplicationBackend
     }
     catch (Exception e) {}
 
-    for (ReplicationCache exportContainer : exportContainers)
+    for (ReplicationServerDomain exportContainer : exportContainers)
     {
       if (exportConfig != null && exportConfig.isCancelled())
       {
@@ -725,21 +725,21 @@ public class ReplicationBackend
   }
 
   /**
-   * Processes the changes for a given ReplicationCache.
+   * Processes the changes for a given ReplicationServerDomain.
    */
-  private void processContainer(ReplicationCache rc,
+  private void processContainer(ReplicationServerDomain rsd,
       LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
       SearchOperation searchOperation)
   {
     // Walk through the servers
-    for (Short serverId : rc.getServers())
+    for (Short serverId : rsd.getServers())
     {
       if (exportConfig != null && exportConfig.isCancelled())
       {
         break;
       }
 
-      ReplicationIterator ri = rc.getChangelogIterator(serverId,
+      ReplicationIterator ri = rsd.getChangelogIterator(serverId,
           null);
 
       if (ri != null)
@@ -1139,8 +1139,8 @@ public class ReplicationBackend
     // Get the base DN, scope, and filter for the search.
     DN           searchBaseDN = searchOperation.getBaseDN();
     DN baseDN;
-    ArrayList<ReplicationCache> searchContainers =
-      new ArrayList<ReplicationCache>();
+    ArrayList<ReplicationServerDomain> searchContainers =
+      new ArrayList<ReplicationServerDomain>();
 
     //This check is for GroupManager initialization. It currently doesn't
     //come into play because the replication server variable is null in
@@ -1202,25 +1202,25 @@ public class ReplicationBackend
     }
 
     // Walk through all entries and send the ones that match.
-    Iterator<ReplicationCache> rcachei = server.getCacheIterator();
-    if (rcachei != null)
+    Iterator<ReplicationServerDomain> rsdi = server.getCacheIterator();
+    if (rsdi != null)
     {
-      while (rcachei.hasNext())
+      while (rsdi.hasNext())
       {
-        ReplicationCache rc = rcachei.next();
+        ReplicationServerDomain rsd = rsdi.next();
 
         // Skip containers that are not covered by the include branches.
-        baseDN = DN.decode(rc.getBaseDn().toString() + "," + EXPORT_BASE_DN);
+        baseDN = DN.decode(rsd.getBaseDn().toString() + "," + EXPORT_BASE_DN);
 
             if (searchBaseDN.isDescendantOf(baseDN) ||
                 searchBaseDN.isAncestorOf(baseDN))
             {
-              searchContainers.add(rc);
+              searchContainers.add(rsd);
             }
       }
     }
 
-    for (ReplicationCache exportContainer : searchContainers)
+    for (ReplicationServerDomain exportContainer : searchContainers)
     {
       processContainer(exportContainer, null, null, searchOperation);
     }

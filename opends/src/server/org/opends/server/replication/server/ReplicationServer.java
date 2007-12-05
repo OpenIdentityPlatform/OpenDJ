@@ -88,7 +88,8 @@ import com.sleepycat.je.DatabaseException;
  * and publisher objects for
  * connection with LDAP servers and with replication servers
  *
- * It is responsible for creating the replication server cache and managing it
+ * It is responsible for creating the replication server replicationServerDomain
+ * and managing it
  */
 public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   implements Runnable, ConfigurationChangeListener<ReplicationServerCfg>,
@@ -108,8 +109,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   /* This table is used to store the list of dn for which we are currently
    * handling servers.
    */
-  private ConcurrentHashMap<DN, ReplicationCache> baseDNs =
-          new ConcurrentHashMap<DN, ReplicationCache>();
+  private ConcurrentHashMap<DN, ReplicationServerDomain> baseDNs =
+          new ConcurrentHashMap<DN, ReplicationServerDomain>();
 
   private String localURL = "null";
   private boolean shutdown = false;
@@ -279,9 +280,10 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
        * periodically check that we are connected to all other
        * replication servers and if not establish the connection
        */
-      for (ReplicationCache replicationCache: baseDNs.values())
+      for (ReplicationServerDomain replicationServerDomain: baseDNs.values())
       {
-        Set<String> connectedReplServers = replicationCache.getChangelogs();
+        Set<String> connectedReplServers =
+                replicationServerDomain.getChangelogs();
         /*
          * check that all replication server in the config are in the connected
          * Set. If not create the connection
@@ -301,7 +303,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
                 && (serverAddress.compareTo(this.localURL) != 0)
                 && (!connectedReplServers.contains(serverAddress)))
             {
-              this.connect(serverURL, replicationCache.getBaseDn());
+              this.connect(serverURL, replicationServerDomain.getBaseDn());
             }
           }
           catch (IOException e)
@@ -396,7 +398,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           this);
 
       /*
-       * create replicationServer cache
+       * create replicationServer replicationServerDomain
        */
       serverId = changelogId;
 
@@ -461,28 +463,32 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Get the ReplicationCache associated to the base DN given in parameter.
+   * Get the ReplicationServerDomain associated to the base DN given in
+   * parameter.
    *
-   * @param baseDn The base Dn for which the ReplicationCache must be returned.
-   * @param create Specifies whether to create the ReplicationCache if it does
-   *        not already exist.
-   * @return The ReplicationCache associated to the base DN given in parameter.
+   * @param baseDn The base Dn for which the ReplicationServerDomain must be
+   * returned.
+   * @param create Specifies whether to create the ReplicationServerDomain if
+   *        it does not already exist.
+   * @return The ReplicationServerDomain associated to the base DN given in
+   *         parameter.
    */
-  public ReplicationCache getReplicationCache(DN baseDn, boolean create)
+  public ReplicationServerDomain getReplicationServerDomain(DN baseDn,
+          boolean create)
   {
-    ReplicationCache replicationCache;
+    ReplicationServerDomain replicationServerDomain;
 
     synchronized (baseDNs)
     {
-      replicationCache = baseDNs.get(baseDn);
-      if ((replicationCache == null) && (create))
+      replicationServerDomain = baseDNs.get(baseDn);
+      if ((replicationServerDomain == null) && (create))
       {
-        replicationCache = new ReplicationCache(baseDn, this);
-        baseDNs.put(baseDn, replicationCache);
+        replicationServerDomain = new ReplicationServerDomain(baseDn, this);
+        baseDNs.put(baseDn, replicationServerDomain);
       }
     }
 
-    return replicationCache;
+    return replicationServerDomain;
   }
 
   /**
@@ -520,9 +526,9 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     }
 
     // shutdown all the ChangelogCaches
-    for (ReplicationCache replicationCache : baseDNs.values())
+    for (ReplicationServerDomain replicationServerDomain : baseDNs.values())
     {
-      replicationCache.shutdown();
+      replicationServerDomain.shutdown();
     }
 
     if (dbEnv != null)
@@ -539,7 +545,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    *
    * @param id The serverId for which the dbHandler must be created.
    * @param baseDn The DN for which the dbHandler muste be created.
-   * @param generationId The generationId for this server and this domain.
+   * @param generationId The generationId for this server and this
+   *        replicationServerDomain.
    * @return The new DB handler for this ReplicationServer and the serverId and
    *         DN given in parameter.
    * @throws DatabaseException in case of underlying database problem.
@@ -551,7 +558,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Clears the generationId for the domain related to the provided baseDn.
+   * Clears the generationId for the replicationServerDomain related to the
+   * provided baseDn.
    * @param  baseDn The baseDn for which to delete the generationId.
    * @throws DatabaseException When it occurs.
    */
@@ -755,7 +763,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     Attribute bases = new Attribute(baseType, "base-dn", baseValues);
     attributes.add(bases);
 
-    // Publish to monitor the generation ID by domain
+    // Publish to monitor the generation ID by replicationServerDomain
     AttributeType generationIdType=
       DirectoryServer.getAttributeType("base-dn-generation-id", true);
     LinkedHashSet<AttributeValue> generationIdValues =
@@ -763,9 +771,10 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     for (DN base : baseDNs.keySet())
     {
       long generationId=-1;
-      ReplicationCache cache = getReplicationCache(base, false);
-      if (cache != null)
-        generationId = cache.getGenerationId();
+      ReplicationServerDomain replicationServerDomain =
+              getReplicationServerDomain(base, false);
+      if (replicationServerDomain != null)
+        generationId = replicationServerDomain.getGenerationId();
       generationIdValues.add(new AttributeValue(generationIdType,
           base.toString() + " " + generationId));
     }
@@ -777,17 +786,18 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Get the value of generationId for the replication domain
+   * Get the value of generationId for the replication replicationServerDomain
    * associated with the provided baseDN.
    *
-   * @param baseDN The baseDN of the domain.
+   * @param baseDN The baseDN of the replicationServerDomain.
    * @return The value of the generationID.
    */
   public long getGenerationId(DN baseDN)
   {
-    ReplicationCache rc = this.getReplicationCache(baseDN, false);
-    if (rc!=null)
-      return rc.getGenerationId();
+    ReplicationServerDomain rsd =
+            this.getReplicationServerDomain(baseDN, false);
+    if (rsd!=null)
+      return rsd.getGenerationId();
     return -1;
   }
 
@@ -962,7 +972,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           " Export starts");
     if (backend.getBackendID().equals(backendId))
     {
-      // Retrieves the backend related to this domain
+      // Retrieves the backend related to this replicationServerDomain
       // backend =
       ReplicationBackend b =
       (ReplicationBackend)DirectoryServer.getBackend(backendId);
@@ -980,11 +990,11 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Returns an iterator on the list of replicationCache.
+   * Returns an iterator on the list of replicationServerDomain.
    * Returns null if none.
    * @return the iterator.
    */
-  public Iterator<ReplicationCache> getCacheIterator()
+  public Iterator<ReplicationServerDomain> getCacheIterator()
   {
     if (!baseDNs.isEmpty())
       return baseDNs.values().iterator();
@@ -997,13 +1007,13 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    */
   public void clearDb()
   {
-    Iterator<ReplicationCache> rcachei = getCacheIterator();
+    Iterator<ReplicationServerDomain> rcachei = getCacheIterator();
     if (rcachei != null)
     {
       while (rcachei.hasNext())
       {
-        ReplicationCache rc = rcachei.next();
-        rc.clearDbs();
+        ReplicationServerDomain rsd = rcachei.next();
+        rsd.clearDbs();
       }
     }
   }

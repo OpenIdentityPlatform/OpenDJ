@@ -914,14 +914,14 @@ public class GenerationIdTest extends ReplicationTestCase
       rgenId = replServer1.getGenerationId(baseDn);
       assertEquals(genId, rgenId, "DS and replServer are expected to have same genId.");
 
-      assertTrue(!replServer1.getReplicationCache(baseDn, false).
+      assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server1ID),
       "Expecting that DS is not degraded since domain genId has been reset");
 
-      assertTrue(replServer1.getReplicationCache(baseDn, false).
+      assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server2ID),
       "Expecting that broker2 is degraded since domain genId has been reset");
-      assertTrue(replServer1.getReplicationCache(baseDn, false).
+      assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server3ID),
       "Expecting that broker3 is degraded since domain genId has been reset");
 
@@ -1106,7 +1106,7 @@ public class GenerationIdTest extends ReplicationTestCase
     }
 
     debugInfo("Expecting that broker2 is not degraded since it has a correct genId");
-    assertTrue(!replServer1.getReplicationCache(baseDn, false).
+    assertTrue(!replServer1.getReplicationServerDomain(baseDn, false).
         isDegradedDueToGenerationId(server2ID));
 
     debugInfo("Disconnecting DS from replServer1");
@@ -1132,7 +1132,7 @@ public class GenerationIdTest extends ReplicationTestCase
     }
 
     debugInfo("Expecting that broker3 is degraded since it has a bad genId");
-    assertTrue(replServer1.getReplicationCache(baseDn, false).
+    assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
         isDegradedDueToGenerationId(server3ID));
 
     int found = testEntriesInDb();

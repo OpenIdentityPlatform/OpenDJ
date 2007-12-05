@@ -53,7 +53,7 @@
  * ReplicationMessages objects. This class is used by both the
  * replicationServer and the replication package.
  * </li>
- * <li><A HREF="ReplicationCache.html"><B>ReplicationCache</B></A>
+ * <li><A HREF="ReplicationServerDomain.html"><B>ReplicationServerDomain</B></A>
  * implements the multiplexing part of the replication
  * server. It contains method for forwarding all the received messages to
  * the ServerHandler and to the dbHandler objects.<br>

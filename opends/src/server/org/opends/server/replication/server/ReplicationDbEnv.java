@@ -184,7 +184,7 @@ public class ReplicationDbEnv
                 " Has read baseDn=" + baseDn
                 + " generationId=" + generationId);
 
-            replicationServer.getReplicationCache(baseDn, true).
+            replicationServer.getReplicationServerDomain(baseDn, true).
             setGenerationId(generationId, true);
           }
         }
@@ -259,7 +259,7 @@ public class ReplicationDbEnv
           DbHandler dbHandler =
             new DbHandler(serverId, baseDn, replicationServer, this, 1);
 
-          replicationServer.getReplicationCache(baseDn, true).
+          replicationServer.getReplicationServerDomain(baseDn, true).
           setDbHandler(serverId, dbHandler);
         }
 

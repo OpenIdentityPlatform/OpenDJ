@@ -35,7 +35,7 @@ import org.opends.server.replication.common.ChangeNumber;
 public class ReplServerAckMessageList extends AckMessageList
 {
   private short replicationServerId;
-  private ReplicationCache replicationCache;
+  private ReplicationServerDomain replicationServerDomain;
 
   /**
    * Creates a new AckMessageList for a given ChangeNumber.
@@ -45,17 +45,17 @@ public class ReplServerAckMessageList extends AckMessageList
    *                        original change.
    * @param replicationServerId The Identifier of the replication server
    *                          from which the change was received.
-   * @param replicationCache The ReplicationCache from which he change
-   *                         was received.
+   * @param replicationServerDomain The ReplicationServerDomain from which he
+   *                         change was received.
    */
   public ReplServerAckMessageList(ChangeNumber changeNumber,
                                  int numExpectedAcks,
                                  short replicationServerId,
-                                 ReplicationCache replicationCache)
+                                ReplicationServerDomain replicationServerDomain)
   {
     super(changeNumber, numExpectedAcks);
     this.replicationServerId = replicationServerId;
-    this.replicationCache = replicationCache;
+    this.replicationServerDomain = replicationServerDomain;
   }
 
   /**
@@ -70,14 +70,14 @@ public class ReplServerAckMessageList extends AckMessageList
   }
 
   /**
-   * Get the replicationCache of the replication server from which we received
-   * the change.
-   * @return Returns the replicationCache of the replication server from which
-   *         we received the change .
+   * Get the replicationServerDomain of the replication server from which we
+   * received the change.
+   * @return Returns the replicationServerDomain of the replication server from
+   *         which we received the change .
    */
-  public ReplicationCache getChangelogCache()
+  public ReplicationServerDomain getChangelogCache()
   {
-    return replicationCache;
+    return replicationServerDomain;
   }
 
 
