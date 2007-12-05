@@ -344,8 +344,8 @@ public class DbHandler implements Runnable
 
   /**
    * Run method for this class.
-   * Periodically Flushes the ReplicationCache from memory to the stable storage
-   * and trims the old updates.
+   * Periodically Flushes the ReplicationServerDomain cache from memory to the
+   * stable storage and trims the old updates.
    */
   public void run()
   {

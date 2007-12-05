@@ -1090,25 +1090,25 @@ public class InitOnLineTest extends ReplicationTestCase
 
     // Check that the list of connected LDAP servers is correct
     // in each replication servers
-    List<String> l1 = changelog1.getReplicationCache(baseDn, false).
+    List<String> l1 = changelog1.getReplicationServerDomain(baseDn, false).
       getConnectedLDAPservers();
     assertEquals(l1.size(), 1);
     assertEquals(l1.get(0), String.valueOf(server1ID));
     
     List<String> l2;
-    l2 = changelog2.getReplicationCache(baseDn, false).getConnectedLDAPservers();
+    l2 = changelog2.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
     assertEquals(l2.size(), 2);
     assertTrue(l2.contains(String.valueOf(server2ID)));
     assertTrue(l2.contains(String.valueOf(server3ID)));
         
     List<String> l3;
-    l3 = changelog3.getReplicationCache(baseDn, false).getConnectedLDAPservers();
+    l3 = changelog3.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
     assertEquals(l3.size(), 0);
 
     // Test updates
     broker3.stop();
     Thread.sleep(1000);
-    l2 = changelog2.getReplicationCache(baseDn, false).getConnectedLDAPservers();
+    l2 = changelog2.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
     assertEquals(l2.size(), 1);
     assertEquals(l2.get(0), String.valueOf(server2ID));
 
@@ -1116,11 +1116,11 @@ public class InitOnLineTest extends ReplicationTestCase
         server3ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
     broker2.stop();
     Thread.sleep(1000);
-    l2 = changelog2.getReplicationCache(baseDn, false).getConnectedLDAPservers();
+    l2 = changelog2.getReplicationServerDomain(baseDn, false).getConnectedLDAPservers();
     assertEquals(l2.size(), 1);
     assertEquals(l2.get(0), String.valueOf(server3ID));
 
-    // TODO Test ReplicationCache.getDestinationServers method.
+    // TODO Test ReplicationServerDomain.getDestinationServers method.
 
     broker2.stop();
     broker3.stop();

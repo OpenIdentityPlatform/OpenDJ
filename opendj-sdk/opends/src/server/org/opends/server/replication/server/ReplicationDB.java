@@ -78,9 +78,10 @@ public class ReplicationDB
     this.dbenv = dbenv;
     this.replicationServer = replicationServer;
 
-    // Get or create the associated Replicationcache and Db.
+    // Get or create the associated ReplicationServerDomain and Db.
     db = dbenv.getOrAddDb(serverId, baseDn,
-        replicationServer.getReplicationCache(baseDn, true).getGenerationId());
+        replicationServer.getReplicationServerDomain(baseDn,
+        true).getGenerationId());
   }
 
   /**

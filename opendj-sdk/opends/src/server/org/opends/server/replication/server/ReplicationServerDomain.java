@@ -70,7 +70,7 @@ import com.sleepycat.je.DatabaseException;
  * received to the disk and for trimming them
  * Decision to trim can be based on disk space or age of the message
  */
-public class ReplicationCache
+public class ReplicationServerDomain
 {
   private Object flowControlLock = new Object();
   private DN baseDn = null;
@@ -119,13 +119,13 @@ public class ReplicationCache
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * Creates a new ReplicationCache associated to the DN baseDn.
+   * Creates a new ReplicationServerDomain associated to the DN baseDn.
    *
-   * @param baseDn The baseDn associated to the ReplicationCache.
+   * @param baseDn The baseDn associated to the ReplicationServerDomain.
    * @param replicationServer the ReplicationServer that created this
    *                          replicationServer cache.
    */
-  public ReplicationCache(DN baseDn, ReplicationServer replicationServer)
+  public ReplicationServerDomain(DN baseDn, ReplicationServer replicationServer)
   {
     this.baseDn = baseDn;
     this.replicationServer = replicationServer;
@@ -531,7 +531,7 @@ public class ReplicationCache
   }
 
   /**
-   * Returns the change count for that ReplicationCache.
+   * Returns the change count for that ReplicationServerDomain.
    *
    * @return the change count.
    */
@@ -842,7 +842,7 @@ public class ReplicationCache
     }
 
     /**
-     * Shutdown this ReplicationCache.
+     * Shutdown this ReplicationServerDomain.
      */
     public void shutdown()
     {
@@ -890,7 +890,7 @@ public class ReplicationCache
     @Override
     public String toString()
     {
-      return "ReplicationCache " + baseDn;
+      return "ReplicationServerDomain " + baseDn;
     }
 
     /**
