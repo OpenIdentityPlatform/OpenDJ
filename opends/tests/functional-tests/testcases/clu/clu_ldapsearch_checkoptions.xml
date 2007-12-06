@@ -44,17 +44,18 @@
             #@TestSuiteGroup      ldapsearch check options tests
             #@TestScript          clu_ldapsearch_checkoptions.xml
           -->
+          
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='clu'
-            CurrentTestPath['suite']=STAXCurrentBlock
+              CurrentTestPath['group'] = 'clu'
+            CurrentTestPath['suite'] = STAXCurrentBlock
           </script>
 
           <call function="'testSuite_Preamble'"/>
 
           <!--- Define default value for basedn and dsfilter -->
           <script>
-            basedn = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
+            basedn   = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
             dsfilter = 'uid=user.10*'
           </script>
           
@@ -66,7 +67,7 @@
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with correct options.
             #@TestPostamble       none
-            #@TestResult          Success if ldapsearch returns 0
+            #@TestResult          Success if ldapsearch returns 0.
           -->
           <testcase name="getTestCaseName('ldapsearch: correct options')">
 
@@ -103,7 +104,7 @@
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with an empty hostname.
             #@TestPostamble       none
-            #@TestResult          Success if ldapsearch returns 89
+            #@TestResult          Success if ldapsearch returns 89.
           -->
           <testcase name="getTestCaseName('ldapsearch: empty hostname')">
 
@@ -262,7 +263,8 @@
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: invalid binddn
             #@TestIssue           none
-            #@TestPurpose         Verify a parameter error doing an ldapsearch.
+            #@TestPurpose         Verify an invalid credentials error 
+                                  doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with an invalid binddn.
             #@TestPostamble       none
@@ -298,14 +300,18 @@
 
           <!--- Test Case information
             #@TestMarker          ldapsearch check options tests
-            #@TestName            ldapsearch: no password
+            #@TestName            ldapsearch: no password provided
             #@TestIssue           2624
-            #@TestPurpose         Verify a parameter error doing an ldapsearch.
+            #@TestPurpose         Verify an inappropriate authentication error 
+                                  doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch without a password.
             #@TestPostamble       none
             #@TestResult          Success if ldapsearch returns 48.
           -->
+          <!-- This test is prompting for the password -->
+          <!--- Comment out this testcase as it hangs on some platform -->
+          <!---
           <testcase name="getTestCaseName('ldapsearch: no password provided')">
 
             <sequence>
@@ -336,6 +342,7 @@
             </sequence>
 
           </testcase>
+          -->
 
           <!--- Test Case information
             #@TestMarker          ldapsearch check options tests
@@ -379,7 +386,8 @@
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: scope with no option-argument
             #@TestIssue           2619
-            #@TestPurpose         Verify a parameter error doing an ldapsearch.
+            #@TestPurpose         Verify an invalid credentials error 
+                                  doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with a scope and no value.
             #@TestPostamble       none
@@ -465,7 +473,7 @@
           <!--- Test Case information
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: empty basedn
-            #@TestIssue           2619
+            #@TestIssue           none
             #@TestPurpose         Verify a parameter error doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with an empty basedn.
@@ -489,14 +497,9 @@
                 'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsBaseDN'         : ' ' ,
-                'dsFilter'         : dsfilter ,
-                'expectedRC'       : 89
+                'dsFilter'         : dsfilter
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -508,7 +511,8 @@
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: invalid basedn
             #@TestIssue           none
-            #@TestPurpose         Verify a parameter error doing an ldapsearch.
+            #@TestPurpose         Verify a no such object error 
+                                  doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with an invalid basedn.
             #@TestPostamble       none
@@ -665,7 +669,8 @@
             #@TestIssue           none
             #@TestPurpose         Verify a parameter doing an ldapsearch.
             #@TestPreamble        none
-            #@TestStep            Do an ldapsearch with timelimit of 20 seconds option.
+            #@TestStep            Do an ldapsearch with timelimit of 20 
+                                  seconds option.
             #@TestPostamble       none
             #@TestResult          Success if ldapsearch returns 0.
           -->
@@ -702,7 +707,7 @@
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: timelimit of 1 seconds
             #@TestIssue           none
-            #@TestPurpose         Verify a parameter error doing an ldapsearch.
+            #@TestPurpose         Verify a time limit error doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with timelimit of 1 second.
             #@TestPostamble       none
@@ -781,7 +786,7 @@
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: sizelimit of 1 entries
             #@TestIssue           none
-            #@TestPurpose         Verify a parameter error doing an ldapsearch.
+            #@TestPurpose         Verify a size limit error doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with the sizelimit option.
             #@TestPostamble       none
@@ -820,7 +825,7 @@
           <!--- Test Case information
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: help option
-            #@TestIssue           2619
+            #@TestIssue           none
             #@TestPurpose         Verify a parameter doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with the help option.
@@ -848,10 +853,6 @@
                 'dsFilter'         : dsfilter
                 }
               </call>
-
-              <script>
-                knownIssue(2619)
-              </script>
 
               <call function="'testCase_Postamble'"/>
 
@@ -1110,7 +1111,8 @@
             #@TestMarker          ldapsearch check options tests
             #@TestName            ldapsearch: invalid basedn
             #@TestIssue           none
-            #@TestPurpose         Verify a parameter doing an ldapsearch.
+            #@TestPurpose         Verify a no such object error
+                                  doing an ldapsearch.
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch with the a bad base dn.
             #@TestPostamble       none
@@ -1143,7 +1145,7 @@
             </sequence>
 
           </testcase>
-
+         
           <call function="'testSuite_Postamble'"/>
 
         </sequence>
