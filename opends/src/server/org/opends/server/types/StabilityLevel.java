@@ -129,7 +129,7 @@ public enum StabilityLevel
 
 
   /**
-   * The associated package, class, or method should not be considered
+   * The associated package, class, or method should be considered
    * part of the OpenDS private API and should not be used by
    * third-party code.  No prior notice is required for incompatible
    * changes to code with a {@code PRIVATE} classification.
