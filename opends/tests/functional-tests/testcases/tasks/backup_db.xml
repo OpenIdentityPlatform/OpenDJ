@@ -157,16 +157,7 @@
           <testcase name="getTestCaseName('schedule backup task for scheduled execution in asynchronous mode')">
             <sequence>
               <call function="'testCase_Preamble'"/>              
-                  
-							<script>
-                mydate=strftime("%Y%m%d%H%M%S",localtime())
-              </script>                      
-                           
-              <message>'Wait ...'</message>
-              <call function="'Sleep'">
-                 { 'location'  :	 STAF_REMOTE_HOSTNAME,
-                    'sleepForMilliSeconds'  :  90000 }
-              </call>
+            
                                     
               <call function="'backup'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
@@ -174,7 +165,7 @@
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-									'startTask'  : '%s' % mydate,	                
+									'startTask'  : '20061212000000',	                
                   'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir,
                   'backEnd'   : 'userRoot'}
               </call>

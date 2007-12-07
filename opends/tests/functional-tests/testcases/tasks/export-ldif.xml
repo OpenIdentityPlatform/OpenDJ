@@ -91,11 +91,6 @@
                     <call function="'testPassed'"/>          
               </else>
               </if>   
-                       
-              <script>
-                mydate=strftime("%Y%m%d%H%M%S",localtime())
-              </script>                     
-              <message>'mydate %s' % mydate</message>
                 
 	 			     <call function="'testCase_Postamble'"/>
 	      </sequence>
@@ -165,17 +160,7 @@
           <testcase name="getTestCaseName('schedule export-ldif task for scheduled execution in asynchronous mode')">
             <sequence>
               <call function="'testCase_Preamble'"/>              
-                  
-							<script>
-                mydate=strftime("%Y%m%d%H%M%S",localtime())
-              </script>                      
-              
-             <message>'Wait ...'</message>      
-              <call function="'Sleep'">
-                 { 'location'  :	 STAF_REMOTE_HOSTNAME,
-                    'sleepForMilliSeconds'  :  90000 }
-              </call>
-            
+                 
                                                   
               <call function="'exportLdif'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
@@ -184,7 +169,7 @@
                   'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'ldifFile'  :  '%s/tasks/export_schedule_asynchronous' % logsRemoteDataDir,
-                  'startTask'  : '%s' % mydate,
+                  'startTask'  : '20061212000000',
                   'backEnd'   : 'userRoot'}
               </call>
               
@@ -202,9 +187,18 @@
               <else>
                     <call function="'testPassed'"/>          
               </else>
-              </if>   
-                         
-                
+              </if>
+              
+
+      		  <call function="'RestartDs'">
+    	        { 'dsHost'	  : DIRECTORY_INSTANCE_HOST,
+              'dsPort'	  : DIRECTORY_INSTANCE_PORT,
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
+  	          }
+	          </call>           
+              
+                            
 	 			     <call function="'testCase_Postamble'"/>
 	      </sequence>
       </testcase>

@@ -71,13 +71,13 @@
               'noOfMilliSeconds' : 2000 }
            </call>			
             
-               <call function="'ldapSearchWithScript'">
-			{ 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-			'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
-			'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-			'dsBaseDN'	   : 'dc=com' ,
-			'dsFilter'	   : 'objectclass=*' }
-                    </call>
+           <call function="'ldapSearchWithScript'"> 
+     		   	{ 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+    	        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+							'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+							'dsBaseDN'	   : 'dc=com' ,
+							'dsFilter'	   : 'objectclass=*' }
+          </call>
                         
           </sequence>
           <!--- End Block DS Process Active -->

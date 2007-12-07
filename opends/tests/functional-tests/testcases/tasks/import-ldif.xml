@@ -162,6 +162,68 @@
 	 			     <call function="'testCase_Postamble'"/>
 	      </sequence>
       </testcase>
+      
+      
+               
+          <!--- Test Case information
+          #@TestMarker          Backend Import Tests
+          #@TestName            Backend: Import: LDIF Default
+          #@TestID                 LDIF Default
+          #@TestPurpose        schedule a import-ldif in task mode to be executed in asynchronous mode
+          #@TestPreamble
+          #@TestSteps            execute a import-ldif in a task
+          #@TestSteps            specify the -t option with the value non null  to schedule an  execution      
+          #@TestPostamble
+          #@TestResult
+          -->
+            
+          <testcase name="getTestCaseName('schedule import-ldif task for scheduled execution in asynchronous mode')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>              
+                        
+              <call function="'ImportLdifWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME ,
+                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                  'dsLdifFile'  : '%s/tasks/import.ldif' % logsRemoteDataDir,
+                  'dsAppend' : ' ',
+                  'startTask'  : '20061212000000',
+                  'dsBackEnd'   : 'userRoot'}
+              </call>
+              <call function="'Sleep'">
+                 { 'location'  :	 STAF_REMOTE_HOSTNAME,
+                    'sleepForMilliSeconds'  :  90000 }
+              </call>
+             
+           		<!--  Check data are imported -->
+              <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=scarter,dc=example,dc=com',
+                                       'uid=tmorris, dc=example,dc=com'],
+                   'startDS'     : 'False'              
+                 }
+              </call>
+              
+              <!-- Delete entries -->
+	 						<call function="'DeleteEntry'">
+							  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'		: 'uid=scarter,dc=example,dc=com' }
+			        </call>
+  						<call function="'DeleteEntry'">
+							  { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                    'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                    'dsBaseDN'		: 'uid=tmorris,dc=example,dc=com' }
+			        </call>          
+          
+	 			     <call function="'testCase_Postamble'"/>
+	      </sequence>
+      </testcase>                                         
                                                      
  <call function="'testSuite_Postamble'" />
  </sequence>
