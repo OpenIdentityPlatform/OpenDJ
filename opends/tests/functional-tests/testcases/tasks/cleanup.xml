@@ -24,51 +24,51 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
+! -->
 <stax>
-
+  
   <defaultcall function="cleanup"/>
   <function name="cleanup">
     <sequence>
       <block name="'cleanup'">
-       <sequence>
+        <sequence>
           <block name="'Block DS Process Stop'">				
-          <!--- Stop DS -->
+            <!--- Stop DS -->
             <sequence>
               <message>
                 'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
-
+              
               <call function="'StopDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME,
-                 'dsHost'    : DIRECTORY_INSTANCE_HOST,
-                 'dsPort'    : DIRECTORY_INSTANCE_PORT,
-                 'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-                 'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+                { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
               </call>
               <call function="'checkRC'">
-               { 'returncode' : RC ,
-                 'result'     : STAXResult }
+                { 'returncode' : RC ,
+                'result'     : STAXResult }
               </call>
             </sequence>			  
             <!--- End Block DS Process Stop -->
           </block>
           <block name="'Block Remove DS Topology'">
-          <!-- Remove  the topology created for the test suite -->
+            <!-- Remove  the topology created for the test suite -->
             <sequence>
               <message>
-               'Remove DS topology created for the Test Suite'
+                'Remove DS topology created for the Test Suite'
               </message>				  
               <call function="'removeTopology'"/>
               <call function="'checkRC'">
                 { 'returncode' : RC ,
-                  'result'     : STAXResult }
+                'result'     : STAXResult }
               </call>
             </sequence>			  
             <!-- End Block Remove DS Topology-->  
           </block>	  														  
         </sequence>        
       </block>
-     </sequence>
+    </sequence>
   </function>
 </stax>

@@ -76,23 +76,23 @@
               </call>
               
               <message>'--- Check log files backup_asynchronous ---'</message>
-							<call function="'listFolder'">
-								{ 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-								  'foldername' : '%s/tasks' % logsRemoteDataDir,
-								  'filename'   : 'backup_asynchronous'
-								 }
+	      <call function="'listFolder'">
+               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
+                 'foldername' : '%s/tasks' % logsRemoteDataDir,
+                 'filename'   : 'backup_asynchronous'
+               }
               </call>     
               
               <!-- check  the export ldif file has been created-->
-            	<if expr="len(cmdResult) == 0">
+              <if expr="len(cmdResult) == 0">
                     <call function="'testFailed'"/>
               <else>
                     <call function="'testPassed'"/>          
               </else>
               </if>   
    
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
+	    <call function="'testCase_Postamble'"/>
+	  </sequence>
       </testcase>
    
                          
@@ -110,7 +110,6 @@
           <testcase name="getTestCaseName('schedule backup task for immediate execution in synchronous mode')">
             <sequence>
               <call function="'testCase_Preamble'"/>              
-                        
                                     
               <call function="'backup'">
                 { 'location'    : STAF_REMOTE_HOSTNAME ,
@@ -123,22 +122,22 @@
               </call>
                     
               <message>'--- Check log files ---'</message>
-							<call function="'listFolder'">
-								{ 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-								  'foldername' : '%s/tasks' % logsRemoteDataDir,
-								  'filename'   : 'backup_synchronous'
-								 }
+              <call function="'listFolder'">
+              { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
+                'foldername' : '%s/tasks' % logsRemoteDataDir,
+                'filename'   : 'backup_synchronous'
+              }
               </call>
-               <!-- check  the export ldif file has been created-->
-            	<if expr="len(cmdResult) == 0">
+              <!-- check  the export ldif file has been created-->
+              <if expr="len(cmdResult) == 0">
                     <call function="'testFailed'"/>
               <else>
                     <call function="'testPassed'"/>          
               </else>
               </if>                     
-                
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
+              
+	    <call function="'testCase_Postamble'"/>
+	  </sequence>
       </testcase>               
       
                          
