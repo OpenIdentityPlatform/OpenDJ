@@ -24,19 +24,19 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
- ! -->
+! -->
 <stax>
   <defaultcall function="restart_db"/>
   <function name="restart_db" scope="local">
     <block name="STAXCurrentFunction">    
-    <sequence>
-      <script>
-        CurrentTestPath['suite']=STAXCurrentFunction
-      </script>
-      <call function="'testSuite_Preamble'" />
-
-      
-          <!--- Test Suite information
+      <sequence>
+        <script>
+          CurrentTestPath['suite']=STAXCurrentFunction
+        </script>
+        <call function="'testSuite_Preamble'" />
+        
+        
+        <!--- Test Suite information
           #@TestSuiteName      Tasks
           #@TestSuitePurpose    Verify that the restart functionality is working in mode task
           #@TestSuiteID            restart Tests
@@ -48,7 +48,7 @@
 
                
                          
-          <!--- Test Case information
+        <!--- Test Case information
           #@TestMarker          Backend restart Tests
           #@TestName            Backend: restart
           #@TestPurpose        schedule a restart in task mode to be executed immedialy in asynchronous mode
@@ -59,43 +59,43 @@
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule restart task for scheduled execution in asynchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>             
-                     
-              
-              <call function="'StopDsWithScript'">
-							{ 'location'  : STAF_REMOTE_HOSTNAME,
-								 'dsHost'    : DIRECTORY_INSTANCE_HOST,
-								 'dsPort'    : DIRECTORY_INSTANCE_PORT,
-								 'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-								 'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
-                 'dsRestart' : ' ',
-                 'dsStopTime' : '20061212000000' }
-							</call>
-
-              <call function="'Sleep'">
-                 { 'location'  :	 STAF_REMOTE_HOSTNAME,
-                    'sleepForMilliSeconds'  :  10000 }
-              </call>
-                         
-  				   <call function="'SearchObject'">
-							{ 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
-							  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-							  'dsInstanceDn'	: DIRECTORY_INSTANCE_DN,
-							  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-							  'dsBaseDN'	    : DIRECTORY_INSTANCE_SFX,
-							  'dsFilter'		: 'objectclass=*'	,
-							  'dsScope'		: 'base',
-							  'expectedRC'	    :  0 }
-    					</call>
-                
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
-      </testcase>               
-      
-           
-          <!--- Test Case information
+        <testcase name="getTestCaseName('schedule restart task for scheduled execution in asynchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>             
+            
+            
+            <call function="'StopDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME,
+              'dsHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsPort'    : DIRECTORY_INSTANCE_PORT,
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
+              'dsRestart' : ' ',
+              'dsStopTime' : '20061212000000' }
+            </call>
+            
+            <call function="'Sleep'">
+              { 'location'  :	 STAF_REMOTE_HOSTNAME,
+              'sleepForMilliSeconds'  :  10000 }
+            </call>
+            
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'	    : DIRECTORY_INSTANCE_SFX,
+              'dsFilter'		: 'objectclass=*'	,
+              'dsScope'		: 'base',
+              'expectedRC'	    :  0 }
+            </call>
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>               
+        
+        
+        <!--- Test Case information
           #@TestMarker          Backend stop Tests
           #@TestName            Backend: stop
           #@TestPurpose        schedule a stop in task mode to be executed immedialy in asynchronous mode
@@ -106,42 +106,42 @@
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule stop server task for scheduled execution in asynchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>             
-                     
-              
-              <call function="'StopDsWithScript'">
-							{ 'location'  : STAF_REMOTE_HOSTNAME,
-								 'dsHost'    : DIRECTORY_INSTANCE_HOST,
-								 'dsPort'    : DIRECTORY_INSTANCE_PORT,
-								 'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-								 'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
-                 'dsStopTime' : '20061212000000' }
-							</call>
-                                 
-         	   <call function="'SearchObject'">
-							{ 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
-							  'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-							  'dsInstanceDn'	: DIRECTORY_INSTANCE_DN,
-							  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-							  'dsBaseDN'	    : DIRECTORY_INSTANCE_SFX,
-							  'dsFilter'		: 'objectclass=*'	,
-							  'dsScope'		: 'base',
-							  'expectedRC'	    :  91 }
-    					</call>
-                            
-						    <!--- Start DS -->
-           		<call function="'StartDsWithScript'">
-             { 'location'  : STAF_REMOTE_HOSTNAME }
-           		</call>              
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
-      </testcase>               
-      
-                                                        
- <call function="'testSuite_Postamble'" />
- </sequence>
- </block>      
-</function>
+        <testcase name="getTestCaseName('schedule stop server task for scheduled execution in asynchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>             
+            
+            
+            <call function="'StopDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME,
+              'dsHost'    : DIRECTORY_INSTANCE_HOST,
+              'dsPort'    : DIRECTORY_INSTANCE_PORT,
+              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
+              'dsStopTime' : '20061212000000' }
+            </call>
+            
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'	    : DIRECTORY_INSTANCE_SFX,
+              'dsFilter'		: 'objectclass=*'	,
+              'dsScope'		: 'base',
+              'expectedRC'	    :  91 }
+            </call>
+            
+            <!--- Start DS -->
+            <call function="'StartDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>              
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>               
+        
+        
+        <call function="'testSuite_Postamble'" />
+      </sequence>
+    </block>      
+  </function>
 </stax>

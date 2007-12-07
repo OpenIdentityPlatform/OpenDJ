@@ -24,65 +24,65 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2007 Sun Microsystems, Inc.
- ! -->
+! -->
 <stax>
-
+  
   <defaultcall function="setup"/>
   <function name="setup">
     <sequence>
       <block name="'setup'">
-      <sequence>
-        <block name="'Block Create DS Topology'">
-          <!-- Create the topology necessary to the test group/suite -->
-          <sequence>			
+        <sequence>
+          <block name="'Block Create DS Topology'">
+            <!-- Create the topology necessary to the test group/suite -->
+            <sequence>			
               <message>
-                 'Create DS topology as described in config.py'
+                'Create DS topology as described in config.py'
               </message>
-                <call function="'createTopology'">
-                  { 'initialiseInstance' : True }
-                </call>
-                <call function="'checkRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
-                </call>
-          </sequence>      
-          <!--- End Block Create DS Topology -->	
-        </block>				  				  
-        <block name="'Block DS Process Active'">	  	
-        <!--- Start DS -->
-          <sequence>
-           <message>
-            'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
-           </message>
-
-           <!--- Start DS -->
-           <call function="'StartDsWithScript'">
-             { 'location'  : STAF_REMOTE_HOSTNAME }
-           </call>
-
-           <call function="'checkRC'">
-            { 'returncode' : RC ,
-              'result'     : STAXResult }
-           </call>
-
-           <!--- Check that DS started -->
-           <call function="'isAlive'">
-            { 'noOfLoops'        : 5 ,
-              'noOfMilliSeconds' : 2000 }
-           </call>			
-            
-           <call function="'ldapSearchWithScript'"> 
-     		   	{ 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-    	        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
-							'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-							'dsBaseDN'	   : 'dc=com' ,
-							'dsFilter'	   : 'objectclass=*' }
-          </call>
-                        
-          </sequence>
-          <!--- End Block DS Process Active -->
-        </block>			  			
-      </sequence>        
+              <call function="'createTopology'">
+                { 'initialiseInstance' : True }
+              </call>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                'result'     : STAXResult }
+              </call>
+            </sequence>      
+            <!--- End Block Create DS Topology -->	
+          </block>				  				  
+          <block name="'Block DS Process Active'">	  	
+            <!--- Start DS -->
+            <sequence>
+              <message>
+                'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+              </message>
+              
+              <!--- Start DS -->
+              <call function="'StartDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME }
+              </call>
+              
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                'result'     : STAXResult }
+              </call>
+              
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                { 'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000 }
+              </call>			
+              
+              <call function="'ldapSearchWithScript'"> 
+                { 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'	   : 'dc=com' ,
+                'dsFilter'	   : 'objectclass=*' }
+              </call>
+              
+            </sequence>
+            <!--- End Block DS Process Active -->
+          </block>			  			
+        </sequence>        
       </block>
     </sequence>
   </function>

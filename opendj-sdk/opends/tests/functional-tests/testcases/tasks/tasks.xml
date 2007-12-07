@@ -24,16 +24,16 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
- ! -->
+! -->
 <stax>
   <defaultcall function="main_tasks"/>
   <function name="main_tasks">
     <sequence>
       <block name="'tasks'">
-         <sequence>
-           <script>
-             CurrentTestPath['group']='tasks'
-           </script>
+        <sequence>
+          <script>
+            CurrentTestPath['group']='tasks'
+          </script>
           
           <call function="'testGroup_Preamble'" />
           <iterate var="_test" in="['setup','restart_db','export-ldif','import-ldif','backup_db','restore_db','cleanup']" >

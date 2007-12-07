@@ -24,19 +24,19 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
- ! -->
+! -->
 <stax>
   <defaultcall function="restore_db"/>
   <function name="restore_db" scope="local">
     <block name="STAXCurrentFunction">    
-    <sequence>
-      <script>
-        CurrentTestPath['suite']=STAXCurrentFunction
-      </script>
-      <call function="'testSuite_Preamble'" />
-
-      
-          <!--- Test Suite information
+      <sequence>
+        <script>
+          CurrentTestPath['suite']=STAXCurrentFunction
+        </script>
+        <call function="'testSuite_Preamble'" />
+        
+        
+        <!--- Test Suite information
           #@TestSuiteName      Tasks
           #@TestSuitePurpose    Verify that the  restore functionality is working in mode task
           #@TestSuiteID            restore Tests
@@ -47,7 +47,7 @@
           -->
 
                          
-          <!--- Test Case information
+        <!--- Test Case information
           #@TestMarker          Backend restore Tests
           #@TestName            Backend: restore
           #@TestID                 LDIF Default
@@ -59,29 +59,29 @@
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule restore task for immediate execution in asynchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>              
-                  
-          
-                            
-              <call function="'restore'">
-                { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'backupDir'  :  '%s/tasks/backup_asynchronous' % logsRemoteDataDir,
-                  'startTask'  : '0'}
-              </call>
-              
-                
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
-      </testcase>
-   
-                         
-          <!--- Test Case information
+        <testcase name="getTestCaseName('schedule restore task for immediate execution in asynchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>              
+            
+            
+            
+            <call function="'restore'">
+              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'backupDir'  :  '%s/tasks/backup_asynchronous' % logsRemoteDataDir,
+              'startTask'  : '0'}
+            </call>
+            
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <!--- Test Case information
           #@TestMarker          Backend restore
           #@TestName            Backend: restore
           #@TestPurpose        schedule a restore in task mode to be executed immedialy in synchronous mode
@@ -92,27 +92,27 @@
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule restore task for immediate execution in synchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>              
-                        
-                                    
-              <call function="'restore'">
-                { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir}
-              </call>
-              
-                
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
-      </testcase>               
-      
-                         
-          <!--- Test Case information
+        <testcase name="getTestCaseName('schedule restore task for immediate execution in synchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>              
+            
+            
+            <call function="'restore'">
+              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir}
+            </call>
+            
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>               
+        
+        
+        <!--- Test Case information
           #@TestMarker          Backend restore
           #@TestName            Backend: restore
           #@TestID                 LDIF Default
@@ -124,36 +124,36 @@
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule restore task for scheduled execution in asynchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>              
-                  
-							<script>
-                mydate=strftime("%Y%m%d%H%M%S",localtime())
-              </script>                      
-                            
-
-                                    
-              <call function="'restore'">
-                { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-									'startTask'  : '%s' % mydate,	                
-                  'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir
-                }
-              </call>
-                                  
-
-                
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
-      </testcase>
-         
-                                                  
- <call function="'testSuite_Postamble'" />
- </sequence>
- </block>      
-</function>
+        <testcase name="getTestCaseName('schedule restore task for scheduled execution in asynchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>              
+            
+            <script>
+              mydate=strftime("%Y%m%d%H%M%S",localtime())
+            </script>                      
+            
+            
+            
+            <call function="'restore'">
+              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'startTask'  : '%s' % mydate,	                
+              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir
+              }
+            </call>
+            
+            
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <call function="'testSuite_Postamble'" />
+      </sequence>
+    </block>      
+  </function>
 </stax>
