@@ -238,14 +238,8 @@
     <genmsg sourceProps="${msg.prop.dir}/task.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/TaskMessages.java">
     </genmsg>
-    <genmsg sourceProps="${msg.prop.dir}/third_party.properties"
-            destJava="${msg.javagen.dir}/org/opends/messages/ThirdPartyMessages.java">
-    </genmsg>
     <genmsg sourceProps="${msg.prop.dir}/tools.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/ToolMessages.java">
-    </genmsg>
-    <genmsg sourceProps="${msg.prop.dir}/user_defined.properties"
-            destJava="${msg.javagen.dir}/org/opends/messages/UserDefinedMessages.java">
     </genmsg>
     <genmsg sourceProps="${msg.prop.dir}/utility.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/UtilityMessages.java">
@@ -1839,7 +1833,9 @@
                      org/opends/messages/Category.java,
                      org/opends/messages/Message.java,
                      org/opends/messages/MessagePropertyKey.java,
-                     org/opends/messages/MessageDescriptor.java"
+                     org/opends/messages/MessageDescriptor.java,
+                     org/opends/server/types/PublicAPI.java,
+                     org/opends/server/types/StabilityLevel.java"
            debug="on" debuglevel="${build.debuglevel}" source="1.5"
            target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}"
            memoryMaximumSize="${MEM}"/>

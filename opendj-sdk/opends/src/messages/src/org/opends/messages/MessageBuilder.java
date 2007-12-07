@@ -48,20 +48,25 @@ import java.io.Serializable;
  * a change to reformat the message for a particular locale if
  * necessary.
  */
-public class MessageBuilder implements Appendable, CharSequence,
-        Serializable
+@org.opends.server.types.PublicAPI(
+    stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate=true,
+    mayExtend=false,
+    mayInvoke=true)
+public final class MessageBuilder implements Appendable, CharSequence,
+    Serializable
 {
 
   private static final long serialVersionUID = -3292823563904285315L;
 
   /** Used internally to store appended messages. */
-  StringBuilder sb = new StringBuilder();
+  private final StringBuilder sb = new StringBuilder();
 
   /** Used internally to store appended messages. */
-  List<Message> messages = new LinkedList<Message>();
+  private final List<Message> messages = new LinkedList<Message>();
 
   /** Used to render the string representation of appended messages. */
-  Locale locale;
+  private final Locale locale;
 
   /**
    * Constructs an instance that will build messages
@@ -78,6 +83,7 @@ public class MessageBuilder implements Appendable, CharSequence,
    * @param message initial message
    */
   public MessageBuilder(Message message) {
+    this(Locale.getDefault());
     append(message);
   }
 
@@ -88,6 +94,7 @@ public class MessageBuilder implements Appendable, CharSequence,
    * @param message initial message
    */
   public MessageBuilder(String message) {
+    this(Locale.getDefault());
     append(message);
   }
 

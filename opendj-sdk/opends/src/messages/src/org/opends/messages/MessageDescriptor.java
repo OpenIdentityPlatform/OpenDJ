@@ -35,6 +35,11 @@ import java.util.Map;
 /**
  * Base class for all Message descriptor classes.
  */
+@org.opends.server.types.PublicAPI(
+    stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate=false,
+    mayExtend=false,
+    mayInvoke=true)
 public abstract class MessageDescriptor {
 
   /**
@@ -61,7 +66,12 @@ public abstract class MessageDescriptor {
   /**
    * Subclass for creating messages with no arguments.
    */
-  static public class Arg0 extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg0 extends MessageDescriptor {
 
     /**
      * Cached copy of the message created by this descriptor.  We can
@@ -122,8 +132,14 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with one argument.
+   * @param <T1> The type of the first message argument.
    */
-  static public class Arg1<T1> extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg1<T1> extends MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -175,8 +191,15 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with two arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
    */
-  static public class Arg2<T1, T2> extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg2<T1, T2> extends MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -229,8 +252,16 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with three arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
    */
-  static public class Arg3<T1, T2, T3> extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg3<T1, T2, T3> extends MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -284,8 +315,17 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with four arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
    */
-  static public class Arg4<T1, T2, T3, T4> extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg4<T1, T2, T3, T4> extends MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -340,8 +380,18 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with five arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
    */
-  static public class Arg5<T1, T2, T3, T4, T5> extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg5<T1, T2, T3, T4, T5> extends MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -397,8 +447,20 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with six arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
+   * @param <T6> The type of the sixth message argument.
    */
-  static public class Arg6<T1, T2, T3, T4, T5, T6> extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg6<T1, T2, T3, T4, T5, T6> extends
+      MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -455,8 +517,20 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with seven arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
+   * @param <T6> The type of the sixth message argument.
+   * @param <T7> The type of the seventh message argument.
    */
-  static public class Arg7<T1, T2, T3, T4, T5, T6, T7>
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg7<T1, T2, T3, T4, T5, T6, T7>
           extends MessageDescriptor
   {
 
@@ -516,8 +590,21 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with eight arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
+   * @param <T6> The type of the sixth message argument.
+   * @param <T7> The type of the seventh message argument.
+   * @param <T8> The type of the eighth message argument.
    */
-  static public class Arg8<T1, T2, T3, T4, T5, T6, T7, T8>
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg8<T1, T2, T3, T4, T5, T6, T7, T8>
           extends MessageDescriptor
   {
 
@@ -579,8 +666,22 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with nine arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
+   * @param <T6> The type of the sixth message argument.
+   * @param <T7> The type of the seventh message argument.
+   * @param <T8> The type of the eighth message argument.
+   * @param <T9> The type of the ninth message argument.
    */
-  static public class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
           extends MessageDescriptor {
 
     /**
@@ -642,8 +743,23 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with ten arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
+   * @param <T6> The type of the sixth message argument.
+   * @param <T7> The type of the seventh message argument.
+   * @param <T8> The type of the eighth message argument.
+   * @param <T9> The type of the ninth message argument.
+   * @param <T10> The type of the tenth message argument.
    */
-  static public class Arg10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
           extends MessageDescriptor {
 
     /**
@@ -706,8 +822,24 @@ public abstract class MessageDescriptor {
 
   /**
    * Subclass for creating messages with eleven arguments.
+   * @param <T1> The type of the first message argument.
+   * @param <T2> The type of the second message argument.
+   * @param <T3> The type of the third message argument.
+   * @param <T4> The type of the fourth message argument.
+   * @param <T5> The type of the fifth message argument.
+   * @param <T6> The type of the sixth message argument.
+   * @param <T7> The type of the seventh message argument.
+   * @param <T8> The type of the eighth message argument.
+   * @param <T9> The type of the ninth message argument.
+   * @param <T10> The type of the tenth message argument.
+   * @param <T11> The type of the eleventh message argument.
    */
-  static public class Arg11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class Arg11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
           extends MessageDescriptor
   {
 
@@ -776,7 +908,12 @@ public abstract class MessageDescriptor {
    * defined with more arguments that can be handled with the current
    * number of subclasses
    */
-  static public class ArgN extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+      mayInstantiate=true,
+      mayExtend=false,
+      mayInvoke=true)
+  static public final class ArgN extends MessageDescriptor {
 
     /**
      * Creates a parameterized instance.
@@ -832,7 +969,10 @@ public abstract class MessageDescriptor {
    * plugins may want to use the mechanism to create messages without
    * storing their strings in resource bundles.
    */
-  static class Raw extends MessageDescriptor {
+  @org.opends.server.types.PublicAPI(
+      stability=org.opends.server.types.StabilityLevel.PRIVATE
+  )
+  static final class Raw extends MessageDescriptor {
 
     private String formatString;
 
@@ -903,13 +1043,13 @@ public abstract class MessageDescriptor {
   }
 
   /** String for accessing backing resource bundle. */
-  protected String rbBase;
+  private final String rbBase;
 
   /** Used for accessing format string from the resource bundle. */
-  protected String key;
+  private final String key;
 
   /** Category for messages created by this descriptor. */
-  protected Category category;
+  private final Category category;
 
   /**
    * Custom mask associated with messages created by this
@@ -917,35 +1057,35 @@ public abstract class MessageDescriptor {
    * to indicate that the mask should come from
    * <code>category</code>.
    */
-  protected Integer mask;
+  private final Integer mask;
 
   /**
    * The severity associated with messages created by this
    * descriptor.
    */
-  protected Severity severity;
+  private final Severity severity;
 
   /**
    * The value that makes a message unique among other messages
    * having the same severity and category.  May be null for
    * raw messages.
    */
-  protected Integer ordinal;
+  private final Integer ordinal;
 
   /**
    * The class loader to be used to retrieve the ResourceBundle.  If null
    * the default class loader will be used.
    */
-  protected ClassLoader classLoader;
+  private final ClassLoader classLoader;
 
 
-  private Map<Locale,String> formatStrMap = new HashMap<Locale,String>();
+  private final Map<Locale,String> formatStrMap = new HashMap<Locale,String>();
 
   /**
    * Obtains the category of this descriptor.  Gauranteed not to be null.
    * @return Category of this message
    */
-  public Category getCategory() {
+  public final Category getCategory() {
     return this.category;
   }
 
@@ -953,7 +1093,7 @@ public abstract class MessageDescriptor {
    * Obtains the severity of this descriptor.  Gauranteed not to be null.
    * @return Category of this message
    */
-  public Severity getSeverity() {
+  public final Severity getSeverity() {
     return this.severity;
   }
 
@@ -962,7 +1102,7 @@ public abstract class MessageDescriptor {
    * unique among messages defined with the same category and severity.
    * @return int ordinal value
    */
-  public int getOrdinal() {
+  public final int getOrdinal() {
     if (this.ordinal == null)
       return 0;
     else
@@ -973,7 +1113,7 @@ public abstract class MessageDescriptor {
    * Returns the ID unique to all OpenDS messages.
    * @return unique ID
    */
-  public int getId() {
+  public final int getId() {
     if (this.ordinal == null) { // ordinal may be null for raw messages
       return NULL_ID;
     } else {
@@ -987,7 +1127,7 @@ public abstract class MessageDescriptor {
    * explicitly set in the constructor.
    * @return Integer mask value
    */
-  public int getMask() {
+  public final int getMask() {
     if (this.mask != null) {
       return this.mask;
     } else {
@@ -1000,7 +1140,7 @@ public abstract class MessageDescriptor {
    * May be null for raw messages.
    * @return key of this message
    */
-  public String getKey() {
+  public final String getKey() {
     return this.key;
   }
 
@@ -1010,7 +1150,7 @@ public abstract class MessageDescriptor {
    * May be null for raw messages.
    * @return string base
    */
-  public String getBase() {
+  public final String getBase() {
     return this.rbBase;
   }
 
@@ -1028,7 +1168,7 @@ public abstract class MessageDescriptor {
    * locale.
    * @return format string
    */
-  String getFormatString() {
+  final String getFormatString() {
     return getFormatString(Locale.getDefault());
   }
 
@@ -1058,7 +1198,7 @@ public abstract class MessageDescriptor {
    * @return boolean where true indicates that the format
    *         string requires formatting
    */
-  protected boolean containsArgumentLiterals(String s) {
+  protected final boolean containsArgumentLiterals(String s) {
     return s.matches(".*%[n|%].*"); // match Formatter literals
   }
 
@@ -1100,6 +1240,7 @@ public abstract class MessageDescriptor {
     this.severity = severity;
     this.ordinal = ordinal;
     this.classLoader = classLoader;
+    this.mask = null;
   }
 
   /**
@@ -1116,7 +1257,16 @@ public abstract class MessageDescriptor {
   private MessageDescriptor(String rbBase, String key, int mask,
                      Severity severity, Integer ordinal,
                      ClassLoader classLoader) {
-    this(rbBase, key, Category.USER_DEFINED, severity, ordinal, classLoader);
+    if (severity == null) {
+      throw new NullPointerException("Null Severity value for message " +
+              "descriptor with key " + key);
+    }
+    this.rbBase = rbBase;
+    this.key = key;
+    this.category = Category.USER_DEFINED;
+    this.severity = severity;
+    this.ordinal = ordinal;
+    this.classLoader = classLoader;
     this.mask = mask;
   }
 

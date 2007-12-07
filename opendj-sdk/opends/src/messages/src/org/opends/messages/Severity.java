@@ -39,6 +39,11 @@ import java.util.Collections;
  * integer value that can be used for bitwise operations as well
  * as a short abbreviated string form of each value.
  */
+@org.opends.server.types.PublicAPI(
+    stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate=false,
+    mayExtend=false,
+    mayInvoke=true)
 public enum Severity {
 
   /**
@@ -153,9 +158,9 @@ public enum Severity {
     return parseMask(msgId & 0x000F0000);
   }
 
-  private int mask;
-  private String propertyKeyForm;
-  private String messageDescriptorForm;
+  private final int mask;
+  private final String propertyKeyForm;
+  private final String messageDescriptorForm;
 
   /**
    * Returns the mask associated with this <code>Severity</code>.

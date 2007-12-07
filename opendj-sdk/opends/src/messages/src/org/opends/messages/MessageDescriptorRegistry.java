@@ -46,20 +46,22 @@ import java.lang.reflect.Field;
  * descriptors are stored in the text file "descriptors.reg" which is
  * generated during the OpenDS build process.
  */
-public class MessageDescriptorRegistry {
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.PRIVATE)
+final class MessageDescriptorRegistry {
 
   private static final String REGISTRY_FILE = "descriptors.reg";
 
-  private static final Set<Class> REGISTERED_MESSAGE_CLASSES =
-                  new HashSet<Class>();
+  private static final Set<Class<?>> REGISTERED_MESSAGE_CLASSES =
+                  new HashSet<Class<?>>();
 
   private static final Map<Integer, MessageDescriptor>
           ID_TO_DESCRIPTORS =
                   new HashMap<Integer,MessageDescriptor>();
 
-  private static final Map<Class, List<MessageDescriptor>>
+  private static final Map<Class<?>, List<MessageDescriptor>>
           CLASS_TO_DESCRIPTORS =
-                  new HashMap<Class,List<MessageDescriptor>>();
+                  new HashMap<Class<?>,List<MessageDescriptor>>();
 
 
   static {
@@ -71,7 +73,7 @@ public class MessageDescriptorRegistry {
     try {
       while (null != (line = reader.readLine())) {
         String descClassName = line.trim();
-        Class descClass;
+        Class<?> descClass;
         try {
           descClass = Class.forName(descClassName);
           List<MessageDescriptor> mdList = new LinkedList<MessageDescriptor>();
@@ -125,7 +127,7 @@ public class MessageDescriptorRegistry {
    */
 
   public static List<MessageDescriptor> getMessageDescriptorsForClass(
-          Class mdClass)
+          Class<?> mdClass)
   {
     return Collections.unmodifiableList(CLASS_TO_DESCRIPTORS.get(mdClass));
   }
@@ -136,7 +138,7 @@ public class MessageDescriptorRegistry {
    *
    * @return list of classes
    */
-  public static Set<Class> getRegisteredClasses() {
+  public static Set<Class<?>> getRegisteredClasses() {
     return Collections.unmodifiableSet(REGISTERED_MESSAGE_CLASSES);
   }
 

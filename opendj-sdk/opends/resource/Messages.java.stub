@@ -36,12 +36,22 @@ import static org.opends.messages.Severity.*;
  * Directory Server source.  It was dynamically generated as part of the
  * Directory Server build process and should not be edited directly.
  */
-public class ${CLASS_NAME} {
+@org.opends.server.types.PublicAPI(
+    stability=org.opends.server.types.StabilityLevel.PRIVATE,
+    mayInstantiate=false,
+    mayExtend=false,
+    mayInvoke=true)
+public final class ${CLASS_NAME} {
 
   /** Base property for resource bundle containing messages */
-  static private final String BASE = "${BASE}";
+  private static final String BASE = "${BASE}";
 
-  static private ClassLoader webstartClassLoader;
+  private static ClassLoader webstartClassLoader;
+
+  // Prevent instantiation.
+  private ${CLASS_NAME}() {
+    // Do nothing.
+  }
 
   ${MESSAGES}
 
@@ -64,7 +74,7 @@ public class ${CLASS_NAME} {
         {
           try
           {
-            Class c = Class.forName("${PACKAGE}.${CLASS_NAME}");
+            Class<?> c = Class.forName("${PACKAGE}.${CLASS_NAME}");
 
             java.net.URL[] urls = new java.net.URL[] {
                 c.getProtectionDomain().getCodeSource().getLocation()

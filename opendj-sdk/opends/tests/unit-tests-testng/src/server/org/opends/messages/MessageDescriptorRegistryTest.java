@@ -31,8 +31,6 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 
 import java.util.Set;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -63,8 +61,8 @@ public class MessageDescriptorRegistryTest extends MessagesTestCase
 
   @DataProvider(name = "message classes")
   public Object[][] getMessageClasses() {
-    Set<Class> mdClasses = MessageDescriptorRegistry.getRegisteredClasses();
-    List<Class> classesToTest = new ArrayList<Class>(mdClasses);
+    Set<Class<?>> mdClasses = MessageDescriptorRegistry.getRegisteredClasses();
+    List<Class<?>> classesToTest = new ArrayList<Class<?>>(mdClasses);
 
     // These newer message files don't comply
     classesToTest.remove(AdminToolMessages.class);
@@ -86,7 +84,7 @@ public class MessageDescriptorRegistryTest extends MessagesTestCase
    *         class through reflection
    */
   @Test(dataProvider = "message classes")
-  public void testFormatStringsDontEndWithPeriod(Class messagesClass)
+  public void testFormatStringsDontEndWithPeriod(Class<?> messagesClass)
           throws IllegalAccessException
   {
     Field[] fa = messagesClass.getFields();
@@ -115,10 +113,10 @@ public class MessageDescriptorRegistryTest extends MessagesTestCase
    */
   @Test
   public void testCategoriesDontSpanFiles() {
-    Map<Category,Class> categoriesToClass = new HashMap<Category,Class>();
-    Set categories = EnumSet.allOf(Category.class);
-    Set<Class> msgClasses = MessageDescriptorRegistry.getRegisteredClasses();
-    for (Class msgClass : msgClasses) {
+    Map<Category,Class<?>> categoriesToClass = new HashMap<Category,Class<?>>();
+    Set<?> categories = EnumSet.allOf(Category.class);
+    Set<Class<?>> msgClasses = MessageDescriptorRegistry.getRegisteredClasses();
+    for (Class<?> msgClass : msgClasses) {
       List<MessageDescriptor> mds =
               MessageDescriptorRegistry.getMessageDescriptorsForClass(msgClass);
       Category currentCategory = null;

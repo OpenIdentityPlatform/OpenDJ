@@ -45,7 +45,13 @@ import java.util.IllegalFormatException;
  *
  * @see org.opends.messages.MessageDescriptor
  */
-public class Message implements CharSequence, Formattable, Comparable {
+@org.opends.server.types.PublicAPI(
+    stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate=true,
+    mayExtend=false,
+    mayInvoke=true)
+public final class Message implements CharSequence, Formattable,
+    Comparable<Message> {
 
   /** Represents an empty message string. */
   public static final Message EMPTY = Message.raw("");
@@ -149,10 +155,10 @@ public class Message implements CharSequence, Formattable, Comparable {
   }
 
   /** Descriptor of this message. */
-  protected MessageDescriptor descriptor;
+  private final MessageDescriptor descriptor;
 
   /** Values used to replace argument specifiers in the format string. */
-  protected Object[] args;
+  private final Object[] args;
 
   /**
    * Gets the string representation of this message.
@@ -387,13 +393,9 @@ public class Message implements CharSequence, Formattable, Comparable {
    * @param   o the object to be compared.
    * @return  a negative integer, zero, or a positive integer as this object
    *          is less than, equal to, or greater than the specified object.
-   *
-   * @throws ClassCastException if the specified object's type prevents it
-   *         from being compared to this object.
    */
-  public int compareTo(Object o) throws ClassCastException {
-    Message thatMessage = (Message)o;
-    return toString().compareTo(thatMessage.toString());
+  public int compareTo(Message o) {
+    return toString().compareTo(o.toString());
   }
 
   /**
