@@ -36,6 +36,11 @@ import java.util.EnumSet;
  * server components.  Categories contain an in value that can be
  * used as a mask for bitwise operations.
  */
+@org.opends.server.types.PublicAPI(
+    stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
+    mayInstantiate=false,
+    mayExtend=false,
+    mayInvoke=true)
 public enum Category {
 
   /**
@@ -186,7 +191,7 @@ public enum Category {
     return MASK_VALUE_MAP.get(mask);
   }
 
-  private int mask;
+  private final int mask;
 
   /**
    * Gets the mask value associated with this category.

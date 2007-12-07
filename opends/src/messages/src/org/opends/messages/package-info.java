@@ -39,5 +39,7 @@
  * specifiers that are used to parameterize messages according to the rules of
  * <code>java.util.Formatter</code>.
  */
+@org.opends.server.types.PublicAPI(
+     stability=org.opends.server.types.StabilityLevel.VOLATILE)
 package org.opends.messages;
 
