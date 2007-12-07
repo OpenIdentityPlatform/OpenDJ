@@ -693,7 +693,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsTimeLimit'      : '20' ,
                 'dsBaseDN'         : basedn ,
-                'dsFilter'         : 'mobile=*[0-9][ ][0-9]+[ ]*' ,
+                'dsFilter'         : '(&amp;(uid=*)(mobile=*))' ,
                 }
               </call>
 
@@ -732,7 +732,7 @@
                 'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                 'dsTimeLimit'      : '1' ,
                 'dsBaseDN'         : basedn ,
-                'dsFilter'         : 'mobile=*[0-9][ ][0-9]+[ ]*' ,
+                'dsFilter'         : '(&amp;(uid=*)(mobile=*))' ,
                 'expectedRC'       : 3
                 }
               </call>
