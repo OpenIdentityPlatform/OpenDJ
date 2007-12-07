@@ -4353,7 +4353,7 @@ public class SchemaBackend
         for (AttributeValue v : a.getValues())
         {
           ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(
-              v.getValue(), schema, false);
+              v.getValue(), newSchema, false);
           String schemaFile = newObjectClass.getSchemaFile();
           if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
           {
