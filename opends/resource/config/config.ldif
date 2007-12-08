@@ -492,23 +492,23 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Entry Caches
 
-dn: cn=Soft Reference,cn=Entry Caches,cn=config
-objectClass: top
-objectClass: ds-cfg-entry-cache
-objectClass: ds-cfg-soft-reference-entry-cache
-cn: Soft Reference
-ds-cfg-enabled: false
-ds-cfg-cache-level: 1
-ds-cfg-java-class: org.opends.server.extensions.SoftReferenceEntryCache
-
 dn: cn=FIFO,cn=Entry Caches,cn=config
 objectClass: top
 objectClass: ds-cfg-entry-cache
 objectClass: ds-cfg-fifo-entry-cache
 cn: FIFO
 ds-cfg-enabled: false
-ds-cfg-cache-level: 2
+ds-cfg-cache-level: 1
 ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache
+
+dn: cn=Soft Reference,cn=Entry Caches,cn=config
+objectClass: top
+objectClass: ds-cfg-entry-cache
+objectClass: ds-cfg-soft-reference-entry-cache
+cn: Soft Reference
+ds-cfg-enabled: false
+ds-cfg-cache-level: 2
+ds-cfg-java-class: org.opends.server.extensions.SoftReferenceEntryCache
 
 dn: cn=File System,cn=Entry Caches,cn=config
 objectClass: top
