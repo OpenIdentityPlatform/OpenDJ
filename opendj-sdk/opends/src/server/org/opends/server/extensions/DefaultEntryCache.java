@@ -56,7 +56,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines the default entry cache which acts as an arbiter for
- * every entry cache implemenation configured and installed withhin the
+ * every entry cache implementation configured and installed within the
  * Directory Server or acts an an empty cache if no implementation specific
  * entry cache is configured.  It does not actually store any entries, so
  * all calls to the entry cache public API are routed to underlying entry
