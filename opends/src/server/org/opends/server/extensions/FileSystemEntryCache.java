@@ -96,15 +96,15 @@ import static org.opends.messages.ConfigMessages.*;
  * any file system will do for this cache to function. Entries are maintained
  * either by FIFO (default) or LRU (configurable) based list implementation.
  * <BR><BR>
- * Cache sizing is based on the size or percentage of free space availble in
- * the file system, such that if enough memory is free, then adding an entry
- * to the cache will not require purging, but if more than a specified
- * percentage of the file system available space is already consumed, then
- * one or more entries will need to be removed in order to make room for a
- * new entry.  It is also possible to configure a maximum number of entries
- * for the cache. If this is specified, then the number of entries will not
- * be allowed to exceed this value, but it may not be possible to hold this
- * many entries if the available memory fills up first.
+ * Cache sizing is based on the size of free space available in the file
+ * system, such that if enough memory is free, then adding an entry to the
+ * cache will not require purging, but if more than a specified size of the
+ * file system available space is already consumed, then one or more entries
+ * will need to be removed in order to make room for a new entry. It is also
+ * possible to configure a maximum number of entries for the cache. If this
+ * is specified, then the number of entries will not be allowed to exceed
+ * this value, but it may not be possible to hold this many entries if the
+ * available memory fills up first.
  * <BR><BR>
  * Other configurable parameters for this cache include the maximum length of
  * time to block while waiting to acquire a lock, and a set of filters that may

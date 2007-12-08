@@ -582,7 +582,7 @@ public abstract class EntryCache
 
 
   /**
-   * Retrieves the curent number of entries stored within the cache.
+   * Retrieves the current number of entries stored within the cache.
    *
    * @return  The current number of entries stored within the cache.
    */
@@ -591,7 +591,7 @@ public abstract class EntryCache
 
 
   /**
-   * Retrieves the curent number of cache hits for this cache.
+   * Retrieves the current number of cache hits for this cache.
    *
    * @return  The current number of cache hits for this cache.
    */
@@ -603,7 +603,7 @@ public abstract class EntryCache
 
 
   /**
-   * Retrieves the curent number of cache misses for this cache.
+   * Retrieves the current number of cache misses for this cache.
    *
    * @return  The current number of cache misses for this cache.
    */
