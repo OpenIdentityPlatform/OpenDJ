@@ -83,10 +83,6 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperat
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
-import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
 
@@ -132,7 +128,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     ReplServerFakeConfiguration conf =
       new ReplServerFakeConfiguration(replicationServerPort, null, 0, 1, 0, 0, null);
-    replicationServer = new ReplicationServer(conf);
+    replicationServer = new ReplicationServer(conf);;
   }
 
   private void debugInfo(String s)
@@ -145,6 +141,31 @@ public class ReplicationServerTest extends ReplicationTestCase
   }
 
   /**
+   * The tests in this class only works in a specific order.
+   * This method is used to make sure that this order is always respected.
+   * (Using testng dependency does not work)
+   */
+  @Test(enabled=true)
+  public void replicationServerTest() throws Exception
+  {
+    replicationServer.clearDb();
+    changelogBasic();
+    multipleWriterMultipleReader();
+    newClientLateServer1();
+    newClient();
+    newClientWithFirstChanges();
+    newClientWithChangefromServer1();
+    newClientWithChangefromServer2();
+    newClientWithUnknownChanges();
+    oneWriterMultipleReader();
+    changelogChaining();
+    exportBackend();
+    backupRestore();
+    stopChangelog();
+    windowProbeTest();
+  }
+
+  /**
    * Basic test of the replicationServer code :
    *  Connect 2 clients to the replicationServer and exchange messages
    *  between the clients.
@@ -152,9 +173,9 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Note : Other tests in this file depends on this test and may need to
    *        change if this test is modified.
    */
-  @Test(enabled=true)
-  public void changelogBasic() throws Exception
+  private void changelogBasic() throws Exception
   {
+    replicationServer.clearDb();
     debugInfo("Starting changelogBasic");
     ReplicationBroker server1 = null;
     ReplicationBroker server2 = null;
@@ -273,8 +294,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a new client see the change that was sent in the
    * previous test.
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
-  public void newClient() throws Exception
+  private void newClient() throws Exception
   {
     debugInfo("Starting newClient");
     ReplicationBroker broker = null;
@@ -346,8 +366,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first change now see the
    * second change
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
-  public void newClientWithFirstChanges() throws Exception
+  private void newClientWithFirstChanges() throws Exception
   {
     debugInfo("Starting newClientWithFirstChanges");
     /*
@@ -366,8 +385,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test with a client that has already seen a Change that the
    * ReplicationServer has not seen.
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
-  public void newClientWithUnknownChanges() throws Exception
+  private void newClientWithUnknownChanges() throws Exception
   {
     /*
      * Create a ServerState with wrongChangeNumberServer1
@@ -383,8 +401,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first change from server 1
    * now see the first change from server 2
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
-  public void newClientWithChangefromServer1() throws Exception
+  private void newClientWithChangefromServer1() throws Exception
   {
     /*
      * Create a ServerState updated with the first change from server 1
@@ -399,8 +416,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has already seen the first chaneg from server 2
    * now see the first change from server 1
    */
-  @Test(enabled=false, dependsOnMethods = { "changelogBasic" })
-  public void newClientWithChangefromServer2() throws Exception
+  private void newClientWithChangefromServer2() throws Exception
   {
     /*
      * Create a ServerState updated with the first change from server 1
@@ -415,8 +431,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that a client that has not seen the second change from server 1
    * now receive it.
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
-  public void newClientLateServer1() throws Exception
+  private void newClientLateServer1() throws Exception
   {
     /*
      * Create a ServerState updated with the first change from server 1
@@ -432,15 +447,14 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that newClient() and newClientWithFirstChange() still works
    * after stopping and restarting the replicationServer.
    */
-  @Test(enabled=true, dependsOnMethods = { "changelogBasic" })
-  public void stopChangelog() throws Exception
+  private void stopChangelog() throws Exception
   {
     replicationServer.remove();
     configure();
-    //newClient();
+    newClient();
     newClientWithFirstChanges();
     newClientWithChangefromServer1();
-    //newClientWithChangefromServer2();
+    newClientWithChangefromServer2();
   }
 
   /**
@@ -453,8 +467,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test i sconfigured by a relatively low stress
    * but can be changed using TOTAL_MSG and CLIENT_THREADS consts.
    */
-  @Test(enabled=true, groups="slow")
-  public void oneWriterMultipleReader() throws Exception
+  private void oneWriterMultipleReader() throws Exception
   {
     ReplicationBroker server = null;
     int TOTAL_MSG = 1000;     // number of messages to send during the test
@@ -535,8 +548,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is sconfigured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test(enabled=true, groups="slow")
-  public void multipleWriterMultipleReader() throws Exception
+  private void multipleWriterMultipleReader() throws Exception
   {
     ReplicationBroker server = null;
     final int TOTAL_MSG = 1000;   // number of messages to send during the test
@@ -610,8 +622,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * - Check that client 2 receives the changes published by client 1
    *
    */
-  @Test(enabled=true)
-  public void changelogChaining() throws Exception
+  private void changelogChaining() throws Exception
   {
     for (int itest = 0; itest <2; itest++)
     {
@@ -800,8 +811,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that the Replication sends back correctly WindowsUpdate
    * when we send a WindowProbe.
    */
-  @Test(enabled=true)
-  public void windowProbeTest() throws Exception
+  private void windowProbeTest() throws Exception
   {
     final int WINDOW = 10;
     /*
@@ -999,8 +1009,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   /*
    * Test backup and restore of the Replication server backend
    */
-   @Test(enabled=true)
-   public void backupRestore() throws Exception
+   private void backupRestore() throws Exception
    {
      debugInfo("Starting backupRestore");
 
@@ -1023,8 +1032,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Launch a full export
     * - Launch a partial export on one of the 2 domains
     */
-    @Test(enabled=true)
-    public void exportBackend() throws Exception
+    private void exportBackend() throws Exception
     {
       debugInfo("Starting exportBackend");
 
@@ -1227,8 +1235,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * Testing searches on the backend of the replication server.
     * @throws Exception
     */
-   @Test(enabled=false)
-   public void searchBackend() throws Exception
+   private void searchBackend() throws Exception
    {
      debugInfo("Starting searchBackend");
 
@@ -1237,7 +1244,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          new ASN1OctetString("cn=monitor"),
          SearchScope.WHOLE_SUBTREE,
          LDAPFilter.decode("(objectclass=*)"));
-     assertEquals(op2.getResultCode(), ResultCode.SUCCESS, 
+     assertEquals(op2.getResultCode(), ResultCode.SUCCESS,
          op2.getErrorMessage().toString());
 
      replicationServer.clearDb();
@@ -1285,12 +1292,13 @@ public class ReplicationServerTest extends ReplicationTestCase
      DN baseDN=DN.decode("dc=replicationChanges");
      //Test the group membership control causes search to be skipped.
      InternalSearchOperation internalSearch =
-             new InternalSearchOperation(conn, conn.nextOperationID(),
-                                         conn.nextMessageID(), requestControls,
-                                         baseDN,
-                                         SearchScope.WHOLE_SUBTREE,
-                                         DereferencePolicy.NEVER_DEREF_ALIASES,
-                                         0, 0, false, filter, null, null);
+             new InternalSearchOperation(
+                 conn, InternalClientConnection.nextOperationID(),
+                 InternalClientConnection.nextMessageID(), requestControls,
+                 baseDN,
+                 SearchScope.WHOLE_SUBTREE,
+                 DereferencePolicy.NEVER_DEREF_ALIASES,
+                 0, 0, false, filter, null, null);
      internalSearch.run();
      assertTrue(internalSearch.getResultCode() == ResultCode.SUCCESS);
      assertTrue(internalSearch.getSearchEntries().isEmpty());
@@ -1405,16 +1413,16 @@ public class ReplicationServerTest extends ReplicationTestCase
      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
      assertEquals(op.getSearchEntries().size(), 5);
 
-     
+
      if (server1 != null)
        server1.stop();
 
      debugInfo("Successfully ending searchBackend");
    }
 
-   private static final ByteArrayOutputStream oStream = 
+   private static final ByteArrayOutputStream oStream =
      new ByteArrayOutputStream();
-   private static final ByteArrayOutputStream eStream = 
+   private static final ByteArrayOutputStream eStream =
      new ByteArrayOutputStream();
 
    private void testReplicationBackendACIs()
@@ -1438,7 +1446,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      debugInfo("Entries:" + entries);
      assertEquals(0, retVal,  "Returned error: " + eStream);
      assertEquals(entries, "",  "Returned entries: " + entries);
-       
+
      // test search as directory manager returns content
      String[] args3 =
      {
@@ -1460,7 +1468,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      debugInfo("Entries:" + entries);
      assertEquals(0, retVal,  "Returned error: " + eStream);
      assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
-     
+
      // test write fails : unwilling to perform
      try
      {
@@ -1480,7 +1488,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            "-f", path
        };
 
-       retVal = 
+       retVal =
          LDAPModify.mainModify(args4, false, oStream, eStream);
        assertEquals(retVal, 53, "Returned error: " + eStream);
      } catch(Exception e) {}

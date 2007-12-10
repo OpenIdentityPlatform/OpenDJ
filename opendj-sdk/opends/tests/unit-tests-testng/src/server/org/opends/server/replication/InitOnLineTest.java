@@ -1135,7 +1135,7 @@ public class InitOnLineTest extends ReplicationTestCase
     changelog1 = null;
   }
   
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void initializeTargetExportMultiSS() throws Exception
   {
     try
