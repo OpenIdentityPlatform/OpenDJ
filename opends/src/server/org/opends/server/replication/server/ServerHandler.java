@@ -53,7 +53,6 @@
 package org.opends.server.replication.server;
 
 import org.opends.messages.*;
-import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -73,6 +72,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -166,6 +166,11 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    * The thread that will send heartbeats.
    */
   HeartbeatThread heartbeatThread = null;
+
+  /**
+   * Set when ServerHandler is stopping.
+   */
+  private boolean shutdown = false;
 
   private static final Map<ChangeNumber, ReplServerAckMessageList>
    changelogsWaitingAcks =
@@ -1012,13 +1017,13 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     do {
       try
       {
-        sendWindow.acquire();
+        sendWindow.tryAcquire((long)500, TimeUnit.MILLISECONDS);
         interrupted = false;
       } catch (InterruptedException e)
       {
         // loop until not interrupted
       }
-    } while (interrupted);
+    } while ((interrupted) && (!shutdown));
     this.incrementOutCount();
     return msg;
   }
@@ -1504,6 +1509,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public void shutdown()
   {
+    shutdown  = true;
     try
     {
       session.close();
