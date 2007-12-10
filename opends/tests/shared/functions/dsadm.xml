@@ -555,7 +555,6 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
        </function-arg-def>
-          
       <function-arg-def name="extraParams" type="optional" default="''">
         <function-arg-description>
           Optional extra parameters for specific test cases
@@ -566,15 +565,15 @@
     
   
     <sequence>
-    
+   
       <!-- Build the Command -->
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
 
         if dsPath:
-          dsBinPath='%s/%s' % (dsPath,fileFolder) 
-          STAFCmd='%s/stop-ds%s' % (dsBinPath,fileExt)
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/stop-ds%s ' % (dsBinPath,fileExt)
                   
         if dsHost:
           STAFCmdParamsList.append('-h %s' % dsHost)
@@ -590,7 +589,7 @@
         
         if dsBindPwdFile:
           STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
-
+       
         STAFCmdParamsList.append('-R')
         
         STAFCmdParams=' '.join(STAFCmdParamsList)
@@ -679,7 +678,7 @@
         </script>
   
       <message>
-        '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
+        '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,aParams)
       </message>
       <call function="'runCommand'">
         { 'location'  : location,
@@ -1481,6 +1480,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>        
+	<function-arg-def name="expectedRC" type="optional" default="0">
+	<function-arg-description>
+	  Expected return code value. Default value is 0
+	</function-arg-description>
+	<function-arg-property name="type" value="integer"/>
+	</function-arg-def>
+ 
     </function-map-args>
 
     <sequence>
@@ -1834,6 +1840,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>             
+      	<function-arg-def name="expected" type="optional" default="0">
+	<function-arg-description>
+	  the expected return code
+	</function-arg-description>
+	<function-arg-property name="type" value="integer"/>
+	</function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -1885,7 +1897,7 @@
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
           'result'     : STAXReason,
-          'expected'   : expectedRC
+          'expected'   : expected
         }
       </call>
       <return>
@@ -2142,7 +2154,13 @@
           Start time for task
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-      </function-arg-def>         
+      </function-arg-def>        
+	<function-arg-def name="expectedRC" type="optional" default="0">
+	<function-arg-description>
+	  Expected return code value. Default value is 0
+	</function-arg-description>
+	<function-arg-property name="type" value="integer"/>
+	</function-arg-def>      
     </function-map-args>
     <sequence>
 
