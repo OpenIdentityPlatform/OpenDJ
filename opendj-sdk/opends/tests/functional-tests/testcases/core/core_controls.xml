@@ -27,23 +27,23 @@
  ! -->
 
 <stax>
-
+  
   <defaultcall function="core_controls"/>
-
+  
   <function name="core_controls">
-
+  
     <sequence>
-
+      
       <block name="'controls'">
       
         <sequence>
-  
+          
           <script>
             if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='core'              
+              CurrentTestPath['group']='core'
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
-                      
+          
           <call function="'testSuite_Preamble'"/>
           
           <import machine="STAF_LOCAL_HOSTNAME"
@@ -52,36 +52,46 @@
           
           <!--- Test Suite information
           #@TestSuiteName       Core Controls 
-          #@TestSuitePurpose    Verify that the controls functionality is working in the Directory Server.
+          #@TestSuitePurpose    Verify that the controls functionality is 
+                                working in the Directory Server.
           #@TestSuiteID         Controls Tests
           #@TestSuiteGroup      Controls
           #@TestGroup           Core
           #@TestScript          core_controls.xml
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
-
-                 
+          
+          
           <!--- Test Case information
           #@TestMarker          Core Controls Tests
           #@TestName            Core: Controls: Force Change on Add
           #@TestID              Core: Controls:
-          #@TestPurpose         Verify the pwpolicy control is returned in the ldapsearch
-                                when the password policy is changed to force-change-on-add.
+          #@TestPurpose         Verify the pwpolicy control is returned in the
+                                ldapsearch when the password policy is changed
+                                to force-change-on-add.
           #@TestPreamble
-          #@TestSteps           modify the Default Password Policy, using dsconfig, to set 
-                                force-change-on-add to true.  Next add a new user and do an
-                                ldapsearch of that user using the verbose flag. The search will 
-                                fail with a LDAP_CONSTRAINT_VIOLATION. Next do a substring search 
-                                of the output and look for the control's OID 1.3.6.1.4.1.42.2.27.8.5.1.
-                                Lastly, reset the password policy.
+          #@TestSteps           modify the Default Password Policy, using
+                                dsconfig, to set force-change-on-add to true.
+          #@TestSteps           Next add a new user and do an ldapsearch of
+                                that user using the verbose flag. The search
+                                will fail with a LDAP_CONSTRAINT_VIOLATION.
+          #@TestSteps           Next do a substring search of the output and
+                                look for the control's OID 
+                                1.3.6.1.4.1.42.2.27.8.5.1.
+          #@TestSteps           Lastly, reset the password policy.
           #@TestPostamble
           #@TestResult
           -->
-            
+          
+          <!-- Global variables -->
+          <script>
+            peopleDn = 'ou=People,o=core tests,dc=example,dc=com'
+          </script>
+          
           <testcase name="getTestCaseName('Force Change on Add')">
-    
+            
             <sequence>
-    
+              
               <call function="'testCase_Preamble'"/>
               
               <call function="'modifyPwdPolicy'">
@@ -99,26 +109,27 @@
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/control1.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded' : '%s/core/ldifs/control1.ldif' % 
+                                     logsRemoteDataDir }
               </call>
-
-                  
+              
+              
               <call function="'ldapSearchWithScript'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                   'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-                  'dsInstanceDn'     : 'uid=test.user1,ou=People,o=core tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=test.user1,%s' % peopleDn ,
                   'dsInstancePswd'   : 'password' ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : peopleDn ,
                   'dsControl'        : 'pwpolicy',
                   'dsVerbose'        : 'True',
                   'dsFilter'         : 'uid=test.user1' ,
-                  'expectedRC'       : 19 }       
+                  'expectedRC'       : 19 }
               </call>
               
-              <script> 
-                 returnString = STAXResult[0][1]
+              <script>
+                returnString = STAXResult[0][1]
               </script>
-                            
+              
               <!-- looking for password policy control oid -->
               <call function="'searchStringForSubstring'">
                 { 'returnString'       : returnString ,
@@ -138,32 +149,37 @@
               </call>
               
               <call function="'testCase_Postamble'"/>
-    
+              
             </sequence>
-    
+            
           </testcase>
-                           
+          
           <!--- Test Case information
           #@TestMarker          Core Controls Tests
           #@TestName            Core: Controls: Lockout Failure Count
           #@TestID              Core: Controls:
-          #@TestPurpose         Verify the pwpolicy control is returned in the ldapsearch
-                                when the password policy lockout-failure-count is changed to 3
-                                allowing for only three tries using a bad password.
+          #@TestPurpose         Verify the pwpolicy control is returned in the
+                                ldapsearch when the password policy 
+                                lockout-failure-count is changed to 3, allowing
+                                for only three tries using a bad password.
           #@TestPreamble
-          #@TestSteps           modify the Default Password Policy, using dsconfig, to set 
-                                lockout-failure-count to 3.  Next add a new user and do three
-                                ldapsearchs of that user suppling bad passwords, and using the verbose flag. 
-                                The search will fail with a LDAP_INVALID_CREDENTIALS. Next do a substring search 
-                                of the output and look for the control's OID 1.3.6.1.4.1.42.2.27.8.5.1.
+          #@TestSteps           modify the Default Password Policy, using 
+                                dsconfig, to set lockout-failure-count to 3.
+          #@TestSteps           Next add a new user and do three
+                                ldapsearchs of that user suppling bad passwords
+                                , and using the verbose flag. The search will 
+                                fail with a LDAP_INVALID_CREDENTIALS.
+          #@TestSteps           Next do a substring search of the output and 
+                                look for the control's OID 
+                                1.3.6.1.4.1.42.2.27.8.5.1.
           #@TestPostamble
           #@TestResult
           -->
-            
+          
           <testcase name="getTestCaseName('Lockout Failure Count')">
-    
+            
             <sequence>
-    
+              
               <call function="'testCase_Preamble'"/>
               
               <call function="'modifyPwdPolicy'">
@@ -181,24 +197,25 @@
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/control2.ldif' % logsRemoteDataDir }
+                  'entryToBeAdded' : '%s/core/ldifs/control2.ldif' 
+                                     % logsRemoteDataDir }
               </call>
               
               <script>
-                  search_pwds = ['bad', 'bad', 'bad']
+                search_pwds = ['bad', 'bad', 'bad']
               </script>
-                          
-              <iterate var="pwds" in="search_pwds" indexvar="index">  
+              
+              <iterate var="pwds" in="search_pwds" indexvar="index">
                 <call function="'ldapSearchWithScript'">
                   { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
                     'dsControl'        : 'pwpolicy',
                     'dsVerbose'        : 'True',
-                    'dsInstanceDn'     : 'uid=test.user2,ou=People,o=core tests,dc=example,dc=com' ,
+                    'dsInstanceDn'     : 'uid=test.user2,%s' % peopleDn ,
                     'dsInstancePswd'   : '%s' % pwds ,
-                    'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
+                    'dsBaseDN'         : peopleDn ,
                     'dsFilter'         : 'uid=test.user2' ,
-                    'expectedRC'       : 49 }       
+                    'expectedRC'       : 49 }
                 </call>
               </iterate>
               
@@ -207,11 +224,11 @@
                   'dsInstancePort'             : DIRECTORY_INSTANCE_PORT ,
                   'dsUsePasswordPolicyControl' : 'True',
                   'dsVerbose'        : 'True',
-                  'dsInstanceDn'     : 'uid=test.user2,ou=People,o=core tests,dc=example,dc=com' ,
+                  'dsInstanceDn'     : 'uid=test.user2,%s' % peopleDn ,
                   'dsInstancePswd'   : 'password' ,
-                  'dsBaseDN'         : 'ou=People,o=core tests,dc=example,dc=com' ,
+                  'dsBaseDN'         : peopleDn ,
                   'dsFilter'         : 'uid=test.user2' ,
-                  'expectedRC'       : 49 }       
+                  'expectedRC'       : 49 }
               </call>
               
               <script> 
@@ -226,21 +243,21 @@
               </call>
               
               <call function="'testCase_Postamble'"/>
-    
+              
             </sequence>
-    
+            
           </testcase>
           
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
-          <call function="'core_cleanup'" />                 
-                
+          <call function="'core_cleanup'" />
+          
           <call function="'testSuite_Postamble'"/>
-  
+          
         </sequence>
         
       </block>
-                  
+      
     </sequence>
     
   </function>

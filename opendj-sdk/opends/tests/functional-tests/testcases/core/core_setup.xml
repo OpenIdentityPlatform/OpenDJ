@@ -85,7 +85,8 @@
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/core_start.ldif' % logsRemoteDataDir
+                  'entryToBeAdded' : '%s/core/ldifs/core_start.ldif'
+                                     % logsRemoteDataDir
                 }
               </call>
               <call function="'checkRC'">
@@ -94,14 +95,16 @@
                 }
               </call>
               <message>
-                'Add 1000 extra entries that are required for some of the Core Tests'
+                'Add 1000 extra entries that are required for some of the \
+                Core Tests'
               </message>
               <call function="'addEntry'">
                 { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                   'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'entryToBeAdded' : '%s/core/ldifs/core_test_1K.ldif' % logsRemoteDataDir
+                  'entryToBeAdded' : '%s/core/ldifs/core_test_1K.ldif'
+                                     % logsRemoteDataDir
                 }
               </call>
               <call function="'checkRC'">
