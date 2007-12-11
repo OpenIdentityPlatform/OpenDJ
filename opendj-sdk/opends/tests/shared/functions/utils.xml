@@ -1430,6 +1430,12 @@
           The duration that the process is allowed to run
         </function-arg-description>
       </function-arg-def>      
+      <function-arg-def name="verbose" default="False" type="optional">
+        <function-arg-description>
+          A boolean (use True or False here, case matters) to output the 
+          outputs of the command
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <script>
@@ -1461,9 +1467,11 @@
           </process>
       </block>
       
-      <message level="'info'">
-        '%s: Command returned:\n%s' % (_id,STAXResult[0][1])
-      </message>
+      <if expr="verbose == True">
+        <message level="'info'">
+          '%s: Command returned:\n%s' % (_id,STAXResult[0][1])
+        </message>
+      </if>
       <script>
         def dig(var):
           try:

@@ -83,8 +83,14 @@
         <function-arg-description>
           Expected return code value. Default value is 0
         </function-arg-description>
-        <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="verbose" type="optional" default="False">
+        <function-arg-description>
+          Display (or not) output. Default is True
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -117,10 +123,11 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       <call function="'runCommand'">
-        { 'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'location'  : mylocation,
-          'name'      : 'Add Entry From LDIF'
+        { 'command'     : STAFCmd,
+          'arguments'   : STAFCmdParams,
+          'location'    : mylocation,
+          'name'        : 'Add Entry From LDIF',
+          'verbose'     : verbose
         }
       </call>
       <script>
