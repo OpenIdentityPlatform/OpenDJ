@@ -1085,15 +1085,6 @@ public class SchemaBackend
       Modification m = iterator.next();
       pos++;
 
-      if (m.isInternal())
-      {
-        // We don't need to do anything for internal modifications (e.g., like
-        // those that set modifiersName and modifyTimestamp).
-        iterator.remove();
-        continue;
-      }
-
-
       // Determine the type of modification to perform.  We will support add and
       // delete operations in the schema, and we will also support the ability
       // to add a schema element that already exists and treat it as a
@@ -1470,7 +1461,8 @@ public class SchemaBackend
 
 
         default:
-          if (!modifyOperation.isSynchronizationOperation())
+          if ((!m.isInternal()) &&
+              (!modifyOperation.isSynchronizationOperation()))
           {
             Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
                 String.valueOf(m.getModificationType()));
