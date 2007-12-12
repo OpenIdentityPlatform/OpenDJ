@@ -59,11 +59,6 @@
               <call function="'StartDsWithScript'">
                { 'location'  : STAF_REMOTE_HOSTNAME }
               </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 { 'noOfLoops'        : 5 ,
@@ -89,11 +84,6 @@
                                      % logsRemoteDataDir
                 }
               </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
-                }
-              </call>
               <message>
                 'Add 1000 extra entries that are required for some of the \
                 Core Tests'
@@ -105,11 +95,6 @@
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'entryToBeAdded' : '%s/core/ldifs/core_test_1K.ldif'
                                      % logsRemoteDataDir
-                }
-              </call>
-              <call function="'checkRC'">
-                { 'returncode' : RC ,
-                  'result'     : STAXResult
                 }
               </call>
             </sequence>
