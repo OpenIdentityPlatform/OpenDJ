@@ -678,7 +678,7 @@
         </script>
   
       <message>
-        '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,aParams)
+        '%s/import-ldif%s -l %s -n %s %s' % (dsBinPath,fileExt,ldifFile,backEnd,extraParams)
       </message>
       <call function="'runCommand'">
         { 'location'  : location,
@@ -1479,13 +1479,13 @@
           Start time for task
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-      </function-arg-def>        
-	<function-arg-def name="expectedRC" type="optional" default="0">
-	<function-arg-description>
-	  Expected return code value. Default value is 0
-	</function-arg-description>
-	<function-arg-property name="type" value="integer"/>
-	</function-arg-def>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
  
     </function-map-args>
 
@@ -1840,12 +1840,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>             
-      	<function-arg-def name="expected" type="optional" default="0">
-	<function-arg-description>
-	  the expected return code
-	</function-arg-description>
-	<function-arg-property name="type" value="integer"/>
-	</function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+	    </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -1897,7 +1897,7 @@
       <call function="'checktestRC'">
         { 'returncode' : STAXCode ,
           'result'     : STAXReason,
-          'expected'   : expected
+          'expected'   : expectedRC
         }
       </call>
       <return>
@@ -2155,12 +2155,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>        
-	<function-arg-def name="expectedRC" type="optional" default="0">
-	<function-arg-description>
-	  Expected return code value. Default value is 0
-	</function-arg-description>
-	<function-arg-property name="type" value="integer"/>
-	</function-arg-def>      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>      
     </function-map-args>
     <sequence>
 
