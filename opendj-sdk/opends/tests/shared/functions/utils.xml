@@ -1117,20 +1117,36 @@
       <script>
         testlogfh=open(logfile,'w')
       </script>
-           
-      <iterate var="element" in="queryresult">
-        <script>
-          level=element['level'] 
-          message=element['message']
-          timestamp=element['timestamp']
-
-          testlogfh.write('%s %s %s\n' % (timestamp,level,message))
-        </script>
-
-      </iterate>
-
+      
+      <if expr="queryresult == '[]'">
+        <sequence>
+          <script>
+            output1 = 'queryresult is empty'
+            output2 = 'check the date between the OS, the logs'
+            output3 = 'and the local time zone'
+            output  = '%s %s %s' % (output1,output2,output3)
+          </script>
+           <call function="'checktestRC'">
+            { 'returncode' : '1' ,
+              'result'     : output,
+              'expected'   : '0' }
+          </call>
+        </sequence>
+      <else>
+        <iterate var="element" in="queryresult">
+          <script>
+            level=element['level'] 
+            message=element['message']
+            timestamp=element['timestamp']
+            
+            testlogfh.write('%s %s %s\n' % (timestamp,level,message))
+          </script>
+        </iterate>
+      </else>
+      </if>
+      
       <script>testlogfh.close()</script>
-
+      
     </sequence>
 
   </function>
