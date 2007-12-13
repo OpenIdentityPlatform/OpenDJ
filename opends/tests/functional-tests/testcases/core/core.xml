@@ -34,13 +34,26 @@
           CurrentTestPath['group']='core'
         </script>
         <call function="'testGroup_Preamble'" />
-        <iterate var="_test" in="['core_entry_cache','core_search_sizelimit','core_tf_filters','core_version_report','core_controls']">
+        <script>
+          testList = []
+          testList.append(['.','core_entry_cache'])
+          testList.append(['.','core_search_sizelimit'])
+          testList.append(['.','core_tf_filters'])
+          testList.append(['.','core_version_report'])
+          testList.append(['controls','core_ctrls_password_policy'])
+          testList.append(['controls','core_ctrls_authorization_id'])
+          #testList.append(['controls','core_ctrls_assertion'])
+        </script>
+        <iterate var="_test" in="testList">
           <sequence>
             <import machine="STAF_LOCAL_HOSTNAME"
-                    file="'%s/testcases/core/%s.xml' % (TESTS_DIR,_test)" />
-            <call function="'%s' % _test" />
+                    file="'%s/testcases/core/%s/%s.xml' % 
+                    (TESTS_DIR,_test[0],_test[1])"/>
+            <call function="'%s' % _test[1]" />
           </sequence>
         </iterate>
+        
+        
         <call function="'testGroup_Postamble'" />
       </sequence>
     </block>
