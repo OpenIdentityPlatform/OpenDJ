@@ -52,7 +52,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.extensions.EntryUUIDirtualAttributeProvider
+          org.opends.server.extensions.EntryUUIDVirtualAttributeProvider
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
