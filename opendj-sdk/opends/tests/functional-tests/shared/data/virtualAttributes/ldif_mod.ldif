@@ -1,0 +1,5 @@
+dn: uid=user_01,ou=people1,dc=virtualAttributes,dc=com
+changetype: modify
+replace: telexNumber
+telexNumber: 123456789
+
