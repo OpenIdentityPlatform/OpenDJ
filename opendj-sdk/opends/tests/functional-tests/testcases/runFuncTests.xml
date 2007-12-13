@@ -118,10 +118,9 @@
       <!--
       add keyword 'main_tasks' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
-<!--
+
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/virtualAttributes/virtualAttributes.xml' % (TESTS_DIR)" />
--->
       <!--
       add keyword 'main_virtualAttributes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
