@@ -708,6 +708,28 @@ public class ADSContext
         SearchResult sr = (SearchResult)ne.next();
         Map<ServerProperty,Object> properties =
           makePropertiesFromServerAttrs(sr.getAttributes());
+        Object keyId = properties.get(ServerProperty.INSTANCE_KEY_ID);
+        if (keyId != null)
+        {
+          try
+          {
+            SearchControls sc1 = new SearchControls();
+
+            sc1.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+            final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
+            sc1.setReturningAttributes(attrIDs);
+            SearchResult certEntry =
+              dirContext.search(getInstanceKeysContainerDN(),
+              "(ds-cfg-key-id="+keyId+")", sc).next();
+            Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
+            properties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
+                certAttr.get());
+          }
+          catch (NameNotFoundException x)
+          {
+            LOG.log(Level.WARNING, "Could not find public key for "+properties);
+          }
+        }
         result.add(properties);
       }
     }
