@@ -1170,9 +1170,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="caseSensitive" type="optional" default="'true'">
+      <function-arg-def name="caseSensitive" type="optional" default="True">
         <function-arg-description>
-          comparison using case sensitive, or not value is : true/false
+          comparison using case sensitive, or not value is : True/False
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -1188,7 +1188,7 @@
       <script>
         caseSensitiveInfo = '[case sensitive mode]'
         
-        if caseSensitive == 'false':
+        if caseSensitive == False:
           string2find = string2find.lower()
           mainString = mainString.lower()
           caseSensitiveInfo = '[case insensitive mode]'
