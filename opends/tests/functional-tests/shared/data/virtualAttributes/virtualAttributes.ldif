@@ -1,0 +1,114 @@
+dn: dc=com
+objectclass: top
+objectclass: domain
+dc: com
+aci: (target="ldap:///dc=virtualAttributes,dc=com")(targetattr = "*")(version 3.0;acl "access for application";
+ allow (all)(userdn = "ldap:///uid=my_application,dc=virtualAttributes,dc=com");)
+
+dn: dc=virtualAttributes,dc=com
+objectclass: top
+objectclass: domain
+dc: virtualAttributes
+
+dn: ou=people1,dc=virtualAttributes,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: people1
+
+dn: ou=people2,dc=virtualAttributes,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: people2
+
+dn: uid=my_application,dc=virtualAttributes,dc=com
+uid: my_application
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: my_application
+sn: sn of my_application
+description: this is the description of my_application
+userPassword: pw_my_application
+
+dn: cn=my_staticgroup1,dc=virtualAttributes,dc=com
+cn: my_staticgroup1
+objectclass: top
+objectclass: groupofuniquenames
+description: this is the description of my_staticgroup1
+uniquemember: uid=user_01,ou=people1,dc=virtualAttributes,dc=com
+uniquemember: uid=user_02,ou=people1,dc=virtualAttributes,dc=com
+uniquemember: uid=user_03,ou=people1,dc=virtualAttributes,dc=com
+
+dn: cn=my_dynamicgroup1,dc=virtualAttributes,dc=com
+cn: my_dynamicgroup1
+objectclass: top
+objectclass: groupofurls
+description: this is the description of my_dynamicgroup1
+memberurl: ldap:///ou=people2,dc=virtualAttributes,dc=com??sub?(&(objectclass=person)(uid=*2*))
+
+dn: uid=user_01,ou=people1,dc=virtualAttributes,dc=com
+uid: user_01
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_01
+sn: sn of user user_01
+description: this is the description of user_01
+userPassword: pw_01
+l: TOWN_7
+
+dn: uid=user_02,ou=people1,dc=virtualAttributes,dc=com
+uid: user_02
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_02
+sn: sn of user user_02
+description: this is the description of user_02
+userPassword: pw_02
+l: TOWN_1
+
+dn: uid=user_03,ou=people1,dc=virtualAttributes,dc=com
+uid: user_03
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_03
+sn: sn of user user_03
+description: this is the description of user_03
+userPassword: pw_03
+l: TOWN_3
+
+dn: uid=user_04,ou=people2,dc=virtualAttributes,dc=com
+uid: user_04
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_04
+sn: sn of user user_04
+description: this is the description of user_04
+userPassword: pw_04
+l: TOWN_7
+
+dn: uid=user_05,ou=people2,dc=virtualAttributes,dc=com
+uid: user_05
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_05
+sn: sn of user user_05
+description: this is the description of user_05
+userPassword: pw_05
+l: TOWN_5
+
+dn: uid=user_06,ou=people2,dc=virtualAttributes,dc=com
+uid: user_06
+objectclass: top
+objectclass: person
+objectclass: inetOrgPerson
+cn: user_06
+sn: sn of user user_06
+description: this is the description of user_06
+userPassword: pw_06
+l: TOWN_4
+

@@ -1,0 +1,1043 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+  
+  <defaultcall function="main_virtualAttributes_cos"/>
+  
+  <function name="main_virtualAttributes_cos">
+  
+    <sequence>
+    
+      <block name="'virtualAttributes_cos'">
+      
+        <sequence>
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='virtualAttributes'
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          
+          <!-- GLOBAL VARIABLES -->
+          <script>
+            applicationDn='uid=my_application,dc=virtualAttributes,dc=com'
+            applicationPswd='pw_my_application'
+            staticGroupDn='cn=my_staticgroup,dc=virtualAttributes,dc=com'
+            
+            virtualAttributesDn='dc=virtualAttributes,dc=com'
+            
+            people1Dn='ou=people1,%s' % virtualAttributesDn
+            
+            user1='user_01'
+            user1Dn='uid=%s,%s' % (user1,people1Dn)
+            user1Pswd='pw_01'
+            
+            people2Dn='ou=people2,%s' % virtualAttributesDn
+            
+            user4='user_04'
+            user4Dn='uid=%s,%s' % (user4,people2Dn)
+            user4Pswd='pw_04'
+          </script>
+          
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          
+          <!--- Test Suite information
+          #@TestSuiteName       virtual attributes test suite
+          #@TestSuitePurpose    COS (user defined virtual attributes) Tests
+          #@TestSuiteGroup      COS (user defined virtual attributes)
+          #@TestScript          virtualAttributes_cos.xml
+          -->
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/virtualAttributes/virtualAttributes_setup.xml'
+            % (TESTS_DIR)"/>
+          
+          <call function="'virtualAttributes_setup'">
+          { 'startDS' : True }
+          </call>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: COS for all the DIT
+          #@TestPurpose         check cos defined in top on the tree
+          #@TestPreamble        create a cos
+          #@TestSteps           check it is available on entry
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos for all the DIT')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr1'
+                attributeName = 'manager'
+                attributeValue = 'John Doe'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                myOptions = '%s %s %s %s %s' % (arg1,arg2,arg3,arg4,arg5)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ check user defined virtual attribute created \
+                is listed by dsconfig'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'list-virtual-attributes',
+                'expectedRC'     : 0
+              }
+              </call>
+              <call function="'CheckMatches'">
+                { 'string2find' : cosName,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user entry which \
+                should have now %s attribute' % attributeName
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search return value : %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+
+
+              <!-- ========================================= -->
+              <message>
+                '++++ change user defined virtual attribute value'
+              </message>
+              <script>
+                attributeValue2 = 'Elvis'
+                arg1 = '--attribute-name %s' % cosName
+                arg2 = '--set value:"%s"' % attributeValue2
+                myOptions = '%s %s' % (arg1,arg2)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-virtual-attribute-prop',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user entry which \
+                should have new value for %s attribute' % attributeName
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search return value : %s' % attributeValue2
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue2,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: COS for a subtree
+          #@TestPurpose         check cos defined in a subtree on the tree
+          #@TestPreamble        create a cos
+          #@TestSteps           check it is available under the subtree
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos for a subtree')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr2'
+                attributeName = 'carLicense'
+                attributeValue = '1234XZ38'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % people1Dn
+                myOptions = '%s %s %s %s %s' % (arg1,arg2,arg3,arg4,arg5)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ check user defined virtual attribute created \
+                is listed by dsconfig'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'list-virtual-attributes',
+                'expectedRC'     : 0
+              }
+              </call>
+              <call function="'CheckMatches'">
+                { 'string2find' : cosName,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user entry which \
+                should have now %s attribute (entry under the subtree %s)'\
+                % (attributeName,people1Dn)
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search return value : %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user entry which \
+                should NOT have  %s attribute (entry under the subtree %s)'\
+                % (attributeName,people2Dn)
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user4Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search do not return value : %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: should be readonly attribute
+          #@TestPurpose         check cos attribute can not be modified by
+                                ldapmodify CLI
+          #@TestPreamble        create a cos
+          #@TestSteps           check it is in readonly
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos should be readonly attribute')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr3'
+                attributeName = 'telexNumber'
+                attributeValue = '987654321'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                myOptions = '%s %s %s %s %s' % (arg1,arg2,arg3,arg4,arg5)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user entry which \
+                should NOT have  %s attribute (entry under the subtree %s)'\
+                % (attributeName,people2Dn)
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search return value %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a modify on user entry which \
+                should have now %s attribute (should fail)' % attributeName
+              </message>
+              <call function="'ldapModifyWithScript'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : applicationDn,
+                'dsInstancePswd' : applicationPswd,
+                'dsFilename'     : '%s/virtualAttributes/ldif_mod.ldif' \
+                                   % logsRemoteDataDir,
+                'expectedRC'     : 21
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: enable/disable COS
+          #@TestPurpose         check cos enable property
+          #@TestPreamble        create a cos
+          #@TestSteps           enable/disable the cos
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos: enable/disable')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr4'
+                attributeName  = 'carLicense'
+                attributeValue = '6541RT38'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute (disabled)'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:false'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                myOptions = '%s %s %s %s %s' % (arg1,arg2,arg3,arg4,arg5)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search do not return %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 0
+                }
+              </call>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Enable user defined virtual attribute'
+              </message>
+              <script>
+                myOptions = '--attribute-name %s --set enabled:true' % cosName
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-virtual-attribute-prop',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search return %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: virtual-overrides-real
+          #@TestPurpose         check cos conflict-behavior property
+          #@TestPreamble        create a cos
+          #@TestSteps           check conflict-behavior=virtual-overrides-real
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos: virtual-overrides-real')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr5'
+                attributeName  = 'description'
+                attributeValue = 'new_desc_for_testcase'
+                descDefaultValue = 'this is the description of'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute with \
+                conflict-behavior prop set to virtual-overrides-real'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                arg6 = '--set conflict-behavior:virtual-overrides-real'
+                myOptions='%s %s %s %s %s %s'%(arg1,arg2,arg3,arg4,arg5,arg6)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <script>
+                ldapsearchReturn = STAXResult[0][1]
+              </script>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search do not return %s' % descDefaultValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % descDefaultValue,
+                'mainString'    : ldapsearchReturn,
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search return virtualattribute %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : ldapsearchReturn,
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: real-overrides-virtual
+          #@TestPurpose         check cos conflict-behavior property
+          #@TestPreamble        create a cos
+          #@TestSteps           check conflict-behavior=real-overrides-virtual
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos: real-overrides-virtual')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr6'
+                attributeName  = 'description'
+                attributeValue = 'new_desc_for_testcase'
+                descDefaultValue = 'this is the description of'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute with \
+                conflict-behavior prop set to virtual-overrides-real'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                arg6 = '--set conflict-behavior:real-overrides-virtual'
+                myOptions='%s %s %s %s %s %s'%(arg1,arg2,arg3,arg4,arg5,arg6)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <script>
+                ldapsearchReturn = STAXResult[0][1]
+              </script>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search return %s' % descDefaultValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % descDefaultValue,
+                'mainString'    : ldapsearchReturn,
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search do not return %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : ldapsearchReturn,
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+         <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: merge-real-and-virtual
+          #@TestPurpose         check cos conflict-behavior property
+          #@TestPreamble        create a cos
+          #@TestSteps           check conflict-behavior=merge-real-and-virtual
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos: merge-real-and-virtual')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr7'
+                attributeName  = 'description'
+                attributeValue = 'new_desc_for_testcase'
+                descDefaultValue = 'this is the description of'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute with \
+                conflict-behavior prop set to virtual-overrides-real'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                arg6 = '--set conflict-behavior:merge-real-and-virtual'
+                myOptions='%s %s %s %s %s %s'%(arg1,arg2,arg3,arg4,arg5,arg6)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on user'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <script>
+                ldapsearchReturn = STAXResult[0][1]
+              </script>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search return %s' % descDefaultValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % descDefaultValue,
+                'mainString'    : ldapsearchReturn,
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check search return %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : ldapsearchReturn,
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+
+
+          <!--- Test Case information
+          #@TestMarker          virtual attributes test suite
+          #@TestName            virtualAttributes: filter for COS
+          #@TestPurpose         check cos filter property
+          #@TestPreamble        create a cos
+          #@TestSteps           filter=person should only apply the cos to
+                                person entries
+          #@TestPostamble       delete the cos
+          #@TestResult          
+          -->
+          <testcase name="getTestCaseName('cos: filter')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <script>
+                cosName = 'userDefinedVirtualAttr8'
+                attributeName  = 'manager'
+                attributeValue = 'Al ty'
+              </script>
+              
+              <!-- ========================================= -->
+              <message>
+                '++++ Create user defined virtual attribute (disabled)'
+              </message>
+              <script>
+                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg2 = '--set enabled:true'
+                arg3 = '--set attribute-type:%s' % attributeName
+                arg4 = '--set value:"%s"' % attributeValue
+                arg5 = '--set base-dn:%s' % virtualAttributesDn
+                arg6 = '--set filter:objectClass=person'
+                myOptions = '%s %s %s %s %s %s'%(arg1,arg2,arg3,arg4,arg5,arg6)
+              </script>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'create-virtual-attribute',
+                'optionsString'  : myOptions,
+                'expectedRC'     : 0
+              }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on person entry'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : user1Dn,
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search return %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 1
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Application do a search on organization entry'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'     : applicationDn,
+                'dsInstancePswd'   : applicationPswd,
+                'dsBaseDN'         : people1Dn,
+                'dsScope'          : 'base',
+                'dsFilter'         : 'objectclass=*',
+                'dsAttributes'     : '%s' % attributeName }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Check the search do not return %s' % attributeValue
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : '%s' % attributeValue,
+                'mainString'    : STAXResult[0][1],
+                'nbExpected'    : 0
+                }
+              </call>
+              <!-- ========================================= -->
+              <message>
+                '++++ Delete user defined virtual attribute'
+              </message>
+              <call function="'dsconfig'">
+              {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'delete-virtual-attribute',
+                'optionsString'  : '--attribute-name %s' % cosName,
+                'expectedRC'     : 0
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          <!-- *********************************************** -->
+          <import machine="STAF_LOCAL_HOSTNAME"
+          file="'%s/testcases/virtualAttributes/virtualAttributes_cleanup.xml'
+          % (TESTS_DIR)"/>
+          <call function="'virtualAttributes_cleanup'"> 
+          { 'stopDS' : True }
+          </call>
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+
+  <defaultcall function="virtualAttributes_setup"/>
+
+  <function name="virtualAttributes_setup">
+    <function-map-args>
+      <function-arg-def name="startDS" type="optional" default="True">
+        <function-arg-description>
+          Optional start the Directory Server
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>  
+      <function-arg-def name="loadBackend" type="optional" default="True">
+        <function-arg-description>
+          Specifies whether the backend should be loaded with some data.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    
+    <sequence>
+      
+      <block name="'setup'">
+        <sequence>
+          
+          <block name="'Block Create DS Topology'">
+          <!-- Create the topology necessary to the tests -->
+            <sequence>
+              <message>
+                 '------ Create DS topology as described in config.py'
+              </message>
+              <call function="'createTopology'">
+                { 'initialiseInstance' : False }
+              </call>
+              <call function="'checkRC'">
+                { 'returncode' : RC ,
+                  'result'     : STAXResult }
+              </call>
+              
+            </sequence>
+          <!--- End Block Create DS Topology -->
+          </block>
+          
+          <if expr="loadBackend == True">
+            <block name="'Block DS Load Data'">
+            <!-- Load the data needed by the test suite -->
+              <sequence>
+                <message>
+                  '------ Load LDIF : virtualAttributes.ldif'
+                </message>
+                <call function="'importLdif'">
+                  {'ldifFile' : '%s/virtualAttributes/virtualAttributes.ldif'
+                                % logsRemoteDataDir }
+                </call>
+                <call function="'checkRC'">
+                  { 'returncode' : RC ,
+                    'result'     : STAXResult }
+                </call>
+              </sequence>
+            <!--- End Block DS Load Data -->
+            </block>
+          </if>
+          
+          <if expr="startDS == True">
+            <block name="'Block DS Process Active'">
+             <!--- Start DS -->
+              <sequence>
+                <message>
+                   '------ Start DS on port %s' % DIRECTORY_INSTANCE_PORT
+                </message>
+                <!--- Start DS -->
+                <call function="'StartDsWithScript'">
+                    { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+                <call function="'checkRC'">
+                    { 'returncode' : RC ,
+                      'result'     : STAXResult }
+                </call>
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                    { 'noOfLoops'        : 5 ,
+                      'noOfMilliSeconds' : 2000 }
+                </call>
+              </sequence>
+            <!--- End Block DS Process Active -->
+            </block>
+          </if>
+        </sequence>
+      </block>
+    </sequence>
+  </function>
+
+</stax>
