@@ -119,7 +119,7 @@ public final class LDAPManagementContextFactory implements
     {
       // Interact with the user though the console to get
       // LDAP connection information
-      String hostName = ci.getHostName();
+      String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
       Integer portNumber = ci.getPortNumber();
       String bindDN = ci.getBindDN();
       String bindPassword = ci.getBindPassword();

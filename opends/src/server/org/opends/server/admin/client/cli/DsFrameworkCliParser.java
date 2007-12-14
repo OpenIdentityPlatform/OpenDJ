@@ -218,7 +218,7 @@ public class DsFrameworkCliParser extends SecureConnectionCliParser
     InitialLdapContext ctx = null;
 
     // Get connection parameters
-    host = getHostName();
+    host = ConnectionUtils.getHostNameForLdapUrl(getHostName());
     port = getPort();
     dn   = getBindDN();
     pwd  = getBindPassword(dn, out, err);
