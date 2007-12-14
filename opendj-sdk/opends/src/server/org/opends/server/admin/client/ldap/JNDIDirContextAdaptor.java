@@ -47,6 +47,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
@@ -101,7 +102,8 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     env
         .put(Context.INITIAL_CONTEXT_FACTORY,
             "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, "ldap://" + host + ":" + port);
+    String hostname = ConnectionUtils.getHostNameForLdapUrl(host) ;
+    env.put(Context.PROVIDER_URL, "ldap://" + hostname + ":" + port);
     env.put(Context.SECURITY_PRINCIPAL, name);
     env.put(Context.SECURITY_CREDENTIALS, password);
 
