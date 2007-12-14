@@ -133,9 +133,6 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
 
   // At startup, the listen thread wait on this flag for the connet
   // thread to look for other servers in the topology.
-  // TODO when a replication server is out of date (has old changes
-  // to receive from other servers, the listen thread should not accept
-  // connection from ldap servers. (issue 1302)
   private boolean connectedInTopology = false;
   private final Object connectedInTopologyLock = new Object();
 

@@ -785,7 +785,8 @@ public class ReplicationServerTest extends ReplicationTestCase
           }
           else
           {
-            fail("ReplicationServer transmission failed: no expected message class.");
+            fail("ReplicationServer transmission failed: no expected message" +
+              " class: " + msg2);
             break;
           }
         }
