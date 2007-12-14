@@ -906,6 +906,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="dn"/>
       </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
       <function-arg-def name="dsFilter" type="optional">
         <function-arg-description>
           The filter for the search operation
@@ -1075,6 +1081,9 @@
                                       
         if dsSizeLimit:
           STAFCmdParamsList.append('-z %s' % dsSizeLimit)
+
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
                                               
         if dsFilter:
           STAFCmdParamsList.append('"%s"' % dsFilter)
