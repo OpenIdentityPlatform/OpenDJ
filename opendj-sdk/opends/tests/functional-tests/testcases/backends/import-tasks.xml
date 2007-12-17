@@ -916,6 +916,9 @@
               <message log="1" level="'Error'">
                'Error: Known bug. Issue 839: Encrypted LDIF export is not implemented'
               </message>
+               <script>
+                knownIssue(839)
+              </script>
               <call function="'checktestRC'">
                 { 'returncode' : RC ,
                   'result'     : STAXResult
