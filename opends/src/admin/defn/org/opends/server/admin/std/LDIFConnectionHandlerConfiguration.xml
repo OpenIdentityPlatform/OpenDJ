@@ -40,7 +40,12 @@
     The connection handler will periodically look for the existence of a
     new file, will process the changes contained in that file as
     internal operations, and will write the result to an output file
-    with comments indicating the result of the processing.
+    with comments indicating the result of the processing. NOTE: By
+    default
+    <adm:user-friendly-name />
+    operations are not logged because they are internal operations. If
+    you want to log these operations, allow internal logging in the
+    access log publisher.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
