@@ -277,6 +277,11 @@ public class SMTPAccountStatusNotificationHandler
 
       String path = s.substring(colonPos+1).trim();
       File f = new File(path);
+      if (! f.isAbsolute() )
+      {
+        f = new File(DirectoryServer.getServerRoot() + File.separator +
+            path);
+      }
       if (! f.exists())
       {
         throw new ConfigException(ERR_SMTP_ASNH_TEMPLATE_NO_SUCH_FILE.get(
