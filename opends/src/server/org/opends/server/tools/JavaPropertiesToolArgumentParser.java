@@ -165,15 +165,34 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
     String root = Utils.getInstallPathFromClasspath();
-    String libDir = Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE);
-    if (Utils.isWindows())
+    if (root != null)
     {
-      value = Utils.getPath(libDir,
-          Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
+      String libDir = Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE);
+      if (Utils.isWindows())
+      {
+        value = Utils.getPath(libDir,
+            Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
+      }
+      else
+      {
+        value = Utils.getPath(libDir,
+            Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
+      }
     }
     else
     {
-      value = Utils.getPath(libDir, Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
+      // This can happen when we are not launched using the command-line (for
+      // instance from the WebInstaller).
+      if (Utils.isWindows())
+      {
+        value = Utils.getPath(Installation.LIBRARIES_PATH_RELATIVE,
+            Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
+      }
+      else
+      {
+        value = Utils.getPath(Installation.LIBRARIES_PATH_RELATIVE,
+            Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
+      }
     }
     return value;
   }
@@ -185,10 +204,22 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
    */
   private static String getDefaultPropertiesValue()
   {
+    String defaultPropertiesValue;
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
     String root = Utils.getInstallPathFromClasspath();
-    String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
-    return Utils.getPath(configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    if (root != null)
+    {
+      String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
+      defaultPropertiesValue = Utils.getPath(configDir,
+          Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    }
+    else
+    {
+      // This can happen when we are not launched using the command-line (for
+      // instance from the WebInstaller).
+      defaultPropertiesValue = Installation.DEFAULT_JAVA_PROPERTIES_FILE;
+    }
+    return defaultPropertiesValue;
   }
 }
