@@ -23,6 +23,251 @@
 #      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 #
 
+dn: ou=South America,o=core tests,dc=example,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: South America
+
+dn: uid=user.0,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aaccf Amar$01251 Chestnut Street$Panama City, DE  50369
+postalCode: 50369
+description: pair
+uid: user.0
+userPassword: password
+employeeNumber: 0
+initials: ASA
+givenName: Aaccf
+pager: +1 779 041 6341
+mobile: +1 010 154 3228
+cn: Aaccf Amar
+sn: Amar
+telephoneNumber: +1 685 622 6202
+street: 01251 Chestnut Street
+homePhone: +1 225 216 5900
+mail: user.0@maildomain.net
+l: Panama City
+st: DE
+
+dn: uid=user.1,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aaren Atp$70110 Fourth Street$New Haven, OH  93694
+postalCode: 93694
+description: odd
+uid: user.1
+userPassword: password
+employeeNumber: 1
+initials: ALA
+givenName: Aaren
+pager: +1 850 883 8888
+mobile: +1 680 734 6300
+cn: Aaren Atp
+sn: Atp
+telephoneNumber: +1 390 103 6917
+street: 70110 Fourth Street
+homePhone: +1 280 375 4325
+mail: user.1@maildomain.net
+l: New Haven
+st: OH
+
+dn: uid=user.2,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aarika Atpco$00900 Maple Street$New Orleans, KS  10857
+postalCode: 10857
+description: pair
+uid: user.2
+userPassword: password
+employeeNumber: 2
+initials: AOA
+givenName: Aarika
+pager: +1 053 688 9803
+mobile: +1 279 618 3901
+cn: Aarika Atpco
+sn: Atpco
+telephoneNumber: +1 757 462 0301
+street: 00900 Maple Street
+homePhone: +1 003 428 0962
+mail: user.2@maildomain.net
+l: New Orleans
+st: KS
+
+dn: uid=user.3,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aaron Atrc$59748 Willow Street$Green Bay, TN  66239
+postalCode: 66239
+description: odd
+uid: user.3
+userPassword: password
+employeeNumber: 3
+initials: AKA
+givenName: Aaron
+pager: +1 197 025 3730
+mobile: +1 890 430 9077
+cn: Aaron Atrc
+sn: Atrc
+telephoneNumber: +1 094 100 7524
+street: 59748 Willow Street
+homePhone: +1 332 432 4295
+mail: user.3@maildomain.net
+l: Green Bay
+st: TN
+
+dn: uid=user.4,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Aartjan Aalders$77810 Adams Street$Bryan, NC  72311
+postalCode: 72311
+description: pair
+uid: user.4
+userPassword: password
+employeeNumber: 4
+initials: ALA
+givenName: Aartjan
+pager: +1 951 150 0057
+mobile: +1 209 956 9394
+cn: Aartjan Aalders
+sn: Aalders
+telephoneNumber: +1 548 762 2193
+street: 77810 Adams Street
+homePhone: +1 423 009 6628
+mail: user.4@maildomain.net
+l: Bryan
+st: NC
+
+dn: uid=user.5,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Abagael Aasen$80905 Meadow Street$Salem, NJ  76132
+postalCode: 76132
+description: odd
+uid: user.5
+userPassword: password
+employeeNumber: 5
+initials: AHA
+givenName: Abagael
+pager: +1 928 034 3047
+mobile: +1 516 926 3480
+cn: Abagael Aasen
+sn: Aasen
+telephoneNumber: +1 154 428 0080
+street: 80905 Meadow Street
+homePhone: +1 563 061 6916
+mail: user.5@maildomain.net
+l: Salem
+st: NJ
+
+dn: uid=user.6,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Abagail Abadines$61394 Adams Street$Lynchburg, MA  68438
+postalCode: 68438
+description: pair
+uid: user.6
+userPassword: password
+employeeNumber: 6
+initials: ASA
+givenName: Abagail
+pager: +1 431 570 9544
+mobile: +1 496 091 6823
+cn: Abagail Abadines
+sn: Abadines
+telephoneNumber: +1 236 110 4271
+street: 61394 Adams Street
+homePhone: +1 030 104 9024
+mail: user.6@maildomain.net
+l: Lynchburg
+st: MA
+
+dn: uid=user.7,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Abahri Abazari$03401 Ninth Street$Hattiesburg, IA  04882
+postalCode: 04882
+description: odd
+uid: user.7
+userPassword: password
+employeeNumber: 7
+initials: AOA
+givenName: Abahri
+pager: +1 603 439 2066
+mobile: +1 005 264 0002
+cn: Abahri Abazari
+sn: Abazari
+telephoneNumber: +1 000 800 5137
+street: 03401 Ninth Street
+homePhone: +1 941 161 6010
+mail: user.7@maildomain.net
+l: Hattiesburg
+st: IA
+
+dn: uid=user.8,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Abbas Abbatantuono$00468 Second Street$Eau Claire, WY  56890
+postalCode: 56890
+description: pair
+uid: user.8
+userPassword: password
+employeeNumber: 8
+initials: ADA
+givenName: Abbas
+pager: +1 054 898 2244
+mobile: +1 407 301 6516
+cn: Abbas Abbatantuono
+sn: Abbatantuono
+telephoneNumber: +1 804 094 3356
+street: 00468 Second Street
+homePhone: +1 884 320 6955
+mail: user.8@maildomain.net
+l: Eau Claire
+st: WY
+
+dn: uid=user.9,ou=South America,o=core tests,dc=example,dc=com
+objectClass: person
+objectClass: inetorgperson
+objectClass: organizationalperson
+objectClass: top
+postalAddress: Abbe Abbate$05257 Tenth Street$Dallas, CT  36027
+postalCode: 36027
+description: odd
+uid: user.9
+userPassword: password
+employeeNumber: 9
+initials: AEA
+givenName: Abbe
+pager: +1 015 006 1231
+mobile: +1 865 856 2932
+cn: Abbe Abbate
+sn: Abbate
+telephoneNumber: +1 791 584 7150
+street: 05257 Tenth Street
+homePhone: +1 104 644 6187
+mail: user.9@maildomain.net
+l: Dallas
+st: CT
+
 dn: ou=North America,o=core tests,dc=example,dc=com
 objectclass: top
 objectclass: organizationalUnit
