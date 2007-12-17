@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ ! -->
+
+<stax>
+  
+  <defaultcall function="core_ctrls_matched_values"/>
+  
+  <function name="core_ctrls_matched_values">
+  
+    <sequence>
+      
+      <block name="'ctrls_matched_values'">
+      
+        <sequence>
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group']='core'
+            CurrentTestPath['suite']=STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+            file="'%s/testcases/core/core_setup.xml' % (TESTS_DIR)" />
+          <call function="'core_setup'" />
+          
+          <!--- Test Suite information
+          #@TestSuiteName       Core Controls matched values
+          #@TestSuitePurpose    Verify that the controls functionality is 
+                                working in the Directory Server.
+          #@TestSuiteGroup      core: Controls: matched values
+          #@TestScript          core_ctrls_matched_values.xml
+          -->
+          
+          <!-- Global variables -->
+          <script>
+            peopleDn = 'ou=South America,o=core tests,dc=example,dc=com'
+            currentAci = '(targetcontrol = "1.2.826.0.1.3344810.2.3")\
+                          (version 3.0; acl\
+                          "all for user.1"; allow (all) userdn="\
+                          ldap:///uid=user.1,%s";)' % peopleDn
+          </script>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Core Controls matched values Tests
+          #@TestName            Search with directory manager user
+          #@TestPurpose         Check matchedValuesFilter option with
+                                directory manager user
+          #@TestPreamble
+          #@TestSteps           Do a search and check the outputs
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName('Search with Directory Manager')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <!-- ========== -->
+              <script>
+                extraParam = '--matchedValuesFilter "(description=pair)"'
+              </script>
+              <message>
+                '++ Search with control %s under %s' % (extraParam, peopleDn)
+              </message>
+              <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : peopleDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'extraParams'      : extraParam
+              }
+              </call>
+              <script>
+                searchResult = STAXResult[0][1]
+                string2find = 'description: pair'
+              </script>
+              <!-- ========== -->
+              <message>
+                '++ Check \"%s\" is displayed 5 times in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 5 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <!-- ========== -->
+              <script>
+                string2find = 'description: odd'
+              </script>
+              <message>
+                '++ Check \"%s\" is NOT displayed in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 0 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <!-- ========== -->
+              <script>
+                string2find = 'dn: uid'
+              </script>
+              <message>
+                '++ Check \"%s\" is displayed 10 times in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 10 ,
+                'caseSensitive' : False
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Core Controls matched values Tests
+          #@TestName            Search with a user without aci
+          #@TestPurpose         Check matchedValuesFilter option with
+                                user without aci
+          #@TestPreamble
+          #@TestSteps           Do a search and check the outputs
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName('Search with a user without aci')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <!-- ========== -->
+              <script>
+                extraParam = '--matchedValuesFilter "(description=pair)"'
+              </script>
+              <message>
+                '++ Search with user without aci, should fail'
+              </message>
+              <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=user.1,%s' % peopleDn ,
+                'dsInstancePswd'   : 'password' ,
+                'dsBaseDN'         : peopleDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'extraParams'      : extraParam ,
+                'expectedRC'       : 50
+              }
+              </call>
+              <!-- ========== -->
+              <message>'++ Check assertion control id is displayed'</message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find' : '1.2.826.0.1.3344810.2.3' ,
+                'mainString'  : STAXResult[0][1] ,
+                'nbExpected'  : 1
+              }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Core Controls matched values Tests
+          #@TestName            Add aci for the matched values control
+          #@TestPurpose         Check aci is accepted by the server
+          #@TestPreamble
+          #@TestSteps           Add the aci
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName('Add aci')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <script>
+                ldifFile = '%s/core/ldifs/ctrls_matched_values_add_aci.ldif'\
+                            % logsRemoteDataDir
+              </script>
+              <message>
+                '++ add aci for user.1 to be able to use assertion control'
+              </message>
+              <message>
+                'aci : %s' % currentAci
+              </message>
+              <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : ldifFile
+              }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Core Controls matched values Tests
+          #@TestName            Search with a user entry with aci
+          #@TestPurpose         Check matchedValuesFilter option with a user
+          #@TestPreamble
+          #@TestSteps           Do a search and check the outputs
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName('Search with a user with aci')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <!-- ========== -->
+              <script>
+                extraParam = '--matchedValuesFilter "(description=odd)"'
+              </script>
+              <message>'++ Search with user with aci, should pass'</message>
+              <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=user.1,%s' % peopleDn ,
+                'dsInstancePswd'   : 'password' ,
+                'dsBaseDN'         : peopleDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'extraParams'      : extraParam
+              }
+              </call>
+              <script>
+                searchResult = STAXResult[0][1]
+                string2find = 'description: odd'
+              </script>
+              <!-- ========== -->
+              <message>
+                '++ Check \"%s\" is displayed 5 times in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 5 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <!-- ========== -->
+              <script>
+                string2find = 'description: pair'
+              </script>
+              <message>
+                '++ Check \"%s\" is NOT displayed in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 0 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <!-- ========== -->
+              <script>
+                string2find = 'dn: uid'
+              </script>
+              <message>
+                '++ Check \"%s\" is displayed 10 times in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 10 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Core Controls matched values Tests
+          #@TestName            Search with bad matchedValuesFilter
+          #@TestPurpose         Set bad matchedValuesFilter value
+          #@TestPreamble
+          #@TestSteps           Do a search and check the outputs
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName
+                      ('Search with bad matchedValuesFilter control value')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <!-- ========== -->
+              <script>
+                extraParam = '--matchedValuesFilter "(hello=odd)"'
+              </script>
+              <message>'++ Search with user with aci, should pass'</message>
+              <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : 'uid=user.1,%s' % peopleDn ,
+                'dsInstancePswd'   : 'password' ,
+                'dsBaseDN'         : peopleDn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'extraParams'      : extraParam
+              }
+              </call>
+              <script>
+                searchResult = STAXResult[0][1]
+                string2find = 'hello'
+              </script>
+              <!-- ========== -->
+              <message>
+                '++ Check \"%s\" is NOT displayed in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 0 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <!-- ========== -->
+              <script>
+                string2find = 'dn: uid'
+              </script>
+              <message>
+                '++ Check \"%s\" is displayed 10 times in ldapsearch \
+                result' % string2find
+              </message>
+              <call function="'CheckMatches'">
+              { 
+                'string2find'   : string2find ,
+                'mainString'    : searchResult ,
+                'nbExpected'    : 10 ,
+                'caseSensitive' : False
+              }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          <!--- Test Case information
+          #@TestMarker          Core Controls matched values Tests
+          #@TestName            Delete aci for the matched values control
+          #@TestPurpose         Check aci is deleted by the server
+          #@TestPreamble
+          #@TestSteps           Delete the aci
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName('Delete aci')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              <script>
+                ldifFile='%s/core/ldifs/ctrls_matched_values_delete_aci.ldif'\
+                          % logsRemoteDataDir
+              </script>
+              <message>
+                '++ Delete aci which allow user to use matched values control'
+              </message>
+              <message>
+                'aci : %s' % currentAci
+              </message>
+              <call function="'ldapModifyWithScript'">
+              {
+                'dsAdd'            : 'True' ,
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : ldifFile
+              }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
+          
+          
+          
+          <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/core/core_cleanup.xml' % (TESTS_DIR)" />
+          <call function="'core_cleanup'" />
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+
+</stax>
