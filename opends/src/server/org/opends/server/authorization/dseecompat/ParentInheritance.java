@@ -69,11 +69,6 @@ public class ParentInheritance {
     private int numLevels;
 
     /*
-     * The attribute type parsed from the rule.
-     */
-    private AttributeType attributeType;
-
-    /*
      * The attribute type string parsed from the rule. Only used in
      * inheritance search.
      */
@@ -117,10 +112,6 @@ public class ParentInheritance {
                     WARN_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME.get(pattern);
                 throw new AciException(message);
                }
-               if((this.attributeType =
-                    DirectoryServer.getAttributeType(pattern)) == null)
-                this.attributeType =
-                        DirectoryServer.getDefaultAttributeType(pattern);
                numLevels=1;
               levels[0]=0;
             }
@@ -161,10 +152,6 @@ public class ParentInheritance {
                     WARN_ACI_SYNTAX_INVALID_ATTRIBUTE_TYPE_NAME.get(toks[1]);
                 throw new AciException(message);
             }
-            if((this.attributeType =
-                DirectoryServer.getAttributeType(toks[1])) == null)
-                this.attributeType =
-                    DirectoryServer.getDefaultAttributeType(toks[1]);
             attrTypeStr=toks[1];
             StringTokenizer tok=new StringTokenizer(toks[0],"],",false);
             while(tok.hasMoreTokens()) {
@@ -212,10 +199,6 @@ public class ParentInheritance {
               throw new AciException(message);
             }
           }
-          if((this.attributeType =
-                  DirectoryServer.getAttributeType(attrTypeStr)) == null)
-            this.attributeType =
-                    DirectoryServer.getDefaultAttributeType(attrTypeStr);
           numLevels=1;
           levels[0]=0;
         }
@@ -244,7 +227,12 @@ public class ParentInheritance {
      * @return The attribute type.
      */
     public AttributeType getAttributeType() {
-        return attributeType;
+      AttributeType attrType;
+      if((attrType =
+           DirectoryServer.getAttributeType(attrTypeStr.toLowerCase())) == null)
+        attrType=
+             DirectoryServer.getDefaultAttributeType(attrTypeStr.toLowerCase());
+      return attrType;
     }
 
     /**
