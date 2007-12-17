@@ -61,6 +61,9 @@
           <!-- Global variables -->
           <script>
             peopleDn = 'ou=North America,o=core tests,dc=example,dc=com'
+            currentAci = '(targetcontrol = "1.3.6.1.1.12")(version 3.0; acl\
+                 "all for user.1"; allow (all) userdn="\
+                 ldap:///uid=user.1,%s";)' % peopleDn
           </script>
           
           
@@ -114,8 +117,8 @@
           <testcase name="getTestCaseName('Search with a user without aci')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-              
-              <message>'Do a search with user without aci,should fail'</message>
+              <!-- ========== -->
+              <message>'++ Search with user without aci,should fail'</message>
               <call function="'ldapSearchWithScript'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -128,7 +131,7 @@
                 'expectedRC'       : 50
               }
               </call>
-              
+              <!-- ========== -->
               <message>'++ Check assertion control id is displayed'</message>
               <call function="'CheckMatches'">
               { 
@@ -155,17 +158,14 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <script>
-                ldifFile = '%s/core/ldifs/core_ctrls_assertion_add_aci.ldif'\
+                ldifFile = '%s/core/ldifs/ctrls_assertion_add_aci.ldif'\
                             % logsRemoteDataDir
               </script>
               <message>
                 '++ add aci for user.1 to be able to use assertion control'
               </message>
               <message>
-                'aci : (targetcontrol = "1.3.6.1.1.12")(version 3.0; acl\
-                 "all for user.1"; allow (all) userdn="\
-                 ldap:///uid=user.1,ou=North America,o=core\
-                 tests,dc=example,dc=com";)'
+                'aci : %s' % currentAci
               </message>
               <call function="'ldapModifyWithScript'">
               {
@@ -195,7 +195,7 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               
-              <message>'Do a search with user with aci, should pass'</message>
+              <message>'++ Search with user with aci, should pass'</message>
               <call function="'ldapSearchWithScript'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
                 'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -261,7 +261,7 @@
           <!--- Test Case information
           #@TestMarker          Core Controls assertion Tests
           #@TestName            Delete aci for the assertion control
-          #@TestPurpose         Check aci is accepted by the server
+          #@TestPurpose         Check aci is deleted by the server
           #@TestPreamble
           #@TestSteps           Delete the aci
           #@TestPostamble
@@ -271,17 +271,14 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <script>
-                ldifFile='%s/core/ldifs/core_ctrls_assertion_delete_aci.ldif'\
+                ldifFile='%s/core/ldifs/ctrls_assertion_delete_aci.ldif'\
                           % logsRemoteDataDir
               </script>
               <message>
                 '++ Delete aci which allow user.1 to use assertion control'
               </message>
               <message>
-                'aci : (targetcontrol = "1.3.6.1.1.12")(version 3.0; acl\
-                 "all for user.1"; allow (all) userdn="\
-                 ldap:///uid=user.1,ou=North America,o=core\
-                 tests,dc=example,dc=com";)'
+                'aci : %s' % currentAci
               </message>
               <call function="'ldapModifyWithScript'">
               {

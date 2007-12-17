@@ -87,6 +87,7 @@
                 'extraParams'      : '--reportAuthzID'
               }
               </call>
+              <!-- ========== -->
               <script>
                 string1 = '# Bound with authorization ID dn:'
                 string2 = '%s,cn=Root DNs,cn=config' % DIRECTORY_INSTANCE_DN
@@ -131,6 +132,7 @@
                 'extraParams'      : '--reportAuthzID'
               }
               </call>
+              <!-- ========== -->
               <script>
                 string1 = '# Bound with authorization ID dn:'
                 string2 = '%s' % userDn
@@ -174,6 +176,7 @@
                 'expectedRC'       : 32
               }
               </call>
+              <!-- ========== -->
               <script>
                 string1 = '# Bound with authorization ID dn:'
                 string2 = '%s' % userDn
