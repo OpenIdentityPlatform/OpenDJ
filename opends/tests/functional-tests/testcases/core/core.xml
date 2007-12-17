@@ -42,7 +42,8 @@
           testList.append(['.','core_version_report'])
           testList.append(['controls','core_ctrls_password_policy'])
           testList.append(['controls','core_ctrls_authorization_id'])
-          #testList.append(['controls','core_ctrls_assertion'])
+          testList.append(['controls','core_ctrls_assertion'])
+          testList.append(['controls','core_ctrls_matched_values'])
         </script>
         <iterate var="_test" in="testList">
           <sequence>
