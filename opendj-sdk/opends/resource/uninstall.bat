@@ -30,66 +30,25 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
 
 set INSTANCE_ROOT=%DIR_HOME%
 
-:checkOpenDSJavaBin
-if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
-goto setClassPath
+set SCRIPT_NAME=uninstall
 
-:checkOpenDSJavaHome
-if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:checkOpenDSJavaHomeFile
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
-call "%DIR_HOME%\lib\set-java-home.bat"
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto checkJavaHome
-set OPENDS_JAVA_BIN=%JAVA_BIN%
-goto setClassPath
-
-:checkJavaHome
-if "%JAVA_HOME%" == "" goto noJavaHome
-if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noJavaHome
-echo Error: OPENDS_JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 (or later) installation.
-pause
-goto end
-
-:noValidJavaHome
-echo ERROR:  The detected Java version could not be used.  Please set 
-echo         OPENDS_JAVA_HOME to to a valid Java 5 (or later) installation.
-pause
-goto end
-
-:setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
-set CLASSPATH=%DIR_HOME%\classes;%CLASSPATH%
-
-set PATH=%SystemRoot%
-
-rem Test that the provided JDK is 1.5 compatible.
-"%OPENDS_JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
-if not %errorlevel% == 0 goto noValidJavaHome
+rem Set environment variables
+set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+call "%INSTANCE_ROOT%\lib\_script-util.bat"
+if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%DIR_HOME%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher
+if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
+"%DIR_HOME%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher
 goto end
 
 :callJava
+if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=uninstall"
-"%OPENDS_JAVA_BIN%" %JAVA_ARGS% org.opends.guitools.uninstaller.UninstallLauncher %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

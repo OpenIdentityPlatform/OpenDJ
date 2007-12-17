@@ -251,6 +251,33 @@ public class Installation {
   public static final String LDIF_DIFF = "ldif-diff";
 
   /**
+   * The default java properties file.
+   */
+  public static final String DEFAULT_JAVA_PROPERTIES_FILE = "java.properties";
+
+  /**
+   * The set java home and arguments properties file for Windows.
+   */
+  public static final String SET_JAVA_PROPERTIES_FILE_WINDOWS =
+    "set-java-home.bat";
+
+  /**
+   * script utils file for UNIX systems.
+   */
+  public static final String SCRIPT_UTIL_FILE_UNIX = "_script-util.sh";
+
+  /**
+   * script utils file for Windows.
+   */
+  public static final String SCRIPT_UTIL_FILE_WINDOWS = "_script-util.bat";
+
+  /**
+   * The set java home and arguments properties file for UNIX systems.
+   */
+  public static final String SET_JAVA_PROPERTIES_FILE_UNIX =
+    "set-java-home";
+
+  /**
    * Directories required to be present for this installation
    * to be considered valid.
    */

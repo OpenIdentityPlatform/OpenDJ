@@ -85,7 +85,7 @@ import org.opends.server.util.cli.MenuResult;
  *   <LI>Ask the user if they want to start the server when done installing</LI>
  * </UL>
  */
-public class InstallDS  extends ConsoleApplication
+public class InstallDS extends ConsoleApplication
 {
   private PlainTextProgressMessageFormatter formatter =
     new PlainTextProgressMessageFormatter();
@@ -160,7 +160,7 @@ public class InstallDS  extends ConsoleApplication
   private InstallDSArgumentParser argParser;
 
   /**
-   * Constructor for the SetupCli object.
+   * Constructor for the InstallDS object.
    *
    * @param out the print stream to use for standard output.
    * @param err the print stream to use for standard error.
@@ -172,7 +172,7 @@ public class InstallDS  extends ConsoleApplication
   }
 
   /**
-   * The main method for the setup CLI tool.
+   * The main method for the InstallDS CLI tool.
    *
    * @param args the command-line arguments provided to this program.
    */
@@ -242,7 +242,8 @@ public class InstallDS  extends ConsoleApplication
 
     try {
       QuickSetupLog.initLogFileHandler(
-              File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
+              QuickSetupLog.isInitialized() ? null :
+                File.createTempFile(LOG_FILE_PREFIX, LOG_FILE_SUFFIX),
               "org.opends.server.tools");
       QuickSetupLog.disableConsoleLogging();
     } catch (Throwable t) {
@@ -262,7 +263,7 @@ public class InstallDS  extends ConsoleApplication
    * @param args the command-line arguments provided to this program.
    * @param  initializeServer  Indicates whether to initialize the server.
    *
-   * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG.
+   * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG).
    */
   public int execute(String[] args, boolean initializeServer)
   {
@@ -294,35 +295,13 @@ public class InstallDS  extends ConsoleApplication
       return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
     }
 
-    // If we are on test only mode, try to see if the contents of the
-    // set-java-home file are valid.  If they are not try to update them, if no
-    // problem occurred while doing this delete the log file that does not
-    // contain any information.  The test only mode is called several times by
-    // the setup script and if we do not remove it we have a lot of empty log
-    // files.
+    // Delete the log file that does not contain any information.  The test only
+    // mode is called several times by the setup script and if we do not remove
+    // it we have a lot of empty log files.
     if (argParser.testOnlyArg.isPresent())
     {
       try
       {
-        String serverRoot = Utils.getInstallPathFromClasspath();
-        String javaHome = SetupUtils.getOpenDSJavaHome(serverRoot);
-        boolean writeJavaHome = false;
-        if (javaHome != null)
-        {
-          File f = new File(javaHome);
-          if (!f.exists())
-          {
-            writeJavaHome = true;
-          }
-        }
-        else
-        {
-          writeJavaHome = true;
-        }
-        if (writeJavaHome)
-        {
-          SetupUtils.writeSetOpenDSJavaHome(serverRoot, true);
-        }
         QuickSetupLog.getLogFile().deleteOnExit();
       }
       catch (Throwable t)

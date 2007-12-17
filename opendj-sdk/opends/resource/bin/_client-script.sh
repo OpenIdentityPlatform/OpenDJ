@@ -50,65 +50,15 @@ export INSTANCE_ROOT
 cd "${WORKING_DIR}"
 
 
-# See if the environment variables are set.  If not, then see if there is a java
-# executable in the path and try to figure it out.
-if test -z "${OPENDS_JAVA_BIN}"
+# Set environment variables
+SCRIPT_UTIL_CMD=set-full-environment
+export SCRIPT_UTIL_CMD
+.  "${INSTANCE_ROOT}/lib/_script-util.sh"
+RETURN_CODE=$?
+if test ${RETURN_CODE} -ne 0
 then
-  if test -z "${OPENDS_JAVA_HOME}"
-  then
-    if test -f "${INSTANCE_ROOT}/lib/set-java-home"
-    then
-      . "${INSTANCE_ROOT}/lib/set-java-home"
-      OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
-      export OPENDS_JAVA_BIN
-    else
-      if test -z "${JAVA_BIN}"
-      then
-        if test -z "${JAVA_HOME}"
-        then
-          OPENDS_JAVA_BIN=`which java 2> /dev/null`
-          if test ${?} -eq 0
-          then
-            export OPENDS_JAVA_BIN
-          else
-            echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation."
-            exit 1
-          fi
-        else
-          OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
-          export OPENDS_JAVA_BIN
-        fi
-      else
-        OPENDS_JAVA_BIN="${JAVA_BIN}"
-        export OPENDS_JAVA_BIN
-      fi
-    fi
-  else
-    OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
-    export OPENDS_JAVA_BIN
-  fi
+  exit ${RETURN_CODE}
 fi
 
-# Explicitly set the PATH, LD_LIBRARY_PATH, LD_PRELOAD, and other important
-# system environment variables for security and compatibility reasons.
-PATH=/bin:/usr/bin
-LD_LIBRARY_PATH=
-LD_LIBRARY_PATH_32=
-LD_LIBRARY_PATH_64=
-LD_PRELOAD=
-LD_PRELOAD_32=
-LD_PRELOAD_64=
-export PATH LD_LIBRARY_PATH LD_LIBRARY_PATH_32 LD_LIBRARY_PATH_64 \
-       LD_PRELOAD LD_PRELOAD_32 LD_PRELOAD_34
-
-
-# Configure the appropriate CLASSPATH.
-CLASSPATH=${INSTANCE_ROOT}/classes
-for JAR in ${INSTANCE_ROOT}/lib/*.jar
-do
-  CLASSPATH=${CLASSPATH}:${JAR}
-done
-export CLASSPATH
-
-# Launch the appropriate server utility.
-"${OPENDS_JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"
+# Launch the appropriate client utility.
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"

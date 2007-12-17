@@ -28,6 +28,6 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPPasswordModify"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldappasswordmodify"
+set SCRIPT_NAME=ldappasswordmodify
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

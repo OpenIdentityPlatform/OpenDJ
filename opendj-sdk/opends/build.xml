@@ -831,11 +831,11 @@
 
     <antcall target="example-plugin" />
 
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat,_client-script.sh,_server-script.sh" eol="lf" />
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.sh,_server-script.sh" eol="lf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat,_client-script.sh,_server-script.sh,_mixed-script.sh,_script-util.sh" eol="lf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.sh,_server-script.sh,_mixed-script.sh,_script-util.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="README_WINDOWS.txt" eol="crlf" />
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" excludes="_client-script.bat,_server-script.bat,setcp.bat" includes="*.bat" eol="crlf" />
-    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.bat,_server-script.bat,setcp.bat" eol="crlf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bat" excludes="_client-script.bat,_server-script.bat,_mixed-script.bat,_script-util.bat,setcp.bat" includes="*.bat" eol="crlf" />
+    <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.bat,_server-script.bat,_mixed-script.bat,_script-util.bat,setcp.bat" eol="crlf" />
 
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
@@ -924,6 +924,8 @@
     </chmod>
     <chmod file="${pdir}/lib/_client-script.sh" perm="755" />
     <chmod file="${pdir}/lib/_server-script.sh" perm="755" />
+    <chmod file="${pdir}/lib/_mixed-script.sh" perm="755" />
+    <chmod file="${pdir}/lib/_script-util.sh" perm="755" />
   </target>
 
 
@@ -934,10 +936,10 @@
        description="Package the Directory Server for distribution.">
     <zip destfile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip">
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
-           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
+           excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
            filemode="644" dirmode="755" />
       <zipfileset dir="${package.dir}"
-           includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh"
+           includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh"
            filemode="755" dirmode="755" />
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*"
            excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/README_WINDOWS.txt"

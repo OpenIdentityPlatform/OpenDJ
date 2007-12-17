@@ -31,8 +31,8 @@
 OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPModify"
 export OPENDS_INVOKE_CLASS
 
-SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapmodify"
-export SCRIPT_NAME_ARG
+SCRIPT_NAME="ldapmodify"
+export SCRIPT_NAME
 
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"

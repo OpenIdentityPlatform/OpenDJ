@@ -27,20 +27,32 @@
 
 package org.opends.quicksetup.installer;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.util.Utils;
+
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.server.admin.DefaultBehaviorException;
 import org.opends.server.admin.ManagedObjectNotFoundException;
@@ -57,6 +69,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.ImportLDIF;
+import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -64,6 +77,7 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -83,6 +97,8 @@ public class InstallerHelper {
 
   private static final int MAX_ID_VALUE = Short.MAX_VALUE;
   private static final String DOMAIN_BASE_NAME = "domain ";
+
+  private static final String INITIAL_CLIENT_HEAP_ARG = "-Xms8m";
 
   /**
    * Invokes the method ConfigureDS.configMain with the provided parameters.
@@ -649,6 +665,282 @@ public class InstallerHelper {
       j++;
     }
     return domainName;
+  }
+
+  /**
+   * Writes the set-java-home file that is used by the scripts to set the
+   * java home and the java arguments.
+   * @param installPath the install path of the server.
+   * @throws IOException if an error occurred writing the file.
+   */
+  public void writeSetOpenDSJavaHome(String installPath) throws IOException
+  {
+    String javaHome = System.getProperty("java.home");
+    if ((javaHome == null) || (javaHome.length() == 0))
+    {
+      javaHome = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+    }
+
+    String configDir = Utils.getPath(installPath,
+        Installation.CONFIG_PATH_RELATIVE);
+    String propertiesFile = Utils.getPath(
+        configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+    boolean propertiesFileModified = false;
+    FileInputStream fs = null;
+    try
+    {
+      fs = new FileInputStream(propertiesFile);
+      Properties properties = new Properties();
+      properties.load(fs);
+      propertiesFileModified = properties.keySet().size() > 0;
+    }
+    catch (Throwable t)
+    {
+    }
+    finally
+    {
+      if (fs != null)
+      {
+        try
+        {
+          fs.close();
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+    BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile,
+        true));
+
+    if (!propertiesFileModified)
+    {
+      writer.newLine();
+      writer.write("overwrite-env-java-home=true");
+      writer.newLine();
+      writer.write("overwrite-env-java-args=true");
+      writer.newLine();
+      writer.newLine();
+      writer.write("default.java-home="+javaHome);
+      writer.newLine();
+      writer.newLine();
+      boolean supportsClient = supportsClient(javaHome, installPath);
+      boolean supportsServer = supportsServer(javaHome, installPath);
+
+
+      boolean supportsClientInitialHeap = supportsInitialHeap(javaHome,
+          installPath);
+
+      // Scripts to which we will pass -client argument
+      String[] clientScripts =
+      {
+          "backup.online", "base64", "create-rc-script", "dsconfig",
+          "dsreplication", "dsframework", "export-ldif.online",
+          "import-ldif.online", "ldapcompare", "ldapdelete",
+          "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
+          "manage-account", "manage-tasks", "restore.online", "stop-ds",
+          "status", "status-panel", "uninstall", "setup"
+      };
+
+      // Scripts to which we will pass -server argument
+      String[] serverScripts =
+      {
+          "backup.offline", "encode-password", "export-ldif.offline",
+          "import-ldif.offline", "ldif-diff", "ldifmodify", "ldifsearch",
+          "make-ldif", "rebuild-index", "restore.offline", "start-ds",
+          "upgrade", "verify-install"
+      };
+
+      if (supportsServer)
+      {
+        for (int i=0; i<serverScripts.length; i++)
+        {
+          writer.newLine();
+          writer.write(serverScripts[i]+".java-args=-server");
+        }
+      }
+
+
+      if (supportsClient || supportsClientInitialHeap)
+      {
+        for (int i=0; i<clientScripts.length; i++)
+        {
+          writer.newLine();
+          String arg = "";
+          if (supportsClient)
+          {
+            arg = "-client";
+          }
+          if (supportsClientInitialHeap)
+          {
+            if (arg.length() > 0)
+            {
+              arg += " ";
+            }
+            arg += INITIAL_CLIENT_HEAP_ARG;
+          }
+          writer.write(clientScripts[i]+".java-args="+arg);
+        }
+      }
+
+      if (supportsClient || supportsServer || supportsClientInitialHeap)
+      {
+        writer.newLine();
+        writer.newLine();
+      }
+
+      writer.close();
+    }
+    String destinationFile;
+    String libDir = Utils.getPath(installPath,
+        Installation.LIBRARIES_PATH_RELATIVE);
+    if (Utils.isWindows())
+    {
+      destinationFile = Utils.getPath(libDir,
+          Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
+    }
+    else
+    {
+      destinationFile = Utils.getPath(libDir,
+          Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
+    }
+
+    // Launch the script
+    String[] args =
+    {
+        "--propertiesFile", propertiesFile,
+        "--destinationFile", destinationFile,
+        "--quiet"
+    };
+
+    int returnValue = JavaPropertiesTool.mainCLI(args);
+
+    if ((returnValue !=
+      JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL.getReturnCode()) &&
+      returnValue !=
+        JavaPropertiesTool.ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    {
+      LOG.log(Level.WARNING, "Error creating java home scripts, error code: "+
+          returnValue);
+      throw new IOException(
+          ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue).toString());
+    }
+  }
+
+  /**
+   * Tells whether the provided java installation supports the server option
+   * or not.
+   * @param javaHome the java installation path.
+   * @param installPath the install path of the server.
+   * @return <CODE>true</CODE> if the provided java installation supports the
+   * server option and <CODE>false</CODE> otherwise.
+   */
+  private boolean supportsServer(String javaHome, String installPath)
+  {
+    return supportsOption("-server", javaHome, installPath);
+  }
+
+  /**
+   * Tells whether the provided java installation supports the server option
+   * or not.
+   * @param javaHome the java installation path.
+   * @param installPath the install path of the server.
+   * @return <CODE>true</CODE> if the provided java installation supports the
+   * server option and <CODE>false</CODE> otherwise.
+   */
+  private boolean supportsInitialHeap(String javaHome, String installPath)
+  {
+    return supportsOption(INITIAL_CLIENT_HEAP_ARG, javaHome, installPath);
+  }
+
+  /**
+   * Tells whether the provided java installation supports the client option
+   * or not.
+   * @param javaHome the java installation path.
+   * @param installPath the install path of the server.
+   * @return <CODE>true</CODE> if the provided java installation supports the
+   * client option and <CODE>false</CODE> otherwise.
+   */
+  private boolean supportsClient(String javaHome, String installPath)
+  {
+    return supportsOption("-client", javaHome, installPath);
+  }
+
+  /**
+   * Tells whether the provided java installation supports a given option or
+   * not.
+   * @param javaHome the java installation path.
+   * @param option the java option that we want to check.
+   * @param installPath the install path of the server.
+   * @return <CODE>true</CODE> if the provided java installation supports a
+   * given option and <CODE>false</CODE> otherwise.
+   */
+  private boolean supportsOption(String option, String javaHome,
+      String installPath)
+  {
+    boolean supported = false;
+    try
+    {
+      List<String> args = new ArrayList<String>();
+      String script;
+      String libPath = Utils.getPath(installPath,
+          Installation.LIBRARIES_PATH_RELATIVE);
+      if (Utils.isWindows())
+      {
+        script = Utils.getScriptPath(Utils.getPath(libPath,
+            Installation.SCRIPT_UTIL_FILE_WINDOWS));
+      }
+      else
+      {
+        script = Utils.getScriptPath(Utils.getPath(libPath,
+            Installation.SCRIPT_UTIL_FILE_UNIX));
+      }
+      args.add(script);
+      ProcessBuilder pb = new ProcessBuilder(args);
+      Map<String, String> env = pb.environment();
+      env.put(SetupUtils.OPENDS_JAVA_HOME, javaHome);
+      env.put("OPENDS_JAVA_ARGS", option);
+      env.put("SCRIPT_UTIL_CMD", "set-full-environment-and-test-java");
+      env.remove("OPENDS_JAVA_BIN");
+      // In windows by default the scripts ask the user to click on enter when
+      // they fail.  Set this environment variable to avoid it.
+      if (Utils.isWindows())
+      {
+        env.put("DO_NOT_PAUSE", "true");
+      }
+      Process process = pb.start();
+      LOG.log(Level.INFO, "launching "+args);
+      InputStream is = process.getInputStream();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+      String line;
+      while (null != (line = reader.readLine())) {
+        LOG.log(Level.INFO, "The output: "+line);
+        if (line.indexOf("ERROR:  The detected Java version") != -1)
+        {
+          try
+          {
+            process.destroy();
+            return false;
+          }
+          catch (Throwable t)
+          {
+            return false;
+          }
+          finally
+          {
+          }
+        }
+      }
+      process.waitFor();
+      int returnCode = process.exitValue();
+      LOG.log(Level.INFO, "returnCode: "+returnCode);
+      supported = returnCode == 0;
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error testing option "+option+" on "+javaHome, t);
+    }
+    return supported;
   }
 }
 

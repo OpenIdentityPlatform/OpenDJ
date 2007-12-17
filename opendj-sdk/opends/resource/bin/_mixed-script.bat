@@ -25,7 +25,7 @@ rem
 rem
 rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 
-rem This script is used to invoke various client-side processes.  It should not
+rem This script is used to invoke various server-side processes.  It should not
 rem be invoked directly by end users.
 
 setlocal
@@ -33,19 +33,44 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 set INSTANCE_ROOT=%DIR_HOME%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
-goto launchCommand
+
+set OLD_SCRIPT_NAME=%SCRIPT_NAME%
+set SCRIPT_NAME=%OLD_SCRIPT_NAME%.online
+
+set SCRIPT_UTIL_CMD=set-full-environment
+call "%INSTANCE_ROOT%\lib\_script-util.bat"
+if NOT %errorlevel% == 0 exit /B %errorlevel%
+
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
+
+rem Check whether is local or remote
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --testIfOffline %*  
+if %errorlevel% == 51 goto launchoffline
+if %errorlevel% == 52 goto launchonline
+exit /B %errorlevel%
 
 :noInvokeClass
 echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
 pause
 goto end
 
-:launchCommand
+:launchonline
+
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+
+goto end
+
+:launchoffline
+set SCRIPT_NAME=%OLD_SCRIPT_NAME%.offline
+
 set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTANCE_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
+set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+
+goto end
 
 :end
 

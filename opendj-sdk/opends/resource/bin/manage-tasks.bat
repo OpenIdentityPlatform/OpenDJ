@@ -28,6 +28,6 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ManageTasks"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=manage-tasks"
+set SCRIPT_NAME=manage-tasks
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

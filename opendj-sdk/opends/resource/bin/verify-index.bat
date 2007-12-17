@@ -28,7 +28,7 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.VerifyIndex"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=verify-index"
+set SCRIPT_NAME=verify-index
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
 
 

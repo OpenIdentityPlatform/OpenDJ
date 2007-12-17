@@ -33,54 +33,19 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 set INSTANCE_ROOT=%DIR_HOME%
 
 if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
-goto checkOpenDSJavaBin
+goto launchCommand
 
 :noInvokeClass
 echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
 pause
 goto end
 
-:checkOpenDSJavaBin
-if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
-goto setClassPath
+:launchCommand
+set SCRIPT_UTIL_CMD=set-full-environment
+call "%INSTANCE_ROOT%\lib\_script-util.bat"
+if NOT %errorlevel% == 0 exit /B %errorlevel%
 
-:checkOpenDSJavaHome
-if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:checkOpenDSJavaHomeFile
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
-call "%DIR_HOME%\lib\set-java-home.bat"
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto checkJavaHome
-set OPENDS_JAVA_BIN=%JAVA_BIN%
-goto setClassPath
-
-:checkJavaHome
-if "%JAVA_HOME%" == "" goto noJavaHome
-if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noJavaHome
-echo Error: OPENDS_JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 (or later) installation.
-pause
-goto end
-
-:setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
-
-set PATH=%SystemRoot%
-
-"%OPENDS_JAVA_BIN%" %JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
-
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 
 :end
 
