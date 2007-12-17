@@ -30,8 +30,8 @@
 OPENDS_INVOKE_CLASS="org.opends.server.util.Base64"
 export OPENDS_INVOKE_CLASS
 
-SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=base64"
-export SCRIPT_NAME_ARG
+SCRIPT_NAME="base64"
+export SCRIPT_NAME
 
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"

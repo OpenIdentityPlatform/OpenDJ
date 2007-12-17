@@ -30,8 +30,8 @@
 OPENDS_INVOKE_CLASS="org.opends.server.tools.ManageAccount"
 export OPENDS_INVOKE_CLASS
 
-SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=manage-account"
-export SCRIPT_NAME_ARG
+SCRIPT_NAME="manage-account"
+export SCRIPT_NAME
 
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"

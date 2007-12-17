@@ -23,11 +23,12 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+#      Portions Copyright 2007 Sun Microsystems, Inc.
 
 
-# This script is used to invoke various server-side processes.  It should not
-# be invoked directly by end users.
+# This script is used to invoke processes that might be run on server or
+# in client mode (depending on the state of the server and the arguments
+# passed).  It should not be invoked directly by end users.
 if test -z "${OPENDS_INVOKE_CLASS}"
 then
   echo "ERROR:  OPENDS_INVOKE_CLASS environment variable is not set."
@@ -49,6 +50,10 @@ export INSTANCE_ROOT
 
 cd "${WORKING_DIR}"
 
+OLD_SCRIPT_NAME=${SCRIPT_NAME}
+SCRIPT_NAME=${OLD_SCRIPT_NAME}.online
+export SCRIPT_NAME
+
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
 export SCRIPT_UTIL_CMD
@@ -59,7 +64,42 @@ then
   exit ${RETURN_CODE}
 fi
 
-# Launch the appropriate server utility.
+MUST_CALL_AGAIN="false"
+
+SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
+export SCRIPT_NAME_ARG
+
+# Check whether is local or remote
 "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
      --configClass org.opends.server.extensions.ConfigFileHandler \
-     --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"
+     --configFile "${INSTANCE_ROOT}/config/config.ldif" --testIfOffline "${@}"  
+EC=${?}
+if test ${EC} -eq 51
+then
+  # Set the environment to use the offline properties
+  SCRIPT_NAME=${OLD_SCRIPT_NAME}.offline
+  export SCRIPT_NAME
+  .  "${INSTANCE_ROOT}/lib/_script-util.sh"
+  RETURN_CODE=$?
+  if test ${RETURN_CODE} -ne 0
+  then
+    exit ${RETURN_CODE}
+  fi
+  MUST_CALL_AGAIN="true"
+else
+  if test ${EC} -eq 52
+  then
+    MUST_CALL_AGAIN="true"
+  fi
+fi
+
+if test ${MUST_CALL_AGAIN} = "true"
+then
+  SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
+  export SCRIPT_NAME_ARG
+  
+  # Launch the server utility.
+  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
+       --configClass org.opends.server.extensions.ConfigFileHandler \
+       --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"
+fi

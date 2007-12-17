@@ -23,11 +23,10 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+rem      Portions Copyright 2007 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.BackUpDB"
-set SCRIPT_NAME=backup
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_mixed-script.bat" %*
-
+set OPENDS_INVOKE_CLASS="org.opends.server.tools.JavaPropertiesTool"
+set SCRIPT_NAME=dsjavaproperties
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*

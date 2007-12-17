@@ -2822,18 +2822,21 @@ public class ReplicationCliMain extends ConsoleApplication
       println(msg);
     }
 
-    long time1 = Utils.getServerClock(ctx1);
-    long time2 = Utils.getServerClock(ctx2);
-    if ((time1 != -1) && (time2 != -1))
+    if (returnValue == SUCCESSFUL)
     {
-      if (Math.abs(time1 - time2) >
-      (Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
+      long time1 = Utils.getServerClock(ctx1);
+      long time2 = Utils.getServerClock(ctx2);
+      if ((time1 != -1) && (time2 != -1))
       {
-        println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
-            ConnectionUtils.getHostPort(ctx1),
-            ConnectionUtils.getHostPort(ctx2),
-            String.valueOf(
-                Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES)));
+        if (Math.abs(time1 - time2) >
+        (Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
+        {
+          println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
+              ConnectionUtils.getHostPort(ctx1),
+              ConnectionUtils.getHostPort(ctx2),
+              String.valueOf(
+                  Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES)));
+        }
       }
     }
 

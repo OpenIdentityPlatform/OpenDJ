@@ -74,6 +74,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   public static final String NOW = "0";
 
+  private static final int RUN_OFFLINE = 51;
+  private static final int RUN_ONLINE = 52;
+
   // Number of milliseconds this utility will wait before reloading
   // this task's entry in the directory while it is polling for status
   private static final int SYNCHRONOUS_TASK_POLL_INTERVAL = 1000;
@@ -98,6 +101,10 @@ public abstract class TaskTool implements TaskScheduleInformation {
   // Client for interacting with the task backend
   TaskClient taskClient;
 
+  // Argument used to know whether we must test if we must run in offline
+  // mode.
+  BooleanArgument testIfOfflineArg;
+
   /**
    * Called when this utility should perform its actions locally in this
    * JVM.
@@ -121,8 +128,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @return LDAPConnectionArgumentParser for processing CLI input
    */
   protected LDAPConnectionArgumentParser createArgParser(String className,
-                                           Message toolDescription)
-  {
+      Message toolDescription)
+    {
     ArgumentGroup ldapGroup = new ArgumentGroup(
             INFO_DESCRIPTION_TASK_LDAP_ARGS.get(), 1001);
 
@@ -190,6 +197,12 @@ public abstract class TaskTool implements TaskScheduleInformation {
                 StaticUtils.collectionToString(fdaValSet, ","),
                 FailedDependencyAction.defaultValue().name()));
       argParser.addArgument(failedDependencyActionArg, taskGroup);
+
+      testIfOfflineArg = new BooleanArgument(
+          "testIfOffline", null, "testIfOffline",
+          INFO_DESCRIPTION_TEST_IF_OFFLINE.get());
+      testIfOfflineArg.setHidden(true);
+      argParser.addArgument(testIfOfflineArg);
 
     } catch (ArgumentException e) {
       // should never happen
@@ -351,6 +364,18 @@ public abstract class TaskTool implements TaskScheduleInformation {
                         PrintStream out, PrintStream err) {
     int ret;
 
+    if (testIfOffline())
+    {
+      if (!processAsTask())
+      {
+        return RUN_OFFLINE;
+      }
+      else
+      {
+        return RUN_ONLINE;
+      }
+    }
+
     if (processAsTask())
     {
       if (initializeServer)
@@ -449,4 +474,19 @@ public abstract class TaskTool implements TaskScheduleInformation {
     return argParser.connectionArgumentsPresent();
   }
 
+  /**
+   * Indicates whether we must return if the command must be run in offline
+   * mode.
+   * @return <CODE>true</CODE> if we must return if the command must be run in
+   * offline mode and <CODE>false</CODE> otherwise.
+   */
+  private boolean testIfOffline()
+  {
+    boolean returnValue = false;
+    if (testIfOfflineArg != null)
+    {
+      returnValue = testIfOfflineArg.isPresent();
+    }
+    return returnValue;
+  }
 }

@@ -28,6 +28,6 @@ rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDAPDelete"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=ldapdelete"
+set SCRIPT_NAME=ldapdelete
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

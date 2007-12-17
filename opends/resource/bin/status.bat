@@ -28,5 +28,5 @@ rem      Portions Copyright 2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.guitools.statuspanel.StatusCli"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=status"
+set SCRIPT_NAME=status
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*

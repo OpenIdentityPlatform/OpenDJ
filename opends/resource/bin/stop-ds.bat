@@ -42,55 +42,14 @@ rem This is the template to use for logging.  Make sure to use >>
 rem echo %SCRIPT%: your-message-here >> %LOG%
 echo %SCRIPT%: invoked >> %LOG%
 
-:checkOpenDSJavaBin
-if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
-goto setClassPath
+set SCRIPT_NAME=start-ds
 
-:checkOpenDSJavaHome
-if "%OPENDS_JAVA_HOME%" == "" goto checkOpenDSJavaHomeFile
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkOpenDSJavaHomeFile
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:checkOpenDSJavaHomeFile
-if not exist "%DIR_HOME%\lib\set-java-home.bat" goto checkJavaBin
-call "%DIR_HOME%\lib\set-java-home.bat"
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:checkJavaBin
-if "%JAVA_BIN%" == "" goto checkJavaHome
-set OPENDS_JAVA_BIN=%JAVA_BIN%
-goto setClassPath
-
-:checkJavaHome
-if "%JAVA_HOME%" == "" goto noJavaHome
-if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
-set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
-goto setClassPath
-
-:noJavaHome
-echo Error: OPENDS_JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 (or later) installation.
-pause
-goto end
-
-:noValidJavaHome
-echo %SCRIPT%: The detected Java version could not be used. OPENDS_JAVA_HOME=[%OPENDS_JAVA_HOME%] >> %LOG%
-echo ERROR:  The detected Java version could not be used.  Please set 
-echo         OPENDS_JAVA_HOME to to a valid Java 5 (or later) installation.
-pause
-goto end
-
-:setClassPath
-FOR %%x in ("%DIR_HOME%\lib\*.jar") DO call "%DIR_HOME%\lib\setcp.bat" %%x
+rem Set environment variables
+set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
+call "%INSTANCE_ROOT%\lib\_script-util.bat"
+if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
-
-rem Test that the provided JDK is 1.5 compatible.
-"%OPENDS_JAVA_BIN%" org.opends.server.tools.InstallDS -t > NUL 2>&1
-if not %errorlevel% == 0 goto noValidJavaHome
 
 "%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
 

@@ -28,6 +28,6 @@ rem      Portions Copyright 2007 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.ConfigureWindowsService"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=windows-service"
+set SCRIPT_NAME=windows-service
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 
