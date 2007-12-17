@@ -1744,30 +1744,18 @@ public class SubCommandArgumentParser extends ArgumentParser
         }
       }
     } else {
-      int indentNb = 0;
-      for (SubCommand sc : c) {
-        if (sc.isHidden()) {
-          continue;
-        }
-        if (sc.getName().length() > indentNb) {
-          indentNb = sc.getName().length();
-        }
-      }
-      indentNb++;
       boolean isFirst = true;
       for (SubCommand sc : c) {
         if (sc.isHidden()) {
           continue;
         }
-        if (!isFirst)
+        if (isFirst)
         {
           buffer.append(EOL);
         }
-        buffer.append("    " + sc.getName());
-        for (int i = 0; i < indentNb - sc.getName().length(); i++) {
-          buffer.append(" ");
-        }
-        buffer.append(sc.getDescription());
+        buffer.append(sc.getName());
+        buffer.append(EOL);
+        indentAndWrap(Message.raw(INDENT), sc.getDescription(), buffer);
         buffer.append(EOL);
         isFirst = false;
       }
