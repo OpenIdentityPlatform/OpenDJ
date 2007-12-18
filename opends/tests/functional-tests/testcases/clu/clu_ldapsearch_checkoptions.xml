@@ -705,7 +705,7 @@
 
           <!--- Test Case information
             #@TestMarker          ldapsearch check options tests
-            #@TestName            ldapsearch: timelimit of 1 seconds
+            #@TestName            ldapsearch: timelimit of 1 second
             #@TestIssue           none
             #@TestPurpose         Verify a time limit error doing an ldapsearch.
             #@TestPreamble        none
@@ -714,14 +714,14 @@
             #@TestResult          Success if ldapsearch returns 3.
           -->
           <testcase name="getTestCaseName
-          ('ldapsearch: timelimit of 1 seconds')">
+          ('ldapsearch: timelimit of 1 second')">
 
             <sequence>
 
               <call function="'testCase_Preamble'"/>
 
               <message>
-                'ldapsearch: timelimit of 1 seconds'
+                'ldapsearch: timelimit of 1 second'
               </message>
 
               <call function="'ldapSearchWithScript'">
