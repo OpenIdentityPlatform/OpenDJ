@@ -105,27 +105,47 @@ public class OfflineInstaller extends Installer
 
       checkAbort();
 
-      writeOpenDSJavaHome();
-
       if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {
+        if (isVerbose())
+        {
           notifyListeners(getTaskSeparator());
-          setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
-          enableWindowsService();
-          checkAbort();
+        }
+        setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
+        enableWindowsService();
+        checkAbort();
       }
 
       if (mustStart())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
-        new ServerController(this).startServer();
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
+              INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
+        }
+        new ServerController(this).startServer(!isVerbose());
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
+        else
+        {
+          notifyListeners(getLineBreak());
+        }
         checkAbort();
       }
 
       if (mustCreateAds())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
         checkAbort();
@@ -133,7 +153,10 @@ public class OfflineInstaller extends Installer
 
       if (mustConfigureReplication())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
         configureReplication();
         checkAbort();
@@ -141,7 +164,10 @@ public class OfflineInstaller extends Installer
 
       if (mustInitializeSuffixes())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(
             InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
@@ -150,9 +176,21 @@ public class OfflineInstaller extends Installer
 
       if (mustStop())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.STOPPING_SERVER);
-        new ServerController(this).stopServer();
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
+              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+        }
+        new ServerController(this).stopServer(!isVerbose());
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
       }
 
       checkAbort();
@@ -172,7 +210,16 @@ public class OfflineInstaller extends Installer
         Installation installation = getInstallation();
         if (installation.getStatus().isServerRunning()) {
           try {
-            new ServerController(installation).stopServer(true);
+            if (!isVerbose())
+            {
+              notifyListeners(getFormattedWithPoints(
+                  INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+            }
+            new ServerController(installation).stopServer(!isVerbose());
+            if (!isVerbose())
+            {
+              notifyListeners(getFormattedDoneWithLineBreak());
+            }
           } catch (Throwable t) {
             LOG.log(Level.INFO, "error stopping server", t);
           }
@@ -193,7 +240,16 @@ public class OfflineInstaller extends Installer
       Installation installation = getInstallation();
       if (installation.getStatus().isServerRunning()) {
         try {
-          new ServerController(installation).stopServer(true);
+          if (!isVerbose())
+          {
+            notifyListeners(getFormattedWithPoints(
+                INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+          }
+          new ServerController(installation).stopServer(!isVerbose());
+          if (!isVerbose())
+          {
+            notifyListeners(getFormattedDoneWithLineBreak());
+          }
         } catch (Throwable t2) {
           LOG.log(Level.INFO, "error stopping server", t2);
         }
@@ -247,13 +303,31 @@ public class OfflineInstaller extends Installer
   protected void uninstall() {
 
     notifyListeners(getTaskSeparator());
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CANCELING.get()));
+    }
+    else
+    {
+      notifyListeners(
+          getFormattedProgressWithLineBreak(INFO_SUMMARY_CANCELING.get()));
+    }
     Installation installation = getInstallation();
     FileManager fm = new FileManager(this);
 
     // Stop the server if necessary
     if (installation.getStatus().isServerRunning()) {
       try {
-        new ServerController(installation).stopServer(true);
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
+              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+        }
+        new ServerController(installation).stopServer(!isVerbose());
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
       } catch (ApplicationException e) {
         LOG.log(Level.INFO, "error stopping server", e);
       }
@@ -324,6 +398,11 @@ public class OfflineInstaller extends Installer
       fm.deleteChildren(installation.getDatabasesDirectory());
     } catch (ApplicationException e) {
       LOG.log(Level.INFO, "Error deleting databases", e);
+    }
+
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedDoneWithLineBreak());
     }
 
   }

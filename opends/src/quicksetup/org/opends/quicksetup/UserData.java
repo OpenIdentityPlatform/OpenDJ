@@ -84,6 +84,8 @@ public class UserData
 
   private boolean quiet;
 
+  private boolean verbose;
+
   private boolean interactive;
 
   private boolean forceOnError;
@@ -100,6 +102,7 @@ public class UserData
     startServer = true;
     enableWindowsService = false;
     forceOnError = true;
+    verbose = false;
 
     LinkedList<String> baseDn = new LinkedList<String>();
     baseDn.add("dc=example,dc=com");
@@ -470,6 +473,23 @@ public class UserData
    */
   public boolean isQuiet() {
     return this.quiet;
+  }
+
+  /**
+   * Sets whether or not this session should be verbose.
+   * @param verbose where true indicates this sesssion should be verbose
+   */
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
+
+  /**
+   * Indicates whether or not the user has requested verbose mode.
+   *
+   * @return boolean where true indicates this session should be verbose.
+   */
+  public boolean isVerbose() {
+    return this.verbose;
   }
 
   /**

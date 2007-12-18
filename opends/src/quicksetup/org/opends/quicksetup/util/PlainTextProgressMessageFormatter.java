@@ -264,7 +264,7 @@ implements ProgressMessageFormatter
     return Message.raw(
         Constants.LINE_SEPARATOR+
         "-----------------------------------------------------------------"+
-        Constants.LINE_SEPARATOR);
+        Constants.LINE_SEPARATOR+Constants.LINE_SEPARATOR);
   }
 
   /**

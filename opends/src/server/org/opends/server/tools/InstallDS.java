@@ -404,7 +404,6 @@ public class InstallDS extends ConsoleApplication
       cmd = Utils.getPath(binDir, Installation.UNIX_STATUSCLI_FILE_NAME);
     }
     printlnProgress();
-    printlnProgress();
     printProgress(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
     printlnProgress();
 
@@ -558,7 +557,7 @@ public class InstallDS extends ConsoleApplication
    * {@inheritDoc}
    */
   public boolean isVerbose() {
-    return true;
+    return argParser.verboseArg.isPresent();
   }
 
   /**
@@ -575,6 +574,7 @@ public class InstallDS extends ConsoleApplication
     uData.setConfigurationClassName(argParser.configClassArg.getValue());
     uData.setConfigurationFile(argParser.configFileArg.getValue());
     uData.setQuiet(isQuiet());
+    uData.setVerbose(isVerbose());
     //  Check the validity of the directory manager DNs
     String dmDN = argParser.directoryManagerDNArg.getValue();
 

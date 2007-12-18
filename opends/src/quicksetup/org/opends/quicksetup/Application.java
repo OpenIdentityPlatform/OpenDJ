@@ -78,6 +78,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   private ApplicationTrustManager trustManager;
 
+  private boolean notifyListeners = true;
+
   /** Formats progress messages. */
   protected ProgressMessageFormatter formatter;
 
@@ -219,13 +221,25 @@ public abstract class Application implements ProgressNotifier, Runnable {
   /**
    * This method notifies the ProgressUpdateListeners that there was an
    * update in the installation progress.
-   * @param ratioWhenCompleted the integer that specifies which percentage of
-   * the whole installation has been completed.
+   * @param ratio the integer that specifies which percentage of the whole
+   * installation has been completed.
    */
-  public void notifyListenersDone(Integer ratioWhenCompleted) {
-    notifyListeners(ratioWhenCompleted,
+  public void notifyListenersDone(Integer ratio) {
+    notifyListeners(ratio,
             getSummary(getCurrentProgressStep()),
             getFormattedDoneWithLineBreak());
+  }
+
+  /**
+   * This method notifies the ProgressUpdateListeners that there was an
+   * update in the installation progress.
+   * @param ratio the integer that specifies which percentage of the whole
+   * installation has been completed.
+   */
+  public void notifyListenersRatioChange(Integer ratio) {
+    notifyListeners(ratio,
+            getSummary(getCurrentProgressStep()),
+            null);
   }
 
   /**
@@ -241,8 +255,11 @@ public abstract class Application implements ProgressNotifier, Runnable {
   public void notifyListeners(Integer ratio, Message currentPhaseSummary,
       Message newLogDetail)
   {
-    listenerDelegate.notifyListeners(getCurrentProgressStep(),
+    if (notifyListeners)
+    {
+      listenerDelegate.notifyListeners(getCurrentProgressStep(),
             ratio, currentPhaseSummary, newLogDetail);
+    }
   }
 
   /**
@@ -250,12 +267,12 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * update in the installation progress.
    * @param ratio the integer that specifies which percentage of
    * the whole installation has been completed.
-   * @param currentPhaseSummary the localized summary message for the
-   * current installation progress in formatted form.
+   * @param newLogDetail the localized additional log message.
    */
-  public void notifyListeners(Integer ratio, Message currentPhaseSummary) {
+  public void notifyListenersWithPoints(Integer ratio,
+      Message newLogDetail) {
     notifyListeners(ratio, getSummary(getCurrentProgressStep()),
-        formatter.getFormattedWithPoints(currentPhaseSummary));
+        formatter.getFormattedWithPoints(newLogDetail));
   }
 
   /**
@@ -764,12 +781,23 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
+   * Returns <CODE>true</CODE> if the application is running in verbose mode and
+   * <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the application is running in verbose mode and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean isVerbose()
+  {
+    return getUserData().isVerbose();
+  }
+
+  /**
    * Returns the error stream to be used by the application when launching
    * command lines.
    * @return  the error stream to be used by the application when launching
    * command lines.
    */
-  protected ErrorPrintStream getApplicationErrorStream()
+  public ErrorPrintStream getApplicationErrorStream()
   {
     return err;
   }
@@ -780,10 +808,35 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return  the output stream to be used by the application when launching
    * command lines.
    */
-  protected OutputPrintStream getApplicationOutputStream()
+  public OutputPrintStream getApplicationOutputStream()
   {
     return out;
   }
+
+
+
+  /**
+   * Notifies the progress update listeners of the application of the message
+   * we received.
+   * @return <CODE>true</CODE> if we must notify the application listeners
+   * of the message and <CODE>false</CODE> otherwise.
+   */
+  public boolean isNotifyListeners()
+  {
+    return notifyListeners;
+  }
+
+  /**
+   * Tells whether we must notify the listeners or not of the message
+   * received.
+   * @param notifyListeners the boolean that informs of whether we have
+   * to notify the listeners or not.
+   */
+  public void setNotifyListeners(boolean notifyListeners)
+  {
+    this.notifyListeners = notifyListeners;
+  }
+
   /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard error.  It is used in WebStartInstaller
@@ -795,7 +848,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * ProgressUpdateListeners with the formatted messages.
    *
    */
-  protected class ErrorPrintStream extends ApplicationPrintStream {
+  public class ErrorPrintStream extends ApplicationPrintStream {
 
     /**
      * Default constructor.
@@ -825,7 +878,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * ProgressUpdateListeners with the formatted messages.
    *
    */
-  protected class OutputPrintStream extends ApplicationPrintStream
+  public class OutputPrintStream extends ApplicationPrintStream
   {
 
     /**
@@ -853,8 +906,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
     private boolean isFirstLine;
 
-    private boolean notifyListeners = true;
-
     /**
      * Format a string before sending a listener notification.
      * @param string to format
@@ -878,23 +929,20 @@ public abstract class Application implements ProgressNotifier, Runnable {
     @Override
     public void println(String msg)
     {
-      if (notifyListeners)
+      MessageBuilder mb = new MessageBuilder();
+      if (isFirstLine)
       {
-        MessageBuilder mb = new MessageBuilder();
-        if (isFirstLine)
+        mb.append(formatString(msg));
+      } else
+      {
+        if (!Utils.isCli())
         {
-          mb.append(formatString(msg));
-        } else
-        {
-          if (!Utils.isCli())
-          {
-            mb.append(getLineBreak());
-          }
-          mb.append(formatString(msg));
+          mb.append(getLineBreak());
         }
-
-        notifyListeners(mb.toMessage());
+        mb.append(formatString(msg));
       }
+
+      notifyListeners(mb.toMessage());
       LOG.log(Level.INFO, "server: " + msg);
       isFirstLine = false;
     }
@@ -916,28 +964,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
             "len + off are bigger than the length of the byte array");
       }
       println(new String(b, off, len));
-    }
-
-    /**
-     * Notifies the progress update listeners of the application of the message
-     * we received.
-     * @return <CODE>true</CODE> if we must notify the application listeners
-     * of the message and <CODE>false</CODE> otherwise.
-     */
-    public boolean isNotifyListeners()
-    {
-      return notifyListeners;
-    }
-
-    /**
-     * Tells whether we must notify the listeners or not of the message
-     * received.
-     * @param notifyListeners the boolean that informs of whether we have
-     * to notify the listeners or not.
-     */
-    public void setNotifyListeners(boolean notifyListeners)
-    {
-      this.notifyListeners = notifyListeners;
     }
   }
 }

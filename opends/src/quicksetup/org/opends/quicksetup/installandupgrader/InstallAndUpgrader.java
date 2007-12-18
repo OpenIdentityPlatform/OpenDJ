@@ -49,6 +49,7 @@ import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installandupgrader.ui.WelcomePanel;
 import org.opends.quicksetup.installer.Installer;
+import org.opends.quicksetup.installer.SetupLauncher;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.installer.webstart.WebStartInstaller;
 import org.opends.quicksetup.ui.FieldName;
@@ -56,7 +57,6 @@ import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.ui.QuickSetup;
 import org.opends.quicksetup.ui.QuickSetupDialog;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
-import org.opends.quicksetup.upgrader.UpgradeLauncher;
 import org.opends.quicksetup.upgrader.UpgradeWizardStep;
 import org.opends.quicksetup.upgrader.Upgrader;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
@@ -83,7 +83,7 @@ public class InstallAndUpgrader extends GuiApplication
       if (!QuickSetupLog.isInitialized())
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
-                        UpgradeLauncher.LOG_FILE_PREFIX,
+                        SetupLauncher.LOG_FILE_PREFIX,
                         QuickSetupLog.LOG_FILE_SUFFIX));
     } catch (IOException e) {
       System.err.println(INFO_ERROR_INITIALIZING_LOG.get());

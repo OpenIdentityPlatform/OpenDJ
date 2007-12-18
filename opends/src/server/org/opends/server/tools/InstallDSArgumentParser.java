@@ -66,6 +66,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   BooleanArgument   showUsageArg;
   BooleanArgument   quietArg;
   BooleanArgument   noPromptArg;
+  BooleanArgument   verboseArg;
   StringArgument    propertiesFileArgument;
   BooleanArgument   noPropertiesFileArgument;
   BooleanArgument   skipPortCheckArg;
@@ -175,6 +176,10 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_NO_PROMPT.get());
     noPromptArg.setPropertyName(OPTION_LONG_NO_PROMPT);
     addArgument(noPromptArg);
+
+    verboseArg = new BooleanArgument(OPTION_LONG_VERBOSE, OPTION_SHORT_VERBOSE,
+        OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
+    addArgument(verboseArg);
 
     propertiesFileArgument = new StringArgument(
         "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
