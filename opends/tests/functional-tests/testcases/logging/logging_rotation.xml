@@ -97,7 +97,8 @@
               'expectedRC'     : 0
             }
           </call>
-          
+
+  
           <call function="'dsconfigGet'">
             { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -109,10 +110,7 @@
               'attributeName'  : 'rotation-policy'
             }
           </call>
-          
-          <call function="'Sleep'">
-            { 'sleepForMilliSeconds'  : 20000 }
-          </call>
+      
           
           <!--  Starting loop -->
           <script>
@@ -195,6 +193,7 @@
                       </script>
                     </sequence>
                   </iterate>
+                  
                   <!--  set nbLog  when we find a log file -->
                   <script>
                     nbLog=1
@@ -222,7 +221,7 @@
                 'A log rotation has been done. The new rotation file is "%s" (size = %s) ' % (newlogName,newlogSize)
               </message>                  
               
-              <if expr="int(newlogSize) &lt;  4100 and int(newlogSize) > 4000" >
+              <if expr="int(newlogSize) &lt;  4100 and int(newlogSize) > 3900" >
                 <sequence>
                   <message>
                     'SUCCESS. The rotation based on size limit is successfull.  The file "%s" (size = %s) ' % (newlogName,newlogSize)

@@ -38,15 +38,15 @@
         <!---
           #@TestMarker     size limit  retention 
           #@TestName       size limit  retention 
-          #@TestIssue      Check the size limit retention policy
+          #@TestIssue      Check the count retention policy
           #@TestPreamble   none
-          #@TestStep       Create a new size limit retention policy
-          #@TestStep       Configure the Size Limit retention policy with a Max file to 3
+          #@TestStep       Create a new count limit retention policy
+          #@TestStep       Configure the count Limit retention policy with a Max file to 3
           #@TestStep       Execute ldapsearch request until the log are cleaned
           #@TestPostamble  none
           #@TestResult     the number of logs must not exceed 3
         -->
-        <testcase name="getTestCaseName('file count')">
+        <testcase name="getTestCaseName('Count limit retention')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
@@ -316,6 +316,7 @@
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
+
         <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
