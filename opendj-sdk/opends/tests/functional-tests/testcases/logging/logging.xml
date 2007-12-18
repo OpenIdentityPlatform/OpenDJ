@@ -34,8 +34,9 @@
            <script>
              CurrentTestPath['group']='logging'
            </script>
-          <call function="'testGroup_Preamble'" />     
-          <iterate var="_test" in="['setup','rotation','retention','writer','properties','cleanup']" >
+          <call function="'testGroup_Preamble'" />        
+          <!-- 'setup','rotation','retention','writer','properties','retention_properties','rotation_properties','cleanup'-->
+          <iterate var="_test" in="['setup','rotation','retention','writer','properties','retention_properties','rotation_properties','cleanup']" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/logging/logging_%s.xml' % (TESTS_DIR,_test)"/>

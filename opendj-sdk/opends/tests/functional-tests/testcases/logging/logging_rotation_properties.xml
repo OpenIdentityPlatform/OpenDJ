@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+! -->
+<stax>
+  <defaultcall function="logging_rotation_properties"/>
+  <function name="logging_rotation_properties" scope="local">
+    <sequence>
+      <script>
+        CurrentTestPath['suite']=STAXCurrentFunction
+      </script>
+      <call function="'testSuite_Preamble'" />
+      
+      <!--- Test Case : Rotation policy -->
+      <!---
+        #@TestMarker           size limitRotation policy
+        #@TestName             Check dsconfig properties of size limit Rotation policy 
+        #@TestIssue                   
+        #@TestPurpose          check the size limit rotation policy properties.
+        #@TestPreamble         none
+        #@TestStep             Check the size limit rotation policy's properties are correctly set and get using dsconfig
+        #@TestStep             Set a property
+        #@TestStep             Get the property and check it has been correctly updated
+        #@TestPostamble        none
+        #@TestResult           Success if OpenDS returns 0 for all operations
+      -->
+      <testcase name="getTestCaseName('size limit Rotation policy')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the size limit Rotation policy properties  -----'
+          </message>
+          
+          <!-- create-log-rotation-policy  with the type size-limit -->
+          <message>'------  create a size limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'create-log-rotation-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my size rotation policy',
+            'optionsString'  : '--type size-limit --set file-size-limit:5mb',
+            'expectedRC'     : 0
+            } 
+          </call>
+          
+          <message>'------  get file-size-limit --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-rotation-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my size rotation policy',
+            'attributeName'          : 'file-size-limit',
+            'expectedAttributeValue' : '5 mb'
+            }
+          </call>
+          
+          <!--   set file-size-limit  -->
+          <message>'------  set file-size-limit  to 6kb  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+            'subcommand'     : 'set-log-rotation-policy-prop',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my size rotation policy',
+            'optionsString'  : '--set file-size-limit:5kb',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get file-size-limit --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-rotation-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my size rotation policy',
+            'attributeName'          : 'file-size-limit',
+            'expectedAttributeValue' : '5 kb'
+            }
+          </call>
+          
+          <message>'------  delete a size limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'delete-log-rotation-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my size rotation policy',
+            'expectedRC'     : 0
+            } 
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+      <!--- Test Case : time limit Rotation policy -->
+      <!---
+        #@TestMarker           time limit Rotation policy
+        #@TestName             Check dsconfig properties of time limit Rotation policy 
+        #@TestIssue                   
+        #@TestPurpose          check the time limit rotation policy properties.
+        #@TestPreamble         none
+        #@TestStep             Check the time limit rotation policy's properties are correctly set and get using dsconfig
+        #@TestStep             Set a property
+        #@TestStep             Get the property and check it has been correctly updated
+        #@TestPostamble        none
+        #@TestResult           Success if OpenDS returns 0 for all operations
+      -->
+      <testcase name="getTestCaseName('time limit Rotation policy')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the time limit Rotation policy properties  -----'
+          </message>          
+          <!-- ################################-->
+          <!-- create-log-rotation-policy  with the type time-limit -->
+          <message>
+            '------  create a time limit rotation policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'create-log-rotation-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my time rotation policy',
+            'optionsString'  : '--type time-limit --set rotation-interval:3d',
+            'expectedRC'     : 0
+            } 
+          </call>
+          
+          <message>'------  get rotation-interval --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-rotation-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my time rotation policy',
+            'attributeName'          : 'rotation-interval',
+            'extraParams'            : '-m d',
+            'expectedAttributeValue' : '3 d'
+            }
+          </call>
+          
+          <!--   set rotation-interval  -->               
+          <message>'------  set rotation-interval  to 3s  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'set-log-rotation-policy-prop',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my time rotation policy',
+            'optionsString'  : '--set rotation-interval:3s',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get rotation-interval --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-rotation-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my time rotation policy',
+            'attributeName'          : 'rotation-interval',
+            'extraParams'            : '-m s',
+            'expectedAttributeValue' : '3 s'
+            }
+          </call>
+          
+          <message>'------  delete a time limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'delete-log-rotation-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my time rotation policy',
+            'expectedRC'     : 0
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+      <!--- Test Case : fixed time limit Rotation policy -->
+      <!---
+        #@TestMarker           fixed time limit Rotation policy
+        #@TestName             Check dsconfig properties of fixed fixed time limit Rotation policy 
+        #@TestIssue                   
+        #@TestPurpose          check the fixed time limit rotation policy properties.
+        #@TestPreamble         none
+        #@TestStep             Check the fixed time limit rotation policy's properties are correctly set and get using dsconfig
+        #@TestStep             Set a property
+        #@TestStep             Get the property and check it has been correctly updated
+        #@TestPostamble        none
+        #@TestResult           Success if OpenDS returns 0 for all operations
+      -->
+      <testcase name="getTestCaseName('fixed time limit Rotation policy')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the fixed time limit Rotation policy properties  -----'
+          </message>          
+       
+          <!-- create-log-rotation-policy  with the type fixed-time -->         
+          <message>'------  create a fixed time limit rotation policy --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'create-log-rotation-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my fixedtime rotation policy',
+            'optionsString'  : '--type fixed-time --set time-of-day:1203',
+            'expectedRC'     : 0
+            }
+          </call>
+          
+          <message>'------  get time-of-day --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-rotation-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my fixedtime rotation policy',
+            'attributeName'          : 'time-of-day',
+            'expectedAttributeValue' : '1203'
+            }
+          </call>
+          
+          <!--   set time-of-day  -->
+          <message>'------  set time-of-day  to 3s  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'set-log-rotation-policy-prop',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my fixedtime rotation policy',
+            'optionsString'  : '--set time-of-day:0934',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get time-of-day --' </message>     
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+            'objectName'             : 'log-rotation-policy' ,
+            'propertyType'           : 'policy' ,
+            'propertyName'           :  'my fixedtime rotation policy',
+            'attributeName'          : 'time-of-day',
+            'expectedAttributeValue' : '0934'
+            }
+          </call>
+          
+          <!-- delete-log-rotation-policy  with the type fixed-time -->         
+          <message>'------  delete a fixed time limit rotation policy --' </message>
+         
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'delete-log-rotation-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my fixedtime rotation policy',
+            'expectedRC'     : 0
+            }
+          </call>  
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+
+      <call function="'testSuite_Postamble'" />
+    </sequence>
+  </function>
+</stax>

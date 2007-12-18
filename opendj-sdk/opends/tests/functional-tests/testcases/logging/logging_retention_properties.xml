@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+! -->
+<stax>
+  <defaultcall function="logging_retention_properties"/>
+  <function name="logging_retention_properties" scope="local">
+    <sequence>
+      <script>
+        CurrentTestPath['suite']=STAXCurrentFunction
+      </script>
+      <call function="'testSuite_Preamble'" />
+  
+      <!--- Test Case : Retention policy -->
+      <!---
+        #@TestMarker     size limit retention policy
+        #@TestName       Check dsconfig properties of size limit retention policy 
+        #@TestIssue      
+        #@TestPurpose    check the size limit retention policy properties.
+        #@TestPreamble   none
+        #@TestStep       Check the size limit retention policy's properties are correctly set and get using dsconfig
+        #@TestStep       Set a property
+        #@TestStep       Get the property and check it has been correctly updated
+        #@TestPostamble  none
+        #@TestResult     Success if OpenDS returns 0 for all operations
+        -->
+        
+      <testcase name="getTestCaseName('size limit retention policy suite')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the size limit retention policy properties  -----'
+          </message>
+          <!-- create-log-retention-policy  with the type size-limit -->
+          <message>
+            '------  create a size limit retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'create-log-retention-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     :  'my size retention policy',
+            'optionsString'  : '--type size-limit --set disk-space-used:5mb',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get file-size-limit --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-retention-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my size retention policy',
+            'attributeName'          : 'disk-space-used',
+            'expectedAttributeValue' : '5 mb'
+            }
+          </call>
+          
+          <!--   set disk-space-used  -->
+          <message>'------  set file-size-limit  to 5kb  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'set-log-retention-policy-prop',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my size retention policy',
+            'optionsString'  : '--set disk-space-used:5kb',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get disk-space-used --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-retention-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my size retention policy',
+            'attributeName'          : 'disk-space-used',
+            'expectedAttributeValue' : '5 kb'
+            }
+          </call>
+          
+          <message>
+            '------  delete a size limit retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'delete-log-retention-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my size retention policy',
+            'expectedRC'     : 0
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      
+
+      <!--- Test Case : free-disk-space Retention policy -->
+      <!---
+        #@TestMarker     free-disk-space retention policy
+        #@TestName       Check dsconfig properties of size limit retention policy 
+        #@TestIssue      
+        #@TestPurpose    check the free-disk-space retention policy properties.
+        #@TestPreamble   none
+        #@TestStep       Check the free-disk-space retention policy's properties are correctly set and get using dsconfig
+        #@TestStep       Set a property
+        #@TestStep       Get the property and check it has been correctly updated
+        #@TestPostamble  none
+        #@TestResult     Success if OpenDS returns 0 for all operations
+        -->
+        
+      <testcase name="getTestCaseName('free-disk-space retention policy suite')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the  free-disk-space retention policy properties  -----'
+          </message>
+          <!-- create-log-retention-policy  with the type free-disk-space -->
+          <message>
+            '------  create a free-disk-space limit retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'create-log-retention-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my free-disk-space retention policy',
+            'optionsString'  : '--type free-disk-space --set free-disk-space:6Gb',
+            'expectedRC'     : 0
+            }
+          </call>
+          
+          <message>
+            '------  get free_disk-space --'
+          </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+            'objectName'             : 'log-retention-policy' ,
+            'propertyType'           : 'policy' ,
+            'propertyName'           : 'my free-disk-space retention policy',
+            'attributeName'          : 'free-disk-space',
+            'expectedAttributeValue' : '6 gb'
+            }
+          </call>
+  
+          <!--   set free_disk-space  -->
+          <message>'------  set free_disk-space  to 4mb --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'set-log-retention-policy-prop',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my free-disk-space retention policy',
+            'optionsString'  : '--set free-disk-space:4mb',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get free_disk-space --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-retention-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           : 'my free-disk-space retention policy',
+            'attributeName'          : 'free-disk-space',
+            'expectedAttributeValue' : '4 mb'
+            }
+          </call>
+          
+          <message>
+            '------  delete a free-disk-space retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'delete-log-retention-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my free-disk-space retention policy',
+            'expectedRC'     : 0
+            }
+          </call>
+
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+
+
+      <!--- Test Case : free-disk-space Retention policy -->
+      <!---
+        #@TestMarker     file-count retention policy
+        #@TestName       Check dsconfig properties of size limit retention policy 
+        #@TestIssue      
+        #@TestPurpose    check the file-count retention policy properties.
+        #@TestPreamble   none
+        #@TestStep       Check the file-count retention policy's properties are correctly set and get using dsconfig
+        #@TestStep       Set a property
+        #@TestStep       Get the property and check it has been correctly updated
+        #@TestPostamble  none
+        #@TestResult     Success if OpenDS returns 0 for all operations
+        -->
+        
+      <testcase name="getTestCaseName('file-count retention policy suite')">
+        <sequence>
+          <call function="'testCase_Preamble'"/>
+          <message>
+            '----  Check the  file-count retention policy properties  -----'
+          </message>
+        
+          <!-- create-log-retention-policy  with the type  file-count -->
+          <message>
+            '------  create a file-count retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'create-log-retention-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my filecount retention policy',
+            'optionsString'  : '--type file-count --set number-of-files:10',
+            'expectedRC'     : 0
+            }
+          </call>
+          
+          <message>'------  get number-of-files --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+            'objectName'             : 'log-retention-policy' ,
+            'propertyType'           : 'policy' ,
+            'propertyName'           :  'my filecount retention policy',
+            'attributeName'          : 'number-of-files',
+            'expectedAttributeValue' : '10'
+            }
+          </call>
+          
+          <!--   set number-of-files  -->
+          <message>'------  set number-of-files  to 32  --' </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'set-log-retention-policy-prop',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my filecount retention policy',
+            'optionsString'  : '--set number-of-files:32',
+            'expectedRC'     : 0
+            }
+          </call>
+          <message>'------  get number-of-files --' </message>
+          <call function="'dsconfigGet'">
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort'         : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'           : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD,
+            'objectName'             : 'log-retention-policy',
+            'propertyType'           : 'policy',
+            'propertyName'           :'my filecount retention policy',
+            'attributeName'          : 'number-of-files',
+            'expectedAttributeValue' : '32'
+            }
+          </call>
+          
+          <!-- delete-log-retention-policy  with the type file-count -->
+          <message>
+            '------  delete a fixed file-count  retention policy --'
+          </message>
+          <call function="'dsconfig'">
+            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+            'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'delete-log-retention-policy',
+            'objectType'     : 'policy-name',
+            'objectName'     : 'my filecount retention policy',
+            'expectedRC'     : 0
+            }
+          </call>
+          <call function="'testCase_Postamble'"/>
+        </sequence>
+      </testcase>
+      <call function="'testSuite_Postamble'" />
+    </sequence>
+  </function>
+</stax>
