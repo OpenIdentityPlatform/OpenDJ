@@ -119,7 +119,10 @@ public class WebStartInstaller extends Installer {
           getZipInputStream(getRatio(InstallProgressStep.EXTRACTING));
 
       setCurrentProgressStep(InstallProgressStep.EXTRACTING);
-      notifyListeners(getTaskSeparator());
+      if (isVerbose())
+      {
+        notifyListeners(getTaskSeparator());
+      }
 
       checkAbort();
 
@@ -140,16 +143,10 @@ public class WebStartInstaller extends Installer {
       checkAbort();
 
       setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
-      notifyListeners(getTaskSeparator());
-
-      // Write java home before calling Installation class.  The installation
-      // class does a call to start-ds to get information about the build.
-      writeOpenDSJavaHome();
-      setInstallation(new Installation(getUserData().getServerLocation()));
-
-      checkAbort();
-
-      setCurrentProgressStep(InstallProgressStep.CONFIGURING_SERVER);
+      if (isVerbose())
+      {
+        notifyListeners(getTaskSeparator());
+      }
       configureServer();
 
       checkAbort();
@@ -160,23 +157,45 @@ public class WebStartInstaller extends Installer {
 
       if (Utils.isWindows() && getUserData().getEnableWindowsService())
       {
+        if (isVerbose())
+        {
           notifyListeners(getTaskSeparator());
-          setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
-          enableWindowsService();
-          checkAbort();
+        }
+        setCurrentProgressStep(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
+        enableWindowsService();
+        checkAbort();
       }
 
       if (mustStart())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
-        new ServerController(this).startServer();
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
+              INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
+        }
+        new ServerController(this).startServer(!isVerbose());
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
+        else
+        {
+          notifyListeners(getLineBreak());
+        }
         checkAbort();
       }
 
       if (mustCreateAds())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_ADS);
         updateADS();
         checkAbort();
@@ -184,7 +203,10 @@ public class WebStartInstaller extends Installer {
 
       if (mustConfigureReplication())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.CONFIGURING_REPLICATION);
         configureReplication();
         checkAbort();
@@ -192,7 +214,10 @@ public class WebStartInstaller extends Installer {
 
       if (mustInitializeSuffixes())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(
             InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES);
         initializeSuffixes();
@@ -201,9 +226,21 @@ public class WebStartInstaller extends Installer {
 
       if (mustStop())
       {
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         setCurrentProgressStep(InstallProgressStep.STOPPING_SERVER);
-        new ServerController(this).stopServer();
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
+              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+        }
+        new ServerController(this).stopServer(!isVerbose());
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
       }
 
       checkAbort();
@@ -223,7 +260,16 @@ public class WebStartInstaller extends Installer {
         Installation installation = getInstallation();
         if (installation.getStatus().isServerRunning()) {
           try {
-            new ServerController(installation).stopServer(true);
+            if (!isVerbose())
+            {
+              notifyListeners(getFormattedWithPoints(
+                  INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+            }
+            new ServerController(installation).stopServer(!isVerbose());
+            if (!isVerbose())
+            {
+              notifyListeners(getFormattedDoneWithLineBreak());
+            }
           } catch (Throwable t) {
             LOG.log(Level.INFO, "error stopping server", t);
           }
@@ -414,7 +460,7 @@ public class WebStartInstaller extends Installer {
               INFO_ERROR_ZIPINPUTSTREAMNULL.get(zipName), null);
     }
 
-    notifyListeners(getFormattedDone());
+    notifyListeners(getFormattedDoneWithLineBreak());
     return in;
   }
 
@@ -524,6 +570,15 @@ public class WebStartInstaller extends Installer {
     if (downloadedBits)
     {
       notifyListeners(getTaskSeparator());
+      if (!isVerbose())
+      {
+        notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CANCELING.get()));
+      }
+      else
+      {
+        notifyListeners(
+            getFormattedProgressWithLineBreak(INFO_SUMMARY_CANCELING.get()));
+      }
       Installation installation = getInstallation();
       FileManager fm = new FileManager(this);
 
@@ -547,6 +602,15 @@ public class WebStartInstaller extends Installer {
     }
     else
     {
+      if (!isVerbose())
+      {
+        notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CANCELING.get()));
+      }
+      else
+      {
+        notifyListeners(
+            getFormattedProgressWithLineBreak(INFO_SUMMARY_CANCELING.get()));
+      }
       File serverRoot = new File(getUserData().getServerLocation());
       if (serverRoot.exists())
       {
@@ -558,6 +622,10 @@ public class WebStartInstaller extends Installer {
           LOG.log(Level.INFO, "error deleting files", e);
         }
       }
+    }
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
 

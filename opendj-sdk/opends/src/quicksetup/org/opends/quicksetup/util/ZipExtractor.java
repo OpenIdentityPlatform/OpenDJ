@@ -276,7 +276,15 @@ public class ZipExtractor {
     if (application != null) {
       Message progressSummary =
               INFO_PROGRESS_EXTRACTING.get(Utils.getPath(destination));
-      application.notifyListeners(ratioBeforeCompleted, progressSummary);
+      if (application.isVerbose())
+      {
+        application.notifyListenersWithPoints(ratioBeforeCompleted,
+            progressSummary);
+      }
+      else
+      {
+        application.notifyListenersRatioChange(ratioBeforeCompleted);
+      }
     }
     LOG.log(Level.INFO, "extracting " + Utils.getPath(destination));
     if (Utils.insureParentsExist(destination))
@@ -313,7 +321,10 @@ public class ZipExtractor {
       throw new IOException("Could not create parent path: " + destination);
     }
     if (application != null) {
-      application.notifyListenersDone(ratioWhenCompleted);
+      if (application.isVerbose())
+      {
+        application.notifyListenersDone(ratioWhenCompleted);
+      }
     }
   }
 

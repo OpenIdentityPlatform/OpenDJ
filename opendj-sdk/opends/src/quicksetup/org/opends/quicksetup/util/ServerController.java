@@ -113,6 +113,11 @@ public class ServerController {
       StandardOutputSuppressor.suppress();
     }
 
+    if (suppressOutput && (application != null))
+    {
+      application.setNotifyListeners(false);
+    }
+
     try {
       if (application != null) {
         MessageBuilder mb = new MessageBuilder();
@@ -228,6 +233,10 @@ public class ServerController {
       if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
         StandardOutputSuppressor.unsuppress();
       }
+      if (suppressOutput && (application != null))
+      {
+        application.setNotifyListeners(false);
+      }
     }
   }
 
@@ -260,209 +269,218 @@ public class ServerController {
    * This methods starts the server.
    * @param verify boolean indicating whether this method will attempt to
    * connect to the server after starting to verify that it is listening.
+   * @param suppressOutput indicating that ouput to standard output streams
+   * from the server should be suppressed.
    * @return OperationOutput object containing output from the start server
    * command invocation.
-   * @return boolean indicating that ouput to standard output streams
-   * from the server should be suppressed.
    * @throws org.opends.quicksetup.ApplicationException if something goes wrong.
    */
-  private OperationOutput startServer(boolean verify, boolean suppressOuput)
-          throws ApplicationException
+  private OperationOutput startServer(boolean verify, boolean suppressOutput)
+  throws ApplicationException
   {
     OperationOutput output = new OperationOutput();
 
-    if (suppressOuput && !StandardOutputSuppressor.isSuppressed()) {
+    if (suppressOutput && !StandardOutputSuppressor.isSuppressed()) {
       StandardOutputSuppressor.suppress();
     }
 
-    try {
-    if (application != null) {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(application.getFormattedProgress(
-                      INFO_PROGRESS_STARTING.get()));
-      mb.append(application.getLineBreak());
-      application.notifyListeners(mb.toMessage());
-    }
-    LOG.log(Level.INFO, "starting server");
-
-    ArrayList<String> argList = new ArrayList<String>();
-    argList.add(Utils.getScriptPath(
-        Utils.getPath(installation.getServerStartCommandFile())));
-    String[] args = new String[argList.size()];
-    argList.toArray(args);
-    ProcessBuilder pb = new ProcessBuilder(args);
-    pb.directory(installation.getBinariesDirectory());
-    Map<String, String> env = pb.environment();
-    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
-
-    // Upgrader's classpath contains jars located in the temporary
-    // directory that we don't want locked by the directory server
-    // when it starts.  Since we're just calling the start-ds script
-    // it will figure out the correct classpath for the server.
-    env.remove("CLASSPATH");
-    try
+    if (suppressOutput && (application != null))
     {
-      String startedId = getStartedId();
-      Process process = pb.start();
+      application.setNotifyListeners(false);
+    }
 
-      BufferedReader err =
+    try {
+      if (application != null) {
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(application.getFormattedProgress(
+            INFO_PROGRESS_STARTING.get()));
+        mb.append(application.getLineBreak());
+        application.notifyListeners(mb.toMessage());
+      }
+      LOG.log(Level.INFO, "starting server");
+
+      ArrayList<String> argList = new ArrayList<String>();
+      argList.add(Utils.getScriptPath(
+          Utils.getPath(installation.getServerStartCommandFile())));
+      String[] args = new String[argList.size()];
+      argList.toArray(args);
+      ProcessBuilder pb = new ProcessBuilder(args);
+      pb.directory(installation.getBinariesDirectory());
+      Map<String, String> env = pb.environment();
+      env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+
+      // Upgrader's classpath contains jars located in the temporary
+      // directory that we don't want locked by the directory server
+      // when it starts.  Since we're just calling the start-ds script
+      // it will figure out the correct classpath for the server.
+      env.remove("CLASSPATH");
+      try
+      {
+        String startedId = getStartedId();
+        Process process = pb.start();
+
+        BufferedReader err =
           new BufferedReader(new InputStreamReader(process.getErrorStream()));
-      BufferedReader out =
+        BufferedReader out =
           new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-      StartReader errReader = new StartReader(err, startedId, true);
-      StartReader outputReader = new StartReader(out, startedId, false);
+        StartReader errReader = new StartReader(err, startedId, true);
+        StartReader outputReader = new StartReader(out, startedId, false);
 
-      long finishedTime = 0;
-      while (!errReader.isFinished() || !outputReader.isFinished())
-      {
-        try
-        {
-          Thread.sleep(100);
-        } catch (InterruptedException ie)
-        {
-        }
-
-        if (errReader.startedIdFound() || outputReader.startedIdFound())
-        {
-          /* When we start the server in windows and we are not running it
-           * under a windows service, the readers are kept open forever.
-           * Once we find that is finished, wait at most 7 seconds.
-           */
-          if (finishedTime == 0)
-          {
-            finishedTime = System.currentTimeMillis();
-          }
-          else
-          {
-            if (System.currentTimeMillis() - finishedTime > 7000)
-            {
-              break;
-            }
-          }
-        }
-      }
-
-      // Collect any messages found in the output
-      List<Message> errors = errReader.getMessages();
-      if (errors != null) {
-        for(Message error : errors) {
-          output.addErrorMessage(error);
-        }
-      }
-      List<Message> messages = outputReader.getMessages();
-      if (messages != null) {
-        for (Message msg : messages) {
-
-          // NOTE:  this may not be the best place to drop these.
-          // However upon startup the server seems to log all messages,
-          // regardless of whether or not they signal an error condition,
-          // to its error log.
-
-          output.addErrorMessage(msg);
-        }
-      }
-
-      // Check if something wrong occurred reading the starting of the server
-      ApplicationException ex = errReader.getException();
-      if (ex == null)
-      {
-        ex = outputReader.getException();
-      }
-      if (ex != null)
-      {
-        // This is meaningless right now since we throw
-        // the exception below, but in case we change out
-        // minds later or add the ability to return exceptions
-        // in the output only instead of throwing...
-        output.setException(ex);
-        throw ex;
-
-      } else if (verify)
-      {
-        /*
-         * There are no exceptions from the readers and they are marked as
-         * finished. This means that the server has written in its output the
-         * message id informing that it started. So it seems that everything
-         * went fine.
-         *
-         * However we can have issues with the firewalls or do not have rights
-         * to connect.  Just check if we can connect to the server.
-         * Try 5 times with an interval of 1 second between try.
-         */
-        boolean connected = false;
-        Configuration config = installation.getCurrentConfiguration();
-        int port = config.getPort();
-        String ldapUrl = "ldap://localhost:" + port;
-
-        // See if the application has prompted for credentials.  If
-        // not we'll just try to connect anonymously.
-        String userDn = null;
-        String userPw = null;
-        if (application != null) {
-          userDn = application.getUserData().getDirectoryManagerDn();
-          userPw = application.getUserData().getDirectoryManagerPwd();
-        }
-        if (userDn == null || userPw == null) {
-          userDn = null;
-          userPw = null;
-        }
-
-        for (int i=0; i<5 && !connected; i++)
+        long finishedTime = 0;
+        while (!errReader.isFinished() || !outputReader.isFinished())
         {
           try
           {
-            Utils.createLdapContext(
-                ldapUrl,
-                userDn, userPw, 3000, null);
-            connected = true;
-          }
-          catch (NamingException ne)
+            Thread.sleep(100);
+          } catch (InterruptedException ie)
           {
           }
-          if (!connected)
+
+          if (errReader.startedIdFound() || outputReader.startedIdFound())
+          {
+            /* When we start the server in windows and we are not running it
+             * under a windows service, the readers are kept open forever.
+             * Once we find that is finished, wait at most 7 seconds.
+             */
+            if (finishedTime == 0)
+            {
+              finishedTime = System.currentTimeMillis();
+            }
+            else
+            {
+              if (System.currentTimeMillis() - finishedTime > 7000)
+              {
+                break;
+              }
+            }
+          }
+        }
+
+        // Collect any messages found in the output
+        List<Message> errors = errReader.getMessages();
+        if (errors != null) {
+          for(Message error : errors) {
+            output.addErrorMessage(error);
+          }
+        }
+        List<Message> messages = outputReader.getMessages();
+        if (messages != null) {
+          for (Message msg : messages) {
+
+            // NOTE:  this may not be the best place to drop these.
+            // However upon startup the server seems to log all messages,
+            // regardless of whether or not they signal an error condition,
+            // to its error log.
+
+            output.addErrorMessage(msg);
+          }
+        }
+
+        // Check if something wrong occurred reading the starting of the server
+        ApplicationException ex = errReader.getException();
+        if (ex == null)
+        {
+          ex = outputReader.getException();
+        }
+        if (ex != null)
+        {
+          // This is meaningless right now since we throw
+          // the exception below, but in case we change out
+          // minds later or add the ability to return exceptions
+          // in the output only instead of throwing...
+          output.setException(ex);
+          throw ex;
+
+        } else if (verify)
+        {
+          /*
+           * There are no exceptions from the readers and they are marked as
+           * finished. This means that the server has written in its output the
+           * message id informing that it started. So it seems that everything
+           * went fine.
+           *
+           * However we can have issues with the firewalls or do not have rights
+           * to connect.  Just check if we can connect to the server.
+           * Try 5 times with an interval of 1 second between try.
+           */
+          boolean connected = false;
+          Configuration config = installation.getCurrentConfiguration();
+          int port = config.getPort();
+          String ldapUrl = "ldap://localhost:" + port;
+
+          // See if the application has prompted for credentials.  If
+          // not we'll just try to connect anonymously.
+          String userDn = null;
+          String userPw = null;
+          if (application != null) {
+            userDn = application.getUserData().getDirectoryManagerDn();
+            userPw = application.getUserData().getDirectoryManagerPwd();
+          }
+          if (userDn == null || userPw == null) {
+            userDn = null;
+            userPw = null;
+          }
+
+          for (int i=0; i<5 && !connected; i++)
           {
             try
             {
-              Thread.sleep(1000);
+              Utils.createLdapContext(
+                  ldapUrl,
+                  userDn, userPw, 3000, null);
+              connected = true;
             }
-            catch (Throwable t)
+            catch (NamingException ne)
             {
             }
+            if (!connected)
+            {
+              try
+              {
+                Thread.sleep(1000);
+              }
+              catch (Throwable t)
+              {
+              }
+            }
+          }
+          if (!connected)
+          {
+            if (Utils.isWindows())
+            {
+              throw new ApplicationException(
+                  ReturnCode.START_ERROR,
+                  INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(
+                      String.valueOf(port)),
+                      null);
+            }
+            else
+            {
+              throw new ApplicationException(
+                  ReturnCode.START_ERROR,
+                  INFO_ERROR_STARTING_SERVER_IN_UNIX.get(
+                      String.valueOf(port)),
+                      null);
+            }
           }
         }
-        if (!connected)
-        {
-          if (Utils.isWindows())
-          {
-            throw new ApplicationException(
-                ReturnCode.START_ERROR,
-                    INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(
-                            String.valueOf(port)),
-                    null);
-          }
-          else
-          {
-            throw new ApplicationException(
-                ReturnCode.START_ERROR,
-                    INFO_ERROR_STARTING_SERVER_IN_UNIX.get(
-                            String.valueOf(port)),
-                    null);
-          }
-        }
-      }
 
-    } catch (IOException ioe)
-    {
-      throw new ApplicationException(
+      } catch (IOException ioe)
+      {
+        throw new ApplicationException(
             ReturnCode.START_ERROR,
-              getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ioe), ioe);
-    }
-  } finally {
-      if (suppressOuput && StandardOutputSuppressor.isSuppressed()) {
+            getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ioe), ioe);
+      }
+    } finally {
+      if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
         StandardOutputSuppressor.unsuppress();
       }
-  }
+      if (suppressOutput && (application != null))
+      {
+        application.setNotifyListeners(true);
+      }
+    }
     return output;
   }
 

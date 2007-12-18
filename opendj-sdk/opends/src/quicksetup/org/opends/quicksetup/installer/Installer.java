@@ -754,6 +754,15 @@ public abstract class Installer extends GuiApplication {
   protected void configureServer() throws ApplicationException {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
 
+    writeOpenDSJavaHome();
+
+    if (Utils.isWebStart())
+    {
+      setInstallation(new Installation(getUserData().getServerLocation()));
+    }
+
+    checkAbort();
+
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
     argList.add(getConfigurationClassName());
@@ -874,6 +883,7 @@ public abstract class Installer extends GuiApplication {
     }
     LOG.log(Level.INFO, "configure DS cmd: "+cmd);
     final InstallerHelper helper = new InstallerHelper();
+    setNotifyListeners(false);
     InvokeThread thread = new InvokeThread()
     {
       public void run()
@@ -894,6 +904,10 @@ public abstract class Installer extends GuiApplication {
               ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_CONFIGURING.get(), t), t);
         }
+        finally
+        {
+          setNotifyListeners(true);
+        }
         isOver = true;
       }
       public void abort()
@@ -902,7 +916,7 @@ public abstract class Installer extends GuiApplication {
       }
     };
     invokeLongOperation(thread);
-
+    notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
 
     try
@@ -910,7 +924,6 @@ public abstract class Installer extends GuiApplication {
       SecurityOptions.CertificateType certType = sec.getCertificateType();
       if (certType != SecurityOptions.CertificateType.NO_CERTIFICATE)
       {
-        notifyListeners(getLineBreak());
         notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_UPDATING_CERTIFICATES.get()));
       }
@@ -1002,7 +1015,7 @@ public abstract class Installer extends GuiApplication {
       }
       if (certType != SecurityOptions.CertificateType.NO_CERTIFICATE)
       {
-        notifyListeners(getFormattedDone());
+        notifyListeners(getFormattedDoneWithLineBreak());
       }
     }
     catch (Throwable t)
@@ -1066,8 +1079,7 @@ public abstract class Installer extends GuiApplication {
     final String[] args = new String[argList.size()];
     argList.toArray(args);
 
-    getApplicationOutputStream().setNotifyListeners(false);
-    getApplicationErrorStream().setNotifyListeners(false);
+    setNotifyListeners(false);
 
     InvokeThread thread = new InvokeThread()
     {
@@ -1091,8 +1103,7 @@ public abstract class Installer extends GuiApplication {
         }
         finally
         {
-          getApplicationOutputStream().setNotifyListeners(true);
-          getApplicationErrorStream().setNotifyListeners(true);
+          setNotifyListeners(true);
         }
         isOver = true;
       }
@@ -1102,7 +1113,7 @@ public abstract class Installer extends GuiApplication {
       }
     };
     invokeLongOperation(thread);
-    notifyListeners(getFormattedDone());
+    notifyListeners(getFormattedDoneWithLineBreak());
   }
 
   /**
@@ -1116,16 +1127,40 @@ public abstract class Installer extends GuiApplication {
     MessageBuilder mb = new MessageBuilder();
     if (ldifPaths.size() > 1)
     {
-      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS.get(
+      if (isVerbose())
+      {
+        mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIFS.get(
             getStringFromCollection(ldifPaths, ", "))));
+        mb.append(getLineBreak());
+      }
+      else
+      {
+        mb.append(getFormattedWithPoints(
+            INFO_PROGRESS_IMPORTING_LDIFS_NON_VERBOSE.get(
+            getStringFromCollection(ldifPaths, ", "))));
+      }
     }
     else
     {
-      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
+      if (isVerbose())
+      {
+        mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
           ldifPaths.getFirst())));
+        mb.append(getLineBreak());
+      }
+      else
+      {
+        mb.append(getFormattedWithPoints(
+                INFO_PROGRESS_IMPORTING_LDIF_NON_VERBOSE.get(
+                ldifPaths.getFirst())));
+      }
     }
-    mb.append(getLineBreak());
     notifyListeners(mb.toMessage());
+
+    if (!isVerbose())
+    {
+      setNotifyListeners(false);
+    }
 
     ArrayList<String> argList = new ArrayList<String>();
     argList.add("-C");
@@ -1177,6 +1212,13 @@ public abstract class Installer extends GuiApplication {
               ReturnCode.CONFIGURATION_ERROR,
               getThrowableMsg(INFO_ERROR_IMPORTING_LDIF.get(), t), t);
         }
+        finally
+        {
+          if (!isVerbose())
+          {
+            setNotifyListeners(true);
+          }
+        }
         isOver = true;
       }
       public void abort()
@@ -1185,6 +1227,10 @@ public abstract class Installer extends GuiApplication {
       }
     };
     invokeLongOperation(thread);
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedDoneWithLineBreak());
+    }
   }
 
   /**
@@ -1196,14 +1242,28 @@ public abstract class Installer extends GuiApplication {
     LinkedList<File> templatePaths = createTemplateFiles();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     MessageBuilder mb = new MessageBuilder();
-    mb.append(getFormattedProgress(
+    if (isVerbose())
+    {
+      mb.append(getFormattedProgress(
             INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(
                     String.valueOf(nEntries))));
-    mb.append(getLineBreak());
+      mb.append(getLineBreak());
+    }
+    else
+    {
+      mb.append(getFormattedWithPoints(
+          INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_NON_VERBOSE.get(
+                  String.valueOf(nEntries))));
+    }
     notifyListeners(mb.toMessage());
 
     for (File templatePath : templatePaths)
     {
+      if (!isVerbose())
+      {
+        setNotifyListeners(false);
+      }
+
       final ArrayList<String> argList = new ArrayList<String>();
       argList.add("-C");
       argList.add(getConfigurationClassName());
@@ -1247,6 +1307,13 @@ public abstract class Installer extends GuiApplication {
                     listToString(argList, " "), t.getLocalizedMessage()), t),
                     t);
           }
+          finally
+          {
+            if (!isVerbose())
+            {
+              setNotifyListeners(true);
+            }
+          }
           isOver = true;
         }
         public void abort()
@@ -1255,6 +1322,10 @@ public abstract class Installer extends GuiApplication {
         }
       };
       invokeLongOperation(thread);
+      if (!isVerbose())
+      {
+        notifyListeners(getFormattedDoneWithLineBreak());
+      }
     }
   }
 
@@ -1275,8 +1346,11 @@ public abstract class Installer extends GuiApplication {
       String ldapUrl = getLdapUrl(auth);
       String dn = auth.getDn();
       String pwd = auth.getPwd();
-      notifyListeners(getFormattedWithPoints(
+      if (isVerbose())
+      {
+        notifyListeners(getFormattedWithPoints(
           INFO_PROGRESS_UNCONFIGURING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
+      }
       try
       {
         if (auth.useSecureConnection())
@@ -1327,8 +1401,10 @@ public abstract class Installer extends GuiApplication {
                                                                 getUserData()));
           }
         }
-        notifyListeners(getFormattedDone());
-        notifyListeners(getLineBreak());
+        if (isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
       }
       catch (Throwable t)
       {
@@ -1375,8 +1451,7 @@ public abstract class Installer extends GuiApplication {
         {
         }
       }
-      notifyListeners(getFormattedDone());
-      notifyListeners(getLineBreak());
+      notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
 
@@ -1524,8 +1599,7 @@ public abstract class Installer extends GuiApplication {
       {
       }
     }
-    notifyListeners(getFormattedDone());
-    notifyListeners(getLineBreak());
+    notifyListeners(getFormattedDoneWithLineBreak());
     checkAbort();
 
     if (getUserData().getReplicationOptions().getType()
@@ -1646,8 +1720,7 @@ public abstract class Installer extends GuiApplication {
         catch (Throwable t)
         {
         }
-        notifyListeners(getFormattedDone());
-        notifyListeners(getLineBreak());
+        notifyListeners(getFormattedDoneWithLineBreak());
         checkAbort();
       }
     }
@@ -1870,18 +1943,27 @@ public abstract class Installer extends GuiApplication {
       {
       case CREATE_BASE_ENTRY:
         currentProgressStep = InstallProgressStep.CREATING_BASE_ENTRY;
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         createBaseEntry();
         break;
       case IMPORT_FROM_LDIF_FILE:
         currentProgressStep = InstallProgressStep.IMPORTING_LDIF;
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         importLDIF();
         break;
       case IMPORT_AUTOMATICALLY_GENERATED_DATA:
         currentProgressStep =
           InstallProgressStep.IMPORTING_AUTOMATICALLY_GENERATED;
-        notifyListeners(getTaskSeparator());
+        if (isVerbose())
+        {
+          notifyListeners(getTaskSeparator());
+        }
         importAutomaticallyGenerated();
         break;
       }
@@ -2158,8 +2240,11 @@ public abstract class Installer extends GuiApplication {
            initial ADS there and register the server with itself. */
         if (! adsContext.hasAdminData())
         {
-          notifyListeners(getFormattedWithPoints(
+          if (isVerbose())
+          {
+            notifyListeners(getFormattedWithPoints(
                INFO_PROGRESS_CREATING_ADS_ON_REMOTE.get(getHostDisplay(auth))));
+          }
 
           adsContext.createAdminData(null);
           ServerDescriptor server
@@ -2167,14 +2252,20 @@ public abstract class Installer extends GuiApplication {
           server.updateAdsPropertiesWithServerProperties();
           adsContext.registerServer(server.getAdsProperties());
           createdRemoteAds = true;
-          notifyListeners(getFormattedDone());
-          notifyListeners(getLineBreak());
+          if (isVerbose())
+          {
+            notifyListeners(getFormattedDoneWithLineBreak());
+          }
           checkAbort();
         }
       }
 
       /* Act on local server depending on if using remote or local ADS */
-      notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
+      if (isVerbose())
+      {
+        notifyListeners(
+            getFormattedWithPoints(INFO_PROGRESS_CREATING_ADS.get()));
+      }
       localCtx = createLocalContext();
 //      if (isRemoteServer)
 //      {
@@ -2204,8 +2295,10 @@ public abstract class Installer extends GuiApplication {
         ServerDescriptor.seedAdsTrustStore(localCtx,
                                            adsContext.getTrustedCertificates());
       }
-      notifyListeners(getFormattedDone());
-      notifyListeners(getLineBreak());
+      if (isVerbose())
+      {
+        notifyListeners(getFormattedDoneWithLineBreak());
+      }
       checkAbort();
 
       /* Add global administrator if the user specified one. */
@@ -2213,13 +2306,18 @@ public abstract class Installer extends GuiApplication {
       {
         try
         {
-          notifyListeners(getFormattedWithPoints(
+          if (isVerbose())
+          {
+            notifyListeners(getFormattedWithPoints(
                   INFO_PROGRESS_CREATING_ADMINISTRATOR.get()));
+          }
           adsContext.createAdministrator(getAdministratorProperties(
                   getUserData()));
           if (isRemoteServer && !createdRemoteAds) createdAdministrator = true;
-          notifyListeners(getFormattedDone());
-          notifyListeners(getLineBreak());
+          if (isVerbose())
+          {
+            notifyListeners(getFormattedDoneWithLineBreak());
+          }
           checkAbort();
         }
         catch (ADSContextException ade)

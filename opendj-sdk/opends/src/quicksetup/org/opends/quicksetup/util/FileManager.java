@@ -511,7 +511,7 @@ public class FileManager {
 
         if (!destination.exists()) {
           if (Utils.insureParentsExist(destination)) {
-            if (application != null) {
+            if ((application != null) && application.isVerbose()) {
               application.notifyListeners(application.getFormattedWithPoints(
                       INFO_PROGRESS_COPYING_FILE.get(
                               objectFile.getAbsolutePath(),
@@ -542,7 +542,7 @@ public class FileManager {
                 }
               }
 
-              if (application != null) {
+              if ((application != null) && application.isVerbose()) {
                 application.notifyListeners(
                         application.getFormattedDoneWithLineBreak());
               }
@@ -630,7 +630,7 @@ public class FileManager {
       File file = getObjectFile();
       boolean isFile = file.isFile();
 
-      if (application != null) {
+      if ((application != null) && application.isVerbose()) {
         if (isFile) {
           application.notifyListeners(application.getFormattedWithPoints(
                   INFO_PROGRESS_DELETING_FILE.get(file.getAbsolutePath())));
@@ -685,7 +685,7 @@ public class FileManager {
                 errMsg, null);
       }
 
-      if (application != null) {
+      if ((application != null) && application.isVerbose()) {
         application.notifyListeners(
                 application.getFormattedDoneWithLineBreak());
       }
