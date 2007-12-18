@@ -248,6 +248,8 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
         newSocket.setKeepAlive(true);
         ProtocolSession session =
              replSessionSecurity.createServerSession(newSocket);
+        if (session == null) // Error, go back to accept
+          continue;
         ServerHandler handler = new ServerHandler(session, queueSize);
         handler.start(null, serverId, serverURL, rcvWindow,
                       false, this);

@@ -27,17 +27,23 @@
 
 package org.opends.server.replication.protocol;
 
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.messages.ReplicationMessages.*;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.config.ConfigException;
 
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import java.util.SortedSet;
 import java.net.Socket;
+import java.net.InetAddress;
 import java.io.IOException;
 
 /**
@@ -75,7 +81,6 @@ public class ReplSessionSecurity
    */
   private String sslCipherSuites[];
 
-
   /**
    * Create a ReplSessionSecurity instance from the supplied configuration
    * values.
@@ -91,10 +96,10 @@ public class ReplSessionSecurity
    * @throws ConfigException    If the supplied configuration was not valid.
    */
   public ReplSessionSecurity(String sslCertNickname,
-                             SortedSet<String> sslProtocols,
-                             SortedSet<String> sslCipherSuites,
-                             boolean sslEncryption)
-       throws ConfigException
+    SortedSet<String> sslProtocols,
+    SortedSet<String> sslCipherSuites,
+    boolean sslEncryption)
+    throws ConfigException
   {
     if (sslProtocols == null || sslProtocols.size() == 0)
     {
@@ -129,13 +134,13 @@ public class ReplSessionSecurity
    * @throws ConfigException If the supplied configuration was not valid.
    */
   public ReplSessionSecurity(ReplicationServerCfg replServerCfg)
-       throws ConfigException
+    throws ConfigException
   {
     // Currently use global settings from the crypto manager.
     this(DirectoryConfig.getCryptoManager().getSslCertNickname(),
-         DirectoryConfig.getCryptoManager().getSslProtocols(),
-         DirectoryConfig.getCryptoManager().getSslCipherSuites(),
-         DirectoryConfig.getCryptoManager().isSslEncryption());
+      DirectoryConfig.getCryptoManager().getSslProtocols(),
+      DirectoryConfig.getCryptoManager().getSslCipherSuites(),
+      DirectoryConfig.getCryptoManager().isSslEncryption());
   }
 
   /**
@@ -147,13 +152,13 @@ public class ReplSessionSecurity
    * @throws ConfigException If the supplied configuration was not valid.
    */
   public ReplSessionSecurity(ReplicationDomainCfg multimasterDomainCfg)
-       throws ConfigException
+    throws ConfigException
   {
     // Currently use global settings from the crypto manager.
     this(DirectoryConfig.getCryptoManager().getSslCertNickname(),
-         DirectoryConfig.getCryptoManager().getSslProtocols(),
-         DirectoryConfig.getCryptoManager().getSslCipherSuites(),
-         DirectoryConfig.getCryptoManager().isSslEncryption());
+      DirectoryConfig.getCryptoManager().getSslProtocols(),
+      DirectoryConfig.getCryptoManager().getSslCipherSuites(),
+      DirectoryConfig.getCryptoManager().isSslEncryption());
   }
 
   /**
@@ -194,7 +199,7 @@ public class ReplSessionSecurity
    *                         for some other reason.
    */
   public ProtocolSession createClientSession(String serverURL, Socket socket)
-       throws ConfigException, IOException
+    throws ConfigException, IOException
   {
     boolean useSSL = isSecurePort(serverURL);
     if (useSSL)
@@ -205,10 +210,9 @@ public class ReplSessionSecurity
       SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
       SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-      SSLSocket secureSocket = (SSLSocket)
-           sslSocketFactory.createSocket(socket,
-                                         socket.getInetAddress().getHostName(),
-                                         socket.getPort(), false);
+      SSLSocket secureSocket = (SSLSocket) sslSocketFactory.createSocket(socket,
+        socket.getInetAddress().getHostName(),
+        socket.getPort(), false);
       secureSocket.setUseClientMode(true);
 
       if (sslProtocols != null)
@@ -242,44 +246,55 @@ public class ReplSessionSecurity
    *                         for some other reason.
    */
   public ProtocolSession createServerSession(Socket socket)
-       throws ConfigException, IOException
+    throws ConfigException, IOException
   {
     if (useSSL)
     {
-      // Create a new SSL context every time to make sure we pick up the
-      // latest contents of the trust store.
-      CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
-      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-      SSLSocket secureSocket = (SSLSocket)
-           sslSocketFactory.createSocket(socket,
-                                         socket.getInetAddress().getHostName(),
-                                         socket.getPort(), false);
-      secureSocket.setUseClientMode(false);
-      secureSocket.setNeedClientAuth(true);
-
-      if (sslProtocols != null)
+      try
       {
-        secureSocket.setEnabledProtocols(sslProtocols);
-      }
+        // Create a new SSL context every time to make sure we pick up the
+        // latest contents of the trust store.
+        CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
+        SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
+        SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-      if (sslCipherSuites != null)
-      {
-        secureSocket.setEnabledCipherSuites(sslCipherSuites);
-      }
+        SSLSocket secureSocket = (SSLSocket)
+          sslSocketFactory.createSocket(socket,
+          socket.getInetAddress().getHostName(),
+          socket.getPort(), false);
+        secureSocket.setUseClientMode(false);
+        secureSocket.setNeedClientAuth(true);
 
-      // Force TLS negotiation now.
-      secureSocket.startHandshake();
+        if (sslProtocols != null)
+        {
+          secureSocket.setEnabledProtocols(sslProtocols);
+        }
+
+        if (sslCipherSuites != null)
+        {
+          secureSocket.setEnabledCipherSuites(sslCipherSuites);
+        }
+
+        // Force TLS negotiation now.
+        secureSocket.startHandshake();
 
 //      SSLSession sslSession = secureSocket.getSession();
 //      System.out.println("Peer      = " + sslSession.getPeerHost() + ":" +
 //           sslSession.getPeerPort());
 //      System.out.println("Principal = " + sslSession.getPeerPrincipal());
 
-      return new TLSSocketSession(socket, secureSocket);
-    }
-    else
+        return new TLSSocketSession(socket, secureSocket);
+      } catch (SSLException e)
+      {
+        // This is probably a connection attempt from an unexpected client
+        // log that to warn the administrator.
+        InetAddress remHost = socket.getInetAddress();
+        Message message = NOTE_SSL_SERVER_CON_ATTEMPT_ERROR.get(remHost.
+          getHostName(), remHost.getHostAddress(), e.getLocalizedMessage());
+        logError(message);
+        return null;
+      }
+    } else
     {
       return new SocketSession(socket);
     }
