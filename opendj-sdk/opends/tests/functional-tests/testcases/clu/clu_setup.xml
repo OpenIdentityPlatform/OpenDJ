@@ -31,52 +31,82 @@
 
   <function name="clu_setup">
 
-    <function-description>
-      Setup for the command line test suite
-    </function-description>
-
     <sequence>
 
-      <block name="'setup'">
+      <block name="'clu_setup'">
 
         <sequence>
 
+          <!--- Test Suite information
+            #@TestSuiteName       setup
+            #@TestSuitePurpose    Setup for the clu test suite.
+            #@TestSuiteGroup      setup
+            #@TestScript          clu_setup.xml
+          -->
           <script>
-            CurrentTestPath['group']='clu'
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'
+            CurrentTestPath['suite'] = STAXCurrentBlock
           </script>
 
-          <!-- Create the topology necessary to the test group/suite -->
-          <block name="'Block Create DS Topology'">
+          <call function="'testSuite_Preamble'"/>
+
+          <!--- Test Case information
+            #@TestMarker          setup
+            #@TestName            setup: create DS topology
+            #@TestIssue           none
+            #@TestPurpose         Create the topology necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestStep            Create DS topology as described in config.py.
+            #@TestPostamble       none
+            #@TestResult          Success if createTopology returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: create DS tpology')">
 
             <sequence>
-
+              
+              <call function="'testCase_Preamble'"/>
+              
               <message>
-                'Create DS topology as described in config.py'
+                'setup: create DS topology as described in config.py'
               </message>
 
               <call function="'createTopology'">
                 { 'initialiseInstance' : False }
               </call>
 
-              <call function="'checkRC'">
+              <call function="'checktestRC'">
                 {
                 'returncode' : RC ,
                 'result'     : STAXResult
                 }
               </call>
-
+              
+              <call function="'testCase_Postamble'"/>
+              
             </sequence>
 
-          </block>
-          <!--- End Block Create DS Topology -->
+          </testcase>
 
-          <!-- Load the data needed by the test suite -->
-          <block name="'Block DS Load Data'">
+          <!--- Test Case information
+            #@TestMarker          setup
+            #@TestName            setup: adding initial entries
+            #@TestIssue           none
+            #@TestPurpose         Load the data needed by the test suite.
+            #@TestPreamble        none
+            #@TestStep            Load the data needed by the test suite.
+            #@TestPostamble       none
+            #@TestResult          Success if importLdif returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: load data')">
 
             <sequence>
-
+              
+              <call function="'testCase_Preamble'"/>
+              
               <message>
-                'setup: adding Initial Entries'
+                'setup: add initial entries'
               </message>
 
               <call function="'importLdif'">
@@ -85,25 +115,51 @@
                 }
               </call>
 
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>              
+              
+              <call function="'testCase_Postamble'"/>
+              
             </sequence>
 
-          </block>
-          <!--- End Block DS Load Data -->
+          </testcase>
 
-          <!--- Start DS -->
-          <block name="'Block DS Process Active'">
-
+          <!--- Test Case information
+            #@TestMarker          setup
+            #@TestName            setup: start DS
+            #@TestIssue           none
+            #@TestPurpose         Start DS.
+            #@TestPreamble        none
+            #@TestStep            Start DS.
+            #@TestPostamble       none
+            #@TestResult          Success if StartDsWithScript returns 0.
+          -->
+          <testcase name="getTestCaseName('setup: start DS')">
+            
             <sequence>
+              
+              <call function="'testCase_Preamble'"/>
 
               <message>
-                'Start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
+                'setup: start DS to run on port %s' % (DIRECTORY_INSTANCE_PORT)
               </message>
-
+              
               <!--- Start DS -->
               <call function="'StartDsWithScript'">
                 { 'location' : STAF_REMOTE_HOSTNAME }
               </call>
 
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              
               <!--- Check that DS started -->
               <call function="'isAlive'">
                 {
@@ -111,16 +167,19 @@
                 'noOfMilliSeconds' : 2000
                 }
               </call>
-
+              
+              <call function="'testCase_Postamble'"/>
+              
             </sequence>
+            
+          </testcase>
 
-          </block>
-          <!--- End Block DS Process Active -->
-
+          <call function="'testSuite_Postamble'"/>
+          
         </sequence>
 
       </block>
-
+      
     </sequence>
 
   </function>

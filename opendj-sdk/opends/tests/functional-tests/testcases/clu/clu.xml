@@ -26,67 +26,62 @@
  !      Portions Copyright 2007 Sun Microsystems, Inc.
 ! -->
 <stax>
-
+  
   <defaultcall function="main_clu"/>
-
+  
   <function name="main_clu">
-
+    
     <sequence>
-
+      
       <block name="'clu'">
-
+        
         <sequence>
-
+          
           <!--- Test Group information
             #@TestGroupName          Clu tests
             #@TestGroupPurpose       Test the tools commands.
           -->
           <script>
-            CurrentTestPath['group']='clu'
+            CurrentTestPath['group'] = 'clu'
           </script>
-
+          
           <call function="'testGroup_Preamble'"/>
           
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/clu_setup.xml' % (TESTS_DIR)"/>
-          <call function="'clu_setup'"/>
+          <script>
+            testList = []
+            testList.append(['.','clu_setup'])
+            testList.append(['.','clu_ldapsearch_checkoptions'])
+            testList.append(['.','clu_ldapsearch_checkbehavior'])
+            testList.append(['.','clu_ldapmodify_checkoptions'])
+            testList.append(['.','clu_ldapmodify_checkbehavior'])
+            testList.append(['.','clu_ldapcompare_checkbehavior'])
+            testList.append(['.','clu_ldapdelete_checkbehavior'])
+            testList.append(['.','clu_base64_checkbehavior'])
+            testList.append(['.','clu_status_checkbehavior'])
+            testList.append(['.','clu_cleanup'])
+          </script>
           
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/clu_ldapsearch_checkoptions.xml' % (TESTS_DIR)"/>
-          <call function="'clu_ldapsearch_checkoptions'"/>
+          <iterate var="_test" in="testList">
+            <sequence>
+              
+              <import machine="STAF_LOCAL_HOSTNAME"
+                      file="'%s/testcases/clu/%s/%s.xml' % 
+              (TESTS_DIR,_test[0],_test[1])"/>
+              
+              <call function="'%s' % _test[1]" />
+              
+            </sequence>
+            
+          </iterate>
           
-          <!---<import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/cluModify.xml' % (TESTS_DIR)"/>
-          <call function="'main_cluModify'"/>
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/cluCompare.xml' % (TESTS_DIR)"/>
-          <call function="'main_cluCompare'"/>
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/cluDelete.xml' % (TESTS_DIR)"/>
-          <call function="'main_cluDelete'"/>-->
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/cluBase64.xml' % (TESTS_DIR)"/>
-          <call function="'main_cluBase64'"/>
-          
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/cluStatus.xml' % (TESTS_DIR)"/>
-          <call function="'main_cluStatus'"/>
-
-          <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/clu/clu_cleanup.xml' % (TESTS_DIR)"/>
-          <call function="'clu_cleanup'"/>
-
           <call function="'testGroup_Postamble'"/>
-
+          
         </sequence>
-
+        
       </block>
-
+      
     </sequence>
-
+    
   </function>
-
+  
 </stax>

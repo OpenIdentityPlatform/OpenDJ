@@ -31,27 +31,45 @@
 
   <function name="clu_cleanup">
 
-    <function-description>
-      Cleanup for the command line test suite
-    </function-description>
-
     <sequence>
 
-      <block name="'cleanup'">
+      <block name="'clu_cleanup'">
 
         <sequence>
 
+          <!--- Test Suite information
+            #@TestSuiteName       cleanup
+            #@TestSuitePurpose    Cleanup for the clu test suite.
+            #@TestSuiteGroup      clu cleanup
+            #@TestScript          clu_cleanup.xml
+          -->
           <script>
-            CurrentTestPath['group']='clu'
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'
+            CurrentTestPath['suite'] = STAXCurrentBlock
           </script>
 
-          <!--- Stop DS -->
-          <block name="'Block DS Process Stop'">
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Test Case information
+            #@TestMarker          cleanup
+            #@TestName            cleanup: stop DS
+            #@TestIssue           none
+            #@TestPurpose         Stop DS.
+            #@TestPreamble        none
+            #@TestStep            Stop DS.
+            #@TestPostamble       none
+            #@TestResult          Success if StopDsWithScript returns 0.
+          -->
+          <testcase name="getTestCaseName('cleanup: stop DS')">
 
             <sequence>
-
+              
+              <call function="'testCase_Preamble'"/>
+              
               <message>
-                'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                'cleanup: stop DS running on port %s' \
+                % (DIRECTORY_INSTANCE_PORT)
               </message>
 
               <call function="'StopDsWithScript'">
@@ -63,39 +81,63 @@
                 'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
                 }
               </call>
-
-            </sequence>
-
-          </block>
-          <!--- End Block DS Process Stop -->
-
-          <!-- Remove  the topology created for the test suite -->
-          <block name="'Block Remove DS Topology'">
-
-            <sequence>
-
-              <message>
-                'Remove DS topology created for the Test Suite'
-              </message>
-
-              <call function="'removeTopology'"/>
-
-              <call function="'checkRC'">
+              
+              <call function="'checktestRC'">
                 {
                 'returncode' : RC ,
                 'result'     : STAXResult
                 }
               </call>
-
+              
+              <call function="'testCase_Postamble'"/>
+              
             </sequence>
 
-          </block>
-          <!-- End Block Remove DS Topology-->
+          </testcase>
 
+          <!--- Test Case information
+            #@TestMarker          cleanup
+            #@TestName            cleanup: remove DS topology
+            #@TestIssue           none
+            #@TestPurpose         Remove the topology created for 
+                                  the test suite.
+            #@TestPreamble        none
+            #@TestStep            Remove the topology created for 
+                                  the test suite.
+            #@TestPostamble       none
+            #@TestResult          Success if removeTopology returns 0.
+          -->
+          <testcase name="getTestCaseName('cleanup: remove DS topology')">
+
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'cleanup: remove DS topology created for the test suite'
+              </message>
+
+              <call function="'removeTopology'"/>
+
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
+          
         </sequence>
-
+        
       </block>
-
+      
     </sequence>
 
   </function>

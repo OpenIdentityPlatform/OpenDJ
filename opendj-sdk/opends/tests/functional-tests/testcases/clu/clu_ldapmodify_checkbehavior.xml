@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2007 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="clu_ldapmodify_checkbehavior"/>
+  
+  <function name="clu_ldapmodify_checkbehavior">
+    
+    <sequence>
+      
+      <block name="'clu_ldapmodify_checkbehavior'">
+        
+        <sequence>
+          
+          <!--- Test Suite information
+            #@TestSuiteName       ldapmodify check behavior tests
+            #@TestSuitePurpose    Test the results of the ldapmodify command.
+            #@TestSuiteGroup      ldapmodify check bahavior tests
+            #@TestScript          clu_ldapmodify_checkbehavior.xml
+          -->
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'              
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Define default value for basedn and dsfilename -->
+          <script>
+            basedn = 'ou=ldapmodify,o=clu tests,dc=example,dc=com'
+            dsfilename = '%s/clu/data/ldapmodify_checkbehavior.ldif' \
+            % logsRemoteDataDir
+          </script>
+          
+          <!--- Test Case information
+            #@TestMarker          ldapmodify check behavior tests
+            #@TestName            ldapmodify: change attribute value
+            #@TestIssue           none
+            #@TestPurpose         Verify that the operation is successful and 
+                                  that the attribute value has been modified.
+            #@TestPreamble        none
+            #@TestStep            Check that the "postCode" value for "uid=user.1"
+                                  is 93520.
+            #@TestStep            Modify the "postalCode" value using ldapmodify.
+            #@TestStep            Check that the "postCode" value for "uid=user.1"
+                                  is 70000.
+            #@TestPostamble       none
+            #@TestResult          Success if the "postalCode" value is 70000.
+          -->
+          <testcase name="getTestCaseName
+          ('ldapmodify: change attribute value')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldapmodify: change attribute value'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : basedn ,
+                'dsFilter'         : 'uid=user.1' ,
+                'dsAttributes'     : 'postalCode'
+                }                
+              </call>
+             
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'postalCode: 93520'
+                }
+              </call>
+              
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsFilename'       : dsfilename
+                }                
+              </call>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : basedn ,
+                'dsFilter'         : 'uid=user.1' ,
+                'dsAttributes'     : 'postalCode'
+                }                
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'postalCode: 70000'
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>

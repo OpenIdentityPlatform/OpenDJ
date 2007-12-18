@@ -2112,9 +2112,6 @@
         if dsContinueOnError:
           STAFCmdParamsList.append('-c')       
          
-        if dsReportAuthzID:
-          STAFCmdParamsList.append('-E')
-         
         if dsFilename:
           STAFCmdParamsList.append('-f %s' % dsFilename) 
   
