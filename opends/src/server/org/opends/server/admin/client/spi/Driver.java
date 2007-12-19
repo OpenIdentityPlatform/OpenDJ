@@ -295,6 +295,16 @@ public abstract class Driver {
 
 
   /**
+   * Closes any context associated with this management context
+   * driver.
+   */
+  public void close() {
+    // do nothing by default
+  }
+
+
+
+  /**
    * Deletes the named instantiable child managed object from the
    * named parent managed object.
    *
@@ -656,13 +666,6 @@ public abstract class Driver {
       CommunicationException;
 
 
-  /**
-   * Close the associated management context.
-   *
-   */
-  public void close() {
-    // do nothing by default
-  }
 
   /**
    * Deletes the named managed object.

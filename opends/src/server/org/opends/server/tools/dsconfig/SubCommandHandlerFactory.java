@@ -62,8 +62,9 @@ final class SubCommandHandlerFactory {
     /**
      * {@inheritDoc}
      */
-    public Void visitInstantiable(InstantiableRelationDefinition<?, ?> rd,
-        ManagedObjectPath<?, ?> p) {
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitInstantiable(
+        InstantiableRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
         createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
@@ -87,8 +88,9 @@ final class SubCommandHandlerFactory {
     /**
      * {@inheritDoc}
      */
-    public Void visitOptional(OptionalRelationDefinition<?, ?> rd,
-        ManagedObjectPath<?, ?> p) {
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitOptional(
+        OptionalRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
         createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
@@ -112,8 +114,9 @@ final class SubCommandHandlerFactory {
     /**
      * {@inheritDoc}
      */
-    public Void visitSingleton(SingletonRelationDefinition<?, ?> rd,
-        ManagedObjectPath<?, ?> p) {
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitSingleton(
+        SingletonRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
       try {
         // Create the sub-commands.
         getPropHandlers.add(GetPropSubCommandHandler.create(parser, p, rd));

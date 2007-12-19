@@ -243,6 +243,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
   }
 
 
+
   /**
    * {@inheritDoc}
    */

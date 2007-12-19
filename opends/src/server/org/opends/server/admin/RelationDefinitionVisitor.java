@@ -52,38 +52,59 @@ public interface RelationDefinitionVisitor<R, P> {
   /**
    * Visit an instantiable relation definition.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
    * @param rd
    *          The instantiable relation definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitInstantiable(InstantiableRelationDefinition<?, ?> rd, P p);
+  <C extends ConfigurationClient, S extends Configuration> R visitInstantiable(
+      InstantiableRelationDefinition<C, S> rd, P p);
 
 
 
   /**
    * Visit an optional relation definition.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
    * @param rd
    *          The optional relation definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitOptional(OptionalRelationDefinition<?, ?> rd, P p);
+  <C extends ConfigurationClient, S extends Configuration> R visitOptional(
+      OptionalRelationDefinition<C, S> rd, P p);
 
 
 
   /**
    * Visit a singleton relation definition.
    *
+   * @param <C>
+   *          The type of client managed object configuration that the
+   *          relation definition refers to.
+   * @param <S>
+   *          The type of server managed object configuration that the
+   *          relation definition refers to.
    * @param rd
    *          The singleton relation definition to visit.
    * @param p
    *          A visitor specified parameter.
    * @return Returns a visitor specified result.
    */
-  R visitSingleton(SingletonRelationDefinition<?, ?> rd, P p);
+  <C extends ConfigurationClient, S extends Configuration> R visitSingleton(
+      SingletonRelationDefinition<C, S> rd, P p);
 
 }

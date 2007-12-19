@@ -852,6 +852,34 @@
     </xsl:copy>
   </xsl:template>
   <!--
+    Merge a default managed object.
+  -->
+  <xsl:template match="adm:default-managed-object" mode="merge-relation">
+    <xsl:param name="managed-object" select="/.." />
+    <xsl:copy>
+      <xsl:copy-of select="@*" />
+      <!--
+        Add missing attribute managed-object-name if it is not provided.
+      -->
+      <xsl:if test="not(@managed-object-name)">
+        <xsl:attribute name="managed-object-name">
+          <xsl:value-of select="$managed-object/@name" />
+        </xsl:attribute>
+      </xsl:if>
+      <!--
+        Add missing attribute managed-object-package if it is not provided.
+      -->
+      <xsl:if test="not(@managed-object-package)">
+        <xsl:attribute name="managed-object-package">
+          <xsl:value-of select="$managed-object/@package" />
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates mode="merge-relation">
+        <xsl:with-param name="managed-object" select="$managed-object" />
+      </xsl:apply-templates>
+    </xsl:copy>
+  </xsl:template>
+  <!--
     Merge a one-to-many relation.
   -->
   <xsl:template match="adm:one-to-many" mode="merge-relation">

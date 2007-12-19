@@ -56,9 +56,16 @@ public final class OptionalRelationDefinition
    *          The type of server managed object configuration that
    *          this relation definition refers to.
    */
-  public static class Builder
+  public static final class Builder
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<C, S, OptionalRelationDefinition<C, S>> {
+
+    // The optional default managed object associated with this
+    // optional relation.
+    private DefaultManagedObject<? extends C, ? extends S>
+      defaultManagedObject = null;
+
+
 
     /**
      * Creates a new builder which can be used to incrementally build
@@ -79,21 +86,46 @@ public final class OptionalRelationDefinition
 
 
     /**
+     * Sets the optional default managed object associated with this
+     * optional relation definition.
+     *
+     * @param defaultManagedObject
+     *          The default managed object or <code>null</code> if
+     *          there is no default managed object defined for this
+     *          relation definition.
+     */
+    public void setDefaultManagedObject(
+        DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
+      this.defaultManagedObject = defaultManagedObject;
+    }
+
+
+
+    /**
      * {@inheritDoc}
      */
     @Override
     protected OptionalRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
-      return new OptionalRelationDefinition<C, S>(common);
+      return new OptionalRelationDefinition<C, S>(common, defaultManagedObject);
     }
 
   }
 
 
 
+  // The optional default managed object associated with this
+  // optional relation.
+  private final DefaultManagedObject<? extends C, ? extends S>
+    defaultManagedObject;
+
+
+
   // Private constructor.
-  private OptionalRelationDefinition(Common<C, S> common) {
+  private OptionalRelationDefinition(Common<C, S> common,
+      DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
     super(common);
+    this.defaultManagedObject = defaultManagedObject;
   }
 
 
@@ -109,10 +141,25 @@ public final class OptionalRelationDefinition
 
 
   /**
+   * Gets the optional default managed object associated with this
+   * optional relation definition.
+   *
+   * @return Returns the default managed object or <code>null</code>
+   *         if there is no default managed object defined for this
+   *         relation definition.
+   */
+  public DefaultManagedObject<? extends C, ? extends S>
+      getDefaultManagedObject() {
+    return defaultManagedObject;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public final void toString(StringBuilder builder) {
+  public void toString(StringBuilder builder) {
     builder.append("name=");
     builder.append(getName());
     builder.append(" type=composition parent=");
@@ -120,6 +167,18 @@ public final class OptionalRelationDefinition
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
     builder.append(" minOccurs=0 maxOccurs=1");
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void initialize() throws Exception {
+    if (defaultManagedObject != null) {
+      defaultManagedObject.initialize();
+    }
   }
 
 }

@@ -141,9 +141,9 @@ public abstract class LDAPConnection {
       throws NamingException;
 
 
+
   /**
-   * Close the associated management context.
-   *
+   * Closes the LDAP connection.
    */
   public abstract void unbind();
 }

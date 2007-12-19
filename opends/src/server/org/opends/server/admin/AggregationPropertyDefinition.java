@@ -681,8 +681,9 @@ public final class AggregationPropertyDefinition
       /**
        * {@inheritDoc}
        */
-      public Void visitInstantiable(InstantiableRelationDefinition<?, ?> rd,
-          ManagedObject<?> p) {
+      public <CC extends ConfigurationClient, SS extends Configuration>
+          Void visitInstantiable(
+          InstantiableRelationDefinition<CC, SS> rd, ManagedObject<?> p) {
         try {
           for (String childName : p.listChildren(rd)) {
             find(p.getChild(rd, childName));
@@ -702,8 +703,9 @@ public final class AggregationPropertyDefinition
       /**
        * {@inheritDoc}
        */
-      public Void visitOptional(OptionalRelationDefinition<?, ?> rd,
-          ManagedObject<?> p) {
+      public <CC extends ConfigurationClient, SS extends Configuration>
+          Void visitOptional(
+          OptionalRelationDefinition<CC, SS> rd, ManagedObject<?> p) {
         try {
           find(p.getChild(rd));
         } catch (AuthorizationException e) {
@@ -721,8 +723,9 @@ public final class AggregationPropertyDefinition
       /**
        * {@inheritDoc}
        */
-      public Void visitSingleton(SingletonRelationDefinition<?, ?> rd,
-          ManagedObject<?> p) {
+      public <CC extends ConfigurationClient, SS extends Configuration>
+          Void visitSingleton(
+          SingletonRelationDefinition<CC, SS> rd, ManagedObject<?> p) {
         try {
           find(p.getChild(rd));
         } catch (AuthorizationException e) {

@@ -56,9 +56,16 @@ public final class SingletonRelationDefinition
    *          The type of server managed object configuration that
    *          this relation definition refers to.
    */
-  public static class Builder
+  public static final class Builder
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<C, S, SingletonRelationDefinition<C, S>> {
+
+    // The optional default managed object associated with this
+    // singleton relation.
+    private DefaultManagedObject<? extends C, ? extends S>
+      defaultManagedObject = null;
+
+
 
     /**
      * Creates a new builder which can be used to incrementally build
@@ -79,21 +86,47 @@ public final class SingletonRelationDefinition
 
 
     /**
+     * Sets the optional default managed object associated with this
+     * singleton relation definition.
+     *
+     * @param defaultManagedObject
+     *          The default managed object or <code>null</code> if
+     *          there is no default managed object defined for this
+     *          relation definition.
+     */
+    public void setDefaultManagedObject(
+        DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
+      this.defaultManagedObject = defaultManagedObject;
+    }
+
+
+
+    /**
      * {@inheritDoc}
      */
     @Override
     protected SingletonRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
-      return new SingletonRelationDefinition<C, S>(common);
+      return new SingletonRelationDefinition<C, S>(common,
+          defaultManagedObject);
     }
 
   }
 
 
 
+  // The optional default managed object associated with this
+  // singleton relation.
+  private final DefaultManagedObject<? extends C, ? extends S>
+    defaultManagedObject;
+
+
+
   // Private constructor.
-  private SingletonRelationDefinition(Common<C, S> common) {
+  private SingletonRelationDefinition(Common<C, S> common,
+      DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
     super(common);
+    this.defaultManagedObject = defaultManagedObject;
   }
 
 
@@ -109,10 +142,25 @@ public final class SingletonRelationDefinition
 
 
   /**
+   * Gets the optional default managed object associated with this
+   * singleton relation definition.
+   *
+   * @return Returns the default managed object or <code>null</code>
+   *         if there is no default managed object defined for this
+   *         relation definition.
+   */
+  public DefaultManagedObject<? extends C, ? extends S>
+      getDefaultManagedObject() {
+    return defaultManagedObject;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public final void toString(StringBuilder builder) {
+  public void toString(StringBuilder builder) {
     builder.append("name=");
     builder.append(getName());
     builder.append(" type=composition parent=");
@@ -120,6 +168,18 @@ public final class SingletonRelationDefinition
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
     builder.append(" minOccurs=1 maxOccurs=1");
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void initialize() throws Exception {
+    if (defaultManagedObject != null) {
+      defaultManagedObject.initialize();
+    }
   }
 
 }

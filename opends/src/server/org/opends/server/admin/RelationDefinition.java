@@ -400,4 +400,18 @@ public abstract class RelationDefinition
    *          should be appended.
    */
   public abstract void toString(StringBuilder builder);
+
+
+
+  /**
+   * Performs any run-time initialization required by this relation
+   * definition. This may include resolving managed object paths and
+   * property names.
+   *
+   * @throws Exception
+   *           If this relation definition could not be initialized.
+   */
+  protected void initialize() throws Exception {
+    // No implementation required.
+  }
 }
