@@ -1185,7 +1185,7 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void initializeExportMultiSS() throws Exception
   {
     String testCase = "Replication/InitializeExportMultiSS";
