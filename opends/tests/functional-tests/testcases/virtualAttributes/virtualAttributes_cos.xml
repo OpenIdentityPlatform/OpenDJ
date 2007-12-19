@@ -109,7 +109,7 @@
                 '++++ Create user defined virtual attribute'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -180,7 +180,7 @@
               </message>
               <script>
                 attributeValue2 = 'Elvis'
-                arg1 = '--attribute-name %s' % cosName
+                arg1 = '--name %s' % cosName
                 arg2 = '--set value:"%s"' % attributeValue2
                 myOptions = '%s %s' % (arg1,arg2)
               </script>
@@ -230,7 +230,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>
@@ -265,7 +265,7 @@
                 '++++ Create user defined virtual attribute'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -365,7 +365,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>
@@ -400,7 +400,7 @@
                 '++++ Create user defined virtual attribute'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -470,7 +470,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName
+                'optionsString'  : '--name %s' % cosName
               }
               </call>
               
@@ -503,7 +503,7 @@
                 '++++ Create user defined virtual attribute (disabled)'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:false'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -550,7 +550,7 @@
                 '++++ Enable user defined virtual attribute'
               </message>
               <script>
-                myOptions = '--attribute-name %s --set enabled:true' % cosName
+                myOptions = '--name %s --set enabled:true' % cosName
               </script>
               <call function="'dsconfig'">
               {
@@ -597,7 +597,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>
@@ -632,7 +632,7 @@
                 conflict-behavior prop set to virtual-overrides-real'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -698,7 +698,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>
@@ -734,7 +734,7 @@
                 conflict-behavior prop set to virtual-overrides-real'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -800,7 +800,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>
@@ -835,7 +835,7 @@
                 conflict-behavior prop set to virtual-overrides-real'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -901,7 +901,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>
@@ -936,7 +936,7 @@
                 '++++ Create user defined virtual attribute (disabled)'
               </message>
               <script>
-                arg1 = '--type user-defined --attribute-name %s' % cosName
+                arg1 = '--type user-defined --name %s' % cosName
                 arg2 = '--set enabled:true'
                 arg3 = '--set attribute-type:%s' % attributeName
                 arg4 = '--set value:"%s"' % attributeValue
@@ -1013,7 +1013,7 @@
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                 'subcommand'     : 'delete-virtual-attribute',
-                'optionsString'  : '--attribute-name %s' % cosName,
+                'optionsString'  : '--name %s' % cosName,
                 'expectedRC'     : 0
               }
               </call>

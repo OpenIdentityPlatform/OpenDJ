@@ -184,7 +184,7 @@
       </ldap:rdn-sequence>
     </adm:profile>
     <adm:profile name="cli">
-      <cli:relation>
+      <cli:relation naming-argument-override="name">
         <cli:default-property name="enabled" />
         <cli:default-property name="attribute-type" />
       </cli:relation>
