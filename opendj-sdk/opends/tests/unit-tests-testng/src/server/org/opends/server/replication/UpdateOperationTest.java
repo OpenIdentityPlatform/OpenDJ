@@ -1253,7 +1253,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   /**
    * Tests done using directly the ReplicationBroker interface.
    */
-  @Test(enabled=true, dataProvider="assured")
+  @Test(enabled=false, dataProvider="assured")
   public void updateOperations(boolean assured) throws Exception
   {
     logError(Message.raw(
