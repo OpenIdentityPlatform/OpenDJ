@@ -1446,7 +1446,7 @@
           The duration that the process is allowed to run
         </function-arg-description>
       </function-arg-def>      
-      <function-arg-def name="verbose" default="False" type="optional">
+      <function-arg-def name="verbose" default="True" type="optional">
         <function-arg-description>
           A boolean (use True or False here, case matters) to output the 
           outputs of the command

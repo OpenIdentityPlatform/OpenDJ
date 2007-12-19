@@ -85,7 +85,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
         </function-arg-def>
-      <function-arg-def name="verbose" type="optional" default="False">
+      <function-arg-def name="verbose" type="optional" default="True">
         <function-arg-description>
           Display (or not) output.
         </function-arg-description>
