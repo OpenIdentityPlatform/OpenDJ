@@ -761,7 +761,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the export side of the Initialize task
    */
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void initializeExport() throws Exception
   {
     String testCase = "Replication/InitializeExport";
