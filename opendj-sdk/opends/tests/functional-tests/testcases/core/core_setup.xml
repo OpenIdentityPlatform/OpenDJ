@@ -81,7 +81,8 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'entryToBeAdded' : '%s/core/ldifs/core_start.ldif'
-                                     % logsRemoteDataDir
+                                     % logsRemoteDataDir,
+                  'verbose'        : False
                 }
               </call>
               <message>
@@ -94,7 +95,8 @@
                   'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
                   'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
                   'entryToBeAdded' : '%s/core/ldifs/core_test_1K.ldif'
-                                     % logsRemoteDataDir
+                                     % logsRemoteDataDir,
+                  'verbose'        : False
                 }
               </call>
             </sequence>
