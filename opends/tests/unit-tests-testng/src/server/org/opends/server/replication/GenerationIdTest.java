@@ -1285,7 +1285,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Successfully ending " + testCase);
     }
   }
-  @Test(enabled=true)
+  @Test(enabled=false)
   public void generationIdTest() throws Exception
   {
     testSingleRS();
