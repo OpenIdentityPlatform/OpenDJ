@@ -50,7 +50,32 @@
     </ldap:object-class>
   </adm:profile>
   <adm:relation name="local-db-index">
-    <adm:one-to-many naming-property="attribute" />
+    <adm:one-to-many naming-property="attribute">
+      <adm:default-managed-object name="aci">
+        <adm:property name="index-type">
+          <adm:value>presence</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>aci</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="entryUUID">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>entryUUID</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="objectClass">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>objectClass</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+    </adm:one-to-many>
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Index</ldap:rdn-sequence>
     </adm:profile>
