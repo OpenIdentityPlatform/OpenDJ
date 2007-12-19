@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
+import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinitionResource;
 import org.opends.server.admin.RelationDefinition;
 
@@ -42,7 +43,7 @@ import org.opends.server.admin.RelationDefinition;
 /**
  * This class is used to access CLI profile annotations.
  */
-class CLIProfile {
+final class CLIProfile {
 
   // The singleton instance.
   private static final CLIProfile INSTANCE = new CLIProfile();
@@ -83,6 +84,39 @@ class CLIProfile {
     String s = resource.getString(r.getParentDefinition(), "relation."
         + r.getName() + ".list-properties");
     return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
+  }
+
+
+
+  /**
+   * Gets the naming argument which should be used for a relation
+   * definition.
+   *
+   * @param r
+   *          The relation definition.
+   * @return Returns the naming argument which should be used for a
+   *         relation definition.
+   */
+  public String getNamingArgument(InstantiableRelationDefinition<?, ?> r) {
+    String s = resource.getString(r.getParentDefinition(),
+        "relation." + r.getName() + ".naming-argument-override").trim();
+
+    if (s.length() == 0) {
+      // Use the last word in the managed object name as the argument
+      // prefix.
+      StringBuilder builder = new StringBuilder();
+      s = r.getChildDefinition().getName();
+      int i = s.lastIndexOf('-');
+      if (i < 0 || i == (s.length() - 1)) {
+        builder.append(s);
+      } else {
+        builder.append(s.substring(i + 1));
+      }
+      builder.append("-name");
+      s = builder.toString();
+    }
+
+    return s;
   }
 
 

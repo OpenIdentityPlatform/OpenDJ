@@ -455,19 +455,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         AbstractManagedObjectDefinition<C, S> d, String name) {
       sz--;
 
-      // Use the last word in the managed object name as the argument
-      // prefix.
-      StringBuilder builder = new StringBuilder();
-
-      String s = d.getName();
-      int i = s.lastIndexOf('-');
-      if (i < 0 || i == (s.length() - 1)) {
-        builder.append(s);
-      } else {
-        builder.append(s.substring(i + 1));
-      }
-      builder.append("-name");
-      String argName = builder.toString();
+      String argName = CLIProfile.getInstance().getNamingArgument(r);
       StringArgument arg;
 
       try {

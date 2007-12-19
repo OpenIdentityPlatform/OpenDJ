@@ -69,6 +69,20 @@
           </xsd:complexType>
         </xsd:element>
       </xsd:sequence>
+      <xsd:attribute name="naming-argument-override"
+        type="adm:name-type" use="optional">
+        <xsd:annotation>
+          <xsd:documentation>
+            A command-line argument name which should be used to
+            override the default argument name used to identify managed
+            objects referenced by this relation. By default the
+            command-line argument name is derived by taking the last
+            word in the relation name and appending "-name". For
+            example, the relation "certificate-mapper" becomes
+            "mapper-name".
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
     </xsd:complexType>
   </xsd:element>
 </xsd:schema>
