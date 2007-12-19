@@ -186,8 +186,10 @@ public class AggregationTest extends AdminTestCase {
   @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available, so
-    // we'll start the server.
-    TestCaseUtils.startServer();
+    // we'll start the server. In addition this test is sensitive to
+    // having lots of junk left over from previous tests, so we
+    // restart the server to clean out the config (issue 2482).
+    TestCaseUtils.restartServer();
     TestCfg.setUp();
   }
 
