@@ -192,6 +192,16 @@ final class LDAPDriver extends Driver {
    * {@inheritDoc}
    */
   @Override
+  public void close() {
+    connection.unbind();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> getManagedObject(
       ManagedObjectPath<C, S> path) throws DefinitionDecodingException,
@@ -405,15 +415,6 @@ final class LDAPDriver extends Driver {
 
     dn = LDAPNameBuilder.create(path, profile);
     return entryExists(dn);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void close() {
-    connection.unbind();
   }
 
 

@@ -425,11 +425,10 @@ public abstract class ManagementContext {
 
 
 
- /**
-   * Close the associated management context.
-   *
+  /**
+   * Closes this management context.
    */
-  public void close() {
+  public final void close() {
     this.getDriver().close();
   }
 

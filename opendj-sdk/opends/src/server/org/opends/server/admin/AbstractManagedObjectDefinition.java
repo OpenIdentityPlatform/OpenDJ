@@ -749,8 +749,8 @@ public abstract class AbstractManagedObjectDefinition
 
 
   /**
-   * Initializes all of the property definitions associated with this
-   * managed object definition.
+   * Initializes all of the components associated with this managed
+   * object definition.
    *
    * @throws Exception
    *           If this managed object definition could not be
@@ -760,6 +760,10 @@ public abstract class AbstractManagedObjectDefinition
     for (PropertyDefinition<?> pd : getAllPropertyDefinitions()) {
       pd.initialize();
       pd.getDefaultBehaviorProvider().initialize();
+    }
+
+    for (RelationDefinition<?, ?> rd : getAllRelationDefinitions()) {
+      rd.initialize();
     }
 
     for (Constraint constraint : getAllConstraints()) {

@@ -943,6 +943,41 @@
                            'CfgDefn.getInstance().get',
                            $java-property-name, 'PropertyDefinition());&#xa;')" />
     </xsl:if>
+    <xsl:for-each select="*/adm:default-managed-object">
+      <xsl:variable name="dmo-java-name">
+        <xsl:call-template name="name-to-java">
+          <xsl:with-param name="value" select="@managed-object-name" />
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:value-of select="'    {&#xa;'" />
+      <xsl:value-of
+        select="concat('      DefaultManagedObject.Builder&lt;',
+                                   $dmo-java-name, 'CfgClient, ',
+                                   $dmo-java-name, 'Cfg&gt; dmoBuilder = new DefaultManagedObject.Builder&lt;',
+                                   $dmo-java-name, 'CfgClient, ',
+                                   $dmo-java-name, 'Cfg&gt;(',
+                                   $dmo-java-name, 'CfgDefn.getInstance());&#xa;')" />
+      <xsl:for-each select="adm:property">
+        <xsl:value-of
+          select="concat('      dmoBuilder.setPropertyValues(&quot;', @name, '&quot;')" />
+        <xsl:for-each select="adm:value">
+          <xsl:value-of
+            select="concat(', &quot;', normalize-space(), '&quot;')" />
+        </xsl:for-each>
+        <xsl:value-of select="');&#xa;'" />
+      </xsl:for-each>
+      <xsl:choose>
+        <xsl:when test="@name">
+          <xsl:value-of
+            select="concat('      builder.setDefaultManagedObject(&quot;', @name, '&quot;, dmoBuilder.getInstance());&#xa;')" />
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of
+            select="'      builder.setDefaultManagedObject(dmoBuilder.getInstance());&#xa;'" />
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:value-of select="'    }&#xa;'" />
+    </xsl:for-each>
     <xsl:if test="@advanced='true'">
       <xsl:value-of
         select="'    builder.setOption(RelationOption.ADVANCED);&#xa;'" />
@@ -1785,6 +1820,31 @@
           <xsl:element name="import">
             <xsl:value-of
               select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
+          </xsl:element>
+        </xsl:for-each>
+        <xsl:if
+          test="$this-local-relations/*/adm:default-managed-object">
+          <import>org.opends.server.admin.DefaultManagedObject</import>
+        </xsl:if>
+        <xsl:for-each
+          select="$this-local-relations/*/adm:default-managed-object">
+          <xsl:variable name="java-class-name">
+            <xsl:call-template name="name-to-java">
+              <xsl:with-param name="value"
+                select="@managed-object-name" />
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:element name="import">
+            <xsl:value-of
+              select="concat(@managed-object-package, '.client.', $java-class-name, 'CfgClient')" />
+          </xsl:element>
+          <xsl:element name="import">
+            <xsl:value-of
+              select="concat(@managed-object-package, '.server.', $java-class-name, 'Cfg')" />
+          </xsl:element>
+          <xsl:element name="import">
+            <xsl:value-of
+              select="concat(@managed-object-package, '.meta.', $java-class-name, 'CfgDefn')" />
           </xsl:element>
         </xsl:for-each>
         <xsl:if

@@ -42,6 +42,7 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DefaultBehaviorException;
+import org.opends.server.admin.DefaultManagedObject;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.IllegalPropertyValueException;
 import org.opends.server.admin.IllegalPropertyValueStringException;
@@ -57,6 +58,7 @@ import org.opends.server.admin.PropertyIsReadOnlyException;
 import org.opends.server.admin.PropertyIsSingleValuedException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.RelationDefinitionVisitor;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
@@ -81,6 +83,150 @@ import org.opends.server.admin.client.OperationRejectedException.OperationType;
  */
 public abstract class AbstractManagedObject<T extends ConfigurationClient>
     implements ManagedObject<T> {
+
+  /**
+   * Creates any default managed objects associated with a relation
+   * definition.
+   */
+  private final class DefaultManagedObjectFactory implements
+      RelationDefinitionVisitor<Void, Void> {
+
+    // Possible exceptions.
+    private AuthorizationException ae = null;
+
+    private ManagedObjectAlreadyExistsException moaee = null;
+
+    private MissingMandatoryPropertiesException mmpe = null;
+
+    private ConcurrentModificationException cme = null;
+
+    private OperationRejectedException ore = null;
+
+    private CommunicationException ce = null;
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitInstantiable(
+        InstantiableRelationDefinition<C, S> rd, Void p) {
+      for (String name : rd.getDefaultManagedObjectNames()) {
+        DefaultManagedObject<? extends C, ? extends S> dmo = rd
+            .getDefaultManagedObject(name);
+        ManagedObjectDefinition<? extends C, ? extends S> d = dmo
+            .getManagedObjectDefinition();
+        ManagedObject<? extends C> child;
+        try {
+          child = createChild(rd, d, name, null);
+        } catch (IllegalManagedObjectNameException e) {
+          // This should not happen.
+          throw new RuntimeException(e);
+        }
+        createDefaultManagedObject(d, child, dmo);
+      }
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitOptional(
+        OptionalRelationDefinition<C, S> rd, Void p) {
+      if (rd.getDefaultManagedObject() != null) {
+        DefaultManagedObject<? extends C, ? extends S> dmo = rd
+            .getDefaultManagedObject();
+        ManagedObjectDefinition<? extends C, ? extends S> d = dmo
+            .getManagedObjectDefinition();
+        ManagedObject<? extends C> child = createChild(rd, d, null);
+        createDefaultManagedObject(d, child, dmo);
+      }
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration>
+        Void visitSingleton(
+        SingletonRelationDefinition<C, S> rd, Void p) {
+      // Do nothing - not possible to create singletons
+      // dynamically.
+      return null;
+    }
+
+
+
+    // Create the child managed object.
+    private void createDefaultManagedObject(ManagedObjectDefinition<?, ?> d,
+        ManagedObject<?> child, DefaultManagedObject<?, ?> dmo) {
+      for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+        setPropertyValues(child, pd, dmo);
+      }
+
+      try {
+        child.commit();
+      } catch (AuthorizationException e) {
+        ae = e;
+      } catch (ManagedObjectAlreadyExistsException e) {
+        moaee = e;
+      } catch (MissingMandatoryPropertiesException e) {
+        mmpe = e;
+      } catch (ConcurrentModificationException e) {
+        cme = e;
+      } catch (OperationRejectedException e) {
+        ore = e;
+      } catch (CommunicationException e) {
+        ce = e;
+      }
+    }
+
+
+
+    /**
+     * Creates the default managed objects associated with the
+     * provided relation definition.
+     *
+     * @param rd
+     *          The relation definition.
+     */
+    private void createDefaultManagedObjects(RelationDefinition<?, ?> rd)
+        throws AuthorizationException, CommunicationException,
+        ConcurrentModificationException, MissingMandatoryPropertiesException,
+        ManagedObjectAlreadyExistsException, OperationRejectedException {
+      rd.accept(this, null);
+
+      if (ae != null) {
+        throw ae;
+      } else if (ce != null) {
+        throw ce;
+      } else if (cme != null) {
+        throw cme;
+      } else if (mmpe != null) {
+        throw mmpe;
+      } else if (moaee != null) {
+        throw moaee;
+      } else if (ore != null) {
+        throw ore;
+      }
+    }
+
+
+
+    // Set property values.
+    private <PD> void setPropertyValues(ManagedObject<?> mo,
+        PropertyDefinition<PD> pd, DefaultManagedObject<?, ?> dmo) {
+      mo.setPropertyValues(pd, dmo.getPropertyValues(pd));
+    }
+  }
+
+
 
   // The managed object definition associated with this managed
   // object.
@@ -191,11 +337,22 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
       modifyExistingManagedObject();
     } else {
       addNewManagedObject();
-      existsOnServer = true;
     }
 
     // Make all pending property values active.
     properties.commit();
+
+    // If the managed object was created make sure that any default
+    // subordinate managed objects are also created.
+    if (!existsOnServer) {
+      DefaultManagedObjectFactory factory = new DefaultManagedObjectFactory();
+      for (RelationDefinition<?, ?> rd :
+          definition.getAllRelationDefinitions()) {
+        factory.createDefaultManagedObjects(rd);
+      }
+
+      existsOnServer = true;
+    }
   }
 
 

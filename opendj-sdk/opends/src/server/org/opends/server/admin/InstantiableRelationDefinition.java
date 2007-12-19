@@ -32,7 +32,11 @@ import org.opends.messages.Message;
 
 import static org.opends.server.util.Validator.*;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 
 
@@ -62,16 +66,21 @@ public final class InstantiableRelationDefinition
    *          The type of server managed object configuration that
    *          this relation definition refers to.
    */
-  public static class Builder
+  public static final class Builder
       <C extends ConfigurationClient, S extends Configuration>
       extends AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
 
     // The optional naming property definition.
-    private PropertyDefinition<?> namingPropertyDefinition;
+    private PropertyDefinition<?> namingPropertyDefinition = null;
 
     // The plural name of the relation.
     private final String pluralName;
 
+    // The optional default managed objects associated with this
+    // instantiable relation definition.
+    private final Map<String, DefaultManagedObject<? extends C, ? extends S>>
+      defaultManagedObjects = new HashMap<String,
+        DefaultManagedObject<? extends C, ? extends S>>();
 
 
     /**
@@ -96,6 +105,22 @@ public final class InstantiableRelationDefinition
 
 
     /**
+     * Adds the named default managed object to this instantiable
+     * relation definition.
+     *
+     * @param name
+     *          The name of the default managed object.
+     * @param defaultManagedObject
+     *          The default managed object.
+     */
+    public void setDefaultManagedObject(String name,
+        DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
+      this.defaultManagedObjects.put(name, defaultManagedObject);
+    }
+
+
+
+    /**
      * Sets the naming property for the instantiable relation
      * definition.
      *
@@ -104,7 +129,7 @@ public final class InstantiableRelationDefinition
      *          which should be used for naming, or <code>null</code>
      *          if this relation does not use a property for naming.
      */
-    public final void setNamingProperty(
+    public void setNamingProperty(
         PropertyDefinition<?> namingPropertyDefinition) {
       ensureNotNull(namingPropertyDefinition);
       this.namingPropertyDefinition = namingPropertyDefinition;
@@ -119,7 +144,7 @@ public final class InstantiableRelationDefinition
     protected InstantiableRelationDefinition<C, S> buildInstance(
         Common<C, S> common) {
       return new InstantiableRelationDefinition<C, S>(common, pluralName,
-          namingPropertyDefinition);
+          namingPropertyDefinition, defaultManagedObjects);
     }
 
   }
@@ -130,14 +155,23 @@ public final class InstantiableRelationDefinition
   // The plural name of the relation.
   private final String pluralName;
 
+  // The optional default managed objects associated with this
+  // instantiable relation definition.
+  private final Map<String, DefaultManagedObject<? extends C, ? extends S>>
+    defaultManagedObjects;
+
 
 
   // Private constructor.
   private InstantiableRelationDefinition(Common<C, S> common,
-      String pluralName, PropertyDefinition<?> namingPropertyDefinition) {
+      String pluralName,
+      PropertyDefinition<?> namingPropertyDefinition,
+      Map<String, DefaultManagedObject<? extends C, ? extends S>>
+        defaultManagedObjects) {
     super(common);
     this.pluralName = pluralName;
     this.namingPropertyDefinition = namingPropertyDefinition;
+    this.defaultManagedObjects = defaultManagedObjects;
   }
 
 
@@ -153,6 +187,41 @@ public final class InstantiableRelationDefinition
 
 
   /**
+   * Gets the named default managed object associated with this
+   * instantiable relation definition.
+   *
+   * @param name
+   *          The name of the default managed object.
+   * @return Returns the named default managed object.
+   * @throws IllegalArgumentException
+   *           If there is no default managed object associated with
+   *           the provided name.
+   */
+  public DefaultManagedObject<? extends C, ? extends S> getDefaultManagedObject(
+      String name) throws IllegalArgumentException {
+    if (!defaultManagedObjects.containsKey(name)) {
+      throw new IllegalArgumentException(
+          "unrecognized default managed object \"" + name + "\"");
+    }
+    return defaultManagedObjects.get(name);
+  }
+
+
+
+  /**
+   * Gets the names of the default managed objects associated with
+   * this instantiable relation definition.
+   *
+   * @return Returns an unmodifiable set containing the names of the
+   *         default managed object.
+   */
+  public Set<String> getDefaultManagedObjectNames() {
+    return Collections.unmodifiableSet(defaultManagedObjects.keySet());
+  }
+
+
+
+  /**
    * Get the property of the child managed object definition which
    * should be used for naming children.
    *
@@ -161,7 +230,7 @@ public final class InstantiableRelationDefinition
    *         <code>null</code> if this relation does not use a
    *         property for naming.
    */
-  public final PropertyDefinition<?> getNamingPropertyDefinition() {
+  public PropertyDefinition<?> getNamingPropertyDefinition() {
     return namingPropertyDefinition;
   }
 
@@ -172,7 +241,7 @@ public final class InstantiableRelationDefinition
    *
    * @return Returns the plural name of the relation.
    */
-  public final String getPluralName() {
+  public String getPluralName() {
     return pluralName;
   }
 
@@ -185,7 +254,7 @@ public final class InstantiableRelationDefinition
    * @return Returns the user friendly plural name of this relation
    *         definition in the default locale.
    */
-  public final Message getUserFriendlyPluralName() {
+  public Message getUserFriendlyPluralName() {
     return getUserFriendlyPluralName(Locale.getDefault());
   }
 
@@ -200,7 +269,7 @@ public final class InstantiableRelationDefinition
    * @return Returns the user friendly plural name of this relation
    *         definition in the specified locale.
    */
-  public final Message getUserFriendlyPluralName(Locale locale) {
+  public Message getUserFriendlyPluralName(Locale locale) {
     String property = "relation." + getName() + ".user-friendly-plural-name";
     return ManagedObjectDefinitionI18NResource.getInstance().getMessage(
         getParentDefinition(), property, locale);
@@ -212,7 +281,7 @@ public final class InstantiableRelationDefinition
    * {@inheritDoc}
    */
   @Override
-  public final void toString(StringBuilder builder) {
+  public void toString(StringBuilder builder) {
     builder.append("name=");
     builder.append(getName());
     builder.append(" type=composition parent=");
@@ -222,5 +291,17 @@ public final class InstantiableRelationDefinition
     builder.append(" child=");
     builder.append(getChildDefinition().getName());
     builder.append(" minOccurs=0");
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void initialize() throws Exception {
+    for (DefaultManagedObject<?, ?> dmo : defaultManagedObjects.values()) {
+      dmo.initialize();
+    }
   }
 }
