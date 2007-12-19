@@ -52,6 +52,14 @@
     <xsl:for-each select="$this-all-relations">
       <xsl:sort select="@name" />
       <!--
+        Generate the naming argument override if present
+      -->
+      <xsl:value-of
+        select="concat('relation.', @name,
+                       '.naming-argument-override=',
+                       adm:profile[@name='cli']/cli:relation/@naming-argument-override,
+                       '&#xa;')" />
+      <!--
         Generate list of properties which should be displayed by default in list-xxx operations.
       -->
       <xsl:value-of
