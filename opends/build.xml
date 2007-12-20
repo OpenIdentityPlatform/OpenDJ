@@ -1007,6 +1007,11 @@
       </classpath>
     </javac>
 
+     <mkdir dir="${dsml.classes.dir}/resources" />
+     <copy file="${dsml.dir}/schema/DSMLv2.xsd"
+           tofile="${dsml.classes.dir}/resources/DSMLv2.xsd"
+           overwrite="true"/>
+
     <war destfile="${classes.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}-DSML.war"
          webxml="${dsml.dir}/webapp/web.xml">
       <fileset file="${dsml.dir}/webapp/server.properties" />
