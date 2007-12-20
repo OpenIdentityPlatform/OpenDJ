@@ -128,6 +128,17 @@ public class AciListenerManager
         DirectoryServer.registerAlertGenerator(this);
     }
 
+   /**
+    * Deregister from the change notification listener, the backend
+    * initialization listener and the alert generator.
+    */
+    public void finalizeListenerManager() {
+        DirectoryServer.deregisterChangeNotificationListener(this);
+        DirectoryServer.deregisterBackendInitializationListener(this);
+        DirectoryServer.deregisterAlertGenerator(this);
+    }
+
+
     /**
      * A delete operation succeeded. Remove any ACIs associated with the
      * entry deleted.
