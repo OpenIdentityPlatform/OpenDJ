@@ -184,6 +184,9 @@ public final class AccessControlConfigManager
     // order to handle configuration changes.
     accessControlConfiguration.addChangeListener(this);
 
+    //This makes TestCaseUtils.reStartServer happy.
+    currentConfiguration=null;
+
     // The configuration looks valid, so install it.
     updateConfiguration(accessControlConfiguration);
   }
@@ -201,16 +204,17 @@ public final class AccessControlConfigManager
    * @throws  InitializationException  If the access control handler provider
    *                                   could not be instantiated.
    */
+
   private void updateConfiguration(AccessControlHandlerCfg newConfiguration)
           throws ConfigException, InitializationException
   {
-    DN configEntryDN = newConfiguration.dn();
     String newHandlerClass = null;
+    boolean enabledOld = false, enabledNew = newConfiguration.isEnabled();
 
     if (currentConfiguration == null)
     {
       // Initialization phase.
-      if (newConfiguration.isEnabled())
+      if (enabledNew)
       {
         newHandlerClass = newConfiguration.getJavaClass();
       }
@@ -218,97 +222,103 @@ public final class AccessControlConfigManager
       {
         newHandlerClass = DefaultAccessControlHandler.class.getName();
       }
-    }
-    else
-    {
-      boolean enabledOld = currentConfiguration.isEnabled();
-      boolean enabledNew = newConfiguration.isEnabled();
-
-      if ((! enabledOld) && enabledNew)
-      {
-        // Access control has been enabled - get the new class name.
+      //Get a new handler, initialize it and make it the current handler.
+      accessControlHandler.getAndSet(getHandler(newHandlerClass,
+              newConfiguration, true, false));
+    } else {
+      enabledOld = currentConfiguration.isEnabled();
+      if(enabledNew) {
+        //Access control is either being enabled or a attribute in the
+        //configuration has changed such as class name or a global ACI.
         newHandlerClass = newConfiguration.getJavaClass();
-      }
-      else if (enabledOld && (! enabledNew))
-      {
-        // Access control has been disabled - get the default handler class
-        // name.
+        String oldHandlerClass = currentConfiguration.getJavaClass();
+        //Check if moving from not enabled to enabled state.
+        if(!enabledOld) {
+           AccessControlHandler oldHandler =
+                   accessControlHandler.getAndSet(getHandler(newHandlerClass,
+                                                  newConfiguration, true, true));
+           oldHandler.finalizeAccessControlHandler();
+        } else {
+          //Check if the class name is being changed.
+          if(!newHandlerClass.equals(oldHandlerClass)) {
+           AccessControlHandler oldHandler =
+            accessControlHandler.getAndSet(getHandler(newHandlerClass,
+                    newConfiguration, true, true));
+            oldHandler.finalizeAccessControlHandler();
+          } else {
+            //Some other attribute has changed, try to get a new non-initialized
+            //handler, but keep the old handler.
+            getHandler(newHandlerClass,newConfiguration, false, false);
+          }
+        }
+      } else if (enabledOld && (! enabledNew)) {
+        //Access control has been disabled, switch to the default handler and
+        //finalize the old handler.
         newHandlerClass = DefaultAccessControlHandler.class.getName();
-      }
-      else if (enabledNew)
-      {
-        // Access control is already enabled, but still get the handler class
-        // name to see if it has changed.
-        newHandlerClass = newConfiguration.getJavaClass();
-      }
-    }
-
-    // If the access control handler provider class has changed, finalize the
-    // old one and instantiate the new one.
-    if (newHandlerClass != null)
-    {
-      AccessControlHandler<? extends AccessControlHandlerCfg> newHandler;
-      try
-      {
-        if (newConfiguration.isEnabled())
-        {
-          newHandler = loadHandler(newHandlerClass, newConfiguration, true);
-        }
-        else
-        {
-          newHandler = new DefaultAccessControlHandler();
-          newHandler.initializeAccessControlHandler(null);
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
-            get(newHandlerClass, String.valueOf(configEntryDN.toString()),
-                stackTraceToSingleLineString(e));
-        throw new InitializationException(message, e);
-      }
-
-      // Switch the handlers without interfering with other threads.
-      AccessControlHandler oldHandler =
-           accessControlHandler.getAndSet(newHandler);
-
-      if (oldHandler != null)
-      {
+        AccessControlHandler oldHandler =
+                accessControlHandler.getAndSet(getHandler(newHandlerClass,
+                        newConfiguration, false, true));
         oldHandler.finalizeAccessControlHandler();
       }
-
-      // If access control has been disabled put a warning in the log.
-      if (newHandlerClass.equals(DefaultAccessControlHandler.class.getName()))
-      {
-        Message message = WARN_CONFIG_AUTHZ_DISABLED.get();
-        logError(message);
-        if (currentConfiguration != null)
-        {
-          DirectoryServer.sendAlertNotification(this,
-               ALERT_TYPE_ACCESS_CONTROL_DISABLED, message);
-        }
-      }
-      else
-      {
-        Message message = NOTE_CONFIG_AUTHZ_ENABLED.get(newHandlerClass);
-        logError(message);
-        if (currentConfiguration != null)
-        {
-          DirectoryServer.sendAlertNotification(this,
-               ALERT_TYPE_ACCESS_CONTROL_ENABLED, message);
-        }
-      }
     }
-
     // Switch in the local configuration.
     currentConfiguration = newConfiguration;
   }
 
+  /**
+   * Instantiates a new Access Control Handler using the specified class name,
+   * configuration.
+   *
+   * @param handlerClassName The name of the handler to instantiate.
+   * @param config The configuration to use when instantiating a new handler.
+   * @param initHandler <code>True</code> if the new handler should be
+   *                    initialized.
+   * @param logMessage <code>True</code> if an error message should be logged
+   *                                     and an alert should be sent.
+   * @return The newly instantiated handler.
+   *
+   * @throws InitializationException  If an error occurs instantiating the
+   *                                  the new handler.
+   */
+  AccessControlHandler<? extends AccessControlHandlerCfg>
+  getHandler(String handlerClassName, AccessControlHandlerCfg config,
+             boolean initHandler, boolean logMessage)
+          throws InitializationException {
+    AccessControlHandler<? extends AccessControlHandlerCfg> newHandler;
+    try {
+      if(handlerClassName.equals(DefaultAccessControlHandler.class.getName())) {
+        newHandler = new DefaultAccessControlHandler();
+        newHandler.initializeAccessControlHandler(null);
+        if(logMessage) {
+          Message message = WARN_CONFIG_AUTHZ_DISABLED.get();
+          logError(message);
+          if (currentConfiguration != null) {
+            DirectoryServer.sendAlertNotification(this,
+                    ALERT_TYPE_ACCESS_CONTROL_DISABLED, message);
+          }
+        }
+      } else {
+        newHandler = loadHandler(handlerClassName, config, initHandler);
+        if(logMessage) {
+          Message message = NOTE_CONFIG_AUTHZ_ENABLED.get(handlerClassName);
+          logError(message);
+          if (currentConfiguration != null) {
+            DirectoryServer.sendAlertNotification(this,
+                    ALERT_TYPE_ACCESS_CONTROL_ENABLED, message);
+          }
+        }
+      }
+    } catch (Exception e) {
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      Message message = ERR_CONFIG_AUTHZ_UNABLE_TO_INSTANTIATE_HANDLER.
+              get(handlerClassName, String.valueOf(config.dn().toString()),
+                      stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
+    }
+    return newHandler;
+  }
 
 
   /**
@@ -446,7 +456,9 @@ public final class AccessControlConfigManager
         Method method =
           provider.getClass().getMethod("initializeAccessControlHandler",
                   configuration.definition().getServerConfigurationClass());
-        method.invoke(provider, configuration);
+        if(initialize) {
+          method.invoke(provider, configuration);
+        }
       }
       else
       {

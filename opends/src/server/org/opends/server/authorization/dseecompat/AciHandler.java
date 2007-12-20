@@ -107,6 +107,7 @@ public class AciHandler
   */
   static DN debugSearchIndexDN;
 
+
   /**
    * String used to save the original authorization entry in an operation
    * attachment if a proxied authorization control was seen.
@@ -212,6 +213,7 @@ public class AciHandler
   @Override()
   public void finalizeAccessControlHandler()
   {
+    aciListenerMgr.finalizeListenerManager();
     AciEffectiveRights.finalizeOnShutdown();
     DirectoryServer.deregisterSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }

@@ -81,7 +81,7 @@ public class ReferencesTestCase extends AciTestCase{
 
   @BeforeClass
   public void setupClass() throws Exception {
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
     deleteAttrFromEntry(ACCESS_HANDLER_DN, ATTR_AUTHZ_GLOBAL_ACI);
     TestCaseUtils.clearJEBackend(true,"userRoot", suffix);
     addEntries(suffix);
