@@ -236,7 +236,8 @@ public final class AccessControlConfigManager
         if(!enabledOld) {
            AccessControlHandler oldHandler =
                    accessControlHandler.getAndSet(getHandler(newHandlerClass,
-                                                  newConfiguration, true, true));
+                                                  newConfiguration, true,
+                                                  true));
            oldHandler.finalizeAccessControlHandler();
         } else {
           //Check if the class name is being changed.
