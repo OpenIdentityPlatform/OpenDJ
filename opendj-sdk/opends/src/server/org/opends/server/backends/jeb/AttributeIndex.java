@@ -27,11 +27,7 @@
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.sleepycat.je.*;
 
@@ -161,6 +157,7 @@ public class AttributeIndex
                                      state,
                                      indexEntryLimit,
                                      cursorEntryLimit,
+                                     false,
                                      env,
                                      entryContainer);
     }
@@ -174,6 +171,7 @@ public class AttributeIndex
                                      state,
                                      indexEntryLimit,
                                      cursorEntryLimit,
+                                     false,
                                      env,
                                      entryContainer);
     }
@@ -195,6 +193,7 @@ public class AttributeIndex
                                      state,
                                      indexEntryLimit,
                                      cursorEntryLimit,
+                                     false,
                                      env,
                                      entryContainer);
     }
@@ -215,6 +214,7 @@ public class AttributeIndex
                                      state,
                                      indexEntryLimit,
                                      cursorEntryLimit,
+                                     false,
                                      env,
                                      entryContainer);
     }
@@ -234,6 +234,7 @@ public class AttributeIndex
                                         state,
                                         indexEntryLimit,
                                         cursorEntryLimit,
+                                        false,
                                         env,
                                         entryContainer);
     }
@@ -571,7 +572,8 @@ public class AttributeIndex
       // index substring length, and read those keys.
 
       // Eliminate duplicates by putting the keys into a set.
-      Set<byte[]> set = new HashSet<byte[]>();
+      Set<byte[]> set =
+          new TreeSet<byte[]>(substringIndex.indexer.getComparator());
 
       // Example: The value is ABCDE and the substring length is 3.
       // We produce the keys ABC BCD CDE.
@@ -1238,6 +1240,7 @@ public class AttributeIndex
                                     state,
                                     indexEntryLimit,
                                     cursorEntryLimit,
+                                    false,
                                     env,
                                     entryContainer);
           equalityIndex.open();
@@ -1297,6 +1300,7 @@ public class AttributeIndex
                                     state,
                                     indexEntryLimit,
                                     cursorEntryLimit,
+                                    false,
                                     env,
                                     entryContainer);
           presenceIndex.open();
@@ -1356,6 +1360,7 @@ public class AttributeIndex
                                      state,
                                      indexEntryLimit,
                                      cursorEntryLimit,
+                                     false,
                                      env,
                                      entryContainer);
           substringIndex.open();
@@ -1420,6 +1425,7 @@ public class AttributeIndex
                                     state,
                                     indexEntryLimit,
                                     cursorEntryLimit,
+                                    false,
                                     env,
                                     entryContainer);
           orderingIndex.open();
@@ -1478,6 +1484,7 @@ public class AttributeIndex
                                        state,
                                        indexEntryLimit,
                                        cursorEntryLimit,
+                                       false,
                                        env,
                                        entryContainer);
           approximateIndex.open();
