@@ -36,6 +36,7 @@ import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 
 
@@ -106,6 +107,12 @@ public class DSMLDeleteOperation
     ResultCode code = objFactory.createResultCode();
     code.setCode(resultCode);
     delResponse.setResultCode(code);
+
+    // set the match DN
+    DN dn = delOp.getMatchedDN();
+    if ( dn != null ) {
+      delResponse.setMatchedDN(dn.toString());
+    }
 
     return delResponse;
   }

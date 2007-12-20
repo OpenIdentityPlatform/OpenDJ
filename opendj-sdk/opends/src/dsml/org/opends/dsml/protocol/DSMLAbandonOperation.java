@@ -27,11 +27,14 @@
 package org.opends.dsml.protocol;
 
 import java.io.IOException;
+import org.opends.messages.Message;
 
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
+import org.opends.server.types.LDAPException;
 
 
 
@@ -66,12 +69,9 @@ public class DSMLAbandonOperation
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
         AbandonRequest abandonRequest)
-    throws IOException
+    throws LDAPException, IOException
   {
     LDAPResult abandonResponse = objFactory.createLDAPResult();
-
-    // Set the id for the response.
-    abandonResponse.setRequestID(abandonRequest.getRequestID());
 
     String abandonIdStr = abandonRequest.getAbandonID();
     int abandonId = 0;
@@ -80,7 +80,8 @@ public class DSMLAbandonOperation
       abandonId = Integer.parseInt(abandonIdStr);
     } catch (NumberFormatException nfe)
     {
-      throw new IOException(nfe.getMessage());
+      throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                              Message.raw(nfe.getMessage()));
     }
 
     // Create and send an LDAP request to the server.
