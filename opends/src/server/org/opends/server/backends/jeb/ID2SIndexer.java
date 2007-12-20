@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -89,7 +88,7 @@ public class ID2SIndexer extends Indexer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void indexEntry(Transaction txn, Entry entry,
-                       Set<ASN1OctetString> addKeys)
+                       Set<byte[]> addKeys)
        throws DatabaseException
   {
     // The superior entry IDs are in the entry attachment.
@@ -103,7 +102,7 @@ public class ID2SIndexer extends Indexer
     while (iter.hasNext())
     {
       DatabaseEntry nodeIDData = ((EntryID)iter.next()).getDatabaseEntry();
-      addKeys.add(new ASN1OctetString(nodeIDData.getData()));
+      addKeys.add(nodeIDData.getData());
     }
   }
 
@@ -121,8 +120,8 @@ public class ID2SIndexer extends Indexer
    */
   public void replaceEntry(Transaction txn,
                            Entry oldEntry, Entry newEntry,
-                           Set<ASN1OctetString> addKeys,
-                           Set<ASN1OctetString> delKeys)
+                           Set<byte[]> addKeys,
+                           Set<byte[]> delKeys)
        throws DatabaseException
   {
     // Nothing to do.
@@ -145,8 +144,8 @@ public class ID2SIndexer extends Indexer
    */
   public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<ASN1OctetString> addKeys,
-                          Set<ASN1OctetString> delKeys)
+                          Set<byte[]> addKeys,
+                          Set<byte[]> delKeys)
        throws DatabaseException
   {
     // Nothing to do.

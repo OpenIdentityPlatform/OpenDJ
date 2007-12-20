@@ -33,7 +33,6 @@ import org.opends.server.types.DebugLogLevel;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.DatabaseException;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -41,10 +40,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An implementation of an Indexer for attribute equality.
@@ -114,7 +110,7 @@ public class EqualityIndexer extends Indexer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void indexEntry(Transaction txn, Entry entry,
-                         Set<ASN1OctetString> keys) throws DatabaseException
+                         Set<byte[]> keys) throws DatabaseException
   {
     List<Attribute> attrList =
          entry.getAttribute(attributeType);
@@ -139,32 +135,38 @@ public class EqualityIndexer extends Indexer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void replaceEntry(Transaction txn, Entry oldEntry, Entry newEntry,
-                           Set<ASN1OctetString> addKeys,
-                           Set<ASN1OctetString> delKeys)
-       throws DatabaseException
+                           Set<byte[]> addKeys,
+                           Set<byte[]> delKeys)
+      throws DatabaseException
   {
-    List<Attribute> attrList;
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    attrList = oldEntry.getAttribute(attributeType);
-    Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
-    indexAttribute(attrList, oldSet);
-
-    attrList = newEntry.getAttribute(attributeType);
-    Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
-    indexAttribute(attrList, newSet);
-
-    HashSet<ASN1OctetString> removeSet = new HashSet<ASN1OctetString>(oldSet);
-    removeSet.removeAll(newSet);
-    for (ASN1OctetString k : removeSet)
+    if(newAttributes == null)
     {
-      delKeys.add(k);
+      indexAttribute(oldAttributes, delKeys);
     }
-
-    HashSet<ASN1OctetString> addSet = new HashSet<ASN1OctetString>(newSet);
-    addSet.removeAll(oldSet);
-    for (ASN1OctetString k : addSet)
+    else
     {
-      addKeys.add(k);
+      if(oldAttributes == null)
+      {
+        indexAttribute(newAttributes, addKeys);
+      }
+      else
+      {
+        TreeSet<byte[]> newKeys =
+            new TreeSet<byte[]>(comparator);
+        TreeSet<byte[]> oldKeys =
+            new TreeSet<byte[]>(comparator);
+        indexAttribute(newAttributes, newKeys);
+        indexAttribute(oldAttributes, oldKeys);
+
+        addKeys.addAll(newKeys);
+        addKeys.removeAll(oldKeys);
+
+        delKeys.addAll(oldKeys);
+        delKeys.removeAll(newKeys);
+      }
     }
   }
 
@@ -186,14 +188,12 @@ public class EqualityIndexer extends Indexer
    */
   public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<ASN1OctetString> addKeys,
-                          Set<ASN1OctetString> delKeys)
-       throws DatabaseException
+                          Set<byte[]> addKeys,
+                          Set<byte[]> delKeys)
+      throws DatabaseException
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
-    HashSet<AttributeValue> newValues;
-    HashSet<AttributeValue> oldValues;
 
     if(newAttributes == null)
     {
@@ -207,26 +207,18 @@ public class EqualityIndexer extends Indexer
       }
       else
       {
-        newValues = new HashSet<AttributeValue>();
-        oldValues = new HashSet<AttributeValue>();
-        for(Attribute a : newAttributes)
-        {
-          newValues.addAll(a.getValues());
-        }
-        for(Attribute a : oldAttributes)
-        {
-          oldValues.addAll(a.getValues());
-        }
+        TreeSet<byte[]> newKeys =
+            new TreeSet<byte[]>(comparator);
+        TreeSet<byte[]> oldKeys =
+            new TreeSet<byte[]>(comparator);
+        indexAttribute(newAttributes, newKeys);
+        indexAttribute(oldAttributes, oldKeys);
 
-        HashSet<AttributeValue> valuesToAdd =
-            new HashSet<AttributeValue>(newValues);
-        HashSet<AttributeValue> valuesToDel =
-            new HashSet<AttributeValue>(oldValues);
-        valuesToAdd.removeAll(oldValues);
-        valuesToDel.removeAll(newValues);
+        addKeys.addAll(newKeys);
+        addKeys.removeAll(oldKeys);
 
-        indexValues(valuesToDel, delKeys);
-        indexValues(valuesToAdd, addKeys);
+        delKeys.addAll(oldKeys);
+        delKeys.removeAll(newKeys);
       }
     }
   }
@@ -237,7 +229,7 @@ public class EqualityIndexer extends Indexer
    * @param keys The set into which the keys will be inserted.
    */
   private void indexValues(Set<AttributeValue> values,
-                           Set<ASN1OctetString> keys)
+                           Set<byte[]> keys)
   {
     if (values == null) return;
 
@@ -247,7 +239,7 @@ public class EqualityIndexer extends Indexer
       {
         byte[] keyBytes = value.getNormalizedValue().value();
 
-        keys.add(new ASN1OctetString(keyBytes));
+        keys.add(keyBytes);
       }
       catch (DirectoryException e)
       {
@@ -265,7 +257,7 @@ public class EqualityIndexer extends Indexer
    * @param keys The set into which the keys will be inserted.
    */
   private void indexAttribute(List<Attribute> attrList,
-                              Set<ASN1OctetString> keys)
+                              Set<byte[]> keys)
   {
     if (attrList == null) return;
 

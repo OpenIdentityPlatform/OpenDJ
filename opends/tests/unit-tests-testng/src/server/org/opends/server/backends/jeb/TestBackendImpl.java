@@ -804,7 +804,7 @@ public class TestBackendImpl extends JebTestCase {
     EntryID entryID;
     AttributeType attribute;
     AttributeIndex index;
-    HashSet<ASN1OctetString> addKeys;
+    HashSet<byte[]> addKeys;
     DatabaseEntry key;
     PresenceIndexer presenceIndexer;
     EqualityIndexer equalityIndexer;
@@ -843,47 +843,47 @@ public class TestBackendImpl extends JebTestCase {
       index = ec.getAttributeIndex(attribute);
 
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(index.getAttributeType());
       presenceIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.presenceIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(index.getAttributeType());
       equalityIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.equalityIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
                    index.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.substringIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(index.getAttributeType());
       orderingIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.orderingIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
@@ -903,7 +903,7 @@ public class TestBackendImpl extends JebTestCase {
     EntryID entryID;
     AttributeType attribute;
     AttributeIndex index;
-    HashSet<ASN1OctetString> addKeys;
+    HashSet<byte[]> addKeys;
     DatabaseEntry key;
     EqualityIndexer equalityIndexer;
     SubstringIndexer substringIndexer;
@@ -943,66 +943,66 @@ public class TestBackendImpl extends JebTestCase {
       attribute = entry.getAttribute("cn").get(0).getAttributeType();
       index = ec.getAttributeIndex(attribute);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(index.getAttributeType());
       orderingIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.orderingIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       orderingIndexer.indexEntry(null, oldEntry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.orderingIndex.containsID(null, key, entryID),
                    ConditionResult.FALSE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(index.getAttributeType(),
                                               index.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.substringIndex.containsID(null, key, entryID),
                    ConditionResult.TRUE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       substringIndexer.indexEntry(null, oldEntry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.substringIndex.containsID(null, key, entryID),
                    ConditionResult.FALSE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(index.getAttributeType());
       equalityIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.equalityIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       equalityIndexer.indexEntry(null, oldEntry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(index.equalityIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
@@ -1024,7 +1024,7 @@ public class TestBackendImpl extends JebTestCase {
     AttributeType attribute;
     AttributeIndex titleIndex;
     AttributeIndex nameIndex;
-    HashSet<ASN1OctetString> addKeys;
+    HashSet<byte[]> addKeys;
     DatabaseEntry key;
     PresenceIndexer presenceIndexer;
     EqualityIndexer equalityIndexer;
@@ -1097,21 +1097,21 @@ public class TestBackendImpl extends JebTestCase {
       nameIndex = ec.getAttributeIndex(attribute);
 
       //This current entry in the DB shouldn't be in the presence titleIndex.
-      addKeys = new HashSet<ASN1OctetString>();
-      addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      addKeys = new HashSet<byte[]>();
+      addKeys.add(AttributeIndex.presenceKey.getData());
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(titleIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.FALSE);
 
       //This current entry should be in the presence nameIndex.
-      addKeys = new HashSet<ASN1OctetString>();
-      addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      addKeys = new HashSet<byte[]>();
+      addKeys.add(AttributeIndex.presenceKey.getData());
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
       }
       assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
@@ -1176,92 +1176,92 @@ public class TestBackendImpl extends JebTestCase {
       assertFalse(entry.getAttribute("employeenumber").contains(new
           Attribute("employeenumber", "1")));
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(titleIndex.getAttributeType());
       presenceIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(titleIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       presenceIndexer = new PresenceIndexer(nameIndex.getAttributeType());
       presenceIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(titleIndex.getAttributeType());
       orderingIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(titleIndex.orderingIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       orderingIndexer = new OrderingIndexer(nameIndex.getAttributeType());
       orderingIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(nameIndex.orderingIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(titleIndex.getAttributeType());
       equalityIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(titleIndex.equalityIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       equalityIndexer = new EqualityIndexer(nameIndex.getAttributeType());
       equalityIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(nameIndex.equalityIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(titleIndex.getAttributeType(),
                    titleIndex.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(titleIndex.substringIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }
 
-      addKeys = new HashSet<ASN1OctetString>();
+      addKeys = new HashSet<byte[]>();
       substringIndexer = new SubstringIndexer(nameIndex.getAttributeType(),
                    nameIndex.getConfiguration().getSubstringLength());
       substringIndexer.indexEntry(null, entry, addKeys);
 
       key = new DatabaseEntry();
-      for (ASN1OctetString keyBytes : addKeys) {
-        key.setData(keyBytes.value());
+      for (byte[] keyBytes : addKeys) {
+        key.setData(keyBytes);
         assertEquals(nameIndex.substringIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
       }

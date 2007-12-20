@@ -498,12 +498,12 @@ public class EntryContainer
 
       id2children = new Index(databasePrefix + "_" + ID2CHILDREN_DATABASE_NAME,
                               new ID2CIndexer(), state,
-                              indexEntryLimit, 0,
+                              indexEntryLimit, 0, true,
                               env,this);
       id2children.open();
       id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
                              new ID2SIndexer(), state,
-                             indexEntryLimit, 0,
+                             indexEntryLimit, 0, true,
                              env, this);
       id2subtree.open();
 
@@ -1810,7 +1810,10 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return beginTransaction();
+      Transaction txn =  beginTransaction();
+      // Multiple adds should never encounter a deadlock.
+      txn.setLockTimeout(0);
+      return txn;
     }
 
     /**
@@ -2300,7 +2303,10 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return beginTransaction();
+      Transaction txn =  beginTransaction();
+      // Multiple deletes should never encounter a deadlock.
+      txn.setLockTimeout(0);
+      return txn;
     }
 
     /**
@@ -2843,7 +2849,10 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return beginTransaction();
+      Transaction txn =  beginTransaction();
+      // Multiple replace operations should never encounter a deadlock.
+      txn.setLockTimeout(0);
+      return txn;
     }
 
     /**
@@ -3214,7 +3223,8 @@ public class EntryContainer
      */
     public Transaction beginOperationTransaction() throws DatabaseException
     {
-      return beginTransaction();
+      Transaction txn =  beginTransaction();
+      return txn;
     }
 
     /**

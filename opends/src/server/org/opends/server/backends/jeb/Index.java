@@ -32,7 +32,6 @@ import static org.opends.server.loggers.ErrorLogger.*;
 
 import com.sleepycat.je.*;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import static org.opends.messages.JebMessages.*;
@@ -79,6 +78,17 @@ public class Index extends DatabaseContainer
    */
   private int entryLimitExceededCount;
 
+  /**
+   * The max number of tries to rewrite phantom records.
+   */
+  final int phantomWriteRetires = 3;
+
+  /**
+   * Whether to maintain a count of IDs for a key once the entry limit
+   * has exceeded.
+   */
+  boolean maintainCount;
+
   private State state;
 
   /**
@@ -111,13 +121,15 @@ public class Index extends DatabaseContainer
    * @param indexEntryLimit The configured limit on the number of entry IDs
    * that may be indexed by one key.
    * @param cursorEntryLimit The configured limit on the number of entry IDs
+   * @param maintainCount Whether to maintain a count of IDs for a key once
+   * the entry limit has exceeded.
    * @param env The JE Environemnt
    * @param entryContainer The database entryContainer holding this index.
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public Index(String name, Indexer indexer, State state,
-        int indexEntryLimit, int cursorEntryLimit, Environment env,
-        EntryContainer entryContainer)
+        int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
+        Environment env, EntryContainer entryContainer)
       throws DatabaseException
   {
     super(name, env, entryContainer);
@@ -125,6 +137,7 @@ public class Index extends DatabaseContainer
     this.comparator = indexer.getComparator();
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
+    this.maintainCount = maintainCount;
 
     DatabaseConfig dbNodupsConfig = new DatabaseConfig();
 
@@ -183,65 +196,123 @@ public class Index extends DatabaseContainer
        throws DatabaseException
   {
     OperationStatus status;
-    LockMode lockMode = LockMode.RMW;
     DatabaseEntry entryIDData = entryID.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
-    boolean success = true;
-    boolean done = false;
+    boolean success = false;
 
-    while(!done)
+    if(maintainCount)
     {
-      status = read(txn, key, data, lockMode);
-
-      if (status == OperationStatus.SUCCESS)
+      for(int i = 0; i < phantomWriteRetires; i++)
+      {
+        if(insertIDWithRMW(txn, key, data, entryIDData, entryID) ==
+            OperationStatus.SUCCESS)
+        {
+          return true;
+        }
+      }
+    }
+    else
+    {
+      status = read(txn, key, data, LockMode.READ_COMMITTED);
+      if(status == OperationStatus.SUCCESS)
       {
         EntryIDSet entryIDList =
             new EntryIDSet(key.getData(), data.getData());
+
         if (entryIDList.isDefined())
         {
-          if (indexEntryLimit > 0 && entryIDList.size() >= indexEntryLimit)
+          for(int i = 0; i < phantomWriteRetires; i++)
           {
-            entryIDList = new EntryIDSet(entryIDList.size());
-            entryLimitExceededCount++;
-
-            if(debugEnabled())
+            if(insertIDWithRMW(txn, key, data, entryIDData, entryID) ==
+                OperationStatus.SUCCESS)
             {
-              StringBuilder builder = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-              TRACER.debugInfo("Index entry exceeded in index %s. " +
-                  "Limit: %d. ID list size: %d.\nKey:",
-                               name, indexEntryLimit, entryIDList.size(),
-                               builder);
-
+              return true;
             }
           }
         }
-
-        success = entryIDList.add(entryID);
-
-        byte[] after = entryIDList.toDatabase();
-        data.setData(after);
-        put(txn, key, data);
-        done = true;
       }
       else
       {
         if(rebuildRunning || trusted)
         {
           status = insert(txn, key, entryIDData);
-          if(status == OperationStatus.SUCCESS)
+          if(status == OperationStatus.KEYEXIST)
           {
-            done = true;
+            for(int i = 1; i < phantomWriteRetires; i++)
+            {
+              if(insertIDWithRMW(txn, key, data, entryIDData, entryID) ==
+                  OperationStatus.SUCCESS)
+              {
+                return true;
+              }
+            }
           }
         }
         else
         {
-          done = true;
+          return true;
         }
       }
     }
 
     return success;
+  }
+
+  private OperationStatus insertIDWithRMW(Transaction txn, DatabaseEntry key,
+                                          DatabaseEntry data,
+                                          DatabaseEntry entryIDData,
+                                          EntryID entryID)
+      throws DatabaseException
+  {
+    OperationStatus status;
+
+    status = read(txn, key, data, LockMode.RMW);
+    if(status == OperationStatus.SUCCESS)
+    {
+      EntryIDSet entryIDList =
+          new EntryIDSet(key.getData(), data.getData());
+      if (entryIDList.isDefined() && indexEntryLimit > 0 &&
+          entryIDList.size() >= indexEntryLimit)
+      {
+        if(maintainCount)
+        {
+          entryIDList = new EntryIDSet(entryIDList.size());
+        }
+        else
+        {
+          entryIDList = new EntryIDSet();
+        }
+        entryLimitExceededCount++;
+
+        if(debugEnabled())
+        {
+          StringBuilder builder = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+          TRACER.debugInfo("Index entry exceeded in index %s. " +
+              "Limit: %d. ID list size: %d.\nKey:",
+              name, indexEntryLimit, entryIDList.size(),
+              builder);
+
+        }
+      }
+
+      entryIDList.add(entryID);
+
+      byte[] after = entryIDList.toDatabase();
+      data.setData(after);
+      return put(txn, key, data);
+    }
+    else
+    {
+      if(rebuildRunning || trusted)
+      {
+        return insert(txn, key, entryIDData);
+      }
+      else
+      {
+        return OperationStatus.SUCCESS;
+      }
+    }
   }
 
   /**
@@ -256,10 +327,51 @@ public class Index extends DatabaseContainer
       throws DatabaseException
   {
     OperationStatus status;
-    LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
 
-    status = read(txn, key, data, lockMode);
+    if(maintainCount)
+    {
+      removeIDWithRMW(txn, key, data, entryID);
+    }
+    else
+    {
+      status = read(txn, key, data, LockMode.READ_COMMITTED);
+      if(status == OperationStatus.SUCCESS)
+      {
+        EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
+        if(entryIDList.isDefined())
+        {
+          removeIDWithRMW(txn, key, data, entryID);
+        }
+      }
+      else
+      {
+        // Ignore failures if rebuild is running since a empty entryIDset
+        // will probably not be rebuilt.
+        if(trusted && !rebuildRunning)
+        {
+          setTrusted(txn, false);
+
+          if(debugEnabled())
+          {
+            StringBuilder builder = new StringBuilder();
+            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+            TRACER.debugError("The expected key does not exist in the " +
+                "index %s.\nKey:%s", name, builder.toString());
+          }
+
+          logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
+        }
+      }
+    }
+  }
+
+  private void removeIDWithRMW(Transaction txn, DatabaseEntry key,
+                               DatabaseEntry data, EntryID entryID)
+      throws DatabaseException
+  {
+    OperationStatus status;
+    status = read(txn, key, data, LockMode.RMW);
 
     if (status == OperationStatus.SUCCESS)
     {
@@ -272,15 +384,13 @@ public class Index extends DatabaseContainer
         {
           setTrusted(txn, false);
 
-
-
           if(debugEnabled())
           {
             StringBuilder builder = new StringBuilder();
             StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
             TRACER.debugError("The expected entry ID does not exist in " +
                 "the entry ID list for index %s.\nKey:%s",
-                              name, builder.toString());
+                name, builder.toString());
           }
 
           logError(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD.get(name));
@@ -612,15 +722,15 @@ public class Index extends DatabaseContainer
   public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    HashSet<ASN1OctetString> addKeys = new HashSet<ASN1OctetString>();
+    TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
     boolean success = true;
 
     indexer.indexEntry(txn, entry, addKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : addKeys)
+    for (byte[] keyBytes : addKeys)
     {
-      key.setData(keyBytes.value());
+      key.setData(keyBytes);
       if(!insertID(txn, key, entryID))
       {
         success = false;
@@ -643,14 +753,14 @@ public class Index extends DatabaseContainer
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    HashSet<ASN1OctetString> delKeys = new HashSet<ASN1OctetString>();
+    TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
 
     indexer.indexEntry(txn, entry, delKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : delKeys)
+    for (byte[] keyBytes : delKeys)
     {
-      key.setData(keyBytes.value());
+      key.setData(keyBytes);
       removeID(txn, key, entryID);
     }
   }
@@ -674,21 +784,21 @@ public class Index extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException
   {
-    HashSet<ASN1OctetString> addKeys = new HashSet<ASN1OctetString>();
-    HashSet<ASN1OctetString> delKeys = new HashSet<ASN1OctetString>();
+    TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
+    TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
 
     indexer.modifyEntry(txn, oldEntry, newEntry, mods, addKeys, delKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (ASN1OctetString keyBytes : delKeys)
+    for (byte[] keyBytes : delKeys)
     {
-      key.setData(keyBytes.value());
+      key.setData(keyBytes);
       removeID(txn, key, entryID);
     }
 
-    for (ASN1OctetString keyBytes : addKeys)
+    for (byte[] keyBytes : addKeys)
     {
-      key.setData(keyBytes.value());
+      key.setData(keyBytes);
       insertID(txn, key, entryID);
     }
   }
@@ -753,5 +863,16 @@ public class Index extends DatabaseContainer
   public synchronized void setRebuildStatus(boolean rebuildRunning)
   {
     this.rebuildRunning = rebuildRunning;
+  }
+
+  /**
+   * Whether this index maintains a count of IDs for keys once the
+   * entry limit has exceeded.
+   * @return <code>true</code> if this index maintains court of IDs
+   * or <code>false</code> otherwise
+   */
+  public boolean getMaintainCount()
+  {
+    return maintainCount;
   }
 }

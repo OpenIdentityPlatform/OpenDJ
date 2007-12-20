@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -100,7 +99,7 @@ public class PresenceIndexer extends Indexer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void indexEntry(Transaction txn, Entry entry,
-                       Set<ASN1OctetString> keys) throws DatabaseException
+                       Set<byte[]> keys) throws DatabaseException
   {
     List<Attribute> attrList =
          entry.getAttribute(attributeType);
@@ -108,7 +107,7 @@ public class PresenceIndexer extends Indexer
     {
       if (!attrList.isEmpty())
       {
-        keys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+        keys.add(AttributeIndex.presenceKey.getData());
       }
     }
   }
@@ -128,25 +127,25 @@ public class PresenceIndexer extends Indexer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void replaceEntry(Transaction txn, Entry oldEntry, Entry newEntry,
-                           Set<ASN1OctetString> addKeys,
-                           Set<ASN1OctetString> delKeys)
-       throws DatabaseException
+                           Set<byte[]> addKeys,
+                           Set<byte[]> delKeys)
+      throws DatabaseException
   {
-    List<Attribute> beforeList, afterList;
-
-    beforeList = oldEntry.getAttribute(attributeType);
-    afterList = newEntry.getAttribute(attributeType);
-
-    if (beforeList == null || beforeList.isEmpty())
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
+    if(oldAttributes == null)
     {
-      if (afterList != null && !afterList.isEmpty())
+      if(newAttributes != null)
       {
-        addKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+        addKeys.add(AttributeIndex.presenceKey.getData());
       }
     }
-    else if (afterList == null || afterList.isEmpty())
+    else
     {
-      delKeys.add(new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+      if(newAttributes == null)
+      {
+        delKeys.add(AttributeIndex.presenceKey.getData());
+      }
     }
   }
 
@@ -167,8 +166,8 @@ public class PresenceIndexer extends Indexer
    */
   public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<ASN1OctetString> addKeys,
-                          Set<ASN1OctetString> delKeys)
+                          Set<byte[]> addKeys,
+                          Set<byte[]> delKeys)
        throws DatabaseException
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
@@ -177,16 +176,14 @@ public class PresenceIndexer extends Indexer
     {
       if(newAttributes != null)
       {
-        addKeys.add(
-              new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+        addKeys.add(AttributeIndex.presenceKey.getData());
       }
     }
     else
     {
       if(newAttributes == null)
       {
-        delKeys.add(
-              new ASN1OctetString(AttributeIndex.presenceKey.getData()));
+        delKeys.add(AttributeIndex.presenceKey.getData());
       }
     }
   }

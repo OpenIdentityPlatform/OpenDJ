@@ -29,13 +29,9 @@ package org.opends.server.backends.jeb;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import com.sleepycat.je.Transaction;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.*;
 
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An implementation of an Indexer for attribute substrings.
@@ -108,7 +104,7 @@ public class SubstringIndexer extends Indexer
    * @param keys The set into which the generated keys will be inserted.
    */
   public void indexEntry(Transaction txn, Entry entry,
-                       Set<ASN1OctetString> keys)
+                       Set<byte[]> keys)
   {
     List<Attribute> attrList =
          entry.getAttribute(attributeType);
@@ -131,31 +127,37 @@ public class SubstringIndexer extends Indexer
    */
   public void replaceEntry(Transaction txn,
                            Entry oldEntry, Entry newEntry,
-                           Set<ASN1OctetString> addKeys,
-                           Set<ASN1OctetString> delKeys)
+                           Set<byte[]> addKeys,
+                           Set<byte[]> delKeys)
   {
-    List<Attribute> attrList;
+    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
+    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    attrList = oldEntry.getAttribute(attributeType);
-    Set<ASN1OctetString> oldSet = new HashSet<ASN1OctetString>();
-    indexAttribute(attrList, oldSet);
-
-    attrList = newEntry.getAttribute(attributeType);
-    Set<ASN1OctetString> newSet = new HashSet<ASN1OctetString>();
-    indexAttribute(attrList, newSet);
-
-    HashSet<ASN1OctetString> removeSet = new HashSet<ASN1OctetString>(oldSet);
-    removeSet.removeAll(newSet);
-    for (ASN1OctetString k : removeSet)
+    if(newAttributes == null)
     {
-      delKeys.add(k);
+      indexAttribute(oldAttributes, delKeys);
     }
-
-    HashSet<ASN1OctetString> addSet = new HashSet<ASN1OctetString>(newSet);
-    addSet.removeAll(oldSet);
-    for (ASN1OctetString k : addSet)
+    else
     {
-      addKeys.add(k);
+      if(oldAttributes == null)
+      {
+        indexAttribute(newAttributes, addKeys);
+      }
+      else
+      {
+        TreeSet<byte[]> newKeys =
+            new TreeSet<byte[]>(comparator);
+        TreeSet<byte[]> oldKeys =
+            new TreeSet<byte[]>(comparator);
+        indexAttribute(newAttributes, newKeys);
+        indexAttribute(oldAttributes, oldKeys);
+
+        addKeys.addAll(newKeys);
+        addKeys.removeAll(oldKeys);
+
+        delKeys.addAll(oldKeys);
+        delKeys.removeAll(newKeys);
+      }
     }
   }
 
@@ -175,13 +177,11 @@ public class SubstringIndexer extends Indexer
    */
   public void modifyEntry(Transaction txn, Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Set<ASN1OctetString> addKeys,
-                          Set<ASN1OctetString> delKeys)
+                          Set<byte[]> addKeys,
+                          Set<byte[]> delKeys)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
-    HashSet<AttributeValue> newValues;
-    HashSet<AttributeValue> oldValues;
 
     if(newAttributes == null)
     {
@@ -195,10 +195,10 @@ public class SubstringIndexer extends Indexer
       }
       else
       {
-        HashSet<ASN1OctetString> newKeys =
-            new HashSet<ASN1OctetString>();
-        HashSet<ASN1OctetString> oldKeys =
-            new HashSet<ASN1OctetString>();
+        TreeSet<byte[]> newKeys =
+            new TreeSet<byte[]>(comparator);
+        TreeSet<byte[]> oldKeys =
+            new TreeSet<byte[]>(comparator);
         indexAttribute(newAttributes, newKeys);
         indexAttribute(oldAttributes, oldKeys);
 
@@ -219,7 +219,7 @@ public class SubstringIndexer extends Indexer
    * @param keys The set into which the generated keys will be inserted.
    */
   private void indexAttribute(List<Attribute> attrList,
-                              Set<ASN1OctetString> keys)
+                              Set<byte[]> keys)
   {
     if (attrList == null) return;
 
@@ -235,7 +235,7 @@ public class SubstringIndexer extends Indexer
    * @param keys The set into which the keys will be inserted.
    */
   private void indexValues(Set<AttributeValue> values,
-                           Set<ASN1OctetString> keys)
+                           Set<byte[]> keys)
   {
     if (values == null) return;
 
@@ -265,7 +265,7 @@ public class SubstringIndexer extends Indexer
    * @param value A byte array containing the normalized attribute value
    * @param set A set into which the keys will be inserted.
    */
-  private void substringKeys(byte[] value, Set<ASN1OctetString> set)
+  private void substringKeys(byte[] value, Set<byte[]> set)
   {
     byte[] keyBytes;
 
@@ -279,7 +279,7 @@ public class SubstringIndexer extends Indexer
     {
       int len = Math.min(substrLength, remain);
       keyBytes = makeSubstringKey(value, i, len);
-      set.add(new ASN1OctetString(keyBytes));
+      set.add(keyBytes);
     }
   }
 

@@ -26,18 +26,13 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.Entry;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Transaction;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.io.ByteArrayOutputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -180,29 +175,29 @@ public class AttributeIndexBuilder implements IndexBuilder
     if (oldEntry != null)
     {
       // This is an entry being replaced.
-      Set<ASN1OctetString> addKeys = new HashSet<ASN1OctetString>();
-      Set<ASN1OctetString> delKeys = new HashSet<ASN1OctetString>();
+      TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
+      TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
 
       indexer.replaceEntry(txn, oldEntry, newEntry, addKeys, delKeys);
 
-      for (ASN1OctetString k : delKeys)
+      for (byte[] k : delKeys)
       {
-        removeID(k.value(), entryID);
+        removeID(k, entryID);
       }
 
-      for (ASN1OctetString k : addKeys)
+      for (byte[] k : addKeys)
       {
-        insertID(k.value(), entryID);
+        insertID(k, entryID);
       }
     }
     else
     {
       // This is a new entry.
-      Set<ASN1OctetString> addKeys = new HashSet<ASN1OctetString>();
+      TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
       indexer.indexEntry(txn, newEntry, addKeys);
-      for (ASN1OctetString k : addKeys)
+      for (byte[] k : addKeys)
       {
-        insertID(k.value(), entryID);
+        insertID(k, entryID);
       }
     }
 
