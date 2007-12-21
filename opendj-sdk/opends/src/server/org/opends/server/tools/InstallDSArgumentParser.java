@@ -162,13 +162,6 @@ public class InstallDSArgumentParser extends ArgumentParser
     progNameArg.setHidden(true);
     addArgument(progNameArg);
 
-    quietArg = new BooleanArgument(
-        "quiet", OPTION_SHORT_QUIET,
-        OPTION_LONG_QUIET,
-        INFO_INSTALLDS_DESCRIPTION_SILENT.get());
-    quietArg.setPropertyName(OPTION_LONG_QUIET);
-    addArgument(quietArg);
-
     noPromptArg = new BooleanArgument(
         OPTION_LONG_NO_PROMPT,
         OPTION_SHORT_NO_PROMPT,
@@ -176,6 +169,13 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_NO_PROMPT.get());
     noPromptArg.setPropertyName(OPTION_LONG_NO_PROMPT);
     addArgument(noPromptArg);
+
+    quietArg = new BooleanArgument(
+        "quiet", OPTION_SHORT_QUIET,
+        OPTION_LONG_QUIET,
+        INFO_INSTALLDS_DESCRIPTION_SILENT.get());
+    quietArg.setPropertyName(OPTION_LONG_QUIET);
+    addArgument(quietArg);
 
     verboseArg = new BooleanArgument(OPTION_LONG_VERBOSE, OPTION_SHORT_VERBOSE,
         OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
