@@ -69,6 +69,7 @@ public class UpgraderCliHelper extends ConsoleApplication {
     UpgradeUserData uud = new UpgradeUserData();
     uud.setQuiet(launcher.isQuiet());
     uud.setInteractive(!launcher.isNoPrompt());
+    uud.setVerbose(launcher.isVerbose());
     return uud;
   }
 
@@ -122,6 +123,6 @@ public class UpgraderCliHelper extends ConsoleApplication {
    * {@inheritDoc}
    */
   public boolean isVerbose() {
-    return true;
+    return launcher.isVerbose();
   }
 }

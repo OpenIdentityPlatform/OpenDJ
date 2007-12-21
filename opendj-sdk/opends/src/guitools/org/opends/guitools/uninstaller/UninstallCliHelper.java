@@ -125,6 +125,7 @@ class UninstallCliHelper extends ConsoleApplication {
 
     boolean isInteractive;
     boolean isQuiet;
+    boolean isVerbose;
     boolean isCancelled = false;
 
     /* Step 1: analyze the arguments.
@@ -142,11 +143,15 @@ class UninstallCliHelper extends ConsoleApplication {
 
     isQuiet = args.isQuiet();
 
+    isVerbose = args.isVerbose();
+
     userData.setQuiet(isQuiet);
+    userData.setVerbose(isVerbose);
     userData.setForceOnError(args.isForceOnError());
     userData.setTrustManager(args.getTrustManager());
 
-    /* Step 2: check that the provided parameters are compatible.
+    /*
+     * Step 2: check that the provided parameters are compatible.
      */
     MessageBuilder buf = new MessageBuilder();
     int v = args.validateGlobalOptions(buf);

@@ -37,76 +37,171 @@ import org.opends.quicksetup.ProgressStep;
  */
 enum UpgradeProgressStep implements ProgressStep {
 
-  NOT_STARTED(INFO_SUMMARY_UPGRADE_NOT_STARTED.get(), 0),
+  NOT_STARTED(INFO_SUMMARY_UPGRADE_NOT_STARTED.get(), null, null, 0, false),
 
-  DOWNLOADING(INFO_SUMMARY_UPGRADE_DOWNLOADING.get(), 10),
+  DOWNLOADING(INFO_SUMMARY_UPGRADE_DOWNLOADING.get(),
+      INFO_PROGRESS_UPGRADE_DOWNLOADING.get(),
+      INFO_PROGRESS_UPGRADE_DOWNLOADING.get(),
+      0, true),
 
-  EXTRACTING(INFO_SUMMARY_UPGRADE_EXTRACTING.get(), 20),
+  EXTRACTING(INFO_SUMMARY_UPGRADE_EXTRACTING.get(),
+      INFO_PROGRESS_UPGRADE_EXTRACTING.get(),
+      INFO_PROGRESS_UPGRADE_EXTRACTING_VERBOSE.get(),
+      15, true),
 
-  INITIALIZING(INFO_SUMMARY_UPGRADE_INITIALIZING.get(), 30),
+  INITIALIZING(INFO_SUMMARY_UPGRADE_INITIALIZING.get(),
+      INFO_PROGRESS_UPGRADE_INITIALIZING.get(),
+      INFO_PROGRESS_UPGRADE_INITIALIZING.get(), 20, true),
 
-  CHECK_SERVER_HEALTH(INFO_SUMMARY_UPGRADE_CHECK_SERVER_HEALTH.get(), 35),
 
   CALCULATING_SCHEMA_CUSTOMIZATIONS(
-          INFO_SUMMARY_UPGRADE_CALCULATING_SCHEMA_CUSTOMIZATION.get(), 40),
+          INFO_SUMMARY_UPGRADE_CALCULATING_SCHEMA_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_CALCULATING_SCHEMA_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_CALCULATING_SCHEMA_CUSTOMIZATION.get(),
+          25, true),
 
   CALCULATING_CONFIGURATION_CUSTOMIZATIONS(
-          INFO_SUMMARY_UPGRADE_CALCULATING_CONFIG_CUSTOMIZATION.get(), 48),
+          INFO_SUMMARY_UPGRADE_CALCULATING_CONFIG_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_CALCULATING_CONFIG_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_CALCULATING_CONFIG_CUSTOMIZATION.get(),
+          30, true),
 
-  BACKING_UP_DATABASES(INFO_SUMMARY_UPGRADE_BACKING_UP_DB.get(), 50),
+  BACKING_UP_DATABASES(INFO_SUMMARY_UPGRADE_BACKING_UP_DB.get(),
+      INFO_PROGRESS_UPGRADE_BACKING_UP_DB.get(),
+      INFO_PROGRESS_UPGRADE_BACKING_UP_DB.get(), 35, true),
 
-  BACKING_UP_FILESYSTEM(INFO_SUMMARY_UPGRADE_BACKING_UP_FILES.get(), 52),
+  BACKING_UP_FILESYSTEM(INFO_SUMMARY_UPGRADE_BACKING_UP_FILES.get(),
+      INFO_PROGRESS_UPGRADE_BACKING_UP_FILES.get(),
+      INFO_PROGRESS_UPGRADE_BACKING_UP_FILES.get(), 40, true),
 
-  UPGRADING_COMPONENTS(INFO_SUMMARY_UPGRADE_UPGRADING_COMPONENTS.get(), 60),
+  UPGRADING_COMPONENTS(INFO_SUMMARY_UPGRADE_UPGRADING_COMPONENTS.get(),
+      INFO_PROGRESS_UPGRADE_UPGRADING_COMPONENTS.get(),
+      INFO_PROGRESS_UPGRADE_UPGRADING_COMPONENTS.get(), 45, true),
 
   PREPARING_CUSTOMIZATIONS(
-          INFO_SUMMARY_UPGRADE_PREPARING_CUSTOMIZATIONS.get(), 65),
+          INFO_SUMMARY_UPGRADE_PREPARING_CUSTOMIZATIONS.get(),
+          INFO_PROGRESS_UPGRADE_PREPARING_CUSTOMIZATIONS.get(),
+          INFO_PROGRESS_UPGRADE_PREPARING_CUSTOMIZATIONS.get(),
+          50, true),
 
   APPLYING_SCHEMA_CUSTOMIZATIONS(
-          INFO_SUMMARY_UPGRADE_APPLYING_SCHEMA_CUSTOMIZATION.get(), 70),
+          INFO_SUMMARY_UPGRADE_APPLYING_SCHEMA_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_APPLYING_SCHEMA_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_APPLYING_SCHEMA_CUSTOMIZATION.get(),
+          55, true),
 
   APPLYING_CONFIGURATION_CUSTOMIZATIONS(
-          INFO_SUMMARY_UPGRADE_APPLYING_CONFIG_CUSTOMIZATION.get(), 75),
+          INFO_SUMMARY_UPGRADE_APPLYING_CONFIG_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_APPLYING_CONFIG_CUSTOMIZATION.get(),
+          INFO_SUMMARY_UPGRADE_APPLYING_CONFIG_CUSTOMIZATION.get(),
+          60, true),
 
   APPLYING_ADS_CUSTOMIZATIONS(
-          INFO_SUMMARY_UPGRADE_APPLYING_ADS_CUSTOMIZATION.get(), 78),
+          INFO_SUMMARY_UPGRADE_APPLYING_ADS_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_APPLYING_ADS_CUSTOMIZATION.get(),
+          INFO_PROGRESS_UPGRADE_APPLYING_ADS_CUSTOMIZATION.get(), 65, true),
 
-  VERIFYING(INFO_SUMMARY_UPGRADE_VERIFYING.get(), 80),
+  VERIFYING(INFO_SUMMARY_UPGRADE_VERIFYING.get(),
+          INFO_PROGRESS_UPGRADE_VERIFYING.get(),
+          INFO_PROGRESS_UPGRADE_VERIFYING.get(), 70, true),
 
-  STARTING_SERVER(INFO_SUMMARY_STARTING.get(), 90),
+  STARTING_SERVER(INFO_SUMMARY_STARTING.get(), null, null, 75, false),
 
-  STOPPING_SERVER(INFO_SUMMARY_STOPPING.get(), 90),
+  STOPPING_SERVER(INFO_SUMMARY_STOPPING.get(), null, null, 75, false),
 
-  RECORDING_HISTORY(INFO_SUMMARY_UPGRADE_HISTORY.get(), 97),
+  RECORDING_HISTORY(INFO_SUMMARY_UPGRADE_HISTORY.get(),
+      INFO_PROGRESS_UPGRADE_HISTORY.get(),
+      INFO_PROGRESS_UPGRADE_HISTORY.get(), 90, true),
 
-  CLEANUP(INFO_SUMMARY_UPGRADE_CLEANUP.get(), 99),
+  CLEANUP(INFO_SUMMARY_UPGRADE_CLEANUP.get(),
+      INFO_PROGRESS_UPGRADE_CLEANUP.get(),
+      INFO_PROGRESS_UPGRADE_CLEANUP.get(), 90, true),
 
-  ABORT(INFO_SUMMARY_UPGRADE_ABORT.get(), 99),
+  ABORT(INFO_SUMMARY_UPGRADE_ABORT.get(),
+      INFO_PROGRESS_UPGRADE_ABORT.get(),
+      INFO_PROGRESS_UPGRADE_ABORT.get(), 90, true),
 
-  FINISHED_WITH_ERRORS(INFO_SUMMARY_UPGRADE_FINISHED_WITH_ERRORS.get(), 100),
+  FINISHED_WITH_ERRORS(INFO_SUMMARY_UPGRADE_FINISHED_WITH_ERRORS.get(),
+      null, null, 100, false),
 
   FINISHED_WITH_WARNINGS(
-          INFO_SUMMARY_UPGRADE_FINISHED_WITH_WARNINGS.get(), 100),
+          INFO_SUMMARY_UPGRADE_FINISHED_WITH_WARNINGS.get(), null, null, 100,
+          false),
 
-  FINISHED_CANCELED(INFO_SUMMARY_UPGRADE_FINISHED_CANCELED.get(), 100),
+  FINISHED_CANCELED(INFO_SUMMARY_UPGRADE_FINISHED_CANCELED.get(),
+      null, null, 100, false),
 
-  FINISHED(INFO_SUMMARY_UPGRADE_FINISHED_SUCCESSFULLY.get("",""), 100);
+  FINISHED(INFO_SUMMARY_UPGRADE_FINISHED_SUCCESSFULLY.get("",""),
+      null, null, 100, false);
 
   private Message summaryMsg;
+  private Message logMsg;
+  private Message logMsgVerbose;
   private int progress;
+  private boolean logWithPoints;
 
-  private UpgradeProgressStep(Message summaryMsg, int progress) {
+  private UpgradeProgressStep(Message summaryMsg, Message logMsg,
+      Message logMsgVerbose, int progress, boolean logWithPoints) {
     this.summaryMsg = summaryMsg;
+    this.logMsg = logMsg;
+    this.logMsgVerbose = logMsgVerbose;
     this.progress = progress;
+    this.logWithPoints = logWithPoints;
   }
 
   /**
-   * Return a key for access a summary message.
+   * Return the summary message for the step.
    *
-   * @return String representing key for access summary in resource bundle
+   * @return the summary message for the step.
    */
-  public Message getSummaryMesssage() {
+  public Message getSummaryMessage() {
     return summaryMsg;
+  }
+
+  /**
+   * Return the log message for the step.
+   * @param isVerbose whether we are running in verbose mode or not.
+   *
+   * @return the log message for the step.
+   */
+  public Message getLogMsg(boolean isVerbose) {
+    Message msg;
+    if (isVerbose)
+    {
+      msg = logMsgVerbose;
+    }
+    else
+    {
+      msg = logMsg;
+    }
+    return msg;
+  }
+
+  /**
+   * Return whether we must add points to the log message or not.
+   * @param isVerbose whether we are running in verbose mode or not.
+   *
+   * @return <CODE>true</CODE> if we must add points to the log message and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean logRequiresPoints(boolean isVerbose) {
+    boolean returnValue;
+    if (logWithPoints)
+    {
+      if (isVerbose)
+      {
+        returnValue = logMsgVerbose == logMsg;
+      }
+      else
+      {
+        returnValue = true;
+      }
+    }
+    else
+    {
+      returnValue = false;
+    }
+    return returnValue;
   }
 
   /**

@@ -195,7 +195,6 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     secureArgsList.adminUidArg.setHidden(false);
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
-    defaultArgs.remove(verboseArg);
     UserData uData = new UserData();
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,
@@ -240,6 +239,17 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   public boolean isQuiet()
   {
     return quietArg.isPresent();
+  }
+
+  /**
+   * Tells whether the user specified to have a verbose uninstall or not.
+   * This method must be called after calling parseArguments.
+   * @return <CODE>true</CODE> if the user specified to have a verbose
+   * uninstall and <CODE>false</CODE> otherwise.
+   */
+  public boolean isVerbose()
+  {
+    return verboseArg.isPresent();
   }
 
   /**

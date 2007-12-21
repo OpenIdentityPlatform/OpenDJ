@@ -759,15 +759,24 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       if (getUserData().getStopServer()) {
         status = UninstallProgressStep.STOPPING_SERVER;
-        if (displaySeparator) {
+        if (displaySeparator && isVerbose()) {
           notifyListeners(getTaskSeparator());
         }
-        new ServerController(this).stopServer();
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
+              INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+        }
+        new ServerController(this).stopServer(!isVerbose());
+        if (!isVerbose())
+        {
+          notifyListeners(getFormattedDoneWithLineBreak());
+        }
         displaySeparator = true;
       }
       if (isWindowsServiceEnabled()) {
         status = UninstallProgressStep.DISABLING_WINDOWS_SERVICE;
-        if (displaySeparator) {
+        if (displaySeparator && isVerbose()) {
           notifyListeners(getTaskSeparator());
         }
         disableWindowsService();
@@ -777,7 +786,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       Set<String> dbsToDelete = getUninstallUserData().getExternalDbsToRemove();
       if (dbsToDelete.size() > 0) {
         status = UninstallProgressStep.DELETING_EXTERNAL_DATABASE_FILES;
-        if (displaySeparator) {
+        if (displaySeparator && isVerbose()) {
           notifyListeners(getTaskSeparator());
         }
 
@@ -790,7 +799,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       if (logsToDelete.size() > 0) {
         status = UninstallProgressStep.DELETING_EXTERNAL_LOG_FILES;
 
-        if (displaySeparator) {
+        if (displaySeparator && isVerbose()) {
           notifyListeners(getTaskSeparator());
         }
 
@@ -805,7 +814,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               userData.getRemoveLDIFs() ||
               userData.getRemoveLibrariesAndTools() ||
               userData.getRemoveLogs();
-      if (displaySeparator && somethingToDelete) {
+      if (displaySeparator && somethingToDelete && isVerbose()) {
         notifyListeners(getTaskSeparator());
       }
 
@@ -964,10 +973,22 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private void deleteExternalDatabaseFiles(Set<String> dbFiles)
           throws ApplicationException {
-    notifyListeners(getFormattedProgressWithLineBreak(
+    if (isVerbose())
+    {
+      notifyListeners(getFormattedProgressWithLineBreak(
             INFO_PROGRESS_DELETING_EXTERNAL_DB_FILES.get()));
+    }
+    else
+    {
+      notifyListeners(getFormattedWithPoints(
+          INFO_PROGRESS_DELETING_EXTERNAL_DB_FILES_NON_VERBOSE.get()));
+    }
     for (String path : dbFiles) {
       deleteRecursively(new File(path));
+    }
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedDone());
     }
   }
 
@@ -979,10 +1000,22 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private void deleteExternalLogFiles(Set<String> logFiles)
           throws ApplicationException {
-    notifyListeners(getFormattedProgressWithLineBreak(
-            INFO_PROGRESS_DELETING_EXTERNAL_LOG_FILES.get()));
+    if (isVerbose())
+    {
+      notifyListeners(getFormattedProgressWithLineBreak(
+          INFO_PROGRESS_DELETING_EXTERNAL_LOG_FILES.get()));
+    }
+    else
+    {
+      notifyListeners(getFormattedWithPoints(
+          INFO_PROGRESS_DELETING_EXTERNAL_LOG_FILES_NON_VERBOSE.get()));
+    }
     for (String path : logFiles) {
       deleteRecursively(new File(path));
+    }
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedDone());
     }
   }
 
@@ -993,8 +1026,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    */
   private void deleteInstallationFiles(int minRatio, int maxRatio)
           throws ApplicationException {
-    notifyListeners(getFormattedProgressWithLineBreak(
-            INFO_PROGRESS_DELETING_INSTALLATION_FILES.get()));
+    if (isVerbose())
+    {
+      notifyListeners(getFormattedProgressWithLineBreak(
+          INFO_PROGRESS_DELETING_INSTALLATION_FILES.get()));
+    }
+    else
+    {
+      notifyListeners(getFormattedWithPoints(
+          INFO_PROGRESS_DELETING_INSTALLATION_FILES_NON_VERBOSE.get()));
+    }
     File f = new File(getInstallPathFromClasspath());
     InstallationFilesToDeleteFilter filter =
             new InstallationFilesToDeleteFilter();
@@ -1053,6 +1094,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         deleteRecursively(rootFiles[i], filter);
       }
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
+    }
+    if (!isVerbose())
+    {
+      notifyListeners(getFormattedDone());
     }
   }
 
@@ -1116,12 +1161,15 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private void delete(File file) throws ApplicationException {
     boolean isFile = file.isFile();
 
-    if (isFile) {
-      notifyListeners(getFormattedWithPoints(
-              INFO_PROGRESS_DELETING_FILE.get(file.getAbsolutePath())));
-    } else {
-      notifyListeners(getFormattedWithPoints(
-              INFO_PROGRESS_DELETING_DIRECTORY.get(file.getAbsolutePath())));
+    if (isVerbose())
+    {
+      if (isFile) {
+        notifyListeners(getFormattedWithPoints(
+            INFO_PROGRESS_DELETING_FILE.get(file.getAbsolutePath())));
+      } else {
+        notifyListeners(getFormattedWithPoints(
+            INFO_PROGRESS_DELETING_DIRECTORY.get(file.getAbsolutePath())));
+      }
     }
 
     boolean delete = false;
@@ -1153,7 +1201,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           errMsg, null);
     }
 
-    notifyListeners(getFormattedDoneWithLineBreak());
+    if (isVerbose())
+    {
+      notifyListeners(getFormattedDoneWithLineBreak());
+    }
   }
 
   private boolean equalsOrDescendant(File file, File directory) {

@@ -128,6 +128,19 @@ public interface ProgressMessageFormatter
    */
   public Message getFormattedWithPoints(Message text);
 
+
+  /**
+   * Returns the formatted representation of a point.
+   * @return the formatted representation of the '.' text string.
+   */
+  public Message getFormattedPoint();
+
+  /**
+   * Returns the formatted representation of a space.
+   * @return the formatted representation of the ' ' text string.
+   */
+  public Message getSpace();
+
   /**
    * Returns the formatted representation of a progress message for a given
    * text.

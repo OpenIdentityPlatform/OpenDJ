@@ -143,7 +143,8 @@ public class Reverter extends Application implements CliApplication {
             if (historyDir != null && historyDir.exists()) {
 
               // Print a wait message, this could take a while
-              System.out.println(INFO_REVERSION_DIR_WAIT.get());
+              System.out.println(formatter.getFormattedWithPoints(
+                  INFO_REVERSION_DIR_WAIT.get()));
 
               String[] historyChildren = historyDir.list();
               Arrays.sort(historyChildren);
@@ -287,6 +288,7 @@ public class Reverter extends Application implements CliApplication {
       }
       ud.setQuiet(rl.isQuiet());
       ud.setInteractive(!rl.isNoPrompt());
+      ud.setVerbose(rl.isVerbose());
     }
     return ud;
   }
@@ -408,7 +410,30 @@ public class Reverter extends Application implements CliApplication {
 //      txt = getFinalWarningMessage();
     }
     else {
-      txt = (((ReversionProgressStep) step).getSummaryMesssage());
+      txt = (((ReversionProgressStep) step).getSummaryMessage());
+    }
+    return txt;
+  }
+
+  /**
+   * Returns the progress message for a given progress step.
+   * @param step the progress step.
+   * @return the progress message for the provided step.
+   */
+  private Message getLogMsg(ReversionProgressStep step) {
+    Message txt;
+    if (step == ReversionProgressStep.FINISHED) {
+      txt = getFinalSuccessMessage();
+    } else if (step == ReversionProgressStep.FINISHED_CANCELED) {
+      txt = step.getSummaryMessage();
+    } else if (step == ReversionProgressStep.FINISHED_WITH_ERRORS) {
+      txt = step.getSummaryMessage();
+    } else if (step == ReversionProgressStep.FINISHED_WITH_WARNINGS) {
+      txt = step.getSummaryMessage();
+    }
+    else
+    {
+      txt = step.getLogMsg(isVerbose());
     }
     return txt;
   }
@@ -502,8 +527,27 @@ public class Reverter extends Application implements CliApplication {
         try {
           setCurrentProgressStep(ReversionProgressStep.STOPPING_SERVER);
           LOG.log(Level.INFO, "Stopping server");
-          sc.stopServer(true);
-          notifyListeners(getFormattedDoneWithLineBreak());
+
+          if (isVerbose())
+          {
+            notifyListeners(getTaskSeparator());
+          }
+          else
+          {
+            notifyListeners(getFormattedWithPoints(
+                INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+          }
+
+          sc.stopServer(!isVerbose());
+
+          if (!isVerbose())
+          {
+            notifyListeners(getFormattedDoneWithLineBreak());
+          }
+          else
+          {
+            notifyListeners(getLineBreak());
+          }
         } catch (ApplicationException ae) {
           notifyListeners(getFormattedErrorWithLineBreak());
         }
@@ -535,8 +579,24 @@ public class Reverter extends Application implements CliApplication {
         try {
           LOG.log(Level.INFO, "Restarting server");
           setCurrentProgressStep(ReversionProgressStep.STARTING_SERVER);
-          sc.startServer();
-          notifyListeners(getFormattedDoneWithLineBreak());
+          if (isVerbose())
+          {
+            notifyListeners(getTaskSeparator());
+          }
+          else
+          {
+            notifyListeners(getFormattedWithPoints(
+                INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
+          }
+          sc.startServer(!isVerbose());
+          if (!isVerbose())
+          {
+            notifyListeners(getFormattedDoneWithLineBreak());
+          }
+          else
+          {
+            notifyListeners(getLineBreak());
+          }
         } catch (ApplicationException ae) {
           notifyListeners(getFormattedErrorWithLineBreak());
         }
@@ -560,8 +620,13 @@ public class Reverter extends Application implements CliApplication {
   private void setCurrentProgressStep(ReversionProgressStep step) {
     this.currentProgressStep = step;
     int progress = step.getProgress();
-    Message msg = getSummary(step);
-    notifyListeners(progress, msg, formatter.getFormattedProgress(msg));
+    Message summary = getSummary(step);
+    Message log = getLogMsg(step);
+    if (step.logRequiresPoints(isVerbose()) && (log != null))
+    {
+      log = getFormattedWithPoints(log);
+    }
+    notifyListeners(progress, log, log);
   }
 
   private void initialize() throws ApplicationException {

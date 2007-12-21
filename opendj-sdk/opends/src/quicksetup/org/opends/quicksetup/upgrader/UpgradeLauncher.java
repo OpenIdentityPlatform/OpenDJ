@@ -108,6 +108,7 @@ public class UpgradeLauncher extends Launcher {
   private StringArgument file;
   private BooleanArgument quiet;
   private BooleanArgument noPrompt;
+  private BooleanArgument verbose;
   private BooleanArgument revertMostRecent;
   private StringArgument reversionArchive;
 
@@ -191,6 +192,14 @@ public class UpgradeLauncher extends Launcher {
    */
   public boolean isQuiet() {
     return quiet.isPresent();
+  }
+
+  /**
+   * Indicates whether or not this operation is verbose.
+   * @return boolean where true indicates verbose
+   */
+  public boolean isVerbose() {
+    return verbose.isPresent();
   }
 
   /**
@@ -331,6 +340,10 @@ public class UpgradeLauncher extends Launcher {
               OPTION_LONG_QUIET,
               INFO_UPGRADE_DESCRIPTION_SILENT.get());
       argParser.addArgument(quiet);
+
+      verbose = new BooleanArgument(OPTION_LONG_VERBOSE, OPTION_SHORT_VERBOSE,
+          OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
+      argParser.addArgument(verbose);
 
       showUsage = new BooleanArgument(
               "showusage",
