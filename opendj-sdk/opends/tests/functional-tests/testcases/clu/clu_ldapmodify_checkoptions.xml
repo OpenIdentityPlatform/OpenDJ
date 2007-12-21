@@ -500,22 +500,22 @@
           
           <!--- Test Case information
             #@TestMarker          ldapmodify check options tests
-            #@TestName            ldapmodify:
+            #@TestName            ldapmodify: add entries option
             #@TestIssue           none
-            #@TestPurpose         Test ldapmodify .
+            #@TestPurpose         Verify a parameter doing an ldapmodify.
             #@TestPreamble        none
-            #@TestStep            Do an ldapmodify .
+            #@TestStep            Do an ldapmodify with the add entries option.
             #@TestPostamble       none
-            #@TestResult          Success if ldapmodify returns .
+            #@TestResult          Success if ldapmodify returns 0.
           -->
-          <testcase name="getTestCaseName('Test Case #12')">
+          <testcase name="getTestCaseName('ldapmodify: add entries option')">
             
             <sequence>
               
               <call function="'testCase_Preamble'"/>
               
               <message>
-                'ldapmodify: Test Case #12'
+                'ldapmodify: add entries option'
               </message>
               
               <call function="'ldapModifyWithScript'">
