@@ -1134,8 +1134,7 @@
     <nbprofiledirect>
       <classpath refid="cp"/>
     </nbprofiledirect>
-    <java fork="true" classname="org.opends.server.core.DirectoryServer"
-      jvm="${profiler.info.jvm}">
+    <java fork="true" classname="org.opends.server.core.DirectoryServer">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar"/>
