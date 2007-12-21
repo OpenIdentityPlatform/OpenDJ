@@ -32,7 +32,8 @@ set_java_home_and_args() {
   if test -f "${INSTANCE_ROOT}/lib/set-java-home"
   then
     . "${INSTANCE_ROOT}/lib/set-java-home"
-  elif test -z "${OPENDS_JAVA_BIN}"
+  fi
+  if test -z "${OPENDS_JAVA_BIN}"
   then
     if test -z "${OPENDS_JAVA_HOME}"
     then
