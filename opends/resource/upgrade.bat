@@ -32,13 +32,6 @@ set INSTANCE_ROOT=%DIR_HOME%
 
 :checkNewVersion
 if exist "upgrade.bat.NEW" goto newVersion
-goto checkOpenDSJavaBin
-
-:newVersion
-echo A new version of this script was made available by the last upgrade
-echo operation.  Delete this old version and rename file 'upgrade.bat.NEW'
-echo to 'upgrade.bat' before continuing.
-goto end
 
 set SCRIPT_NAME=upgrade
 
@@ -58,6 +51,12 @@ if %errorlevel% == 98 goto reverter
 if %errorlevel% == 50 goto version
 if %errorlevel% == 0 goto end
 goto error
+
+:newVersion
+echo A new version of this script was made available by the last upgrade
+echo operation.  Delete this old version and rename file 'upgrade.bat.NEW'
+echo to 'upgrade.bat' before continuing.
+goto end
 
 :upgrader
 set CLASSPATH=""

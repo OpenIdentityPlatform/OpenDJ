@@ -123,8 +123,8 @@ elif test ${RETURN_CODE} -eq 98
 then
   # Copy jars to a temporary place from which to run the reverter
   # in order to avoid potential file lock issues.
-  mkdir -p tmp/revert
-  cp -R lib tmp/revert
+  mkdir -p ${INSTANCE_ROOT}/tmp/revert
+  cp -R ${INSTANCE_ROOT}/lib ${INSTANCE_ROOT}/tmp/revert
   if test ${?} -ne 0
   then
     echo "ERROR:  Failed to initialize reversion."
