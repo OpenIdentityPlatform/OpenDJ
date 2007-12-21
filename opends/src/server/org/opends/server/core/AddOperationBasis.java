@@ -1043,22 +1043,26 @@ addProcessing:
       if (DirectoryServer.isNamingContext(entryDN))
       {
         // This is fine.  This entry is one of the configured suffixes.
+        return;
       }
-      else if (entryDN.isNullDN())
+      if (entryDN.isNullDN())
       {
         // This is not fine.  The root DSE cannot be added.
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
+        return;
       }
-      else
-      {
-        // The entry doesn't have a parent but isn't a suffix.  This is not
-        // allowed.
-        setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(
-                String.valueOf(entryDN)));
-      }
+      // The entry doesn't have a parent but isn't a suffix.  This is not
+      // allowed.
+      setResultCode(ResultCode.NO_SUCH_OBJECT);
+      appendErrorMessage(ERR_ADD_ENTRY_NOT_SUFFIX.get(
+        String.valueOf(entryDN)));
+      return;
     }
+    // The suffix does not exist
+    setResultCode(ResultCode.NO_SUCH_OBJECT);
+    appendErrorMessage(ERR_ADD_ENTRY_UNKNOWN_SUFFIX.get(
+      String.valueOf(entryDN)));
   }
 
 
