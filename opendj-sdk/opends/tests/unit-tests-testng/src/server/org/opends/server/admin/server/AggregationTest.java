@@ -443,7 +443,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test
+  @Test(groups="slow")
   public void testAggregationDisabledReference1() throws Exception {
     // Add the entry and the connection handler.
     TestCaseUtils.addEntry(TEST_CHILD_6);
@@ -504,7 +504,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test
+  @Test(groups="slow")
   public void testAggregationDisabledReference2() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
@@ -566,7 +566,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test
+  @Test(groups="slow")
   public void testAggregationDisabledReference3() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_6);
@@ -629,7 +629,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test
+  @Test(groups="slow")
   public void testAggregationDisabledReference4() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
@@ -745,7 +745,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test
+  @Test(groups="slow")
   public void testCannotDeleteReferencedComponent() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
@@ -819,7 +819,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test
+  @Test(groups="slow")
   public void testCannotDisableReferencedComponent() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
