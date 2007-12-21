@@ -151,7 +151,7 @@ public abstract class Launcher {
     {
       for (String arg : args)
       {
-        if (arg.equalsIgnoreCase("-V") || arg.equalsIgnoreCase("--version"))
+        if (arg.equalsIgnoreCase("--version"))
         {
           printVersion = true;
         }

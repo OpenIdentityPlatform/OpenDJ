@@ -1135,7 +1135,7 @@ public abstract class Installer extends GuiApplication {
       }
       else
       {
-        mb.append(getFormattedWithPoints(
+        mb.append(getFormattedProgress(
             INFO_PROGRESS_IMPORTING_LDIFS_NON_VERBOSE.get(
             getStringFromCollection(ldifPaths, ", "))));
       }
@@ -1150,16 +1150,19 @@ public abstract class Installer extends GuiApplication {
       }
       else
       {
-        mb.append(getFormattedWithPoints(
+        mb.append(getFormattedProgress(
                 INFO_PROGRESS_IMPORTING_LDIF_NON_VERBOSE.get(
                 ldifPaths.getFirst())));
       }
     }
     notifyListeners(mb.toMessage());
 
+    final PointAdder pointAdder = new PointAdder();
+
     if (!isVerbose())
     {
       setNotifyListeners(false);
+      pointAdder.start();
     }
 
     ArrayList<String> argList = new ArrayList<String>();
@@ -1216,6 +1219,7 @@ public abstract class Installer extends GuiApplication {
         {
           if (!isVerbose())
           {
+            pointAdder.stop();
             setNotifyListeners(true);
           }
         }
@@ -1251,19 +1255,23 @@ public abstract class Installer extends GuiApplication {
     }
     else
     {
-      mb.append(getFormattedWithPoints(
+      mb.append(getFormattedProgress(
           INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED_NON_VERBOSE.get(
                   String.valueOf(nEntries))));
     }
     notifyListeners(mb.toMessage());
 
+    final PointAdder pointAdder = new PointAdder();
+    if (!isVerbose())
+    {
+      pointAdder.start();
+    }
     for (File templatePath : templatePaths)
     {
       if (!isVerbose())
       {
         setNotifyListeners(false);
       }
-
       final ArrayList<String> argList = new ArrayList<String>();
       argList.add("-C");
       argList.add(getConfigurationClassName());
@@ -1312,6 +1320,10 @@ public abstract class Installer extends GuiApplication {
             if (!isVerbose())
             {
               setNotifyListeners(true);
+              if (ae != null)
+              {
+                pointAdder.stop();
+              }
             }
           }
           isOver = true;
@@ -1324,6 +1336,7 @@ public abstract class Installer extends GuiApplication {
       invokeLongOperation(thread);
       if (!isVerbose())
       {
+        pointAdder.stop();
         notifyListeners(getFormattedDoneWithLineBreak());
       }
     }
@@ -2060,13 +2073,19 @@ public abstract class Installer extends GuiApplication {
       boolean isSchema = areDnsEqual(dn, Constants.SCHEMA_DN);
       if(isADS)
       {
-        notifyListeners(getFormattedWithPoints(
+        if (isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_INITIALIZING_ADS.get()));
+        }
       }
       else if (isSchema)
       {
-        notifyListeners(getFormattedWithPoints(
+        if (isVerbose())
+        {
+          notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_INITIALIZING_SCHEMA.get()));
+        }
       }
       else
       {
@@ -2181,7 +2200,7 @@ public abstract class Installer extends GuiApplication {
         }
         throw ae;
       }
-      if (isADS || isSchema)
+      if ((isADS || isSchema) && isVerbose())
       {
         notifyListeners(getFormattedDone());
       }

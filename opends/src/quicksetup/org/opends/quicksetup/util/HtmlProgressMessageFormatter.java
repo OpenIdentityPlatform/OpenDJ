@@ -257,6 +257,25 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   }
 
   /**
+   * Returns the formatted representation of a point.
+   * @return the formatted representation of the '.' text string.
+   */
+  public Message getFormattedPoint()
+  {
+    return Message.raw(UIFactory.applyFontToHtml(".",
+        UIFactory.PROGRESS_POINTS_FONT));
+  }
+
+  /**
+   * Returns the formatted representation of a space.
+   * @return the formatted representation of the ' ' text string.
+   */
+  public Message getSpace()
+  {
+    return Message.raw(SPACE);
+  }
+
+  /**
    * Returns the formatted representation of a progress message for a given
    * text.
    * @param text the source text from which we want to get the formatted

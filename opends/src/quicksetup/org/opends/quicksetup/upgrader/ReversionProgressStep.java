@@ -37,53 +37,122 @@ import org.opends.quicksetup.ProgressStep;
  */
 enum ReversionProgressStep implements ProgressStep {
 
-  NOT_STARTED(INFO_SUMMARY_REVERT_NOT_STARTED.get(), 0),
+  NOT_STARTED(INFO_SUMMARY_REVERT_NOT_STARTED.get(), null, null, 0, false),
 
-  INITIALIZING(INFO_SUMMARY_REVERT_INITIALIZING.get(), 20),
+  INITIALIZING(INFO_SUMMARY_REVERT_INITIALIZING.get(),
+      INFO_PROGRESS_REVERT_INITIALIZING.get(),
+      INFO_PROGRESS_REVERT_INITIALIZING.get(),
+      20, true),
 
-  STOPPING_SERVER(INFO_SUMMARY_STOPPING.get(), 40),
+  STOPPING_SERVER(INFO_SUMMARY_STOPPING.get(), null, null, 40, false),
 
-  REVERTING_FILESYSTEM(INFO_SUMMARY_REVERT_REVERTING_COMPONENTS.get(), 60),
+  REVERTING_FILESYSTEM(INFO_SUMMARY_REVERT_REVERTING_COMPONENTS.get(),
+      INFO_PROGRESS_REVERT_REVERTING_COMPONENTS.get(),
+      INFO_PROGRESS_REVERT_REVERTING_COMPONENTS.get(), 60, true),
 
-  VERIFYING(INFO_SUMMARY_REVERT_VERIFYING.get(), 70),
+  VERIFYING(INFO_SUMMARY_REVERT_VERIFYING.get(),
+      INFO_PROGRESS_REVERT_VERIFYING.get(),
+      INFO_PROGRESS_REVERT_VERIFYING.get(), 70, true),
 
-  STARTING_SERVER(INFO_SUMMARY_STARTING.get(), 80),
+  STARTING_SERVER(INFO_SUMMARY_STARTING.get(), null, null, 80, false),
 
-  RECORDING_HISTORY(INFO_SUMMARY_REVERT_HISTORY.get(), 90),
+  RECORDING_HISTORY(INFO_SUMMARY_REVERT_HISTORY.get(),
+      INFO_PROGRESS_REVERT_HISTORY.get(),
+      INFO_PROGRESS_REVERT_HISTORY.get(), 90, true),
 
-  CLEANUP(INFO_SUMMARY_REVERT_CLEANUP.get(), 95),
+  CLEANUP(INFO_SUMMARY_REVERT_CLEANUP.get(),
+      INFO_PROGRESS_REVERT_CLEANUP.get(),
+      INFO_PROGRESS_REVERT_CLEANUP.get(), 95, true),
 
-  ABORT(INFO_SUMMARY_REVERT_ABORT.get(), 99),
+  ABORT(INFO_SUMMARY_REVERT_ABORT.get(),
+      INFO_PROGRESS_REVERT_ABORT.get(),
+      INFO_PROGRESS_REVERT_ABORT.get(), 99, true),
 
-  FINISHED_WITH_ERRORS(INFO_SUMMARY_REVERT_FINISHED_WITH_ERRORS_CLI.get(), 100),
+  FINISHED_WITH_ERRORS(INFO_SUMMARY_REVERT_FINISHED_WITH_ERRORS_CLI.get(),
+      null, null, 100, false),
 
   FINISHED_WITH_WARNINGS(
-          INFO_SUMMARY_REVERT_FINISHED_WITH_WARNINGS_CLI.get(), 100),
+          INFO_SUMMARY_REVERT_FINISHED_WITH_WARNINGS_CLI.get(), null, null,
+          100, false),
 
-  FINISHED_CANCELED(INFO_SUMMARY_REVERT_FINISHED_CANCELED_CLI.get(), 100),
+  FINISHED_CANCELED(INFO_SUMMARY_REVERT_FINISHED_CANCELED_CLI.get(), null,
+      null, 100, false),
 
-  FINISHED(INFO_SUMMARY_REVERT_FINISHED_SUCCESSFULLY_CLI.get("",""), 100);
+  FINISHED(INFO_SUMMARY_REVERT_FINISHED_SUCCESSFULLY_CLI.get("",""), null, null,
+      100, false);
 
   private Message summaryMsg;
+  private Message logMsg;
+  private Message logMsgVerbose;
   private int progress;
+  private boolean logWithPoints;
 
-  private ReversionProgressStep(Message summaryMsg, int progress) {
+  private ReversionProgressStep(Message summaryMsg, Message logMsg,
+      Message logMsgVerbose, int progress, boolean logWithPoints) {
     this.summaryMsg = summaryMsg;
+    this.logMsg = logMsg;
+    this.logMsgVerbose = logMsgVerbose;
     this.progress = progress;
+    this.logWithPoints = logWithPoints;
   }
 
   /**
-   * Return a key for access a summary message.
+   * Return the summary message for the step.
    *
-   * @return String representing key for access summary in resource bundle
+   * @return the summary message for the step.
    */
-  public Message getSummaryMesssage() {
+  public Message getSummaryMessage() {
     return summaryMsg;
   }
 
   /**
-   * Gets the amount of progress to show in the progress meter for this step.
+   * Return the log message for the step.
+   * @param isVerbose whether we are running in verbose mode or not.
    *
+   * @return the log message for the step.
+   */
+  public Message getLogMsg(boolean isVerbose) {
+    Message msg;
+    if (isVerbose)
+    {
+      msg = logMsgVerbose;
+    }
+    else
+    {
+      msg = logMsg;
+    }
+    return msg;
+  }
+
+  /**
+   * Return whether we must add points to the log message or not.
+   * @param isVerbose whether we are running in verbose mode or not.
+   *
+   * @return <CODE>true</CODE> if we must add points to the log message and
+   * <CODE>false</CODE> otherwise.
+   */
+  public boolean logRequiresPoints(boolean isVerbose) {
+    boolean returnValue;
+    if (logWithPoints)
+    {
+      if (isVerbose)
+      {
+        returnValue = logMsgVerbose == logMsg;
+      }
+      else
+      {
+        returnValue = true;
+      }
+    }
+    else
+    {
+      returnValue = false;
+    }
+    return returnValue;
+  }
+
+  /**
+   * Gets the amount of progress to show in the progress meter for this step.
    * @return int representing progress
    */
   public int getProgress() {

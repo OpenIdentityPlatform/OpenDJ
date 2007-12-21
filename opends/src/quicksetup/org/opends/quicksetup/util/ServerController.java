@@ -235,7 +235,7 @@ public class ServerController {
       }
       if (suppressOutput && (application != null))
       {
-        application.setNotifyListeners(false);
+        application.setNotifyListeners(true);
       }
     }
   }

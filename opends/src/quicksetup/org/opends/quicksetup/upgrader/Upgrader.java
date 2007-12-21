@@ -359,7 +359,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       txt = getFinalWarningMessage();
     }
     else {
-      txt = (((UpgradeProgressStep) step).getSummaryMesssage());
+      txt = (((UpgradeProgressStep) step).getSummaryMessage());
     }
     return txt;
   }
@@ -376,6 +376,29 @@ public class Upgrader extends GuiApplication implements CliApplication {
       // Simulate a quit button event
       dlg.notifyButtonEvent(ButtonName.QUIT);
     }
+  }
+
+  /**
+   * Returns the progress message for a given progress step.
+   * @param step the progress step.
+   * @return the progress message for the provided step.
+   */
+  private Message getLogMsg(UpgradeProgressStep step) {
+    Message txt;
+    if (step == UpgradeProgressStep.FINISHED) {
+      txt = getFinalSuccessMessage();
+    } else if (step == UpgradeProgressStep.FINISHED_CANCELED) {
+      txt = getFinalCanceledMessage();
+    } else if (step == UpgradeProgressStep.FINISHED_WITH_ERRORS) {
+      txt = getFinalErrorMessage();
+    } else if (step == UpgradeProgressStep.FINISHED_WITH_WARNINGS) {
+      txt = getFinalWarningMessage();
+    }
+    else
+    {
+      txt = step.getLogMsg(isVerbose());
+    }
+    return txt;
   }
 
   /**
@@ -640,33 +663,47 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       if (Utils.isWebStart()) {
         ZipExtractor extractor;
+        setCurrentProgressStep(UpgradeProgressStep.DOWNLOADING);
         try {
           LOG.log(Level.INFO, "Waiting for Java Web Start jar download");
-          waitForLoader(15);
+          waitForLoader(UpgradeProgressStep.EXTRACTING.getProgress());
           LOG.log(Level.INFO, "Downloaded build file");
           String zipName = WebStartDownloader.getZipFileName();
           InputStream in =
                   Upgrader.class.getClassLoader().getResourceAsStream(zipName);
-          extractor = new ZipExtractor(in, zipName);
+          extractor = new ZipExtractor(in,
+              UpgradeProgressStep.EXTRACTING.getProgress(),
+              UpgradeProgressStep.INITIALIZING.getProgress(),
+              Utils.getNumberZipEntries(), zipName, this);
 
         } catch (ApplicationException e) {
           LOG.log(Level.SEVERE, "Error downloading Web Start jars", e);
           throw e;
         }
+        notifyListeners(getFormattedDoneWithLineBreak());
 
         checkAbort();
 
         try {
           setCurrentProgressStep(UpgradeProgressStep.EXTRACTING);
+          if (isVerbose())
+          {
+            notifyListeners(getLineBreak());
+          }
           extractor.extract(getStageDirectory());
-          notifyListeners(getFormattedDoneWithLineBreak());
+          if (!isVerbose())
+          {
+            notifyListeners(getFormattedDoneWithLineBreak());
+          }
+          else
+          {
+            notifyListeners(getLineBreak());
+          }
           LOG.log(Level.INFO, "extraction finished");
         } catch (ApplicationException e) {
-          notifyListeners(getFormattedErrorWithLineBreak());
           LOG.log(Level.INFO, "Error extracting build file", e);
           throw e;
         }
-
       }
 
       checkAbort();
@@ -678,7 +715,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "initialization finished");
       } catch (ApplicationException e) {
-        notifyListeners(getFormattedErrorWithLineBreak());
         LOG.log(Level.INFO, "Error initializing upgrader", e);
         throw e;
       }
@@ -697,7 +733,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "check for schema customizations finished");
       } catch (ApplicationException e) {
-        notifyListeners(getFormattedErrorWithLineBreak());
         LOG.log(Level.INFO, "Error calculating schema customizations", e);
         throw e;
       }
@@ -712,7 +747,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "check for config customizations finished");
       } catch (ApplicationException e) {
-        notifyListeners(getFormattedErrorWithLineBreak());
         LOG.log(Level.INFO,
                 "Error calculating config customizations", e);
         throw e;
@@ -728,7 +762,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
           notifyListeners(getFormattedDoneWithLineBreak());
           LOG.log(Level.INFO, "database backup finished");
         } catch (ApplicationException e) {
-          notifyListeners(getFormattedErrorWithLineBreak());
           LOG.log(Level.INFO, "Error backing up databases", e);
           throw e;
         }
@@ -739,11 +772,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
       try {
         LOG.log(Level.INFO, "backing up filesystem");
         setCurrentProgressStep(UpgradeProgressStep.BACKING_UP_FILESYSTEM);
-        backupFilesytem();
+        backupFilesystem();
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "filesystem backup finished");
       } catch (ApplicationException e) {
-        notifyListeners(getFormattedErrorWithLineBreak());
         LOG.log(Level.INFO, "Error backing up files", e);
         throw e;
       }
@@ -759,7 +791,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         notifyListeners(getFormattedDoneWithLineBreak());
         LOG.log(Level.INFO, "component upgrade finished");
       } catch (ApplicationException e) {
-        notifyListeners(getFormattedErrorWithLineBreak());
         LOG.log(Level.INFO,
                 "Error upgrading components", e);
         throw e;
@@ -788,7 +819,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
           LOG.log(Level.INFO, "start server finished");
           notifyListeners(getFormattedDoneWithLineBreak());
         } catch (Exception e) {
-          notifyListeners(getFormattedErrorWithLineBreak());
           LOG.log(Level.INFO,
                   "Error starting server in order to apply custom" +
                           "schema and/or configuration", e);
@@ -808,7 +838,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
             notifyListeners(getFormattedDoneWithLineBreak());
             LOG.log(Level.INFO, "custom schema application finished");
           } catch (ApplicationException e) {
-            notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO,
                     "Error applying schema customizations", e);
             throw e;
@@ -826,7 +855,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
             notifyListeners(getFormattedDoneWithLineBreak());
             LOG.log(Level.INFO, "custom config application finished");
           } catch (ApplicationException e) {
-            notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO,
                     "Error applying configuration customizations", e);
             throw e;
@@ -839,11 +867,19 @@ public class Upgrader extends GuiApplication implements CliApplication {
         {
           try {
             LOG.log(Level.INFO, "Applying registration changes");
+            if (isVerbose())
+            {
+              setCurrentProgressStep(
+                  UpgradeProgressStep.APPLYING_ADS_CUSTOMIZATIONS);
+            }
             migration.migrateADS(
                 getStagedInstallation().getADSBackendFile());
+            if (isVerbose())
+            {
+              notifyListeners(getFormattedDone());
+            }
             LOG.log(Level.INFO, "custom registration application finished");
           } catch (ApplicationException e) {
-            notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO,
                 "Error applying registration customizations", e);
             throw e;
@@ -860,7 +896,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
                 getStagedInstallation().getToolsPropertiesFile());
             LOG.log(Level.INFO, "tools properties application finished");
           } catch (ApplicationException e) {
-            notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO,
                 "Error applying tools properties changes", e);
             throw e;
@@ -872,9 +907,17 @@ public class Upgrader extends GuiApplication implements CliApplication {
         try {
           LOG.log(Level.INFO, "stopping server");
           // This class imports classes from the server
+          if (isVerbose())
+          {
+            notifyListeners(INFO_PROGRESS_UPGRADE_INTERNAL_STOP.get());
+          }
           new InProcessServerController(
                   getInstallation()).stopServer();
           InProcessServerController.disableConnectionHandlers(false);
+          if (isVerbose())
+          {
+            notifyListeners(getFormattedDone());
+          }
           LOG.log(Level.INFO, "server stopped");
         } catch (Throwable t) {
           LOG.log(Level.INFO, "Error stopping server", t);
@@ -906,7 +949,6 @@ public class Upgrader extends GuiApplication implements CliApplication {
         errors = healthChecker.getProblemMessages();
       } catch (Exception e) {
         LOG.log(Level.INFO, "error performing server health check", e);
-        notifyListeners(getFormattedErrorWithLineBreak());
         throw e;
       }
 
@@ -978,6 +1020,15 @@ public class Upgrader extends GuiApplication implements CliApplication {
           try {
             LOG.log(Level.INFO, "starting server");
             setCurrentProgressStep(UpgradeProgressStep.STARTING_SERVER);
+            if (isVerbose())
+            {
+              notifyListeners(getTaskSeparator());
+            }
+            else
+            {
+              notifyListeners(getFormattedWithPoints(
+                  INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
+            }
             int port = getInstallation().getCurrentConfiguration().getPort();
             if (port != -1 && !Utils.canUseAsPort(port)) {
               throw new ApplicationException(
@@ -985,9 +1036,20 @@ public class Upgrader extends GuiApplication implements CliApplication {
                       INFO_ERROR_PORT_IN_USE.get(Integer.toString(port)),
                       null);
             }
-            control.startServer(true);
-            notifyListeners(getFormattedDoneWithLineBreak());
+            control.startServer(!isVerbose());
+            if (!isVerbose())
+            {
+              notifyListeners(getFormattedDoneWithLineBreak());
+            }
+            else
+            {
+              notifyListeners(getLineBreak());
+            }
           } catch (ApplicationException e) {
+            if (isVerbose())
+            {
+              notifyListeners(getLineBreak());
+            }
             notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO, "error starting server");
             this.runWarning = e;
@@ -995,10 +1057,30 @@ public class Upgrader extends GuiApplication implements CliApplication {
         } else if (!userRequestsStart && serverRunning) {
           try {
             LOG.log(Level.INFO, "stopping server");
+            if (isVerbose())
+            {
+              notifyListeners(getTaskSeparator());
+            }
+            else
+            {
+              notifyListeners(getFormattedWithPoints(
+                  INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
+            }
             setCurrentProgressStep(UpgradeProgressStep.STOPPING_SERVER);
-            control.stopServer(true);
-            notifyListeners(getFormattedDoneWithLineBreak());
+            control.stopServer(!isVerbose());
+            if (!isVerbose())
+            {
+              notifyListeners(getFormattedDoneWithLineBreak());
+            }
+            else
+            {
+              notifyListeners(getLineBreak());
+            }
           } catch (ApplicationException e) {
+            if (isVerbose())
+            {
+              notifyListeners(getLineBreak());
+            }
             notifyListeners(getFormattedErrorWithLineBreak());
             LOG.log(Level.INFO, "error stopping server");
             this.runWarning = e;
@@ -1039,6 +1121,28 @@ public class Upgrader extends GuiApplication implements CliApplication {
             note = runError.getLocalizedMessage();
           }
 
+          if (runError != null)
+          {
+            notifyListeners(getFormattedErrorWithLineBreak());
+            Message msg;
+
+            if (runError.getCause() != null)
+            {
+              msg = getFormattedError(
+                  Utils.getThrowableMsg(runError.getMessageObject(),
+                      runError.getCause()), true);
+            }
+            else
+            {
+              msg = getFormattedError(runError, true);
+            }
+            notifyListeners(msg);
+            if (Utils.isCli())
+            {
+              notifyListeners(getLineBreak());
+              notifyListeners(getLineBreak());
+            }
+          }
           // Abort the upgrade and put things back like we found it
           LOG.log(Level.INFO, "canceling upgrade");
           ProgressStep lastProgressStep = getCurrentProgressStep();
@@ -1084,10 +1188,25 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
       } catch (ApplicationException e) {
         notifyListeners(getFormattedErrorWithLineBreak());
+        Message msg;
+        if (e.getCause() != null)
+        {
+          msg = getFormattedError(
+              Utils.getThrowableMsg(e.getMessageObject(), e.getCause()), true);
+        }
+        else
+        {
+          msg = getFormattedError(e, true);
+        }
+        notifyListeners(msg);
+        if (Utils.isCli())
+        {
+          notifyListeners(getLineBreak());
+        }
         LOG.log(Level.INFO, "Error cleaning up after upgrade.", e);
       }
 
-      // Decide final status based on presense of error
+      // Decide final status based on presence of error
 
       // WARNING: change this code at your own risk!  The ordering
       // of these statements is important.  There are differences
@@ -1104,16 +1223,14 @@ public class Upgrader extends GuiApplication implements CliApplication {
           notifyListeners(null);
         } else {
           setCurrentProgressStep(UpgradeProgressStep.FINISHED_CANCELED);
+          notifyListeners(getLineBreak());
         }
       } else if (runError != null) {
         LOG.log(Level.INFO, "upgrade completed with errors", runError);
         if (!Utils.isCli()) {
           notifyListenersOfLog();
           this.currentProgressStep = UpgradeProgressStep.FINISHED_WITH_ERRORS;
-          notifyListeners(formatter.getFormattedError(runError, true));
         } else {
-          notifyListeners(getFormattedErrorWithLineBreak(runError, true));
-          notifyListeners(getLineBreak());
           setCurrentProgressStep(UpgradeProgressStep.FINISHED_WITH_ERRORS);
           notifyListeners(getLineBreak());
         }
@@ -1143,10 +1260,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
           notifyListeners(null);
         } else {
           setCurrentProgressStep(UpgradeProgressStep.FINISHED);
+          notifyListeners(getLineBreak());
         }
       }
     }
-
   }
 
   /**
@@ -1280,7 +1397,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
     fm.synchronize(oldConfigDir, newConfigDir, filter);
   }
 
-  private void backupFilesytem() throws ApplicationException {
+  private void backupFilesystem() throws ApplicationException {
     try {
       File filesBackupDirectory = getFilesBackupDirectory();
       FileManager fm = new FileManager();
@@ -1413,7 +1530,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             userInteraction(), currentVersion, newVersion);
     uo.notifyUser();
     if (uo.noServerStartFollowingOperation()) {
-      // Some issue dicatates that we don't try and restart the server
+      // Some issue dictates that we don't try and restart the server
       // after this operation.  It may be that the databases are no
       // longer readable after the upgrade or something equally earth
       // shattering.
@@ -1476,7 +1593,12 @@ public class Upgrader extends GuiApplication implements CliApplication {
     this.currentProgressStep = step;
     int progress = step.getProgress();
     Message msg = getSummary(step);
-    notifyListeners(progress, msg, getFormattedProgress(msg));
+    Message log = getLogMsg(step);
+    if (step.logRequiresPoints(isVerbose()) && (log != null))
+    {
+      log = getFormattedWithPoints(log);
+    }
+    notifyListeners(progress, msg, log);
   }
 
   private Message getFinalSuccessMessage() {

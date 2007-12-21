@@ -582,7 +582,7 @@ public class FileManager {
           LOG.log(Level.INFO, "Ignoring file '" +
                   objectFile.getAbsolutePath() + "' since '" +
                   destination.getAbsolutePath() + "' already exists");
-          if (application != null) {
+          if ((application != null) && application.isVerbose()) {
             application.notifyListeners(
                     new MessageBuilder(
                             INFO_INFO_IGNORING_FILE.get(

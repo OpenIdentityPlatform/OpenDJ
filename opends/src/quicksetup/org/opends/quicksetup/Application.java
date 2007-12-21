@@ -966,4 +966,92 @@ public abstract class Application implements ProgressNotifier, Runnable {
       println(new String(b, off, len));
     }
   }
+
+
+
+  /**
+   * Class used to add points periodically to the end of the logs.
+   *
+   */
+  protected class PointAdder implements Runnable
+  {
+    private Thread t;
+    private boolean stopPointAdder;
+    private boolean pointAdderStopped;
+
+    /**
+     * Default constructor.
+     */
+    public PointAdder()
+    {
+    }
+
+    /**
+     * Starts the PointAdder: points are added at the end of the logs
+     * periodically.
+     */
+    public void start()
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(formatter.getSpace());
+      for (int i=0; i< 5; i++)
+      {
+        mb.append(formatter.getFormattedPoint());
+      }
+      Integer ratio = getRatio(getCurrentProgressStep());
+      Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+      listenerDelegate.notifyListeners(getCurrentProgressStep(),
+          ratio, currentPhaseSummary, mb.toMessage());
+      t = new Thread(this);
+      t.start();
+    }
+
+    /**
+     * Stops the PointAdder: points are no longer added at the end of the logs
+     * periodically.
+     */
+    public synchronized void stop()
+    {
+      stopPointAdder = true;
+      while (!pointAdderStopped)
+      {
+        try
+        {
+          t.interrupt();
+          // To allow the thread to set the boolean.
+          Thread.sleep(100);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void run()
+    {
+      while (!stopPointAdder)
+      {
+        try
+        {
+          Thread.sleep(3000);
+          Integer ratio = getRatio(getCurrentProgressStep());
+          Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+          listenerDelegate.notifyListeners(getCurrentProgressStep(),
+              ratio, currentPhaseSummary, formatter.getFormattedPoint());
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      pointAdderStopped = true;
+
+      Integer ratio = getRatio(getCurrentProgressStep());
+      Message currentPhaseSummary = getSummary(getCurrentProgressStep());
+      listenerDelegate.notifyListeners(getCurrentProgressStep(),
+          ratio, currentPhaseSummary, formatter.getSpace());
+    }
+  }
 }
