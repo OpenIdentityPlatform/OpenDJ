@@ -1241,7 +1241,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * at the moement when the replication is enabled.
    * @throws Exception
    */
-  @Test(enabled=false)
+  @Test(enabled=false, groups="slow")
   public void testServerStop() throws Exception
   {
     String testCase = "testServerStop";
@@ -1285,7 +1285,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Successfully ending " + testCase);
     }
   }
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void generationIdTest() throws Exception
   {
     testSingleRS();

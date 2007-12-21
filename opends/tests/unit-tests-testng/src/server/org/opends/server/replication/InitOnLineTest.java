@@ -705,7 +705,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the Initialize task
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeImport() throws Exception
   {
     String testCase = "InitializeImport";
@@ -761,7 +761,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the export side of the Initialize task
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeExport() throws Exception
   {
     String testCase = "Replication/InitializeExport";
@@ -795,7 +795,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeTargetExport() throws Exception
   {
     String testCase = "Replication/InitializeTargetExport";
@@ -835,7 +835,7 @@ public class InitOnLineTest extends ReplicationTestCase
   /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeTargetExportAll() throws Exception
   {
     String testCase = "Replication/InitializeTargetExportAll";
@@ -880,7 +880,7 @@ public class InitOnLineTest extends ReplicationTestCase
  /**
    * Tests the import side of the InitializeTarget task
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeTargetImport() throws Exception
   {
     String testCase = "InitializeTargetImport";
@@ -1063,7 +1063,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * ReplServerInfoMessage(s) exchanged by the replication
    * servers.
    */
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void testReplServerInfos() throws Exception
   {
     String testCase = "Replication/TestReplServerInfos";
@@ -1135,7 +1135,7 @@ public class InitOnLineTest extends ReplicationTestCase
     changelog1 = null;
   }
   
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeTargetExportMultiSS() throws Exception
   {
     try
@@ -1185,7 +1185,7 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  @Test(enabled=true)
+  @Test(enabled=true, groups="slow")
   public void initializeExportMultiSS() throws Exception
   {
     String testCase = "Replication/InitializeExportMultiSS";

@@ -829,7 +829,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test(groups="slow")
   public void testGenerateSelfSignedCertificatePKCS12()
          throws Exception
   {
@@ -1061,7 +1061,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test(groups="slow")
   public void testGenerateCSRPKCS12()
          throws Exception
   {
