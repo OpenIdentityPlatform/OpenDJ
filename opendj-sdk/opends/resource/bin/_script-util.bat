@@ -118,7 +118,7 @@ exit /B 1
 
 :setEnvironmentVars
 if %SET_ENVIRONMENT_VARS_DONE% == "true" goto end
-set PATH=%SystemRoot%
+set PATH=%SystemRoot%;%PATH%
 set SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
 goto scriptBegin
