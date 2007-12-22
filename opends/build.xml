@@ -31,6 +31,9 @@
     file in this directory for build instructions.
   </description>
 
+  <!-- Build JVM properties -->
+  <property name="MEM" value="256M"/>
+
   <!-- General server-wide properties                                 -->
   <property name="src.dir"          location="src/server"              />
   <property name="build.dir"        location="build"                   />
@@ -328,11 +331,6 @@
       </not>
     </condition>
 
-    <condition property="MEM" value="192M">
-      <not>
-        <isset property="MEM" />
-      </not>
-    </condition>
 
 
     <!--
@@ -639,12 +637,6 @@
    ! -->
   <target name="rebuild" depends="generatemessages"
        description="Rebuild the server without destroying config or data.">
-    <!-- Set the amount of memory to use for the build -->
-    <condition property="MEM" value="192M">
-      <not>
-        <isset property="MEM" />
-      </not>
-    </condition>
 
     <!-- Construct the version number string -->
     <taskdef name="getversionnumber"
@@ -875,15 +867,15 @@
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/README" />
     </copy>
-    
+
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/install.html" />
     </copy>
-    
+
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/images/opends_logo.png" />
-    </copy>  
-   
+    </copy>
+
     <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup,uninstall,upgrade"
          eol="lf" />
     <fixcrlf srcDir="${resource.dir}" destDir="${pdir}" includes="setup.bat,uninstall.bat,upgrade.bat"
@@ -1824,12 +1816,6 @@
 
   <target name="buildtools" depends="init"
         description="Builds the build tools">
-    <!-- Set the amount of memory to use for the build -->
-    <condition property="MEM" value="192M">
-      <not>
-        <isset property="MEM" />
-      </not>
-    </condition>
 
     <mkdir dir="${buildtools.classes.dir}" />
 
