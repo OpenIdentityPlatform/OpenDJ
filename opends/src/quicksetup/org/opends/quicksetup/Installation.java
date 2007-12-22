@@ -213,6 +213,11 @@ public class Installation {
   public static final String WINDOWS_STATUSPANEL_FILE_NAME = "status-panel.bat";
 
   /**
+   * The MacOS X Java application stub name.
+   */
+  public static final String MAC_JAVA_APP_STUB_NAME = "JavaApplicationStub";
+
+  /**
    * The MacOS X status panel application bundle name.
    */
   public static final String MAC_STATUSPANEL_FILE_NAME = "StatusPanel.app";

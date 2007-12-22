@@ -1218,33 +1218,28 @@ public class Utils
    * @return the file system permissions for the file.
    */
   static public String getFileSystemPermissions(File file)
-    {
+  {
     String perm;
     String name = file.getName();
     if (file.getParent().endsWith(
         File.separator + Installation.WINDOWS_BINARIES_PATH_RELATIVE) ||
         file.getParent().endsWith(
-        File.separator + Installation.UNIX_BINARIES_PATH_RELATIVE))
-    {
-      if (name.endsWith(".bat"))
-      {
+        File.separator + Installation.UNIX_BINARIES_PATH_RELATIVE)) {
+      if (name.endsWith(".bat")) {
         perm = "644";
       }
-      else
-      {
+      else {
         perm = "755";
       }
-    }
-    else if (name.endsWith(".sh"))
-    {
+    } else if (name.endsWith(".sh")) {
       perm = "755";
     } else if (name.endsWith(Installation.UNIX_SETUP_FILE_NAME) ||
             name.endsWith(Installation.UNIX_UNINSTALL_FILE_NAME) ||
-            name.endsWith(Installation.UNIX_UPGRADE_FILE_NAME))
-    {
+            name.endsWith(Installation.UNIX_UPGRADE_FILE_NAME)) {
       perm = "755";
-    } else
-    {
+    } else if (name.endsWith(Installation.MAC_JAVA_APP_STUB_NAME)) {
+      perm = "755";
+    } else {
       perm = "644";
     }
     return perm;
