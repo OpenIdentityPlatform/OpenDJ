@@ -271,7 +271,7 @@ public class FileSystemEntryCache
     dnMap = new LinkedHashMapRotator<DN,Long>(16, (float) 0.75,
         accessOrder);
 
-    cacheLock = new ReentrantReadWriteLock();
+    cacheLock = new ReentrantReadWriteLock(true);
     if (accessOrder) {
       // In access-ordered linked hash maps, merely querying the map
       // with get() is a structural modification.
