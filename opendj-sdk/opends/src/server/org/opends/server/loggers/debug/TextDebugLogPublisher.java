@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
 import org.opends.messages.Message;
@@ -817,9 +817,9 @@ public class TextDebugLogPublisher
     // Emit method info.
     buf.append("method={");
     buf.append(signature);
-    buf.append(" @ ");
+    buf.append("(");
     buf.append(sourceLocation);
-    buf.append("} ");
+    buf.append(")} ");
 
     // Emit message.
     buf.append(msg);

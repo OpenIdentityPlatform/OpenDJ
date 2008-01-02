@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
 
@@ -140,43 +140,70 @@ public class DebugStackTraceFormatter
   {
     StringBuilder buffer= new StringBuilder();
 
-    while(t != null)
+    StackTraceElement[] trace = t.getStackTrace();
+    int frameLimit = Math.min(maxDepth, trace.length);
+    for (int i=0; i < frameLimit; i++)
     {
-      StackTraceElement[] frames = t.getStackTrace();
+      buffer.append("  at ");
+      buffer.append(trace[i]);
+      buffer.append(EOL);
+    }
+    if(frameLimit < trace.length)
+    {
+      buffer.append("  ... ");
+      buffer.append(trace.length - frameLimit);
+      buffer.append(" more");
+      buffer.append(EOL);
+    }
 
-      if (frames != null) {
-        int frameLimit=  Math.min(maxDepth, frames.length);
-        if (frameLimit > 0) {
-
-
-          for (int i= 0; i < frameLimit; i++) {
-            buffer.append("  ");
-            buffer.append(frames[i]);
-            buffer.append(EOL);
-          }
-
-          if(frameLimit < frames.length)
-          {
-            buffer.append("  ...(");
-            buffer.append(frames.length - frameLimit);
-            buffer.append(" more)");
-            buffer.append(EOL);
-          }
-        }
-      }
-
-      if(includeCause && t.getCause() != null)
+    if(includeCause)
+    {
+      Throwable ourCause = t.getCause();
+      if (ourCause != null)
       {
-        t = t.getCause();
-        buffer.append("  caused by ");
-      }
-      else
-      {
-        t = null;
+        formatStackTraceForCause(ourCause, maxDepth, buffer, trace);
       }
     }
 
     return buffer.toString();
+  }
+
+  private static void formatStackTraceForCause(Throwable t, int maxDepth,
+                                        StringBuilder buffer,
+                                        StackTraceElement[] causedTrace)
+  {
+    StackTraceElement[] trace = t.getStackTrace();
+    int framesToSkip = Math.max(trace.length - maxDepth, 0);
+
+    // Compute number of frames in common between this and caused
+    int m = trace.length - 1 - framesToSkip;
+    int n = causedTrace.length - 1 - framesToSkip;
+    while (m >= 0 && n >=0 && trace[m].equals(causedTrace[n])) {
+      m--; n--;
+    }
+    framesToSkip = trace.length - 1 - m;
+
+    buffer.append("Caused by: ");
+    buffer.append(t);
+    buffer.append(EOL);
+    for (int i=0; i <= m; i++)
+    {
+      buffer.append("  at ");
+      buffer.append(trace[i]);
+      buffer.append(EOL);
+    }
+    if (framesToSkip != 0)
+    {
+      buffer.append("  ... ");
+      buffer.append(framesToSkip);
+      buffer.append(" more");
+      buffer.append(EOL);
+    }
+
+    // Recurse if we have a cause
+    Throwable ourCause = t.getCause();
+    if (ourCause != null)
+      formatStackTraceForCause(ourCause, maxDepth, buffer, trace);
   }
 
   /**

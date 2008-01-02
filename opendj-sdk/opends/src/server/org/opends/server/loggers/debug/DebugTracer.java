@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers.debug;
 
@@ -176,7 +176,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (activeSettings.noArgs)
@@ -266,7 +266,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (activeSettings.noArgs)
@@ -355,7 +355,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (activeSettings.noArgs)
@@ -444,7 +444,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (activeSettings.noRetVal)
@@ -533,7 +533,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (filteredStackTrace == null && activeSettings.stackDepth > 0)
@@ -721,7 +721,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if(msgArgs != null && msgArgs.length > 0)
@@ -808,7 +808,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (filteredStackTrace == null && activeSettings.stackDepth > 0)
@@ -896,7 +896,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (filteredStackTrace == null && activeSettings.stackDepth > 0)
@@ -980,7 +980,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (filteredStackTrace == null && activeSettings.stackDepth > 0)
@@ -1062,7 +1062,7 @@ public class DebugTracer
             }
           }
 
-          String sl = callerFrame.getFileName() + " @ " +
+          String sl = callerFrame.getFileName() + ":" +
               callerFrame.getLineNumber();
 
           if (filteredStackTrace == null && activeSettings.stackDepth > 0)
