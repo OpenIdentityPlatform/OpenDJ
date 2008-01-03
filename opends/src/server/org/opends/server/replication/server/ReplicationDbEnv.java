@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.*;
@@ -257,7 +257,7 @@ public class ReplicationDbEnv
               + " serverId=" + serverId);
 
           DbHandler dbHandler =
-            new DbHandler(serverId, baseDn, replicationServer, this, 1);
+            new DbHandler(serverId, baseDn, replicationServer, this);
 
           replicationServer.getReplicationServerDomain(baseDn, true).
           setDbHandler(serverId, dbHandler);

@@ -215,6 +215,11 @@ public class ReplicationServerDomain
       }
     }
 
+    if (generationId < 0)
+    {
+      generationId = sourceHandler.getGenerationId();
+    }
+
     // look for the dbHandler that is responsible for the LDAP server which
     // generated the change.
     DbHandler dbHandler = null;
@@ -225,8 +230,7 @@ public class ReplicationServerDomain
       {
         try
         {
-          dbHandler = replicationServer.newDbHandler(id,
-              baseDn, generationId);
+          dbHandler = replicationServer.newDbHandler(id, baseDn);
           generationIdSavedStatus = true;
         }
         catch (DatabaseException e)
@@ -277,8 +281,25 @@ public class ReplicationServerDomain
       handler.add(update, sourceHandler);
     }
 
+  }
 
-
+  /**
+   * Wait a short while for ServerId disconnection.
+   *
+   * @param serverId the serverId to be checked.
+   */
+  public void waitDisconnection(short serverId)
+  {
+    if (connectedServers.containsKey(serverId))
+    {
+      // try again
+      try
+      {
+        Thread.sleep(100);
+      } catch (InterruptedException e)
+      {
+      }
+    }
   }
 
   /**
@@ -339,22 +360,27 @@ public class ReplicationServerDomain
         " for " + baseDn + " " +
         " stopServer " + handler.getMonitorInstanceName());
 
-    handler.stopHandler();
 
-    if (handler.isReplicationServer())
-    {
-      replicationServers.remove(handler.getServerId());
-    }
-    else
-    {
-      connectedServers.remove(handler.getServerId());
-    }
+      if (handler.isReplicationServer())
+      {
+        if (replicationServers.containsValue(handler))
+        {
+          replicationServers.remove(handler.getServerId());
+          handler.stopHandler();
+        }
+      }
+      else
+      {
+        if (connectedServers.containsValue(handler))
+        {
+          connectedServers.remove(handler.getServerId());
+          handler.stopHandler();
+        }
+      }
 
-    mayResetGenerationId();
-
-    // Update the remote replication servers with our list
-    // of connected LDAP servers
-    sendReplServerInfo();
+      // Update the remote replication servers with our list
+      // of connected LDAP servers
+      sendReplServerInfo();
   }
 
   /**
@@ -1236,6 +1262,45 @@ public class ReplicationServerDomain
     public ReplicationServer getReplicationServer()
     {
       return replicationServer;
+    }
+
+    /**
+     * Process reception of a ReplServerInfoMessage.
+     *
+     * @param infoMsg The received message.
+     * @param handler The handler that received the message.
+     * @throws IOException when raised by the underlying session.
+     */
+    public void receiveReplServerInfo(
+        ReplServerInfoMessage infoMsg, ServerHandler handler) throws IOException
+    {
+      if (debugEnabled())
+      {
+        if (handler.isReplicationServer())
+          TRACER.debugInfo(
+           "In RS " + getReplicationServer().getServerId() +
+           " Receiving replServerInfo from " + handler.getServerId() +
+           " baseDn=" + baseDn +
+           " genId=" + infoMsg.getGenerationId());
+      }
+
+      mayResetGenerationId();
+      if (generationId < 0)
+        generationId = handler.getGenerationId();
+      if (generationId > 0 && (generationId != infoMsg.getGenerationId()))
+      {
+        Message message = NOTE_BAD_GENERATION_ID.get(
+            baseDn.toNormalizedString(),
+            Short.toString(handler.getServerId()),
+            Long.toString(infoMsg.getGenerationId()),
+            Long.toString(generationId));
+
+        ErrorMessage errorMsg = new ErrorMessage(
+            getReplicationServer().getServerId(),
+            handler.getServerId(),
+            message);
+        handler.sendError(errorMsg);
+      }
     }
 
     /*

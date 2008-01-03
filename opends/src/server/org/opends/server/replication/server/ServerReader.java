@@ -199,54 +199,7 @@ public class ServerReader extends DirectoryThread
         {
           ReplServerInfoMessage infoMsg = (ReplServerInfoMessage)msg;
           handler.receiveReplServerInfo(infoMsg);
-
-          if (debugEnabled())
-          {
-            if (handler.isReplicationServer())
-              TRACER.debugInfo(
-               "In RS " + replicationServerDomain.getReplicationServer().
-               getServerId() +
-               " Receiving replServerInfo from " + handler.getServerId() +
-               " baseDn=" + replicationServerDomain.getBaseDn() +
-               " genId=" + infoMsg.getGenerationId());
-          }
-
-          if (replicationServerDomain.getGenerationId()<0)
-          {
-            // Here is the case where a ReplicationServer receives from
-            // another ReplicationServer the generationId for a domain
-            // for which the generation ID has never been set.
-            replicationServerDomain.
-                    setGenerationId(infoMsg.getGenerationId(),false);
-          }
-          else
-          {
-            if (infoMsg.getGenerationId()<0)
-            {
-              // Here is the case where another ReplicationServer
-              // signals that it has no generationId set for the domain.
-              // If we have generationId set locally and no server currently
-              // connected for that domain in the topology then we may also
-              // reset the generationId localy.
-              replicationServerDomain.mayResetGenerationId();
-            }
-
-            if (replicationServerDomain.getGenerationId() !=
-                    infoMsg.getGenerationId())
-            {
-              Message message = NOTE_BAD_GENERATION_ID.get(
-                  replicationServerDomain.getBaseDn().toNormalizedString(),
-                  Short.toString(handler.getServerId()),
-                  Long.toString(infoMsg.getGenerationId()),
-                  Long.toString(replicationServerDomain.getGenerationId()));
-
-              ErrorMessage errorMsg = new ErrorMessage(
-                  replicationServerDomain.getReplicationServer().getServerId(),
-                  handler.getServerId(),
-                  message);
-              session.publish(errorMsg);
-            }
-          }
+          replicationServerDomain.receiveReplServerInfo(infoMsg, handler);
         }
         else if (msg instanceof MonitorRequestMessage)
         {

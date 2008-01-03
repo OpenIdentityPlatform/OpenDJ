@@ -22,16 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -41,11 +39,6 @@ import org.opends.server.util.ServerConstants;
 public class ReplLDIFOutputStream
        extends OutputStream
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   // The synchronization domain on which the export is done
   ReplicationDomain domain;
 
