@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -34,6 +34,7 @@ import java.util.*;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AbandonOperation;
@@ -91,6 +92,17 @@ public class TextAccessLogPublisher
     startupPublisher.suppressInternalOperations = suppressInternal;
 
     return startupPublisher;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
+                                           List<Message> unacceptableReasons)
+  {
+    FileBasedAccessLogPublisherCfg config =
+        (FileBasedAccessLogPublisherCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
   /**
@@ -184,30 +196,25 @@ public class TextAccessLogPublisher
      // Make sure the permission is valid.
      try
      {
-       if(!currentConfig.getLogFilePermissions().equalsIgnoreCase(
-           config.getLogFilePermissions()))
+       FilePermission filePerm =
+           FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+       if(!filePerm.isOwnerWritable())
        {
-         FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-       }
-       if(!currentConfig.getLogFile().equalsIgnoreCase(config.getLogFile()))
-       {
-         File logFile = getFileForPath(config.getLogFile());
-         if(logFile.createNewFile())
-         {
-           logFile.delete();
-         }
+         Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
+             config.getLogFilePermissions());
+         unacceptableReasons.add(message);
+         return false;
        }
      }
-     catch(Exception e)
+     catch(DirectoryException e)
      {
-       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-               config.dn().toString(),
-               stackTraceToSingleLineString(e));
+       Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+               config.getLogFilePermissions(), String.valueOf(e));
        unacceptableReasons.add(message);
        return false;
      }
 
-     return isConfigurationAcceptable(config, unacceptableReasons);
+     return true;
    }
 
   /**

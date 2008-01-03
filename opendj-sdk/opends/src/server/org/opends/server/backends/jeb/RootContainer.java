@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -56,7 +56,7 @@ import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.ConfigMessages.
     ERR_CONFIG_BACKEND_MODE_INVALID;
 import static org.opends.messages.ConfigMessages.
-    WARN_CONFIG_BACKEND_INSANE_MODE;
+    ERR_CONFIG_BACKEND_INSANE_MODE;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.ConfigMessages.*;
 
@@ -182,7 +182,8 @@ public class RootContainer
         !backendPermission.isOwnerReadable() ||
         !backendPermission.isOwnerExecutable())
     {
-      Message message = WARN_CONFIG_BACKEND_INSANE_MODE.get();
+      Message message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
+          config.getDBDirectoryPermissions());
       throw new ConfigException(message);
     }
 
@@ -759,7 +760,8 @@ public class RootContainer
           !newBackendPermission.isOwnerReadable() ||
           !newBackendPermission.isOwnerExecutable())
       {
-        Message message = WARN_CONFIG_BACKEND_INSANE_MODE.get();
+        Message message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
+            cfg.getDBDirectoryPermissions());
         unacceptableReasons.add(message);
         acceptable = false;
       }
@@ -932,7 +934,8 @@ public class RootContainer
             !backendPermission.isOwnerReadable() ||
             !backendPermission.isOwnerExecutable())
         {
-          messages.add(WARN_CONFIG_BACKEND_INSANE_MODE.get());
+          messages.add(ERR_CONFIG_BACKEND_INSANE_MODE.get(
+              cfg.getDBDirectoryPermissions()));
           ccr = new ConfigChangeResult(
               DirectoryServer.getServerErrorResultCode(),
               adminActionRequired,

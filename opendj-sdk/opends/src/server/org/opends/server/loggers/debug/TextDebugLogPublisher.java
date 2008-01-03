@@ -38,6 +38,7 @@ import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.ServerConstants.PROPERTY_DEBUG_TARGET;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
+import org.opends.server.admin.std.server.DebugLogPublisherCfg;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -48,6 +49,10 @@ import static org.opends.messages.ConfigMessages.
     ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER;
 import static org.opends.messages.ConfigMessages.
    ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_LOGGING_INSANE_MODE;
+import static org.opends.messages.ConfigMessages.
+    ERR_CONFIG_LOGGING_MODE_INVALID;
 
 
 import java.util.*;
@@ -115,6 +120,17 @@ public class TextDebugLogPublisher
     }
 
     return startupPublisher;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAcceptable(DebugLogPublisherCfg configuration,
+                                           List<Message> unacceptableReasons)
+  {
+    FileBasedDebugLogPublisherCfg config =
+        (FileBasedDebugLogPublisherCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
   /**
@@ -237,30 +253,25 @@ public class TextDebugLogPublisher
     // Make sure the permission is valid.
     try
     {
-      if(!currentConfig.getLogFilePermissions().equalsIgnoreCase(
-          config.getLogFilePermissions()))
+      FilePermission filePerm =
+          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      if(!filePerm.isOwnerWritable())
       {
-        FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-      }
-      if(!currentConfig.getLogFile().equalsIgnoreCase(config.getLogFile()))
-      {
-        File logFile = getFileForPath(config.getLogFile());
-        if(logFile.createNewFile())
-        {
-          logFile.delete();
-        }
+        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
+            config.getLogFilePermissions());
+        unacceptableReasons.add(message);
+        return false;
       }
     }
-    catch(Exception e)
+    catch(DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-              config.dn().toString(),
-              stackTraceToSingleLineString(e));
+      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+          config.getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
     }
 
-    return isConfigurationAcceptable(config, unacceptableReasons);
+    return true;
   }
 
   /**
