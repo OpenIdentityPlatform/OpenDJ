@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
+import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
@@ -75,13 +76,23 @@ public class TextAuditLogPublisher
 
   private FileBasedAccessLogPublisherCfg currentConfig;
 
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
+                                           List<Message> unacceptableReasons)
+  {
+    FileBasedAccessLogPublisherCfg config =
+        (FileBasedAccessLogPublisherCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override()
   public void initializeAccessLogPublisher(
-        FileBasedAccessLogPublisherCfg config)
+      FileBasedAccessLogPublisherCfg config)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(config.getLogFile());
@@ -101,14 +112,14 @@ public class TextAuditLogPublisher
       MultifileTextWriter writer =
           new MultifileTextWriter("Multifile Text Writer for " +
               config.dn().toNormalizedString(),
-                                  config.getTimeInterval(),
-                                  fnPolicy,
-                                  perm,
-                                  errorHandler,
-                                  "UTF-8",
-                                  writerAutoFlush,
-                                  config.isAppend(),
-                                  (int)config.getBufferSize());
+              config.getTimeInterval(),
+              fnPolicy,
+              perm,
+              errorHandler,
+              "UTF-8",
+              writerAutoFlush,
+              config.isAppend(),
+              (int)config.getBufferSize());
 
       // Validate retention and rotation policies.
       for(DN dn : config.getRotationPolicyDNs())
@@ -125,8 +136,8 @@ public class TextAuditLogPublisher
       {
         this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for " +
             config.dn().toNormalizedString(), config.getQueueSize(),
-                                              config.isAutoFlush(),
-                                              writer);
+            config.isAutoFlush(),
+            writer);
       }
       else
       {
@@ -150,7 +161,7 @@ public class TextAuditLogPublisher
 
     suppressInternalOperations = config.isSuppressInternalOperations();
     suppressSynchronizationOperations =
-      config.isSuppressSynchronizationOperations();
+        config.isSuppressSynchronizationOperations();
 
     currentConfig = config;
 
@@ -163,140 +174,135 @@ public class TextAuditLogPublisher
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-       FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
-   {
-     // Make sure the permission is valid.
-     try
-     {
-       if(!currentConfig.getLogFilePermissions().equalsIgnoreCase(
-           config.getLogFilePermissions()))
-       {
-         FilePermission.decodeUNIXMode(config.getLogFilePermissions());
-       }
-       if(!currentConfig.getLogFile().equalsIgnoreCase(config.getLogFile()))
-       {
-         File logFile = getFileForPath(config.getLogFile());
-         if(logFile.createNewFile())
-         {
-           logFile.delete();
-         }
-       }
-     }
-     catch(Exception e)
-     {
-       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-               config.dn().toString(),
-               stackTraceToSingleLineString(e));
-       unacceptableReasons.add(message);
-       return false;
-     }
+      FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
+  {
+    // Make sure the permission is valid.
+    try
+    {
+      FilePermission filePerm =
+          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      if(!filePerm.isOwnerWritable())
+      {
+        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
+            config.getLogFilePermissions());
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+    catch(DirectoryException e)
+    {
+      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+          config.getLogFilePermissions(), String.valueOf(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
 
-     return true;
-   }
+    return true;
+  }
 
   /**
    * {@inheritDoc}
    */
-   public ConfigChangeResult applyConfigurationChange(
-       FileBasedAccessLogPublisherCfg config)
-   {
-     // Default result code.
-     ResultCode resultCode = ResultCode.SUCCESS;
-     boolean adminActionRequired = false;
-     ArrayList<Message> messages = new ArrayList<Message>();
+  public ConfigChangeResult applyConfigurationChange(
+      FileBasedAccessLogPublisherCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<Message> messages = new ArrayList<Message>();
 
-     suppressInternalOperations = config.isSuppressInternalOperations();
-     suppressSynchronizationOperations =
-       config.isSuppressSynchronizationOperations();
+    suppressInternalOperations = config.isSuppressInternalOperations();
+    suppressSynchronizationOperations =
+        config.isSuppressSynchronizationOperations();
 
-     File logFile = getFileForPath(config.getLogFile());
-     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
+    File logFile = getFileForPath(config.getLogFile());
+    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
-     try
-     {
-       FilePermission perm =
-           FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+    try
+    {
+      FilePermission perm =
+          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
 
-       boolean writerAutoFlush =
+      boolean writerAutoFlush =
           config.isAutoFlush() && !config.isAsynchronous();
 
-       TextWriter currentWriter;
-       // Determine the writer we are using. If we were writing asyncronously,
-       // we need to modify the underlaying writer.
-       if(writer instanceof AsyncronousTextWriter)
-       {
-         currentWriter = ((AsyncronousTextWriter)writer).getWrappedWriter();
-       }
-       else
-       {
-         currentWriter = writer;
-       }
+      TextWriter currentWriter;
+      // Determine the writer we are using. If we were writing asyncronously,
+      // we need to modify the underlaying writer.
+      if(writer instanceof AsyncronousTextWriter)
+      {
+        currentWriter = ((AsyncronousTextWriter)writer).getWrappedWriter();
+      }
+      else
+      {
+        currentWriter = writer;
+      }
 
-       if(currentWriter instanceof MultifileTextWriter)
-       {
-         MultifileTextWriter mfWriter = (MultifileTextWriter)currentWriter;
+      if(currentWriter instanceof MultifileTextWriter)
+      {
+        MultifileTextWriter mfWriter = (MultifileTextWriter)currentWriter;
 
-         mfWriter.setNamingPolicy(fnPolicy);
-         mfWriter.setFilePermissions(perm);
-         mfWriter.setAppend(config.isAppend());
-         mfWriter.setAutoFlush(writerAutoFlush);
-         mfWriter.setBufferSize((int)config.getBufferSize());
-         mfWriter.setInterval(config.getTimeInterval());
+        mfWriter.setNamingPolicy(fnPolicy);
+        mfWriter.setFilePermissions(perm);
+        mfWriter.setAppend(config.isAppend());
+        mfWriter.setAutoFlush(writerAutoFlush);
+        mfWriter.setBufferSize((int)config.getBufferSize());
+        mfWriter.setInterval(config.getTimeInterval());
 
-         mfWriter.removeAllRetentionPolicies();
-         mfWriter.removeAllRotationPolicies();
+        mfWriter.removeAllRetentionPolicies();
+        mfWriter.removeAllRotationPolicies();
 
-         for(DN dn : config.getRotationPolicyDNs())
-         {
-           mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
-         }
+        for(DN dn : config.getRotationPolicyDNs())
+        {
+          mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+        }
 
-         for(DN dn: config.getRetentionPolicyDNs())
-         {
-           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
-         }
+        for(DN dn: config.getRetentionPolicyDNs())
+        {
+          mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+        }
 
-         if(writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
-         {
-           // The asynronous setting is being turned off.
-           AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter)writer);
-           writer = mfWriter;
-           asyncWriter.shutdown(false);
-         }
+        if(writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
+        {
+          // The asynronous setting is being turned off.
+          AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter)writer);
+          writer = mfWriter;
+          asyncWriter.shutdown(false);
+        }
 
-         if(!(writer instanceof AsyncronousTextWriter) &&
-             config.isAsynchronous())
-         {
-           // The asynronous setting is being turned on.
-           AsyncronousTextWriter asyncWriter =
-               new AsyncronousTextWriter("Asyncronous Text Writer for " +
-                   config.dn().toNormalizedString(), config.getQueueSize(),
-                                                     config.isAutoFlush(),
-                                                     mfWriter);
-           writer = asyncWriter;
-         }
+        if(!(writer instanceof AsyncronousTextWriter) &&
+            config.isAsynchronous())
+        {
+          // The asynronous setting is being turned on.
+          AsyncronousTextWriter asyncWriter =
+              new AsyncronousTextWriter("Asyncronous Text Writer for " +
+                  config.dn().toNormalizedString(), config.getQueueSize(),
+                  config.isAutoFlush(),
+                  mfWriter);
+          writer = asyncWriter;
+        }
 
-         if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&
-             (currentConfig.getQueueSize() != config.getQueueSize()))
-         {
-           adminActionRequired = true;
-         }
+        if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&
+            (currentConfig.getQueueSize() != config.getQueueSize()))
+        {
+          adminActionRequired = true;
+        }
 
-         currentConfig = config;
-       }
-     }
-     catch(Exception e)
-     {
-       Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
-               config.dn().toString(),
-               stackTraceToSingleLineString(e));
-       resultCode = DirectoryServer.getServerErrorResultCode();
-       messages.add(message);
+        currentConfig = config;
+      }
+    }
+    catch(Exception e)
+    {
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(),
+          stackTraceToSingleLineString(e));
+      resultCode = DirectoryServer.getServerErrorResultCode();
+      messages.add(message);
 
-     }
+    }
 
-     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-   }
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
 
 
 
@@ -431,7 +437,7 @@ public class TextAuditLogPublisher
       }
 
       for (List<Attribute> attrList :
-        addOperation.getOperationalAttributes().values())
+          addOperation.getOperationalAttributes().values())
       {
         for (Attribute a : attrList)
         {
@@ -777,7 +783,7 @@ public class TextAuditLogPublisher
    */
   @Override()
   public void logSearchResultEntry(SearchOperation searchOperation,
-                                     SearchResultEntry searchEntry)
+                                   SearchResultEntry searchEntry)
   {
   }
 
@@ -788,7 +794,7 @@ public class TextAuditLogPublisher
    */
   @Override()
   public void logSearchResultReference(SearchOperation searchOperation,
-                            SearchResultReference searchReference)
+                                       SearchResultReference searchReference)
   {
   }
 
