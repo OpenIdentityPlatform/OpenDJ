@@ -646,6 +646,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           EOL+
           "# See if the environment variables for arguments are set."+EOL+
           "if test -z \"${OPENDS_JAVA_ARGS}\""+EOL+
+          "then"+EOL+
           "  if test -z \"${JAVA_ARGS}\""+EOL);
     }
 
@@ -727,7 +728,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     if (nIfs > 0)
     {
-      String s = overwriteJavaArgs? "":"  ";
+      String s = overwriteJavaArgs? "":"    ";
       buf.append(s+"fi"+EOL);
     }
 
