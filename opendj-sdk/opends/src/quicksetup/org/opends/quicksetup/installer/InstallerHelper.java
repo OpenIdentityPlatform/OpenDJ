@@ -716,9 +716,9 @@ public class InstallerHelper {
     if (!propertiesFileModified)
     {
       writer.newLine();
-      writer.write("overwrite-env-java-home=true");
+      writer.write("overwrite-env-java-home=false");
       writer.newLine();
-      writer.write("overwrite-env-java-args=true");
+      writer.write("overwrite-env-java-args=false");
       writer.newLine();
       writer.newLine();
       writer.write("default.java-home="+javaHome);
