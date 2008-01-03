@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -55,6 +55,8 @@ public abstract class ReplicationMessage
   static final byte MSG_TYPE_WINDOW_PROBE = 15;
   static final byte MSG_TYPE_REPL_SERVER_INFO = 16;
   static final byte MSG_TYPE_RESET_GENERATION_ID = 17;
+  static final byte MSG_TYPE_REPL_SERVER_MONITOR_REQUEST = 18;
+  static final byte MSG_TYPE_REPL_SERVER_MONITOR = 19;
 
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
@@ -79,6 +81,8 @@ public abstract class ReplicationMessage
    * MSG_TYPE_WINDOW_PROBE
    * MSG_TYPE_REPL_SERVER_INFO
    * MSG_TYPE_RESET_GENERATION_ID
+   * MSG_TYPE_REPL_SERVER_MONITOR_REQUEST
+   * MSG_TYPE_REPL_SERVER_MONITOR
    *
    * @return the byte[] representation of this message.
    * @throws UnsupportedEncodingException  When the encoding of the message
@@ -152,6 +156,12 @@ public abstract class ReplicationMessage
       case MSG_TYPE_REPL_SERVER_INFO:
         msg = new ReplServerInfoMessage(buffer);
       break;
+      case MSG_TYPE_REPL_SERVER_MONITOR_REQUEST:
+        msg = new MonitorRequestMessage(buffer);
+      break;
+      case MSG_TYPE_REPL_SERVER_MONITOR:
+        msg = new MonitorMessage(buffer);
+      break;
       default:
         throw new DataFormatException("received message with unknown type");
     }
@@ -192,7 +202,7 @@ public abstract class ReplicationMessage
     while (in[offset++] != 0)
     {
       if (offset >= in.length)
-        throw new DataFormatException("byte[] is not a valid modify msg");
+        throw new DataFormatException("byte[] is not a valid msg");
       length++;
     }
     return length;

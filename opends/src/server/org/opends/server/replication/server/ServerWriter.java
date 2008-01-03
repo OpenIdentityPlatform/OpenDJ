@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.Message;
@@ -126,7 +126,7 @@ public class ServerWriter extends DirectoryThread
             "In " + replicationServerDomain.getReplicationServer().
               getMonitorInstanceName() +
             ", writer to " + this.handler.getMonitorInstanceName() +
-            " publishes msg=" + update.toString() +
+            " publishes msg=[" + update.toString() + "]"+
             " refgenId=" + referenceGenerationId +
             " server=" + handler.getServerId() +
             " generationId=" + handler.getGenerationId());

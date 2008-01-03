@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -185,6 +185,40 @@ public class ChangeNumber implements java.io.Serializable,
 
     }
   }
+
+  /**
+   * Computes the difference in number of changes between 2
+   * change numbers.
+   * @param op1 the first ChangeNumber
+   * @param op2 the second ChangeNumber
+   * @return the difference
+   */
+  public static int diffSeqNum(ChangeNumber op1, ChangeNumber op2)
+  {
+    int totalCount = 0;
+    int max = op1.getSeqnum();
+    if (op2 != null)
+    {
+      int current = op2.getSeqnum();
+      if (current == max)
+      {
+      }
+      else if (current < max)
+      {
+        totalCount += max - current;
+      }
+      else
+      {
+        totalCount += Integer.MAX_VALUE - (current - max) + 1;
+      }
+    }
+    else
+    {
+      totalCount += max;
+    }
+    return totalCount;
+  }
+
   /**
    * check if the current Object is strictly older than ChangeNumber
    * given in parameter.

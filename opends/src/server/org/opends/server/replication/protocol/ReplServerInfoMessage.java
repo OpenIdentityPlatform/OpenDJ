@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.protocol;
@@ -67,7 +67,7 @@ public class ReplServerInfoMessage extends ReplicationMessage
       /* first byte is the type */
       if (in.length < 1 || in[0] != MSG_TYPE_REPL_SERVER_INFO)
         throw new DataFormatException(
-        "Input is not a valid changelogInfo Message.");
+        "Input is not a valid " + this.getClass().getCanonicalName());
 
       int pos = 1;
 
@@ -97,7 +97,7 @@ public class ReplServerInfoMessage extends ReplicationMessage
 
 
   /**
-   * Creates a new changelogInfo message from a list of the currently
+   * Creates a new ReplServerInfo message from a list of the currently
    * connected servers.
    *
    * @param connectedServers The list of currently connected servers ID.

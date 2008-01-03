@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -302,5 +302,30 @@ public class ChangeNumberTest extends ReplicationTestCase
     cng.adjust(CN1) ;
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
+  }
+
+  /**
+   * Test the difference in seq num between 2 change numbers.
+   */
+  @Test
+  public void changeNumberDiffSeqNum()
+         throws Exception
+  {
+    ChangeNumber CN1;
+    ChangeNumber CN2;
+
+    CN1 = new ChangeNumber((long)0, 3, (short)0);
+
+    // 3-1 = 2
+    CN2 = new ChangeNumber((long)0, 1, (short)0);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 2);
+    
+    // 3-3 = 0
+    CN2 = new ChangeNumber((long)0, 3, (short)0);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
+
+    // 3-4 == MAXINT (modulo)
+    CN2 = new ChangeNumber((long)0, 4, (short)0);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), Integer.MAX_VALUE);
   }
 }
