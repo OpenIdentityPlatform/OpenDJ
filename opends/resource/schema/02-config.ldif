@@ -1543,7 +1543,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.314
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.999
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.445
   NAME 'ds-cfg-cache-level'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
