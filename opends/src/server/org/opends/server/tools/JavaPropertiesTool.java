@@ -606,7 +606,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           "          echo \"The procedure to follow is:\""+EOL+
           "          echo \"You must specify the path to a valid Java 5.0 or "+
           "higher version.  The \""+EOL+
-          "          echo \"procedure to follow is:"+EOL+
+          "          echo \"procedure to follow is:\""+EOL+
           "          echo \"1. Delete the file "+
           "${INSTANCE_ROOT}/lib/set-java-home\""+EOL+
           "          echo \"2. Set the environment variable OPENDS_JAVA_HOME "+
