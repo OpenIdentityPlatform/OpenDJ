@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -38,6 +38,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RDN;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 
 /**
@@ -279,8 +280,18 @@ public class ModifyDNMsg extends UpdateMessage
   {
     try
     {
-      String newStringDN = newRDN + "," + newSuperior;
-      DN newDN = DN.decode(newStringDN);
+      DN newDN;
+      if (newSuperior == null)
+      {
+        DN parentDn = DN.decode(this.getDn()).getParent();
+        newDN = parentDn.concat(RDN.decode(newRDN));
+      }
+      else
+      {
+        String newStringDN = newRDN + "," + newSuperior;
+        newDN = DN.decode(newStringDN);
+      }
+
 
       if (newDN.isAncestorOf(targetDn))
         return true;

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -250,6 +250,131 @@ public class DependencyTest extends ReplicationTestCase
   }
 
   /**
+   * Check the dependency between moddn and delete operation
+   * when an entry is renamed to a new dn and then deleted.
+   */
+  @SuppressWarnings("unchecked")
+  @Test(enabled=true)
+  public void moddnDelDependencyTest() throws Exception
+  {
+    ReplicationServer replServer = null;
+    ReplicationDomain domain = null;
+    DN baseDn = DN.decode(BASEDN_STRING);
+    SynchronizationProvider replicationPlugin = null;
+    short brokerId = 2;
+    short serverId = 1;
+    short replServerId = 1;
+
+    cleanDB();
+
+    try
+    {
+      //
+      // Create replication server, replication domain and broker.
+      //
+      
+      String entryldif = "dn:" + BASEDN_STRING + "\n"
+      + "objectClass: top\n"
+      + "objectClass: domain\n";
+      Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
+      AttributeType uidType =
+        DirectoryServer.getSchema().getAttributeType("entryuuid");
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
+      int renamedEntryUuid = 100;
+
+      // find  a free port for the replicationServer
+      ServerSocket socket = TestCaseUtils.bindFreePort();
+      int replServerPort = socket.getLocalPort();
+      socket.close();
+
+      replicationPlugin = new MultimasterReplication();
+      DirectoryServer.registerSynchronizationProvider(replicationPlugin);
+      ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(replServerPort, "addModDeldependency",
+                                        0, replServerId, 0,
+                                        200, null);
+      replServer = new ReplicationServer(conf);
+
+      // configure and start replication of dc=example,dc=com on the server
+      SortedSet<String> replServers = new TreeSet<String>();
+      replServers.add("localhost:"+replServerPort);
+      DomainFakeCfg domainConf =
+        new DomainFakeCfg(baseDn, serverId, replServers);
+      domainConf.setHeartbeatInterval(100000);
+
+      Thread.sleep(2000);
+      domain = MultimasterReplication.createNewDomain(domainConf);
+      
+      ReplicationBroker broker =
+        openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
+                               false);
+      
+      // add an entry to play with.
+      entry.removeAttribute(uidType);
+      entry.addAttribute(new Attribute("entryuuid",
+                         stringUID(renamedEntryUuid)),
+                         new LinkedList<AttributeValue>());
+      String addDn = "dc=moddndel" + "," + BASEDN_STRING;
+      AddMsg addMsg =
+        new AddMsg(gen.newChangeNumber(), addDn, stringUID(renamedEntryUuid),
+                   stringUID(1),
+                   entry.getObjectClassAttribute(),
+                   entry.getAttributes(), null );
+
+      broker.publish(addMsg);
+      
+      // check that the entry was correctly added
+      boolean found =
+        checkEntryHasAttribute(DN.decode(addDn), "entryuuid",
+                               stringUID(renamedEntryUuid),
+                               30000, true);
+      
+      assertTrue(found, "The initial entry add failed");
+      
+    
+      // disable the domain to make sure that the messages are 
+      // all sent in a row.
+      domain.disable();
+      
+      // rename and delete the entry.
+      ModifyDNMsg moddnMsg =
+        new ModifyDNMsg(addDn, gen.newChangeNumber(),
+                        stringUID(renamedEntryUuid),
+                        stringUID(1), true, null, "dc=new_name");
+      broker.publish(moddnMsg);
+      DeleteMsg delMsg =
+        new DeleteMsg("dc=new_name" + "," + BASEDN_STRING,
+                      gen.newChangeNumber(), stringUID(renamedEntryUuid));
+      broker.publish(delMsg);
+      
+      // enable back the domain to trigger message replay.
+      domain.enable();
+      
+      // check that entry does not exist anymore.
+      Thread.sleep(10000);
+      found = checkEntryHasAttribute(DN.decode("dc=new_name" + "," + BASEDN_STRING),
+                                     "entryuuid",
+                                     stringUID(renamedEntryUuid),
+                                     30000, false);
+      
+      assertFalse(found, "The delete dependencies was not correctly enforced");
+    }
+    finally
+    {
+      if (replServer != null)
+        replServer.shutdown();
+
+      if (domain != null)
+        MultimasterReplication.deleteDomain(baseDn);
+
+      if (replicationPlugin != null)
+        DirectoryServer.deregisterSynchronizationProvider(replicationPlugin);
+    }
+  
+  }
+  
+  
+  /**
    * Clean the database and replace with a single entry.
    *
    * @throws FileNotFoundException
@@ -285,6 +410,7 @@ public class DependencyTest extends ReplicationTestCase
           + "ds-task-import-ldif-file: " + path + "\n"
           + "ds-task-import-reject-file: " + path + "reject\n");
   }
+
 
   /**
    * Check that after a sequence of add/del/add done on the same DN

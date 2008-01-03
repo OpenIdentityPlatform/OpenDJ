@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -451,11 +451,13 @@ public class RemotePendingChanges
           }
           else if (pendingMsg instanceof ModifyDNMsg)
           {
+            ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingChange.getMsg();
             /*
              * Check if the operation to be run is an ModifyDNOperation
              * on a children of the current DeleteOperation
              */
-            if (pendingChange.getTargetDN().isDescendantOf(targetDn))
+            if ((pendingChange.getTargetDN().isDescendantOf(targetDn)) ||
+                (pendingModDn.newDNIsParent(targetDn)))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
