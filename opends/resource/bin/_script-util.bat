@@ -77,7 +77,6 @@ set SET_JAVA_HOME_AND_ARGS_DONE=true
 goto scriptBegin
 
 :checkEnvJavaArgs
-if "%OPENDS_JAVA_ARGS%"=="" set OPENDS_JAVA_ARGS=%JAVA_ARGS%
 if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
 if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDSJavaHome
 goto endJavaHomeAndArgs

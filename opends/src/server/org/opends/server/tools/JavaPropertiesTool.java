@@ -479,16 +479,23 @@ public class JavaPropertiesTool extends ConsoleApplication
           String s;
           if (nIfs > 0)
           {
+            if (!overwriteJavaHome)
+            {
+              s = "    ";
+            }
+            else
+            {
+              s = "";
+            }
             buf.append(
-                "  elif test \"${SCRIPT_NAME}.java-home\" = \""+name+"\""+EOL);
-            s = "    ";
+                s+"elif test \"${SCRIPT_NAME}.java-home\" = \""+name+"\""+EOL);
           }
           else if (!overwriteJavaHome)
           {
             buf.append(
                 "  then"+EOL+
                 "    if test \"${SCRIPT_NAME}.java-home\" = \""+name+"\""+EOL);
-            s = "      ";
+            s = "    ";
           }
           else
           {
@@ -516,7 +523,7 @@ public class JavaPropertiesTool extends ConsoleApplication
         String s;
         if (!overwriteJavaHome)
         {
-          s = "  ";
+          s = "    ";
         }
         else
         {
@@ -555,7 +562,7 @@ public class JavaPropertiesTool extends ConsoleApplication
       String s;
       if (!overwriteJavaHome)
       {
-        s = "  ";
+        s = "    ";
       }
       else
       {
@@ -580,7 +587,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           "    OPENDS_JAVA_BIN=${OPENDS_JAVA_HOME}/bin/java"+EOL+
           "    export OPENDS_JAVA_BIN"+EOL+
           "  fi"+EOL+
-          "fi");
+          "fi"+EOL+EOL);
     }
     else if (defaultJavaHome == null)
     {
@@ -636,7 +643,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           "    OPENDS_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\""+EOL+
           "    export OPENDS_JAVA_BIN"+EOL+
           "  fi"+EOL+
-          "fi"+EOL);
+          "fi"+EOL+EOL);
     }
 
 
@@ -645,9 +652,7 @@ public class JavaPropertiesTool extends ConsoleApplication
       buf.append(
           EOL+
           "# See if the environment variables for arguments are set."+EOL+
-          "if test -z \"${OPENDS_JAVA_ARGS}\""+EOL+
-          "then"+EOL+
-          "  if test -z \"${JAVA_ARGS}\""+EOL);
+          "if test -z \"${OPENDS_JAVA_ARGS}\""+EOL);
     }
 
     propertiesAdded = false;
@@ -659,7 +664,7 @@ public class JavaPropertiesTool extends ConsoleApplication
       String name = propertyNames.nextElement().toString();
       String value = properties.getProperty(name);
 
-      String s = overwriteJavaArgs? "":"    ";
+      String s = overwriteJavaArgs? "":"  ";
 
       if (value != null)
       {
@@ -681,8 +686,8 @@ public class JavaPropertiesTool extends ConsoleApplication
           else if (!overwriteJavaArgs)
           {
             buf.append(
-                "  then"+EOL+
-                "    if test \"${SCRIPT_NAME}.java-args\" = \""+name+"\""+EOL);
+                "then"+EOL+
+                "  if test \"${SCRIPT_NAME}.java-args\" = \""+name+"\""+EOL);
           }
           else
           {
@@ -699,7 +704,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     if (defaultJavaArgs != null)
     {
-      String s = overwriteJavaArgs? "":"    ";
+      String s = overwriteJavaArgs? "":"  ";
       if (propertiesAdded)
       {
         buf.append(
@@ -728,7 +733,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     if (nIfs > 0)
     {
-      String s = overwriteJavaArgs? "":"    ";
+      String s = overwriteJavaArgs? "":"  ";
       buf.append(s+"fi"+EOL);
     }
 
@@ -738,14 +743,10 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         // No properties added: this is required not to break the script
         buf.append(
-            "    then"+EOL+
-            "    OPENDS_JAVA_ARGS=${OPENDS_JAVA_ARGS}"+EOL);
+            "  then"+EOL+
+            "  OPENDS_JAVA_ARGS=${OPENDS_JAVA_ARGS}"+EOL);
       }
       buf.append(
-          "  else"+EOL+
-          "    OPENDS_JAVA_ARGS=${JAVA_ARGS}"+EOL+
-          "    export OPENDS_JAVA_ARGS"+EOL+
-          "  fi"+EOL+
           "fi"+EOL);
     }
 
@@ -927,8 +928,6 @@ public class JavaPropertiesTool extends ConsoleApplication
     else
     {
       buf.append(
-          "if NOT \"%OPENDS_JAVA_ARGS%\" == \"\" goto end"+EOL+
-          "set OPENDS_JAVA_ARGS=%JAVA_ARGS%"+EOL+
           "goto end"+EOL+EOL);
     }
 
