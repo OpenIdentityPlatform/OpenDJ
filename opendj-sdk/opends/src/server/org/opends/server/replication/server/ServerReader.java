@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.Message;
@@ -49,6 +49,8 @@ import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.protocol.WindowMessage;
 import org.opends.server.replication.protocol.WindowProbe;
 import org.opends.server.replication.protocol.ReplServerInfoMessage;
+import org.opends.server.replication.protocol.MonitorMessage;
+import org.opends.server.replication.protocol.MonitorRequestMessage;
 import org.opends.server.loggers.debug.DebugTracer;
 
 
@@ -245,6 +247,17 @@ public class ServerReader extends DirectoryThread
               session.publish(errorMsg);
             }
           }
+        }
+        else if (msg instanceof MonitorRequestMessage)
+        {
+          MonitorRequestMessage replServerMonitorRequestMsg =
+            (MonitorRequestMessage) msg;
+          handler.process(replServerMonitorRequestMsg);
+        }
+        else if (msg instanceof MonitorMessage)
+        {
+          MonitorMessage replServerMonitorMsg = (MonitorMessage) msg;
+          handler.process(replServerMonitorMsg);
         }
         else if (msg == null)
         {

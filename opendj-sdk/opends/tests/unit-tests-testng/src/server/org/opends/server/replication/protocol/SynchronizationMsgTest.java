@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -30,7 +30,9 @@ import static org.opends.server.replication.protocol.OperationContext.SYNCHROCON
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -560,7 +562,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * an exception.
    */
   @Test()
-  public void WindowProbeTest() throws Exception
+  public void windowProbeTest() throws Exception
   {
     WindowProbe msg = new WindowProbe();
     new WindowProbe(msg.getBytes());
@@ -580,6 +582,74 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ReplServerInfoMessage newMsg = new ReplServerInfoMessage(msg.getBytes());
     assertEquals(msg.getConnectedServers(), newMsg.getConnectedServers());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
+  }
+
+  /**
+   * Test MonitorMessage
+   */
+  @Test()
+  public void monitorMessageTest() throws Exception
+  {
+    short sender = 2;
+    short dest = 3;
+
+    // RS State
+    ServerState rsState = new ServerState();
+    ChangeNumber rscn1 = new ChangeNumber(1, (short) 1, (short) 1);
+    ChangeNumber rscn2 = new ChangeNumber(1, (short) 1, (short) 2);
+    rsState.update(rscn1);
+    rsState.update(rscn2);
+
+    // LS1 state
+    ServerState s1 = new ServerState();
+    short sid1 = 111;
+    ChangeNumber cn1 = new ChangeNumber(1, (short) 1, sid1);
+    s1.update(cn1);
+
+    // LS2 state
+    ServerState s2 = new ServerState();
+    short sid2 = 222;
+    Long now = TimeThread.getTime();
+    ChangeNumber cn2 = new ChangeNumber(now,
+                                       (short) 123, sid2);
+    s2.update(cn2);
+
+    MonitorMessage msg =
+      new MonitorMessage(sender, dest);
+    msg.setReplServerState(rsState);
+    msg.setLDAPServerState(sid1, s1, now+1);
+    msg.setLDAPServerState(sid2, s2, now+2);
+    
+    byte[] b = msg.getBytes();
+    MonitorMessage newMsg = new MonitorMessage(b);
+
+    assertEquals(rsState, msg.getReplServerState());
+    assertEquals(newMsg.getReplServerState().toString(), 
+        msg.getReplServerState().toString());
+    
+    Iterator<Short> it = newMsg.iterator();
+    while (it.hasNext())
+    {
+      short sid = it.next();
+      ServerState s = newMsg.getLDAPServerState(sid);
+      if (sid == sid1)
+      {
+        assertEquals(s.toString(), s1.toString(), "");
+        assertEquals((Long)(now+1), newMsg.getApproxFirstMissingDate(sid), "");
+      }
+      else if (sid == sid2)
+      {
+        assertEquals(s.toString(), s2.toString());        
+        assertEquals((Long)(now+2), newMsg.getApproxFirstMissingDate(sid), "");
+      }
+      else
+      {
+        fail("Bad sid");
+      }
+    }
+
+    assertEquals(newMsg.getsenderID(), msg.getsenderID());
+    assertEquals(newMsg.getDestination(), msg.getDestination());
   }
 
   /**

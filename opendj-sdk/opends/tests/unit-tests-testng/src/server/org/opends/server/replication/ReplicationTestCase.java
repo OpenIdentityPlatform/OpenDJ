@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -916,6 +916,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         {
           TRACER.debugInfo("Failed to add entry " + entry.getDN() +
               "Result code = : " + addOp.getResultCode());
+        }
+        else
+        {
+          TRACER.debugInfo(entry.getDN() +
+              " added " + addOp.getResultCode());          
         }
         // They will be removed at the end of the test
         entryList.addLast(entry.getDN());
