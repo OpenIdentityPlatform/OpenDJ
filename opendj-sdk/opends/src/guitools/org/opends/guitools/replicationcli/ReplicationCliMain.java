@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.replicationcli;
@@ -71,6 +71,8 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
+import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ServerLoader;
@@ -2502,6 +2504,46 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
+   * Tells whether there is a Global Administrator corresponding to the provided
+   * ReplicationUserData defined in the server to which the InitialLdapContext
+   * is connected.
+   * @param ctx the InitialLdapContext.
+   * @param uData the user data
+   * @return <CODE>true</CODE> if we could find an administrator and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean hasAdministrator(InitialLdapContext ctx,
+      ReplicationUserData uData)
+  {
+    boolean isAdminDefined = false;
+    String adminUid = uData.getAdminUid();
+    try
+    {
+      ADSContext adsContext = new ADSContext(ctx);
+      Set<Map<AdministratorProperty, Object>> administrators =
+        adsContext.readAdministratorRegistry();
+      for (Map<AdministratorProperty, Object> admin : administrators)
+      {
+        String uid = (String)admin.get(AdministratorProperty.UID);
+        if (uid != null)
+        {
+          isAdminDefined = uid.equalsIgnoreCase(adminUid);
+          if (isAdminDefined)
+          {
+            break;
+          }
+        }
+      }
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING,
+          "Unexpected error retrieving the ADS data: "+t, t);
+    }
+    return isAdminDefined;
+  }
+
+  /**
    * Helper type for the <CODE>getCommonSuffixes</CODE> method.
    */
   private enum SuffixRelationType
@@ -4094,7 +4136,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (registry2.size() <= 1)
         {
           // Only the server itself registered.
-          if (!hasAdministrator(adsCtx1.getDirContext()))
+          if (!hasAdministrator(adsCtx1.getDirContext(), uData))
           {
             adsCtx1.createAdministrator(getAdministratorProperties(uData));
           }
@@ -4115,7 +4157,7 @@ public class ReplicationCliMain extends ConsoleApplication
         else if (registry1.size() <= 1)
         {
           // Only the server itself registered.
-          if (!hasAdministrator(adsCtx2.getDirContext()))
+          if (!hasAdministrator(adsCtx2.getDirContext(), uData))
           {
             adsCtx2.createAdministrator(getAdministratorProperties(uData));
           }
@@ -4133,7 +4175,7 @@ public class ReplicationCliMain extends ConsoleApplication
           ctxDestination = ctx1;
           adsCtxSource = adsCtx2;
         }
-        else if (!registry1.equals(registry2))
+        else if (!areEqual(registry1, registry2))
         {
           // TO COMPLETE: we may want to merge the ADS but for the moment
           // just say this is not supported.
@@ -4153,7 +4195,7 @@ public class ReplicationCliMain extends ConsoleApplication
       else if (!adsCtx1.hasAdminData() && adsCtx2.hasAdminData())
       {
 //        adsCtx1.createAdministrationSuffix(null);
-        if (!hasAdministrator(adsCtx2.getDirContext()))
+        if (!hasAdministrator(adsCtx2.getDirContext(), uData))
         {
           adsCtx2.createAdministrator(getAdministratorProperties(uData));
         }
@@ -4167,7 +4209,7 @@ public class ReplicationCliMain extends ConsoleApplication
       else if (adsCtx1.hasAdminData() && !adsCtx2.hasAdminData())
       {
 //        adsCtx2.createAdministrationSuffix(null);
-        if (!hasAdministrator(adsCtx1.getDirContext()))
+        if (!hasAdministrator(adsCtx1.getDirContext(), uData))
         {
           adsCtx1.createAdministrator(getAdministratorProperties(uData));
         }
@@ -4181,7 +4223,12 @@ public class ReplicationCliMain extends ConsoleApplication
       else
       {
         adsCtx1.createAdminData(null);
-        adsCtx1.createAdministrator(getAdministratorProperties(uData));
+        if (!hasAdministrator(ctx1, uData))
+        {
+          // This could occur if the user created an administrator without
+          // registering any server.
+          adsCtx1.createAdministrator(getAdministratorProperties(uData));
+        }
         server1.updateAdsPropertiesWithServerProperties();
         adsCtx1.registerServer(server1.getAdsProperties());
         server2.updateAdsPropertiesWithServerProperties();
@@ -6823,5 +6870,71 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return domainId;
+  }
+
+  /**
+   * Method used to compare two server registries.
+   * @param registry1 the first registry to compare.
+   * @param registry2 the second registry to compare.
+   * @return <CODE>true</CODE> if the registries are equal and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean areEqual(
+      Set<Map<ADSContext.ServerProperty, Object>> registry1,
+      Set<Map<ADSContext.ServerProperty, Object>> registry2)
+  {
+    boolean areEqual = registry1.size() == registry2.size();
+    if (areEqual)
+    {
+      Set<ADSContext.ServerProperty> propertiesToCompare =
+        new HashSet<ADSContext.ServerProperty>();
+      ADSContext.ServerProperty[] properties =
+        ADSContext.ServerProperty.values();
+      for (int i=0; i<properties.length; i++)
+      {
+        if (properties[i].getAttributeSyntax() !=
+          ADSPropertySyntax.CERTIFICATE_BINARY)
+        {
+          propertiesToCompare.add(properties[i]);
+        }
+      }
+      for (Map<ADSContext.ServerProperty, Object> server1 : registry1)
+      {
+        boolean found = false;
+
+        for (Map<ADSContext.ServerProperty, Object> server2 : registry2)
+        {
+          found = true;
+          for (ADSContext.ServerProperty prop : propertiesToCompare)
+          {
+            Object v1 = server1.get(prop);
+            Object v2 = server2.get(prop);
+            if (v1 != null)
+            {
+              found = v1.equals(v2);
+            }
+            else if (v2 != null)
+            {
+              found = false;
+            }
+            if (!found)
+            {
+              break;
+            }
+          }
+          if (found)
+          {
+            break;
+          }
+        }
+
+        areEqual = found;
+        if (!areEqual)
+        {
+          break;
+        }
+      }
+    }
+    return areEqual;
   }
 }
