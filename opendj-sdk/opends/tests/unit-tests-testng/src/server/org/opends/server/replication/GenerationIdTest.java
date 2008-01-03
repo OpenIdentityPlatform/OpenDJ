@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -721,7 +721,6 @@ public class GenerationIdTest extends ReplicationTestCase
       // Read generationId - should be not retrievable since no entry
       debugInfo(testCase + " Connecting DS1 to replServer1(" + changelog1ID + ")");
       connectServer1ToChangelog(changelog1ID);
-      Thread.sleep(1000);
 
       debugInfo(testCase + " Expect genId attribute to be not retrievable");
       genId = readGenId();
@@ -848,13 +847,15 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Create again replServer1");
       replServer1 = createReplicationServer(changelog1ID, false, testCase);
       debugInfo("Delay to allow DS to reconnect to replServer1");
-      Thread.sleep(200);
+      Thread.sleep(1000);
 
       long genIdAfterRestart = replServer1.getGenerationId(baseDn);
       debugInfo("Aft restart / replServer.genId=" + genIdAfterRestart);
       assertTrue(replServer1!=null, "Replication server creation failed.");
       assertTrue(genIdBeforeShut == genIdAfterRestart,
-      "generationId is expected to have the same value after replServer1 restart");
+        "generationId is expected to have the same value" +
+        " after replServer1 restart. Before : " + genIdBeforeShut +
+        " after : " + genIdAfterRestart);
 
       try
       {
@@ -1072,12 +1073,6 @@ public class GenerationIdTest extends ReplicationTestCase
     disconnectFromReplServer(changelog1ID);
     Thread.sleep(1000);
 
-    debugInfo("Expect genId to be unset(-1) in all servers since no server is " +
-        " connected and no change ever occurred");
-    assertEquals(replServer1.getGenerationId(baseDn), -1, " in replServer1");
-    assertEquals(replServer2.getGenerationId(baseDn), -1, " in replServer2");
-    assertEquals(replServer3.getGenerationId(baseDn), -1, " in replServer3");
-
     debugInfo("Add entries to DS");
     this.addTestEntriesToDB(updatedEntries);
 
@@ -1278,6 +1273,8 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " Expect genId attribute to be retrievable");
       genId = readGenId();
       assertEquals(genId, 3211313L);
+      
+      disconnectFromReplServer(changelog1ID);
     }
     finally
     {
@@ -1285,11 +1282,63 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Successfully ending " + testCase);
     }
   }
+  
+  /**
+   * Loop opening sessions to the Replication Server 
+   * to check that it handle correctly deconnection and reconnection. 
+   */
+  @Test(enabled=false, groups="slow")
+  public void testLoop() throws Exception
+  {
+    String testCase = "testLoop";
+    debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
+    long rgenId;
+    
+    ReplicationDomain.clearJEBackend(false,
+        "userRoot",
+        baseDn.toNormalizedString());
+
+    replServer1 = createReplicationServer(changelog1ID, false, testCase);
+    replServer1.clearDb();
+
+    ReplicationBroker broker = null;
+    try 
+    {
+      for (int i=0; i< 100; i++)
+      {
+        long generationId = 1000+i;
+        broker = openReplicationSession(baseDn,
+            server2ID, 100, getChangelogPort(changelog1ID),
+            1000, !emptyOldChanges, generationId);
+
+        debugInfo(testCase + " Expect genId to be set in memory on the replication " +
+        " server side even if not wrote on disk/db since no change occurred.");
+        rgenId = replServer1.getGenerationId(baseDn);
+        if (rgenId != generationId)
+        {
+          fail("replication server failed to set generation ID");
+          replServer1.getGenerationId(baseDn);
+        }
+        broker.stop();
+        broker = null;
+      }
+    } finally
+    {
+      if (broker != null)
+        broker.stop();
+    }
+  }
+  
+  /**
+   * This is used to make sure that the 3 tests are run in the 
+   * specified order since this is necessary.
+   */
   @Test(enabled=true, groups="slow")
   public void generationIdTest() throws Exception
   {
     testSingleRS();
     testMultiRS();
     testServerStop();
+    testLoop();
   }
 }

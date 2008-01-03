@@ -283,6 +283,10 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
         // Get or Create the ReplicationServerDomain
         replicationServerDomain =
                 replicationServer.getReplicationServerDomain(this.baseDn, true);
+
+        replicationServerDomain.waitDisconnection(receivedMsg.getServerId());
+        replicationServerDomain.mayResetGenerationId();
+
         localGenerationId = replicationServerDomain.getGenerationId();
 
         ServerState localServerState =
@@ -1010,16 +1014,18 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
       {
       }
     }
-    do {
+    boolean acquired = false;
+    do
+    {
       try
       {
-        sendWindow.tryAcquire((long)500, TimeUnit.MILLISECONDS);
+        acquired = sendWindow.tryAcquire((long)500, TimeUnit.MILLISECONDS);
         interrupted = false;
       } catch (InterruptedException e)
       {
         // loop until not interrupted
       }
-    } while ((interrupted) && (!shutdown));
+    } while (((interrupted) || (!acquired )) && (!shutdown));
     this.incrementOutCount();
     return msg;
   }
@@ -1797,6 +1803,17 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
               " SH for remote server " + this.getMonitorInstanceName() +
               " sends message=" + msg);
     session.publish(msg);
+  }
+
+  /**
+   * Send an ErrorMessage to the peer.
+   *
+   * @param errorMsg The message to be sent
+   * @throws IOException when raised by the underlying session
+   */
+  public void sendError(ErrorMessage errorMsg) throws IOException
+  {
+    session.publish(errorMsg);
   }
 
   /**

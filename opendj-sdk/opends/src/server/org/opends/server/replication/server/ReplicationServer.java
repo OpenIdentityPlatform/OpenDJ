@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -544,16 +544,14 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    *
    * @param id The serverId for which the dbHandler must be created.
    * @param baseDn The DN for which the dbHandler muste be created.
-   * @param generationId The generationId for this server and this
-   *        replicationServerDomain.
    * @return The new DB handler for this ReplicationServer and the serverId and
    *         DN given in parameter.
    * @throws DatabaseException in case of underlying database problem.
    */
-  public DbHandler newDbHandler(short id, DN baseDn, long generationId)
+  public DbHandler newDbHandler(short id, DN baseDn)
   throws DatabaseException
   {
-    return new DbHandler(id, baseDn, this, dbEnv, generationId);
+    return new DbHandler(id, baseDn, this, dbEnv);
   }
 
   /**

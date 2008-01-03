@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -114,12 +114,11 @@ public class DbHandler implements Runnable
    * @param baseDn the baseDn for which this DB was created.
    * @param replicationServer The ReplicationServer that creates this dbHandler.
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
-   * @param generationId The generationId of the data contained in the LDAP
    * server for this domain.
    * @throws DatabaseException If a database problem happened
    */
   public DbHandler(short id, DN baseDn, ReplicationServer replicationServer,
-      ReplicationDbEnv dbenv, long generationId)
+      ReplicationDbEnv dbenv)
          throws DatabaseException
   {
     this.serverId = id;
@@ -369,7 +368,8 @@ public class DbHandler implements Runnable
         mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
         mb.append(stackTraceToSingleLineString(end));
         logError(mb.toMessage());
-        replicationServer.shutdown();
+        if (replicationServer != null)
+          replicationServer.shutdown();
         break;
       }
     }

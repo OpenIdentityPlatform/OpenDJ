@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -73,7 +73,7 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
 
     DbHandler handler =
-      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv, 1);
+      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
 
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
     ChangeNumber changeNumber1 = gen.newChangeNumber();
@@ -153,7 +153,7 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(path, replicationServer);
 
     DbHandler handler =
-      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv, 1);
+      new DbHandler((short) 1, DN.decode("o=test"), replicationServer, dbEnv);
 
     // Creates changes added to the dbHandler
     ChangeNumberGenerator gen = new ChangeNumberGenerator((short)1, 0);
