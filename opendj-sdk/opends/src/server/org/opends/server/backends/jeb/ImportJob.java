@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -40,8 +40,10 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.RuntimeInformation;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 
+import static org.opends.server.util.DynamicConstants.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -60,6 +62,7 @@ import static org.opends.messages.JebMessages.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
 
 /**
  * Import from LDIF to a JE backend.
@@ -200,9 +203,13 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       long bufferSize = config.getImportBufferSize() /
           (importThreadCount*rootContainer.getBaseDNs().size());
 
+      message = INFO_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
+                                                     BUILD_ID, REVISION_NUMBER);
+      logError(message);
       message = INFO_JEB_IMPORT_THREAD_COUNT.get(importThreadCount);
       logError(message);
 
+      RuntimeInformation.logInfo();
       if (debugEnabled())
       {
 

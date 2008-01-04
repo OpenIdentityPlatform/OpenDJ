@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  ! -->
 
 <project name="Directory Server" basedir="." default="package">
@@ -249,6 +249,9 @@
     </genmsg>
     <genmsg sourceProps="${msg.prop.dir}/version.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/VersionMessages.java">
+    </genmsg>
+    <genmsg sourceProps="${msg.prop.dir}/runtime_information.properties"
+            destJava="${msg.javagen.dir}/org/opends/messages/RuntimeMessages.java">
     </genmsg>
   </target>
 
