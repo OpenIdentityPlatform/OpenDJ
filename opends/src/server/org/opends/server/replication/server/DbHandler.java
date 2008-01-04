@@ -121,6 +121,7 @@ public class DbHandler implements Runnable
       ReplicationDbEnv dbenv)
          throws DatabaseException
   {
+    this.replicationServer = replicationServer;
     this.serverId = id;
     this.baseDn = baseDn;
     this.trimage = replicationServer.getTrimage();
