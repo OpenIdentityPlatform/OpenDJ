@@ -22,11 +22,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-
-import com.sleepycat.je.JEVersion;
 
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -174,15 +172,10 @@ import org.opends.server.types.WritabilityMode;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.LockManager;
 import static org.opends.server.util.DynamicConstants.*;
-import org.opends.server.util.MultiOutputStream;
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.util.SetupUtils;
-import org.opends.server.util.StaticUtils;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.TimeThread;
-import org.opends.server.util.Validator;
 import static org.opends.server.util.Validator.ensureNotNull;
-import org.opends.server.util.VersionCompatibilityIssue;
+import org.opends.server.util.*;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -1262,9 +1255,10 @@ public class DirectoryServer
       }
 
 
-      logError(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString()));
+      logError(NOTE_DIRECTORY_SERVER_STARTING.get(getVersionString(),
+                                                  BUILD_ID, REVISION_NUMBER));
 
-
+      RuntimeInformation.logInfo();
       // Acquire an exclusive lock for the Directory Server process.
       if (! serverLocked)
       {
@@ -9338,91 +9332,12 @@ public class DirectoryServer
     }
     else if (fullVersion.isPresent())
     {
-      System.out.println(getVersionString());
-      System.out.println("Build ID:            " + BUILD_ID);
-      System.out.println("Major Version:       " + MAJOR_VERSION);
-      System.out.println("Minor Version:       " + MINOR_VERSION);
-      System.out.println("Point Version:       " + POINT_VERSION);
-      System.out.println("Version Qualifier:   " + VERSION_QUALIFIER);
-
-      if (BUILD_NUMBER > 0)
-      {
-        System.out.println("Build Number:        " +
-                           new DecimalFormat("000").format(BUILD_NUMBER));
-      }
-
-      System.out.println("Revision Number:     " + REVISION_NUMBER);
-      System.out.println("Fix IDs:             " + FIX_IDS);
-      System.out.println("Debug Build:         " + DEBUG_BUILD);
-      System.out.println("Build OS:            " + BUILD_OS);
-      System.out.println("Build User:          " + BUILD_USER);
-      System.out.println("Build Java Version:  " + BUILD_JAVA_VERSION);
-      System.out.println("Build Java Vendor:   " + BUILD_JAVA_VENDOR);
-      System.out.println("Build JVM Version:   " + BUILD_JVM_VERSION);
-      System.out.println("Build JVM Vendor:    " + BUILD_JVM_VENDOR);
-
-      System.out.println("Upgrade Event IDs:   " +
-              StaticUtils.listToString(
-                      VersionCompatibilityIssue.getAllEvents(), ","));
-
+      printFullVersionInformation();
       return;
     }
     else if (systemInfo.isPresent())
     {
-      System.out.println(getVersionString());
-      System.out.println("Build ID:               " + BUILD_ID);
-      System.out.println("Java Version:           " +
-                         System.getProperty("java.version"));
-      System.out.println("Java Vendor:            " +
-                         System.getProperty("java.vendor"));
-      System.out.println("JVM Version:            " +
-                         System.getProperty("java.vm.version"));
-      System.out.println("JVM Vendor:             " +
-                         System.getProperty("java.vm.vendor"));
-      System.out.println("Java Home:              " +
-                         System.getProperty("java.home"));
-      System.out.println("Class Path:             " +
-                         System.getProperty("java.class.path"));
-      System.out.println("JE Version:             " +
-                         JEVersion.CURRENT_VERSION.toString());
-      System.out.println("Current Directory:      " +
-                         System.getProperty("user.dir"));
-      System.out.println("Operating System:       " +
-                         System.getProperty("os.name") + " " +
-                         System.getProperty("os.version") + " " +
-                         System.getProperty("os.arch"));
-      String sunOsArchDataModel = System.getProperty("sun.arch.data.model");
-      if (sunOsArchDataModel != null)
-      {
-        System.out.print  ("JVM Architecture:       " + sunOsArchDataModel);
-        if (! sunOsArchDataModel.toLowerCase().equals("unknown"))
-        {
-          System.out.print("-bit");
-        }
-        System.out.println();
-      }
-      else
-      {
-        System.out.println("JVM Architecture:        unknown");
-      }
-
-      try
-      {
-        System.out.println("System Name:            " +
-                           InetAddress.getLocalHost().getCanonicalHostName());
-      }
-      catch (Exception e)
-      {
-        System.out.println("System Name:             Unknown (" + e + ")");
-      }
-
-      Runtime runtime = Runtime.getRuntime();
-      System.out.println("Available Processors:   " +
-                         runtime.availableProcessors());
-      System.out.println("Max Available Memory:   " + runtime.maxMemory());
-      System.out.println("Currently Used Memory:  " + runtime.totalMemory());
-      System.out.println("Currently Free Memory:  " + runtime.freeMemory());
-
+      RuntimeInformation.printInfo();
       return;
     }
 
@@ -9907,5 +9822,38 @@ public class DirectoryServer
   {
     return directoryServer.workflowConfigurationMode;
   }
+
+
+
+  /**
+   * Print messages for start-ds "-F" option (full version information).
+   */
+
+  private static
+  void printFullVersionInformation() {
+    System.out.println(NOTE_VERSION.get(getVersionString()));
+    System.out.println(NOTE_BUILD_ID.get(BUILD_ID));
+    System.out.println(NOTE_MAJOR_VERSION.get(MAJOR_VERSION));
+    System.out.println(NOTE_MINOR_VERSION.get(MINOR_VERSION));
+    System.out.println(NOTE_POINT_VERSION.get(POINT_VERSION));
+    System.out.println(NOTE_VERSION_QUALIFIER.get(VERSION_QUALIFIER));
+    if (BUILD_NUMBER > 0)
+    {
+      System.out.println(NOTE_BUILD_NUMBER.get(
+                     new DecimalFormat("000").format(BUILD_NUMBER)));
+    }
+    System.out.println(NOTE_REVISION_NUMBER.get(REVISION_NUMBER));
+    System.out.println(NOTE_FIX_IDS.get(FIX_IDS));
+    System.out.println(NOTE_DEBUG_BUILD.get(DEBUG_BUILD));
+    System.out.println(NOTE_BUILD_OS.get(BUILD_OS));
+    System.out.println(NOTE_BUILD_USER.get(BUILD_USER));
+    System.out.println(NOTE_BUILD_JAVA_VERSION.get(BUILD_JAVA_VERSION));
+    System.out.println(NOTE_BUILD_JAVA_VENDOR.get(BUILD_JAVA_VENDOR));
+    System.out.println(NOTE_BUILD_JVM_VERSION.get(BUILD_JVM_VERSION));
+    System.out.println(NOTE_BUILD_JVM_VENDOR.get(BUILD_JVM_VENDOR));
+    System.out.println(NOTE_UPGRADE_EVENTS.get(StaticUtils.listToString(
+                      VersionCompatibilityIssue.getAllEvents(), ",")));
+  }
+
 }
 

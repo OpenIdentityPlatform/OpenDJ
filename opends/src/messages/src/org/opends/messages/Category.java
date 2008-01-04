@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
@@ -149,6 +149,12 @@ public enum Category {
    * administration tool.
    */
   DSCONFIG(0x01200000),
+
+  /**
+   * The category used for messages associated with the runtime information.
+   */
+
+  RUNTIME_INFORMATION(0x01300000),
 
   /**
    * The category that will be used for messages associated with
