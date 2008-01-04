@@ -734,7 +734,7 @@ objectClass: top
 objectClass: ds-cfg-log-publisher
 objectClass: ds-cfg-error-log-publisher
 objectClass: ds-cfg-file-based-error-log-publisher
-cn: File-Based Error Logger
+cn: Replication Repair Logger
 ds-cfg-java-class: org.opends.server.loggers.TextErrorLogPublisher
 ds-cfg-enabled: true
 ds-cfg-log-file: logs/replication
