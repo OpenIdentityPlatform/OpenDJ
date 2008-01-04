@@ -1538,7 +1538,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
    * [Issue 798]  break infinite loop when problems with naming resolution
    *              conflict.
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void infiniteReplayLoop() throws Exception
   {
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
