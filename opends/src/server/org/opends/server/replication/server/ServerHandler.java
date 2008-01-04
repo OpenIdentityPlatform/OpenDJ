@@ -1504,8 +1504,8 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     }
 
     // Deprecated
-    // attributes.add(new Attribute("max-waiting-changes",
-    //                              String.valueOf(maxQueueSize)));
+    attributes.add(new Attribute("max-waiting-changes",
+                                  String.valueOf(maxQueueSize)));
     attributes.add(new Attribute("update-sent",
                                  String.valueOf(getOutCount())));
     attributes.add(new Attribute("update-received",

@@ -90,7 +90,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
    *  - receive all messages from the ReplicationBroker, check that
    *    the client receives the correct number of operations.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void saturateQueueAndRestart() throws Exception
   {
     logError(Message.raw(
@@ -221,7 +221,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     op = connection.processSearch(
         new ASN1OctetString("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
-        LDAPFilter.decode("(waiting-changes=" +
+        LDAPFilter.decode("(missing-changes=" +
             (REPLICATION_QUEUE_SIZE + WINDOW_SIZE) + ")"));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
 
