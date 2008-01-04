@@ -283,6 +283,15 @@ public class UpgradeLauncher extends Launcher {
   }
 
   /**
+   * Indicates whether the user has specified to revert to an specific archive.
+   * @return boolean where true indicates that the user specified to revert to
+   * an specific archive.
+   */
+  public boolean isRevertToArchive() {
+    return reversionArchive.isPresent();
+  }
+
+  /**
    * Creates an instance.
    *
    * @param args specified on command line
