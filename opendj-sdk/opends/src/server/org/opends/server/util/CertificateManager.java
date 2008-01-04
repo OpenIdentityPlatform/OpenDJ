@@ -787,7 +787,9 @@ public final class CertificateManager
           out.flush() ;
         }
       }
-
+      // Close the output stream since it can generate a deadlock on IBM JVM
+      // (issue 2795).
+      out.close();
       while (true)
       {
         int bytesRead = inputStream.read(buffer);
