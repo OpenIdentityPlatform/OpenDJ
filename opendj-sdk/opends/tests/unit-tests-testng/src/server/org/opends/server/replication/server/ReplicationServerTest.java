@@ -145,7 +145,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This method is used to make sure that this order is always respected.
    * (Using testng dependency does not work)
    */
-  @Test(enabled=false)
+  @Test(enabled=true)
   public void replicationServerTest() throws Exception
   {
     replicationServer.clearDb();
