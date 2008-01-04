@@ -706,7 +706,7 @@ public class Reverter extends Application implements CliApplication {
               INFO_REVERT_ERROR_NOT_DIR_FILES_DIR.get());
     } else if (!isReversionFilesDirectory(filesDir)) {
       throw new UserDataException(null,
-              INFO_REVERT_ERROR_NOT_DIR_FILES_DIR.get());
+              INFO_REVERT_ERROR_INVALID_FILES_DIR.get());
     }
     return filesDir;
   }
