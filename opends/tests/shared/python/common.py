@@ -90,8 +90,19 @@ class test_time:
     self.hours,self.minutes,self.seconds=clocktime.split(':')
     return int(self.hours)*7200+int(self.minutes)*60+int(self.seconds)
 
+class basic_utils:
+  'Some simple basic utilities'
+  def printKey(self,keypair):
+    self.key=keypair.keys()[0]
+    return self.key
+  def printKeyValue(self,keypair):
+    self.key=keypair.keys()[0]
+    self.keyvalue=keypair[self.key]
+    return self.keyvalue
+
 class report_generation:
   'Test Report Generation'
+
   def transformReport(self,stylesheet,xml,output):
     from java.io import FileInputStream
     from java.io import FileOutputStream
@@ -101,12 +112,36 @@ class report_generation:
     from javax.xml.transform.stream import StreamSource
     from javax.xml.transform.stream import StreamResult
 
-    self.xslSource = StreamSource(FileInputStream("%s" % stylesheet))
-    self.xslTemplate = TransformerFactory.newInstance().newTemplates(self.xslSource)
+    self.xslSource   = StreamSource(FileInputStream("%s" % stylesheet))
+    self.tfactory    = TransformerFactory.newInstance()
+    self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
     self.transformer = self.xslTemplate.newTransformer()
 
     self.source = StreamSource(FileInputStream("%s" % xml))
     self.result = StreamResult(FileOutputStream("%s" % output))
 
+    self.transformer.transform(self.source, self.result)
+
+  def transformSuitesReport(self,stylesheet,xml,output,params):
+    from java.io import FileInputStream
+    from java.io import FileOutputStream
+    from java.io import ByteArrayOutputStream
+
+    from javax.xml.transform import TransformerFactory
+    from javax.xml.transform.stream import StreamSource
+    from javax.xml.transform.stream import StreamResult
+
+    self.xslSource   = StreamSource(FileInputStream("%s" % stylesheet))
+    self.tfactory    = TransformerFactory.newInstance()
+    self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
+    self.transformer = self.xslTemplate.newTransformer()
+
+    self.source = StreamSource(FileInputStream("%s" % xml))
+    self.result = StreamResult(FileOutputStream("%s" % output))
+
+    self.myAttr  = basic_utils().printKey(params)
+    self.myValue = basic_utils().printKeyValue(params)
+
+    self.transformer.setParameter(self.myAttr, self.myValue)
     self.transformer.transform(self.source, self.result)
 

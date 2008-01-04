@@ -36,10 +36,6 @@
         STAXLogMessage = 1
       </script>
 
-      <script>
-        import os
-      </script>
-
       <if expr="not STAXJobScriptFiles">
         <sequence>
           <message>'No script file (config.py) is specified. Unable to run the tests.'</message>
@@ -49,7 +45,7 @@
 
       <!-- Load in the local shared python objects -->
       <script>
-        import sys
+        import sys,os
         sys.path.append("%s/shared/python" % TESTS_ROOT )
         from common import *
       </script>
@@ -73,6 +69,15 @@
             ServerJVMString='Unknown JVM'
         except NameError,details:
             ServerJVMString='Unknown JVM'
+
+        try:
+          if LOGS_URI:
+            logsURI=LOGS_URI
+          else:
+            logsURI=''
+        except NameError,details:
+            logsURI=''
+            
       </script>
       
       <job name="'Job: %s %s' % (STAF_REMOTE_HOSTNAME,ServerOsString) " monitor="1" clearlogs="'Enabled'" logtcstartstop="'Enabled'">
@@ -419,6 +424,9 @@
         xmlfh.write('      &lt;tests-dir&gt;\n')
         xmlfh.write('        %s\n' % logsDir)
         xmlfh.write('      &lt;/tests-dir&gt;\n')
+        xmlfh.write('      &lt;tests-url&gt;\n')
+        xmlfh.write('        %s\n' % logsURI)
+        xmlfh.write('      &lt;/tests-url&gt;\n')
         xmlfh.write('    &lt;/identification&gt;\n')
         xmlfh.write('    &lt;results&gt;\n')
       </script>
@@ -513,7 +521,45 @@
           _message='Unable to generate standard test report %s.' % details
       </script>
       <message>_message</message>
-                    
+
+      <!-- Generate the test report by test groups-->      
+      <script>
+        _message='Generated groups test report.'
+        xslfile= '%s/xsl/gen-groups-report.xsl' % TESTS_SHARED_DIR
+        htmlfile= '%s/groups.html' % logsReportDir
+        groupsReport=report_generation()      
+
+        try:
+          groupsReport.transformReport(xslfile,xmlfile,htmlfile)
+        except IOError,details:
+          _message='Unable to generate groups test report %s.' % details
+      </script>
+      <message>_message</message>
+
+      <!-- Generate the test report by test suites -->      
+      <script>
+        _message='Generated suites test reports.'
+        testGroupDirsList=os.listdir(logsTestsDir)
+        for testGroupName in testGroupDirsList:
+        
+          groupDir='%s/%s' % (logsTestsDir,testGroupName)
+        
+          if os.path.isdir(groupDir):
+        
+            xmlfile='%s/results.xml' % logsReportDir
+            htmlfile='%s/%s.html' % (groupDir,testGroupName)
+            xslfile= '%s/xsl/gen-suites-report.xsl' % TESTS_SHARED_DIR
+        
+            suitesReport=report_generation()
+            stringParamsDict={ 'group' : testGroupName }
+        
+            try:
+              suitesReport.transformSuitesReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+            except IOError,details:
+              _message='Unable to generate suites test report %s.' % details
+      </script>
+      <message>_message</message>
+                                
       <!-- Generate the drill down test report -->
       <script>          
         _message='Generated the drill down test report.'
@@ -577,8 +623,30 @@
           </message>
           
           <script>
-            MailToList= SEND_MAIL_TO.split(",")
-            MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
+            try:
+              if SEND_MAIL_REPORT:
+                MailSendReport=SEND_MAIL_REPORT
+              else:
+                MailSendReport='%s/groups.html' % logsReportDir
+            except NameError,details:
+                MailSendReport='%s/groups.html' % logsReportDir
+
+            try:
+              if SEND_MAIL_TO:
+                MailToList= SEND_MAIL_TO.split(",")
+              else:
+                MailToList=[]
+            except NameError,details:
+                MailToList=[]
+            
+            try:
+              if SEND_MAIL_SUBJECT:
+                MailSubject= SEND_MAIL_SUBJECT
+              else:
+                MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
+            except NameError,details:
+                MailSubject= 'OpenDS Test Report for %s' % STAF_REMOTE_HOSTNAME
+                            
             MailSendTo= ' '
           </script>
           
@@ -592,7 +660,7 @@
             <location>'%s' % STAF_LOCAL_HOSTNAME </location>
             <service>'email'</service>
             <request>
-              'send %s contenttype "text/html" file %s subject "%s" noheader' % (MailSendTo,htmlfile,MailSubject)
+              'send %s contenttype "text/html" file %s subject "%s" noheader' % (MailSendTo,MailSendReport,MailSubject)
             </request>
           </stafcmd>
           
