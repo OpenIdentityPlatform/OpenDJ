@@ -32,7 +32,10 @@ import java.util.zip.DataFormatException;
 
 /**
  * This message is part of the replication protocol.
- * FIXME: usage
+ * RS1 sends a MonitorRequestMessage to RS2 to requests its monitoring
+ * informations.
+ * When RS2 receives a MonitorRequestMessage from RS1, RS2 responds with a
+ * MonitorMessage.
  */
 public class MonitorRequestMessage extends RoutableMessage implements
     Serializable

@@ -42,9 +42,10 @@ import org.opends.server.replication.common.ChangeNumber;
 
 /**
  * This message is part of the replication protocol.
- * This message is sent by a server to one or several other servers and
- * contain one entry to be sent over the protocol in the context of
- * an import/export over the protocol.
+ * RS1 sends a MonitorRequestMessage to RS2 to requests its monitoring
+ * informations.
+ * When RS2 receives a MonitorRequestMessage from RS1, RS2 responds with a
+ * MonitorMessage.
  */
 public class MonitorMessage extends RoutableMessage implements
     Serializable
@@ -53,8 +54,9 @@ public class MonitorMessage extends RoutableMessage implements
   private static final long serialVersionUID = -1900670921496804942L;
 
   /**
-   * FIXME.
-   *
+   * Data structure to manage the state and the approximation
+   * of the data of the first missing change for each LDAP server
+   * connected to a Replication Server.
    */
   class ServerData
   {
@@ -63,7 +65,8 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * FIXME.
+   * Data structure to manage the state of the replication server
+   * and the state informations for the LDAP servers connected.
    *
    */
   class SubTopoMonitorData
@@ -87,8 +90,8 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * FIXME.
-   * @param state a.
+   * Sets the state of the replication server.
+   * @param state The state.
    */
   public void setReplServerState(ServerState state)
   {
@@ -96,14 +99,15 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * FIXME.
-   * @param serverId a.
-   * @param state a.
-   * @param olderUpdateTime a.
+   * Sets the informations of an LDAP server.
+   * @param serverId The serverID.
+   * @param state The server state.
+   * @param approxFirstMissingDate  The approximation of the date
+   * of the older missing change.
    *
    */
   public void setLDAPServerState(short serverId, ServerState state,
-      Long olderUpdateTime)
+      Long approxFirstMissingDate)
   {
     if (data.ldapStates == null)
     {
@@ -111,14 +115,14 @@ public class MonitorMessage extends RoutableMessage implements
     }
     ServerData sd = new ServerData();
     sd.state = state;
-    sd.approxFirstMissingDate = olderUpdateTime;
+    sd.approxFirstMissingDate = approxFirstMissingDate;
     data.ldapStates.put(serverId, sd);
   }
 
   /**
-   * FIXME.
-   * @param serverId a.
-   * @return a.
+   * Get the server state for the LDAP server with the provided serverId.
+   * @param serverId The provided serverId.
+   * @return The state.
    */
   public ServerState getLDAPServerState(short serverId)
   {
@@ -126,9 +130,10 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * FIXME.
-   * @param serverId a.
-   * @return a.
+   * Get the approximation of the date of the older missing change for the
+   * LDAP Server with the provided server Id.
+   * @param serverId The provided serverId.
+   * @return The approximated state.
    */
   public Long getApproxFirstMissingDate(short serverId)
   {
@@ -353,8 +358,8 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * FIXME.
-   * @return FIXME.
+   * Get the state of the replication server that sent this message.
+   * @return The state.
    */
   public ServerState getReplServerState()
   {
@@ -362,8 +367,8 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * FIXME.
-   * @return a.
+   * Returns an iterator on the serverId of the connected LDAP servers.
+   * @return The iterator.
    */
   public Iterator<Short> iterator()
   {
