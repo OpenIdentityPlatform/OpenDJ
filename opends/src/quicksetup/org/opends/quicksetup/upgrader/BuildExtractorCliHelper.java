@@ -137,6 +137,10 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
         uud.setInstallPackage(
                 validateInstallPackFile(upgradeFile));
       }
+      if (launcher.isRevertMostRecent())
+      {
+        uud.setOperation(UpgradeUserData.Operation.REVERSION);
+      }
     }
     return uud;
   }
