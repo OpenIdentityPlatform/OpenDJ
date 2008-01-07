@@ -549,6 +549,7 @@ public class Reverter extends Application implements CliApplication {
             notifyListeners(getLineBreak());
           }
         } catch (ApplicationException ae) {
+          runError = ae;
           notifyListeners(getFormattedErrorWithLineBreak());
         }
       }
@@ -598,6 +599,7 @@ public class Reverter extends Application implements CliApplication {
             notifyListeners(getLineBreak());
           }
         } catch (ApplicationException ae) {
+          runError = ae;
           notifyListeners(getFormattedErrorWithLineBreak());
         }
       }
@@ -626,7 +628,7 @@ public class Reverter extends Application implements CliApplication {
     {
       log = getFormattedWithPoints(log);
     }
-    notifyListeners(progress, log, log);
+    notifyListeners(progress, summary, log);
   }
 
   private void initialize() throws ApplicationException {
@@ -644,7 +646,7 @@ public class Reverter extends Application implements CliApplication {
       File filesBackupDirectory = getTempBackupDirectory();
       FileManager fm = new FileManager();
       File root = getInstallation().getRootDirectory();
-      FileFilter filter = new UpgradeFileFilter(root);
+      FileFilter filter = new RevertFileFilter(root);
       for (String fileName : root.list()) {
         File f = new File(root, fileName);
 
@@ -676,7 +678,7 @@ public class Reverter extends Application implements CliApplication {
       Stage stage = getStage();
       Installation installation = getInstallation();
       File root = installation.getRootDirectory();
-      stage.move(root);
+      stage.move(root, new RevertFileFilter(getReversionFilesDirectory()));
 
       // The bits should now be of the new version.  Have
       // the installation update the build information so

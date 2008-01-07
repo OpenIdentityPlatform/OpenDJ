@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
 
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
@@ -56,6 +57,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
+
 
 /**
  * Class used to update and read the contents of the Administration Data.
@@ -2140,7 +2142,7 @@ public class ADSContext
    */
   public static String getAdminLDIFFile()
   {
-    return "config/admin-backend.ldif";
+    return "config"+File.separator+"admin-backend.ldif";
   }
 
 

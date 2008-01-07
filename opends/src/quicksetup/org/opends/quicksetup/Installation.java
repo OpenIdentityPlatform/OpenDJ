@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -259,6 +259,12 @@ public class Installation {
    * The default java properties file.
    */
   public static final String DEFAULT_JAVA_PROPERTIES_FILE = "java.properties";
+
+  /**
+   * The default java properties file relative path.
+   */
+  public static final String RELATIVE_JAVA_PROPERTIES_FILE =
+    CONFIG_PATH_RELATIVE+File.separator+"java.properties";
 
   /**
    * The set java home and arguments properties file for Windows.

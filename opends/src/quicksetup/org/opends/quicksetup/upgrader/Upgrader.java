@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -139,6 +139,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   // Files that will be ignored during backup
   static final String[] FILES_TO_IGNORE_DURING_BACKUP = {
           TOOLS_PROPERTIES, // tools.properties
+          RELATIVE_JAVA_PROPERTIES_FILE, // java.properties
           ADSContext.getAdminLDIFFile() // admin-backend.ldif
   };
 
@@ -1357,7 +1358,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
       Stage stage = getStage();
       Installation installation = getInstallation();
       File root = installation.getRootDirectory();
-      stage.move(root);
+      stage.move(root, new UpgradeFileFilter(getStageDirectory()));
 
       // The bits should now be of the new version.  Have
       // the installation update the build information so

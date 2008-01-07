@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -35,6 +35,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.util.FileManager;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,14 +72,16 @@ public class Stage {
    * Moves the files in the staging area to a destination directory.
    *
    * @param destination for the staged files
+   * @param fileFilter the file filter to be used
    * @throws ApplicationException if something goes wrong
    */
-  public void move(File destination) throws ApplicationException {
-    UpgradeFileFilter ff = new UpgradeFileFilter(root);
+  public void move(File destination, FileFilter fileFilter)
+  throws ApplicationException {
     for (String fileName : root.list()) {
       File dest = new File(destination, fileName);
       File src = getSourceForCopy(fileName, dest);
-      fm.copyRecursively(src, destination, ff, /*overwrite=*/true);
+      //fm.copyRecursively(src, destination, fileFilter, /*overwrite=*/true);
+      fm.copyRecursively(src, destination, fileFilter, /*overwrite=*/true);
     }
   }
 
