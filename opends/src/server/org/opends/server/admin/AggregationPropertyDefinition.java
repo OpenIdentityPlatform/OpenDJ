@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,7 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -650,130 +652,6 @@ public final class AggregationPropertyDefinition
   private class TargetClientHandler extends ClientConstraintHandler {
 
     /**
-     * Instances of this class are used to search for all managed
-     * objects that contain a reference to the named managed object.
-     */
-    private class Finder implements
-        RelationDefinitionVisitor<Void, ManagedObject<?>> {
-
-      // Any authorization exceptions that were encountered.
-      private AuthorizationException ae = null;
-
-      // Any communication exceptions that were encountered.
-      private CommunicationException ce = null;
-
-      // The name of the managed object being deleted or modified.
-      private final String name;
-
-      // The collected list of referencing managed objects.
-      private final Collection<ManagedObject<?>> references;
-
-
-
-      // Private constructor.
-      private Finder(String name, Collection<ManagedObject<?>> references) {
-        this.name = name;
-        this.references = references;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public <CC extends ConfigurationClient, SS extends Configuration>
-          Void visitInstantiable(
-          InstantiableRelationDefinition<CC, SS> rd, ManagedObject<?> p) {
-        try {
-          for (String childName : p.listChildren(rd)) {
-            find(p.getChild(rd, childName));
-          }
-        } catch (AuthorizationException e) {
-          ae = e;
-        } catch (CommunicationException e) {
-          ce = e;
-        } catch (OperationsException e) {
-          // Ignore all other types of exception.
-        }
-        return null;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public <CC extends ConfigurationClient, SS extends Configuration>
-          Void visitOptional(
-          OptionalRelationDefinition<CC, SS> rd, ManagedObject<?> p) {
-        try {
-          find(p.getChild(rd));
-        } catch (AuthorizationException e) {
-          ae = e;
-        } catch (CommunicationException e) {
-          ce = e;
-        } catch (OperationsException e) {
-          // Ignore all other types of exception.
-        }
-        return null;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public <CC extends ConfigurationClient, SS extends Configuration>
-          Void visitSingleton(
-          SingletonRelationDefinition<CC, SS> rd, ManagedObject<?> p) {
-        try {
-          find(p.getChild(rd));
-        } catch (AuthorizationException e) {
-          ae = e;
-        } catch (CommunicationException e) {
-          ce = e;
-        } catch (OperationsException e) {
-          // Ignore all other types of exception.
-        }
-        return null;
-      }
-
-
-
-      private void find(ManagedObject<?> current)
-          throws AuthorizationException, CommunicationException {
-        // First check the current managed object to see if it
-        // contains a reference.
-        ManagedObjectDefinition<?, ?> mod = current
-            .getManagedObjectDefinition();
-        if (mod.isChildOf(getManagedObjectDefinition())) {
-          for (String value : current
-              .getPropertyValues(AggregationPropertyDefinition.this)) {
-            if (compare(value, name) == 0) {
-              references.add(current);
-            }
-          }
-        }
-
-        // Now check its children.
-        for (RelationDefinition<?, ?> rd : mod.getAllRelationDefinitions()) {
-          rd.accept(this, current);
-
-          if (ae != null) {
-            throw ae;
-          }
-
-          if (ce != null) {
-            throw ce;
-          }
-        }
-      }
-
-    }
-
-
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -783,7 +661,8 @@ public final class AggregationPropertyDefinition
       // Any references to the deleted managed object should cause a
       // constraint violation.
       boolean isAcceptable = true;
-      for (ManagedObject<?> mo : findReferences(context, path.getName())) {
+      for (ManagedObject<?> mo : findReferences(context,
+          getManagedObjectDefinition(), path.getName())) {
         String name = mo.getManagedObjectPath().getName();
         if (name == null) {
           Message msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(
@@ -819,8 +698,9 @@ public final class AggregationPropertyDefinition
       // The referenced managed object is disabled. Need to check for
       // active references.
       boolean isAcceptable = true;
-      for (ManagedObject<?> mo : findReferences(context, managedObject
-          .getManagedObjectPath().getName())) {
+      for (ManagedObject<?> mo : findReferences(context,
+          getManagedObjectDefinition(), managedObject.getManagedObjectPath()
+              .getName())) {
         if (targetNeedsEnablingCondition.evaluate(context, mo)) {
           String name = mo.getManagedObjectPath().getName();
           if (name == null) {
@@ -846,15 +726,90 @@ public final class AggregationPropertyDefinition
 
     // Find all managed objects which reference the named managed
     // object using this property.
-    private Collection<ManagedObject<?>> findReferences(
-        ManagementContext context, String name) throws AuthorizationException,
-        CommunicationException {
-      List<ManagedObject<?>> references = new LinkedList<ManagedObject<?>>();
-      Finder finder = new Finder(name, references);
-      finder.find(context.getRootConfigurationManagedObject());
-      return references;
+    private <CC extends ConfigurationClient>
+        List<ManagedObject<? extends CC>> findReferences(
+        ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod,
+        String name) throws AuthorizationException, CommunicationException {
+      List<ManagedObject<? extends CC>> instances = findInstances(context, mod);
+
+      Iterator<ManagedObject<? extends CC>> i = instances.iterator();
+      while (i.hasNext()) {
+        ManagedObject<? extends CC> mo = i.next();
+        boolean hasReference = false;
+
+        for (String value : mo
+            .getPropertyValues(AggregationPropertyDefinition.this)) {
+          if (compare(value, name) == 0) {
+            hasReference = true;
+            break;
+          }
+        }
+
+        if (!hasReference) {
+          i.remove();
+        }
+      }
+
+      return instances;
+    }
+
+
+
+    // Find all instances of a specific type of managed object.
+    @SuppressWarnings("unchecked")
+    private <CC extends ConfigurationClient>
+        List<ManagedObject<? extends CC>> findInstances(
+        ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod)
+        throws AuthorizationException, CommunicationException {
+      List<ManagedObject<? extends CC>> instances =
+        new LinkedList<ManagedObject<? extends CC>>();
+
+      if (mod == RootCfgDefn.getInstance()) {
+        instances.add((ManagedObject<? extends CC>) context
+            .getRootConfigurationManagedObject());
+      } else {
+        for (RelationDefinition<? super CC, ?> rd : mod
+            .getAllReverseRelationDefinitions()) {
+          for (ManagedObject<?> parent : findInstances(context, rd
+              .getParentDefinition())) {
+            try {
+              if (rd instanceof SingletonRelationDefinition) {
+                SingletonRelationDefinition<? super CC, ?> srd =
+                  (SingletonRelationDefinition<? super CC, ?>) rd;
+                ManagedObject<?> mo = parent.getChild(srd);
+                if (mo.getManagedObjectDefinition().isChildOf(mod)) {
+                  instances.add((ManagedObject<? extends CC>) mo);
+                }
+              } else if (rd instanceof OptionalRelationDefinition) {
+                OptionalRelationDefinition<? super CC, ?> ord =
+                  (OptionalRelationDefinition<? super CC, ?>) rd;
+                ManagedObject<?> mo = parent.getChild(ord);
+                if (mo.getManagedObjectDefinition().isChildOf(mod)) {
+                  instances.add((ManagedObject<? extends CC>) mo);
+                }
+              } else if (rd instanceof InstantiableRelationDefinition) {
+                InstantiableRelationDefinition<? super CC, ?> ird =
+                  (InstantiableRelationDefinition<? super CC, ?>) rd;
+
+                for (String name : parent.listChildren(ird)) {
+                  ManagedObject<?> mo = parent.getChild(ird, name);
+                  if (mo.getManagedObjectDefinition().isChildOf(mod)) {
+                    instances.add((ManagedObject<? extends CC>) mo);
+                  }
+                }
+              }
+            } catch (OperationsException e) {
+              // Ignore all operations exceptions.
+            }
+          }
+        }
+      }
+
+      return instances;
     }
   }
+
+
 
   /**
    * The tracer object for the debug logger.

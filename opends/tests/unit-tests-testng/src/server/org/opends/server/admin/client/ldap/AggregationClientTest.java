@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -63,7 +63,7 @@ import org.testng.annotations.Test;
  * Test cases for aggregations on the client-side.
  */
 @Test(sequential = true)
-public class AggregationTest extends AdminTestCase {
+public class AggregationClientTest extends AdminTestCase {
 
   // Test LDIF.
   private static final String[] TEST_LDIF = new String[] {
@@ -186,10 +186,8 @@ public class AggregationTest extends AdminTestCase {
   @BeforeClass
   public void setUp() throws Exception {
     // This test suite depends on having the schema available, so
-    // we'll start the server. In addition this test is sensitive to
-    // having lots of junk left over from previous tests, so we
-    // restart the server to clean out the config (issue 2482).
-    TestCaseUtils.restartServer();
+    // we'll start the server.
+    TestCaseUtils.startServer();
     TestCfg.setUp();
   }
 

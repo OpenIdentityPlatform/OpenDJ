@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -82,6 +82,10 @@ public abstract class AbstractManagedObjectDefinition
   // definition.
   private final Map<String, RelationDefinition<?, ?>> relationDefinitions;
 
+  // The set of relation definitions directly referencing this managed
+  // object definition.
+  private final Set<RelationDefinition<C, S>> reverseRelationDefinitions;
+
   // The set of all property definitions associated with this managed
   // object definition including inherited property definitions.
   private final Map<String, PropertyDefinition<?>> allPropertyDefinitions;
@@ -120,6 +124,7 @@ public abstract class AbstractManagedObjectDefinition
     this.constraints = new LinkedList<Constraint>();
     this.propertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.relationDefinitions = new HashMap<String, RelationDefinition<?,?>>();
+    this.reverseRelationDefinitions = new HashSet<RelationDefinition<C,S>>();
     this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.allRelationDefinitions =
       new HashMap<String, RelationDefinition<?, ?>>();
@@ -182,7 +187,7 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final Collection<Constraint> getAllConstraints() {
     // This method does not used a cached set of constraints because
-    // constraints may be updated after child definitions haved been
+    // constraints may be updated after child definitions have been
     // defined.
     List<Constraint> allConstraints = new LinkedList<Constraint>();
 
@@ -223,6 +228,35 @@ public abstract class AbstractManagedObjectDefinition
   public final Collection<RelationDefinition<?, ?>>
       getAllRelationDefinitions() {
     return Collections.unmodifiableCollection(allRelationDefinitions.values());
+  }
+
+
+
+  /**
+   * Get all the relation definitions which refer to this managed
+   * object definition. The returned collection will contain relation
+   * definitions which refer to parents of this managed object
+   * definition.
+   *
+   * @return Returns a collection containing all the relation
+   *         definitions which refer to this managed object
+   *         definition. The caller is free to modify the collection
+   *         if required.
+   */
+  public final Collection<RelationDefinition<? super C, ? super S>>
+  getAllReverseRelationDefinitions() {
+    // This method does not used a cached set of relations because
+    // relations may be updated after child definitions have been
+    // defined.
+    List<RelationDefinition<? super C, ? super S>> rdlist =
+      new LinkedList<RelationDefinition<? super C, ? super S>>();
+
+    if (parent != null) {
+      rdlist.addAll(parent.getAllReverseRelationDefinitions());
+    }
+    rdlist.addAll(reverseRelationDefinitions);
+
+    return rdlist;
   }
 
 
@@ -468,6 +502,23 @@ public abstract class AbstractManagedObjectDefinition
    */
   public final Collection<RelationDefinition<?,?>> getRelationDefinitions() {
     return Collections.unmodifiableCollection(relationDefinitions.values());
+  }
+
+
+
+  /**
+   * Get the relation definitions which refer directly to this managed
+   * object definition. The returned collection will not contain
+   * relation definitions which refer to parents of this managed
+   * object definition.
+   *
+   * @return Returns an unmodifiable collection containing the
+   *         relation definitions which refer directly to this managed
+   *         object definition.
+   */
+  public final Collection<RelationDefinition<C, S>>
+      getReverseRelationDefinitions() {
+    return Collections.unmodifiableCollection(reverseRelationDefinitions);
   }
 
 
@@ -815,10 +866,15 @@ public abstract class AbstractManagedObjectDefinition
    *          The relation definition to be registered.
    */
   protected final void registerRelationDefinition(RelationDefinition<?, ?> d) {
+    // Register the relation in this managed object definition.
     String name = d.getName();
 
     relationDefinitions.put(name, d);
     allRelationDefinitions.put(name, d);
+
+    // Now register the relation in the referenced managed object
+    // definition for reverse lookups.
+    registerReverseRelationDefinition(d);
   }
 
 
@@ -880,9 +936,14 @@ public abstract class AbstractManagedObjectDefinition
    */
   final void deregisterRelationDefinition(
       RelationDefinition<?, ?> d) {
+   // Deregister the relation from this managed object definition.
     String name = d.getName();
     relationDefinitions.remove(name);
     allRelationDefinitions.remove(name);
+
+    // Now deregister the relation from the referenced managed object
+    // definition for reverse lookups.
+    d.getChildDefinition().reverseRelationDefinitions.remove(d);
   }
 
 
@@ -897,6 +958,15 @@ public abstract class AbstractManagedObjectDefinition
     if (parent != null) {
       parent.children.put(name, this);
     }
+  }
+
+
+
+  // Register a relation definition in the referenced managed object
+  // definition's reverse lookup table.
+  private <CC extends ConfigurationClient, SS extends Configuration>
+  void registerReverseRelationDefinition(RelationDefinition<CC, SS> rd) {
+    rd.getChildDefinition().reverseRelationDefinitions.add(rd);
   }
 
 
