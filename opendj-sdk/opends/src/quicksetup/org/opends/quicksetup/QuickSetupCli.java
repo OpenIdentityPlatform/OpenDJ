@@ -80,13 +80,13 @@ public class QuickSetupCli {
     // Parse the arguments
     try
     {
+      ProgressMessageFormatter formatter =
+        new PlainTextProgressMessageFormatter();
+      cliApp.setProgressMessageFormatter(formatter);
       userData = cliApp.createUserData(launcher);
       if (userData != null)
       {
-        ProgressMessageFormatter formatter =
-                new PlainTextProgressMessageFormatter();
         cliApp.setUserData(userData);
-        cliApp.setProgressMessageFormatter(formatter);
         if (!userData.isQuiet()) {
           cliApp.addProgressUpdateListener(
                   new ProgressUpdateListener() {
@@ -123,8 +123,8 @@ public class QuickSetupCli {
           }
         }
       }
-    else
-    {
+      else
+      {
         // User cancelled operation.
         returnValue = ReturnCode.CANCELLED;
       }
