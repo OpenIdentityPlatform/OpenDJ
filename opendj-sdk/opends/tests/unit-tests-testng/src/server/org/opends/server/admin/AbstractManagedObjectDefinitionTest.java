@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -39,6 +39,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -96,6 +97,17 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
     // This test suite depends on having the schema available, so
     // we'll start the server.
     TestCaseUtils.startServer();
+    TestCfg.setUp();
+  }
+
+
+
+  /**
+   * Tears down test environment.
+   */
+  @AfterClass
+  public void tearDown() {
+    TestCfg.cleanup();
   }
 
 
@@ -299,5 +311,59 @@ public class AbstractManagedObjectDefinitionTest extends DirectoryServerTestCase
     DefinedDefaultBehaviorProvider<?> ddbp = (DefinedDefaultBehaviorProvider<?>) dbp;
     assertEquals(ddbp.getDefaultValues(), Collections
         .singleton("org.opends.server.protocols.jmx.JmxConnectionHandler"));
+  }
+
+
+
+  /**
+   * Tests that the getReverseRelationDefinitions() method returns
+   * relations referring to a managed object.
+   */
+  @Test
+  public void testGetReverseRelationDefinitions() {
+    Collection<RelationDefinition<TestParentCfgClient, TestParentCfg>> rdlist1 = TestParentCfgDefn
+        .getInstance().getReverseRelationDefinitions();
+
+    assertEquals(rdlist1.size(), 2);
+    assertTrue(rdlist1.contains(TestCfg
+        .getTestOneToManyParentRelationDefinition()));
+    assertTrue(rdlist1.contains(TestCfg
+        .getTestOneToZeroOrOneParentRelationDefinition()));
+
+    Collection<RelationDefinition<TestChildCfgClient, TestChildCfg>> rdlist2 = TestChildCfgDefn
+        .getInstance().getReverseRelationDefinitions();
+
+    assertEquals(rdlist2.size(), 2);
+    assertTrue(rdlist2.contains(TestParentCfgDefn.getInstance()
+        .getTestChildrenRelationDefinition()));
+    assertTrue(rdlist2.contains(TestParentCfgDefn.getInstance()
+        .getOptionalTestChildRelationDefinition()));
+  }
+
+
+
+  /**
+   * Tests that the getAllReverseRelationDefinitions() method returns
+   * all relations referring to a managed object.
+   */
+  @Test
+  public void testGetAllReverseRelationDefinitions() {
+    Collection<RelationDefinition<? super TestParentCfgClient, ? super TestParentCfg>> rdlist1 = TestParentCfgDefn
+        .getInstance().getAllReverseRelationDefinitions();
+
+    assertEquals(rdlist1.size(), 2);
+    assertTrue(rdlist1.contains(TestCfg
+        .getTestOneToManyParentRelationDefinition()));
+    assertTrue(rdlist1.contains(TestCfg
+        .getTestOneToZeroOrOneParentRelationDefinition()));
+
+    Collection<RelationDefinition<? super TestChildCfgClient, ? super TestChildCfg>> rdlist2 = TestChildCfgDefn
+        .getInstance().getAllReverseRelationDefinitions();
+
+    assertEquals(rdlist2.size(), 2);
+    assertTrue(rdlist2.contains(TestParentCfgDefn.getInstance()
+        .getTestChildrenRelationDefinition()));
+    assertTrue(rdlist2.contains(TestParentCfgDefn.getInstance()
+        .getOptionalTestChildRelationDefinition()));
   }
 }

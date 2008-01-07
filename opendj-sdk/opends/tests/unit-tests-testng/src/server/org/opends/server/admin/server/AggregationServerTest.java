@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 
@@ -74,7 +74,7 @@ import org.testng.annotations.Test;
  * Test cases for aggregations on the server-side.
  */
 @Test(sequential = true)
-public final class AggregationTest extends AdminTestCase {
+public final class AggregationServerTest extends AdminTestCase {
 
   /**
    * Dummy change listener for triggering change constraint
@@ -443,7 +443,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(groups="slow")
+  @Test
   public void testAggregationDisabledReference1() throws Exception {
     // Add the entry and the connection handler.
     TestCaseUtils.addEntry(TEST_CHILD_6);
@@ -504,7 +504,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(groups="slow")
+  @Test
   public void testAggregationDisabledReference2() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
@@ -566,7 +566,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(groups="slow")
+  @Test
   public void testAggregationDisabledReference3() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_6);
@@ -629,7 +629,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(groups="slow")
+  @Test
   public void testAggregationDisabledReference4() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
@@ -745,7 +745,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(groups="slow")
+  @Test
   public void testCannotDeleteReferencedComponent() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);
@@ -819,7 +819,7 @@ public final class AggregationTest extends AdminTestCase {
    * @throws Exception
    *           If the test unexpectedly fails.
    */
-  @Test(groups="slow")
+  @Test
   public void testCannotDisableReferencedComponent() throws Exception {
     // Add the entry.
     TestCaseUtils.addEntry(TEST_CHILD_7);

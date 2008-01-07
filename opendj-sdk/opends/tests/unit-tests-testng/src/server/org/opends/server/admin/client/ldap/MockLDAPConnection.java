@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -355,6 +355,11 @@ public class MockLDAPConnection extends LDAPConnection {
     return entries.get(name);
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void unbind() {
     // nothing to do
