@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.server;
@@ -185,6 +185,7 @@ public final class ServerManagedObject<S extends Configuration> implements
         ConfigChangeListenerAdaptor<?> adaptor =
           (ConfigChangeListenerAdaptor<?>) l;
         if (adaptor.getConfigurationChangeListener() == listener) {
+          adaptor.finalizeChangeListener();
           configEntry.deregisterChangeListener(adaptor);
         }
       }

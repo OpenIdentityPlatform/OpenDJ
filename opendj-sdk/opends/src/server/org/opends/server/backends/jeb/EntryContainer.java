@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -551,11 +551,24 @@ public class EntryContainer
   public void close()
       throws DatabaseException
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
-    listDatabases(databases);
-    for(DatabaseContainer db : databases)
+    // Close core indexes.
+    dn2id.close();
+    id2entry.close();
+    dn2uri.close();
+    id2children.close();
+    id2subtree.close();
+    state.close();
+
+    // Close attribute indexes and deregister any listeners.
+    for (AttributeIndex index : attrIndexMap.values())
     {
-      db.close();
+      index.close();
+    }
+
+    // Close VLV indexes and deregister any listeners.
+    for (VLVIndex vlvIndex : vlvIndexMap.values())
+    {
+      vlvIndex.close();
     }
 
     config.removeLocalDBChangeListener(this);
