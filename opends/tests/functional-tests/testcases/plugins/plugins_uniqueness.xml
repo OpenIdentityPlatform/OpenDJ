@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="plugins_uniqueness"/>
@@ -84,14 +84,14 @@
 
 
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        : 'uid=testuser_uniqueness,%s' % DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=*'	,
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'         : 'uid=testuser_uniqueness,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'         : 'objectclass=*'	,
           'dsScope'          : 'base',		
-          'expectedRC'	    :  0 }
+          'expectedRC'	     :  0 }
     </call>  		
 
 
@@ -102,20 +102,19 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set enabled:true',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'optionsString'        : '--set enabled:true',
         'expectedRC'           : 0 } 
     </call>	
- 
-
+    
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
 
-  
+
                                         
 <!---
 #@TestMarker       Plugin uniqueness
@@ -152,13 +151,13 @@
     </script>
 	    
    <call function="'addAnEntry'">
-      { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
          'DNToAdd'          : 'uid=testuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'     : listAttr,
-         'expectedRC'      :  19
+         'listAttributes'   : listAttr,
+         'expectedRC'       :  19
        }
     </call>
 
@@ -183,22 +182,19 @@
   <sequence>
     <call function="'testCase_Preamble'"/>
 
-    
- 
-
     <message>'######  Set the type to mail  ###### '</message>
     <message>' '</message>        
        
     <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
+      { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'             : 'set-plugin-prop' ,
         'objectType'             : 'plugin-name' ,
-        'objectName'            : 'UID Unique Attribute',
+        'objectName'             : 'UID Unique Attribute',
         'optionsString'          : '--set type:mail',
-        'expectedRC'           : 0 } 
+        'expectedRC'             : 0 } 
     </call>	        
 
      
@@ -219,12 +215,12 @@
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  19
        }
     </call>
@@ -259,11 +255,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set type:mail --set type:telephoneNumber',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'optionsString'        : '--set type:mail --set type:telephoneNumber',
         'expectedRC'           : 0 } 
     </call>	        
                 
@@ -285,12 +281,12 @@
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  19
        }
     </call>
@@ -313,12 +309,12 @@
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  19
        }
     </call>
@@ -342,12 +338,12 @@
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  0
        }
     </call>
@@ -375,9 +371,9 @@
 #@TestName           Plugin uniqueness
 #@TestIssue          Check the plugin ensures the uniqueness of the attributes multi  valued
 #@TestPreamble       none
-#@TestStep           set the type to description
-#@TestStep          Check we can't add an entry with the same description as the user entry reference   
-#@TestStep           the attribute description is multi-valued 
+#@TestStep           set the type to telephoneNumber
+#@TestStep           Check we can't add an entry with the same telephoneNumber as the user entry reference   
+#@TestStep           the attribute telephoneNumber is multi-valued 
 #@TestPostamble      none
 #@TestResult         The test is passed if  the  creation is refused
 -->  
@@ -387,23 +383,23 @@
     <call function="'testCase_Preamble'"/>
     
 
-    <message>'######  Set the type to description ###### '</message>
+    <message>'######  Set the type to telephoneNumber ###### '</message>
     <message>' '</message>        
        
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set type:description',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'optionsString'        : '--set type:telephoneNumber',
         'expectedRC'           : 0 } 
     </call>	        
 
 
-    <message>'######  Add an entry containing a description already present in the DIT ###### '</message>
+    <message>'######  Add an entry containing a telephoneNumber already present in the DIT ###### '</message>
     <!-- Add an entry --> 
     <!-- the Add must be refused with the error 19 -->
     <script>
@@ -415,23 +411,24 @@
       listAttr.append('givenname:newtestuser_uniqueness')
       listAttr.append('sn:newtestuser_uniqueness')
       listAttr.append('cn:newtestuser_uniqueness')
-      listAttr.append('description:mydescription2') 
+      listAttr.append('telephoneNumber:1 2 3 4')
+      listAttr.append('telephoneNumber:1 2 3 4 6')
     </script>
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  19
        }
     </call>
          
 
-    <message>'######  Add an entry containing a description not present in the DIT ###### '</message>
+    <message>'######  Add an entry containing a telephoneNumber not present in the DIT ###### '</message>
     <!-- Add an entry --> 
     <!-- the Add must be accepted --> 
     <script>
@@ -443,17 +440,18 @@
       listAttr.append('givenname:newtestuser_uniqueness')
       listAttr.append('sn:newtestuser_uniqueness')
       listAttr.append('cn:newtestuser_uniqueness')
-      listAttr.append('description:mydescription') 
+      listAttr.append('telephoneNumber:1 2 3 4 5')
+      listAttr.append('telephoneNumber:1 2 3 4 6')
     </script>
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  0
        }
     </call>
@@ -488,7 +486,7 @@
 #@TestStep          Check we can add an entry outside the restricted scope
 #@TestPostamble     none
 #@TestResult        The test is passed is the plugin respectes the restricted scope
-  -->  
+ -->  
    
  <testcase name="getTestCaseName('Restrict the scope of the plugin')">
   <sequence>
@@ -501,19 +499,18 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set type:description  --set base-dn:dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'optionsString'        : '--set type:telephoneNumber  --set base-dn:dc=example,%s' % DIRECTORY_INSTANCE_SFX,
         'expectedRC'           : 0 } 
     </call>	        
                 
-             
+
     <message>'######  Add an entry under dc=example,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
     <!-- Add an entry --> 
-    <!-- the Add must be accepted -->     
- 
+    <!-- the Add must be added -->    
     <script>
       listAttr = []
       listAttr.append('objectclass:top')
@@ -521,25 +518,23 @@
       listAttr.append('objectclass:inetorgperson')
       listAttr.append('objectclass:person')
       listAttr.append('givenname:newtestuser_uniqueness')
-      listAttr.append('sn:newtestuser_uniqueness')
-      listAttr.append('cn:newtestuser_uniqueness')
-      listAttr.append('description:mydescription2') 
+      listAttr.append('sn:newtestuser_uniqueness1')
+      listAttr.append('cn:newtestuser_uniqueness1')
+      listAttr.append('telephoneNumber:1 2 3 4')
     </script>
-	    
 
     <call function="'addAnEntry'">   
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness1,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
          'expectedRC'         :  0
        }
     </call>
-         
-
-    <message>'######  Add an entry under  %s  ###### ' % DIRECTORY_INSTANCE_SFX</message>
+    <message>'######  Add an entry under dc=example,%s ###### ' % DIRECTORY_INSTANCE_SFX</message>
+    <message>'this operation must be rejected because of the unique attribute conflict'</message>
     <!-- Add an entry --> 
     <!-- the Add must be refused with the error 19 -->    
     <script>
@@ -551,18 +546,45 @@
       listAttr.append('givenname:newtestuser_uniqueness')
       listAttr.append('sn:newtestuser_uniqueness')
       listAttr.append('cn:newtestuser_uniqueness')
-      listAttr.append('description:mydescription2') 
+      listAttr.append('telephoneNumber:1 2 3 4')
+    </script>
+
+    <call function="'addAnEntry'">   
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+         'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+         'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
+         'expectedRC'         :  19
+       }
+    </call>
+         
+
+    <message>'######  Add an entry under  %s  ###### ' % DIRECTORY_INSTANCE_SFX</message>
+    <!-- Add an entry --> 
+    <!-- the Add must be accepted -->     
+    <script>
+      listAttr = []
+      listAttr.append('objectclass:top')
+      listAttr.append('objectclass:organizationalperson')
+      listAttr.append('objectclass:inetorgperson')
+      listAttr.append('objectclass:person')
+      listAttr.append('givenname:newtestuser_uniqueness')
+      listAttr.append('sn:newtestuser_uniqueness')
+      listAttr.append('cn:newtestuser_uniqueness')
+      listAttr.append('telephoneNumber:1 2 3 4')
     </script>
 	    
 
     <call function="'addAnEntry'">    
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+      { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-         'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'             : 'uid=newtestuser_uniqueness,%s' % DIRECTORY_INSTANCE_SFX,
-         'listAttributes'        : listAttr,
-         'expectedRC'         :  0
+         'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+         'DNToAdd'            : 'uid=newtestuser_uniqueness,%s' % DIRECTORY_INSTANCE_SFX,
+         'listAttributes'     : listAttr,
+         'expectedRC'         : 0
        }
     </call>
         
@@ -575,19 +597,25 @@
         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	   :  'uid=newtestuser_uniqueness,%s' % DIRECTORY_INSTANCE_SFX,
+        'dsBaseDN'         :  'uid=newtestuser_uniqueness,%s' % DIRECTORY_INSTANCE_SFX,
       }
     </call>
-              
+    <call function="'DeleteEntry'">
+     { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+        'dsBaseDN'         :  'uid=newtestuser_uniqueness1,dc=example,%s' % DIRECTORY_INSTANCE_SFX,
+      }
+    </call>              
     <call function="'testCase_Postamble'"/>
   </sequence>
- </testcase>
-      
-           
+ </testcase> 
+ 
 <!---
 #@TestMarker            Plugin uniqueness
 #@TestName              Plugin uniqueness
-#@TestIssue             Disable  the plugin uniqueness  with the uniqu
+#@TestIssue             Disable  the plugin uniqueness 
 #@TestStep              Disable the plugin uniqueness
 #@TestStep              Keep the default configuration ( ie, type = uid )
 #@TestStep              Add an entry  containing a uid value already present in the DIT
@@ -606,11 +634,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'UID Unique Attribute',
-        'optionsString'          : '--set enabled:false',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'UID Unique Attribute',
+        'optionsString'        : '--set enabled:false',
         'expectedRC'           : 0 } 
     </call>	
 
@@ -629,7 +657,7 @@
       listAttr.append('cn:testuser_uniqueness')
       listAttr.append('uid:testuser_uniqueness')            
     </script>
-	    
+	   
    <call function="'addAnEntry'">
       { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
          'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
@@ -644,6 +672,7 @@
     <!-- cleanup -->
     <message>'######  Cleanup ###### '</message>
     <message>' '</message>        
+    
     <call function="'DeleteEntry'">
      { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -657,7 +686,8 @@
   </sequence>
  </testcase>
 
-                  
+
+
                                                                                                                                                          
 <!---
 #@TestMarker         Plugin uniqueness
@@ -704,7 +734,8 @@
   </sequence>
  </testcase>
 
-           
+
+                
  <call function="'testSuite_Postamble'" />
  </sequence>
  </block>      
