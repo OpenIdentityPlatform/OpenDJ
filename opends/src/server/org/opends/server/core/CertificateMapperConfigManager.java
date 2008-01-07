@@ -435,6 +435,10 @@ public class CertificateMapperConfigManager
 
       return mapper;
     }
+    catch (InitializationException e) {
+      // Avoid re-wrapping the initialization exception.
+      throw e;
+    }
     catch (Exception e)
     {
       Message message = ERR_CONFIG_CERTMAPPER_INITIALIZATION_FAILED.
