@@ -75,6 +75,7 @@ public class MigrationManager {
   private Installation installation;
   private File backupDir;
   private UserInteraction ui;
+  private boolean isSchemaCustomized;
 
   /**
    * Creates a new parameterized instance.
@@ -111,6 +112,7 @@ public class MigrationManager {
    *         the diff operation
    */
   public void calculateSchemaCustomizations() throws ApplicationException {
+    isSchemaCustomized = false;
     if (installation.getStatus().schemaHasBeenModified()) {
       LOG.log(Level.INFO, "Schema contains customizations that will " +
               "be migrated");
@@ -118,6 +120,7 @@ public class MigrationManager {
         ldifDiff(installation.getBaseSchemaFile(),
                 installation.getSchemaConcatFile(),
                 getCustomSchemaDiffFile());
+        isSchemaCustomized = true;
       } catch (ApplicationException ae) {
         throw ae;
       } catch (Exception e) {
@@ -268,7 +271,7 @@ public class MigrationManager {
    * @return boolean where true indicates schema customization
    */
   public boolean isSchemaCustomized() {
-    return installation.getStatus().schemaHasBeenModified();
+    return isSchemaCustomized;
   }
 
   /**
