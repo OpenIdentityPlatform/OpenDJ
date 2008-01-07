@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 
@@ -54,6 +54,7 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.api.ConfigChangeListener;
+import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -202,12 +203,16 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   // Cached managed object between accept/apply call-backs.
   private ServerManagedObject<? extends S> cachedManagedObject;
 
+  // The delete listener which is used to remove this listener and any
+  // dependencies.
+  private final ConfigDeleteListener cleanerListener;
+
   // The names of entries that this change listener depends on.
   private final Set<DN> dependencies;
 
   // The listener used to notify this listener when dependency entries
   // are modified.
-  private final DependencyConfigChangeListener dependencyListener;
+  private final ConfigChangeListener dependencyListener;
 
   // The DN associated with this listener.
   private final DN dn;
@@ -239,14 +244,43 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
     // are modified. Determine the dependencies and register change
     // listeners against them.
     this.dependencies = new HashSet<DN>();
-    this.dependencyListener = new DependencyConfigChangeListener(dn, this);
+    this.dependencyListener = new ConfigChangeListener() {
+
+      public ConfigChangeResult applyConfigurationChange(
+          ConfigEntry configEntry) {
+        ConfigEntry dependentConfigEntry = getConfigEntry(dn);
+        if (dependentConfigEntry != null) {
+          return ConfigChangeListenerAdaptor.this
+              .applyConfigurationChange(dependentConfigEntry);
+        } else {
+          // The dependent entry was not found.
+          configEntry.deregisterChangeListener(this);
+          return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        }
+      }
+
+
+
+      public boolean configChangeIsAcceptable(ConfigEntry configEntry,
+          MessageBuilder unacceptableReason) {
+        ConfigEntry dependentConfigEntry = getConfigEntry(dn);
+        if (dependentConfigEntry != null) {
+          return ConfigChangeListenerAdaptor.this.configChangeIsAcceptable(
+              dependentConfigEntry, unacceptableReason, configEntry);
+        } else {
+          // The dependent entry was not found.
+          configEntry.deregisterChangeListener(this);
+          return true;
+        }
+      }
+
+    };
 
     AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
       Visitor.find(path, pd, dependencies);
     }
 
-    CleanerConfigDeleteListener cleaner = new CleanerConfigDeleteListener(dn);
     for (DN entryDN : dependencies) {
       // Be careful not to register listeners against the dependent
       // entry itself.
@@ -254,22 +288,40 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         ConfigEntry configEntry = getConfigEntry(entryDN);
         if (configEntry != null) {
           configEntry.registerChangeListener(dependencyListener);
-          cleaner.addConfigChangeListener(entryDN, dependencyListener);
         }
       }
     }
 
-    // Register a delete listener which will remove the dependency
-    // listeners when this entry is removed.
+    // Register a delete listener against the parent which will
+    // finalize this change listener when the monitored configuration
+    // entry is removed.
+    this.cleanerListener = new ConfigDeleteListener() {
 
-    // FIXME: we should really remove the dependency listeners when
-    // this listener is deregistered, but we have no way to track
-    // that.
+      public ConfigChangeResult applyConfigurationDelete(
+          ConfigEntry configEntry) {
+        // Perform finalization if the deleted entry is the monitored
+        // entry.
+        if (configEntry.getDN().equals(dn)) {
+          finalizeChangeListener();
+        }
+        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      }
+
+
+
+      public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
+          MessageBuilder unacceptableReason) {
+        // Always acceptable.
+        return true;
+      }
+
+    };
+
     DN parent = dn.getParent();
     if (parent != null) {
       ConfigEntry configEntry = getConfigEntry(dn.getParent());
       if (configEntry != null) {
-        configEntry.registerDeleteListener(cleaner);
+        configEntry.registerDeleteListener(cleanerListener);
       }
     }
   }
@@ -280,28 +332,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry) {
-    return applyConfigurationChange(configEntry, configEntry);
-  }
-
-
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server
-   * component based on the provided changed entry.
-   *
-   * @param configEntry
-   *          The configuration entry that containing the updated
-   *          configuration for this component.
-   * @param newConfigEntry
-   *          The configuration entry that caused the notification
-   *          (will be different from <code>configEntry</code> if a
-   *          dependency was modified).
-   * @return Information about the result of processing the
-   *         configuration change.
-   */
-  public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry,
-      ConfigEntry newConfigEntry) {
-    // TODO: looking at the ConfigFileHandler implementation reveals
+    // Looking at the ConfigFileHandler implementation reveals
     // that this ConfigEntry will actually be a different object to
     // the one passed in the previous call-back (it will have the same
     // content though). This configuration entry has the correct
@@ -391,6 +422,30 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
       generateUnacceptableReason(reasons, unacceptableReason);
       return false;
     }
+  }
+
+
+
+  /**
+   * Finalizes this configuration change listener adaptor. This method
+   * must be called before this change listener is removed.
+   */
+  public void finalizeChangeListener() {
+    // Remove the dependency listeners.
+    for (DN dependency : dependencies) {
+      ConfigEntry listenerConfigEntry = getConfigEntry(dependency);
+      if (listenerConfigEntry != null) {
+        listenerConfigEntry.deregisterChangeListener(dependencyListener);
+      }
+    }
+
+    // Now remove the cleaner listener as it will no longer be
+    // needed.
+    ConfigEntry parentConfigEntry = getConfigEntry(dn.getParent());
+    if (parentConfigEntry != null) {
+      parentConfigEntry.deregisterDeleteListener(cleanerListener);
+    }
+
   }
 
 
