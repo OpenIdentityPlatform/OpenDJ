@@ -55,7 +55,7 @@ public class OpendsRmiServerSocketFactory implements RMIServerSocketFactory
 {
 
   /**
-   * The Plaform RMISocketFactory.
+   * The Platform RMISocketFactory.
    */
   private RMIServerSocketFactory ssf =
     RMISocketFactory.getDefaultSocketFactory() ;
