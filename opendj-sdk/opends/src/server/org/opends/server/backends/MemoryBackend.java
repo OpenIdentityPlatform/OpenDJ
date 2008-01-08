@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
 
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -986,6 +987,18 @@ public class MemoryBackend
   {
     Message message = ERR_MEMORYBACKEND_BACKUP_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException
+  {
+    storedDNs.addAll(entryMap.keySet());
+    return true;
   }
 }
 

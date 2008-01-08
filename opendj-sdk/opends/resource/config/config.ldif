@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2008 Sun Microsystems, Inc.
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -490,6 +490,7 @@ ds-cfg-ssl-cert-nickname: server-cert
 dn: cn=Entry Caches,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
+objectClass: ds-cfg-default-entry-cache
 cn: Entry Caches
 
 dn: cn=FIFO,cn=Entry Caches,cn=config

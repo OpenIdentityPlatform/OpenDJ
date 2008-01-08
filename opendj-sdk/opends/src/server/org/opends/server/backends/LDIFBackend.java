@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
 
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1571,6 +1572,23 @@ public class LDIFBackend
                ALERT_DESCRIPTION_LDIF_BACKEND_CANNOT_WRITE_UPDATE);
 
     return alerts;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException
+  {
+    backendLock.readLock().lock();
+    try {
+      storedDNs.addAll(entryMap.keySet());
+      return true;
+    } finally {
+      backendLock.readLock().unlock();
+    }
   }
 }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -30,6 +30,7 @@ import org.opends.messages.Message;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -206,6 +207,26 @@ public abstract class Backend
    *          backend.
    */
   public abstract DN[] getBaseDNs();
+
+
+
+  /**
+   * Retrieves the set of all DNs that are stored within this backend.
+   * Note that this can be a slow operation depending on a particular
+   * backend implementation and might be unsupported by some backends.
+   *
+   * @param   storedDNs  Collection to retrieve all stored DNs into.
+   *          Note that for async operation a thread-safe collection
+   *          should be used.
+   *
+   * @return  {@code true} if all DNs stored within this backend were
+   *          successfully retrieved, or {@code false} otherwise.
+   *
+   * @throws  UnsupportedOperationException if backend implementation
+   *          does not support this operation.
+   */
+  public abstract boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException;
 
 
 
