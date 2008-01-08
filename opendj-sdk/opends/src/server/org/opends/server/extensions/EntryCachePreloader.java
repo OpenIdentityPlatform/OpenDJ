@@ -75,7 +75,7 @@ import static org.opends.messages.ExtensionMessages.*;
  * are capable of initiating and sustaining such pre-load activity.
  *
  * This implementation is fully synchronized and safe to use with the server
- * online which pre-load activities going in parallel with server operations.
+ * online and pre-load activities going in parallel with server operations.
  *
  * This implementation is self-adjusting to any system workload and does not
  * require any configuration parameters to optimize for initial system
