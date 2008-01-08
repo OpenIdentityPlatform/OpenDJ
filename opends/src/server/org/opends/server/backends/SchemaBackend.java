@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -37,6 +37,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -5574,6 +5575,17 @@ public class SchemaBackend
     }
     return
           new Attribute(attributeTypesType, ATTR_ATTRIBUTE_TYPES, valueSetCopy);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException
+  {
+    throw new UnsupportedOperationException("Operation not supported.");
   }
 }
 

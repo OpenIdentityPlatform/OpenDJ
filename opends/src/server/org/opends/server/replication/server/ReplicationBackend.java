@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
@@ -40,6 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1324,6 +1325,17 @@ public class ReplicationBackend
       LDIFImportConfig config = new LDIFImportConfig(istream);
       return new LDIFReader(config);
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException
+  {
+    throw new UnsupportedOperationException("Operation not supported.");
   }
 }
 

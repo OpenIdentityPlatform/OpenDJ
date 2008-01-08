@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:root-managed-object xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap"
@@ -200,6 +200,17 @@
     <adm:profile name="cli">
       <cli:relation>
         <cli:default-property name="enabled" />
+      </cli:relation>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="default-entry-cache">
+    <adm:one-to-one />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Entry Caches,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+    <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="cache-preload" />
       </cli:relation>
     </adm:profile>
   </adm:relation>

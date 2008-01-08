@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -57,6 +57,7 @@ import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.extensions.DefaultEntryCache;
+import org.opends.server.extensions.EntryCachePreloader;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.DN;
 
@@ -224,6 +225,13 @@ public class EntryCacheConfigManager
           logError(ie.getMessageObject());
         }
       }
+    }
+
+    // If requested preload the entry cache.
+    if (rootConfiguration.getDefaultEntryCache().isCachePreload()) {
+      // Kick off preload arbiter main thread.
+      EntryCachePreloader preloadThread = new EntryCachePreloader();
+      preloadThread.start();
     }
   }
 

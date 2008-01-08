@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -31,6 +31,7 @@ package org.opends.server.backends.task;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1543,6 +1544,17 @@ public class TaskBackend
   public RecurringTask getRecurringTask(DN taskEntryDN)
   {
     return taskScheduler.getRecurringTask(taskEntryDN);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException
+  {
+    throw new UnsupportedOperationException("Operation not supported.");
   }
 }
 

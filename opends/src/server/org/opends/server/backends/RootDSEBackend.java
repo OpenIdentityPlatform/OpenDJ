@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -1528,6 +1528,17 @@ public class RootDSEBackend
 
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean collectStoredDNs(Collection<DN> storedDNs)
+    throws UnsupportedOperationException
+  {
+    throw new UnsupportedOperationException("Operation not supported.");
   }
 }
 
