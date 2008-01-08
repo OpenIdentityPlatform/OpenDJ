@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -652,7 +652,7 @@ public class RestoreDB extends TaskTool {
         Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
-        return 0;
+        return 1;
       }
     }
     catch (Exception e)
@@ -660,7 +660,7 @@ public class RestoreDB extends TaskTool {
       Message message = ERR_RESTOREDB_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
-      return 0;
+      return 1;
     }
 
 
