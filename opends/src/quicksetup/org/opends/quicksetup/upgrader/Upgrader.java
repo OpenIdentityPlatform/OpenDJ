@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -1114,6 +1114,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
         String note = null;
         if (runError == null && !abort) {
           status = HistoricalRecord.Status.SUCCESS;
+          backupWindowsUpgradeFile();
         } else {
           if (abort) {
             status = HistoricalRecord.Status.CANCEL;
@@ -1409,13 +1410,42 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
         // Replacing a Windows bat file while it is running with a different
         // version leads to unpredictable behavior so we make a special case
-        // here and during the upgrade components step.
+        // here and during the upgrade components step.  This file will only
+        // be backed up at the end of the process if everything went fine.
         if (Utils.isWindows() &&
                 fileName.equals(Installation.WINDOWS_UPGRADE_FILE_NAME)) {
           continue;
         }
 
         fm.move(f, filesBackupDirectory, filter);
+      }
+    } catch (ApplicationException ae) {
+      throw ae;
+    } catch (Exception e) {
+      throw new ApplicationException(
+          ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
+              INFO_ERROR_BACKUP_FILESYSTEM.get(),
+              e);
+    }
+  }
+
+  /**
+   * This method is called at the end of the upgrade process if everything went
+   * fine since the reverter requires to have the upgrade file to properly
+   * complete (see issue 2784).
+   * @throws ApplicationException if there was an error backing up the upgrade
+   * file.
+   */
+  private void backupWindowsUpgradeFile() throws ApplicationException {
+    try
+    {
+      if (Utils.isWindows())
+      {
+        File filesBackupDirectory = getFilesBackupDirectory();
+        FileManager fm = new FileManager();
+        File root = getInstallation().getRootDirectory();
+        File f = new File(root, Installation.WINDOWS_UPGRADE_FILE_NAME);
+        fm.copy(f, filesBackupDirectory);
       }
     } catch (ApplicationException ae) {
       throw ae;
