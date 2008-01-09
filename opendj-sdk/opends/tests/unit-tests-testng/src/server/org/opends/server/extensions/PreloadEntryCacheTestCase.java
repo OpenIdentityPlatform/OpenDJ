@@ -50,7 +50,7 @@ import static org.testng.Assert.*;
 /**
  * The entry cache pre-load test class.
  */
-@Test(groups = { "entrycache", "slow" }, sequential=true)
+@Test(enabled=false, groups = { "entrycache", "slow" }, sequential=true)
 public class PreloadEntryCacheTestCase
        extends ExtensionsTestCase
 {
@@ -74,7 +74,7 @@ public class PreloadEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass(enabled=false)
   @SuppressWarnings("unchecked")
   public void preloadEntryCacheTestInit()
          throws Exception
@@ -164,7 +164,7 @@ public class PreloadEntryCacheTestCase
   /**
    * Tests the entry cache pre-load.
    */
-  @Test()
+  @Test(enabled=false)
   public void testEntryCachePreload()
          throws Exception
   {
@@ -195,7 +195,7 @@ public class PreloadEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass(enabled=false)
   public void preloadEntryCacheTestFini()
          throws Exception
   {
