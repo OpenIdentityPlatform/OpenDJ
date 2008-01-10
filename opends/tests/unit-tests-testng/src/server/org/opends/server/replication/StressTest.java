@@ -177,7 +177,7 @@ public class StressTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available.
-    TestCaseUtils.startServer();
+    TestCaseUtils.restartServer();
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();
