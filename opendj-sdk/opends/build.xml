@@ -1017,12 +1017,16 @@
       <classes dir="${dsml.classes.dir}" />
 
       <lib dir="${dsml.lib.dir}">
-        <exclude name="j2ee.jar" />
+        <include name="activation.jar" />
+        <include name="jaxb-api.jar" />
+        <include name="jaxb-impl.jar" />
+        <include name="jsr173_1.0_api.jar" />
+        <include name="saaj-1.3.jar" />
+        <include name="saaj-impl-1.3.jar" />
       </lib>
 
       <lib dir="${pdir}/lib">
-        <exclude name="activation.jar" />
-        <exclude name="je.jar" />
+        <include name="${SHORT_NAME}.jar" />
       </lib>
     </war>
 
