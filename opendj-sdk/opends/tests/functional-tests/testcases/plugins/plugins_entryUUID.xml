@@ -37,16 +37,16 @@
 
                         
 <!---
-#@TestMarker          Plugin entryUUID
-#@TestName            Plugin entryUUID
+#@TestMarker            Plugin entryUUID
+#@TestName              Plugin entryUUID
 #@TestIssue             Check the plugin entryUUID
-#@TestPreamble       none
+#@TestPreamble          none
 #@TestStep              Enable the plugin entryUUID
 #@TestStep              Disable  the virtual attribute entryUUID
 #@TestStep              Add an entry
 #@TestStep              Execute ldapsearch request to get entryUUID attribute
-#@TestPostamble     none
-#@TestResult           The test is passed if the attribute entryUUID is returned
+#@TestPostamble         none
+#@TestResult            The test is passed if the attribute entryUUID is returned
 -->  
     
  <testcase name="getTestCaseName('Plugins entryUUID setup')">
@@ -55,14 +55,14 @@
 
     <message>'-- Disable the virtual attribute entryUUID --'</message>   
     <call function="'dsconfig'">
-      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
+      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'         : 'set-virtual-attribute-prop' ,
-        'objectType'            : 'attribute-name',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-virtual-attribute-prop' ,
+        'objectType'           : 'name',
         'objectName'           : 'entryUUID',
-        'optionsString'         : '--set enabled:false',
+        'optionsString'        : '--set enabled:false',
         'expectedRC'           : 0 } 
     </call>    
     
@@ -72,16 +72,16 @@
   
                         
 <!---
-#@TestMarker          Plugin entryUUID
-#@TestName            Plugin entryUUID
+#@TestMarker            Plugin entryUUID
+#@TestName              Plugin entryUUID
 #@TestIssue             Check the plugin entryUUID
-#@TestPreamble       none
+#@TestPreamble          none
 #@TestStep              Enable the plugin entryUUID
 #@TestStep              Disable  the virtual attribute entryUUID
 #@TestStep              Add an entry
 #@TestStep              Execute ldapsearch request to get entryUUID attribute
-#@TestPostamble     none
-#@TestResult           The test is passed if the attribute entryUUID is returned
+#@TestPostamble         none
+#@TestResult            The test is passed if the attribute entryUUID is returned
 -->  
     
  <testcase name="getTestCaseName('Plugins entryUUID enable')">
@@ -93,11 +93,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Entry UUID',
-        'optionsString'          : '--set enabled:true',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Entry UUID',
+        'optionsString'        : '--set enabled:true',
         'expectedRC'           : 0 } 
     </call>	
 
@@ -115,7 +115,7 @@
       listAttr.append('cn:testuser_entryuuid')
       listAttr.append('mail:testuser_entryuuid')      
     </script>
-	 
+       
     
     <call function="'addAnEntry'">
       { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
@@ -135,11 +135,11 @@
      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-        'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-        'dsBaseDN'        : 'uid=testuser_entryuuid,%s' % DIRECTORY_INSTANCE_SFX,
-        'dsFilter'            : 'objectclass=*'	,
+        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+        'dsBaseDN'         : 'uid=testuser_entryuuid,%s' % DIRECTORY_INSTANCE_SFX,
+        'dsFilter'         : 'objectclass=*'	,
         'dsScope'          : 'base',		
-        'attributes'	      : 'entryUUID',
+        'attributes'	   : 'entryUUID',
         'expectedRC'	    :  0 }
     </call>  		
 
@@ -169,29 +169,29 @@
     <message>'-- Disable the entryUUID plugin --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
         'subcommand'           : 'set-plugin-prop' ,
-        'objectType'              : 'plugin-name' ,
-        'objectName'             : 'Entry UUID',
-        'optionsString'           : '--set enabled:false',
-        'expectedRC'             : 0 } 
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Entry UUID',
+        'optionsString'        : '--set enabled:false',
+        'expectedRC'           : 0 } 
     </call>
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
 
 <!---
-#@TestMarker          Plugin entryUUID
-#@TestName            Plugin entryUUID
+#@TestMarker            Plugin entryUUID
+#@TestName              Plugin entryUUID
 #@TestIssue             Check the plugin entryUUID
-#@TestPreamble       none
+#@TestPreamble          none
 #@TestStep              Disable the plugin entryUUID
 #@TestStep              Disable  the virtual attribute entryUUID
 #@TestStep              Add an entry
 #@TestStep              Execute ldapsearch request to get entryUUID attribute
-#@TestPostamble     none
+#@TestPostamble         none
 #@TestResult           The test is passed if the attribute entryUUID is not returned
 -->  
     
@@ -205,11 +205,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Entry UUID',
-        'optionsString'          : '--set enabled:false',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Entry UUID',
+        'optionsString'        : '--set enabled:false',
         'expectedRC'           : 0 } 
     </call>	
 
@@ -242,15 +242,15 @@
     <!-- The plugin is disabled. the attribute entryUUID should not be returned -->
     <message>'######  Check the plugin entryUUID ###### '</message>     
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        : 'uid=testuser_entryuuid,%s' % DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=*'	,
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'         : 'uid=testuser_entryuuid,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'         : 'objectclass=*'	,
           'dsScope'          : 'base',		
-          'attributes'	      : 'entryUUID',
-          'expectedRC'	    :  0 }
+          'attributes'	     : 'entryUUID',
+          'expectedRC'	     :  0 }
     </call>  		
  
     <script>
@@ -259,13 +259,13 @@
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'entryUUID',
-         'expectedResult'	   : '0' }
+         'expectedResult'  : '0' }
     </call>    
    
     <message>'######  Cleanup ###### '</message>         
     <message>'-- Delete the test entry --'</message>
     <call function="'DeleteEntry'">
-     { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,

@@ -74,12 +74,12 @@
 
          <call function="'addAnEntry'">    
          { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-            'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
-            'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+            'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+            'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
             'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-            'DNToAdd'             : 'cn=%s,%s' % (username,DIRECTORY_INSTANCE_SFX),
-            'listAttributes'        : listAttr,
-            'expectedRC'         :  0
+            'DNToAdd'           : 'cn=%s,%s' % (username,DIRECTORY_INSTANCE_SFX),
+            'listAttributes'    : listAttr,
+            'expectedRC'        :  0
           }
          </call>                      
       </sequence>
@@ -165,12 +165,12 @@
     <!-- Check the group configuration -->
     <call function="'SearchObject'">
      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
+          'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,	
           'dsBaseDN'        :  'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
-          'attributes'        : 'uniqueMember',
+          'dsFilter'        : 'objectclass=groupOfUniqueNames'	,
+          'attributes'      : 'uniqueMember',
           'expectedRC'	    :  0 }
     </call>  		
 
@@ -184,16 +184,16 @@
          'expectedResult'	   : '1' }
     </call>                
     
- <!-- Check the group configuration -->
+   <!-- Check the group configuration -->
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
+     { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'          :  'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'          : 'objectclass=groupOfUniqueNames'	,
           'attributes'        : 'uniqueMember',
-          'expectedRC'	    :  0 }
+          'expectedRC'	      :  0 }
     </call>  		
 
 
@@ -203,7 +203,7 @@
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'uniqueMember',
-         'expectedResult'	   : '1' }
+         'expectedResult'  : '1' }
     </call>                
         
     
@@ -228,13 +228,13 @@
           
          
 <!--
-#@TestMarker       Plugin referential integrity
-#@TestName         Referential integrity check on group after a change of base DN
-#@TestPreamble    none
+#@TestMarker         Plugin referential integrity
+#@TestName           Referential integrity check on group after a change of base DN
+#@TestPreamble       none
 #@TestStep           Check change of the base-dn  attribute is dynamic
 #@TestStep           Delete the user06
 #@TestStep           Check that the references to the deleted user are still present
-#@TestPostamble    none
+#@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
     
@@ -275,11 +275,11 @@
     <message>' '</message>
 
     <call function="'DeleteEntry'">
-     { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
         'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	          :  'cn=user06,%s' % (DIRECTORY_INSTANCE_SFX),
+        'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+        'dsBaseDN'          :  'cn=user06,%s' % (DIRECTORY_INSTANCE_SFX),
       }
     </call>   
     
@@ -354,13 +354,13 @@
                        
                           
 <!--
-#@TestMarker       Plugin referential integrity
-#@TestName         Referential integrity check on GROUPS
-#@TestPreamble    none
+#@TestMarker         Plugin referential integrity
+#@TestName           Referential integrity check on GROUPS
+#@TestPreamble       none
 #@TestStep           Delete a user
 #@TestStep           Check that the references to the deleted user are gone.
 #@TestStep           Check that the references to an existing user are still present.
-#@TestPostamble    none
+#@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
     
@@ -376,23 +376,23 @@
 
     <call function="'DeleteEntry'">
      { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
-        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	          :  'cn=user01,%s' % (DIRECTORY_INSTANCE_SFX),
+        'dsBaseDN'	   :  'cn=user01,%s' % (DIRECTORY_INSTANCE_SFX),
       }
     </call>   
         
 
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
+     { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST ,
+          'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'          :  DIRECTORY_INSTANCE_SFX,
+          'dsFilter'          : 'objectclass=groupOfUniqueNames'	,
           'attributes'        : 'uniquemember',
-          'expectedRC'	    :  0 }
+          'expectedRC'	      :  0 }
     </call>  		
     
     <script>
@@ -402,14 +402,14 @@
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'user01',
-         'expectedResult'	   : '0' }
+         'expectedResult'  : '0' }
     </call>                
 
     <message>'references to an existing user must be still present' </message>
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'user02',
-         'expectedResult'	   : '1' }
+         'expectedResult'  : '1' }
     </call>           
     
     <call function="'testCase_Postamble'"/>
@@ -420,13 +420,13 @@
 
                   
 <!--
-#@TestMarker       Plugin referential integrity
-#@TestName         Referential integrity check on GROUPS after a change of configuration
-#@TestPreamble    none
+#@TestMarker        Plugin referential integrity
+#@TestName          Referential integrity check on GROUPS after a change of configuration
+#@TestPreamble      none
 #@TestStep           Check change of the attribute-type attribute is dynamic
 #@TestStep           Delete the user02  
 #@TestStep           Check that the references to the deleted user are still present
-#@TestPostamble    none
+#@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
     
@@ -442,11 +442,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--remove attribute-type:uniquemember',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Referential Integrity',
+        'optionsString'        : '--remove attribute-type:uniquemember',
         'expectedRC'           : 0 } 
     </call>	    
     
@@ -456,10 +456,10 @@
 
     <call function="'DeleteEntry'">
      { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
-        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'	   : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	          :  'cn=user02,%s' % (DIRECTORY_INSTANCE_SFX),
+        'dsBaseDN'	   :  'cn=user02,%s' % (DIRECTORY_INSTANCE_SFX),
       }
     </call>   
     
@@ -467,14 +467,14 @@
     <message>'Check the new configuration is applied'</message>   
     
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
-          'attributes'        : 'uniquemember',
-          'expectedRC'	    :  0 }
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'         :  DIRECTORY_INSTANCE_SFX,
+          'dsFilter'         : 'objectclass=groupOfUniqueNames'	,
+          'attributes'       : 'uniquemember',
+          'expectedRC'	     :  0 }
     </call>  		
     
     <script>
@@ -484,7 +484,7 @@
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'user02',
-         'expectedResult'	   : '1' }
+         'expectedResult'  : '1' }
     </call>                
     
   <message>'######  Restore the attribute uniquemember from the list of attribute-type ###### '</message>
@@ -542,24 +542,32 @@
     </call>	    
 
     <!-- plugin-type attribute is not dynamic. Need to restart the server -->
-	  <call function="'RestartDs'">
-     { 'dsHost'	  : DIRECTORY_INSTANCE_HOST,
-        'dsPort'	  : DIRECTORY_INSTANCE_PORT,
+    <call function="'StopDsWithScript'">
+      { 'location'  : STAF_REMOTE_HOSTNAME,
+        'dsHost'    : DIRECTORY_INSTANCE_HOST,
+        'dsPort'    : DIRECTORY_INSTANCE_PORT,
         'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-        'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
-    }
+	'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
+        'dsRestart' : ' ' }
     </call>
-            
+  
+    <!--- Check that DS started -->
+    <call function="'isAlive'">
+     { 'noOfLoops'		: 5 ,
+       'noOfMilliSeconds' : 2000
+     }
+    </call>
+    
     <!-- Delete an entry -->
     <message>'######  Delete an user entry###### '</message>
     <message>' '</message>
 
     <call function="'DeleteEntry'">
-     { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
         'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	          :  'cn=user05,%s' % (DIRECTORY_INSTANCE_SFX),
+        'dsInstanceDn'	    : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+        'dsBaseDN'          :  'cn=user05,%s' % (DIRECTORY_INSTANCE_SFX),
       }
     </call>   
     
@@ -567,14 +575,14 @@
     <message>'Check the new configuration is applied'</message>   
     
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
-          'attributes'        : 'uniquemember',
-          'expectedRC'	    :  0 }
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'         :  DIRECTORY_INSTANCE_SFX,
+          'dsFilter'         : 'objectclass=groupOfUniqueNames'	,
+          'attributes'       : 'uniquemember',
+          'expectedRC'	     :  0 }
     </call>  		
     
     <script>
@@ -634,11 +642,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--set enabled:false',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Referential Integrity',
+        'optionsString'        : '--set enabled:false',
         'expectedRC'           : 0 } 
     </call>	    
     
@@ -649,11 +657,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--set attribute-type:uniquemember --set attribute-type:member',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Referential Integrity',
+        'optionsString'        : '--set attribute-type:uniquemember --set attribute-type:member',
         'expectedRC'           : 0 } 
     </call>	    
     
@@ -664,10 +672,10 @@
 
     <call function="'DeleteEntry'">
      { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
-        'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'	      : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
         'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-        'dsBaseDN'	          :  'cn=user07,%s' % (DIRECTORY_INSTANCE_SFX),
+        'dsBaseDN'         :  'cn=user07,%s' % (DIRECTORY_INSTANCE_SFX),
       }
     </call>   
     
@@ -676,14 +684,14 @@
     <message>'Check the new configuration is applied'</message>   
     
     <call function="'SearchObject'">
-     { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
+     { 'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
           'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
-          'attributes'        : 'uniquemember',
-          'expectedRC'	    :  0 }
+          'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'         :  DIRECTORY_INSTANCE_SFX,
+          'dsFilter'         : 'objectclass=groupOfUniqueNames'	,
+          'attributes'       : 'uniquemember',
+          'expectedRC'	     :  0 }
     </call>  		
     
     <script>
@@ -693,7 +701,7 @@
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'user07',
-         'expectedResult'	   : '1' }
+         'expectedResult'  : '1' }
     </call>                
     
     <call function="'testCase_Postamble'"/>
