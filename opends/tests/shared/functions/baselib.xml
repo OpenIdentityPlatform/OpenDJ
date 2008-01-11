@@ -85,9 +85,9 @@
               DSInfo.ServerDict['server buildid']= \
                 DSInfo.getServerValueFromKey('Build ID',DSInfo.SystemDict)
               DSInfo.ServerDict['java version']= \
-                DSInfo.getServerValueFromKey('Java Version',DSInfo.SystemDict)
+                DSInfo.getServerValueFromKey('JAVA Version',DSInfo.SystemDict)
               DSInfo.ServerDict['java vendor']= \
-                DSInfo.getServerValueFromKey('Java Vendor',DSInfo.SystemDict)
+                DSInfo.getServerValueFromKey('JAVA Vendor',DSInfo.SystemDict)
               DSInfo.ServerDict['jvm version']= \
                 DSInfo.getServerValueFromKey('JVM Version',DSInfo.SystemDict)
               DSInfo.ServerDict['jvm vendor']= \
