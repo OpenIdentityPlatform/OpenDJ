@@ -1,1 +1,1 @@
-ant/bin/ant ${*}
+../../../ext/ant/bin/ant ${*}
