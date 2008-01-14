@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -402,8 +402,8 @@ public class AccessLogger implements
        // Determine the initialization method to use: it must take a
        // single parameter which is the exact type of the configuration
        // object.
-       Method method = theClass.getMethod("initializeAccessLogPublisher",
-                             config.definition().getServerConfigurationClass());
+       Method method = theClass.getMethod("initializeAccessLogPublisher", config
+          .configurationClass());
        method.invoke(AccessLogPublisher, config);
      }
      catch (InvocationTargetException ite)

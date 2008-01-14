@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -469,9 +469,8 @@ public class AttributeSyntaxConfigManager
 
       if (initialize)
       {
-        Method method =
-             syntax.getClass().getMethod("initializeSyntax",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = syntax.getClass().getMethod("initializeSyntax",
+            configuration.configurationClass());
         method.invoke(syntax, configuration);
       }
       else

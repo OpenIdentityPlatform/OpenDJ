@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.loggers.debug;
@@ -408,8 +408,8 @@ public class DebugLogger implements
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      Method method = theClass.getMethod("initializeDebugLogPublisher",
-                             config.definition().getServerConfigurationClass());
+      Method method = theClass.getMethod("initializeDebugLogPublisher", config
+          .configurationClass());
       method.invoke(debugLogPublisher, config);
     }
     catch (InvocationTargetException ite)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -240,8 +240,8 @@ public class LogRotationPolicyConfigManager implements
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      theClass.getMethod("initializeLogRotationPolicy", config.definition()
-          .getServerConfigurationClass());
+      theClass.getMethod("initializeLogRotationPolicy", config
+          .configurationClass());
     } catch (Exception e) {
       Message message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className,
                                   config.dn().toString(),
@@ -269,8 +269,8 @@ public class LogRotationPolicyConfigManager implements
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
       // object.
-      Method method = theClass.getMethod("initializeLogRotationPolicy",
-                             config.definition().getServerConfigurationClass());
+      Method method = theClass.getMethod("initializeLogRotationPolicy", config
+          .configurationClass());
       method.invoke(rotationPolicy, config);
     }
     catch (InvocationTargetException ite)

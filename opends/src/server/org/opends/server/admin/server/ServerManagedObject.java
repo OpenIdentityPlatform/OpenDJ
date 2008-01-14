@@ -149,6 +149,31 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   /**
+   * Deregisters an existing server managed object add listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The instantiable relation definition.
+   * @param listener
+   *          The server managed object add listener.
+   * @throws IllegalArgumentException
+   *           If the instantiable relation definition is not
+   *           associated with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterAddListener(
+      InstantiableRelationDefinition<?, M> d,
+      ServerManagedObjectAddListener<M> listener)
+      throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d);
+    deregisterAddListener(baseDN, listener);
+  }
+
+
+
+  /**
    * Deregisters an existing configuration add listener.
    *
    * @param <M>
@@ -173,6 +198,31 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   /**
+   * Deregisters an existing server managed object add listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The optional relation definition.
+   * @param listener
+   *          The server managed object add listener.
+   * @throws IllegalArgumentException
+   *           If the optional relation definition is not associated
+   *           with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterAddListener(
+      OptionalRelationDefinition<?, M> d,
+      ServerManagedObjectAddListener<M> listener)
+      throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d).getParent();
+    deregisterAddListener(baseDN, listener);
+  }
+
+
+
+  /**
    * Deregisters an existing configuration change listener.
    *
    * @param listener
@@ -184,7 +234,35 @@ public final class ServerManagedObject<S extends Configuration> implements
       if (l instanceof ConfigChangeListenerAdaptor) {
         ConfigChangeListenerAdaptor<?> adaptor =
           (ConfigChangeListenerAdaptor<?>) l;
-        if (adaptor.getConfigurationChangeListener() == listener) {
+        ServerManagedObjectChangeListener<?> l2 = adaptor
+            .getServerManagedObjectChangeListener();
+        if (l2 instanceof ServerManagedObjectChangeListenerAdaptor<?>) {
+          ServerManagedObjectChangeListenerAdaptor<?> adaptor2 =
+            (ServerManagedObjectChangeListenerAdaptor<?>) l2;
+          if (adaptor2.getConfigurationChangeListener() == listener) {
+            adaptor.finalizeChangeListener();
+            configEntry.deregisterChangeListener(adaptor);
+          }
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Deregisters an existing server managed object change listener.
+   *
+   * @param listener
+   *          The server managed object change listener.
+   */
+  public void deregisterChangeListener(
+      ServerManagedObjectChangeListener<? super S> listener) {
+    for (ConfigChangeListener l : configEntry.getChangeListeners()) {
+      if (l instanceof ConfigChangeListenerAdaptor) {
+        ConfigChangeListenerAdaptor<?> adaptor =
+          (ConfigChangeListenerAdaptor<?>) l;
+        if (adaptor.getServerManagedObjectChangeListener() == listener) {
           adaptor.finalizeChangeListener();
           configEntry.deregisterChangeListener(adaptor);
         }
@@ -219,6 +297,31 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   /**
+   * Deregisters an existing server managed object delete listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The instantiable relation definition.
+   * @param listener
+   *          The server managed object delete listener.
+   * @throws IllegalArgumentException
+   *           If the instantiable relation definition is not
+   *           associated with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterDeleteListener(
+      InstantiableRelationDefinition<?, M> d,
+      ServerManagedObjectDeleteListener<M> listener)
+      throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d);
+    deregisterDeleteListener(baseDN, listener);
+  }
+
+
+
+  /**
    * Deregisters an existing configuration delete listener.
    *
    * @param <M>
@@ -234,6 +337,31 @@ public final class ServerManagedObject<S extends Configuration> implements
   public <M extends Configuration> void deregisterDeleteListener(
       OptionalRelationDefinition<?, M> d,
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException {
+    validateRelationDefinition(d);
+
+    DN baseDN = DNBuilder.create(path, d).getParent();
+    deregisterDeleteListener(baseDN, listener);
+  }
+
+
+
+  /**
+   * Deregisters an existing server managed object delete listener.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The optional relation definition.
+   * @param listener
+   *          The server managed object delete listener.
+   * @throws IllegalArgumentException
+   *           If the optional relation definition is not associated
+   *           with this managed object's definition.
+   */
+  public <M extends Configuration> void deregisterDeleteListener(
+      OptionalRelationDefinition<?, M> d,
+      ServerManagedObjectDeleteListener<M> listener)
+      throws IllegalArgumentException {
     validateRelationDefinition(d);
 
     DN baseDN = DNBuilder.create(path, d).getParent();
@@ -491,6 +619,33 @@ public final class ServerManagedObject<S extends Configuration> implements
       InstantiableRelationDefinition<?, M> d,
       ConfigurationAddListener<M> listener) throws IllegalArgumentException,
       ConfigException {
+    registerAddListener(d, new ServerManagedObjectAddListenerAdaptor<M>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when new child server managed object are
+   * added beneath an instantiable relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The instantiable relation definition.
+   * @param listener
+   *          The server managed object add listener.
+   * @throws IllegalArgumentException
+   *           If the instantiable relation definition is not
+   *           associated with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           instantiable relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerAddListener(
+      InstantiableRelationDefinition<?, M> d,
+      ServerManagedObjectAddListener<M> listener)
+      throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d);
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
@@ -520,6 +675,33 @@ public final class ServerManagedObject<S extends Configuration> implements
   public <M extends Configuration> void registerAddListener(
       OptionalRelationDefinition<?, M> d, ConfigurationAddListener<M> listener)
       throws IllegalArgumentException, ConfigException {
+    registerAddListener(d, new ServerManagedObjectAddListenerAdaptor<M>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when a new child server managed object is
+   * added beneath an optional relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The optional relation definition.
+   * @param listener
+   *          The server managed object add listener.
+   * @throws IllegalArgumentException
+   *           If the optional relation definition is not associated
+   *           with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the optional
+   *           relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerAddListener(
+      OptionalRelationDefinition<?, M> d,
+      ServerManagedObjectAddListener<M> listener)
+      throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d).getParent();
     ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d,
@@ -538,6 +720,21 @@ public final class ServerManagedObject<S extends Configuration> implements
    */
   public void registerChangeListener(
       ConfigurationChangeListener<? super S> listener) {
+    registerChangeListener(new ServerManagedObjectChangeListenerAdaptor<S>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when this server managed object is
+   * changed.
+   *
+   * @param listener
+   *          The server managed object change listener.
+   */
+  public void registerChangeListener(
+      ServerManagedObjectChangeListener<? super S> listener) {
     ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(path,
         listener);
     configEntry.registerChangeListener(adaptor);
@@ -585,6 +782,33 @@ public final class ServerManagedObject<S extends Configuration> implements
       InstantiableRelationDefinition<?, M> d,
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
       ConfigException {
+    registerDeleteListener(d, new ServerManagedObjectDeleteListenerAdaptor<M>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when existing child server managed
+   * objects are deleted beneath an instantiable relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The instantiable relation definition.
+   * @param listener
+   *          The server managed objects delete listener.
+   * @throws IllegalArgumentException
+   *           If the instantiable relation definition is not
+   *           associated with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the
+   *           instantiable relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerDeleteListener(
+      InstantiableRelationDefinition<?, M> d,
+      ServerManagedObjectDeleteListener<M> listener)
+      throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d);
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
@@ -615,6 +839,33 @@ public final class ServerManagedObject<S extends Configuration> implements
       OptionalRelationDefinition<?, M> d,
       ConfigurationDeleteListener<M> listener) throws IllegalArgumentException,
       ConfigException {
+    registerDeleteListener(d, new ServerManagedObjectDeleteListenerAdaptor<M>(
+        listener));
+  }
+
+
+
+  /**
+   * Register to be notified when an existing child server managed
+   * object is deleted beneath an optional relation.
+   *
+   * @param <M>
+   *          The type of the child server configuration object.
+   * @param d
+   *          The optional relation definition.
+   * @param listener
+   *          The server managed object delete listener.
+   * @throws IllegalArgumentException
+   *           If the optional relation definition is not associated
+   *           with this managed object's definition.
+   * @throws ConfigException
+   *           If the configuration entry associated with the optional
+   *           relation could not be retrieved.
+   */
+  public <M extends Configuration> void registerDeleteListener(
+      OptionalRelationDefinition<?, M> d,
+      ServerManagedObjectDeleteListener<M> listener)
+      throws IllegalArgumentException, ConfigException {
     validateRelationDefinition(d);
     DN baseDN = DNBuilder.create(path, d).getParent();
     ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d,
@@ -710,7 +961,39 @@ public final class ServerManagedObject<S extends Configuration> implements
           if (l instanceof ConfigAddListenerAdaptor) {
             ConfigAddListenerAdaptor<?> adaptor =
               (ConfigAddListenerAdaptor<?>) l;
-            if (adaptor.getConfigurationAddListener() == listener) {
+            ServerManagedObjectAddListener<?> l2 = adaptor
+                .getServerManagedObjectAddListener();
+            if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
+              ServerManagedObjectAddListenerAdaptor<?> adaptor2 =
+                (ServerManagedObjectAddListenerAdaptor<?>) l2;
+              if (adaptor2.getConfigurationAddListener() == listener) {
+                configEntry.deregisterAddListener(adaptor);
+              }
+            }
+          }
+        }
+      }
+    } catch (ConfigException e) {
+      // Ignore the exception since this implies deregistration.
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+  }
+
+
+
+  // Deregister an add listener.
+  private <M extends Configuration> void deregisterAddListener(DN baseDN,
+      ServerManagedObjectAddListener<M> listener) {
+    try {
+      ConfigEntry configEntry = getListenerConfigEntry(baseDN);
+      if (configEntry != null) {
+        for (ConfigAddListener l : configEntry.getAddListeners()) {
+          if (l instanceof ConfigAddListenerAdaptor) {
+            ConfigAddListenerAdaptor<?> adaptor =
+              (ConfigAddListenerAdaptor<?>) l;
+            if (adaptor.getServerManagedObjectAddListener() == listener) {
               configEntry.deregisterAddListener(adaptor);
             }
           }
@@ -727,7 +1010,7 @@ public final class ServerManagedObject<S extends Configuration> implements
 
 
   // Deregister a delete listener.
-  private <M> void deregisterDeleteListener(DN baseDN,
+  private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
       ConfigurationDeleteListener<M> listener) {
     try {
       ConfigEntry configEntry = getListenerConfigEntry(baseDN);
@@ -736,7 +1019,39 @@ public final class ServerManagedObject<S extends Configuration> implements
           if (l instanceof ConfigDeleteListenerAdaptor) {
             ConfigDeleteListenerAdaptor<?> adaptor =
               (ConfigDeleteListenerAdaptor<?>) l;
-            if (adaptor.getConfigurationDeleteListener() == listener) {
+            ServerManagedObjectDeleteListener<?> l2 = adaptor
+                .getServerManagedObjectDeleteListener();
+            if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
+              ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 =
+                (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
+              if (adaptor2.getConfigurationDeleteListener() == listener) {
+                configEntry.deregisterDeleteListener(adaptor);
+              }
+            }
+          }
+        }
+      }
+    } catch (ConfigException e) {
+      // Ignore the exception since this implies deregistration.
+      if (debugEnabled()) {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+  }
+
+
+
+  // Deregister a delete listener.
+  private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
+      ServerManagedObjectDeleteListener<M> listener) {
+    try {
+      ConfigEntry configEntry = getListenerConfigEntry(baseDN);
+      if (configEntry != null) {
+        for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
+          if (l instanceof ConfigDeleteListenerAdaptor) {
+            ConfigDeleteListenerAdaptor<?> adaptor =
+              (ConfigDeleteListenerAdaptor<?>) l;
+            if (adaptor.getServerManagedObjectDeleteListener() == listener) {
               configEntry.deregisterDeleteListener(adaptor);
             }
           }

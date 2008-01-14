@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+
+
+
 import org.opends.messages.Message;
-
-
 
 import java.util.List;
 
@@ -39,38 +40,41 @@ import org.opends.server.types.ConfigChangeResult;
 /**
  * This interface defines the methods that a Directory Server
  * configurable component should implement if it wishes to be able to
- * receive notifications when an existing configuration is deleted.
+ * receive notifications when an existing server managed object is
+ * deleted.
  *
  * @param <T>
- *          The type of configuration that this listener should be
- *          notified about.
+ *          The type of server managed object that this listener
+ *          should be notified about.
  */
-public interface ConfigurationDeleteListener<T extends Configuration> {
+public interface ServerManagedObjectDeleteListener<T extends Configuration> {
 
   /**
-   * Indicates whether the proposed deletion of an existing
-   * configuration is acceptable to this delete listener.
+   * Indicates whether the proposed deletion of an existing server
+   * managed object is acceptable to this delete listener.
    *
-   * @param configuration
-   *          The configuration that will be deleted.
+   * @param mo
+   *          The server managed object that will be deleted.
    * @param unacceptableReasons
    *          A list that can be used to hold messages about why the
-   *          provided configuration is not acceptable.
+   *          provided server managed object is not acceptable.
    * @return Returns <code>true</code> if the proposed deletion is
    *         acceptable, or <code>false</code> if it is not.
    */
-  public boolean isConfigurationDeleteAcceptable(T configuration,
-      List<Message> unacceptableReasons);
+  public boolean isConfigurationDeleteAcceptable(
+      ServerManagedObject<? extends T> mo, List<Message> unacceptableReasons);
 
 
 
   /**
-   * Deletes an existing configuration from this delete listener.
+   * Deletes an existing server managed object from this delete
+   * listener.
    *
-   * @param configuration
-   *          The existing configuration that will be deleted.
+   * @param mo
+   *          The existing server managed object that will be deleted.
    * @return Returns information about the result of deleting the
-   *         configuration.
+   *         server managed object.
    */
-  public ConfigChangeResult applyConfigurationDelete(T configuration);
+  public ConfigChangeResult applyConfigurationDelete(
+      ServerManagedObject<? extends T> mo);
 }

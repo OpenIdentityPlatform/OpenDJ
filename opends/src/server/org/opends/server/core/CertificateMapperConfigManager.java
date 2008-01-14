@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -401,7 +401,7 @@ public class CertificateMapperConfigManager
       {
         Method method =
              mapper.getClass().getMethod("initializeCertificateMapper",
-                  configuration.definition().getServerConfigurationClass());
+                  configuration.configurationClass());
         method.invoke(mapper, configuration);
       }
       else

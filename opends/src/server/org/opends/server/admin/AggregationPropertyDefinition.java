@@ -51,10 +51,10 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.Conditions;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.server.ServerManagedObjectChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.config.ConfigException;
@@ -250,7 +250,7 @@ public final class AggregationPropertyDefinition
    * disabled.
    */
   private class ReferentialIntegrityChangeListener implements
-      ConfigurationChangeListener<S> {
+      ServerManagedObjectChangeListener<S> {
 
     // The error message which should be returned if an attempt is
     // made to disable the referenced component.
@@ -273,8 +273,8 @@ public final class AggregationPropertyDefinition
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationChange(S configuration) {
-      ServerManagedObject<?> mo = configuration.managedObject();
+    public ConfigChangeResult applyConfigurationChange(
+        ServerManagedObject<? extends S> mo) {
       try {
         if (targetIsEnabledCondition.evaluate(mo)) {
           return new ConfigChangeResult(ResultCode.SUCCESS, false);
@@ -287,7 +287,7 @@ public final class AggregationPropertyDefinition
       // This should not happen - the previous call-back should have
       // trapped this.
       throw new IllegalStateException("Attempting to disable a referenced "
-          + configuration.definition().getUserFriendlyName());
+          + relationDefinition.getChildDefinition().getUserFriendlyName());
     }
 
 
@@ -295,11 +295,11 @@ public final class AggregationPropertyDefinition
     /**
      * {@inheritDoc}
      */
-    public boolean isConfigurationChangeAcceptable(S configuration,
+    public boolean isConfigurationChangeAcceptable(
+        ServerManagedObject<? extends S> mo,
         List<Message> unacceptableReasons) {
       // Always prevent the referenced component from being
       // disabled.
-      ServerManagedObject<?> mo = configuration.managedObject();
       try {
         if (!targetIsEnabledCondition.evaluate(mo)) {
           unacceptableReasons.add(message);
@@ -315,7 +315,7 @@ public final class AggregationPropertyDefinition
 
         Message message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
             .getManagedObjectDefinition().getUserFriendlyName(), String
-            .valueOf(configuration.dn()), StaticUtils.getExceptionMessage(e));
+            .valueOf(mo.getDN()), StaticUtils.getExceptionMessage(e));
         ErrorLogger.logError(message);
         unacceptableReasons.add(message);
         return false;
@@ -369,7 +369,7 @@ public final class AggregationPropertyDefinition
         // isConfigurationDeleteAcceptable() call-back should have
         // trapped this.
         throw new IllegalStateException("Attempting to delete a referenced "
-            + configuration.definition().getUserFriendlyName());
+            + relationDefinition.getChildDefinition().getUserFriendlyName());
       } else {
         return new ConfigChangeResult(ResultCode.SUCCESS, false);
       }

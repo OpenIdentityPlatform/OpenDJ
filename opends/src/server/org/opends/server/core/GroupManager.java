@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -454,9 +454,9 @@ public class GroupManager
 
       if (initialize)
       {
-        Method method =
-             group.getClass().getMethod("initializeGroupImplementation",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = group.getClass()
+            .getMethod("initializeGroupImplementation",
+                configuration.configurationClass());
         method.invoke(group, configuration);
       }
       else

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -564,9 +564,9 @@ public class VirtualAttributeConfigManager
 
       if (initialize)
       {
-        Method method =
-             provider.getClass().getMethod("initializeVirtualAttributeProvider",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = provider.getClass().getMethod(
+            "initializeVirtualAttributeProvider",
+            configuration.configurationClass());
         method.invoke(provider, configuration);
       }
       else

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 
@@ -56,7 +56,7 @@ import org.opends.server.types.ResultCode;
 
 /**
  * An adaptor class which converts {@link ConfigAddListener} callbacks
- * to strongly typed {@link ConfigurationAddListener} callbacks.
+ * to {@link ServerManagedObjectAddListener} callbacks.
  *
  * @param <S>
  *          The type of server configuration handled by the add
@@ -70,9 +70,6 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Cached configuration object between accept/apply callbacks.
-  private S cachedConfiguration;
-
   // Cached managed object between accept/apply callbacks.
   private ServerManagedObject<? extends S> cachedManagedObject;
 
@@ -80,7 +77,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
   // The underlying add listener.
-  private final ConfigurationAddListener<S> listener;
+  private final ServerManagedObjectAddListener<S> listener;
 
   // The optional relation.
   private final OptionalRelationDefinition<?, S> optionalRelation;
@@ -103,12 +100,11 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
    */
   public ConfigAddListenerAdaptor(ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, S> relation,
-      ConfigurationAddListener<S> listener) {
+      ServerManagedObjectAddListener<S> listener) {
     this.path = path;
     this.instantiableRelation = relation;
     this.optionalRelation = null;
     this.listener = listener;
-    this.cachedConfiguration = null;
     this.cachedManagedObject = null;
   }
 
@@ -127,12 +123,11 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
    */
   public ConfigAddListenerAdaptor(ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, S> relation,
-      ConfigurationAddListener<S> listener) {
+      ServerManagedObjectAddListener<S> listener) {
     this.path = path;
     this.optionalRelation = relation;
     this.instantiableRelation = null;
     this.listener = listener;
-    this.cachedConfiguration = null;
     this.cachedManagedObject = null;
   }
 
@@ -157,7 +152,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     // Cached objects are guaranteed to be from previous acceptable
     // callback.
     ConfigChangeResult result = listener
-        .applyConfigurationAdd(cachedConfiguration);
+        .applyConfigurationAdd(cachedManagedObject);
 
     // Now apply post constraint call-backs.
     if (result.getResultCode() == ResultCode.SUCCESS) {
@@ -214,8 +209,6 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
       return false;
     }
 
-    cachedConfiguration = cachedManagedObject.getConfiguration();
-
     // Give up immediately if a constraint violation occurs.
     try {
       cachedManagedObject.ensureIsUsable();
@@ -226,7 +219,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
 
     // Let the add listener decide.
     List<Message> reasons = new LinkedList<Message>();
-    if (listener.isConfigurationAddAcceptable(cachedConfiguration, reasons)) {
+    if (listener.isConfigurationAddAcceptable(cachedManagedObject, reasons)) {
       return true;
     } else {
       generateUnacceptableReason(reasons, unacceptableReason);
@@ -237,12 +230,13 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
 
 
   /**
-   * Get the configuration add listener associated with this adaptor.
+   * Get the server managed object add listener associated with this
+   * adaptor.
    *
-   * @return Returns the configuration add listener associated with
-   *         this adaptor.
+   * @return Returns the server managed object add listener associated
+   *         with this adaptor.
    */
-  ConfigurationAddListener<S> getConfigurationAddListener() {
+  ServerManagedObjectAddListener<S> getServerManagedObjectAddListener() {
     return listener;
   }
 }

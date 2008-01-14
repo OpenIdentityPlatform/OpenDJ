@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -405,9 +405,8 @@ public class PasswordValidatorConfigManager
 
       if (initialize)
       {
-        Method method =
-             validator.getClass().getMethod("initializePasswordValidator",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = validator.getClass().getMethod(
+            "initializePasswordValidator", configuration.configurationClass());
         method.invoke(validator, configuration);
       }
       else

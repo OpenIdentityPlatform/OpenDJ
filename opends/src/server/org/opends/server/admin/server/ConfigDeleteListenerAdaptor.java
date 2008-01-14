@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 
@@ -57,8 +57,7 @@ import org.opends.server.types.ResultCode;
 
 /**
  * An adaptor class which converts {@link ConfigDeleteListener}
- * callbacks to strongly typed {@link ConfigurationDeleteListener}
- * callbacks.
+ * callbacks to {@link ServerManagedObjectDeleteListener} callbacks.
  *
  * @param <S>
  *          The type of server configuration handled by the delete
@@ -72,9 +71,6 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Cached configuration object between accept/apply callbacks.
-  private S cachedConfiguration;
-
   // Cached managed object between accept/apply callbacks.
   private ServerManagedObject<? extends S> cachedManagedObject;
 
@@ -82,7 +78,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
   private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
   // The underlying delete listener.
-  private final ConfigurationDeleteListener<S> listener;
+  private final ServerManagedObjectDeleteListener<S> listener;
 
   // The optional relation.
   private final OptionalRelationDefinition<?, S> optionalRelation;
@@ -105,12 +101,11 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
    */
   public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path,
       InstantiableRelationDefinition<?, S> relation,
-      ConfigurationDeleteListener<S> listener) {
+      ServerManagedObjectDeleteListener<S> listener) {
     this.path = path;
     this.optionalRelation = null;
     this.instantiableRelation = relation;
     this.listener = listener;
-    this.cachedConfiguration = null;
     this.cachedManagedObject = null;
   }
 
@@ -129,12 +124,11 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
    */
   public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path,
       OptionalRelationDefinition<?, S> relation,
-      ConfigurationDeleteListener<S> listener) {
+      ServerManagedObjectDeleteListener<S> listener) {
     this.path = path;
     this.optionalRelation = relation;
     this.instantiableRelation = null;
     this.listener = listener;
-    this.cachedConfiguration = null;
     this.cachedManagedObject = null;
   }
 
@@ -159,7 +153,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
     // Cached objects are guaranteed to be from previous acceptable
     // callback.
     ConfigChangeResult result = listener
-        .applyConfigurationDelete(cachedConfiguration);
+        .applyConfigurationDelete(cachedManagedObject);
 
     // Now apply post constraint call-backs.
     if (result.getResultCode() == ResultCode.SUCCESS) {
@@ -216,7 +210,6 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
       return false;
     }
 
-    cachedConfiguration = cachedManagedObject.getConfiguration();
     List<Message> reasons = new LinkedList<Message>();
 
     // Enforce any constraints.
@@ -246,7 +239,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
     }
 
     // Let the delete listener decide.
-    if (listener.isConfigurationDeleteAcceptable(cachedConfiguration,
+    if (listener.isConfigurationDeleteAcceptable(cachedManagedObject,
         reasons)) {
       return true;
     } else {
@@ -258,13 +251,13 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
 
 
   /**
-   * Get the configuration delete listener associated with this
-   * adaptor.
+   * Get the server managed object delete listener associated with
+   * this adaptor.
    *
-   * @return Returns the configuration delete listener associated with
-   *         this adaptor.
+   * @return Returns the server managed object delete listener
+   *         associated with this adaptor.
    */
-  ConfigurationDeleteListener<S> getConfigurationDeleteListener() {
+  ServerManagedObjectDeleteListener<S> getServerManagedObjectDeleteListener() {
     return listener;
   }
 }

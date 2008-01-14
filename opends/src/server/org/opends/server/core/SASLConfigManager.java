@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -391,9 +391,9 @@ public class SASLConfigManager implements
 
       if (initialize)
       {
-        Method method =
-             handler.getClass().getMethod("initializeSASLMechanismHandler",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = handler.getClass().getMethod(
+            "initializeSASLMechanismHandler",
+            configuration.configurationClass());
         method.invoke(handler, configuration);
       }
       else
