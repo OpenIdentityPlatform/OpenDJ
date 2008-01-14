@@ -820,7 +820,7 @@ addProcessing:
         // There's no point in continuing with anything.  Log the result and
         // return.
         setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
+        appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
 
         return;
       }
