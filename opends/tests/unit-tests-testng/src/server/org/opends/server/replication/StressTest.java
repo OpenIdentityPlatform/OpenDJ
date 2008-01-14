@@ -82,7 +82,7 @@ public class StressTest extends ReplicationTestCase
   /**
    * Stress test from LDAP server to client using the ReplicationBroker API.
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=false, groups="slow")
   public void fromServertoBroker() throws Exception
   {
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
