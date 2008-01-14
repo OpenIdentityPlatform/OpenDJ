@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
   <function name="createTopology">
@@ -31,19 +31,26 @@
       This function creates the topology required by the Test Group/Suite.
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="topologyDescFile" type="optional" default="None">
+      <function-arg-def name="topologyDescFile" 
+                        type="optional" 
+                        default="None">
         <function-arg-description>
           Topology Description file
         </function-arg-description>
         <function-arg-property name="type" value="filePath"/>      
       </function-arg-def>
-      <function-arg-def name="initialiseInstance" type="optional" default="False">
+      <function-arg-def name="initialiseInstance" 
+                        type="optional" 
+                        default="False">
         <function-arg-description>
-          Specifies whether the instance should be initialised with some default data.
+          Specifies whether the instance should be initialised with 
+          some default data.
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
-      <function-arg-def name="sharedDataFolder" type="optional" default="''">
+      <function-arg-def name="sharedDataFolder" 
+                        type="optional" 
+                        default="''">
         <function-arg-description>
           Specifies a relative folder that holds the shared data for the tests
         </function-arg-description>
@@ -62,7 +69,8 @@
       </call>
 
       <if expr="topologyDescFile == None">  
-        <!-- SINGLE instance deployment: read parameters from config.py (done by default) -->
+        <!-- SINGLE instance deployment: read parameters from config.py (done
+          by default) -->
         <sequence>
           <message>
             'SINGLE instance deployment: read parameters from config.py'
@@ -78,19 +86,23 @@
           </if>
         </sequence>
         <else>
-          <!-- MULTIPLE instance deployment: read parameters from topologyDescFile -->
+          <!-- MULTIPLE instance deployment: read parameters from
+            topologyDescFile -->
           <sequence>
             <message>
-              'MULTIPLE instance deployment: read parameters from %s' % topologyDescFile
+              'MULTIPLE instance deployment: read parameters from %s' \
+              % topologyDescFile
             </message>
             
-            <!-- Parse the topology description file and set _topologyServerList -->
+            <!-- Parse the topology description file and set
+              _topologyServerList -->
             <call function="'readTopology'">
               { 'file' : topologyDescFile }
             </call>
             
             <message>
-              'Number of server instances required by the deployment: %s' % len(_topologyServerList)
+              'Number of server instances required by the deployment: %s' \
+              % len(_topologyServerList)
             </message>
             
             <iterate var="server" in="_topologyServerList">
@@ -108,20 +120,6 @@
                   }
                 </call>
                 
-                <!-- Configure replication if required so by the server
-                     !  (i.e. server is a changelog server and/or has synchronized suffixes) 
-                -->
-<!--                <if expr="server.requiresSynchronization()">
-                  <sequence>          
-                    <message>
-                      'Instance requires REPLICATION configuration.'
-                    </message>
-                    <call function="'configureReplication'">
-                      [server]
-                    </call>
-                  </sequence>
-                </if>
--->    
               </sequence>
             </iterate>
           </sequence>
@@ -138,9 +136,12 @@
       files to create an instance: data zip file and OpenDS zip file.
     </function-prolog>    
     <function-map-args>     
-      <function-arg-def name="groupDataDir" type="optional" default="''">
+      <function-arg-def name="groupDataDir" 
+                        type="optional" 
+                        default="''">
         <function-arg-description>
-          Specifies a relative folder that holds the shared data for the test group
+          Specifies a relative folder that holds the shared data for the test
+          group
         </function-arg-description>
         <function-arg-property name="type" value="string"/>     
       </function-arg-def>
@@ -156,7 +157,8 @@
       <call function="'GetEntry'">
         { 'location'  : STAXServiceMachine,
           'entry'     : localTestsGroupDir,
-          'attribute' : 'TYPE' }
+          'attribute' : 'TYPE'
+        }
       </call>
         
       <!-- If the test data is already created then don't redo it -->
@@ -296,53 +298,69 @@
     </function-prolog>
     
     <function-map-args>
-      <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
+      <function-arg-def name="dsHost" 
+                        type="optional" 
+                        default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
-        Hostname where the instance is to be created      
-      </function-arg-description>  
-          <function-arg-property name="type" value="hostname"/>
+          Hostname where the instance is to be created      
+        </function-arg-description>  
+        <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsDir" type="optional" default="DIRECTORY_INSTANCE_DIR">
+      <function-arg-def name="dsDir"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_DIR">
         <function-arg-description>
-        Directory where OpenDS will be installed      
-      </function-arg-description>
-          <function-arg-property name="type" value="filepath"/>
-        </function-arg-def>
-      <function-arg-def name="dsPort" type="optional" default="DIRECTORY_INSTANCE_PORT">
-        <function-arg-description>
-        Directory Server port number      
-      </function-arg-description>
-          <function-arg-property name="type" value="Port number"/>
+          Directory where OpenDS will be installed      
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-      <function-arg-def name="dsSslPort" type="optional" default="DIRECTORY_INSTANCE_SSL_PORT">
+      <function-arg-def name="dsPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_PORT">
         <function-arg-description>
-        Directory Server SSL port number      
-      </function-arg-description>
-          <function-arg-property name="type" value="Port number"/>
+          Directory Server port number      
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
-      <function-arg-def name="dsJmxPort" type="optional" default="None">
+      <function-arg-def name="dsSslPort"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_SSL_PORT">
         <function-arg-description>
-        Directory Server JMX port number      
-      </function-arg-description>
-          <function-arg-property name="type" value="Port number"/>
+          Directory Server SSL port number      
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsJmxPort"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory Server JMX port number      
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
       </function-arg-def>    
-      <function-arg-def name="dsBindDN" type="optional" default="DIRECTORY_INSTANCE_DN">
+      <function-arg-def name="dsBindDN"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_DN">
         <function-arg-description>
-        Directory Manager DN      
-      </function-arg-description>
-          <function-arg-property name="type" value="DN"/>
+          Directory Manager DN      
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
       </function-arg-def>
-      <function-arg-def name="dsBindPwd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
+      <function-arg-def name="dsBindPwd"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_PSWD">
         <function-arg-description>
-        Directory Server SSL port number      
-      </function-arg-description>
-          <function-arg-property name="type" value="string"/>
+          Directory Server SSL port number      
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="dsBaseDN" type="optional" default="DIRECTORY_INSTANCE_SFX">
+      <function-arg-def name="dsBaseDN"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_SFX">
         <function-arg-description>
-        Directory Server base suffix dn      
-      </function-arg-description>
-          <function-arg-property name="type" value="DN"/>
+          Directory Server base suffix dn      
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
       </function-arg-def>
     </function-map-args>
     
@@ -436,12 +454,16 @@
           if not os.path.exists('%s/coverage' % TMPDIR):
             os.mkdir('%s/coverage' % TMPDIR)
             mylog+="    ::mkdir %s/coverage on\n" % TMPDIR
-          if not os.path.exists('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group'])):
+          if not os.path.exists('%s/coverage/%s' 
+                                % (TMPDIR,CurrentTestPath['group'])):
             os.mkdir('%s/coverage/%s' % (TMPDIR,CurrentTestPath['group']))
-            mylog+="    ::mkdir %s/coverage/%s on\n" % (TMPDIR,CurrentTestPath['group'])
-          mylog+="  ::writing to %s/classes/emma.properties" % dsPath
+            mylog+="    ::mkdir %s/coverage/%s on\n" \
+                   % (TMPDIR,CurrentTestPath['group'])
+          mylog+="  ::writing to %s/classes/emma.properties" \
+                 % dsPath
           coveragefh = open( '%s/classes/emma.properties' % dsPath, 'w' )
-          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' % (TMPDIR,CurrentTestPath['group']) )
+          coveragefh.write( 'coverage.out.file=%s/coverage/%s/coverage.ec\n' \
+                            % (TMPDIR,CurrentTestPath['group']) )
           coveragefh.close()
           
       </script>
@@ -494,7 +516,8 @@
     <function-list-args>
       <function-arg-def name="syncserverMap" type="required">
         <function-arg-description>
-          Map containing a Server class instance representing the server to configure.      
+          Map containing a Server class instance representing the server to
+          configure.      
         </function-arg-description>
         <function-arg-property name="type" value="map"/>
       </function-arg-def>
@@ -512,7 +535,8 @@
       </script>
       
       <message>
-        'Configure replication on server on host %s at directory %s' % (syncserver.getHostname(),syncserver.getDir())
+        'Configure replication on server on host %s at directory %s' \
+        % (syncserver.getHostname(),syncserver.getDir())
       </message>
       
       <!-- Copy the replication_conf ldif to remote host -->
@@ -603,7 +627,8 @@
     <sequence>
       <!--- Configure replication using dsconfig -->            
       <message>
-        'Configure replication on server on host %s at directory %s' % (syncserver.getHostname(),syncserver.getDir())  
+        'Configure replication on server on host %s at directory %s' \
+        % (syncserver.getHostname(),syncserver.getDir())  
       </message>
       
       <script>
@@ -625,7 +650,9 @@
           'dsInstancePort' : syncserver.getPort(), 
           'dsInstanceDn'   : syncserver.getRootDn(),
           'dsInstancePswd' : syncserver.getRootPwd(),
-          'entryToBeAdded' : '%s/%s/replication/workaround-2201.ldif' % (syncserver.getDir(), relativeDataDir) }
+          'entryToBeAdded' : '%s/%s/replication/workaround-2201.ldif' \
+                             % (syncserver.getDir(), relativeDataDir)
+        }
       </call>        
       
       <message>
@@ -650,7 +677,8 @@
       <if expr="replicationServer">
         <sequence>
           <message>
-            'Create replication server listening on port: %s' % replicationServer.getPort()
+            'Create replication server listening on port: %s' \
+            % replicationServer.getPort()
           </message>
           <call function="'createReplicationServer'">
             { 'location'              : syncserver.getHostname(),
@@ -877,7 +905,6 @@
     <sequence>
       <!-- Local variables -->
       <script>
-        mylocation=location
         STAFCmdParams=''
         STAFCmd=''
         
@@ -969,7 +996,8 @@
 
 
 
-  <!-- Initialize replicated suffix with the contents of a source server using dsreplication -->
+  <!-- Initialize replicated suffix with the contents of a source server using
+    dsreplication -->
   <function name="initializeReplication">
     <function-prolog>
       This function initializes replicated suffixes with the contents 
@@ -1063,7 +1091,6 @@
     <sequence>
       <!-- Local variables -->
       <script>
-        mylocation=location
         STAFCmdParams=''
         STAFCmd=''
         
@@ -1132,7 +1159,8 @@
   <!-- Disable replication for given baseDN  on server using dsreplication -->
   <function name="disableReplication">
     <function-prolog>
-      This function disables replication for a given baseDN on a server using dsreplication.
+      This function disables replication for a given baseDN on a server using
+      dsreplication.
     </function-prolog>
     <function-map-args>
       <function-arg-def name="location"
@@ -1204,7 +1232,6 @@
     <sequence>
       <!-- Local variables -->
       <script>
-        mylocation=location
         STAFCmdParams=''
         STAFCmd=''
         
@@ -1264,8 +1291,8 @@
   <function name="readTopology">
     <function-prolog>
       This function reads the topology from a given file.
-      It parses the topology description file and sets _topologyServerList, a list of the servers
-      that form the topology.
+      It parses the topology description file and sets _topologyServerList, a
+      list of the servers that form the topology.
     </function-prolog>
 
     <function-map-args>
@@ -1328,7 +1355,8 @@
           elif line.find('ChangelogServer') != -1:
             changelogList.append( line[line.find('ChangelogServer') + 16:].strip() )
           elif (line.isspace()) or (len(line) == 0):
-            server = Server(hostname, dir, port, sslport, jmxport, rootDn, rootPwd, baseDn)
+            server = Server(hostname, dir, port, sslport, jmxport, rootDn,
+                            rootPwd, baseDn)
             
             if changelogport != None:
               changelogServer = ChangelogServer(changelogport, serverId)
@@ -1362,7 +1390,8 @@
             serverId += 1
         
         if hostname != None:
-          server = Server(hostname, dir, port, sslport, jmxport, rootDn, rootPwd, baseDn)
+          server = Server(hostname, dir, port, sslport, jmxport, rootDn,
+                          rootPwd, baseDn)
           
           if changelogport != None:
             changelogServer = ChangelogServer(changelogport, serverId)
@@ -1395,13 +1424,17 @@
     </function-prolog>
     
     <function-map-args>
-      <function-arg-def name="dsHost" type="optional" default="DIRECTORY_INSTANCE_HOST">
+      <function-arg-def name="dsHost"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_HOST">
         <function-arg-description>
           Hostname where the instance is to be created      
         </function-arg-description>  
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsDir" type="optional" default="DIRECTORY_INSTANCE_DIR">
+      <function-arg-def name="dsDir"
+                        type="optional"
+                        default="DIRECTORY_INSTANCE_DIR">
         <function-arg-description>
           Directory where OpenDS will be installed      
         </function-arg-description>
@@ -1469,20 +1502,25 @@
       This function removes the topology created for the Test Group/Suite.
     </function-prolog>       
     <function-map-args>
-      <function-arg-def name="multipleInstanceTopology" type="optional" default="False">
+      <function-arg-def name="multipleInstanceTopology"
+                        type="optional"
+                        default="False">
         <function-arg-description>
           Tells whether it is a single (i.e. parameters read from config.py) or
-          a multiple-instance topology (i.e. parameters read from topology desc file).
+          a multiple-instance topology (i.e. parameters read from topology desc
+          file).
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>      
       </function-arg-def>  
     </function-map-args>
     <sequence>
       <if expr="multipleInstanceTopology == False">  
-        <!-- SINGLE instance deployment: parameters read from config.py (done by default) -->
+        <!-- SINGLE instance deployment: parameters read from config.py (done by
+          default) -->
         <call function="'removeInstance'" />
         <else>
-          <!-- MULTIPLE instance deployment: parameters read from topologyDescFile -->
+          <!-- MULTIPLE instance deployment: parameters read from
+            topologyDescFile -->
           <iterate var="server" in="_topologyServerList">
             <call function="'removeInstance'">
               { 'dsHost' : server.getHostname(),
@@ -1494,4 +1532,481 @@
       </if>
     </sequence>
   </function>
+    
+
+
+  <!-- Prepare instance(s) for external re-initialisation of replicated suffix
+    using dsreplication -->
+  <function name="preInitializeReplication">
+    <function-prolog>
+      This function prepares one or all instances in a topology for the external
+      re-initialisation of replicated suffixes using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+
+      <function-arg-def name="localOnly"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Only the contents of the specified server will be initialised.
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean" />
+      </function-arg-def>                     
+                                    
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="DN list" />
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" 
+                                   type="optional"
+                                   default="AdminUID">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+        <function-arg-property name="type" value="UID" />
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" 
+                                   type="optional"
+                                   default="AdminPswd">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <message>
+        'Preparing instance %s:%s for external initialization' \
+         % (dsInstanceHost,dsInstancePort)
+      </message>                
+        
+      <!-- Local variables -->
+      <script>
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSREPLICATION,fileExt)
+        
+        STAFCmdParamsList=[]
+          
+        STAFCmdParamsList.append('pre-external-initialization')          
+        STAFCmdParamsList.append('-n')                    
+        STAFCmdParamsList.append('-Q')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+      
+        if localOnly:
+          STAFCmdParamsList.append('-l')
+            
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+                    
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+      
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)          
+                    
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Pre-Initialize Replication',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>
+
+    
+        
+
+  <!-- End process of instance(s) external re-initialisation of replicated 
+    suffix using dsreplication -->
+  <function name="postInitializeReplication">
+    <function-prolog>
+      This function ends the process of the external re-initialisation of 
+      replicated suffixes in one or all instances in a topology using 
+      dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>    
+                                    
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="DN list" />
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" 
+                                   type="optional"
+                                   default="AdminUID">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+        <function-arg-property name="type" value="UID" />
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" 
+                                   type="optional"
+                                   default="AdminPswd">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <message>
+        'Post-processing external initialization of instance %s:%s' \
+         % (dsInstanceHost,dsInstancePort)
+      </message>                
+        
+      <!-- Local variables -->
+      <script>
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+          STAFCmd='%s/%s%s' % (dsBinPath,DSREPLICATION,fileExt)
+        
+        STAFCmdParamsList=[]
+          
+        STAFCmdParamsList.append('post-external-initialization')          
+        STAFCmdParamsList.append('-n')                    
+        STAFCmdParamsList.append('-Q')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+            
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+                    
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+      
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)          
+                    
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Post-Initialize Replication',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams
+        }
+      </call>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>        
+            
+    
+    
+  <!-- Reset replicated suffix with the backup of a source server using
+    dsreplication -->
+  <function name="resetReplicationData">
+    <function-prolog>
+      This function resets the data in a replicated suffix with the backup
+      of a source server and re-initialises the topology using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath"
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="sourceInstanceHost"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="sourceInstancePort" 
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+        
+      <function-arg-def name="sourceInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="sourceInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+        
+      <function-arg-def name="backupDir" type="required">
+        <function-arg-description>
+          The name of the backup directory
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>                  
+                                    
+      <function-arg-def name="suffixDn" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" 
+                        type="optional"
+                        default="AdminUID">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+        <function-arg-property name="type" value="UID" />
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" 
+                        type="optional"
+                        default="AdminPswd">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>        
+      
+      <function-arg-def name="expectedRC" 
+                        type="optional" 
+                        default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <message>
+        'Resetting %s data in replication topology using backup %s on instance \
+         %s:%s' % (suffixDn,backupDir,sourceInstanceHost,sourceInstancePort)
+      </message>                
+
+        
+      <!-- Pre-initialise the servers in the topology -->
+      <call function="'preInitializeReplication'">
+        { 'location'          : location,
+          'dsPath'            : dsPath,
+          'dsInstanceHost'    : sourceInstanceHost,
+          'dsInstancePort'    : sourceInstancePort,
+          'localOnly'         : True,
+          'replicationDnList' : [suffixDn],
+          'adminUID'          : adminUID,
+          'adminPswd'         : adminPswd
+        }
+      </call>                
+        
+      <script>
+        import random
+        import java.util.Date
+        random.seed(java.util.Date().getTime())
+        resetCounter = '%s#%d' \
+         % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
+      </script>        
+      <!-- Restore the data in the server -->
+      <call function="'restoreTask'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : sourceInstanceHost,
+          'dsInstancePort' : sourceInstancePort,
+          'dsInstanceDn'   : sourceInstanceDn,
+          'dsInstancePswd' : sourceInstancePswd,
+          'taskID'         : 'restore task - %s' % resetCounter,
+          'backupDir'      : backupDir
+        }
+      </call>        
+
+      <!-- Post-initialise the servers in the topology -->
+      <call function="'postInitializeReplication'">
+        { 'location'          : location,
+          'dsPath'            : dsPath,
+          'dsInstanceHost'    : sourceInstanceHost,
+          'dsInstancePort'    : sourceInstancePort,
+          'replicationDnList' : [suffixDn],
+          'adminUID'          : adminUID,
+          'adminPswd'         : adminPswd
+        }
+      </call>                
+                
+        
+      <!-- Initialise the servers in the topology -->
+      <call function="'initializeReplication'">
+        { 'location'           : location,
+          'dsPath'             : dsPath,
+          'sourceInstanceHost' : sourceInstanceHost,
+          'sourceInstancePort' : sourceInstancePort,
+          'replicationDnList'  : [suffixDn],
+          'adminUID'           : adminUID,
+          'adminPswd'          : adminPswd
+        }
+      </call>
+        
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checktestRC'">
+        { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'expected'   : expectedRC
+        }
+      </call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>    
+    
 </stax>
