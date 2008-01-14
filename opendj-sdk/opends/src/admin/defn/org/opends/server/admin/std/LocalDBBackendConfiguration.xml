@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -73,6 +73,14 @@
         </adm:property>
         <adm:property name="attribute">
           <adm:value>objectClass</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
+      <adm:default-managed-object name="ds-sync-hist">
+        <adm:property name="index-type">
+          <adm:value>ordering</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>ds-sync-hist</adm:value>
         </adm:property>
       </adm:default-managed-object>
     </adm:one-to-many>
