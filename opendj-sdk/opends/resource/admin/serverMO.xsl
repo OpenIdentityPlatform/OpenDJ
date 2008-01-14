@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -63,17 +63,17 @@
     <xsl:text>{&#xa;</xsl:text>
   </xsl:template>
   <!-- 
-    Template for generating the configuration definition getter.
+    Template for generating the configuration class getter.
   -->
   <xsl:template name="generate-configuration-definition-getter">
     <xsl:value-of
       select="concat('  /**&#xa;',
-                       '   * Get the configuration definition associated with this ', $this-ufn, '.&#xa;',
+                       '   * Gets the configuration class associated with this ', $this-ufn, '.&#xa;',
                        '   *&#xa;',
-                       '   * @return Returns the configuration definition associated with this ', $this-ufn, '.&#xa;',
+                       '   * @return Returns the configuration class associated with this ', $this-ufn, '.&#xa;',
                        '   */&#xa;')" />
     <xsl:value-of
-      select="concat('  ManagedObjectDefinition&lt;? extends ', $this-java-class,'CfgClient, ? extends ', $this-java-class,'Cfg&gt; definition();&#xa;')" />
+      select="concat('  Class&lt;? extends ', $this-java-class,'Cfg&gt; configurationClass();&#xa;')" />
   </xsl:template>
   <!--
     Template for generating the change listener declaration.
@@ -346,10 +346,6 @@
     <xsl:text>&#xa;</xsl:text>
     <xsl:call-template name="generate-import-statements">
       <xsl:with-param name="imports">
-        <xsl:element name="import">
-          <xsl:value-of
-            select="concat($this-package, '.client.', $this-java-class, 'CfgClient')" />
-        </xsl:element>
         <xsl:for-each select="$this-local-properties">
           <xsl:call-template name="get-property-java-imports" >
             <xsl:with-param name="interface" select="'server'" />
@@ -388,7 +384,6 @@
             org.opends.server.admin.server.ConfigurationDeleteListener
           </import>
         </xsl:if>
-        <import>org.opends.server.admin.ManagedObjectDefinition</import>
       </xsl:with-param>
     </xsl:call-template>
     <xsl:text>&#xa;</xsl:text>

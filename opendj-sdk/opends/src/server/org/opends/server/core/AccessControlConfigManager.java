@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -454,9 +454,9 @@ public final class AccessControlConfigManager
 
       if (configuration != null)
       {
-        Method method =
-          provider.getClass().getMethod("initializeAccessControlHandler",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = provider.getClass().getMethod(
+            "initializeAccessControlHandler",
+            configuration.configurationClass());
         if(initialize) {
           method.invoke(provider, configuration);
         }

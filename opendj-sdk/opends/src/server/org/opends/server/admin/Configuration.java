@@ -22,14 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
 
 
 
-import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.types.DN;
 
 
@@ -51,23 +50,10 @@ public interface Configuration {
 
 
   /**
-   * Gets the configuration definition associated with this
-   * configuration.
+   * Gets the configuration class associated with this configuration.
    *
-   * @return Returns the configuration definition associated with this
+   * @return Returns the configuration class associated with this
    *         configuration.
    */
-  ManagedObjectDefinition<? extends ConfigurationClient,
-      ? extends Configuration> definition();
-
-
-
-  /**
-   * Gets the underlying server-side managed object associated with
-   * this configuration.
-   *
-   * @return Returns the underlying server-side managed object
-   *         associated with this configuration.
-   */
-  ServerManagedObject<? extends Configuration> managedObject();
+  Class<? extends Configuration> configurationClass();
 }

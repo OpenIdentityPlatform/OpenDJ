@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 
@@ -172,7 +172,7 @@ public final class ListenerTest extends AdminTestCase {
         ConfigAddListener tmp = dl.getDelayedAddListener();
         if (tmp instanceof ConfigAddListenerAdaptor) {
           ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) tmp;
-          if (al.getConfigurationAddListener() == listener) {
+          if (extractListener(al) == listener) {
             isFound = true;
           }
         }
@@ -201,7 +201,7 @@ public final class ListenerTest extends AdminTestCase {
         ConfigAddListener tmp = dl.getDelayedAddListener();
         if (tmp instanceof ConfigAddListenerAdaptor) {
           ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) tmp;
-          if (al.getConfigurationAddListener() == listener) {
+          if (extractListener(al) == listener) {
             fail("Delayed listener still exists in entry " + parentDN
                 + " when it should have been removed");
 
@@ -221,7 +221,7 @@ public final class ListenerTest extends AdminTestCase {
     for (ConfigAddListener l : configEntry.getAddListeners()) {
       if (l instanceof ConfigAddListenerAdaptor) {
         ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) l;
-        if (al.getConfigurationAddListener() == listener) {
+        if (extractListener(al) == listener) {
           isFound = true;
 
           // Clean up.
@@ -278,7 +278,7 @@ public final class ListenerTest extends AdminTestCase {
     for (ConfigAddListener l : configEntry.getAddListeners()) {
       if (l instanceof ConfigAddListenerAdaptor) {
         ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) l;
-        if (al.getConfigurationAddListener() == listener) {
+        if (extractListener(al) == listener) {
           isFound = true;
 
           // Clean up.
@@ -326,7 +326,7 @@ public final class ListenerTest extends AdminTestCase {
     for (ConfigAddListener l : configEntry.getAddListeners()) {
       if (l instanceof ConfigAddListenerAdaptor) {
         ConfigAddListenerAdaptor<?> al = (ConfigAddListenerAdaptor<?>) l;
-        if (al.getConfigurationAddListener() == listener) {
+        if (extractListener(al) == listener) {
           isFound = true;
 
           // Clean up.
@@ -376,7 +376,7 @@ public final class ListenerTest extends AdminTestCase {
         ConfigDeleteListener tmp = dl.getDelayedDeleteListener();
         if (tmp instanceof ConfigDeleteListenerAdaptor) {
           ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) tmp;
-          if (al.getConfigurationDeleteListener() == listener) {
+          if (extractListener(al) == listener) {
             isFound = true;
           }
         }
@@ -405,7 +405,7 @@ public final class ListenerTest extends AdminTestCase {
         ConfigDeleteListener tmp = dl.getDelayedDeleteListener();
         if (tmp instanceof ConfigDeleteListenerAdaptor) {
           ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) tmp;
-          if (al.getConfigurationDeleteListener() == listener) {
+          if (extractListener(al) == listener) {
             fail("Delayed listener still exists in entry " + parentDN
                 + " when it should have been removed");
 
@@ -425,7 +425,7 @@ public final class ListenerTest extends AdminTestCase {
     for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
       if (l instanceof ConfigDeleteListenerAdaptor) {
         ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) l;
-        if (al.getConfigurationDeleteListener() == listener) {
+        if (extractListener(al) == listener) {
           isFound = true;
 
           // Clean up.
@@ -482,7 +482,7 @@ public final class ListenerTest extends AdminTestCase {
     for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
       if (l instanceof ConfigDeleteListenerAdaptor) {
         ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) l;
-        if (al.getConfigurationDeleteListener() == listener) {
+        if (extractListener(al) == listener) {
           isFound = true;
 
           // Clean up.
@@ -530,7 +530,7 @@ public final class ListenerTest extends AdminTestCase {
     for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
       if (l instanceof ConfigDeleteListenerAdaptor) {
         ConfigDeleteListenerAdaptor<?> al = (ConfigDeleteListenerAdaptor<?>) l;
-        if (al.getConfigurationDeleteListener() == listener) {
+        if (extractListener(al) == listener) {
           isFound = true;
 
           // Clean up.
@@ -542,5 +542,35 @@ public final class ListenerTest extends AdminTestCase {
     if (!isFound) {
       fail("Unable to locate listener adaptor in entry " + relationDN);
     }
+  }
+
+
+
+  // Attempt to extract an add listener from the provided adaptor.
+  private ConfigurationAddListener<?> extractListener(
+      ConfigAddListenerAdaptor<?> al) {
+    ServerManagedObjectAddListener<?> al2 = al
+        .getServerManagedObjectAddListener();
+    if (al2 instanceof ServerManagedObjectAddListenerAdaptor) {
+      ServerManagedObjectAddListenerAdaptor<?> al3 =
+        (ServerManagedObjectAddListenerAdaptor<?>) al2;
+      return al3.getConfigurationAddListener();
+    }
+    return null;
+  }
+
+
+
+  // Attempt to extract a delete listener from the provided adaptor.
+  private ConfigurationDeleteListener<?> extractListener(
+      ConfigDeleteListenerAdaptor<?> al) {
+    ServerManagedObjectDeleteListener<?> al2 = al
+        .getServerManagedObjectDeleteListener();
+    if (al2 instanceof ServerManagedObjectDeleteListenerAdaptor) {
+      ServerManagedObjectDeleteListenerAdaptor<?> al3 =
+        (ServerManagedObjectDeleteListenerAdaptor<?>) al2;
+      return al3.getConfigurationDeleteListener();
+    }
+    return null;
   }
 }

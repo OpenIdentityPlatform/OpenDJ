@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -416,7 +416,7 @@ public class PluginConfigManager
         method.invoke(plugin, configuration, pluginTypes);
 
         method = plugin.getClass().getMethod("initializePlugin", Set.class,
-                      configuration.definition().getServerConfigurationClass());
+            configuration.configurationClass());
         method.invoke(plugin, pluginTypes, configuration);
       }
       else

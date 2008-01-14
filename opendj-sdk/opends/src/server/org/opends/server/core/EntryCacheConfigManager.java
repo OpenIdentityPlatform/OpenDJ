@@ -620,10 +620,8 @@ public class EntryCacheConfigManager
 
       if (initialize)
       {
-        Method method = cache.getClass().getMethod(
-            "initializeEntryCache",
-            configuration.definition().getServerConfigurationClass()
-            );
+        Method method = cache.getClass().getMethod("initializeEntryCache",
+            configuration.configurationClass());
         method.invoke(cache, configuration);
       }
       // This will check if configuration is acceptable on disabled

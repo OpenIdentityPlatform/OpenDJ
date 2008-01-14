@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -606,7 +606,7 @@
       <xsl:call-template name="generate-server-relation-methods" />
     </xsl:for-each>
     <!--
-      Configuration definition getter.
+      Configuration class getter.
     -->
     <xsl:text>&#xa;</xsl:text>
     <xsl:text>&#xa;</xsl:text>
@@ -615,21 +615,8 @@
       select="concat('    /**&#xa;',
                      '     * {@inheritDoc}&#xa;',
                      '     */&#xa;',
-                     '    public ManagedObjectDefinition&lt;? extends ', $this-java-class,'CfgClient, ? extends ', $this-java-class,'Cfg&gt; definition() {&#xa;',
-                     '      return INSTANCE;&#xa;',
-                     '    }&#xa;')" />
-    <!--
-      Server managed object getter.
-    -->
-    <xsl:text>&#xa;</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-    <xsl:text>&#xa;</xsl:text>
-    <xsl:value-of
-      select="concat('    /**&#xa;',
-                     '     * {@inheritDoc}&#xa;',
-                     '     */&#xa;',
-                     '    public ServerManagedObject&lt;? extends ', $this-java-class,'Cfg&gt; managedObject() {&#xa;',
-                     '      return impl;&#xa;',
+                     '    public Class&lt;? extends ', $this-java-class,'Cfg&gt; configurationClass() {&#xa;',
+                     '      return ', $this-java-class, 'Cfg.class;&#xa;',
                      '    }&#xa;')" />
     <!--
       Configuration entry DN getter.

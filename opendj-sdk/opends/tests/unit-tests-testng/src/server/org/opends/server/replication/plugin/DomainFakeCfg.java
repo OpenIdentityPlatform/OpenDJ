@@ -22,17 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
 import java.util.SortedSet;
 
 import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.types.DN;
@@ -72,8 +70,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   /**
    * {@inheritDoc}
    */
-  public ManagedObjectDefinition<? extends ReplicationDomainCfgClient,
-      ? extends ReplicationDomainCfg> definition()
+  public Class<? extends ReplicationDomainCfg> configurationClass()
   {
     return null;
   }

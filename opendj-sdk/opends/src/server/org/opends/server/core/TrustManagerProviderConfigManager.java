@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -399,9 +399,9 @@ public class TrustManagerProviderConfigManager
 
       if (initialize)
       {
-        Method method =
-             provider.getClass().getMethod("initializeTrustManagerProvider",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = provider.getClass().getMethod(
+            "initializeTrustManagerProvider",
+            configuration.configurationClass());
         method.invoke(provider, configuration);
       }
       else

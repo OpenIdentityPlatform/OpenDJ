@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -435,8 +435,7 @@ public class AccountStatusNotificationHandlerConfigManager
       {
         Method method = notificationHandler.getClass().getMethod(
             "initializeStatusNotificationHandler",
-            configuration.definition().getServerConfigurationClass()
-            );
+            configuration.configurationClass());
         method.invoke(notificationHandler, configuration);
       }
       else

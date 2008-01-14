@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -632,9 +632,8 @@ public class MatchingRuleConfigManager
 
       if (initialize)
       {
-        Method method =
-             matchingRule.getClass().getMethod("initializeMatchingRule",
-                  configuration.definition().getServerConfigurationClass());
+        Method method = matchingRule.getClass().getMethod(
+            "initializeMatchingRule", configuration.configurationClass());
         method.invoke(matchingRule, configuration);
       }
       else

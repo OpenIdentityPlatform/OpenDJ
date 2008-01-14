@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -30,7 +30,6 @@ package org.opends.server.admin;
 
 import java.util.SortedSet;
 import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -49,11 +48,11 @@ import org.opends.server.types.DN;
 public interface TestParentCfg extends Configuration {
 
   /**
-   * Get the configuration definition associated with this Test Parent.
+   * Get the configuration class associated with this Test Parent.
    *
-   * @return Returns the configuration definition associated with this Test Parent.
+   * @return Returns the configuration class associated with this Test Parent.
    */
-  ManagedObjectDefinition<? extends TestParentCfgClient, ? extends TestParentCfg> definition();
+  Class<? extends TestParentCfg> configurationClass();
 
 
 

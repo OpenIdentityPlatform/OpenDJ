@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
 import org.opends.messages.Message;
@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 
 import java.util.List;
 
+import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
 
@@ -45,7 +46,7 @@ import org.opends.server.types.ConfigChangeResult;
  *          The type of configuration that this listener should be
  *          notified about.
  */
-public interface ConfigurationChangeListener<T> {
+public interface ConfigurationChangeListener<T extends Configuration> {
 
   /**
    * Indicates whether the proposed change to the configuration is

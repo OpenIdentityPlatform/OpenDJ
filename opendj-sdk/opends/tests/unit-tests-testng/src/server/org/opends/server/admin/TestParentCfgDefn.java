@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -712,8 +712,8 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
     /**
      * {@inheritDoc}
      */
-    public ManagedObjectDefinition<? extends TestParentCfgClient, ? extends TestParentCfg> definition() {
-      return INSTANCE;
+    public Class<? extends TestParentCfg> configurationClass() {
+      return TestParentCfg.class;
     }
 
 

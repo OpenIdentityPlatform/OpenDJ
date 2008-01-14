@@ -70,7 +70,7 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * An adaptor class which converts {@link ConfigChangeListener}
- * call-backs to strongly typed {@link ConfigurationChangeListener}
+ * call-backs to {@link ServerManagedObjectChangeListener}
  * call-backs.
  *
  * @param <S>
@@ -218,7 +218,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
   private final DN dn;
 
   // The underlying change listener.
-  private final ConfigurationChangeListener<? super S> listener;
+  private final ServerManagedObjectChangeListener<? super S> listener;
 
   // The managed object path.
   private final ManagedObjectPath<?, S> path;
@@ -234,7 +234,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
    *          The underlying change listener.
    */
   public ConfigChangeListenerAdaptor(ManagedObjectPath<?, S> path,
-      ConfigurationChangeListener<? super S> listener) {
+      ServerManagedObjectChangeListener<? super S> listener) {
     this.path = path;
     this.dn = DNBuilder.create(path);
     this.listener = listener;
@@ -340,7 +340,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
     cachedManagedObject.setConfigEntry(configEntry);
 
     ConfigChangeResult result = listener
-        .applyConfigurationChange(cachedManagedObject.getConfiguration());
+        .applyConfigurationChange(cachedManagedObject);
 
     // Now apply post constraint call-backs.
     if (result.getResultCode() == ResultCode.SUCCESS) {
@@ -415,8 +415,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
     // Let the change listener decide.
     List<Message> reasons = new LinkedList<Message>();
-    if (listener.isConfigurationChangeAcceptable(cachedManagedObject
-        .getConfiguration(), reasons)) {
+    if (listener.isConfigurationChangeAcceptable(cachedManagedObject,reasons)) {
       return true;
     } else {
       generateUnacceptableReason(reasons, unacceptableReason);
@@ -451,13 +450,14 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
 
 
   /**
-   * Get the configuration change listener associated with this
-   * adaptor.
+   * Get the server managed object change listener associated with
+   * this adaptor.
    *
-   * @return Returns the configuration change listener associated with
-   *         this adaptor.
+   * @return Returns the server managed object change listener
+   *         associated with this adaptor.
    */
-  ConfigurationChangeListener<? super S> getConfigurationChangeListener() {
+  ServerManagedObjectChangeListener<? super S>
+  getServerManagedObjectChangeListener() {
     return listener;
   }
 

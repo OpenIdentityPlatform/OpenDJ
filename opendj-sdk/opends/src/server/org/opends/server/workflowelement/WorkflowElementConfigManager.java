@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement;
 
@@ -395,9 +395,7 @@ public class WorkflowElementConfigManager
       if (initialize)
       {
         Method method = workflowElement.getClass().getMethod(
-            "initializeWorkflowElement",
-            configuration.definition().getServerConfigurationClass()
-            );
+            "initializeWorkflowElement", configuration.configurationClass());
         method.invoke(workflowElement, configuration);
       }
       else
