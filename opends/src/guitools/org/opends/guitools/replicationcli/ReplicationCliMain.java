@@ -2527,7 +2527,9 @@ public class ReplicationCliMain extends ConsoleApplication
         String uid = (String)admin.get(AdministratorProperty.UID);
         if (uid != null)
         {
-          isAdminDefined = uid.equalsIgnoreCase(adminUid);
+          // If the administrator UID is null it means that we are just
+          // checking for the existence of an administrator
+          isAdminDefined = uid.equalsIgnoreCase(adminUid) || (adminUid == null);
           if (isAdminDefined)
           {
             break;
