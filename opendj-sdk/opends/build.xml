@@ -945,11 +945,73 @@
            filemode="755" dirmode="755" />
     </zip>
     <property name="package.built" value="true"/>
+    
     <!-- print a time stamp in Unix 'date' format -->
     <tstamp>
       <format property="package.built.ts" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
     </tstamp>
     <echo message="Package Built: ${package.built.ts}"/>
+  </target>
+
+  <!-- Package the Directory Server for the RPM distribution. -->
+  <target name="package-RPM"
+	  	description="Package the Directory Server for RPM distribution.">
+    <taskdef name="getversionnumber"
+		             classname="org.opends.build.tools.CreateVersionString">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <getversionnumber property="VERSION_NUMBER_STRING" />
+
+    <property name="prefix"    value="/opt/opends"/>
+    <property name="release"   value="0"/>
+    <typedef name="genrpm"
+		             classname="org.opends.build.tools.GenerateRpm">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </typedef>
+
+    <mkdir dir="${build.dir}/rpm/noarch" />
+    <mkdir dir="${build.dir}/rpm/i486" />
+    <mkdir dir="${build.dir}/rpm/i586" />
+    <mkdir dir="${build.dir}/rpm/i686" />
+    <mkdir dir="${build.dir}/rpm/BUILD" />
+    <mkdir dir="${build.dir}/rpm/RPMS" />
+    <mkdir dir="${build.dir}/rpm/SOURCES/${prefix}" />
+    <mkdir dir="${build.dir}/rpm/i386" />
+    <mkdir dir="${build.dir}/rpm/SPECS" />
+    <mkdir dir="${build.dir}/rpm/SRPMS" />
+
+    <genrpm
+    	topDir="${build.dir}/rpm"
+    	prefix="${prefix}"
+    	sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+    	specFileName="${build.dir}/rpm/SPECS/specFile"
+    	version="${VERSION_NUMBER_STRING}"
+    	release="${release}"
+		  overwrite="true">
+    </genrpm>
+
+    <rpm 
+			specfile="specFile"
+			topdir="${build.dir}/rpm"
+      quiet="true"
+    />
+
+    <copy todir="${package.dir}">
+      <fileset dir="${build.dir}/rpm/RPMS/noarch">
+        <include name="*.rpm" />
+      </fileset>
+    </copy>
+
+    <delete dir="${build.dir}/rpm"/>
   </target>
 
 
