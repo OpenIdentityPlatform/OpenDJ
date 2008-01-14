@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -128,6 +128,16 @@
         Process syntax related descriptions.
       -->
       <xsl:choose>
+        <xsl:when test="adm:syntax/adm:aggregation">
+          <!--
+            Process aggregation constraint synopsis (optional).
+          -->
+          <xsl:if
+            test="adm:syntax/adm:aggregation/adm:constraint/adm:synopsis">
+            <xsl:value-of
+              select="concat('property.', normalize-space(@name), '.syntax.aggregation.constraint-synopsis=', normalize-space(adm:syntax/adm:aggregation/adm:constraint/adm:synopsis), '&#xa;')" />
+          </xsl:if>
+        </xsl:when>
         <xsl:when test="adm:syntax/adm:integer">
           <!--
             Process integer syntax unit synopsis (optional).

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -48,6 +48,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AdministratorAction;
+import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.AliasDefaultBehaviorProvider;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
@@ -507,9 +508,19 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     // Display the property synopsis and description.
     app.println();
     app.println(pd.getSynopsis(), 4);
+
     if (pd.getDescription() != null) {
       app.println();
       app.println(pd.getDescription(), 4);
+    }
+
+    if (pd instanceof AggregationPropertyDefinition) {
+      AggregationPropertyDefinition<?, ?> apd =
+        (AggregationPropertyDefinition<?, ?>) pd;
+      if (apd.getSourceConstraintSynopsis() != null) {
+        app.println();
+        app.println(apd.getSourceConstraintSynopsis(), 4);
+      }
     }
 
     // Display the syntax.

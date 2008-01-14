@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="cram-md5-sasl-mechanism-handler"
   plural-name="cram-md5-sasl-mechanism-handlers"
@@ -59,12 +59,19 @@
     <adm:syntax>
       <adm:aggregation relation-name="identity-mapper"
         parent-path="/">
-        <adm:target-needs-enabling-condition>
-          <adm:contains property="enabled" value="true" />
-        </adm:target-needs-enabling-condition>
-        <adm:target-is-enabled-condition>
-          <adm:contains property="enabled" value="true" />
-        </adm:target-is-enabled-condition>
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced identity mapper must be enabled when the
+            <adm:user-friendly-name />
+            is enabled.
+          </adm:synopsis>
+          <adm:target-needs-enabling-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-needs-enabling-condition>
+          <adm:target-is-enabled-condition>
+            <adm:contains property="enabled" value="true" />
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
       </adm:aggregation>
     </adm:syntax>
     <adm:profile name="ldap">

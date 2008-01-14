@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="jmx-connection-handler"
   plural-name="jmx-connection-handlers"
@@ -92,15 +92,23 @@
     <adm:syntax>
       <adm:aggregation relation-name="key-manager-provider"
         parent-path="/">
-        <adm:target-needs-enabling-condition>
-          <adm:and>
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced key manager provider must be enabled when
+            the
+            <adm:user-friendly-name />
+            is enabled and configured to use SSL.
+          </adm:synopsis>
+          <adm:target-needs-enabling-condition>
+            <adm:and>
+              <adm:contains property="enabled" value="true" />
+              <adm:contains property="use-ssl" value="true" />
+            </adm:and>
+          </adm:target-needs-enabling-condition>
+          <adm:target-is-enabled-condition>
             <adm:contains property="enabled" value="true" />
-            <adm:contains property="use-ssl" value="true" />
-          </adm:and>
-        </adm:target-needs-enabling-condition>
-        <adm:target-is-enabled-condition>
-          <adm:contains property="enabled" value="true" />
-        </adm:target-is-enabled-condition>
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
       </adm:aggregation>
     </adm:syntax>
     <adm:profile name="ldap">
