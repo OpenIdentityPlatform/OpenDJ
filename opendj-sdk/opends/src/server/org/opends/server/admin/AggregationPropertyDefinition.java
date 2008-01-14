@@ -39,7 +39,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.SortedSet;
 
 import org.opends.messages.Message;
@@ -1021,8 +1023,56 @@ public final class AggregationPropertyDefinition
    * @return Returns the constraint which should be enforced on the
    *         aggregating managed object.
    */
-  public Constraint getSourceConstraint() {
+  public final Constraint getSourceConstraint() {
     return sourceConstraint;
+  }
+
+
+
+  /**
+   * Gets the optional constraint synopsis of this aggregation
+   * property definition in the default locale. The constraint
+   * synopsis describes when and how referenced managed objects must
+   * be enabled. When there are no constraints between the source
+   * managed object and the objects it references through this
+   * aggregation, <code>null</code> is returned.
+   *
+   * @return Returns the optional constraint synopsis of this
+   *         aggregation property definition in the default locale, or
+   *         <code>null</code> if there is no constraint synopsis.
+   */
+  public final Message getSourceConstraintSynopsis() {
+    return getSourceConstraintSynopsis(Locale.getDefault());
+  }
+
+
+
+  /**
+   * Gets the optional constraint synopsis of this aggregation
+   * property definition in the specified locale.The constraint
+   * synopsis describes when and how referenced managed objects must
+   * be enabled. When there are no constraints between the source
+   * managed object and the objects it references through this
+   * aggregation, <code>null</code> is returned.
+   *
+   * @param locale
+   *          The locale.
+   * @return Returns the optional constraint synopsis of this
+   *         aggregation property definition in the specified locale,
+   *         or <code>null</code> if there is no constraint
+   *         synopsis.
+   */
+  public final Message getSourceConstraintSynopsis(Locale locale) {
+    ManagedObjectDefinitionI18NResource resource =
+      ManagedObjectDefinitionI18NResource.getInstance();
+    String property = "property." + getName()
+        + ".syntax.aggregation.constraint-synopsis";
+    try {
+      return resource
+          .getMessage(getManagedObjectDefinition(), property, locale);
+    } catch (MissingResourceException e) {
+      return null;
+    }
   }
 
 

@@ -1218,36 +1218,67 @@
         </xsd:annotation>
         <xsd:complexType>
           <xsd:sequence>
-            <xsd:element name="target-needs-enabling-condition"
-              minOccurs="0">
+            <xsd:element name="constraint" minOccurs="0">
               <xsd:annotation>
                 <xsd:documentation>
-                  A condition which indicates whether or not referenced
-                  managed objects must be enabled. The default behavior
-                  is that all referenced managed objects must be
-                  enabled.
+                  An optional constraint on the relationship between
+                  this managed object and referenced managed objects.
+                  The constraint specifies when and how referenced
+                  managed objects must be enabled.
                 </xsd:documentation>
               </xsd:annotation>
               <xsd:complexType>
                 <xsd:sequence>
-                  <xsd:group ref="tns:condition-group" />
-                </xsd:sequence>
-              </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="target-is-enabled-condition"
-              minOccurs="0">
-              <xsd:annotation>
-                <xsd:documentation>
-                  A condition which indicates whether or not referenced
-                  managed objects are enabled. Managed objects are
-                  assumed to be enabled by default.
-                </xsd:documentation>
-              </xsd:annotation>
-              <xsd:complexType>
-                <xsd:sequence>
-                  <xsd:sequence>
-                    <xsd:group ref="tns:condition-group" />
-                  </xsd:sequence>
+                  <xsd:element name="synopsis"
+                    type="tns:rich-description-type">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        A brief description of the constraints
+                        applicable to referenced managed objects. The
+                        description should describe, preferably in one
+                        sentence, when referenced should be enabled and
+                        how they should be enabled. The synopsis should
+                        be suitable for use in applications such as
+                        tool-tips, CLI help, and the summary description
+                        in Javadoc. It is possible to embed rich content
+                        including XHTML markup (this will only be used
+                        where supported).
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="target-needs-enabling-condition"
+                    minOccurs="0">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        A condition which indicates whether or not
+                        referenced managed objects must be enabled. The
+                        default behavior is that all referenced managed
+                        objects must be enabled.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                      <xsd:sequence>
+                        <xsd:group ref="tns:condition-group" />
+                      </xsd:sequence>
+                    </xsd:complexType>
+                  </xsd:element>
+                  <xsd:element name="target-is-enabled-condition"
+                    minOccurs="0">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        A condition which indicates whether or not
+                        referenced managed objects are enabled. Managed
+                        objects are assumed to be enabled by default.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                      <xsd:sequence>
+                        <xsd:sequence>
+                          <xsd:group ref="tns:condition-group" />
+                        </xsd:sequence>
+                      </xsd:sequence>
+                    </xsd:complexType>
+                  </xsd:element>
                 </xsd:sequence>
               </xsd:complexType>
             </xsd:element>

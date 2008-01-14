@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="ldap-connection-handler"
   plural-name="ldap-connection-handlers"
@@ -138,18 +138,26 @@
     <adm:syntax>
       <adm:aggregation relation-name="key-manager-provider"
         parent-path="/">
-        <adm:target-needs-enabling-condition>
-          <adm:and>
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced key manager provider must be enabled when
+            the
+            <adm:user-friendly-name />
+            is enabled and configured to use SSL or StartTLS.
+          </adm:synopsis>
+          <adm:target-needs-enabling-condition>
+            <adm:and>
+              <adm:contains property="enabled" value="true" />
+              <adm:or>
+                <adm:contains property="use-ssl" value="true" />
+                <adm:contains property="allow-start-tls" value="true" />
+              </adm:or>
+            </adm:and>
+          </adm:target-needs-enabling-condition>
+          <adm:target-is-enabled-condition>
             <adm:contains property="enabled" value="true" />
-            <adm:or>
-              <adm:contains property="use-ssl" value="true" />
-              <adm:contains property="allow-start-tls" value="true" />
-            </adm:or>
-          </adm:and>
-        </adm:target-needs-enabling-condition>
-        <adm:target-is-enabled-condition>
-          <adm:contains property="enabled" value="true" />
-        </adm:target-is-enabled-condition>
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
       </adm:aggregation>
     </adm:syntax>
     <adm:profile name="ldap">
@@ -161,7 +169,7 @@
   <adm:property name="trust-manager-provider">
     <adm:synopsis>
       Specifies the name of the trust manager that should be used with
-      this
+      the
       <adm:user-friendly-name />
       .
     </adm:synopsis>
@@ -180,18 +188,26 @@
     <adm:syntax>
       <adm:aggregation relation-name="trust-manager-provider"
         parent-path="/">
-        <adm:target-needs-enabling-condition>
-          <adm:and>
+        <adm:constraint>
+          <adm:synopsis>
+            The referenced trust manager provider must be enabled when
+            the
+            <adm:user-friendly-name />
+            is enabled and configured to use SSL or StartTLS.
+          </adm:synopsis>
+          <adm:target-needs-enabling-condition>
+            <adm:and>
+              <adm:contains property="enabled" value="true" />
+              <adm:or>
+                <adm:contains property="use-ssl" value="true" />
+                <adm:contains property="allow-start-tls" value="true" />
+              </adm:or>
+            </adm:and>
+          </adm:target-needs-enabling-condition>
+          <adm:target-is-enabled-condition>
             <adm:contains property="enabled" value="true" />
-            <adm:or>
-              <adm:contains property="use-ssl" value="true" />
-              <adm:contains property="allow-start-tls" value="true" />
-            </adm:or>
-          </adm:and>
-        </adm:target-needs-enabling-condition>
-        <adm:target-is-enabled-condition>
-          <adm:contains property="enabled" value="true" />
-        </adm:target-is-enabled-condition>
+          </adm:target-is-enabled-condition>
+        </adm:constraint>
       </adm:aggregation>
     </adm:syntax>
     <adm:profile name="ldap">
