@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
@@ -201,4 +201,43 @@ public class MessageBuilderTest extends MessagesTestCase {
     assertTrue(result.equals(m.toString(locale)));
   }
 
+
+
+  @DataProvider(name = "toMessageData2")
+  public Object[][] toMessageData2() {
+    return new Object[][] {
+        {
+            CoreMessages.ERR_ADD_CANNOT_ADD_ROOT_DSE.get(),
+            CoreMessages.ERR_ABANDON_OP_NO_SUCH_OPERATION.get(1),
+            CoreMessages.ERR_ADD_CANNOT_ADD_ROOT_DSE.getCategory(),
+            CoreMessages.ERR_ADD_CANNOT_ADD_ROOT_DSE.getSeverity()
+        },
+        {
+            Message.raw(Category.JEB, Severity.FATAL_ERROR, "test message"),
+            CoreMessages.ERR_ABANDON_OP_NO_SUCH_OPERATION.get(1),
+            Category.JEB,
+            Severity.FATAL_ERROR
+        },
+        {
+            Message.raw("test message"),
+            CoreMessages.ERR_ABANDON_OP_NO_SUCH_OPERATION.get(1),
+            Category.USER_DEFINED,
+            Severity.INFORMATION
+        }
+    };
+  }
+
+
+
+  @Test(dataProvider = "toMessageData2")
+  public void testToMessage2(Message m1, Message m2, Category c, Severity s) {
+    MessageBuilder mb = new MessageBuilder();
+
+    mb.append(m1);
+    mb.append(m2);
+    Message m = mb.toMessage();
+
+    assertEquals(m.getDescriptor().getCategory(), c);
+    assertEquals(m.getDescriptor().getSeverity(), s);
+  }
 }
