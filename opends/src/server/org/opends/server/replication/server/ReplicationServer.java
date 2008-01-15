@@ -119,8 +119,11 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
   private int rcvWindow;
   private int queueSize;
   private String dbDirname = null;
-  private long trimAge; // the time (in sec) after which the  changes must
-                        // be deleted from the persistent storage.
+
+  // The delay (in sec) after which the  changes must
+  // be deleted from the persistent storage.
+  private long purgeDelay;
+
   private int replicationPort;
   private boolean stopListen = false;
   private ReplSessionSecurity replSessionSecurity;
@@ -158,7 +161,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     if (replicationServers == null)
       replicationServers = new ArrayList<String>();
     queueSize = configuration.getQueueSize();
-    trimAge = configuration.getReplicationPurgeDelay();
+    purgeDelay = configuration.getReplicationPurgeDelay();
     dbDirname = configuration.getReplicationDBDirectory();
     rcvWindow = configuration.getWindowSize();
     if (dbDirname == null)
@@ -582,7 +585,7 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
    */
   long getTrimage()
   {
-    return trimAge * 1000;
+    return purgeDelay * 1000;
   }
 
   /**
@@ -628,7 +631,17 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
     if (replicationServers == null)
       replicationServers = new ArrayList<String>();
     queueSize = configuration.getQueueSize();
-    trimAge = configuration.getReplicationPurgeDelay();
+    long newPurgeDelay = configuration.getReplicationPurgeDelay();
+    if (newPurgeDelay != purgeDelay)
+    {
+      purgeDelay = newPurgeDelay;
+      // propagate
+      for (ReplicationServerDomain domain : baseDNs.values())
+      {
+        domain.setPurgeDelay(purgeDelay);
+      }
+    }
+
     rcvWindow = configuration.getWindowSize();
 
     // changing the listen port requires to stop the listen thread
