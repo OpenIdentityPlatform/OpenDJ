@@ -1288,7 +1288,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
-  protected ApplicationTrustManager getTrustManager()
+  public ApplicationTrustManager getTrustManager()
   {
     return getUninstallUserData().getTrustManager();
   }
