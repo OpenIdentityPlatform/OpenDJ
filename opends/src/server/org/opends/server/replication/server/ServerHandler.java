@@ -553,7 +553,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
           heartbeatThread = new HeartbeatThread(
               "replication Heartbeat to " + serverURL +
               " for " + this.baseDn,
-              session, heartbeatInterval);
+              session, heartbeatInterval/3);
           heartbeatThread.start();
         }
 

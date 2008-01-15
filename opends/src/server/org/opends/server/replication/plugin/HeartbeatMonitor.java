@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.plugin;
@@ -121,12 +121,12 @@ public class HeartbeatMonitor extends DirectoryThread
             // Heartbeat is well overdue so the server is assumed to be dead.
             logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
             session.close();
+            break;
           }
           else
           {
             gotOneFailure = true;
           }
-          break;
         }
         else
         {
