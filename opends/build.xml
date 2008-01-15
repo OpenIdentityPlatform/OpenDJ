@@ -969,14 +969,14 @@
 
     <property name="prefix"    value="/opt/opends"/>
     <property name="release"   value="0"/>
-    <typedef name="genrpm"
+    <taskdef name="genrpm"
 		             classname="org.opends.build.tools.GenerateRpm">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="*.jar" />
         </fileset>
       </classpath>
-    </typedef>
+    </taskdef>
 
     <mkdir dir="${build.dir}/rpm/noarch" />
     <mkdir dir="${build.dir}/rpm/i486" />
@@ -1011,7 +1011,7 @@
       </fileset>
     </copy>
 
-    <delete dir="${build.dir}/rpm"/>
+    <!-- <delete dir="${build.dir}/rpm"/> -->
   </target>
 
 
