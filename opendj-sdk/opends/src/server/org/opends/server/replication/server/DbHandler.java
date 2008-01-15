@@ -340,6 +340,8 @@ public class DbHandler implements Runnable
       flush();
 
     db.shutdown();
+    DirectoryServer.deregisterMonitorProvider(
+        dbMonitor.getMonitorInstanceName());
   }
 
   /**

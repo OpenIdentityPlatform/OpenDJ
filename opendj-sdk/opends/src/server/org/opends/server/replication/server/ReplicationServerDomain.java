@@ -33,7 +33,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
@@ -1585,5 +1584,19 @@ public class ReplicationServerDomain
         missingChanges += missingChangesFromSID;
       }
       return missingChanges;
+    }
+
+    /**
+     * Set the purge delay on all the db Handlers for this Domain
+     * of Replicaiton.
+     *
+     * @param delay The new purge delay to use.
+     */
+    void setPurgeDelay(long delay)
+    {
+      for (DbHandler handler : sourceDbHandlers.values())
+      {
+        handler.setPurgeDelay(delay);
+      }
     }
 }
