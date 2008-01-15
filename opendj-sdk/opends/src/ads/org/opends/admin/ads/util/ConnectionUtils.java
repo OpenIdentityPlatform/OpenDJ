@@ -59,7 +59,7 @@ import javax.net.ssl.TrustManager;
  */
 public class ConnectionUtils
 {
-  private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 10000;
+  private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 30000;
 
   private static final String STARTTLS_PROPERTY =
     "org.opends.connectionutils.isstarttls";

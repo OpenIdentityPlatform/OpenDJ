@@ -576,7 +576,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Returns the trust manager that can be used to establish secure connections.
    * @return the trust manager that can be used to establish secure connections.
    */
-  protected ApplicationTrustManager getTrustManager()
+  public ApplicationTrustManager getTrustManager()
   {
     if (trustManager == null)
     {

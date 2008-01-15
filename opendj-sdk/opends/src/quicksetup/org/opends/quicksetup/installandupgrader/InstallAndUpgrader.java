@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.installandupgrader;
 
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -531,5 +532,14 @@ public class InstallAndUpgrader extends GuiApplication
       userData = new InstallAndUpgradeUserData();
     }
     return userData;
+  }
+
+  /**
+   * Returns the trust manager that can be used to establish secure connections.
+   * @return the trust manager that can be used to establish secure connections.
+   */
+  public ApplicationTrustManager getTrustManager()
+  {
+    return getDelegateApplication().getTrustManager();
   }
 }
