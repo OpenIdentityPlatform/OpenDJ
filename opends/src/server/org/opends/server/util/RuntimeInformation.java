@@ -35,7 +35,11 @@
  import java.lang.management.RuntimeMXBean;
  import java.lang.management.ManagementFactory;
  import java.util.List;
- import com.sleepycat.je.JEVersion;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+import com.sleepycat.je.JEVersion;
 
 
  /**
@@ -149,16 +153,34 @@
    }
 
    /**
-    * Returns the physical memory size, in bytes, of the hardware we are
-    * running on.
-    *
-    * @return Bytes of physical memory of the hardware we are running on.
-    */
-   private static long getPhysicalMemorySize() {
-     com.sun.management.OperatingSystemMXBean mxbean =
-             (com.sun.management.OperatingSystemMXBean)
-             ManagementFactory.getOperatingSystemMXBean();
-     return mxbean.getTotalPhysicalMemorySize();
+     * Returns the physical memory size, in bytes, of the hardware we are
+     * running on.
+     *
+     * @return Bytes of physical memory of the hardware we are running on.
+     */
+  private static long getPhysicalMemorySize()
+  {
+    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+    try
+    {
+      // Assuming the RuntimeMXBean has been registered in mbs
+      ObjectName oname = new ObjectName(
+          ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME);
+      // Check if this MXBean contains Sun's extension
+      if (mbs.isInstanceOf(oname, "com.sun.management.OperatingSystemMXBean")) {
+          // Get platform-specific attribute "TotalPhysicalMemorySize"
+          Long l = (Long) mbs.getAttribute(oname, "TotalPhysicalMemorySize");
+          return l ;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+    catch (Exception e)
+    {
+      return -1;
+    }
    }
 
    /**
@@ -215,9 +237,17 @@
     logError(NOTE_JVM_INFO.get(System.getProperty("java.vm.version"),
                                System.getProperty("java.vm.vendor"),
                                getArch(),Runtime.getRuntime().maxMemory()));
-    logError(NOTE_JVM_HOST.get(getHostName(),getOSInfo(),
-                               getPhysicalMemorySize(),
-                               Runtime.getRuntime().availableProcessors()));
+    Long physicalMemorySize = getPhysicalMemorySize();
+    if (physicalMemorySize != -1)
+    {
+      logError(NOTE_JVM_HOST.get(getHostName(), getOSInfo(),
+          physicalMemorySize, Runtime.getRuntime().availableProcessors()));
+    }
+    else
+    {
+      logError(NOTE_JVM_HOST_WITH_UNKNOWN_PHYSICAL_MEM.get(getHostName(),
+          getOSInfo(), Runtime.getRuntime().availableProcessors()));
+    }
     logError(NOTE_JVM_ARGS.get(getInputArguments()));
    }
  }
