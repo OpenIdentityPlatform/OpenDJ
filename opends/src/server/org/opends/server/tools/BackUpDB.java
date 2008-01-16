@@ -1096,17 +1096,19 @@ public class BackUpDB extends TaskTool
 
     // Print a final completed message, indicating whether there were any errors
     // in the process.
+    int ret = 0;
     if (errorsEncountered)
     {
       Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
       logError(message);
+      ret = 1;
     }
     else
     {
       Message message = NOTE_BACKUPDB_COMPLETED_SUCCESSFULLY.get();
       logError(message);
     }
-    return 0;
+    return ret;
   }
 }
 
