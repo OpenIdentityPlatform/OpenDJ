@@ -2172,6 +2172,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.441
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.442
+  NAME 'ds-cfg-etime-resolution'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.444
   NAME 'ds-task-reset-generation-id-new-value'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
@@ -2582,7 +2587,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.39
         ds-cfg-return-bind-error-messages $
         ds-cfg-idle-time-limit $
         ds-cfg-workflow-configuration-mode $
-        ds-cfg-save-config-on-successful-startup )
+        ds-cfg-save-config-on-successful-startup $
+        ds-cfg-etime-resolution )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.40
   NAME 'ds-cfg-root-dn-user'

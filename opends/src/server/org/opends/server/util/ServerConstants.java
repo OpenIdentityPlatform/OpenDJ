@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -2768,14 +2768,6 @@ public final class ServerConstants
    */
   public static final String PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG =
        "org.opends.server.UseLastKnownGoodConfiguration";
-
-
-  /**
-   * The name of the system property that can be used to configure the
-   * server to report etimes in nanoseconds instead of milliseconds.
-   */
-  public static final String PROPERTY_ETIME_NANO =
-      "org.opends.server.etime.nano";
 
 
 

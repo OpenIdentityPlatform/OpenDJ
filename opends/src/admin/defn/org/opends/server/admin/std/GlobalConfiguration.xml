@@ -778,4 +778,36 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="etime-resolution" mandatory="false">
+    <adm:synopsis>
+      The resolution to use for operation elapsed processing time (etime)
+      measurements.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          milli-seconds
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="milli-seconds">
+          <adm:synopsis>
+            Use milli-second resolution.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="nano-seconds">
+          <adm:synopsis>
+            Use nano-second resolution.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-etime-resolution</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

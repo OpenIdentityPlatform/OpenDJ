@@ -71,23 +71,24 @@ public class AccessLogger implements
   private static final DebugTracer TRACER = getTracer();
 
   // The set of access loggers that have been registered with the server.  It
-   // will initially be empty.
-   static CopyOnWriteArrayList<AccessLogPublisher> accessPublishers =
-       new CopyOnWriteArrayList<AccessLogPublisher>();
+  // will initially be empty.
+  static CopyOnWriteArrayList<AccessLogPublisher> accessPublishers =
+      new CopyOnWriteArrayList<AccessLogPublisher>();
 
-   // The singleton instance of this class for configuration purposes.
-   static final AccessLogger instance = new AccessLogger();
+  // The singleton instance of this class for configuration purposes.
+  static final AccessLogger instance = new AccessLogger();
 
 
-   /**
-    * Retrieve the singleton instance of this class.
-    *
-    * @return The singleton instance of this logger.
-    */
-   public static AccessLogger getInstance()
-   {
-     return instance;
-   }
+
+  /**
+   * Retrieve the singleton instance of this class.
+   *
+   * @return The singleton instance of this logger.
+   */
+  public static AccessLogger getInstance()
+  {
+    return instance;
+  }
 
   /**
    * Add an access log publisher to the access logger.
@@ -144,101 +145,101 @@ public class AccessLogger implements
    *           If a problem occurs during initialization that is not
    *           related to the server configuration.
    */
-   public void initializeAccessLogger(List<AccessLogPublisherCfg> configs)
-       throws ConfigException, InitializationException
-   {
-     for(AccessLogPublisherCfg config : configs)
-     {
-       config.addAccessChangeListener(this);
+  public void initializeAccessLogger(List<AccessLogPublisherCfg> configs)
+      throws ConfigException, InitializationException
+  {
+    for(AccessLogPublisherCfg config : configs)
+    {
+      config.addAccessChangeListener(this);
 
-       if(config.isEnabled())
-       {
-         AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
+      if(config.isEnabled())
+      {
+        AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
 
-         addAccessLogPublisher(AccessLogPublisher);
-       }
-     }
-   }
-
-  /**
-   * {@inheritDoc}
-   */
-   public boolean isConfigurationAddAcceptable(
-          AccessLogPublisherCfg config,
-          List<Message> unacceptableReasons)
-   {
-     return !config.isEnabled() ||
-         isJavaClassAcceptable(config, unacceptableReasons);
-   }
+        addAccessLogPublisher(AccessLogPublisher);
+      }
+    }
+  }
 
   /**
    * {@inheritDoc}
    */
-   public boolean isConfigurationChangeAcceptable(
-          AccessLogPublisherCfg config,
-          List<Message> unacceptableReasons)
-   {
-     return !config.isEnabled() ||
-         isJavaClassAcceptable(config, unacceptableReasons);
-   }
+  public boolean isConfigurationAddAcceptable(
+      AccessLogPublisherCfg config,
+      List<Message> unacceptableReasons)
+  {
+    return !config.isEnabled() ||
+        isJavaClassAcceptable(config, unacceptableReasons);
+  }
 
   /**
    * {@inheritDoc}
    */
-   public ConfigChangeResult applyConfigurationAdd(AccessLogPublisherCfg config)
-   {
-     // Default result code.
-     ResultCode resultCode = ResultCode.SUCCESS;
-     boolean adminActionRequired = false;
-     ArrayList<Message> messages = new ArrayList<Message>();
-
-     config.addAccessChangeListener(this);
-
-     if(config.isEnabled())
-     {
-       try
-       {
-         AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
-
-         addAccessLogPublisher(AccessLogPublisher);
-       }
-       catch(ConfigException e)
-       {
-         if (debugEnabled())
-         {
-           TRACER.debugCaught(DebugLogLevel.ERROR, e);
-         }
-         messages.add(e.getMessageObject());
-         resultCode = DirectoryServer.getServerErrorResultCode();
-       }
-       catch (Exception e)
-       {
-         if (debugEnabled())
-         {
-           TRACER.debugCaught(DebugLogLevel.ERROR, e);
-         }
-
-         messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
-                 String.valueOf(config.dn().toString()),
-                 stackTraceToSingleLineString(e)));
-         resultCode = DirectoryServer.getServerErrorResultCode();
-       }
-     }
-     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-   }
+  public boolean isConfigurationChangeAcceptable(
+      AccessLogPublisherCfg config,
+      List<Message> unacceptableReasons)
+  {
+    return !config.isEnabled() ||
+        isJavaClassAcceptable(config, unacceptableReasons);
+  }
 
   /**
    * {@inheritDoc}
    */
-   public ConfigChangeResult applyConfigurationChange(
-       AccessLogPublisherCfg config)
-   {
-     // Default result code.
-     ResultCode resultCode = ResultCode.SUCCESS;
-     boolean adminActionRequired = false;
-     ArrayList<Message> messages = new ArrayList<Message>();
+  public ConfigChangeResult applyConfigurationAdd(AccessLogPublisherCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<Message> messages = new ArrayList<Message>();
 
-     DN dn = config.dn();
+    config.addAccessChangeListener(this);
+
+    if(config.isEnabled())
+    {
+      try
+      {
+        AccessLogPublisher AccessLogPublisher = getAccessPublisher(config);
+
+        addAccessLogPublisher(AccessLogPublisher);
+      }
+      catch(ConfigException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        messages.add(e.getMessageObject());
+        resultCode = DirectoryServer.getServerErrorResultCode();
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
+            String.valueOf(config.dn().toString()),
+            stackTraceToSingleLineString(e)));
+        resultCode = DirectoryServer.getServerErrorResultCode();
+      }
+    }
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+      AccessLogPublisherCfg config)
+  {
+    // Default result code.
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    ArrayList<Message> messages = new ArrayList<Message>();
+
+    DN dn = config.dn();
 
     AccessLogPublisher accessLogPublisher = null;
     for(AccessLogPublisher publisher : accessPublishers)
@@ -250,47 +251,47 @@ public class AccessLogger implements
       }
     }
 
-     if(accessLogPublisher == null)
-     {
-       if(config.isEnabled())
-       {
-         // Needs to be added and enabled.
-         return applyConfigurationAdd(config);
-       }
-     }
-     else
-     {
-       if(config.isEnabled())
-       {
-         // The publisher is currently active, so we don't need to do anything.
-         // Changes to the class name cannot be
-         // applied dynamically, so if the class name did change then
-         // indicate that administrative action is required for that
-         // change to take effect.
-         String className = config.getJavaClass();
-         if(!className.equals(accessLogPublisher.getClass().getName()))
-         {
-           adminActionRequired = true;
-         }
-       }
-       else
-       {
-         // The publisher is being disabled so shut down and remove.
-         removeAccessLogPublisher(accessLogPublisher);
-       }
-     }
+    if(accessLogPublisher == null)
+    {
+      if(config.isEnabled())
+      {
+        // Needs to be added and enabled.
+        return applyConfigurationAdd(config);
+      }
+    }
+    else
+    {
+      if(config.isEnabled())
+      {
+        // The publisher is currently active, so we don't need to do anything.
+        // Changes to the class name cannot be
+        // applied dynamically, so if the class name did change then
+        // indicate that administrative action is required for that
+        // change to take effect.
+        String className = config.getJavaClass();
+        if(!className.equals(accessLogPublisher.getClass().getName()))
+        {
+          adminActionRequired = true;
+        }
+      }
+      else
+      {
+        // The publisher is being disabled so shut down and remove.
+        removeAccessLogPublisher(accessLogPublisher);
+      }
+    }
 
-     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-   }
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
 
   /**
    * {@inheritDoc}
    */
-   public boolean isConfigurationDeleteAcceptable(
-          AccessLogPublisherCfg config,
-          List<Message> unacceptableReasons)
-   {
-     DN dn = config.dn();
+  public boolean isConfigurationDeleteAcceptable(
+      AccessLogPublisherCfg config,
+      List<Message> unacceptableReasons)
+  {
+    DN dn = config.dn();
 
     AccessLogPublisher accessLogPublisher = null;
     for(AccessLogPublisher publisher : accessPublishers)
@@ -302,14 +303,14 @@ public class AccessLogger implements
       }
     }
 
-     return accessLogPublisher != null;
+    return accessLogPublisher != null;
 
-   }
+  }
 
   /**
    * {@inheritDoc}
    */
-   public ConfigChangeResult applyConfigurationDelete(
+  public ConfigChangeResult applyConfigurationDelete(
       AccessLogPublisherCfg config)
   {
     // Default result code.
@@ -338,92 +339,92 @@ public class AccessLogger implements
     return new ConfigChangeResult(resultCode, adminActionRequired);
   }
 
-   private boolean isJavaClassAcceptable(AccessLogPublisherCfg config,
-                                         List<Message> unacceptableReasons)
-   {
-     String className = config.getJavaClass();
-     AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
-     ClassPropertyDefinition pd =
-         d.getJavaClassPropertyDefinition();
-     // Load the class and cast it to a DebugLogPublisher.
-     AccessLogPublisher publisher = null;
-     Class<? extends AccessLogPublisher> theClass;
-     try {
-       theClass = pd.loadClass(className, AccessLogPublisher.class);
-       publisher = theClass.newInstance();
-     } catch (Exception e) {
-       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
-               className,
-               config.dn().toString(),
-               String.valueOf(e));
-       unacceptableReasons.add(message);
-       return false;
-     }
-     // Check that the implementation class implements the correct interface.
-     try {
-       // Determine the initialization method to use: it must take a
-       // single parameter which is the exact type of the configuration
-       // object.
-       Method method = theClass.getMethod("isConfigurationAcceptable",
-                                          AccessLogPublisherCfg.class,
-                                          List.class);
-       Boolean acceptable = (Boolean) method.invoke(publisher, config,
-                                                    unacceptableReasons);
+  private boolean isJavaClassAcceptable(AccessLogPublisherCfg config,
+                                        List<Message> unacceptableReasons)
+  {
+    String className = config.getJavaClass();
+    AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
+    ClassPropertyDefinition pd =
+        d.getJavaClassPropertyDefinition();
+    // Load the class and cast it to a DebugLogPublisher.
+    AccessLogPublisher publisher = null;
+    Class<? extends AccessLogPublisher> theClass;
+    try {
+      theClass = pd.loadClass(className, AccessLogPublisher.class);
+      publisher = theClass.newInstance();
+    } catch (Exception e) {
+      Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+          className,
+          config.dn().toString(),
+          String.valueOf(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
+    // Check that the implementation class implements the correct interface.
+    try {
+      // Determine the initialization method to use: it must take a
+      // single parameter which is the exact type of the configuration
+      // object.
+      Method method = theClass.getMethod("isConfigurationAcceptable",
+          AccessLogPublisherCfg.class,
+          List.class);
+      Boolean acceptable = (Boolean) method.invoke(publisher, config,
+          unacceptableReasons);
 
-       if (! acceptable)
-       {
-         return false;
-       }
-     } catch (Exception e) {
-       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
-               className,
-               config.dn().toString(),
-               String.valueOf(e));
-       unacceptableReasons.add(message);
-       return false;
-     }
-     // The class is valid as far as we can tell.
-     return true;
-   }
+      if (! acceptable)
+      {
+        return false;
+      }
+    } catch (Exception e) {
+      Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+          className,
+          config.dn().toString(),
+          String.valueOf(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
+    // The class is valid as far as we can tell.
+    return true;
+  }
 
-   private AccessLogPublisher getAccessPublisher(AccessLogPublisherCfg config)
-       throws ConfigException {
-     String className = config.getJavaClass();
-     AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
-     ClassPropertyDefinition pd =
-         d.getJavaClassPropertyDefinition();
-     // Load the class and cast it to a AccessLogPublisher.
-     Class<? extends AccessLogPublisher> theClass;
-     AccessLogPublisher AccessLogPublisher;
-     try {
-       theClass = pd.loadClass(className, AccessLogPublisher.class);
-       AccessLogPublisher = theClass.newInstance();
+  private AccessLogPublisher getAccessPublisher(AccessLogPublisherCfg config)
+      throws ConfigException {
+    String className = config.getJavaClass();
+    AccessLogPublisherCfgDefn d = AccessLogPublisherCfgDefn.getInstance();
+    ClassPropertyDefinition pd =
+        d.getJavaClassPropertyDefinition();
+    // Load the class and cast it to a AccessLogPublisher.
+    Class<? extends AccessLogPublisher> theClass;
+    AccessLogPublisher AccessLogPublisher;
+    try {
+      theClass = pd.loadClass(className, AccessLogPublisher.class);
+      AccessLogPublisher = theClass.newInstance();
 
-       // Determine the initialization method to use: it must take a
-       // single parameter which is the exact type of the configuration
-       // object.
-       Method method = theClass.getMethod("initializeAccessLogPublisher", config
+      // Determine the initialization method to use: it must take a
+      // single parameter which is the exact type of the configuration
+      // object.
+      Method method = theClass.getMethod("initializeAccessLogPublisher", config
           .configurationClass());
-       method.invoke(AccessLogPublisher, config);
-     }
-     catch (InvocationTargetException ite)
-     {
-       // Rethrow the exceptions thrown be the invoked method.
-       Throwable e = ite.getTargetException();
-       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
-           className, config.dn().toString(), stackTraceToSingleLineString(e));
-       throw new ConfigException(message, e);
-     }
-     catch (Exception e)
-     {
-       Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
-           className, config.dn().toString(), String.valueOf(e));
-       throw new ConfigException(message, e);
-     }
+      method.invoke(AccessLogPublisher, config);
+    }
+    catch (InvocationTargetException ite)
+    {
+      // Rethrow the exceptions thrown be the invoked method.
+      Throwable e = ite.getTargetException();
+      Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+          className, config.dn().toString(), stackTraceToSingleLineString(e));
+      throw new ConfigException(message, e);
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_CONFIG_LOGGER_INVALID_ACCESS_LOGGER_CLASS.get(
+          className, config.dn().toString(), String.valueOf(e));
+      throw new ConfigException(message, e);
+    }
 
-     // The access publisher has been successfully initialized.
-     return AccessLogPublisher;
-   }
+    // The access publisher has been successfully initialized.
+    return AccessLogPublisher;
+  }
 
 
 
@@ -569,7 +570,7 @@ public class AccessLogger implements
 
 
   /**
- * Writes a message to the access logger with information about the compare
+   * Writes a message to the access logger with information about the compare
    * request associated with the provided compare operation.
    *
    * @param  compareOperation  The compare operation containing the information

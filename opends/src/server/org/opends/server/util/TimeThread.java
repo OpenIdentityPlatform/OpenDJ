@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -93,6 +93,9 @@ public final class TimeThread
   // The current time in milliseconds since the epoch.
   private static volatile long time;
 
+  // The current time in nanoseconds.
+  private static volatile long nanoTime;
+
   // The date formatter that will be used to obtain the generalized time.
   private static SimpleDateFormat generalizedTimeFormatter;
 
@@ -139,6 +142,7 @@ public final class TimeThread
     calendar        = new GregorianCalendar();
     date            = calendar.getTime();
     time            = date.getTime();
+    nanoTime        = System.nanoTime();
     generalizedTime = generalizedTimeFormatter.format(date);
     localTimestamp  = localTimestampFormatter.format(date);
     gmtTimestamp    = gmtTimestampFormatter.format(date);
@@ -163,6 +167,7 @@ public final class TimeThread
         calendar        = new GregorianCalendar();
         date            = calendar.getTime();
         time            = date.getTime();
+        nanoTime        = System.nanoTime();
         generalizedTime = generalizedTimeFormatter.format(date);
         localTimestamp  = localTimestampFormatter.format(date);
         gmtTimestamp    = gmtTimestampFormatter.format(date);
@@ -221,6 +226,18 @@ public final class TimeThread
   public static long getTime()
   {
     return time;
+  }
+
+  /**
+   * Retrieves the time in nanoseconds from the most precise available system
+   * timer. The value retured represents nanoseconds since some fixed but
+   * arbitrary time.
+   *
+   * @return The time in nanoseconds from some fixed but arbitrary time.
+   */
+  public static long getNanoTime()
+  {
+    return nanoTime;
   }
 
 
