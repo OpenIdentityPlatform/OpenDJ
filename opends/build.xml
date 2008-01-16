@@ -1270,8 +1270,46 @@
 
 
 
-  <!-- Prepare to execute the Directory Server TestNG unit tests. -->
-  <target name="testinit" depends="buildtools,compile"
+  <!-- Prepare to execute the Directory Server TestNG unit tests. --> 
+  <target name="test.OpenDS.package.required" depends="dynamicconstants">
+    <condition property="test.OpenDS.package.required">
+      <available file="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip"/>
+    </condition>
+  </target>
+  
+  <target name="testinit-package" depends="test.OpenDS.package.required" unless="test.OpenDS.package.required">
+    <echo message="Performing full rebuild (no OpenDS zip package found)"/>
+    <antcall target="package"/>
+  </target>
+  
+  <target name="testinit-recompile" depends="test.OpenDS.package.required" if="test.OpenDS.package.required">
+    <echo message="Performing partial rebuild (OpenDS zip package found)"/>
+    <mkdir dir="${classes.dir}" />
+
+    <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+        destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
+        source="1.5" target="1.5" deprecation="true" fork="true"
+        memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
+      <compilerarg value="-Xlint:all" />
+
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="build-tools.jar" />
+        </fileset>
+      </classpath>
+    </javac>
+
+    <copy todir="${classes.dir}">
+      <fileset dir="${src.dir}" includes="**/*.properties" />
+      <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
+      <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
+    </copy>
+  </target>
+    
+  <target name="testinit" depends="testinit-package,testinit-recompile"
          description="Prepare to execute the Directory Server TestNG unit tests.">
     <!-- If we are to perform coverage tests, then set that up. -->
     <path id="emma.lib">
@@ -1497,7 +1535,7 @@
 
   <!-- Execute all of the Directory Server TestNG unit tests in text mode. -->
   <target name="testall"
-          depends="enableTestNGAssertions,prepdefaultalltest,package,testinit,runtests"
+          depends="enableTestNGAssertions,prepdefaultalltest,testinit,runtests"
           description="Run all of the TestNG tests (including 'slow' ones) with assertions enabled.  See 'testwithcoverage' for properties you can set.">
   </target>
 
