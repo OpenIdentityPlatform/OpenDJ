@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -627,8 +627,9 @@ public class SearchOperationBasis
 
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
-    if ((getTimeLimit() > 0) && (TimeThread.getTime() >=
-                                                getTimeLimitExpiration()))
+    if ((getTimeLimit() > 0) &&
+        ((getUseNanoTime() ? TimeThread.getNanoTime() :
+                             TimeThread.getTime()) >= getTimeLimitExpiration()))
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
       appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
@@ -1054,8 +1055,9 @@ public class SearchOperationBasis
 
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
-    if ((getTimeLimit() > 0) && (TimeThread.getTime() >=
-                                        getTimeLimitExpiration()))
+    if ((getTimeLimit() > 0) &&
+        ((getUseNanoTime() ? TimeThread.getNanoTime() :
+                             TimeThread.getTime()) >= getTimeLimitExpiration()))
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
       appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
@@ -1623,8 +1625,8 @@ public class SearchOperationBasis
     else
     {
       // FIXME -- Factor in the user's effective time limit.
-      timeLimitExpiration =
-        getProcessingStartTime() + (1000L * timeLimit);
+      timeLimitExpiration = getProcessingStartTime() +
+          ((getUseNanoTime() ? 1000000000L : 1000L) * timeLimit);
     }
     setTimeLimitExpiration(timeLimitExpiration);
 

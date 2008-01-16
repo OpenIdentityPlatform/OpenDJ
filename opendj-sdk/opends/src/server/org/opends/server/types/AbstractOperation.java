@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -74,16 +74,6 @@ public abstract class AbstractOperation
    */
   protected static boolean useNanoTime = false;
 
-  static
-  {
-    if(System.getProperty(PROPERTY_ETIME_NANO) != null &&
-         System.getProperty(PROPERTY_ETIME_NANO).
-            equalsIgnoreCase("true"))
-    {
-      useNanoTime = true;
-    }
-  }
-
 
   /**
    * The client connection with which this operation is associated.
@@ -102,6 +92,12 @@ public abstract class AbstractOperation
    * The operation ID for this operation.
    */
   protected final long operationID;
+
+
+  /**
+   * Wether nanotime was used for this operation.
+   */
+  protected final boolean usingNanoTime;
 
 
 
@@ -172,6 +168,7 @@ public abstract class AbstractOperation
     this.clientConnection = clientConnection;
     this.operationID      = operationID;
     this.messageID        = messageID;
+    this.usingNanoTime    = useNanoTime;
 
     if (requestControls == null)
     {
@@ -1045,7 +1042,7 @@ public abstract class AbstractOperation
    */
   public final void setProcessingStartTime()
   {
-    if(useNanoTime)
+    if(usingNanoTime)
     {
       processingStartTime = System.nanoTime();
     }
@@ -1078,7 +1075,7 @@ public abstract class AbstractOperation
    */
   public final void setProcessingStopTime()
   {
-    if(useNanoTime)
+    if(usingNanoTime)
     {
       this.processingStopTime = System.nanoTime();
     }
@@ -1091,16 +1088,46 @@ public abstract class AbstractOperation
 
 
   /**
-   * Retrieves the length of time in milliseconds that the server
-   * spent processing this operation.  This should not be called until
-   * after the server has sent the response to the client.
+   * Retrieves the length of time in milliseconds or nanoseconds that
+   * the server spent processing this operation.  This should not be
+   * called until after the server has sent the response to the
+   * client.
    *
-   * @return  The length of time in milliseconds that the server spent
-   *          processing this operation.
+   * @return  The length of time in milliseconds or nanoseconds that
+   *          the server spent processing this operation.
    */
   public final long getProcessingTime()
   {
     return (processingStopTime - processingStartTime);
+  }
+
+
+
+  /**
+   * Set whether to use nanoTime for the processing time methods.
+   *
+   * @param useNanoTime <code>true</code> to use System.nanoTime
+   *                    or <code>false</code> to use
+   *                    System.currentTimeMillis
+   */
+  public static void setUseNanoTime(boolean useNanoTime)
+  {
+    AbstractOperation.useNanoTime = useNanoTime;
+  }
+
+
+
+  /**
+   * Get whether this operation used System.nanoTime or
+   * System.currentTimeMillis for the processing time methods.
+   *
+   * @return  <code>true</code> if System.nanoTime is used or
+   *          <code>false</code> if System.currentTimeMillis
+   *          was used.
+   */
+  public final boolean getUseNanoTime()
+  {
+    return usingNanoTime;
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -42,12 +42,7 @@ import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ConfigMessages.*;
 
@@ -357,6 +352,9 @@ public class CoreConfigManager
     {
       DirectoryServer.setWorkflowConfigurationMode(newMode);
     }
+
+    AbstractOperation.setUseNanoTime(globalConfig.getEtimeResolution() ==
+      GlobalCfgDefn.EtimeResolution.NANO_SECONDS);
   }
 
 
