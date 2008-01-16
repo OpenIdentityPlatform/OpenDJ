@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -360,6 +360,7 @@ public class ImportLDIF extends TaskTool {
       isEncrypted =
            new BooleanArgument("isencrypted", 'y', "isEncrypted",
                                INFO_LDIFIMPORT_DESCRIPTION_IS_ENCRYPTED.get());
+      isEncrypted.setHidden(true); //See issue #27
       argParser.addArgument(isEncrypted);
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -293,12 +293,14 @@ public class ExportLDIF extends TaskTool {
       encryptLDIF =
            new BooleanArgument("encryptldif", 'y', "encryptLDIF",
                                INFO_LDIFEXPORT_DESCRIPTION_ENCRYPT_LDIF.get());
+      encryptLDIF.setHidden(true); // See issue #27
       argParser.addArgument(encryptLDIF);
 
 
       signHash =
            new BooleanArgument("signhash", 's', "signHash",
                                INFO_LDIFEXPORT_DESCRIPTION_SIGN_HASH.get());
+      signHash.setHidden(true); // See issue #28
       argParser.addArgument(signHash);
 
 
