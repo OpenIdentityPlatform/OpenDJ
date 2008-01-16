@@ -327,6 +327,7 @@ public class BackUpDB extends TaskTool
                 backUpAll.getLongIdentifier(),
                 backendID.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
         return 1;
       }
     }
@@ -336,7 +337,43 @@ public class BackUpDB extends TaskTool
               backUpAll.getLongIdentifier(),
               backendID.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return 1;
+    }
+    else
+    {
+      // Check that the backendID has not been expressed twice.
+      HashSet<String> backendIDLowerCase = new HashSet<String>();
+      HashSet<String> repeatedBackendIds = new HashSet<String>();
+      StringBuilder repeatedBackends = new StringBuilder();
+      for (String id : backendID.getValues())
+      {
+        String lId = id.toLowerCase();
+        if (backendIDLowerCase.contains(lId))
+        {
+          if (!repeatedBackendIds.contains(lId))
+          {
+            repeatedBackendIds.add(lId);
+            if (repeatedBackends.length() > 0)
+            {
+              repeatedBackends.append(", ");
+            }
+            repeatedBackends.append(id);
+          }
+        }
+        else
+        {
+          backendIDLowerCase.add(lId);
+        }
+      }
+      if (repeatedBackends.length() > 0)
+      {
+        Message message = ERR_BACKUPDB_REPEATED_BACKEND_ID.get(
+            repeatedBackends.toString());
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
+        return 1;
+      }
     }
 
     // If the incremental base ID was specified, then make sure it is an
@@ -350,6 +387,7 @@ public class BackUpDB extends TaskTool
                         incrementalBaseID.getLongIdentifier(),
                         incremental.getLongIdentifier());
         err.println(wrapText(message, MAX_LINE_WIDTH));
+        err.println(argParser.getUsage());
         return 1;
       }
     }
@@ -364,6 +402,7 @@ public class BackUpDB extends TaskTool
                       encrypt.getLongIdentifier(),
                       signHash.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return 1;
     }
 
@@ -375,6 +414,7 @@ public class BackUpDB extends TaskTool
               signHash.getLongIdentifier(),
               hash.getLongIdentifier());
       err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
       return 1;
     }
 
