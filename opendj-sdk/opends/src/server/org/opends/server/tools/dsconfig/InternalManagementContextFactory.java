@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -59,7 +59,15 @@ public final class InternalManagementContextFactory implements
     this.context = context;
   }
 
-
+  /**
+   * {@inheritDoc}
+   */
+  public void close()
+  {
+    // No implementation required.
+    // We let the user of this InternalManagementContextFactory close
+    // his/her context.
+  }
 
   /**
    * {@inheritDoc}

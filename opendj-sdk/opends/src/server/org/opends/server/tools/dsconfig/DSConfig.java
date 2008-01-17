@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -742,7 +742,7 @@ public final class DSConfig extends ConsoleApplication {
 
       try {
         // Close the Management context ==> an LDAP UNBIND is sent
-        factory.getManagementContext(this).close();
+        factory.close();
       } catch (Exception e) {
       // Nothing to report in this case
       }
