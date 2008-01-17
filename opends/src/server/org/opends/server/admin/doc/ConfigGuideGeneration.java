@@ -74,7 +74,7 @@ public class ConfigGuideGeneration {
 
   // Note : still to be done :
   // I18n support. Today all the strings are hardcoded in this file
-  
+
   private final String OPENDS_WIKI = "https://www.opends.org/wiki";
   private final String ACI_SYNTAX_PAGE = OPENDS_WIKI + "/page/ACISyntax";
   private final String CSS_FILE = "opends-config.css";
