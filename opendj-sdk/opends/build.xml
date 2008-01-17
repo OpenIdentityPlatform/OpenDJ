@@ -42,6 +42,8 @@
   <property name="ext.dir"          location="ext"                     />
   <property name="package.dir"      location="${build.dir}/package"    />
   <property name="javadoc.dir"      location="${build.dir}/javadoc"    />
+  <property name="docgen.dir"       location="${build.dir}/docgen"    />
+  <property name="configguide.dir"  location="${docgen.dir}/configuration_guide"    />
   <property name="resource.dir"     location="resource"                />
   <property name="scripts.dir"      location="${resource.dir}/bin"     />
   <property name="config.dir"       location="${resource.dir}/config"  />
@@ -157,7 +159,7 @@
 
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
-       depends="checkstyle,dsml,srczip,javadoc,coverage,testallwithcoverage"
+       depends="checkstyle,dsml,srczip,javadoc,docgen,coverage,testallwithcoverage"
        description="Perform all processing needed for nightly builds.">
   </target>
 
@@ -174,7 +176,7 @@
 
   <!-- The build target that should be used to build everything. -->
   <target name="all"
-       depends="checkstyle,clean,checkprecommit,dsml,srczip,javadoc,testallwithcoverage"
+       depends="checkstyle,clean,checkprecommit,dsml,srczip,javadoc,docgen,testallwithcoverage"
        description="Build using all defined targets.">
   </target>
 
@@ -758,7 +760,23 @@
   </target>
 
 
-
+  <!-- Generate the Configuration guide. -->
+  <target name="docgen" depends="compile,copymessages"
+       description="Generate the Configuration guide (html).">
+    <mkdir dir="${configguide.dir}" />
+    <!-- copy the stylesheet file -->
+    <copy todir="${configguide.dir}"
+          file="${config.dir}/opends-config.css" />
+    <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <dirset dir="${classes.dir}" />
+      </classpath>
+      <arg value="${configguide.dir}"/>
+    </java>         
+  </target>
 
   <!-- Populate the Directory Server package, but don't zip it up. -->
   <target name="prepackage" depends="cleancompile"
