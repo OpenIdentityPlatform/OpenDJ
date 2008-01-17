@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 import org.opends.messages.Message;
@@ -667,15 +667,6 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         if ( ! found )
         {
           throw new ADSContextException (ErrorType.NOT_YET_REGISTERED) ;
-        }
-        Set groupList = (Set) serverProperties.get(ServerProperty.GROUPS);
-        if (groupList != null)
-        {
-          for (Object groupId : groupList.toArray())
-          {
-            DsFrameworkCliServerGroup.removeServerFromGroup(adsCtx,
-                (String) groupId, serverId);
-          }
         }
 
         // unregister the server

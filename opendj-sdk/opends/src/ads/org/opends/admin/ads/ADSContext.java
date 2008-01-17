@@ -504,7 +504,7 @@ public class ADSContext
         serverProperties.put(ServerProperty.ID,newServerId);
       }
       BasicAttributes attrs = makeAttrsFromServerProperties(serverProperties);
-      dirContext.modifyAttributes(dn, InitialLdapContext.REPLACE_ATTRIBUTE,
+      dirContext.modifyAttributes(dn, DirContext.REPLACE_ATTRIBUTE,
           attrs);
       if (serverProperties.containsKey(
                                 ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
@@ -542,12 +542,85 @@ public class ADSContext
     LdapName dn = makeDNFromServerProperties(serverProperties);
     try
     {
+      if (serverProperties.containsKey(
+          ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE))
+      {
+        unregisterInstanceKeyCertificate(serverProperties, dn);
+      }
       dirContext.destroySubcontext(dn);
     }
     catch (NameNotFoundException x)
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.NOT_YET_REGISTERED);
+    }
+    catch (NamingException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+
+    // Unregister the server in server groups
+    try
+    {
+      NamingEnumeration ne;
+      SearchControls sc = new SearchControls();
+
+      String serverID = getServerID(serverProperties);
+      if (serverID != null)
+      {
+        String memberAttrName = ServerGroupProperty.MEMBERS.getAttributeName();
+        String filter = "("+memberAttrName+"=cn="+serverID+")";
+        sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+        ne = dirContext.search(getServerGroupContainerDN(), filter, sc);
+        while (ne.hasMore())
+        {
+          SearchResult sr = (SearchResult)ne.next();
+          String groupDn = sr.getNameInNamespace();
+          BasicAttribute newAttr = new BasicAttribute(memberAttrName);
+          NamingEnumeration attrs = sr.getAttributes().getAll();
+          while (attrs.hasMore())
+          {
+            Attribute attr = (Attribute)attrs.next();
+            String attrID = attr.getID();
+
+            if (attrID.equalsIgnoreCase(memberAttrName))
+            {
+              NamingEnumeration ae = attr.getAll();
+              while (ae.hasMore())
+              {
+                String value = (String)ae.next();
+                if (!value.equalsIgnoreCase("cn="+serverID))
+                {
+                  newAttr.add(value);
+                }
+              }
+            }
+          }
+          BasicAttributes newAttrs = new BasicAttributes();
+          newAttrs.put(newAttr);
+          if (newAttr.size() > 0)
+          {
+            dirContext.modifyAttributes(groupDn, DirContext.REPLACE_ATTRIBUTE,
+                newAttrs);
+          }
+          else
+          {
+            dirContext.modifyAttributes(groupDn, DirContext.REMOVE_ATTRIBUTE,
+                newAttrs);
+          }
+        }
+      }
+    }
+    catch (NameNotFoundException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.BROKEN_INSTALL);
+    }
+    catch (NoPermissionException x)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ACCESS_PERMISSION);
     }
     catch (NamingException x)
     {
@@ -2191,6 +2264,23 @@ public class ADSContext
     helper.registerInstanceKeyCertificate(dirContext, serverProperties,
         serverEntryDn);
   }
+
+  /**
+  Unregister instance key-pair public-key certificate provided in
+  serverProperties..
+  @param serverProperties Properties of the server being unregistered to which
+  the instance key entry belongs.
+  @param serverEntryDn The server's ADS entry DN.
+  @throws NamingException In case some JNDI operation fails.
+  */
+ private void unregisterInstanceKeyCertificate(
+         Map<ServerProperty, Object> serverProperties,
+         LdapName serverEntryDn)
+ throws ADSContextException {
+   ADSContextHelper helper = new ADSContextHelper();
+   helper.unregisterInstanceKeyCertificate(dirContext, serverProperties,
+       serverEntryDn);
+ }
 
   /**
    Return the set of valid (i.e., not tagged as compromised) instance key-pair

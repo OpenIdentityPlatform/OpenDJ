@@ -1217,8 +1217,16 @@ public class ReplicationCliMain extends ConsoleApplication
       if (!disableSchema && !disableADS)
       {
         println();
-        cancelled = !askConfirmation(
-            INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true, LOG);
+        if (disableAllBaseDns(ctx, uData))
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_DISABLE_LAST_SUFFIXES.get(), true, LOG);
+        }
+        else
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true, LOG);
+        }
         println();
       }
     }
@@ -4593,8 +4601,90 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
+    /**
+     * Try to figure out if we must explicitly disable replication on
+     * cn=admin data and cn=schema.
+     */
+    boolean forceDisableSchema = false;
+    boolean forceDisableADS = false;
+    boolean schemaReplicated = false;
+    boolean adsReplicated = false;
+    boolean disableAllBaseDns = disableAllBaseDns(ctx, uData);
+
+    Collection<ReplicaDescriptor> replicas = getReplicas(ctx);
+    for (ReplicaDescriptor rep : replicas)
+    {
+      String dn = rep.getSuffix().getDN();
+      if (rep.isReplicated())
+      {
+        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        {
+          adsReplicated = true;
+        }
+        else if (Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+        {
+          schemaReplicated = true;
+        }
+      }
+    }
+
+    if (disableAllBaseDns)
+    {
+      // Unregister the server from the ADS
+      server.updateAdsPropertiesWithServerProperties();
+      try
+      {
+        adsCtx.unregisterServer(server.getAdsProperties());
+        try
+        {
+          // To be sure that the change gets propagated
+          Thread.sleep(2000);
+        }
+        catch (Throwable t)
+        {
+        }
+      }
+      catch (ADSContextException adce)
+      {
+        LOG.log(Level.INFO, "Error unregistering server: "+
+            server.getAdsProperties(), adce);
+        println();
+        println(
+            ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
+        println();
+      }
+    }
+
+    if (disableAllBaseDns)
+    {
+      forceDisableSchema = schemaReplicated;
+      forceDisableADS = adsReplicated;
+      for (String dn : uData.getBaseDNs())
+      {
+        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        {
+          // The user already asked this to be explicitly disabled
+          forceDisableADS = false;
+        }
+        else if (Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+        {
+          // The user already asked this to be explicitly disabled
+          forceDisableSchema = false;
+        }
+      }
+    }
+    Set<String> suffixesToDisable = new HashSet<String>(uData.getBaseDNs());
+    if (forceDisableSchema)
+    {
+      suffixesToDisable.add(Constants.SCHEMA_DN);
+    }
+    if (forceDisableADS)
+    {
+      suffixesToDisable.add(ADSContext.getAdministrationSuffixDN());
+    }
+
     String replicationServerHostPort = server.getReplicationServerHostPort();
-    for (String baseDN : uData.getBaseDNs())
+    for (String baseDN : suffixesToDisable)
     {
       try
       {
@@ -4613,7 +4703,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       Set<ServerDescriptor> serversToUpdate =
         new LinkedHashSet<ServerDescriptor>();
-      for (String baseDN : uData.getBaseDNs())
+      for (String baseDN : suffixesToDisable)
       {
         SuffixDescriptor suffix = getSuffix(baseDN, cache, server);
         if (suffix != null)
@@ -4629,7 +4719,38 @@ public class ReplicationCliMain extends ConsoleApplication
       for (ServerDescriptor s : serversToUpdate)
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
-            uData.getBaseDNs());
+            suffixesToDisable, disableAllBaseDns);
+      }
+
+      if (disableAllBaseDns)
+      {
+        // Disable replication server
+        disableReplicationServer(ctx);
+        // Wait to be sure that changes are taken into account and reset the
+        // contents of the ADS.
+        try
+        {
+          Thread.sleep(2000);
+        }
+        catch (Throwable t)
+        {
+        }
+        for (ServerDescriptor s: serversToUpdate)
+        {
+          try
+          {
+            adsCtx.unregisterServer(s.getAdsProperties());
+          }
+          catch (ADSContextException adce)
+          {
+            LOG.log(Level.INFO, "Error unregistering server: "+
+                s.getAdsProperties(), adce);
+            println();
+            println(
+                ERR_REPLICATION_UPDATING_ADS.get(adce.getMessage()));
+            println();
+          }
+        }
       }
     }
   }
@@ -6178,12 +6299,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param pwd the password that must be used to log to the server.
    * @param baseDNs the list of base DNs where we want to remove the references
    * to the provided replication server.
+   * @param removeFromReplicationServers if references must be removed from
+   * the replication servers.
    * @throws ReplicationCliException if there is an error updating the
    * configuration.
    */
   private void removeReferencesInServer(ServerDescriptor server,
       String replicationServer, String bindDn, String pwd,
-      Collection<String> baseDNs)
+      Collection<String> baseDNs, boolean updateReplicationServers)
   throws ReplicationCliException
   {
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
@@ -6259,6 +6382,37 @@ public class ReplicationCliMain extends ConsoleApplication
                 }
                 printProgress(formatter.getFormattedDone());
                 printlnProgress();
+              }
+            }
+          }
+        }
+        if (updateReplicationServers && sync.hasReplicationServer())
+        {
+          ReplicationServerCfgClient rServerObj = sync.getReplicationServer();
+          Set<String> replServers = rServerObj.getReplicationServer();
+          if (replServers != null)
+          {
+            String replServer = null;
+            for (String o : replServers)
+            {
+              if (replicationServer.equalsIgnoreCase(o))
+              {
+                replServer = o;
+                break;
+              }
+            }
+            if (replServer != null)
+            {
+              replServers.remove(replServer);
+              if (replServers.size() > 0)
+              {
+                rServerObj.setReplicationServer(replServers);
+                rServerObj.commit();
+              }
+              else
+              {
+                sync.removeReplicationServer();
+                sync.commit();
               }
             }
           }
@@ -6360,6 +6514,61 @@ public class ReplicationCliMain extends ConsoleApplication
       Message msg = getMessageForDisableException(ode, hostPort, baseDN);
         throw new ReplicationCliException(msg,
           ERROR_DISABLING_REPLICATION_REMOVE_REFERENCE_ON_BASEDN, ode);
+    }
+  }
+
+  /**
+   * Disables the replication server for a given server.
+   * @param ctx the connection to the server.
+   * @throws ReplicationCliException if there is an error updating the
+   * configuration of the server.
+   */
+  private void disableReplicationServer(InitialLdapContext ctx)
+  throws ReplicationCliException
+  {
+    String hostPort = ConnectionUtils.getHostPort(ctx);
+    try
+    {
+      ManagementContext mCtx = LDAPManagementContext.createFromContext(
+          JNDIDirContextAdaptor.adapt(ctx));
+      RootCfgClient root = mCtx.getRootConfiguration();
+      ReplicationSynchronizationProviderCfgClient sync = null;
+      ReplicationServerCfgClient replicationServer = null;
+      try
+      {
+        sync = (ReplicationSynchronizationProviderCfgClient)
+        root.getSynchronizationProvider("Multimaster Synchronization");
+        if (sync.hasReplicationServer())
+        {
+          replicationServer = sync.getReplicationServer();
+        }
+      }
+      catch (ManagedObjectNotFoundException monfe)
+      {
+        // It does not exist.
+        LOG.log(Level.INFO, "No synchronization found on "+ hostPort +".",
+            monfe);
+      }
+      if (replicationServer != null)
+      {
+
+        String s = String.valueOf(replicationServer.getReplicationPort());
+        printProgress(formatter.getFormattedWithPoints(
+            INFO_REPLICATION_DISABLING_REPLICATION_SERVER.get(s,
+                hostPort)));
+
+        sync.removeReplicationServer();
+        sync.commit();
+        printProgress(formatter.getFormattedDone());
+        printlnProgress();
+      }
+    }
+    catch (OpenDsException ode)
+    {
+      throw new ReplicationCliException(
+          ERR_REPLICATION_DISABLING_REPLICATIONSERVER.get(hostPort),
+          ERROR_DISABLING_REPLICATION_SERVER,
+          ode);
     }
   }
 
@@ -6938,5 +7147,46 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return areEqual;
+  }
+
+  /**
+   * Tells whether we are trying to disable all the replicated suffixes.
+   * @param uData the disable replication data provided by the user.
+   * @return <CODE>true</CODE> if we want to disable all the replicated suffixes
+   * and <CODE>false</CODE> otherwise.
+   */
+  private boolean disableAllBaseDns(InitialLdapContext ctx,
+      DisableReplicationUserData uData)
+  {
+    boolean returnValue = true;
+    Collection<ReplicaDescriptor> replicas = getReplicas(ctx);
+    Set<String> replicatedSuffixes = new HashSet<String>();
+    for (ReplicaDescriptor rep : replicas)
+    {
+      String dn = rep.getSuffix().getDN();
+      if (rep.isReplicated())
+      {
+        replicatedSuffixes.add(dn);
+      }
+    }
+
+    for (String dn1 : replicatedSuffixes)
+    {
+      if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn1) &&
+          !Utils.areDnsEqual(Constants.SCHEMA_DN, dn1))
+      {
+        boolean found = false;
+        for (String dn2 : uData.getBaseDNs())
+        {
+          found = Utils.areDnsEqual(dn1, dn2);
+          break;
+        }
+        if (!found)
+        {
+          returnValue = false;
+        }
+      }
+    }
+    return returnValue;
   }
 }

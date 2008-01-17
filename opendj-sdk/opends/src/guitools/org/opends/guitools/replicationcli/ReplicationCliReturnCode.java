@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.replicationcli;
@@ -176,7 +176,12 @@ public enum ReplicationCliReturnCode
    * Error launching pre external initialization.
    */
   ERROR_LAUNCHING_POST_EXTERNAL_INITIALIZATION(24,
-      ERR_REPLICATION_NO_MESSAGE.get());
+      ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * Error disabling replication server.
+   */
+  ERROR_DISABLING_REPLICATION_SERVER(25, ERR_REPLICATION_NO_MESSAGE.get());
 
 
   private Message message;
