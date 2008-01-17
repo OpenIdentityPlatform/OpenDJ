@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -63,6 +63,11 @@ public interface ManagementContextFactory {
   ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException;
 
+
+  /**
+   * Closes this management context.
+   */
+  void close();
 
 
   /**

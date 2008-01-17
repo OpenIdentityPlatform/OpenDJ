@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -91,6 +91,17 @@ public final class LDAPManagementContextFactory implements
       context = getManagementContext(app, ci);
     }
     return context;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void close()
+  {
+    if (context != null)
+    {
+      context.close();
+    }
   }
 
   /**
