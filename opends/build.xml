@@ -766,7 +766,7 @@
     <mkdir dir="${configguide.dir}" />
     <!-- copy the stylesheet file -->
     <copy todir="${configguide.dir}"
-          file="${config.dir}/opends-config.css" />
+          file="${admin.rules.dir}/opends-config.css" />
     <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
