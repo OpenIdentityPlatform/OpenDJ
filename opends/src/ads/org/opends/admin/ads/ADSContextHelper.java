@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -197,7 +198,7 @@ public class ADSContextHelper
   @param serverEntryDn The server's ADS entry DN.
   @throws ADSContextException In case some JNDI operation fails or there is a
   problem getting the instance public key certificate ID.
-  */
+   */
   public void registerInstanceKeyCertificate(
       InitialLdapContext ctx, Map<ServerProperty, Object> serverProperties,
       LdapName serverEntryDn)
@@ -282,6 +283,60 @@ public class ADSContextHelper
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, cme);
+    }
+  }
+
+
+  /**
+  Unregister instance key-pair public-key certificate provided in
+  serverProperties.
+  @param ctx the connection to the server.
+  @param serverProperties Properties of the server being unregistered to which
+  the instance key entry belongs.
+  @param serverEntryDn The server's ADS entry DN.
+  @throws ADSContextException In case some JNDI operation fails.
+  */
+  public void unregisterInstanceKeyCertificate(
+      InitialLdapContext ctx, Map<ServerProperty, Object> serverProperties,
+      LdapName serverEntryDn)
+  throws ADSContextException {
+    assert serverProperties.containsKey(
+        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE);
+    if (! serverProperties.containsKey(
+        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)) {
+      return;
+    }
+
+    /* these attributes are used both to search for an existing certificate
+     entry and, if one does not exist, add a new certificate entry */
+    final BasicAttributes keyAttrs = new BasicAttributes();
+    final Attribute oc = new BasicAttribute("objectclass");
+    oc.add("top"); oc.add("ds-cfg-instance-key");
+    keyAttrs.put(oc);
+    keyAttrs.put(new BasicAttribute(
+        ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE.getAttributeName()
+        + ";binary",
+        serverProperties.get(
+            ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE)));
+
+    /* search for public-key certificate entry in ADS DIT */
+    final String attrIDs[] = { "ds-cfg-key-id" };
+    try
+    {
+      final NamingEnumeration<SearchResult> results = ctx.search(
+          ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
+      if (results.hasMore()) {
+        SearchResult res = results.next();
+        ctx.destroySubcontext(res.getNameInNamespace());
+      }
+    }
+    catch (NameNotFoundException nnfe)
+    {
+    }
+    catch (NamingException ne)
+    {
+      throw new ADSContextException(
+          ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
     }
   }
 
