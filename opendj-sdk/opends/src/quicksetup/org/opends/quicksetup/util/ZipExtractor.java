@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -109,7 +109,6 @@ public class ZipExtractor {
       zipFile.getName(),
       app);
     if (!zipFile.getName().endsWith(".zip")) {
-      // TODO i18n
       throw new IllegalArgumentException("File must have extension .zip");
     }
   }
@@ -158,7 +157,7 @@ public class ZipExtractor {
    * @param destDir String representing the directory where the zip file will
    * be extracted
    * @param removeFirstPath when true removes each zip entry's initial path
-   * when copied to the destination folder.  So for instance if the zip enty's
+   * when copied to the destination folder.  So for instance if the zip entry's
    * name was /OpenDS-0.8/some_file the file would appear in the destination
    * directory as 'some_file'.
    * @throws ApplicationException if something goes wrong
@@ -178,7 +177,9 @@ public class ZipExtractor {
      */
     Map<String, ArrayList<String>> permissions =
         new HashMap<String, ArrayList<String>>();
-
+    ArrayList<String> list = new ArrayList<String>();
+    list.add(destDir);
+    permissions.put(getProtectedDirectoryPermissionUnix(), list);
     try {
       if(application != null)
          application.checkAbort();
@@ -326,6 +327,15 @@ public class ZipExtractor {
         application.notifyListenersDone(ratioWhenCompleted);
       }
     }
+  }
+
+  /**
+   * Returns the UNIX permissions to be applied to a protected directory.
+   * @return the UNIX permissions to be applied to a protected directory.
+   */
+  private String getProtectedDirectoryPermissionUnix()
+  {
+    return "700";
   }
 
   /**
