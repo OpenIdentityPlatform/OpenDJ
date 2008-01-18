@@ -35,7 +35,7 @@
     is a list of processing steps (Work Flow Elements) which are applied
     to data as it is retrieved from the Directory Server.
   </adm:synopsis>
-  <adm:tag name="user-management" />
+  <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-workflow</ldap:name>
