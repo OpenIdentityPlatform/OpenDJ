@@ -79,7 +79,7 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
-  <adm:property name="num-update-replay-threads" mandatory="false" read-only="false">
+  <adm:property name="num-update-replay-threads" mandatory="false" read-only="false" advanced="true">
     <adm:synopsis>
       Specifies the number of update replay threads
     </adm:synopsis>
