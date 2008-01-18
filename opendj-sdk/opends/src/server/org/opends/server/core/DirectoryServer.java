@@ -572,6 +572,9 @@ public class DirectoryServer
   // a search.
   private int lookthroughLimit;
 
+  // Whether to use collect operation processing times in nanosecond resolution
+  private boolean useNanoTime;
+
   // The key manager provider configuration manager for the Directory Server.
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
 
@@ -8908,6 +8911,36 @@ public class DirectoryServer
   public static void setTimeLimit(int timeLimit)
   {
     directoryServer.timeLimit = timeLimit;
+  }
+
+
+
+  /**
+   * Specifies whether to collect nanosecond resolution processing times for
+   * operations.
+   *
+   * @param useNanoTime  <code>true</code> if nanosecond resolution times
+   *                     should be collected or <code>false</code> to
+   *                     only collect in millisecond resolution.
+   */
+  public static void setUseNanoTime(boolean useNanoTime)
+  {
+    directoryServer.useNanoTime = useNanoTime;
+  }
+
+
+
+  /**
+   * Retrieves whether operation processing times should be collected with
+   * nanosecond resolution.
+   *
+   * @return  <code>true</code> if nanosecond resolution times are collected
+   *          or <code>false</code> if only millisecond resolution times are
+   *          being collected.
+   */
+  public static boolean getUseNanoTime()
+  {
+    return directoryServer.useNanoTime;
   }
 
 

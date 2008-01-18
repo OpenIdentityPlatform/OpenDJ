@@ -786,20 +786,20 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          milli-seconds
+          milliseconds
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
-        <adm:value name="milli-seconds">
+        <adm:value name="milliseconds">
           <adm:synopsis>
-            Use milli-second resolution.
+            Use millisecond resolution.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="nano-seconds">
+        <adm:value name="nanoseconds">
           <adm:synopsis>
-            Use nano-second resolution.
+            Use nanosecond resolution.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>

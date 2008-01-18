@@ -796,7 +796,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append("\" etime=");
-    buffer.append(bindOperation.getProcessingTime());
+    long etime = bindOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = bindOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -915,7 +920,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append("\" etime=");
-    buffer.append(compareOperation.getProcessingTime());
+    long etime = compareOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = compareOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1034,7 +1044,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append("\" etime=");
-    buffer.append(deleteOperation.getProcessingTime());
+    long etime = deleteOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = deleteOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1156,7 +1171,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append("\" etime=");
-    buffer.append(extendedOperation.getProcessingTime());
+    long etime = extendedOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = extendedOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1276,7 +1296,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append("\" etime=");
-    buffer.append(modifyOperation.getProcessingTime());
+    long etime = modifyOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = modifyOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1407,7 +1432,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append("\" etime=");
-    buffer.append(modifyDNOperation.getProcessingTime());
+    long etime = modifyDNOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = modifyDNOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }
@@ -1586,7 +1616,12 @@ public class TextAccessLogPublisher
     }
 
     buffer.append(" etime=");
-    buffer.append(searchOperation.getProcessingTime());
+    long etime = searchOperation.getProcessingNanoTime();
+    if(etime <= -1)
+    {
+      etime = searchOperation.getProcessingTime();
+    }
+    buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
   }

@@ -30,7 +30,6 @@ import org.opends.messages.MessageBuilder;
 
 
 import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,12 +67,6 @@ public abstract class AbstractOperation
   protected static final List<Control> NO_RESPONSE_CONTROLS =
        new ArrayList<Control>(0);
 
-  /**
-   * Indicates whether to use nanoTime instead of
-   * currentTimeMillis when setting processing start and stop times.
-   */
-  protected static boolean useNanoTime = false;
-
 
   /**
    * The client connection with which this operation is associated.
@@ -97,7 +90,7 @@ public abstract class AbstractOperation
   /**
    * Wether nanotime was used for this operation.
    */
-  protected final boolean usingNanoTime;
+  protected final boolean useNanoTime;
 
 
 
@@ -143,11 +136,21 @@ public abstract class AbstractOperation
   // other copies of the data.
   private boolean dontSynchronizeFlag;
 
-  // The time that processing started on this operation.
+  // The time that processing started on this operation in
+  // milliseconds.
   private long processingStartTime;
 
-  // The time that processing ended on this operation.
+  // The time that processing ended on this operation in
+  // milliseconds.
   private long processingStopTime;
+
+  // The time that processing started on this operation in
+  // nanoseconds.
+  private long processingStartNanoTime;
+
+  // The time that processing ended on this operation in
+  // nanoseconds.
+  private long processingStopNanoTime;
 
   /**
    * Creates a new operation with the provided information.
@@ -168,7 +171,7 @@ public abstract class AbstractOperation
     this.clientConnection = clientConnection;
     this.operationID      = operationID;
     this.messageID        = messageID;
-    this.usingNanoTime    = useNanoTime;
+    this.useNanoTime = DirectoryServer.getUseNanoTime();
 
     if (requestControls == null)
     {
@@ -1042,13 +1045,10 @@ public abstract class AbstractOperation
    */
   public final void setProcessingStartTime()
   {
-    if(usingNanoTime)
+    processingStartTime = System.currentTimeMillis();
+    if(useNanoTime)
     {
-      processingStartTime = System.nanoTime();
-    }
-    else
-    {
-      processingStartTime = System.currentTimeMillis();
+      processingStartNanoTime = System.nanoTime();
     }
   }
 
@@ -1075,25 +1075,22 @@ public abstract class AbstractOperation
    */
   public final void setProcessingStopTime()
   {
-    if(usingNanoTime)
+    this.processingStopTime = System.currentTimeMillis();
+    if(useNanoTime)
     {
-      this.processingStopTime = System.nanoTime();
-    }
-    else
-    {
-      this.processingStopTime = System.currentTimeMillis();
+      this.processingStopNanoTime = System.nanoTime();
     }
   }
 
 
 
   /**
-   * Retrieves the length of time in milliseconds or nanoseconds that
+   * Retrieves the length of time in milliseconds that
    * the server spent processing this operation.  This should not be
    * called until after the server has sent the response to the
    * client.
    *
-   * @return  The length of time in milliseconds or nanoseconds that
+   * @return  The length of time in milliseconds that
    *          the server spent processing this operation.
    */
   public final long getProcessingTime()
@@ -1104,30 +1101,25 @@ public abstract class AbstractOperation
 
 
   /**
-   * Set whether to use nanoTime for the processing time methods.
+   * Retrieves the length of time in nanoseconds that
+   * the server spent processing this operation if available.
+   * This should not be called until after the server has sent the
+   * response to the client.
    *
-   * @param useNanoTime <code>true</code> to use System.nanoTime
-   *                    or <code>false</code> to use
-   *                    System.currentTimeMillis
+   * @return  The length of time in nanoseconds that the server
+   *          spent processing this operation or -1 if its not
+   *          available.
    */
-  public static void setUseNanoTime(boolean useNanoTime)
+  public final long getProcessingNanoTime()
   {
-    AbstractOperation.useNanoTime = useNanoTime;
-  }
-
-
-
-  /**
-   * Get whether this operation used System.nanoTime or
-   * System.currentTimeMillis for the processing time methods.
-   *
-   * @return  <code>true</code> if System.nanoTime is used or
-   *          <code>false</code> if System.currentTimeMillis
-   *          was used.
-   */
-  public final boolean getUseNanoTime()
-  {
-    return usingNanoTime;
+    if(useNanoTime)
+    {
+      return (processingStopNanoTime - processingStartNanoTime);
+    }
+    else
+    {
+      return -1;
+    }
   }
 
 

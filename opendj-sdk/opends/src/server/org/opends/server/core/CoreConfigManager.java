@@ -353,8 +353,8 @@ public class CoreConfigManager
       DirectoryServer.setWorkflowConfigurationMode(newMode);
     }
 
-    AbstractOperation.setUseNanoTime(globalConfig.getEtimeResolution() ==
-      GlobalCfgDefn.EtimeResolution.NANO_SECONDS);
+    DirectoryServer.setUseNanoTime(globalConfig.getEtimeResolution() ==
+      GlobalCfgDefn.EtimeResolution.NANOSECONDS);
   }
 
 
