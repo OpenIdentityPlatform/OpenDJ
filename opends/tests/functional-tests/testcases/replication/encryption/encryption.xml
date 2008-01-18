@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
 
@@ -61,16 +61,15 @@
             file="'%s/testcases/replication/replication_setup.xml'
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            {  'topologyFile'  :  '%s/config/replication/3server_topology.txt' \
-                                  % TESTS_DIR,
-              'secureReplication'  :  True  }
+            {  'topologyFile'    : '%s/config/replication/3server_topology.txt'\
+                                     % TESTS_DIR,
+              'secureReplication': True  }
           </call>
                                     
           <script>
             consumer = consumerList[0]              
-            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()      
-          </script>            
-
+            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
+          </script>        
             
           <!-- Load entries into "master" server -->                                
           <!-- Stop "master" Directory Server -->
@@ -92,7 +91,7 @@
               'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir
             }
           </call>
-
+            
           <!-- Start the Directory Server -->
           <call function="'StartDsWithScript'">
             { 'location'  : masterHost,
@@ -126,13 +125,13 @@
 -->    
           <iterate var="server" in="consumerList">     
             <call function="'initializeReplication'">
-              { 'location'  :  clientHost,
-                'dsPath'  :  clientPath,
-                'dsInstanceHost'  :  server.getHostname(),
-                'dsInstancePort'  :  server.getPort(),
-                'sourceInstanceHost'  :  masterHost,
-                'sourceInstancePort'  :  master.getPort(),
-                'replicationDnList'  :  [synchroSuffix]
+              { 'location'           : clientHost,
+                'dsPath'             : clientPath,
+                'dsInstanceHost'     : server.getHostname(),
+                'dsInstancePort'     : server.getPort(),
+                'sourceInstanceHost' : masterHost,
+                'sourceInstancePort' : master.getPort(),
+                'replicationDnList'  : [synchroSuffix]
               }
             </call>
           </iterate>            
@@ -158,10 +157,9 @@
 
               <iterate var="server" in="_topologyServerList" indexvar="i">
                 <sequence>
-                    
                   <script>
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    userDn = 'uid=iabizen-%s, ou=People, %s' % (i, synchroSuffix)
+                    userDn = 'uid=iabizen-%s, ou=People, %s' % (i,synchroSuffix)
                   </script>
                     
                   <!-- Add entry to one of the other servers -->
@@ -178,15 +176,15 @@
                   </script>
           
                   <call function="'addAnEntry'">
-                    { 'location'  :  server.getHostname(),
-                      'dsPath'  :  serverPath,
-                      'dsInstanceHost'  :  server.getHostname(),
-                      'dsInstancePort'  :  server.getPort(),
-                      'dsInstanceDn'  :  server.getRootDn(),
-                      'dsInstancePswd'  :  server.getRootPwd(),
-                      'DNToAdd'  :  userDn,
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : serverPath,
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort(),
+                      'dsInstanceDn'   : server.getRootDn(),
+                      'dsInstancePswd' : server.getRootPwd(),
+                      'DNToAdd'        : userDn,
                       'listAttributes' : listAttr,
-                      'expectedRC'     :  0
+                      'expectedRC'     : 0
                     }
                   </call>
               
@@ -219,28 +217,34 @@
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Encryption: Modify entry. Check entry modify over \
-                 secured replication'
+                 'Replication: Encryption: Modify entry. Check entry modify \
+                 over secured replication'
               </message>
-                
-              <script>
-                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                userDn = 'uid=iabizen-1, ou=People, %s' % synchroSuffix
-              </script>
               
-              <!-- Modify entry  in "master" server -->
-              <call function="'modifyAnAttribute'">
-                { 'dsPath' : masterPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'    : master.getPort(),
-                  'dsInstanceDn'  : master.getRootDn(),
-                  'dsInstancePswd'    : master.getRootPwd(),
-                  'DNToModify'    : userDn,
-                  'attributeName' : 'l',
-                  'newAttributeValue' : 'GEC',
-                  'changetype' : 'replace' }
-              </call>                       
-                
+              <iterate var="server" in="_topologyServerList" indexvar="i">
+                <sequence>
+                  <script>
+                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    userDn = 'uid=iabizen-%s, ou=People, %s' % (i,synchroSuffix)
+                  </script>
+                                    
+                  <!-- Modify entry on one of the servers -->
+                  <call function="'modifyAnAttribute'">
+                    { 'location'          : server.getHostname(),
+                      'dsPath'            : serverPath,
+                      'dsInstanceHost'    : server.getHostname(),
+                      'dsInstancePort'    : server.getPort(),
+                      'dsInstanceDn'      : server.getRootDn(),
+                      'dsInstancePswd'    : server.getRootPwd(),
+                      'DNToModify'        : userDn,
+                      'attributeName'     : 'l',
+                      'newAttributeValue' : 'GEC',
+                      'changetype'        : 'replace'
+                    }
+                  </call>                       
+                </sequence>
+              </iterate>
+                          
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->          
               <call function="'verifyTrees'">
@@ -267,25 +271,30 @@
             <sequence>            
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Encryption: Delete entry. Check delete modify over \
-                 secured replication'
+                 'Replication: Encryption: Delete entry. Check delete modify \
+                 over secured replication'
               </message>
-                
-              <script>
-                serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                userDn = 'uid=iabizen-2, ou=People, %s' % synchroSuffix
-              </script>
 
-              <!-- Delete entry in "master" server -->    
-              <call function="'DeleteEntry'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'         : userDn }
-              </call>
+              <iterate var="server" in="_topologyServerList" indexvar="i">
+                <sequence>
+                  <script>
+                    serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
+                    userDn = 'uid=iabizen-%s, ou=People, %s' % (i,synchroSuffix)
+                  </script>
+                    
+                  <!-- Delete entry on one of the servers -->    
+                  <call function="'DeleteEntry'">
+                    { 'location'       : server.getHostname(),
+                      'dsPath'         : serverPath,
+                      'dsInstanceHost' : server.getHostname(),
+                      'dsInstancePort' : server.getPort() ,
+                      'dsInstanceDn'   : server.getRootDn() ,
+                      'dsInstancePswd' : server.getRootPwd() ,
+                      'dsBaseDN'       : userDn
+                    }
+                  </call>
+                </sequence>
+              </iterate>
                 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->          
@@ -317,9 +326,9 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Encryption: Modify Entry - add binary attribute. \
-                 Check that an entry modify is well propagated by secured \
-                 replication.'
+                'Replication: Encryption: Modify Entry - add binary attribute. \
+                Check that an entry modify is well propagated by secured \
+                replication.'
               </message>
                
               <script>
@@ -346,27 +355,30 @@
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost ,
-                  'dsInstancePort'    : master.getPort() ,
-                  'dsInstanceDn'      : master.getRootDn() ,
-                  'dsInstancePswd'    : master.getRootPwd() ,
-                  'dsFilename' : '%s/%s' % (clientDataDir, filename) }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                }
               </call>                            
         
 
               <!-- Check modify worked on "master" server -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=hmiller, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'jpegPhoto=*',
-                  'expectedRC'  :  0 }                  
+                { 'location'        : clientHost,
+                  'dsPath'          : clientPath,
+                  'dsInstanceHost'  : masterHost ,
+                  'dsInstancePort'  : master.getPort() ,
+                  'dsInstanceDn'    : master.getRootDn() ,
+                  'dsInstancePswd'  : master.getRootPwd() ,
+                  'dsBaseDN'        : 'uid=hmiller, ou=People,%s' \
+                                       % synchroSuffix,
+                  'dsFilter'        : 'jpegPhoto=*',
+                  'expectedRC'      :  0
+                } 
               </call>                
               <script>
                 searchRC = STAXResult[0][0]
@@ -376,7 +388,8 @@
               <call function="'checktestRC'">
                   { 'returncode' : resultLength ,
                     'result'     : searchResult ,
-                    'expected'   : 1 }
+                    'expected'   : 1
+                }
               </call>    
             
 
@@ -410,11 +423,12 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Encryption: Modify Entry - replace binary attribute. \
+                 'Replication: Encryption: Modify Entry - replace binary \
+                 attribute. \
                  Check that an entry modify is well propagated by secured \
                  replication.'
-              </message>
-               
+              </message>                
+                                               
               <script>
                 filename = 'replication_mod_replace_binary.ldif'
                 filePath = '%s/%s' % (logsTestDataDir,filename)
@@ -422,7 +436,8 @@
                 dn = 'uid=hmiller, ou=People,%s' % synchroSuffix
                 modif = 'replace'
                 attrType = 'jpegPhoto'
-                write_replication_mod_binary_ldif_file(filePath, dn, modif, attrType, 
+                write_replication_mod_binary_ldif_file(filePath, dn, modif,
+                                                       attrType, 
                                                        binaryFilePath)
               </script>
 
@@ -434,32 +449,36 @@
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
-                  'remotehost' : client.getHostname() }
+                  'remotehost' : client.getHostname()
+                }
               </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost ,
-                  'dsInstancePort'    : master.getPort() ,
-                  'dsInstanceDn'      : master.getRootDn() ,
-                  'dsInstancePswd'    : master.getRootPwd() ,
-                  'dsFilename' : '%s/%s' % (clientDataDir, filename) }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                }
               </call>                            
         
 
               <!-- Check modify worked on "master" server -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=hmiller, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'jpegPhoto=*',
-                  'expectedRC'  :  0 }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=hmiller, ou=People,%s' \
+                                      % synchroSuffix,
+                  'dsFilter'       : 'jpegPhoto=*',
+                  'expectedRC'     :  0
+                }                  
               </call>                
               <script>
                 searchRC = STAXResult[0][0]
@@ -467,9 +486,10 @@
                 resultLength = len(searchResult) > 0
               </script>
               <call function="'checktestRC'">
-                  { 'returncode' : resultLength ,
-                    'result'     : searchResult ,
-                    'expected'   : 1 }
+                { 'returncode' : resultLength ,
+                  'result'     : searchResult ,
+                  'expected'   : 1
+                }
               </call>    
             
 
@@ -503,7 +523,8 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Encryption: Modify Entry - delete binary attribute. \
+                 'Replication: Encryption: Modify Entry - delete binary \
+                 attribute. \
                  Check that an entry modify is well propagated by secured \
                  replication.'
               </message>
@@ -533,26 +554,29 @@
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost ,
-                  'dsInstancePort'    : master.getPort() ,
-                  'dsInstanceDn'      : master.getRootDn() ,
-                  'dsInstancePswd'    : master.getRootPwd() ,
-                  'dsFilename' : '%s/%s' % (clientDataDir, filename) }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                }
               </call>        
                 
               <!-- Check modify worked on "master" server -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=hmiller, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'jpegPhoto=*',
-                  'expectedRC'  :  0 }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=hmiller, ou=People,%s' \
+                                      % synchroSuffix,
+                  'dsFilter'       : 'jpegPhoto=*',
+                  'expectedRC'     :  0
+                }
               </call>                
               <script>
                 searchRC = STAXResult[0][0]
@@ -560,9 +584,10 @@
                 resultLength = len(searchResult) > 0
               </script>
               <call function="'checktestRC'">
-                  { 'returncode' : resultLength ,
-                    'result'     : searchResult ,
-                    'expected'   : 0 }
+                { 'returncode' : resultLength ,
+                  'result'     : searchResult ,
+                  'expected'   : 0
+                }
               </call>    
             
 
@@ -617,18 +642,20 @@
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
-                  'remotehost' : client.getHostname() }
+                  'remotehost' : client.getHostname()
+                }
               </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost ,
-                  'dsInstancePort'    : master.getPort() ,
-                  'dsInstanceDn'      : master.getRootDn() ,
-                  'dsInstancePswd'    : master.getRootPwd() ,
-                  'dsFilename' : '%s/%s' % (clientDataDir, filename) }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                }
               </call>                            
         
 
@@ -636,29 +663,32 @@
               <!-- check that "uid=kvaughan, ou=People, ${DIRECTORY_BASE}"
                 does NOT exist anymore -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=kvaughan, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'objectclass=*',
-                  'expectedRC'  : 32 }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=kvaughan, ou=People,%s' \
+                                      % synchroSuffix,
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 32
+                }                  
               </call>                
                 
               <!-- check that new entry "uid=kvaughan2, ou=People,
                 ${DIRECTORY_BASE}" exists -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=kvaughan2, ou=People,%s' \
-                                  % synchroSuffix,
-                  'dsFilter'  : 'objectclass=*' }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=kvaughan2, ou=People,%s' \
+                                      % synchroSuffix,
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
             
 
@@ -717,18 +747,20 @@
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
                   'destfile'   : '%s/%s' % (clientDataDir,filename),
-                  'remotehost' : client.getHostname() }
+                  'remotehost' : client.getHostname()
+                }
               </call>                    
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost ,
-                  'dsInstancePort'    : master.getPort() ,
-                  'dsInstanceDn'      : master.getRootDn() ,
-                  'dsInstancePswd'    : master.getRootPwd() ,
-                  'dsFilename' : '%s/%s' % (clientDataDir, filename) }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                }
               </call>                            
         
 
@@ -736,28 +768,31 @@
               <!-- check that "uid=jwallace, ou=People, ${DIRECTORY_BASE}"
                 does NOT exist anymore -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=jwallace, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'objectclass=*',
-                  'expectedRC'  : 32 }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=jwallace, ou=People,%s' \
+                                      % synchroSuffix,
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 32
+                }
               </call>                
                 
               <!-- check that new entry "uid=igueye, ou=People,
                 ${DIRECTORY_BASE}" exists -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=igueye, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'uid=jwallace' }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=igueye, ou=People,%s' % synchroSuffix,
+                  'dsFilter'       : 'uid=jwallace'
+                }
               </call>
               <script>
                 searchRC = STAXResult[0][0]
@@ -765,9 +800,10 @@
                 resultLength = len(searchResult) > 0
               </script>
               <call function="'checktestRC'">
-                  { 'returncode' : resultLength ,
-                    'result'     : searchResult ,
-                    'expected'   : 1 }
+                { 'returncode' : resultLength ,
+                  'result'     : searchResult ,
+                  'expected'   : 1
+                }
               </call>       
                             
 
@@ -800,9 +836,9 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Encryption: Rename Subtree. Check that a subtree \
-                 rename (moddn) operation is well propagated by secured \
-                 replication.'
+                 'Replication: Encryption: Rename Subtree. Check that a \
+                 subtree rename (moddn) operation is well propagated by \
+                 secured replication.'
               </message>
         
               <script>
@@ -829,13 +865,14 @@
 
               <!-- Modify "master" server -->                                
               <call function="'ldapModifyWithScript'">
-                { 'location'          : clientHost,
-                  'dsPath'            : clientPath,
-                  'dsInstanceHost'    : masterHost ,
-                  'dsInstancePort'    : master.getPort() ,
-                  'dsInstanceDn'      : master.getRootDn() ,
-                  'dsInstancePswd'    : master.getRootPwd() ,
-                  'dsFilename' : '%s/%s' % (clientDataDir, filename) }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                }
               </call>                            
         
 
@@ -843,29 +880,32 @@
               <!-- check that "uid=gfarmer, ou=People, ${DIRECTORY_BASE}"
                 does NOT exist anymore -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=gfarmer, ou=People,%s' % synchroSuffix,
-                  'dsFilter'  : 'objectclass=*',
-                  'expectedRC'  : 32 }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=gfarmer, ou=People,%s' \
+                                      % synchroSuffix,
+                  'dsFilter'       : 'objectclass=*',
+                  'expectedRC'     : 32
+                }                  
               </call>                
                 
               <!-- check that new entry "uid=gfarmer, ou=Special People,
                 ou=Special Users, ${DIRECTORY_BASE}" exists -->
               <call function="'ldapSearchWithScript'">
-                { 'location'         : clientHost,
-                  'dsPath'           : clientPath,
-                  'dsInstanceHost'   : masterHost ,
-                  'dsInstancePort'   : master.getPort() ,
-                  'dsInstanceDn'     : master.getRootDn() ,
-                  'dsInstancePswd'   : master.getRootPwd() ,
-                  'dsBaseDN'    : 'uid=gfarmer, ou=Special People, \
-                  ou=Special Users,%s' % synchroSuffix,
-                  'dsFilter'  : 'objectclass=*' }                  
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost ,
+                  'dsInstancePort' : master.getPort() ,
+                  'dsInstanceDn'   : master.getRootDn() ,
+                  'dsInstancePswd' : master.getRootPwd() ,
+                  'dsBaseDN'       : 'uid=gfarmer, ou=Special People, \
+                                     ou=Special Users,%s' % synchroSuffix,
+                  'dsFilter'       : 'objectclass=*'
+                }
               </call>
             
 
