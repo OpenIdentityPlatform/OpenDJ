@@ -158,7 +158,7 @@ public class RemotePendingChanges
   {
     /*
      * Parse the list of Update with dependencies and check if the dependencies
-     * are now cleared until an Update withour dependencies is found.
+     * are now cleared until an Update without dependencies is found.
      */
     for (PendingChange change : dependentChanges)
     {

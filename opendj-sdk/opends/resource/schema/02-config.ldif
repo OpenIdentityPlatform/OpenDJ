@@ -1543,11 +1543,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.314
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.445
-  NAME 'ds-cfg-cache-level'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.315
   NAME 'ds-cfg-allow-retrieving-membership'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
@@ -2182,10 +2177,19 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.444
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.445
+  NAME 'ds-cfg-cache-level'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.446
   NAME 'ds-cfg-cache-preload'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.447
+  NAME 'ds-cfg-num-update-replay-threads'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
@@ -3087,6 +3091,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.93
   NAME 'ds-cfg-replication-synchronization-provider'
   SUP ds-cfg-synchronization-provider
   STRUCTURAL
+  MAY ( ds-cfg-num-update-replay-threads )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.94
   NAME 'ds-cfg-dictionary-password-validator'

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-synchronization-provider"
   plural-name="replication-synchronization-providers"
@@ -79,4 +79,28 @@
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
+  <adm:property name="num-update-replay-threads" mandatory="false" read-only="false">
+    <adm:synopsis>
+      Specifies the number of update replay threads
+    </adm:synopsis>
+    <adm:description>
+      This is the number of threads created for replaying every updates
+      received for all the replication domains.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          10
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-num-update-replay-threads</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>
