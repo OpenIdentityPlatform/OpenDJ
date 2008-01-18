@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -510,6 +510,18 @@ public interface Operation
    *          processing this operation.
    */
   public abstract long getProcessingTime();
+
+  /**
+   * Retrieves the length of time in nanoseconds that
+   * the server spent processing this operation if available.
+   * This should not be called until after the server has sent the
+   * response to the client.
+   *
+   * @return  The length of time in nanoseconds that the server
+   *          spent processing this operation or -1 if its not
+   *          available.
+   */
+  public abstract long getProcessingNanoTime();
 
   /**
    * Indicates that processing on this operation has completed

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -268,6 +268,14 @@ public class OperationWrapper implements Operation
   public long getProcessingTime()
   {
     return operation.getProcessingTime();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public long getProcessingNanoTime()
+  {
+    return operation.getProcessingNanoTime();
   }
 
   /**
