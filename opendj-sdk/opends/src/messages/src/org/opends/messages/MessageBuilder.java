@@ -264,8 +264,8 @@ public final class MessageBuilder implements Appendable, CharSequence,
    * If the first object appended to this <code>MessageBuilder</code>
    * was a <code>Message</code> then the returned message will
    * inherit its category and severity. Otherwise the returned message
-   * will have category {@link Category#USER_DEFINED} and severity
-   * {@link Severity#INFORMATION}.
+   * will have category {@link org.opends.messages.Category#USER_DEFINED}
+   *  and severity {@link org.opends.messages.Severity#INFORMATION}.
    *
    * @return Message raw message representing builder content
    */
