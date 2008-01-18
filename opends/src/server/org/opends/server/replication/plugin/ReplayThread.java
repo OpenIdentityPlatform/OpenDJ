@@ -25,7 +25,7 @@
  *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.opends.messages.Message;
 
@@ -40,41 +40,36 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.UpdateMessage;
 
 /**
- * Thread that is used to get messages from the Replication servers
- * and replay them in the current server.
+ * Thread that is used to get message from the replication servers (stored
+ * in the updates queue) and replay them in the current server. A configurable
+ * number of this thread is created for the whole MultimasterReplication object
+ * (i.e: these threads are shared accross the ReplicationDomain objects for
+ * replaying the updates they receive)
  */
-public class ListenerThread extends DirectoryThread
+public class ReplayThread extends DirectoryThread
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private ReplicationDomain repDomain;
+  private BlockingQueue<UpdateToReplay> updateToReplayQueue = null;
   private boolean shutdown = false;
   private boolean done = false;
-  private LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue;
-
 
   /**
-   * Constructor for the ListenerThread.
+   * Constructor for the ReplayThread.
    *
-   * @param repDomain the replication domain that created this thread
-   * @param updateToReplayQueue The update messages queue we must
-   * store messages in
+   * @param updateToReplayQueue The queue of update messages we have to replay
    */
-  public ListenerThread(ReplicationDomain repDomain,
-    LinkedBlockingQueue<UpdateToReplay> updateToReplayQueue)
+  public ReplayThread(BlockingQueue<UpdateToReplay> updateToReplayQueue)
   {
-     super("Replication Listener thread " +
-         "serverID=" + repDomain.serverId +
-         " domain=" + repDomain.getName());
-     this.repDomain = repDomain;
+     super("Replication Replay thread");
      this.updateToReplayQueue = updateToReplayQueue;
   }
 
   /**
-   * Shutdown this listener thread.
+   * Shutdown this replay thread.
    */
   public void shutdown()
   {
@@ -87,49 +82,36 @@ public class ListenerThread extends DirectoryThread
   @Override
   public void run()
   {
-    UpdateMessage updateMsg = null;
 
     if (debugEnabled())
     {
-      TRACER.debugInfo("Replication Listener thread starting.");
+      TRACER.debugInfo("Replication Replay thread starting.");
     }
+
+    UpdateToReplay updateToreplay = null;
 
     while (!shutdown)
     {
       try
       {
-        // Loop receiving update messages and puting them in the update message
-        // queue
-        while ((!shutdown) && ((updateMsg = repDomain.receive()) != null))
+        // Loop getting an updateToReplayQueue from the update message queue and
+        // replaying matching changes
+        while ( (!shutdown) &&
+          ((updateToreplay = updateToReplayQueue.poll(1L,
+          TimeUnit.SECONDS)) != null))
         {
-          // Put update message into the queue (block until some place in the
-          // queue is available)
-          UpdateToReplay updateToReplay =
-            new UpdateToReplay(updateMsg, repDomain);
-          boolean queued = false;
-          while (!queued && !shutdown)
-          {
-            // Use timedout method (offer) instead of put for being able to
-            // shutdown the thread
-            queued = updateToReplayQueue.offer(updateToReplay,
-              1L, TimeUnit.SECONDS);
-          }
-          if (!queued)
-          {
-            // Shutdown requested but could not push message: ensure this one is
-            // not lost and put it in the queue before dying
-            updateToReplayQueue.offer(updateToReplay);
-          }
+          // Find replication domain for that update message
+          UpdateMessage updateMsg = updateToreplay.getUpdateMessage();
+          ReplicationDomain domain = updateToreplay.getReplicationDomain();
+          domain.replay(updateMsg);
         }
-        if (updateMsg == null)
-          shutdown = true;
       } catch (Exception e)
       {
         /*
-         * catch all exceptions happening in repDomain.receive so that the
-         * thread never dies even in case of problems.
+         * catch all exceptions happening so that the thread never dies even
+         * in case of problems.
          */
-        Message message = ERR_EXCEPTION_RECEIVING_REPLICATION_MESSAGE.get(
+        Message message = ERR_EXCEPTION_REPLAYING_REPLICATION_MESSAGE.get(
             stackTraceToSingleLineString(e));
         logError(message);
       }
@@ -137,7 +119,7 @@ public class ListenerThread extends DirectoryThread
     done = true;
     if (debugEnabled())
     {
-      TRACER.debugInfo("Replication Listener thread stopping.");
+      TRACER.debugInfo("Replication Replay thread stopping.");
     }
   }
 
