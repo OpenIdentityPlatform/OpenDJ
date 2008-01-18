@@ -42,6 +42,7 @@
             applicationDn='uid=my_application,dc=groups,dc=com'
             applicationPswd='pw_my_application'
             staticGroup2Dn='cn=my_staticgroup2,dc=groups,dc=com'
+            staticGroup3Dn='cn=my_staticgroup3,dc=groups,dc=com'
             newStaticGroup='my_newStaticGroup'
             newStaticGroupDn='cn=%s,dc=groups,dc=com' % (newStaticGroup)
             newStaticGroupPswd='pw_%s' % (newStaticGroup)
@@ -725,7 +726,7 @@
           </testcase>
           
           
-                    
+          
           
           <!--- Test Case information
           #@TestMarker          Group StaticGroup Tests
@@ -751,6 +752,57 @@
           
           
           
+          <!--- Test Case information
+          #@TestMarker          Group StaticGroup Tests
+          #@TestName            Group: Static: member: nesting group
+          #@TestID              
+          #@TestPurpose         
+          #@TestPreamble
+          #@TestSteps
+          #@TestPostamble
+          #@TestResult
+          -->
+          <testcase name="getTestCaseName
+                          ('member: application search in nesting group')">
+            <sequence>
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                '++++ Application do a search on static nesting group'
+              </message>                            
+              <call function="'ldapSearchWithScript'">
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : applicationDn ,
+                'dsInstancePswd'   : applicationPswd ,
+                'dsBaseDN'         : staticGroup3Dn ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'member' }
+              </call>
+              <script> 
+                STAXReason = STAXResult[0][1]
+              </script> 
+              <!-- ******************** -->
+              <message>
+                '++++ Check ldapsearch result return 1 entry'
+              </message>
+              <call function="'CheckMatches'">
+                { 'string2find' : 'member' ,
+                'mainString'    : STAXReason ,
+                'nbExpected'    : 1
+                }
+              </call>
+              
+              <!-- ******************** -->
+              <call function="'CheckIsMemberOf'">
+                { 'baseDn'      : user1Dn ,
+                  'string2find' : staticGroup3Dn ,
+                  'nbExpected'  : 1
+                }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </testcase>
           
           
           <!-- *********************************************** -->

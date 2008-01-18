@@ -70,6 +70,13 @@ member: uid=user_08,ou=static,dc=groups,dc=com
 member: uid=user_09,ou=static,dc=groups,dc=com
 member: uid=user_10,ou=static,dc=groups,dc=com
 
+dn: cn=my_staticgroup3,dc=groups,dc=com
+cn: my_staticgroup3
+objectclass: top
+objectClass: groupOfNames
+description: this is the description of my_staticgroup3
+member: cn=my_staticgroup2,dc=groups,dc=com
+
 dn: cn=my_dynamicgroup1,dc=groups,dc=com
 cn: my_dynamicgroup1
 objectclass: top
