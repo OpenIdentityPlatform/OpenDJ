@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -1366,22 +1366,18 @@ public class ArgumentParser
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
     if ((scriptName == null) || (scriptName.length() == 0))
     {
-      buffer.append("Usage:  java "); // TODO: i18n
-      buffer.append(mainClassName);
+      buffer.append(INFO_ARGPARSER_USAGE_JAVA_CLASSNAME.get(mainClassName));
     }
     else
     {
-      buffer.append("Usage:  "); // TODO: i18n
-      buffer.append(scriptName);
+      buffer.append(INFO_ARGPARSER_USAGE_JAVA_CLASSNAME.get(scriptName));
     }
-
-    buffer.append(" {options}"); // TODO: i18n
 
     if (allowsTrailingArguments)
     {
       if (trailingArgsDisplayName == null)
       {
-        buffer.append(" {trailing-arguments}"); // TODO: i18n
+        buffer.append(" "+INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
       }
       else
       {
