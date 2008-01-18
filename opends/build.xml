@@ -948,6 +948,8 @@
   <target name="package" depends="prepackage"
        description="Package the Directory Server for distribution.">
     <zip destfile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip">
+      <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+           filemode="644" dirmode="700" />
       <zipfileset dir="${package.dir}" includes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/**/*"
            excludes="${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/*,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_client-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_script-util.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_server-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/lib/_mixed-script.sh,${SHORT_NAME}-${VERSION_NUMBER_STRING}/setup,${SHORT_NAME}-${VERSION_NUMBER_STRING}/uninstall,${SHORT_NAME}-${VERSION_NUMBER_STRING}/upgrade,${SHORT_NAME}-${VERSION_NUMBER_STRING}/QuickSetup.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/Uninstall.app/Contents/MacOS/JavaApplicationStub,${SHORT_NAME}-${VERSION_NUMBER_STRING}/bin/StatusPanel.app/Contents/MacOS/JavaApplicationStub"
            filemode="644" dirmode="755" />
