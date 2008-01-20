@@ -144,7 +144,7 @@ public class DependencyTest extends ReplicationTestCase
         openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
                                false);
 
-      TimeThread.sleep(2000);
+      Thread.sleep(2000);
       // send a sequence of add operation
 
       String addDn = BASEDN_STRING;
