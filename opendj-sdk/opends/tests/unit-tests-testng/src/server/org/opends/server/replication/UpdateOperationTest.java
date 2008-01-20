@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication;
@@ -699,7 +699,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     broker.publish(modMsg);
 
     // check that the modify has not been applied
-    TimeThread.sleep(2000);
+    Thread.sleep(2000);
     found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
                            "telephonenumber", "02 01 03 05", 10000, false);
     if (found == true)

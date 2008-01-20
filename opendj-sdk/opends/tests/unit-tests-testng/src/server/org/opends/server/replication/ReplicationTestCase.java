@@ -472,7 +472,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     do
     {
       if (count++>0)
-        TimeThread.sleep(100);
+        Thread.sleep(100);
       op = connection.processSearch(
                                     ByteStringFactory.create("cn=monitor"),
                                     SearchScope.SINGLE_LEVEL,
