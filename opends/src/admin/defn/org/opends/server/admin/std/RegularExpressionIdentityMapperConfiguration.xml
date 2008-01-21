@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provides a means of using a regular expression to translate the
+    provides a way to use a regular expression to translate the
     provided identifier when searching for the appropriate user entry.
   </adm:synopsis>
   <adm:description>
@@ -42,9 +42,8 @@
     username portion (the part before the "@" symbol) should be used in
     the mapping process. Note that a replacement will be made only if
     all or part of the provided ID string matches the given match
-    pattern. If no part of the provided ID string matches the provided
-    pattern, then the given ID string will be used without any
-    alteration.
+    pattern. If no part of the ID string matches the provided
+    pattern, the given ID string is used without any alteration.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -66,14 +65,21 @@
     <adm:synopsis>
       Specifies the name or OID of the attribute whose value should
       match the provided identifier string after it has been processed
-      by the associated regular expression.
+      by the associated regular expression. 
     </adm:synopsis>
     <adm:description>
       All values must refer to the name or OID of an attribute type
-      defined in the Directory Server schema. If multiple attribute type
-      names or OIDs are provided, then at least one of those attributes
-      must contain the provided ID string value in exactly one entry.
+      defined in the Directory Server schema. If multiple attributes 
+      or OIDs are provided, at least one of those attributes must contain 
+      the provided ID string value in exactly one entry.
     </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          uid
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:attribute-type />
     </adm:syntax>
@@ -83,15 +89,16 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="match-base-dn" multi-valued="true">
+  <adm:property name="match-base-dn" mandatory="false" multi-valued="true">
     <adm:synopsis>
       Specifies the base DN(s) that should be used when performing
-      searches to map the provided ID string to a user entry.
+      searches to map the provided ID string to a user entry. If multiple 
+      values are given, searches are performed below all the specified base DNs.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will search below all public naming contexts.
+          The server searches below all public naming contexts.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -106,24 +113,35 @@
   </adm:property>
   <adm:property name="match-pattern" mandatory="true">
     <adm:synopsis>
-      Specifies the regular expression pattern that will be used to
-      identify portions of the ID string which will be replaced.
+      Specifies the regular expression pattern that is used to
+      identify portions of the ID string that will be replaced. 
     </adm:synopsis>
     <adm:description>
-      Any portion of the ID string which matches this pattern will be
-      replaced in accordance with the provided replace pattern (or will
-      be removed if no replace pattern is specified). If multiple
-      substrings within the given ID string match this pattern, then all
-      occurrences will be replaced. If no part of the given ID string
-      matches this pattern, then the ID string will not be altered.
-      Exactly one match pattern value must be provided, and it must be a
+      Any portion of the ID string that matches this pattern is 
+      replaced in accordance with the provided replace pattern (or is 
+      removed if no replace pattern is specified). If multiple
+      substrings within the given ID string match this pattern, all
+      occurrences are replaced. If no part of the given ID string
+      matches this pattern, the ID string is not altered. Exactly one 
+      match pattern value must be provided, and it must be a
       valid regular expression as described in the API documentation for
       the java.util.regex.Pattern class, including support for capturing
       groups.
     </adm:description>
     <adm:syntax>
-      <adm:string />
-    </adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>REGEXP</adm:usage>
+          <adm:synopsis>
+            Any valid regular expression pattern which is supported by the 
+            javax.util.regex.Pattern class 
+            (see http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/Pattern.html 
+            for documentation about this class for Java SE 5).
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax> 
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-match-pattern</ldap:name>
@@ -151,8 +169,17 @@
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
-    </adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>REGEXP</adm:usage>
+          <adm:synopsis>
+           Any valid replacement string that is allowed by the
+           javax.util.regex.Matcher class.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax> 
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-replace-pattern</ldap:name>
