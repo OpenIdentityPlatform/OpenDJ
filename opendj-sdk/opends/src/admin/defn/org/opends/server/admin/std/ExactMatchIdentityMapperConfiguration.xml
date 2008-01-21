@@ -35,7 +35,8 @@
     <adm:user-friendly-name />
     maps an identifier string to user entries by searching for the entry
     containing a specified attribute whose value is the provided
-    identifier.
+    identifier. For example, the username provided by the client for DIGEST-MD5 
+    authentication must match the value of the uid attribute
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -56,15 +57,23 @@
     multi-valued="true">
     <adm:synopsis>
       Specifies the attribute whose value should exactly match the ID
-      string provided to this identity mapper.
+      string provided to this identity mapper. 
     </adm:synopsis>
     <adm:description>
       At least one value must be provided. All values must refer to the
       name or OID of an attribute type defined in the Directory Server
-      schema. If multiple attribute type names or OIDs are provided,
-      then at least one of those attributes must contain the provided ID
-      string value in exactly one entry.
+      schema. If multiple attributes or OIDs are provided, at least one of 
+      those attributes must contain the provided ID string value in exactly 
+      one entry. The internal search performed includes a logical OR across 
+      all of these values.
     </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          uid
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:attribute-type />
     </adm:syntax>
@@ -74,18 +83,19 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="match-base-dn" multi-valued="true">
+  <adm:property name="match-base-dn" mandatory="false" multi-valued="true">
     <adm:synopsis>
-      Specifies the set of base DNs below which to search for users.
+      Specifies the set of base DNs below which to search for users. 
     </adm:synopsis>
     <adm:description>
       The base DNs will be used when performing searches to map the
-      provided ID string to a user entry.
+      provided ID string to a user entry. If multiple values are given, searches 
+      are performed below all specified base DNs.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will search below all public naming contexts.
+          The server searches below all public naming contexts.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

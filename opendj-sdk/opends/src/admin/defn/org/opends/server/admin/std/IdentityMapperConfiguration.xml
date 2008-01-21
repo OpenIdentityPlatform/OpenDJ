@@ -33,8 +33,11 @@
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for establishing a mapping between an identifier
-    string and the entry for the user that corresponds to that
-    identifier.
+    string provided by a client, and the entry for the user that 
+    corresponds to that identifier. <adm:user-friendly-plural-name /> 
+    are used to process several SASL mechanisms to map an authorization ID 
+    (e.g., a Kerberos principal when using GSSAPI) to a directory user. They 
+    are also used when processing requests with the proxied authorization control.
   </adm:synopsis>
   <adm:tag name="security" />
   <adm:tag name="user-management" />
@@ -49,7 +52,7 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
       is enabled for use.
     </adm:synopsis>
@@ -64,10 +67,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
