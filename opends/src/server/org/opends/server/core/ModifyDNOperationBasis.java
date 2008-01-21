@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -455,11 +455,6 @@ public class ModifyDNOperationBasis
                                      boolean sendNotification, Message message
   )
   {
-    // Before calling clientConnection.disconnect, we need to mark this
-    // operation as cancelled so that the attempt to cancel it later won't cause
-    // an unnecessary delay.
-    setCancelResult(CancelResult.CANCELED);
-
     clientConnection.disconnect(disconnectReason, sendNotification,
             message);
   }

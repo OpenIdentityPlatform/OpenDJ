@@ -1175,11 +1175,6 @@ public class SearchOperationBasis
                                      boolean sendNotification, Message message
   )
   {
-    // Before calling clientConnection.disconnect, we need to mark this
-    // operation as cancelled so that the attempt to cancel it later won't cause
-    // an unnecessary delay.
-    setCancelResult(CancelResult.CANCELED);
-
     clientConnection.disconnect(disconnectReason, sendNotification, message);
   }
 
