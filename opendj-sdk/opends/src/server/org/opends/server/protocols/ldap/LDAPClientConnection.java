@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -946,10 +946,18 @@ public class LDAPClientConnection
                          boolean sendNotification,
                          Message message)
   {
-    // If we are already in the middle of a disconnect, then don't do anything.
-    if (disconnectRequested)
+    // Set a flag indicating that the connection is being terminated so that no
+    // new requests will be accepted.  Also cancel all operations in progress.
+    synchronized (opsInProgressLock)
     {
-      return;
+      // If we are already in the middle of a disconnect, then don't
+      // do anything.
+      if (disconnectRequested)
+      {
+        return;
+      }
+
+      disconnectRequested = true;
     }
 
 
@@ -967,23 +975,6 @@ public class LDAPClientConnection
     // Indicate that this connection is no longer valid.
     connectionValid = false;
 
-
-    // Set a flag indicating that the connection is being terminated so that no
-    // new requests will be accepted.  Also cancel all operations in progress.
-    synchronized (opsInProgressLock)
-    {
-      try
-      {
-        disconnectRequested = true;
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-    }
 
     cancelAllOperations(new CancelRequest(true, message));
     finalizeConnectionInternal();
@@ -1322,7 +1313,15 @@ public class LDAPClientConnection
         {
           try
           {
-            CancelResult cancelResult = o.cancel(cancelRequest);
+            CancelResult cancelResult = o.getCancelResult();
+            if (cancelResult == null) {
+              // Before calling cancelling the operation, we need to
+              // mark this operation as cancelled so that the attempt to
+              // cancel it later won't cause an unnecessary delay.
+              o.setCancelResult(CancelResult.CANCELED);
+              cancelResult = o.cancel(cancelRequest);
+            }
+
             if (keepStats && (cancelResult == CancelResult.CANCELED))
             {
               statTracker.updateAbandonedOperation();

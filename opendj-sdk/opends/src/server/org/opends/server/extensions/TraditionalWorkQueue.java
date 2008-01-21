@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -46,6 +46,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.monitors.TraditionalWorkQueueMonitor;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -227,7 +228,12 @@ public class TraditionalWorkQueue
     {
       try
       {
-        o.cancel(cancelRequest);
+        // The operation has no chance of responding to the cancel
+        // request so avoid waiting for a cancel response.
+        if (o.getCancelResult() == null) {
+          o.setCancelResult(CancelResult.CANCELED);
+          o.cancel(cancelRequest);
+        }
       }
       catch (Exception e)
       {
