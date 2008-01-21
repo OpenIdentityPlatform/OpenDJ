@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -664,12 +664,13 @@ public class BackupTask extends Task
 
 
     // Print a final completed message, indicating whether there were any errors
-    // in the process.
+    // in the process.  In this case it means that the backup could not be
+    // completed at least for one of the backends.
     if (errorsEncountered)
     {
       Message message = NOTE_BACKUPDB_COMPLETED_WITH_ERRORS.get();
       logError(message);
-      return TaskState.COMPLETED_WITH_ERRORS;
+      return TaskState.STOPPED_BY_ERROR;
     }
     else if (isCancelled())
     {
