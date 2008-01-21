@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -1376,7 +1376,7 @@ public class TestBackendImpl extends JebTestCase {
         "ds-cfg-backend-id: indexRoot",
         "ds-cfg-db-directory:: " +
             Base64.encode(homeDirName.getBytes()),
-        "ds-cfg-import-temp-directory: importTmp");
+        "ds-cfg-import-temp-directory: import-tmp");
 
     LocalDBBackendCfg cfg = AdminTestCaseUtils.getConfiguration(
          LocalDBBackendCfgDefn.getInstance(), configEntry);

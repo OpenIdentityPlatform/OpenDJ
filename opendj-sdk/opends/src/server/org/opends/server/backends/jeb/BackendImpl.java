@@ -119,8 +119,8 @@ public class BackendImpl
   /**
    * A list of monitor providers created for this backend instance.
    */
-  private ArrayList<MonitorProvider> monitorProviders =
-      new ArrayList<MonitorProvider>();
+  private ArrayList<MonitorProvider<?>> monitorProviders =
+      new ArrayList<MonitorProvider<?>>();
 
   /**
    * The base DNs defined for this backend instance.
@@ -132,13 +132,6 @@ public class BackendImpl
    */
   private static HashSet<String> supportedControls;
 
-  /**
-   * The features supported by this backend.
-   */
-  private static HashSet<String> supportedFeatures = new HashSet<String>(0);
-
-
-
   static
   {
     // Set our supported controls.
@@ -148,6 +141,18 @@ public class BackendImpl
     supportedControls.add(OID_MANAGE_DSAIT_CONTROL);
     supportedControls.add(OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
     supportedControls.add(OID_VLV_REQUEST_CONTROL);
+  }
+
+  /**
+   * The features supported by this backend.
+   */
+  private static HashSet<String> supportedFeatures;
+
+  static {
+    // Set our supported features.
+    supportedFeatures = new HashSet<String>();
+
+    //NYI
   }
 
 
@@ -226,7 +231,9 @@ public class BackendImpl
    */
   private long checksumDbEnv() {
 
-    File backendDirectory = getFileForPath(cfg.getDBDirectory());
+    File parentDirectory = getFileForPath(cfg.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, cfg.getBackendId());
+
     List<File> jdbFiles = new ArrayList<File>();
     if(backendDirectory.isDirectory())
     {
@@ -391,12 +398,12 @@ public class BackendImpl
     }
 
     // Deregister our monitor providers.
-    for (MonitorProvider monitor : monitorProviders)
+    for (MonitorProvider<?> monitor : monitorProviders)
     {
       DirectoryServer.deregisterMonitorProvider(
            monitor.getMonitorInstanceName().toLowerCase());
     }
-    monitorProviders = new ArrayList<MonitorProvider>();
+    monitorProviders = new ArrayList<MonitorProvider<?>>();
 
     // We presume the server will prevent more operations coming into this
     // backend, but there may be existing operations already in the
@@ -561,7 +568,7 @@ public class BackendImpl
   @Override()
   public HashSet<String> getSupportedFeatures()
   {
-    return new HashSet<String>();  //NYI
+    return supportedFeatures;
   }
 
 
@@ -1179,8 +1186,8 @@ public class BackendImpl
         // environment and re-open it. Only do this when we are
         // importing to all the base DNs in the backend or if the backend only
         // have one base DN.
-
-        File backendDirectory = getFileForPath(cfg.getDBDirectory());
+        File parentDirectory = getFileForPath(cfg.getDBDirectory());
+        File backendDirectory = new File(parentDirectory, cfg.getBackendId());
         EnvManager.removeFiles(backendDirectory.getPath());
         envConfig.setReadOnly(false);
         envConfig.setAllowCreate(true);
@@ -1440,7 +1447,9 @@ public class BackendImpl
   {
     BackupManager backupManager =
         new BackupManager(getBackendID());
-    backupManager.createBackup(cfg, backupConfig);
+    File parentDir = getFileForPath(cfg.getDBDirectory());
+    File backendDir = new File(parentDir, cfg.getBackendId());
+    backupManager.createBackup(backendDir, backupConfig);
   }
 
 
@@ -1468,7 +1477,9 @@ public class BackendImpl
   {
     BackupManager backupManager =
         new BackupManager(getBackendID());
-    backupManager.restoreBackup(cfg, restoreConfig);
+    File parentDir = getFileForPath(cfg.getDBDirectory());
+    File backendDir = new File(parentDir, cfg.getBackendId());
+    backupManager.restoreBackup(backendDir, restoreConfig);
   }
 
 
@@ -1656,7 +1667,8 @@ public class BackendImpl
       throws ConfigException, JebException
   {
     // Determine the backend database directory.
-    File backendDirectory = getFileForPath(cfg.getDBDirectory());
+    File parentDirectory = getFileForPath(cfg.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, cfg.getBackendId());
     EnvManager.removeFiles(backendDirectory.getPath());
   }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -48,6 +48,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
@@ -60,7 +61,9 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationBroker;
+import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
@@ -126,9 +129,30 @@ public class ReplicationServerTest extends ReplicationTestCase
     replicationServerPort = socket.getLocalPort();
     socket.close();
 
-    ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(replicationServerPort, null, 0, 1, 0, 0, null);
-    replicationServer = new ReplicationServer(conf);;
+    TestCaseUtils.dsconfig(
+        "create-replication-server",
+        "--provider-name", "Multimaster Synchronization",
+        "--set", "replication-port:" + replicationServerPort,
+        "--set", "replication-server-id:1");
+    
+    DirectoryServer.getSynchronizationProviders();
+    for (SynchronizationProvider<?> provider : DirectoryServer
+        .getSynchronizationProviders()) {
+      if (provider instanceof MultimasterReplication) {
+        MultimasterReplication mmp = (MultimasterReplication) provider;
+        ReplicationServerListener list = mmp.getReplicationServerListener();
+        if (list != null) {
+          replicationServer = list.getReplicationServer();
+          if (replicationServer != null) {
+            break;
+          }
+        }
+      }
+    }
+
+//    ReplServerFakeConfiguration conf =
+//      new ReplServerFakeConfiguration(replicationServerPort, null, 0, 1, 0, 0, null);
+//    replicationServer = new ReplicationServer(conf);;
   }
 
   private void debugInfo(String s)
@@ -449,7 +473,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private void stopChangelog() throws Exception
   {
-    replicationServer.remove();
+    shutdown();
     configure();
     newClient();
     newClientWithFirstChanges();
@@ -920,10 +944,10 @@ public class ReplicationServerTest extends ReplicationTestCase
   @AfterClass()
   public void shutdown() throws Exception
   {
-    if (replicationServer != null) {
-      replicationServer.remove();
-      replicationServer = null;
-    }
+    TestCaseUtils.dsconfig(
+        "delete-replication-server",
+        "--provider-name", "Multimaster Synchronization");
+    replicationServer = null;
   }
 
   /**

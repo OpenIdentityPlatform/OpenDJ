@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -57,7 +57,7 @@ import static org.opends.server.util.StaticUtils.getFileForPath;
  * A thread to merge a set of intermediate files from an index builder
  * into an index database.
  */
-public class IndexMergeThread extends DirectoryThread
+final class IndexMergeThread extends DirectoryThread
 {
   /**
    * The tracer object for the debug logger.
@@ -73,35 +73,30 @@ public class IndexMergeThread extends DirectoryThread
   /**
    * The configuration of the JE backend containing the index.
    */
-  LocalDBBackendCfg config;
+  private LocalDBBackendCfg config;
 
   /**
    * The LDIF import configuration, which indicates whether we are
    * appending to existing data.
    */
-  LDIFImportConfig ldifImportConfig;
+  private LDIFImportConfig ldifImportConfig;
 
 
   /**
    * The indexer to generate and compare index keys.
    */
-  Indexer indexer;
+  private Indexer indexer;
 
   /**
    * The index database being written.
    */
-  Index index;
+  private Index index;
 
 
   /**
    * The index entry limit.
    */
-  int entryLimit;
-
-  /**
-   * The name of the index for use in file names and log messages.
-   */
-  String indexName;
+  private int entryLimit;
 
   /**
    * Indicates whether we are replacing existing data or not.
@@ -134,7 +129,7 @@ public class IndexMergeThread extends DirectoryThread
    * @param index The index database to be written.
    * @param entryLimit The configured index entry limit.
    */
-  IndexMergeThread(LocalDBBackendCfg config,
+  public IndexMergeThread(LocalDBBackendCfg config,
                    LDIFImportConfig ldifImportConfig,
                    Index index, int entryLimit)
   {
@@ -176,7 +171,7 @@ public class IndexMergeThread extends DirectoryThread
    * written to the index.
    * @throws Exception If an error occurs.
    */
-  public void merge() throws Exception
+  private void merge() throws Exception
   {
     // An ordered map of the current input keys from each file.
     OctetStringKeyComparator comparator =
@@ -185,7 +180,8 @@ public class IndexMergeThread extends DirectoryThread
          new TreeMap<ASN1OctetString, MergeValue>(comparator);
 
     // Open all the files.
-    File tempDir = getFileForPath(config.getImportTempDirectory());
+    File parentDir = getFileForPath(config.getImportTempDirectory());
+    File tempDir = new File(parentDir, config.getBackendId());
     File[] files = tempDir.listFiles(filter);
 
     if (files == null || files.length == 0)

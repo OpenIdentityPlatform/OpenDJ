@@ -835,15 +835,12 @@ public class ReplicationServer extends MonitorProvider<MonitorProviderCfg>
           "dn: ds-cfg-backend-id="+backendId+",cn=Backends,cn=config",
           "objectClass: top",
           "objectClass: ds-cfg-backend",
-          "objectClass: ds-cfg-local-db-backend",
           "ds-cfg-base-dn: dc="+backendId,
           "ds-cfg-enabled: true",
           "ds-cfg-writability-mode: enabled",
           "ds-cfg-java-class: " +
             "org.opends.server.replication.server.ReplicationBackend",
-          "ds-cfg-backend-id: " + backendId,
-          "ds-cfg-import-temp-directory: importReplChangesTmp",
-          "ds-cfg-db-directory: " + dbDirname);
+          "ds-cfg-backend-id: " + backendId);
 
       LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
           new StringReader(ldif));

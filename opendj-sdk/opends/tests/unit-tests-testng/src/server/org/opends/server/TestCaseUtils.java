@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server;
 
@@ -235,9 +235,10 @@ public final class TestCaseUtils {
       //db_unindexed is the forth backend used by the unindexed search privilege
       //test cases
       String[] subDirectories = { "bak", "bin", "changelogDb", "classes",
-                                  "config", "db", "db_verify", "ldif", "lib",
-                                  "locks", "logs", "db_rebuild", "db_unindexed",
-                                  "db_index_test", "db_import_test"};
+                                  "config", "db", "import-tmp", "db_verify",
+                                  "ldif", "lib", "locks", "logs", "db_rebuild",
+                                  "db_unindexed", "db_index_test",
+                                  "db_import_test"};
       for (String s : subDirectories)
       {
         new File(testRoot, s).mkdir();

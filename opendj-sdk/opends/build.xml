@@ -795,6 +795,7 @@
     <mkdir dir="${pdir}/config/messages"                             />
     <mkdir dir="${pdir}/config/MakeLDIF"                             />
     <mkdir dir="${pdir}/db"                                          />
+    <mkdir dir="${pdir}/import-tmp"                                  />
     <mkdir dir="${pdir}/changelogDb"                                 />
     <mkdir dir="${pdir}/ldif"                                        />
     <mkdir dir="${pdir}/legal-notices"                               />

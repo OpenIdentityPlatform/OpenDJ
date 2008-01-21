@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -56,29 +56,29 @@ import java.io.IOException;
 public class AttributeIndexBuilder implements IndexBuilder
 {
   /**
-   * The import context.
+   * The directory in which temporary merge files are held.
    */
-  private ImportContext importContext;
+  private final File tempDir;
 
   /**
    * The index database.
    */
-  private Index index;
+  private final Index index;
 
   /**
    * The indexer to generate the index keys.
    */
-  private Indexer indexer;
+  private final Indexer indexer;
 
   /**
    * The write buffer.
    */
-  ArrayList<IndexMod> buffer;
+  private ArrayList<IndexMod> buffer;
 
   /**
    * The write buffer size.
    */
-  private int bufferSize;
+  private final int bufferSize;
 
   /**
    * Current output file number.
@@ -86,31 +86,28 @@ public class AttributeIndexBuilder implements IndexBuilder
   private int fileNumber = 0;
 
   /**
-   * The index entry limit.
-   */
-  private int entryLimit;
-
-  /**
    * A unique prefix for temporary files to prevent conflicts.
    */
-  private String fileNamePrefix;
+  private final String fileNamePrefix;
 
   /**
    * Indicates whether we are replacing existing data or not.
    */
-  private boolean replaceExisting = false;
+  private final boolean replaceExisting;
 
 
-  private ByteArrayOutputStream addBytesStream = new ByteArrayOutputStream();
-  private ByteArrayOutputStream delBytesStream = new ByteArrayOutputStream();
+  private final ByteArrayOutputStream addBytesStream =
+    new ByteArrayOutputStream();
+  private final ByteArrayOutputStream delBytesStream =
+    new ByteArrayOutputStream();
 
-  private DataOutputStream addBytesDataStream;
-  private DataOutputStream delBytesDataStream;
+  private final DataOutputStream addBytesDataStream;
+  private final DataOutputStream delBytesDataStream;
 
   /**
    * A file name filter to identify temporary files we have written.
    */
-  private FilenameFilter filter = new FilenameFilter()
+  private final FilenameFilter filter = new FilenameFilter()
   {
     public boolean accept(File d, String name)
     {
@@ -129,10 +126,13 @@ public class AttributeIndexBuilder implements IndexBuilder
   public AttributeIndexBuilder(ImportContext importContext,
                       Index index, int entryLimit, long bufferSize)
   {
-    this.importContext = importContext;
+    File parentDir = getFileForPath(importContext.getConfig()
+        .getImportTempDirectory());
+    this.tempDir = new File(parentDir,
+        importContext.getConfig().getBackendId());
+
     this.index = index;
     this.indexer = index.indexer;
-    this.entryLimit = entryLimit;
     this.bufferSize = (int)bufferSize/100;
     long tid = Thread.currentThread().getId();
     fileNamePrefix = index.getName() + "_" + tid + "_";
@@ -149,8 +149,6 @@ public class AttributeIndexBuilder implements IndexBuilder
   public void startProcessing()
   {
     // Clean up any work files left over from a previous run.
-    File tempDir = getFileForPath(
-        importContext.getConfig().getImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
     if (files != null)
     {
@@ -224,6 +222,8 @@ public class AttributeIndexBuilder implements IndexBuilder
   {
     return index.getEntryLimitExceededCount();
   }
+
+
 
   /**
    * Record the insertion of an entry ID.
@@ -299,9 +299,7 @@ public class AttributeIndexBuilder implements IndexBuilder
     // Start a new file.
     fileNumber++;
     String fileName = fileNamePrefix + String.valueOf(fileNumber);
-    File file = new File(getFileForPath(
-        importContext.getConfig().getImportTempDirectory()),
-                         fileName);
+    File file = new File(tempDir, fileName);
     BufferedOutputStream bufferedStream =
          new BufferedOutputStream(new FileOutputStream(file));
     DataOutputStream dataStream = new DataOutputStream(bufferedStream);

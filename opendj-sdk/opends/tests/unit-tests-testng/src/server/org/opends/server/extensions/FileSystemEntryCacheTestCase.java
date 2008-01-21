@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -137,7 +137,6 @@ public class FileSystemEntryCacheTestCase
     TestCaseUtils.dsconfig("create-backend", "--backend-name", "cacheTest",
       "--type", "local-db", "--set", "db-directory:" + jeDir, "--set",
       "base-dn:o=cachetest", "--set",
-      "import-temp-directory:importTmp", "--set",
       "writability-mode:enabled", "--set", "enabled:true");
 
     // Finalize this cache so it can be reconfigured.
