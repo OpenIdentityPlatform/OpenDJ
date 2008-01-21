@@ -212,13 +212,13 @@ public class MultimasterReplication
   {
     ReplicationDomain domain = domains.remove(dn);
 
+    if (domain != null)
+      domain.shutdown();
+
     // No replay threads running if no replication need
     if (domains.size() == 0) {
       stopReplayThreads();
     }
-
-    if (domain != null)
-      domain.shutdown();
   }
 
   /**
@@ -507,15 +507,15 @@ public class MultimasterReplication
   @Override
   public void finalizeSynchronizationProvider()
   {
-    // Stop replay threads
-    stopReplayThreads();
-
     // shutdown all the domains
     for (ReplicationDomain domain : domains.values())
     {
       domain.shutdown();
     }
     domains.clear();
+
+    // Stop replay threads
+    stopReplayThreads();
 
     // shutdown the ReplicationServer Service if necessary
     if (replicationServerListener != null)
