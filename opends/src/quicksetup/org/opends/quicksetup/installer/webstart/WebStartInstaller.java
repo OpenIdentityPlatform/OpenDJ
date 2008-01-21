@@ -245,6 +245,8 @@ public class WebStartInstaller extends Installer {
 
       checkAbort();
       updateSummaryWithServerState(hmSummary);
+      notifyListeners(getLineBreak());
+      notifyListenersOfLog();
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
