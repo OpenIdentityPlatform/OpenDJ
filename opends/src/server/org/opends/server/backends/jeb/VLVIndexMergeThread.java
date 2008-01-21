@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -51,7 +51,7 @@ import com.sleepycat.je.Transaction;
  * A thread to merge a set of intermediate files from an vlvIndex builder
  * into an vlvIndex database.
  */
-public class VLVIndexMergeThread extends DirectoryThread
+class VLVIndexMergeThread extends DirectoryThread
 {
   /**
    * The tracer object for the debug logger.
@@ -67,23 +67,18 @@ public class VLVIndexMergeThread extends DirectoryThread
   /**
    * The configuration of the JE backend containing the vlvIndex.
    */
-  LocalDBBackendCfg config;
+  private LocalDBBackendCfg config;
 
   /**
    * The LDIF import configuration, which indicates whether we are
    * appending to existing data.
    */
-  LDIFImportConfig ldifImportConfig;
+  private LDIFImportConfig ldifImportConfig;
 
   /**
    * The vlvIndex database being written.
    */
-  VLVIndex vlvIndex;
-
-  /**
-   * The name of the vlvIndex for use in file names and log messages.
-   */
-  String indexName;
+  private VLVIndex vlvIndex;
 
   /**
    * Indicates whether we are replacing existing data or not.
@@ -121,7 +116,7 @@ public class VLVIndexMergeThread extends DirectoryThread
    * whether we are appending to existing data.
    * @param vlvIndex The vlvIndex database to be written.
    */
-  VLVIndexMergeThread(LocalDBBackendCfg config,
+  public VLVIndexMergeThread(LocalDBBackendCfg config,
                       LDIFImportConfig ldifImportConfig,
                       VLVIndex vlvIndex)
   {
@@ -170,7 +165,8 @@ public class VLVIndexMergeThread extends DirectoryThread
   public void merge() throws Exception
   {
     // Open all the files.
-    File tempDir = getFileForPath(config.getImportTempDirectory());
+    File parentDir = getFileForPath(config.getImportTempDirectory());
+    File tempDir = new File(parentDir, config.getBackendId());
     File[] files = tempDir.listFiles(filter);
 
     if (files == null || files.length == 0)

@@ -164,6 +164,11 @@
     <adm:requires-admin-action>
       <adm:component-restart />
     </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>db</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
     <adm:syntax>
       <adm:string />
     </adm:syntax>
@@ -332,9 +337,6 @@
     </adm:profile>
   </adm:property>
   <adm:property name="import-temp-directory" mandatory="true">
-    <adm:TODO>
-      Default to something derived from the backend-id
-    </adm:TODO>
     <adm:synopsis>
       Specifies the location of the directory that will be used for the
       files used to hold temporary information that will be used during
@@ -355,7 +357,9 @@
       </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:defined>
+        <adm:value>import-tmp</adm:value>
+      </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />

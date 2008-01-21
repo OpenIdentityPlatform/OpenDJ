@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -33,7 +33,6 @@ import java.util.*;
 import java.io.*;
 
 import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Transaction;
 
 /**
  * This class is used to create an VLV vlvIndex for an import process.
@@ -50,29 +49,29 @@ import com.sleepycat.je.Transaction;
 public class VLVIndexBuilder implements IndexBuilder
 {
   /**
-   * The import context.
+   * The directory in which temporary merge files are held.
    */
-  private ImportContext importContext;
+  private final File tempDir;
 
   /**
    * The vlvIndex database.
    */
-  private VLVIndex vlvIndex;
+  private final VLVIndex vlvIndex;
 
   /**
    * The add write buffer.
    */
-  TreeMap<SortValues,EntryID> addBuffer;
+  private TreeMap<SortValues,EntryID> addBuffer;
 
   /**
    * The delete write buffer.
    */
-  TreeMap<SortValues,EntryID> delBuffer;
+  private TreeMap<SortValues,EntryID> delBuffer;
 
   /**
    * The write buffer size.
    */
-  private int bufferSize;
+  private final int bufferSize;
 
   /**
    * Current output file number.
@@ -82,24 +81,17 @@ public class VLVIndexBuilder implements IndexBuilder
   /**
    * A unique prefix for temporary files to prevent conflicts.
    */
-  private String fileNamePrefix;
+  private final String fileNamePrefix;
 
   /**
    * Indicates whether we are replacing existing data or not.
    */
-  private boolean replaceExisting = false;
-
-
-  private ByteArrayOutputStream addBytesStream = new ByteArrayOutputStream();
-  private ByteArrayOutputStream delBytesStream = new ByteArrayOutputStream();
-
-  private DataOutputStream addBytesDataStream;
-  private DataOutputStream delBytesDataStream;
+  private final boolean replaceExisting;
 
   /**
    * A file name filter to identify temporary files we have written.
    */
-  private FilenameFilter filter = new FilenameFilter()
+  private final FilenameFilter filter = new FilenameFilter()
   {
     public boolean accept(File d, String name)
     {
@@ -117,16 +109,18 @@ public class VLVIndexBuilder implements IndexBuilder
   public VLVIndexBuilder(ImportContext importContext,
                          VLVIndex vlvIndex, long bufferSize)
   {
-    this.importContext = importContext;
+    File parentDir = getFileForPath(importContext.getConfig()
+        .getImportTempDirectory());
+    this.tempDir = new File(parentDir,
+        importContext.getConfig().getBackendId());
+
     this.vlvIndex = vlvIndex;
     this.bufferSize = (int)bufferSize/100;
     long tid = Thread.currentThread().getId();
-    fileNamePrefix = vlvIndex.getName() + "_" + tid + "_";
-    replaceExisting =
+    this.fileNamePrefix = vlvIndex.getName() + "_" + tid + "_";
+    this.replaceExisting =
         importContext.getLDIFImportConfig().appendToExistingData() &&
             importContext.getLDIFImportConfig().replaceExistingEntries();
-    addBytesDataStream = new DataOutputStream(addBytesStream);
-    delBytesDataStream = new DataOutputStream(delBytesStream);
   }
 
   /**
@@ -135,8 +129,6 @@ public class VLVIndexBuilder implements IndexBuilder
   public void startProcessing()
   {
     // Clean up any work files left over from a previous run.
-    File tempDir = getFileForPath(
-        importContext.getConfig().getImportTempDirectory());
     File[] files = tempDir.listFiles(filter);
     if (files != null)
     {
@@ -156,7 +148,6 @@ public class VLVIndexBuilder implements IndexBuilder
   public void processEntry(Entry oldEntry, Entry newEntry, EntryID entryID)
       throws DatabaseException, IOException, DirectoryException
   {
-    Transaction txn = null;
     SortValues newValues = new SortValues(entryID, newEntry,
                                           vlvIndex.sortOrder);
     // Update the vlvIndex for this entry.
@@ -244,9 +235,7 @@ public class VLVIndexBuilder implements IndexBuilder
     // Start a new file.
     fileNumber++;
     String fileName = fileNamePrefix + String.valueOf(fileNumber) + "_add";
-    File file = new File(getFileForPath(
-        importContext.getConfig().getImportTempDirectory()),
-                         fileName);
+    File file = new File(tempDir, fileName);
     BufferedOutputStream bufferedStream =
         new BufferedOutputStream(new FileOutputStream(file));
     DataOutputStream dataStream = new DataOutputStream(bufferedStream);
@@ -279,9 +268,7 @@ public class VLVIndexBuilder implements IndexBuilder
     if (replaceExisting)
     {
       fileName = fileNamePrefix + String.valueOf(fileNumber) + "_del";
-      file = new File(getFileForPath(
-          importContext.getConfig().getImportTempDirectory()),
-                      fileName);
+      file = new File(tempDir, fileName);
       bufferedStream =
           new BufferedOutputStream(new FileOutputStream(file));
       dataStream = new DataOutputStream(bufferedStream);

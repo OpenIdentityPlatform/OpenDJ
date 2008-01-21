@@ -143,7 +143,8 @@ public class RootContainer
       throws DatabaseException, ConfigException
   {
     // Determine the backend database directory.
-    File backendDirectory = getFileForPath(config.getDBDirectory());
+    File parentDirectory = getFileForPath(config.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, config.getBackendId());
 
     // Create the directory if it doesn't exist.
     if (!backendDirectory.exists())
@@ -724,8 +725,10 @@ public class RootContainer
   {
     boolean acceptable = true;
 
-    File backendDirectory = getFileForPath(cfg.getDBDirectory());
-    //Make sure the directory either alreadly exists or is able to create.
+    File parentDirectory = getFileForPath(config.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, config.getBackendId());
+
+    //Make sure the directory either already exists or is able to create.
     if (!backendDirectory.exists())
     {
       if(!backendDirectory.mkdirs())
@@ -806,7 +809,7 @@ public class RootContainer
         EnvironmentConfig oldEnvConfig = env.getConfig();
         EnvironmentConfig newEnvConfig =
             ConfigurableEnvironment.parseConfigEntry(cfg);
-        Map paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
+        Map<?,?> paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
 
         // Iterate through native JE properties.
         SortedSet<String> jeProperties = cfg.getJEProperty();
@@ -875,7 +878,9 @@ public class RootContainer
       // Create the directory if it doesn't exist.
       if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
       {
-        File backendDirectory = getFileForPath(cfg.getDBDirectory());
+        File parentDirectory = getFileForPath(config.getDBDirectory());
+        File backendDirectory =
+          new File(parentDirectory, config.getBackendId());
 
         if (!backendDirectory.exists())
         {
@@ -946,7 +951,9 @@ public class RootContainer
         // Get the backend database backendDirectory permissions and apply
         if(FilePermission.canSetPermissions())
         {
-          File backendDirectory = getFileForPath(cfg.getDBDirectory());
+          File parentDirectory = getFileForPath(config.getDBDirectory());
+          File backendDirectory = new File(parentDirectory,
+              config.getBackendId());
           try
           {
             if(!FilePermission.setPermissions(backendDirectory,

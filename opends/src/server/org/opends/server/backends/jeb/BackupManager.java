@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -66,7 +66,8 @@ import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
+
+
 
 /**
  * A backup manager for JE backends.
@@ -133,12 +134,12 @@ public class BackupManager
    * log files that are unchanged since the previous backup.  The remaining
    * zip entries are the JE log files themselves, which, for an incremental,
    * only include those files that have changed.
-   * @param cfg The configuration of the backend instance for
+   * @param backendDir The directory of the backend instance for
    * which the backup is required.
    * @param  backupConfig  The configuration to use when performing the backup.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void createBackup(LocalDBBackendCfg cfg, BackupConfig backupConfig)
+  public void createBackup(File backendDir, BackupConfig backupConfig)
        throws DirectoryException
   {
     // Get the properties to use for the backup.
@@ -220,7 +221,6 @@ public class BackupManager
     // If this is an incremental, determine the base backup for this backup.
     HashSet<String> dependencies = new HashSet<String>();
     BackupInfo baseBackup = null;
-    File backendDir = getFileForPath(cfg.getDBDirectory());
 /*
     FilenameFilter backupTagFilter = new FilenameFilter()
     {
@@ -711,12 +711,12 @@ public class BackupManager
 
   /**
    * Restore a JE backend from backup, or verify the backup.
-   * @param cfg The configuration of the backend instance to be
+   * @param backendDir The configuration of the backend instance to be
    * restored.
    * @param  restoreConfig The configuration to use when performing the restore.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void restoreBackup(LocalDBBackendCfg cfg,
+  public void restoreBackup(File backendDir,
                             RestoreConfig restoreConfig)
        throws DirectoryException
   {
@@ -729,8 +729,7 @@ public class BackupManager
 
     // Create a restore directory with a different name to the backend
     // directory.
-    File currentDir = getFileForPath(cfg.getDBDirectory());
-    File restoreDir = new File(currentDir.getPath() + "-restore-" + backupID);
+    File restoreDir = new File(backendDir.getPath() + "-restore-" + backupID);
     if (!verifyOnly)
     {
       File[] files = restoreDir.listFiles();
@@ -803,7 +802,7 @@ public class BackupManager
     // Delete the current backend directory and rename the restore directory.
     if (!verifyOnly)
     {
-      File[] files = currentDir.listFiles();
+      File[] files = backendDir.listFiles();
       if (files != null)
       {
         for (File f : files)
@@ -811,11 +810,11 @@ public class BackupManager
           f.delete();
         }
       }
-      currentDir.delete();
-      if (!restoreDir.renameTo(currentDir))
+      backendDir.delete();
+      if (!restoreDir.renameTo(backendDir))
       {
         Message msg = ERR_JEB_CANNOT_RENAME_RESTORE_DIRECTORY.get(
-            restoreDir.getPath(), currentDir.getPath());
+            restoreDir.getPath(), backendDir.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      msg);
       }

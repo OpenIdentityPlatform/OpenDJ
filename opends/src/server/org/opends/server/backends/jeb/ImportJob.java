@@ -124,7 +124,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   /**
    * The number of merge passes.
    */
-  int mergePassNumber = 1;
+  private int mergePassNumber = 1;
 
 
   /**
@@ -235,8 +235,9 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
       startTime = System.currentTimeMillis();
 
       // Create a temporary work directory.
-      File tempDir = getFileForPath(config.getImportTempDirectory());
-      if(!tempDir.exists() && !tempDir.mkdir())
+      File parentDir = getFileForPath(config.getImportTempDirectory());
+      File tempDir = new File(parentDir, config.getBackendId());
+      if(!tempDir.exists() && !tempDir.mkdirs())
       {
         Message msg = ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(
                 String.valueOf(tempDir));
@@ -828,7 +829,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws JebException If an error occurs in the JE backend.
    */
-  public void processEntry(ImportContext importContext, Entry entry)
+  private void processEntry(ImportContext importContext, Entry entry)
       throws JebException, DatabaseException
   {
     DN entryDN = entry.getDN();
@@ -963,7 +964,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
 
       if (txn != null)
       {
-        importContext.getEntryContainer().transactionCommit(txn);
+        EntryContainer.transactionCommit(txn);
         txn = null;
       }
     }
@@ -971,7 +972,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
     {
       if (txn != null)
       {
-        importContext.getEntryContainer().transactionAbort(txn);
+        EntryContainer.transactionAbort(txn);
       }
     }
   }
@@ -1215,7 +1216,7 @@ public class ImportJob implements Thread.UncaughtExceptionHandler
   /**
    * This class reports progress of the import job at fixed intervals.
    */
-  class ProgressTask extends TimerTask
+  private final class ProgressTask extends TimerTask
   {
     /**
      * The number of entries that had been read at the time of the

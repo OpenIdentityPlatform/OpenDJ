@@ -32,11 +32,12 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -54,8 +55,12 @@ import java.util.TimerTask;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackupManager;
@@ -146,15 +151,12 @@ public class ReplicationBackend
   // The set of supported features for this backend.
   private HashSet<String> supportedFeatures;
 
-  // The directory associated with this backend.
-  private BackupDirectory backendDirectory;
-
-  ReplicationServer server;
+  private ReplicationServer server;
 
   /**
    * The configuration of this backend.
    */
-  private LocalDBBackendCfg cfg;
+  private BackendCfg cfg;
 
   /**
    * The number of milliseconds between job progress reports.
@@ -215,12 +217,10 @@ public class ReplicationBackend
     if (config != null)
     {
       Validator.ensureTrue(config instanceof BackendCfg);
-      cfg = (LocalDBBackendCfg)config;
+      cfg = (BackendCfg)config;
       DN[] baseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(baseDNs);
       setBaseDNs(baseDNs);
-      backendDirectory = new BackupDirectory(
-          cfg.getDBDirectory(), null);
     }
   }
 
@@ -333,7 +333,7 @@ public class ReplicationBackend
     {
       try
       {
-        server = retrievesReplicationServer();
+        server = getReplicationServer();
         if (server == null)
         {
           return 0;
@@ -998,9 +998,10 @@ public class ReplicationBackend
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
-    BackupManager backupManager =
-      new BackupManager(getBackendID());
-    backupManager.createBackup(cfg, backupConfig);
+    BackupManager backupManager = new BackupManager(getBackendID());
+    File backendDir = getFileForPath(getReplicationServerCfg()
+        .getReplicationDBDirectory());
+    backupManager.createBackup(backendDir, backupConfig);
   }
 
 
@@ -1015,7 +1016,7 @@ public class ReplicationBackend
   {
     BackupManager backupManager =
       new BackupManager(getBackendID());
-    backupManager.removeBackup(this.backendDirectory, backupID);
+    backupManager.removeBackup(backupDirectory, backupID);
   }
 
 
@@ -1040,7 +1041,9 @@ public class ReplicationBackend
   {
     BackupManager backupManager =
       new BackupManager(getBackendID());
-    backupManager.restoreBackup(cfg, restoreConfig);
+    File backendDir = getFileForPath(getReplicationServerCfg()
+        .getReplicationDBDirectory());
+    backupManager.restoreBackup(backendDir, restoreConfig);
   }
 
 
@@ -1081,7 +1084,7 @@ public class ReplicationBackend
   /**
    * This class reports progress of the export job at fixed intervals.
    */
-  class ProgressTask extends TimerTask
+  private final class ProgressTask extends TimerTask
   {
     /**
      * The number of entries that had been exported at the time of the
@@ -1180,7 +1183,7 @@ public class ReplicationBackend
 
     if (server==null)
     {
-      server = retrievesReplicationServer();
+      server = getReplicationServer();
 
       if (server == null)
       {
@@ -1234,13 +1237,12 @@ public class ReplicationBackend
    * @return The server retrieved
    * @throws DirectoryException When it occurs.
    */
-  protected static ReplicationServer retrievesReplicationServer()
-  throws DirectoryException
+  private ReplicationServer getReplicationServer() throws DirectoryException
   {
     ReplicationServer replicationServer = null;
 
     DirectoryServer.getSynchronizationProviders();
-    for (SynchronizationProvider provider :
+    for (SynchronizationProvider<?> provider :
       DirectoryServer.getSynchronizationProviders())
     {
       if (provider instanceof MultimasterReplication)
@@ -1255,6 +1257,37 @@ public class ReplicationBackend
       }
     }
     return replicationServer;
+  }
+
+  // Find the replication server configuration associated with this
+  // replication backend.
+  private ReplicationServerCfg getReplicationServerCfg()
+      throws DirectoryException {
+    RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+
+    for (String name : root.listSynchronizationProviders()) {
+      SynchronizationProviderCfg cfg;
+      try {
+        cfg = root.getSynchronizationProvider(name);
+      } catch (ConfigException e) {
+        throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
+            ERR_REPLICATION_SERVER_CONFIG_NOT_FOUND.get(), e);
+      }
+      if (cfg instanceof ReplicationSynchronizationProviderCfg) {
+        ReplicationSynchronizationProviderCfg scfg =
+          (ReplicationSynchronizationProviderCfg) cfg;
+        try {
+          return scfg.getReplicationServer();
+        } catch (ConfigException e) {
+          throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
+              ERR_REPLICATION_SERVER_CONFIG_NOT_FOUND.get(), e);
+        }
+      }
+    }
+
+    // No replication server found.
+    throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
+        ERR_REPLICATION_SERVER_CONFIG_NOT_FOUND.get());
   }
 
   /**

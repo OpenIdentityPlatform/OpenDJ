@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -133,8 +133,6 @@ public class AbandonOperationBasis extends AbstractOperation
                                      boolean sendNotification, Message message
   )
   {
-    // Since abandon operations can't be cancelled, we don't need to do anything
-    // but forward the request on to the client connection.
     clientConnection.disconnect(disconnectReason, sendNotification,
             message);
   }
