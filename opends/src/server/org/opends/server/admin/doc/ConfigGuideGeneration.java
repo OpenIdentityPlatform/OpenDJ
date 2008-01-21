@@ -448,7 +448,7 @@ public class ConfigGuideGeneration {
     // Property table
     startTable();
     tableRow("Description",
-      ((prop.getSynopsis() != null) ? prop.getSynopsis().toString() : "") +
+      ((prop.getSynopsis() != null) ? prop.getSynopsis().toString()+ " " : "") +
       ((prop.getDescription() != null) ?
         prop.getDescription().toString() : ""));
 
@@ -582,7 +582,6 @@ public class ConfigGuideGeneration {
       @Override
       public String visitAttributeType(
         AttributeTypePropertyDefinition prop, Void p) {
-
         return "The name of an attribute type defined in the server schema.";
       }
 
@@ -694,7 +693,11 @@ public class ConfigGuideGeneration {
 
       @Override
       public String visitString(StringPropertyDefinition prop, Void p) {
-        return "A String";
+        String retStr = "A String";
+        if (prop.getPatternSynopsis() != null) {
+          retStr = prop.getPatternSynopsis().toString();
+        }
+        return retStr;
       }
 
       @Override
