@@ -810,4 +810,25 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="entry-cache-preload" mandatory="false">
+    <adm:synopsis>
+      Indicates whether or not to preload the entry cache on startup.
+    </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-entry-cache-preload</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

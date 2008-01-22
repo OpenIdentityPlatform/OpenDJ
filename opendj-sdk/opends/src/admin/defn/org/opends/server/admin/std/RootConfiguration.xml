@@ -203,17 +203,6 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="default-entry-cache">
-    <adm:one-to-one />
-    <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=Entry Caches,cn=config</ldap:rdn-sequence>
-    </adm:profile>
-    <adm:profile name="cli">
-      <cli:relation>
-        <cli:default-property name="cache-preload" />
-      </cli:relation>
-    </adm:profile>
-  </adm:relation>
   <adm:relation name="entry-cache">
     <adm:one-to-many />
     <adm:profile name="ldap">

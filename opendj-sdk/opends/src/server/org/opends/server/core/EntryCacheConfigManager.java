@@ -228,7 +228,7 @@ public class EntryCacheConfigManager
     }
 
     // If requested preload the entry cache.
-    if (rootConfiguration.getDefaultEntryCache().isCachePreload()) {
+    if (rootConfiguration.getGlobalConfiguration().isEntryCachePreload()) {
       // Kick off preload arbiter main thread.
       EntryCachePreloader preloadThread = new EntryCachePreloader();
       preloadThread.start();
