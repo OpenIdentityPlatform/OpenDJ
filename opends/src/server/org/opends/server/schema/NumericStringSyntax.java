@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -47,7 +47,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
-/**                                               O
+/**
  * This class implements the numeric string attribute syntax, which may be hold
  * one or more numeric digits and/or spaces.  Equality, ordering, and substring
  * matching will be allowed by default.
