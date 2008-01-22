@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -44,7 +44,6 @@ import org.testng.annotations.Test;
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
  */
-@Test(enabled=false)
 public class ReSyncTest extends ReplicationTestCase
 {
  /**
@@ -53,7 +52,7 @@ public class ReSyncTest extends ReplicationTestCase
   * @throws Exception
   *           If the environment could not be set up.
   */
- @BeforeClass(enabled=false)
+ @BeforeClass
   public void setup() throws Exception
   {
    /*
@@ -139,7 +138,7 @@ public class ReSyncTest extends ReplicationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void testResyncAfterRestore() throws Exception
   {
     /*
@@ -183,7 +182,7 @@ public class ReSyncTest extends ReplicationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test(enabled=false, groups="slow")
+  @Test(enabled=true, groups="slow")
   public void testResyncAfterImport() throws Exception
   {
     /*
