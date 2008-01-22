@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
  */
+@Test(enabled=false)
 public class ReSyncTest extends ReplicationTestCase
 {
  /**
@@ -52,7 +53,7 @@ public class ReSyncTest extends ReplicationTestCase
   * @throws Exception
   *           If the environment could not be set up.
   */
- @BeforeClass
+ @BeforeClass(enabled=false)
   public void setup() throws Exception
   {
    /*
@@ -138,7 +139,7 @@ public class ReSyncTest extends ReplicationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=false, groups="slow")
   public void testResyncAfterRestore() throws Exception
   {
     /*
@@ -182,7 +183,7 @@ public class ReSyncTest extends ReplicationTestCase
   /**
    * Test re-synchronization after after backup/restore
    */
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=false, groups="slow")
   public void testResyncAfterImport() throws Exception
   {
     /*
