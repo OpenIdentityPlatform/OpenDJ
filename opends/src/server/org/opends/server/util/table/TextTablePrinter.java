@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.table;
 
@@ -188,16 +188,10 @@ public final class TextTablePrinter extends TablePrinter {
             // boundary.
             int endIndex = contents.lastIndexOf(' ', width);
             if (endIndex == -1) {
-              // Problem - we have a word which is too big to fit in
-              // the cell. Display the word as it is (this will push
-              // subsequent columns to the right).
-              endIndex = contents.indexOf(' ');
-              if (endIndex == -1) {
-                head = contents;
-              } else {
-                head = contents.substring(0, endIndex);
-                tail = contents.substring(endIndex + 1);
-              }
+              endIndex = width;
+              head = contents.substring(0, endIndex);
+              tail = contents.substring(endIndex);
+
             } else {
               head = contents.substring(0, endIndex);
               tail = contents.substring(endIndex + 1);
