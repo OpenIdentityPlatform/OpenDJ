@@ -1252,8 +1252,11 @@ public class BackendImpl
       // leave the backend in the same state.
       try
       {
-        rootContainer.close();
-        rootContainer = null;
+        if (rootContainer != null)
+        {
+          rootContainer.close();
+          rootContainer = null;
+        }
 
         // Sync the environment to disk.
         if (debugEnabled())
