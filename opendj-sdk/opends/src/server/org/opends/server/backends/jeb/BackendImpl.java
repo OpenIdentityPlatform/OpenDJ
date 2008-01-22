@@ -1188,7 +1188,9 @@ public class BackendImpl
         // have one base DN.
         File parentDirectory = getFileForPath(cfg.getDBDirectory());
         File backendDirectory = new File(parentDirectory, cfg.getBackendId());
-        EnvManager.removeFiles(backendDirectory.getPath());
+        if (backendDirectory.exists()) {
+          EnvManager.removeFiles(backendDirectory.getPath());
+        }
         envConfig.setReadOnly(false);
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
