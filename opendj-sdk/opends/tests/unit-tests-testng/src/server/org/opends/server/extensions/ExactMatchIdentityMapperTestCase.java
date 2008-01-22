@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -40,7 +40,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExactMatchIdentityMapperCfgDefn;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
@@ -208,7 +207,7 @@ public class ExactMatchIdentityMapperTestCase
          throws Exception
   {
     List<Entry> entries = TestCaseUtils.makeEntries(
-         "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
+         "dn: cn=Exact Match 1,cn=Identity Mappers,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
@@ -218,7 +217,7 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: undefinedAttribute",
          "",
-         "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
+         "dn: cn=Exact Match 2,cn=Identity Mappers,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
@@ -229,7 +228,7 @@ public class ExactMatchIdentityMapperTestCase
          "ds-cfg-match-attribute: uid",
          "ds-cfg-match-base-dn: invalidDN",
          "",
-         "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
+         "dn: cn=Exact Match 3,cn=Identity Mappers,cn=config",
          "objectClass: top",
          "objectClass: ds-cfg-identity-mapper",
          "objectClass: ds-cfg-exact-match-identity-mapper",
@@ -238,34 +237,8 @@ public class ExactMatchIdentityMapperTestCase
               "org.opends.server.extensions.ExactMatchIdentityMapper",
          "ds-cfg-enabled: true",
          "ds-cfg-match-attribute: ",
-         "ds-cfg-match-base-dn: o=test",
-         "",
-         "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-identity-mapper",
-         "objectClass: ds-cfg-exact-match-identity-mapper",
-         "cn: Exact Match",
-         "ds-cfg-java-class: " +
-              "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-enabled: true",
          "ds-cfg-match-base-dn: o=test"
       );
-
-
-    Entry e = TestCaseUtils.makeEntry(
-         "dn: cn=Exact Match,cn=Identity Mappers,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-identity-mapper",
-         "objectClass: ds-cfg-exact-match-identity-mapper",
-         "cn: Exact Match",
-         "ds-cfg-java-class: " +
-              "org.opends.server.extensions.ExactMatchIdentityMapper",
-         "ds-cfg-enabled: true");
-
-    AttributeType t =
-         DirectoryServer.getAttributeType("ds-cfg-match-attribute");
-    e.addAttribute(new Attribute(t), new ArrayList<AttributeValue>());
-    entries.add(e);
 
 
     Object[][] configEntries = new Object[entries.size()][1];
@@ -291,7 +264,7 @@ public class ExactMatchIdentityMapperTestCase
   @Test(dataProvider = "invalidConfigs",
         expectedExceptions = { ConfigException.class,
                                InitializationException.class })
-  public void testInalidConfigs(Entry e)
+  public void testInvalidConfigs(Entry e)
          throws Exception
   {
     ExactMatchIdentityMapperCfg configuration =
