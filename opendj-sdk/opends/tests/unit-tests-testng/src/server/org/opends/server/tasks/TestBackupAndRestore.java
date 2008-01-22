@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 
@@ -99,7 +99,7 @@ public class TestBackupAndRestore extends TasksTestCase
                    "ds-task-backup-incremental: TRUE",
                    "ds-task-backup-incremental-base-id: monday",
                    "ds-task-backup-all: TRUE"),
-              TaskState.COMPLETED_WITH_ERRORS
+              TaskState.STOPPED_BY_ERROR
          },
          {
               // Incompatible settings for backend-id and backup-all.
