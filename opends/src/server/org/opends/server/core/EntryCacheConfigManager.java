@@ -88,12 +88,12 @@ public class EntryCacheConfigManager
   private DefaultEntryCache _defaultEntryCache = null;
 
   // The entry cache order map sorted by the cache level.
-  private static SortedMap<Integer, EntryCache<? extends
+  private SortedMap<Integer, EntryCache<? extends
     EntryCacheCfg>> cacheOrderMap = new TreeMap<Integer,
     EntryCache<? extends EntryCacheCfg>>();
 
   // The entry cache name to level map.
-  private static HashMap<String, Integer>
+  private HashMap<String, Integer>
     cacheNameToLevelMap = new HashMap<String, Integer>();
 
   // Global entry cache monitor provider name.

@@ -107,7 +107,11 @@ public class DefaultEntryCache
    */
   public void finalizeEntryCache()
   {
-    // No implementation required.
+    for (EntryCache entryCache : cacheOrder) {
+      entryCache.finalizeEntryCache();
+    }
+    // ReInitialize cache order array.
+    cacheOrder = new EntryCache<?>[0];
   }
 
 
