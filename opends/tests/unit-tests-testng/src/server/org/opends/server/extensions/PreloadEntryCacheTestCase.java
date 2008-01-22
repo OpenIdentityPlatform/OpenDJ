@@ -50,7 +50,7 @@ import static org.testng.Assert.*;
 /**
  * The entry cache pre-load test class.
  */
-@Test(enabled=false, groups = { "entrycache", "slow" }, sequential=true)
+@Test(groups = { "entrycache", "slow" }, sequential=true)
 public class PreloadEntryCacheTestCase
        extends ExtensionsTestCase
 {
@@ -70,11 +70,16 @@ public class PreloadEntryCacheTestCase
   protected EntryCacheCfg configuration;
 
   /**
+   * Temporary folder to setup dummy JE backend environment in.
+   */
+  private File jeBackendTempDir;
+
+  /**
    * Initialize the entry cache pre-load test.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass(enabled=false)
+  @BeforeClass()
   @SuppressWarnings("unchecked")
   public void preloadEntryCacheTestInit()
          throws Exception
@@ -82,8 +87,16 @@ public class PreloadEntryCacheTestCase
     // Ensure that the server is running.
     TestCaseUtils.startServer();
 
-    // Initialize a backend with a base entry.
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    // Make sure JE directory exist.
+    jeBackendTempDir = TestCaseUtils.createTemporaryDirectory("db-cachetest");
+    String jeDir = jeBackendTempDir.getAbsolutePath();
+
+    // Create dummy JE backend for this test.
+    TestCaseUtils.dsconfig("create-backend", "--backend-name", "cacheTest",
+      "--type", "local-db", "--set", "db-directory:" + jeDir, "--set",
+      "base-dn:o=cachetest", "--set",
+      "import-temp-directory:importTmp", "--set",
+      "writability-mode:enabled", "--set", "enabled:true");
 
     // Configure the entry cache, use FileSystemEntryCache.
     Entry cacheConfigEntry = TestCaseUtils.makeEntry(
@@ -99,12 +112,20 @@ public class PreloadEntryCacheTestCase
     configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
+    // Make parent entry.
+    Entry parentEntry = TestCaseUtils.makeEntry(
+      "dn: o=cachetest",
+      "o: cachetest",
+      "objectClass: top",
+      "objectClass: organization");
+    TestCaseUtils.addEntry(parentEntry);
+
     // Make some dummy test entries.
     testEntriesList = new ArrayList<Entry>(NUMTESTENTRIES);
     for(int i = 0; i < NUMTESTENTRIES; i++ ) {
       Entry testEntry = TestCaseUtils.makeEntry(
         "dn: uid=test" + Integer.toString(i) + ".user" + Integer.toString(i)
-         + ",dc=example,dc=com",
+         + ",o=cachetest",
         "objectClass: person",
         "objectClass: inetorgperson",
         "objectClass: top",
@@ -164,7 +185,7 @@ public class PreloadEntryCacheTestCase
   /**
    * Tests the entry cache pre-load.
    */
-  @Test(enabled=false)
+  @Test()
   public void testEntryCachePreload()
          throws Exception
   {
@@ -195,14 +216,17 @@ public class PreloadEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass(enabled=false)
+  @AfterClass()
   public void preloadEntryCacheTestFini()
          throws Exception
   {
-    // Clear backend.
-    TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+    // Dummy JE backend cleanup.
+    TestCaseUtils.dsconfig("delete-backend", "--backend-name", "cacheTest");
+    TestCaseUtils.deleteDirectory(jeBackendTempDir);
+
     // Sanity in-core restart.
     TestCaseUtils.restartServer();
+
     // Remove default FS cache JE environment.
     FileSystemEntryCacheCfg config =
       (FileSystemEntryCacheCfg) configuration;
