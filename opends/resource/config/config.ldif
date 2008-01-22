@@ -50,6 +50,7 @@ ds-cfg-return-bind-error-messages: false
 ds-cfg-idle-time-limit: 0 seconds
 ds-cfg-save-config-on-successful-startup: true
 ds-cfg-etime-resolution: milliseconds
+ds-cfg-entry-cache-preload: false
 ds-cfg-allowed-task: org.opends.server.tasks.AddSchemaFileTask
 ds-cfg-allowed-task: org.opends.server.tasks.BackupTask
 ds-cfg-allowed-task: org.opends.server.tasks.DisconnectClientTask
@@ -491,7 +492,6 @@ ds-cfg-ssl-cert-nickname: server-cert
 dn: cn=Entry Caches,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
-objectClass: ds-cfg-default-entry-cache
 cn: Entry Caches
 
 dn: cn=FIFO,cn=Entry Caches,cn=config
