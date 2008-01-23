@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.statuspanel;
@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -242,6 +243,7 @@ public class ConfigFromFile
       if (desc.getState() == ListenerDescriptor.State.ENABLED)
       {
         int port = -1;
+        String host = "localhost";
         try
         {
           String addressPort = desc.getAddressPort();
@@ -249,6 +251,10 @@ public class ConfigFromFile
           if (index != -1)
           {
             port = Integer.parseInt(addressPort.substring(index+1));
+            if (index > 0)
+            {
+              host = addressPort.substring(0, index);
+            }
           }
           else
           {
@@ -262,7 +268,7 @@ public class ConfigFromFile
 
         if (port != -1)
         {
-          url = "ldap://localhost:"+port;
+          url = "ldap://"+ConnectionUtils.getHostNameForLdapUrl(host)+":"+port;
           break;
         }
       }
@@ -363,6 +369,7 @@ public class ConfigFromFile
 
       {
         int port = -1;
+        String host = "localhost";
         try
         {
           String addressPort = desc.getAddressPort();
@@ -370,6 +377,10 @@ public class ConfigFromFile
           if (index != -1)
           {
             port = Integer.parseInt(addressPort.substring(index+1));
+            if (index > 0)
+            {
+              host = addressPort.substring(0, index);
+            }
           }
           else
           {
@@ -386,13 +397,15 @@ public class ConfigFromFile
           if (!secure &&
               (desc.getProtocol() == ListenerDescriptor.Protocol.LDAP))
           {
-            url = "ldap://localhost:"+port;
+            url = "ldap://"+ConnectionUtils.getHostNameForLdapUrl(host)+":"+
+            port;
             break;
           }
           if (secure &&
               (desc.getProtocol() == ListenerDescriptor.Protocol.LDAPS))
           {
-            url = "ldaps://localhost:"+port;
+            url = "ldaps://"+ConnectionUtils.getHostNameForLdapUrl(host)+":"+
+            port;
             break;
           }
         }
