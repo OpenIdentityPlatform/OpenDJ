@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -30,10 +30,7 @@ import org.opends.messages.Message;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
-import static org.opends.messages.JebMessages.ERR_JEB_CREATE_FAIL;
-import static org.opends.messages.JebMessages.
-     ERR_JEB_DIRECTORY_INVALID;
-import static org.opends.messages.JebMessages.ERR_JEB_REMOVE_FAIL;
+import static org.opends.messages.JebMessages.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -115,12 +112,18 @@ public class EnvManager
    * The environment must not be open.
    *
    * @param homeDir The backend home directory
-   * @throws JebException If an error occurs in the JE backend.
+   * @throws JebException If an error occurs in the JE backend or if the
+   * specified home directory does not exist.
    */
   public static void removeFiles(String homeDir)
        throws JebException
   {
     File dir = new File(homeDir);
+    if (!dir.exists())
+    {
+      Message message = ERR_JEB_DIRECTORY_DOES_NOT_EXIST.get(homeDir);
+      throw new JebException(message);
+    }
     if (!dir.isDirectory())
     {
       Message message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);

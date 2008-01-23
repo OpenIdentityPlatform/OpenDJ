@@ -152,7 +152,7 @@ public class RootContainer
       if(!backendDirectory.mkdirs())
       {
         Message message =
-            ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
         throw new ConfigException(message);
       }
     }
@@ -734,7 +734,7 @@ public class RootContainer
       if(!backendDirectory.mkdirs())
       {
         Message message =
-            ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
         unacceptableReasons.add(message);
         acceptable = false;
       }
@@ -886,7 +886,7 @@ public class RootContainer
         {
           if(!backendDirectory.mkdirs())
           {
-            messages.add(ERR_JEB_DIRECTORY_INVALID.get(
+            messages.add(ERR_JEB_CREATE_FAIL.get(
                 backendDirectory.getPath()));
             ccr = new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(),
