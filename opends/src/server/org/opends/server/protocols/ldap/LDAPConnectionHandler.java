@@ -714,7 +714,7 @@ public final class LDAPConnectionHandler extends
         try
         {
           ServerSocket s = new ServerSocket();
-          s.setReuseAddress(true);
+          s.setReuseAddress(allowReuseAddress);
           s.bind(new InetSocketAddress(a, listenPort));
           testListenSockets.add(s);
         }
