@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -112,6 +112,21 @@ public class LogPublisherErrorHandler
   {
     Message msg = ERR_LOGGER_ERROR_FLUSHING_BUFFER.get(
             publisherConfigDN.toString(),
+            stackTraceToSingleLineString(ex));
+    System.err.println(msg);
+  }
+
+  /**
+   * Handle an exception which occured while trying to list log files
+   * in a directory.
+   * @param retentionPolicy - the retention policy being enforced when
+   *                          the exception occured.
+   * @param ex - the exception occurred.
+   */
+  public void handleDeleteError(RetentionPolicy retentionPolicy, Throwable ex)
+  {
+    Message msg = ERR_LOGGER_ERROR_ENFORCING_RETENTION_POLICY.get(
+            retentionPolicy.toString(), publisherConfigDN.toString(),
             stackTraceToSingleLineString(ex));
     System.err.println(msg);
   }

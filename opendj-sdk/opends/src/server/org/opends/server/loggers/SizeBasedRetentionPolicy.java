@@ -22,10 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
+import static org.opends.messages.LoggerMessages.ERR_LOGGER_ERROR_LISTING_FILES;
 
 import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -33,6 +34,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.core.DirectoryServer;
 
 
 import java.io.File;
@@ -53,8 +56,8 @@ public class SizeBasedRetentionPolicy implements
    */
   private static final DebugTracer TRACER = getTracer();
 
-
   private long size = 0;
+  private SizeLimitLogRetentionPolicyCfg config;
 
   /**
    * {@inheritDoc}
@@ -62,7 +65,8 @@ public class SizeBasedRetentionPolicy implements
   public void initializeLogRetentionPolicy(
       SizeLimitLogRetentionPolicyCfg config)
   {
-    size = config.getDiskSpaceUsed();
+    this.size = config.getDiskSpaceUsed();
+    this.config = config;
 
     config.addSizeLimitChangeListener(this);
   }
@@ -89,7 +93,8 @@ public class SizeBasedRetentionPolicy implements
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
-    size = config.getDiskSpaceUsed();
+    this.size = config.getDiskSpaceUsed();
+    this.config = config;
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -97,10 +102,20 @@ public class SizeBasedRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
-  public int deleteFiles(MultifileTextWriter writer)
+  public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
+      throws DirectoryException
   {
-    File[] files = writer.getNamingPolicy().listFiles();
-    int count = 0;
+    File[] files = fileNamingPolicy.listFiles();
+    if(files == null)
+    {
+      Message message =
+          ERR_LOGGER_ERROR_LISTING_FILES.get(
+              fileNamingPolicy.getInitialName().toString());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message);
+    }
+
+    ArrayList<File> filesToDelete = new ArrayList<File>();
 
     long totalLength = 0;
     for (File file : files)
@@ -115,7 +130,7 @@ public class SizeBasedRetentionPolicy implements
 
     if (totalLength <= size)
     {
-      return 0;
+      return new File[0];
     }
 
     long freeSpaceNeeded = totalLength - size;
@@ -127,21 +142,22 @@ public class SizeBasedRetentionPolicy implements
     for (int j = files.length - 1; j < 1; j--)
     {
       freedSpace += files[j].length();
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("Deleting log file:", files[j]);
-      }
-      files[j].delete();
+      filesToDelete.add(files[j]);
       if (freedSpace >= freeSpaceNeeded)
       {
         break;
       }
-
-      count++;
     }
 
-    return count;
+    return filesToDelete.toArray(new File[0]);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return "Size Based Retention Policy " + config.dn().toString();
+  }
 }
 
