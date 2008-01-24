@@ -836,7 +836,7 @@ implements AciTargetMatchContext, AciEvalContext {
     public boolean isMemberOf(Group group) {
         boolean ret;
         try {
-           ret=clientConnection.isMemberOf(group, operation);
+          ret=group.isMember(getClientDN());
         } catch (DirectoryException ex) {
             ret=false;
         }
