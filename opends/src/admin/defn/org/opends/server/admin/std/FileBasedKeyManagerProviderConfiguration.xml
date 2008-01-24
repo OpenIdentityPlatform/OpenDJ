@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="file-based-key-manager-provider"
   plural-name="file-based-key-manager-providers"
@@ -33,11 +33,12 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provider accesses key information in a file on the local filesystem.
+    can be used to obtain the server certificate from a key store file on 
+    the local file system.
   </adm:synopsis>
   <adm:description>
     Multiple file formats may be supported, depending on the providers
-    supported by the underlying Java runtime.
+    supported by the underlying Java runtime environment.
   </adm:description>
   <adm:constraint>
     <adm:synopsis>
@@ -76,18 +77,26 @@
   <adm:property name="key-store-file" mandatory="true">
     <adm:TODO>Should use a file-based property definition?</adm:TODO>
     <adm:synopsis>
-      Specifies the path to the file containing the private key
-      information. It may be an absolute path, or a path that is
+      Specifies the path to the file that contains the private key
+      information. This may be an absolute path, or a path that is
       relative to the
       <adm:product-name />
       instance root.
     </adm:synopsis>
     <adm:description>
-      Changes to this configuration attribute will take effect the next
+      Changes to this property will take effect the next
       time that the key manager is accessed.
     </adm:description>
     <adm:syntax>
-      <adm:string />
+     <adm:string>
+        <adm:pattern>
+         <adm:regex>.*</adm:regex>
+         <adm:usage>FILE</adm:usage>
+          <adm:synopsis>
+            A path to an existing file that is readable by the server.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string> 
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -106,7 +115,7 @@
     <adm:description>
       Valid values should always include 'JKS' and 'PKCS12', but
       different implementations may allow other values as well. If no
-      value is provided, then the JVM-default value will be used.
+      value is provided, the JVM-default value is used.
       Changes to this configuration attribute will take effect the next
       time that the key manager is accessed.
     </adm:description>
@@ -114,7 +123,15 @@
       <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+     <adm:string>
+        <adm:pattern>
+         <adm:regex>.*</adm:regex>
+         <adm:usage>STRING</adm:usage>
+           <adm:synopsis>
+            Any key store format supported by the Java runtime environment.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string> 
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="key-manager-provider"
   plural-name="key-manager-providers"
@@ -33,9 +33,14 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are responsible for managing the key material which is used to
+    are responsible for managing the key material that is used to
     authenticate an SSL connection to its peer.
   </adm:synopsis>
+  <adm:description>
+     <adm:user-friendly-plural-name />
+     essentially provide access to the certificate that is used by the 
+     server when performing SSL or StartTLS negotiation.
+   </adm:description>
   <adm:tag name="security" />
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -48,7 +53,7 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
       is enabled for use.
     </adm:synopsis>
@@ -63,11 +68,14 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that should to provide
+      The fully-qualified name of the Java class that provides
       the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>

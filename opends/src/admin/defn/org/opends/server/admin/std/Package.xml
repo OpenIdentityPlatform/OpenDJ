@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:package name="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
@@ -160,7 +160,15 @@
       <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+     <adm:string>
+        <adm:pattern>
+         <adm:regex>.*</adm:regex>
+         <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            The name of a defined Java property.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string> 
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -189,7 +197,16 @@
       <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+     <adm:string>
+        <adm:pattern>
+         <adm:regex>.*</adm:regex>
+         <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            The name of a defined environment variable that contains the 
+            clear-text PIN required to access the contents of the key store.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string> 
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -219,7 +236,15 @@
       <adm:undefined />
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+     <adm:string>
+        <adm:pattern>
+         <adm:regex>.*</adm:regex>
+         <adm:usage>FILE</adm:usage>
+          <adm:synopsis>
+            A path to an existing file that is readable by the server.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string> 
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
