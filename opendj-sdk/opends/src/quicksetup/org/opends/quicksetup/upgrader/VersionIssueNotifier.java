@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.upgrader;
@@ -150,7 +150,7 @@ public abstract class VersionIssueNotifier {
     List<VersionCompatibilityIssue> compatibilityIssues;
     Set<Integer> excludeIds = current.getIncompatibilityEventIds();
     if (excludeIds != null) {
-      compatibilityIssues = getEvents(excludeIds);
+      compatibilityIssues = getEvents(excludeIds, current, neu);
     } else {
       // This method is only used as a fallback for pre 1.0.0 servers which
       // do not advertise incompatible version events.

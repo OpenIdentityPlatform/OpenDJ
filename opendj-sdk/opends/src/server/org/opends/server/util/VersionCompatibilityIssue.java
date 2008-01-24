@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.util;
 import org.opends.messages.Message;
+import org.opends.quicksetup.BuildInformation;
 
 import static org.opends.messages.VersionMessages.*;
 
@@ -216,6 +217,18 @@ public final class VersionCompatibilityIssue {
    * or more versions of the OpenDS codebase.
    */
   public enum Cause {
+    /**
+     * Incompatible changes in the cryptomanager and specially in the way
+     * replication works.  These changes were committed on several revisions
+     * and the flagday that has been chosen corresponds to revision 3294
+     * (opends 1.0.0 build 6 of 16/10/2007)
+     */
+    REPLICATION_SECURITY_CHANGE_1(
+            5, // Unique ID.  See javadoc for more information.
+            INFO_3294_UPGRADE.get(),
+            INFO_3294_REVERSION.get(),
+            Effect.REVERSION_NOT_POSSIBLE,
+            Effect.UPGRADE_NOT_POSSIBLE),
 
     /**
      * Incompatible property name change committed on 09/05/2007
@@ -424,6 +437,9 @@ public final class VersionCompatibilityIssue {
   //***************************************************
 
   static {
+    //
+    register(Cause.REPLICATION_SECURITY_CHANGE_1,
+        new BuildVersion(1, 0, 0, 3294));
     register(Cause.PROPERTY_CHANGE_1, new BuildVersion(1, 0, 0, 3053));
     register(Cause.DB_FORMAT_CHANGE_2, new BuildVersion(0, 9, 0, 2049));
     register(Cause.DB_FORMAT_CHANGE_1, new BuildVersion(0, 1, 0, 1582));
@@ -456,19 +472,50 @@ public final class VersionCompatibilityIssue {
    *
    * @param excludeIds collection of IDs representing issues
    *        that will not be returned in the list
+   * @param current build version
+   * @param neu build version
    *
    * @return list of issues sorted by build version in which
    *         they appear
    */
   static public List<VersionCompatibilityIssue> getEvents(
-          Collection<Integer> excludeIds)
+          Collection<Integer> excludeIds, BuildInformation current,
+          BuildInformation neu)
   {
     if (excludeIds == null) excludeIds = Collections.emptySet();
     List<VersionCompatibilityIssue> issueList =
             new ArrayList<VersionCompatibilityIssue>();
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       if (!excludeIds.contains(evt.getCause().getId())) {
-        issueList.add(evt);
+        boolean isUpgrade = neu.compareTo(current) >= 0;
+        BuildVersion newVersion = new BuildVersion(neu.getMajorVersion(),
+            neu.getMinorVersion(), neu.getPointVersion(),
+            neu.getRevisionNumber());
+        BuildVersion currentVersion = new BuildVersion(
+            current.getMajorVersion(), current.getMinorVersion(),
+            current.getPointVersion(), current.getRevisionNumber());
+        if (isUpgrade)
+        {
+          // If the currentVersion is newer than the issue described, then there
+          // is no problem.  This can occur for instance when we discovered a
+          // flag day too late (and we added the flag day description to the
+          // code way after the revision).
+          if (currentVersion.compareTo(evt.getVersion()) < 0)
+          {
+            issueList.add(evt);
+          }
+        }
+        else
+        {
+          // If the newVersion in the reversion is newer than the issue
+          // described, then there is no problem.  This can occur for instance
+          // when we discovered a flag day too late (and we added the flag day
+          // description to the code way after the revision).
+          if (currentVersion.compareTo(evt.getVersion()) < 0)
+          {
+            issueList.add(evt);
+          }
+        }
       }
     }
     Collections.sort(issueList, VERSION_COMPARATOR);

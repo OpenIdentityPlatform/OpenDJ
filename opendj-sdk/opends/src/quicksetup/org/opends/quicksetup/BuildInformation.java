@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -291,7 +291,7 @@ public class BuildInformation implements Comparable {
         try {
           ids.add(Integer.parseInt(s));
         } catch (NumberFormatException nfe) {
-          LOG.log(Level.INFO, "invalid upgrade incompatability ID " + s);
+          LOG.log(Level.INFO, "invalid upgrade incompatibility ID " + s);
         }
       }
     }
