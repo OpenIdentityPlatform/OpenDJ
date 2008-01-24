@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools;
@@ -581,6 +581,10 @@ public class InstallDS extends ConsoleApplication
     try
     {
       DN.decode(dmDN);
+      if (dmDN.trim().isEmpty())
+      {
+        errorMessages.add(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
+      }
     }
     catch (Exception e)
     {
@@ -912,6 +916,7 @@ public class InstallDS extends ConsoleApplication
       else
       {
         dns.addAll(arg.getValues());
+        usedProvided = true;
       }
       LinkedList<String> toRemove = new LinkedList<String>();
       for (String dn : dns)
@@ -919,6 +924,11 @@ public class InstallDS extends ConsoleApplication
         try
         {
           DN.decode(dn);
+          if (dn.trim().isEmpty())
+          {
+            toRemove.add(dn);
+            println(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
+          }
         }
         catch (Exception e)
         {
