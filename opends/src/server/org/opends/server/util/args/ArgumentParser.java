@@ -1370,7 +1370,7 @@ public class ArgumentParser
     }
     else
     {
-      buffer.append(INFO_ARGPARSER_USAGE_JAVA_CLASSNAME.get(scriptName));
+      buffer.append(INFO_ARGPARSER_USAGE_JAVA_SCRIPTNAME.get(scriptName));
     }
 
     if (allowsTrailingArguments)
