@@ -924,7 +924,7 @@ public class InstallDS extends ConsoleApplication
         try
         {
           DN.decode(dn);
-          if (dn.trim().isEmpty())
+          if (dn.trim().length() == 0)
           {
             toRemove.add(dn);
             println(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
