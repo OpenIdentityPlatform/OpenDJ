@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -47,6 +47,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -192,9 +193,10 @@ public class SubjectAttributeToUserAttributeCertificateMapper
         Backend b = DirectoryServer.getBackend(baseDN);
         if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
         {
-          throw new ConfigException(ERR_SATUACM_ATTR_UNINDEXED.get(
-                                         configuration.dn().toString(),
-                                         t.getNameOrOID(), b.getBackendID()));
+          Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+              configuration.dn().toString(),
+              t.getNameOrOID(), b.getBackendID());
+          ErrorLogger.logError(message);
         }
       }
     }
@@ -424,31 +426,6 @@ mapLoop:
       newAttributeMap.put(certAttrName, userAttrType);
     }
 
-
-    // Make sure that all the user attributes are configured with equality
-    // indexes in all appropriate backends.
-    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
-    for (DN baseDN : cfgBaseDNs)
-    {
-      for (AttributeType t : newAttributeMap.values())
-      {
-        Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
-        {
-          configAcceptable = false;
-          unacceptableReasons.add(ERR_SATUACM_ATTR_UNINDEXED.get(
-                                       configuration.dn().toString(),
-                                       t.getNameOrOID(), b.getBackendID()));
-        }
-      }
-    }
-
-
     return configAcceptable;
   }
 
@@ -552,6 +529,29 @@ mapLoop:
       newAttributeMap.put(certAttrName, userAttrType);
     }
 
+    // Make sure that all the user attributes are configured with equality
+    // indexes in all appropriate backends.
+    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (DN baseDN : cfgBaseDNs)
+    {
+      for (AttributeType t : newAttributeMap.values())
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
+        {
+          Message message = WARN_SATUACM_ATTR_UNINDEXED.get(
+              configuration.dn().toString(),
+              t.getNameOrOID(), b.getBackendID());
+          messages.add(message);
+          ErrorLogger.logError(message);
+        }
+      }
+    }
 
     if (resultCode == ResultCode.SUCCESS)
     {
