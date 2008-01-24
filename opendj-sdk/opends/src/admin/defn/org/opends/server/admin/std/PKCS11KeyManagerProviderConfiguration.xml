@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="pkcs11-key-manager-provider"
   plural-name="pkcs11-key-manager-providers"
@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provider provides the ability for the server to access the private
+    enables the server to access the private
     key information through the PKCS11 interface.
   </adm:synopsis>
   <adm:description>
