@@ -2865,6 +2865,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return DirectoryServer.getBackend(baseDN);
   }
 
+  /**
+   * Get the internal broker to perform some operations on it.
+   *
+   * @return The broker for this domain.
+   */
+  ReplicationBroker getBroker()
+  {
+    return broker;
+  }
 
   /**
    * Exports an entry in LDIF format.

@@ -134,7 +134,12 @@ public class ListenerThread extends DirectoryThread
         logError(message);
       }
     }
+
+    // Stop the HeartBeat thread
+    repDomain.getBroker().stopHeartBeat();
+
     done = true;
+
     if (debugEnabled())
     {
       TRACER.debugInfo("Replication Listener thread stopping.");
