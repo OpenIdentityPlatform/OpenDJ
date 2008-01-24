@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
 ! -->
 <stax>
   
@@ -58,6 +58,7 @@
             testList.append(['.','clu_ldapdelete_checkbehavior'])
             testList.append(['.','clu_base64_checkbehavior'])
             testList.append(['.','clu_status_checkbehavior'])
+            testList.append(['.','clu_ldappasswordmodify_checkbehavior'])
             testList.append(['.','clu_cleanup'])
           </script>
           
@@ -66,7 +67,7 @@
               
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/clu/%s/%s.xml' % 
-              (TESTS_DIR,_test[0],_test[1])"/>
+                      (TESTS_DIR,_test[0],_test[1])"/>
               
               <call function="'%s' % _test[1]" />
               

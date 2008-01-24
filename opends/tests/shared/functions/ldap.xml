@@ -1916,6 +1916,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="dsReportAuthzID" type="optional">
+        <function-arg-description>
+          Use the authorization identity control
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
       <function-arg-def name="dsFilename" type="optional">
         <function-arg-description>
           Specifies the LDIF file containing the changes to apply
@@ -2111,7 +2117,10 @@
           
         if dsContinueOnError:
           STAFCmdParamsList.append('-c')       
-         
+
+        if dsReportAuthzID:
+          STAFCmdParamsList.append('-E')
+          
         if dsFilename:
           STAFCmdParamsList.append('-f %s' % dsFilename) 
   
@@ -2485,6 +2494,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
       <function-arg-def name="dsInstancePort" type="optional">
         <function-arg-description>
           Directory Server Port Number
