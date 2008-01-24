@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2007 Sun Microsystems, Inc.
+#      Portions Copyright 2007-2008 Sun Microsystems, Inc.
 #
 
 dn: dc=com
@@ -24777,4 +24777,249 @@ st: CT
 postalCode: 76102
 postalAddress: Bree Bjorklund$00450 Fifteenth Street$Colorado Springs, CT  76102
 description: This is the description for Bree Bjorklund.
+
+dn: ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: ldappasswordmodify
+
+dn: uid=user.0,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaccf
+sn: Amar
+cn: Aaccf Amar
+initials: AUA
+employeeNumber: 0
+uid: user.0
+mail: user.0@example.com
+userPassword: password
+telephoneNumber: +1 910 503 7751
+homePhone: +1 979 402 0677
+pager: +1 584 557 1358
+mobile: +1 598 746 8736
+street: 48346 Spring Street
+l: Pittsburgh
+st: WA
+postalCode: 93681
+postalAddress: Aaccf Amar$48346 Spring Street$Pittsburgh, WA  93681
+description: This is the description for Aaccf Amar.
+
+dn: uid=user.1,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaren
+sn: Atp
+cn: Aaren Atp
+initials: AQA
+employeeNumber: 1
+uid: user.1
+mail: user.1@example.com
+userPassword: password
+telephoneNumber: +1 160 269 4702
+homePhone: +1 140 500 2548
+pager: +1 981 560 1533
+mobile: +1 686 004 4788
+street: 48467 Park Street
+l: Harrisonburg
+st: MA
+postalCode: 16209
+postalAddress: Aaren Atp$48467 Park Street$Harrisonburg, MA  16209
+description: This is the description for Aaren Atp.
+
+dn: uid=user.2,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aarika
+sn: Atpco
+cn: Aarika Atpco
+initials: AEA
+employeeNumber: 2
+uid: user.2
+mail: user.2@example.com
+userPassword: password
+telephoneNumber: +1 313 580 8643
+homePhone: +1 804 753 4265
+pager: +1 809 671 1444
+mobile: +1 169 605 3391
+street: 98989 Adams Street
+l: Wilkes Barre
+st: CT
+postalCode: 88853
+postalAddress: Aarika Atpco$98989 Adams Street$Wilkes Barre, CT  88853
+description: This is the description for Aarika Atpco.
+
+dn: uid=user.3,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaron
+sn: Atrc
+cn: Aaron Atrc
+initials: AJA
+employeeNumber: 3
+uid: user.3
+mail: user.3@example.com
+userPassword: password
+telephoneNumber: +1 730 200 5332
+homePhone: +1 543 037 0906
+pager: +1 122 228 0004
+mobile: +1 150 883 5700
+street: 02460 Cedar Street
+l: New York
+st: NJ
+postalCode: 36670
+postalAddress: Aaron Atrc$02460 Cedar Street$New York, NJ  36670
+description: This is the description for Aaron Atrc.
+
+dn: uid=user.4,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aartjan
+sn: Aalders
+cn: Aartjan Aalders
+initials: AIA
+employeeNumber: 4
+uid: user.4
+mail: user.4@example.com
+userPassword: password
+telephoneNumber: +1 075 262 8381
+homePhone: +1 004 973 1528
+pager: +1 165 522 1677
+mobile: +1 814 998 1028
+street: 16387 Laurel Street
+l: Joplin
+st: VT
+postalCode: 35249
+postalAddress: Aartjan Aalders$16387 Laurel Street$Joplin, VT  35249
+description: This is the description for Aartjan Aalders.
+
+dn: uid=user.5,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abagael
+sn: Aasen
+cn: Abagael Aasen
+initials: AYA
+employeeNumber: 5
+uid: user.5
+mail: user.5@example.com
+userPassword: password
+telephoneNumber: +1 597 207 4061
+homePhone: +1 438 445 7199
+pager: +1 126 880 6083
+mobile: +1 800 623 8653
+street: 01918 Eleventh Street
+l: Portland
+st: WV
+postalCode: 24470
+postalAddress: Abagael Aasen$01918 Eleventh Street$Portland, WV  24470
+description: This is the description for Abagael Aasen.
+
+dn: uid=user.6,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abagail
+sn: Abadines
+cn: Abagail Abadines
+initials: ADA
+employeeNumber: 6
+uid: user.6
+mail: user.6@example.com
+userPassword: password
+telephoneNumber: +1 126 483 9756
+homePhone: +1 768 687 5906
+pager: +1 023 639 0068
+mobile: +1 145 442 6600
+street: 50995 Johnson Street
+l: Indianapolis
+st: MA
+postalCode: 58635
+postalAddress: Abagail Abadines$50995 Johnson Street$Indianapolis, MA  58635
+description: This is the description for Abagail Abadines.
+
+dn: uid=user.7,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abahri
+sn: Abazari
+cn: Abahri Abazari
+initials: AVA
+employeeNumber: 7
+uid: user.7
+mail: user.7@example.com
+userPassword: password
+telephoneNumber: +1 657 605 0417
+homePhone: +1 710 673 3832
+pager: +1 968 832 7800
+mobile: +1 989 204 3514
+street: 90029 Laurel Street
+l: Honolulu
+st: ME
+postalCode: 51052
+postalAddress: Abahri Abazari$90029 Laurel Street$Honolulu, ME  51052
+description: This is the description for Abahri Abazari.
+
+dn: uid=user.8,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abbas
+sn: Abbatantuono
+cn: Abbas Abbatantuono
+initials: AJA
+employeeNumber: 8
+uid: user.8
+mail: user.8@example.com
+userPassword: password
+telephoneNumber: +1 404 733 3860
+homePhone: +1 803 107 8243
+pager: +1 274 591 8881
+mobile: +1 720 956 7009
+street: 63102 Taylor Street
+l: Glendive
+st: FL
+postalCode: 76385
+postalAddress: Abbas Abbatantuono$63102 Taylor Street$Glendive, FL  76385
+description: This is the description for Abbas Abbatantuono.
+
+dn: uid=user.9,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abbe
+sn: Abbate
+cn: Abbe Abbate
+initials: AMA
+employeeNumber: 9
+uid: user.9
+mail: user.9@example.com
+userPassword: password
+telephoneNumber: +1 712 054 8412
+homePhone: +1 257 002 0605
+pager: +1 091 356 2843
+mobile: +1 258 453 7401
+street: 76410 Sixth Street
+l: Lafayette
+st: IA
+postalCode: 06698
+postalAddress: Abbe Abbate$76410 Sixth Street$Lafayette, IA  06698
+description: This is the description for Abbe Abbate.
 

@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
   
@@ -79,7 +79,7 @@
                 }
               </call>
               
-              <!-- STAXResult is not always a list--> 
+              <!-- STAXResult is not always a list-->
               <script>
                 try:
                   RC,Result=STAXResult[0]
@@ -94,6 +94,21 @@
                 'result'     : Result
                 }
               </call>     
+
+              <call function="'checktestString'">
+                { 
+                'returnString'     : Result ,
+                'expectedString'   : 'Administrative Users: %s' \
+                % DIRECTORY_INSTANCE_DN 
+                }
+              </call>
+
+              <call function="'checktestString'">
+                { 
+                'returnString'     : Result ,
+                'expectedString'   : 'Server Run Status:    Started'
+                }
+              </call>
               
               <call function="'testCase_Postamble'"/>
               
