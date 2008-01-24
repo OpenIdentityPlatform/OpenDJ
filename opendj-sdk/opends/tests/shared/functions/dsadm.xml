@@ -3562,5 +3562,202 @@
             
     </sequence>
   </function>
+    
+    
+  <!-- Rebuild index Task Function --> 
+  <function name="rebuildIndexTask">
+    <function-prolog>
+        This function performs an on line rebuild index task
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server host name
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+      </function-arg-def>  
+      <function-arg-def name="taskID" type="optional">
+        <function-arg-description>
+          The identifier for the task
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="baseDN" type="required">
+        <function-arg-description>
+          The base Dn for which the index will be rebuilt
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>          
+      <function-arg-def name="attributes" type="required">
+        <function-arg-description>
+          List of the attributes to re-index: e.g. ['cn','l']
+        </function-arg-description>
+        <function-arg-property name="type" value="list"/>
+      </function-arg-def>
+      <function-arg-def name="maxThreads" 
+                        type="optional" 
+                        default="5">
+        <function-arg-description>
+          Number of threads that should be used for the rebuild operation
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+       <script>
+        myLocation=location
+        myPath=dsPath
+        taskLdifFile='rebuildIndex-task.ldif'
+        taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
+        tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
+        taskDN='ds-task-id=%s,cn=Scheduled Tasks,cn=Tasks' % taskID
+      </script>    
+
+      <!-- Build the restore task configuration object -->
+      <script>
+        ldifLines=[]
+        ldifLines.append('dn: %s' % taskDN)
+        ldifLines.append('objectclass: top')
+        ldifLines.append('objectclass: ds-task')
+        ldifLines.append('objectclass: ds-task-rebuild')
+        ldifLines.append('ds-task-class-name: org.opends.server.tasks.RebuildTask')
+        ldifLines.append('ds-task-id: %s' % taskID)
+
+        ldifLines.append('ds-task-rebuild-base-dn: %s' % baseDN )
+        ldifLines.append('ds-task-rebuild-max-threads: %s' % maxThreads )
+        
+        for indexType in attributes:
+          ldifLines.append('ds-task-rebuild-index: %s' % indexType )    
+      </script>
+       
+      <!-- Write out the restore-task ldif -->
+      <script>
+        outfile = open(tmpTaskLdif,"w")
+          
+        for line in ldifLines:
+          outfile.write("%s\n" % line)
+          
+        outfile.close()
+      </script>
+      
+      <!-- Copy the rebuildIndex-task ldif to remote host -->
+      <message>'Copy rebuildIndex task ldif file.'</message>
+      <call function="'copyFile'">
+        { 'location'   : STAXServiceMachine,
+          'srcfile'    : tmpTaskLdif,
+          'destfile'   : taskLdif,
+          'remotehost' : myLocation }
+      </call>
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message level="'error'">
+            'Copy of totalupdate task failed (STAXCode=%s)' % STAXCode
+          </message>
+          <return>[STAXCode, STAXReason]</return>
+        </sequence>
+      </if>
+        
+      <!-- Start the task using ldap task interface -->
+      <call function="'StartLdapTask'">
+        { 'location'   : myLocation,
+          'dsPath'     : myPath,
+          'taskLabel'  : 'Online Rebuild Index Task',
+          'dsHost'     : dsInstanceHost,
+          'dsPort'     : dsInstancePort,
+          'dsBindDn'   : dsInstanceDn,
+          'dsBindPswd' : dsInstancePswd,
+          'dsTaskLdif' : taskLdif }
+      </call>
+
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message>
+            'Start of rebuild index task failed (Code=%s)' % STAXCode
+          </message>
+          <return>[STAXCode, STAXReason]</return>
+        </sequence>
+      </if>
+        
+                 
+      <!-- Check that the ldap task is completed -->
+      <sequence>
+        <call function="'CheckLdapTask'">
+          { 'location'   : myLocation,
+            'dsPath'     :  myPath,
+            'dsTaskDn'   : taskDN,
+            'dsHost'     : dsInstanceHost,
+            'dsPort'     : dsInstancePort,
+            'dsBindDn'   : dsInstanceDn,
+            'dsBindPswd' : dsInstancePswd 
+          }
+        </call>
+      </sequence>
+        
+      <script>
+        STAXCode, STAXReason=STAXResult
+      </script>
+      
+      <if expr="STAXCode != 0">
+        <sequence>
+          <message>
+            'Check of rebuild index task failed (Code=%s)' % STAXCode
+          </message>
+          <return>[STAXCode, STAXReason]</return>
+        </sequence>
+      </if>
+
+      <script>
+        STAXCode=0
+        STAXReason='%s: Success' % STAXCurrentFunction
+      </script>
+      
+      <return>[STAXCode, STAXReason]</return>        
+    </sequence>
+    
+  </function>
+     
                                                    
 </stax>
