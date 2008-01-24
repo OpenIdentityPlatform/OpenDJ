@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -34,12 +34,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.messages.LoggerMessages.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.core.DirectoryServer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 
 /**
@@ -56,8 +60,8 @@ public class FreeDiskSpaceRetentionPolicy implements
    */
   private static final DebugTracer TRACER = getTracer();
 
-
   private long freeDiskSpace = 0;
+  private FreeDiskSpaceLogRetentionPolicyCfg config;
 
   /**
    * {@inheritDoc}
@@ -65,7 +69,8 @@ public class FreeDiskSpaceRetentionPolicy implements
   public void initializeLogRetentionPolicy(
       FreeDiskSpaceLogRetentionPolicyCfg config)
   {
-    freeDiskSpace = config.getFreeDiskSpace();
+    this.freeDiskSpace = config.getFreeDiskSpace();
+    this.config = config;
 
     config.addFreeDiskSpaceChangeListener(this);
   }
@@ -92,27 +97,35 @@ public class FreeDiskSpaceRetentionPolicy implements
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
-    freeDiskSpace = config.getFreeDiskSpace();
+    this.freeDiskSpace = config.getFreeDiskSpace();
+    this.config = config;
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
   /**
-   * This method deletes files based on the policy.
-   *
-   * @param writer the multi file text writer writing the log files.
-   * @return number of files deleted.
+   * {@inheritDoc}
    */
-  public int deleteFiles(MultifileTextWriter writer)
+  public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
+      throws DirectoryException
   {
-    File[] files = writer.getNamingPolicy().listFiles();
+    File[] files = fileNamingPolicy.listFiles();
+    if(files == null)
+    {
+      Message message =
+          ERR_LOGGER_ERROR_LISTING_FILES.get(
+              fileNamingPolicy.getInitialName().toString());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message);
+    }
+
+    ArrayList<File> filesToDelete = new ArrayList<File>();
 
     if(files.length <= 0)
     {
-      return 0;
+      return new File[0];
     }
 
-    int count = 0;
     long freeSpace = 0;
 
     try
@@ -129,19 +142,23 @@ public class FreeDiskSpaceRetentionPolicy implements
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return 0;
+      Message message =
+          ERR_LOGGER_ERROR_OBTAINING_FREE_SPACE.get(files[0].toString(),
+              stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
     }
 
-          if(debugEnabled())
-      { // TODO: i18n
-        TRACER.debugInfo("Current free disk space: %d, Required: %d", freeSpace,
-                  freeDiskSpace);
-      }
+    if(debugEnabled())
+    {
+      TRACER.debugInfo("Current free disk space: %d, Required: %d", freeSpace,
+          freeDiskSpace);
+    }
 
     if (freeSpace > freeDiskSpace)
     {
       // No cleaning needed.
-      return 0;
+      return new File[0];
     }
 
     long freeSpaceNeeded = freeDiskSpace - freeSpace;
@@ -153,21 +170,22 @@ public class FreeDiskSpaceRetentionPolicy implements
     for (int j = files.length - 1; j < 1; j--)
     {
       freedSpace += files[j].length();
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("Deleting log file:", files[j]);
-      }
-      files[j].delete();
+      filesToDelete.add(files[j]);
       if (freedSpace >= freeSpaceNeeded)
       {
         break;
       }
-
-      count++;
     }
 
-    return count;
+    return filesToDelete.toArray(new File[0]);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return "Free Disk Retention Policy " + config.dn().toString();
+  }
 }
 

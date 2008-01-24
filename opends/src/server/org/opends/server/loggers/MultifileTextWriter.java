@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -427,18 +427,35 @@ public class MultifileTextWriter
 
         for(RetentionPolicy retentionPolicy : retentionPolicies)
         {
-          int numFilesDeleted =
-              retentionPolicy.deleteFiles(writer);
-          if(numFilesDeleted > 0)
+          try
           {
-            lastCleanTime = TimeThread.getCalendar();
-            lastCleanCount = numFilesDeleted;
-            totalFilesCleaned++;
+            File[] files =
+                retentionPolicy.deleteFiles(writer.getNamingPolicy());
+
+            for(File file : files)
+            {
+              file.delete();
+              totalFilesCleaned++;
+              if(debugEnabled())
+              {
+                TRACER.debugInfo(retentionPolicy.toString() +
+                    " cleaned up log file %s", file.toString());
+              }
+            }
+
+            if(files.length > 0)
+            {
+              lastCleanTime = TimeThread.getCalendar();
+              lastCleanCount = files.length;
+            }
           }
-          if (debugEnabled())
+          catch(DirectoryException de)
           {
-            TRACER.debugVerbose("%d files deleted by rentention policy",
-                         numFilesDeleted);
+            if(debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
+            errorHandler.handleDeleteError(retentionPolicy, de);
           }
         }
       }
@@ -704,7 +721,7 @@ public class MultifileTextWriter
   }
 
   /**
-   * Retrieves teh total number of files cleaned in this instance of the
+   * Retrieves the total number of files cleaned in this instance of the
    * Directory Server.
    *
    * @return The total number of files cleaned.

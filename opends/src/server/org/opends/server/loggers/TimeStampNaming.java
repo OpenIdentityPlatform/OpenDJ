@@ -22,11 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
 import org.opends.server.util.TimeThread;
+import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -36,6 +38,11 @@ import java.io.FilenameFilter;
  */
 public class TimeStampNaming implements FileNamingPolicy
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   File file;
 
   /**
@@ -105,7 +112,15 @@ public class TimeStampNaming implements FileNamingPolicy
   public File[] listFiles()
   {
     File directory = file.getParentFile();
-    return directory.listFiles(getFilenameFilter());
+    File[] files =  directory.listFiles(getFilenameFilter());
+
+    if(files == null)
+    {
+      TRACER.debugError("Unable to list files named by policy " +
+          "with initial file %s in directory %s", file, directory);
+    }
+
+    return files;
   }
 
 }

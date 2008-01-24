@@ -22,10 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
+import static org.opends.messages.LoggerMessages.ERR_LOGGER_ERROR_LISTING_FILES;
 
 import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -39,6 +40,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.core.DirectoryServer;
 
 
 /**
@@ -54,8 +57,8 @@ public class FileNumberRetentionPolicy implements
    */
   private static final DebugTracer TRACER = getTracer();
 
-
   private int numFiles = 0;
+  private FileCountLogRetentionPolicyCfg config;
 
   /**
    * {@inheritDoc}
@@ -63,7 +66,8 @@ public class FileNumberRetentionPolicy implements
   public void initializeLogRetentionPolicy(
       FileCountLogRetentionPolicyCfg config)
   {
-    numFiles = config.getNumberOfFiles();
+    this.numFiles = config.getNumberOfFiles();
+    this.config = config;
 
     config.addFileCountChangeListener(this);
   }
@@ -90,7 +94,8 @@ public class FileNumberRetentionPolicy implements
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
-    numFiles = config.getNumberOfFiles();
+    this.numFiles = config.getNumberOfFiles();
+    this.config = config;
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
@@ -98,14 +103,24 @@ public class FileNumberRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
-  public int deleteFiles(MultifileTextWriter writer)
+  public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
+      throws DirectoryException
   {
-    int count = 0;
-    File[] files = writer.getNamingPolicy().listFiles();
+    File[] files = fileNamingPolicy.listFiles();
+    if(files == null)
+    {
+      Message message =
+          ERR_LOGGER_ERROR_LISTING_FILES.get(
+              fileNamingPolicy.getInitialName().toString());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message);
+    }
+
+    ArrayList<File> filesToDelete = new ArrayList<File>();
 
     if (files.length <= numFiles)
     {
-      return 0;
+      return new File[0];
     }
 
     // Sort files based on last modified time.
@@ -113,16 +128,18 @@ public class FileNumberRetentionPolicy implements
 
     for (int j = numFiles; j < files.length; j++)
     {
-      if(debugEnabled())
-      {
-        TRACER.debugInfo("Deleting log file:", files[j]);
-      }
-      files[j].delete();
-      count++;
+      filesToDelete.add(files[j]);
     }
 
-    return count;
+    return filesToDelete.toArray(new File[0]);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return "Free Number Retention Policy " + config.dn().toString();
+  }
 }
 

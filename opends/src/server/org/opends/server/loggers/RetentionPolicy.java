@@ -22,14 +22,16 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
 import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.DirectoryException;
 
+import java.io.File;
 
 /**
  * This interface describes the retention policy that should be used
@@ -60,14 +62,18 @@ public interface RetentionPolicy<T extends LogRetentionPolicyCfg>
       throws ConfigException, InitializationException;
 
   /**
-   * This method checks for whether files should be deleted or not.
+   * Returns all files that should be deleted according to the policy.
    *
-   * @param writer The multi file writer writing the files to be
-   *        checked.
+   * @param fileNamingPolicy The naming policy used generate the log file
+   *                         names.
    *
-   * @return number of files deleted, if any.
+   * @return An array of files that should be deleted according to the
+   *         policy or <code>null</code> if an error occured while
+   *         obtaining the file list.
+   * @throws DirectoryException If an error occurs while obtaining a list
+   *                            of files to delete.
    */
-  public int deleteFiles(MultifileTextWriter writer);
-
+  public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
+      throws DirectoryException;
 }
 

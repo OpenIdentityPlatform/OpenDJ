@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.loggers;
 
@@ -60,7 +60,8 @@ public interface FileNamingPolicy
   /**
    * Gets all the existing files named by this policy.
    *
-   * @return The files named by this policy.
+   * @return The files named by this policy or <code>null</code> if an
+   *         error occured.
    */
   public File[] listFiles();
 
