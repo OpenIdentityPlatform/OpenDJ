@@ -204,11 +204,7 @@ public class ReplicationBroker implements InternalSearchListener
     HashMap<String, ServerState> rsStates = new HashMap<String, ServerState>();
 
     // Stop any existing heartbeat monitor from a previous session.
-    if (heartbeatMonitor != null)
-    {
-      heartbeatMonitor.shutdown();
-      heartbeatMonitor = null;
-    }
+    stopHeartBeat();
 
     synchronized (connectPhaseLock)
     {
@@ -753,6 +749,18 @@ public class ReplicationBroker implements InternalSearchListener
   }
 
   /**
+   * Stop the heartbeat monitor thread.
+   */
+  void stopHeartBeat()
+  {
+    if (heartbeatMonitor != null)
+    {
+      heartbeatMonitor.shutdown();
+      heartbeatMonitor = null;
+    }
+  }
+
+  /**
    * restart the ReplicationBroker.
    */
   public void reStart()
@@ -987,10 +995,6 @@ public class ReplicationBroker implements InternalSearchListener
     replicationServer = "stopped";
     shutdown = true;
     connected = false;
-    if (heartbeatMonitor != null)
-    {
-      heartbeatMonitor.shutdown();
-    }
     try
     {
       if (debugEnabled())
