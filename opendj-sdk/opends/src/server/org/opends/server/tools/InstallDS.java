@@ -581,7 +581,7 @@ public class InstallDS extends ConsoleApplication
     try
     {
       DN.decode(dmDN);
-      if (dmDN.trim().isEmpty())
+      if (dmDN.trim().length() == 0)
       {
         errorMessages.add(ERR_INSTALLDS_EMPTY_DN_RESPONSE.get());
       }
