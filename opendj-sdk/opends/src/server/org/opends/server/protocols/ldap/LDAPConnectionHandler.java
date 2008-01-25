@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -713,6 +714,40 @@ public final class LDAPConnectionHandler extends
       {
         try
         {
+          // HACK:
+          // With dual stacks we can have a situation when INADDR_ANY/PORT
+          // is bound in TCP4 space but available in TCP6 space and since
+          // JavaServerSocket implemantation will always use TCP46 on dual
+          // stacks the bind below will always succeed in such cases thus
+          // shadowing anything that is already bound to INADDR_ANY/PORT.
+          // While technically correct, with IPv4 and IPv6 being separate
+          // address spaces, it presents a problem to end users because a
+          // common case scenario is to have a single service serving both
+          // address spaces ie listening to the same port in both spaces
+          // on wildcard addresses 0 and ::. ServerSocket implemantation
+          // does not provide any means of working with each address space
+          // separately such as doing TCP4 or TCP6 only binds thus we have
+          // to do a dummy connect to INADDR_ANY/PORT to check if it is
+          // bound to something already. This is only needed for wildcard
+          // addresses as specific IPv4 or IPv6 addresses will always be
+          // handled in their respective address space.
+          if (a.isAnyLocalAddress()) {
+            Socket s = new Socket();
+            try {
+              // This might fail on some stacks but this is the best we
+              // can do. No need for explicit timeout since it is local
+              // address and we have to know for sure unless it fails.
+              s.connect(new InetSocketAddress(a, listenPort));
+            } catch (IOException e) {
+              // Expected, ignore.
+            }
+            if (s.isConnected()) {
+              s.close();
+              throw new IOException(
+                ERR_LDAP_CONNHANDLER_ADDRESS_INUSE.get().toString());
+            }
+          }
+
           ServerSocket s = new ServerSocket();
           s.setReuseAddress(allowReuseAddress);
           s.bind(new InetSocketAddress(a, listenPort));
