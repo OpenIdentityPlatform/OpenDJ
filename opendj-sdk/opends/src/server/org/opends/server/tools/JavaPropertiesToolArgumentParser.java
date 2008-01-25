@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -63,10 +63,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
   public JavaPropertiesToolArgumentParser(String mainClassName)
   {
     super(mainClassName,
-        INFO_JAVAPROPERTIES_TOOL_DESCRIPTION.get(getDefaultPropertiesValue(),
-        Utils.isWindows() ?
-            Installation.WINDOWS_START_FILE_NAME :
-              Installation.UNIX_START_FILE_NAME),
+        INFO_JAVAPROPERTIES_TOOL_DESCRIPTION.get(getDefaultPropertiesValue()),
         false);
   }
 
@@ -90,6 +87,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
         "propertiesFile",
         INFO_JAVAPROPERTIES_DESCRIPTION_PROPERTIES_FILE.get(
             getDefaultPropertiesValue()));
+    propertiesFileArg.setHidden(true);
     addArgument(propertiesFileArg);
 
     destinationFileArg = new StringArgument("destinationFile",
@@ -98,6 +96,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
         "destinationFile",
         INFO_JAVAPROPERTIES_DESCRIPTION_DESTINATION_FILE.get(
             getDefaultDestinationValue()));
+    destinationFileArg.setHidden(true);
     addArgument(destinationFileArg);
 
     showUsageArg = new BooleanArgument("help", OPTION_SHORT_HELP,
