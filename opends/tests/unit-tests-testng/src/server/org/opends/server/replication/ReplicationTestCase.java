@@ -163,7 +163,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       ReplicationDomain replDomain = ReplicationDomain.retrievesReplicationDomain(baseDn);
       genId = replDomain.getGenerationId();
     }
-    catch(Exception e) {}  
+    catch(Exception e) {}
     return genId;
   }
 
@@ -176,11 +176,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, boolean emptyOldChanges)
           throws Exception, SocketException
-  {    
+  {
     return openReplicationSession(baseDn, serverId, window_size,
         port, timeout, emptyOldChanges, getGenerationId(baseDn));
   }
-  
+
   /**
    * Open a replicationServer session to the local ReplicationServer
    * providing the generationId.
@@ -198,7 +198,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
        state = new ServerState();
 
     ReplicationBroker broker = new ReplicationBroker(
-        state, baseDn, serverId, 0, 0, 0, 0, 
+        state, baseDn, serverId, 0, 0, 0, 0,
         window_size, 0, generationId, getReplSessionSecurity());
     ArrayList<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
@@ -247,11 +247,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       final DN baseDn, short serverId, int window_size,
       int port, int timeout, ServerState state)
     throws Exception, SocketException
-  {   
+  {
     return openReplicationSession(baseDn, serverId, window_size,
         port, timeout, state, getGenerationId(baseDn));
   }
-  
+
   /**
    * Open a new session to the ReplicationServer
    * starting with a given ServerState.
@@ -285,10 +285,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       throws Exception, SocketException
   {
     return openReplicationSession(baseDn, serverId, window_size,
-        port, timeout, maxSendQueue, maxRcvQueue, emptyOldChanges, 
+        port, timeout, maxSendQueue, maxRcvQueue, emptyOldChanges,
         getGenerationId(baseDn));
   }
-  
+
   protected ReplicationBroker openReplicationSession(
       final DN baseDn, short serverId, int window_size,
         int port, int timeout, int maxSendQueue, int maxRcvQueue,
@@ -352,7 +352,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       while (true)
       {
         DN dn = configEntryList.removeLast();
-        
+
         logError(Message.raw(Category.SYNC, Severity.NOTICE,
                  "cleaning config entry " + dn));
 
@@ -392,14 +392,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       {
         DN dn = entryList.removeLast();
 
-        op = new DeleteOperationBasis(connection, 
-               InternalClientConnection.nextOperationID(), 
-               InternalClientConnection.nextMessageID(), 
+        op = new DeleteOperationBasis(connection,
+               InternalClientConnection.nextOperationID(),
+               InternalClientConnection.nextMessageID(),
                null,
                dn);
 
         op.run();
-        
+
         if ((op.getResultCode() != ResultCode.SUCCESS) &&
             (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
         {
@@ -429,6 +429,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     entryList = null;
     configEntryList = null;
+
+    // In-core restart to cleanup.
+    TestCaseUtils.restartServer();
   }
 
   /**
@@ -886,7 +889,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       fail("waitTaskState Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
     }
   }
-  
+
   /**
    * Add to the current DB the entries necessary to the test
    */
@@ -903,12 +906,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
         AddOperationBasis addOp = new AddOperationBasis(
             connection,
-            InternalClientConnection.nextOperationID(), 
-            InternalClientConnection.nextMessageID(), 
-            null, 
-            entry.getDN(), 
+            InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(),
+            null,
+            entry.getDN(),
             entry.getObjectClasses(),
-            entry.getUserAttributes(), 
+            entry.getUserAttributes(),
             entry.getOperationalAttributes());
         addOp.setInternalOperation(true);
         addOp.run();
@@ -920,7 +923,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         else
         {
           TRACER.debugInfo(entry.getDN() +
-              " added " + addOp.getResultCode());          
+              " added " + addOp.getResultCode());
         }
         // They will be removed at the end of the test
         entryList.addLast(entry.getDN());
