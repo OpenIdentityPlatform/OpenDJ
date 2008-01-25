@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 import org.opends.messages.Message;
@@ -744,7 +744,7 @@ public final class LDAPConnectionHandler extends
             if (s.isConnected()) {
               s.close();
               throw new IOException(
-                ERR_LDAP_CONNHANDLER_ADDRESS_INUSE.get().toString());
+                ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
             }
           }
 
