@@ -2035,6 +2035,11 @@ public class VerifyJob
   class ProgressTask extends TimerTask
   {
     /**
+     * The total number of records to process.
+     */
+    private long totalCount;
+
+    /**
      * The number of records that had been processed at the time of the
      * previous progress report.
      */
@@ -2066,6 +2071,8 @@ public class VerifyJob
       previousTime = System.currentTimeMillis();
       prevEnvStats =
           rootContainer.getEnvironmentStats(new StatsConfig());
+      totalCount = rootContainer.getEntryContainer(
+        verifyConfig.getBaseDN()).getEntryCount();
     }
 
     /**
@@ -2085,8 +2092,8 @@ public class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      Message message =
-          INFO_JEB_VERIFY_PROGRESS_REPORT.get(latestCount, errorCount, rate);
+      Message message = INFO_JEB_VERIFY_PROGRESS_REPORT.get(
+        latestCount, totalCount, errorCount, rate);
       logError(message);
 
       try
