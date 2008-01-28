@@ -264,28 +264,6 @@ public class SubjectDNToUserAttributeCertificateMapper
                       List<Message> unacceptableReasons)
   {
     boolean configAcceptable = true;
-
-    // Make sure that the subject attribute is configured for equality in all
-    // appropriate backends.
-    Set<DN> cfgBaseDNs = configuration.getUserBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
-    AttributeType t = configuration.getSubjectAttribute();
-    for (DN baseDN : cfgBaseDNs)
-    {
-      Backend b = DirectoryServer.getBackend(baseDN);
-      if ((b != null) && (! b.isIndexed(t, IndexType.EQUALITY)))
-      {
-        configAcceptable = false;
-        unacceptableReasons.add(ERR_SDTUACM_ATTR_UNINDEXED.get(
-                                     configuration.dn().toString(),
-                                     t.getNameOrOID(), b.getBackendID()));
-      }
-    }
-
     return configAcceptable;
   }
 
