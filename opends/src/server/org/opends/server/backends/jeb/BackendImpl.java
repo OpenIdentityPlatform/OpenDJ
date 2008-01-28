@@ -436,6 +436,10 @@ public class BackendImpl
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);
     threadWriteCount.set(0);
+
+    // Log an informational message.
+    Message message = NOTE_BACKEND_OFFLINE.get(cfg.getBackendId());
+    logError(message);
   }
 
 
