@@ -35,6 +35,17 @@
       </script>
       <call function="'testSuite_Preamble'" />
 
+
+<!--- Test Suite information
+#@TestSuiteName       Plugin uniqueness Tests
+#@TestSuitePurpose    Verify the plugin uniqueness
+#@TestSuiteID         Plugins 
+#@TestSuiteGroup      Plugins
+#@TestGroup           Plugins
+#@TestScript          plugins_uniqueness.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
                    
 <!---
 #@TestMarker       Plugin uniqueness

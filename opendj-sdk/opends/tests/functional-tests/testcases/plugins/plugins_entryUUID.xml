@@ -35,7 +35,17 @@
       </script>
       <call function="'testSuite_Preamble'" />
 
-                        
+<!--- Test Suite information
+#@TestSuiteName       Plugin entryUUID Tests
+#@TestSuitePurpose    Verify the plugin entryUUID
+#@TestSuiteID         Plugins 
+#@TestSuiteGroup      Plugins
+#@TestGroup           Plugins
+#@TestScript          plugins_entryUUID.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
+      
 <!---
 #@TestMarker            Plugin entryUUID
 #@TestName              Plugin entryUUID

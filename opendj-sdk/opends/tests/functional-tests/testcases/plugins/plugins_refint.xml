@@ -35,7 +35,9 @@
       </script>
       <call function="'testSuite_Preamble'" />
 
-                   
+
+
+      
 <!--
 #@TestMarker       Plugin referential integrity
 #@TestName         Plugin referential integrity
@@ -692,24 +694,24 @@
           'dsFilter'         : 'objectclass=groupOfUniqueNames'	,
           'attributes'       : 'uniquemember',
           'expectedRC'	     :  0 }
-    </call>  		
-    
+    </call>
+
     <script>
       returnString = STAXResult[0][1]
     </script>
-    <message>'The references to the delete user must be still present ' </message>    
+    <message>'The references to the delete user must be still present ' </message>
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'user07',
          'expectedResult'  : '1' }
-    </call>                
-    
+    </call>
+
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
-                                                     
+
  <call function="'testSuite_Postamble'" />
  </sequence>
- </block>      
+ </block>
 </function>
 </stax>
