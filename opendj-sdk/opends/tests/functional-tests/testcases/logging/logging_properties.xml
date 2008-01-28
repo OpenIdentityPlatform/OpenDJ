@@ -33,6 +33,18 @@
         CurrentTestPath['suite']=STAXCurrentFunction
       </script>
       <call function="'testSuite_Preamble'" />
+
+      
+<!--- Test Suite information
+#@TestSuiteName       Logger properties Tests
+#@TestSuitePurpose    Verify the logging properties
+#@TestSuiteID         Logging
+#@TestSuiteGroup      Logging
+#@TestGroup           Logging
+#@TestScript          logging_properties.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
       
       <!--- Test Case : access logger -->
       <!---
@@ -406,16 +418,16 @@
       
       <!--- Test Case : Error logger -->
       <!---
-        #@TestMarker             error logger
-        #@TestName               error logger properties check
+        #@TestMarker           error logger
+        #@TestName             error logger properties check
         #@TestIssue                   
-        #@TestPurpose           check the error logger properties.
-        #@TestPreamble           none
-        #@TestStep                 Check the  error Logger's properties are correctly set and get using dsconfig
-        #@TestStep                 Set a property
-        #@TestStep                 Get the property and check it has been correctly updated
-        #@TestPostamble          none
-        #@TestResult                Success if OpenDS returns 0 for all operations
+        #@TestPurpose          check the error logger properties.
+        #@TestPreamble         none
+        #@TestStep             Check the  error Logger's properties are correctly set and get using dsconfig
+        #@TestStep             Set a property
+        #@TestStep             Get the property and check it has been correctly updated
+        #@TestPostamble        none
+        #@TestResult           Success if OpenDS returns 0 for all operations
       -->
       
       <testcase name="getTestCaseName('Error logger')">

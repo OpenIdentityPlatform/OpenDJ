@@ -34,6 +34,18 @@
       </script>
       <call function="'testSuite_Preamble'" />
   
+
+<!--- Test Suite information
+#@TestSuiteName       Retention Policy Properties Tests
+#@TestSuitePurpose    Verify the Retention Policy properties
+#@TestSuiteID         Logging
+#@TestSuiteGroup      Logging
+#@TestGroup           Logging
+#@TestScript          logging_retention_properties.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
+
       <!--- Test Case : Retention policy -->
       <!---
         #@TestMarker     size limit retention policy
