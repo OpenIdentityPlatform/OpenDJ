@@ -35,7 +35,16 @@
       </script>
       <call function="'testSuite_Preamble'" />
 
-                        
+<!--- Test Suite information
+#@TestSuiteName       Plugin lastmod Tests
+#@TestSuitePurpose    Verify the plugin lastmod
+#@TestSuiteID         Plugins 
+#@TestSuiteGroup      Plugins
+#@TestGroup           Plugins
+#@TestScript          plugins_lastmod.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
 <!---
 #@TestMarker          Plugin lastmod
 #@TestName            Plugin lastmod
