@@ -33,7 +33,18 @@
         CurrentTestPath['suite']=STAXCurrentFunction
       </script>
       <call function="'testSuite_Preamble'" />
-      
+
+
+<!--- Test Suite information
+#@TestSuiteName       Rotation Policy Properties Tests
+#@TestSuitePurpose    Verify the Rotation Policy properties
+#@TestSuiteID         Logging
+#@TestSuiteGroup      Logging
+#@TestGroup           Logging
+#@TestScript          logging_rotation_properties.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
       <!--- Test Case : Rotation policy -->
       <!---
         #@TestMarker           size limitRotation policy

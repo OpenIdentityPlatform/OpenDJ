@@ -34,6 +34,18 @@
         CurrentTestPath['suite']=STAXCurrentFunction
       </script>
       <call function="'testSuite_Preamble'"/>
+      
+      
+
+<!--- Test Suite information
+#@TestSuiteName       basic tests on logging
+#@TestSuitePurpose    Basic tests on logging
+#@TestSuiteID         Logging
+#@TestSuiteGroup      Logging
+#@TestGroup           Logging
+#@TestScript          logging_writer.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->      
       <!-- #################################### -->
       <!--
         #@TestMarker      access logger
@@ -209,7 +221,7 @@
           #@TestPurpose      Basic tests on the Debug logger
           #@TestPreamble     none
           #@TestStep         Enabled the Debug  Logger
-          #@TestStep         Define a spefic log file for debug message 
+          #@TestStep         Define a specific log file for debug message 
           #@TestStep         set the debug-log-level to All
           #@TestStep         Restart the server
           #@TestStep         Execute a ldapsearch request

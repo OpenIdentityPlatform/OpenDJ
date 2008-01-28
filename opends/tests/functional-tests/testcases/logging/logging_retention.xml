@@ -34,6 +34,19 @@
           CurrentTestPath['suite']=STAXCurrentFunction
         </script>
         <call function="'testSuite_Preamble'" />
+        
+  
+<!--- Test Suite information
+#@TestSuiteName       Retention Policy Tests
+#@TestSuitePurpose    Verify the Retention Policy
+#@TestSuiteID         Logging
+#@TestSuiteGroup      Logging
+#@TestGroup           Logging
+#@TestScript          logging_retention.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
+
         <!--- Test Case : retention policy -->
         <!---
           #@TestMarker     size limit  retention 
