@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.statuspanel;
@@ -59,7 +59,7 @@ public class BaseDNDescriptor implements Comparable
   private int nEntries;
   private int missingChanges;
   private DatabaseDescriptor db;
-  private int ageOfOldestMissingChange;
+  private long ageOfOldestMissingChange;
   private Type type;
   private String baseDn;
   private String unescapedDn;
@@ -77,7 +77,7 @@ public class BaseDNDescriptor implements Comparable
    * @param missingChanges the number of missing changes.
    */
   public BaseDNDescriptor(Type type, String baseDn, DatabaseDescriptor db,
-      int nEntries, int ageOfOldestMissingChange, int missingChanges)
+      int nEntries, long ageOfOldestMissingChange, int missingChanges)
   {
     this.baseDn = baseDn;
     this.db = db;
@@ -191,7 +191,7 @@ public class BaseDNDescriptor implements Comparable
    * @return the age of the oldest missing change in seconds in the
    * replication topology for this base DN.
    */
-  public int getAgeOfOldestMissingChange()
+  public long getAgeOfOldestMissingChange()
   {
     return ageOfOldestMissingChange;
   }

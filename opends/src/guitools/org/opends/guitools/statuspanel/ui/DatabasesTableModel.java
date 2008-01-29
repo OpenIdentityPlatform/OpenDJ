@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.statuspanel.ui;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -431,6 +432,19 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     return -1;
   }
 
+  private int compareLongs(long n1, long n2)
+  {
+    if (n1 == n2)
+    {
+      return 0;
+    }
+    if (n1 > n2)
+    {
+      return 1;
+    }
+    return -1;
+  }
+
   private int compareDns(BaseDNDescriptor desc1, BaseDNDescriptor desc2)
   {
     return desc1.getUnescapedDn().compareTo(desc2.getUnescapedDn());
@@ -452,7 +466,7 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
   private int compareAgeOfOldestMissingChange(BaseDNDescriptor desc1,
       BaseDNDescriptor desc2)
   {
-    return compareIntegers(desc1.getAgeOfOldestMissingChange(),
+    return compareLongs(desc1.getAgeOfOldestMissingChange(),
         desc2.getAgeOfOldestMissingChange());
   }
 
@@ -504,27 +518,16 @@ implements SortableTableModel, Comparator<BaseDNDescriptor>
     Object v;
     if (rep.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
-      int age = rep.getAgeOfOldestMissingChange();
-      if (age >= 0)
+      long age = rep.getAgeOfOldestMissingChange();
+      if (age > 0)
       {
-        int remainingSeconds = age % 60;
-        int minutes = age / 60;
-        int remainingMinutes = minutes % 60;
-        int hours = minutes / 60;
-
-        String sMinutes = (remainingMinutes>=10)?
-        String.valueOf(remainingMinutes) : "0"+remainingMinutes;
-
-        String sSeconds = (remainingSeconds>=10)?
-        String.valueOf(remainingSeconds) : "0"+remainingSeconds;
-
-        String sHours = (hours>=10)?String.valueOf(hours):"0"+hours;
-
-        v = sHours+":"+sMinutes+":"+sSeconds;
+        Date date = new Date(age);
+        v = date.toString();
       }
       else
       {
-        v = new Integer(age);
+        // Not available
+        v = new Integer(-1);
       }
     }
     else

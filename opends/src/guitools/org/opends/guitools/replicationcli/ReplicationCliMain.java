@@ -41,6 +41,7 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -5020,10 +5021,11 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           break;
         case AGE_OF_OLDEST_MISSING_CHANGE:
-          int ageOfOldestMissingChange = replica.getAgeOfOldestMissingChange();
-          if (ageOfOldestMissingChange >= 0)
+          long ageOfOldestMissingChange = replica.getAgeOfOldestMissingChange();
+          if (ageOfOldestMissingChange > 0)
           {
-            v = Message.raw(String.valueOf(ageOfOldestMissingChange));
+            Date date = new Date(ageOfOldestMissingChange);
+            v = Message.raw(date.toString());
           }
           else
           {
