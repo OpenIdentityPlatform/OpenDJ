@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="log-retention-policy"
   plural-name="log-retention-policies"
@@ -47,7 +47,7 @@
   </adm:profile>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="fixed-time-log-rotation-policy"
   plural-name="fixed-time-log-rotation-policies"
@@ -31,7 +31,7 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    Rotation policy based on fixed time of day.
+    Rotation policy based on a fixed time of day.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -51,7 +51,7 @@
   <adm:property name="time-of-day" multi-valued="true"
     mandatory="true">
     <adm:synopsis>
-      The time of day which log rotation should occur.
+      Specifies the time of day at which log rotation should occur.
     </adm:synopsis>
     <adm:syntax>
       <adm:string>

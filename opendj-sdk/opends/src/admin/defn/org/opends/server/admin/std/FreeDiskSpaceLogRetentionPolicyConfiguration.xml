@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="free-disk-space-log-retention-policy"
   plural-name="free-disk-space-log-retention-policies"
@@ -52,7 +52,10 @@
     </adm:default-behavior>
   </adm:property-override>
   <adm:property name="free-disk-space" mandatory="true">
-    <adm:synopsis>The size of free disk space needed.</adm:synopsis>
+    <adm:synopsis>Specifies the minimum amount of free disk space that 
+      should be available on the file system on which the archived 
+      log files are stored.
+    </adm:synopsis>
     <adm:syntax>
       <adm:size lower-limit="1" />
     </adm:syntax>

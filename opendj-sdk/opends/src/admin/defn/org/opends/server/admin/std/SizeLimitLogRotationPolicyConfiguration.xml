@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="size-limit-log-rotation-policy"
   plural-name="size-limit-log-rotation-policies"
@@ -50,7 +50,8 @@
   </adm:property-override>
   <adm:property name="file-size-limit" mandatory="true">
     <adm:synopsis>
-      The size of the file when rotation takes place.
+      Specifies the maximum size that a log file can reach before 
+      it is rotated.
     </adm:synopsis>
     <adm:syntax>
       <adm:size lower-limit="1" />
