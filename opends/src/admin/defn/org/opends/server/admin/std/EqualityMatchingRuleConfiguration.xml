@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="equality-matching-rule"
   plural-name="equality-matching-rules"
@@ -33,7 +33,7 @@
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     define a set of rules for performing equality matching operations
-    against assertion values (i.e., to determine whether an attribute
+    against assertion values (that is, to determine whether an attribute
     value equals an assertion value).
   </adm:synopsis>
   <adm:profile name="ldap">

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="stack-trace-monitor-provider"
   plural-name="stack-trace-monitor-providers"
@@ -33,8 +33,8 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provides the ability for clients to obtain a stack trace of all
-    threads currently running in the Directory Server.
+    enables clients to obtain a stack trace of all the threads that are 
+    currently running in the Directory Server.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
