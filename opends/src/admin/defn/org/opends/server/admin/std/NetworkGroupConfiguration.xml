@@ -49,7 +49,7 @@
       is enabled for use in the server.
     </adm:synopsis>
     <adm:description>
-      If a network group is not enabled, then its workflows will not be
+      If a network group is not enabled, its workflows will not be
       accessible when processing operations.
     </adm:description>
     <adm:syntax>
@@ -64,13 +64,13 @@
   <adm:property name="network-group-id" mandatory="true"
     read-only="true">
     <adm:synopsis>
-      Provides a name that will be used to identify the associated
+      Specifies the name that is used to identify the associated
       <adm:user-friendly-name />
       .
     </adm:synopsis>
     <adm:description>
-      The name must be unique among all
-      <adm:user-friendly-name />
+      The name must be unique among all the 
+      <adm:user-friendly-plural-name />
       in the server.
     </adm:description>
     <adm:syntax>
