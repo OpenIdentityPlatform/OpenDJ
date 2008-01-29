@@ -218,6 +218,17 @@ public final class VersionCompatibilityIssue {
    */
   public enum Cause {
     /**
+     * Incompatible changes in the backend configuration (the db directory
+     * attribute has been modified).
+     */
+    BACKEND_CONFIGURATION_CHANGE_1(
+        6, // Unique ID.  See javadoc for more information.
+        INFO_3708_UPGRADE.get(),
+        INFO_3708_REVERSION.get(),
+        Effect.REVERSION_NOT_POSSIBLE,
+        Effect.UPGRADE_NOT_POSSIBLE),
+
+    /**
      * Incompatible changes in the cryptomanager and specially in the way
      * replication works.  These changes were committed on several revisions
      * and the flagday that has been chosen corresponds to revision 3294
@@ -438,6 +449,8 @@ public final class VersionCompatibilityIssue {
 
   static {
     //
+    register(Cause.BACKEND_CONFIGURATION_CHANGE_1,
+        new BuildVersion(1, 0, 0, 3708));
     register(Cause.REPLICATION_SECURITY_CHANGE_1,
         new BuildVersion(1, 0, 0, 3294));
     register(Cause.PROPERTY_CHANGE_1, new BuildVersion(1, 0, 0, 3053));
