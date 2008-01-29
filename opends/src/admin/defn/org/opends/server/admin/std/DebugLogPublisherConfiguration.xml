@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="debug-log-publisher"
   plural-name="debug-log-publishers"
@@ -36,6 +36,11 @@
     are responsible for distributing debug log messages from the debug
     logger to a destination.
   </adm:synopsis>
+  <adm:description>
+    Debug log messages provide information that can be used for debugging 
+    or troubleshooting problems in the server, or for providing more 
+    detailed information about the processing that the server performs.
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-debug-log-publisher</ldap:name>
@@ -180,7 +185,7 @@
   </adm:property>
   <adm:property name="default-omit-method-entry-arguments">
     <adm:synopsis>
-      Property to indicate whether to include method arguments in debug
+      Indicates whether to include method arguments in debug
       messages logged by default.
     </adm:synopsis>
     <adm:default-behavior>
@@ -201,7 +206,7 @@
   </adm:property>
   <adm:property name="default-omit-method-return-value">
     <adm:synopsis>
-      Property to indicate whether to include the return value in debug
+      Indicates whether to include the return value in debug
       messages logged by default.
     </adm:synopsis>
     <adm:default-behavior>
@@ -220,7 +225,7 @@
   </adm:property>
   <adm:property name="default-include-throwable-cause">
     <adm:synopsis>
-      Property to indicate whether to include the cause of exceptions in
+      Indicates whether to include the cause of exceptions in
       exception thrown and caught messages logged by default.
     </adm:synopsis>
     <adm:default-behavior>
@@ -239,7 +244,7 @@
   </adm:property>
   <adm:property name="default-throwable-stack-frames">
     <adm:synopsis>
-      Property to indicate the number of stack frames to include in the
+      Indicates the number of stack frames to include in the
       stack trace for method entry and exception thrown messages.
     </adm:synopsis>
     <adm:default-behavior>

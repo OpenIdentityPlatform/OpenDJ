@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="file-based-error-log-publisher"
   plural-name="file-based-error-log-publishers"
@@ -51,7 +51,7 @@
   </adm:property-override>
   <adm:property name="asynchronous" mandatory="true" advanced="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
       will publish records asynchronously.
     </adm:synopsis>
@@ -126,7 +126,7 @@
           <adm:regex>^([0-7][0-7][0-7])$</adm:regex>
           <adm:usage>MODE</adm:usage>
           <adm:synopsis>
-            An valid UNIX mode string. The mode string must contain
+            A valid UNIX mode string. The mode string must contain
             three digits between zero and seven.
           </adm:synopsis>
         </adm:pattern>
@@ -140,8 +140,8 @@
   </adm:property>
   <adm:property name="time-interval" advanced="true">
     <adm:synopsis>
-      Specifies the interval to check whether the log files need to be
-      rotated.
+      Specifies the interval at which to check whether the log files 
+      need to be rotated.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
