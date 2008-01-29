@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="error-log-publisher"
   plural-name="error-log-publishers"
@@ -36,6 +36,10 @@
     are responsible for distributing error log messages from the error
     logger to a destination.
   </adm:synopsis>
+  <adm:description>
+    Error log messages provide information about any warnings, errors, 
+    or significant events that are encountered during server processing.
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-error-log-publisher</ldap:name>
@@ -66,7 +70,7 @@
   </adm:property>
   <adm:property name="default-severity" multi-valued="true">
     <adm:synopsis>
-      Property to specify the default severity levels for the logger.
+      Specifies the default severity levels for the logger.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -79,12 +83,12 @@
       <adm:enumeration>
         <adm:value name="all">
           <adm:synopsis>
-            Messages of all severity levels will be logged.
+            Messages of all severity levels are logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="none">
           <adm:synopsis>
-            No messages of any severity will be logged by default. This
+            No messages of any severity are logged by default. This
             value is intended to be used in conjunction with the
             override-severity property to define an error logger that
             will publish no error message beside the errors of a given
@@ -93,7 +97,7 @@
         </adm:value>
         <adm:value name="fatal-error">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide information about fatal errors which may force the
             server to shut down or operate in a significantly degraded
             state.
@@ -101,28 +105,28 @@
         </adm:value>
         <adm:value name="info">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide information about significant events within the
             server that are not warnings or errors.
           </adm:synopsis>
         </adm:value>
         <adm:value name="mild-error">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide information about mild (recoverable) errors
             encountered during processing.
           </adm:synopsis>
         </adm:value>
         <adm:value name="mild-warning">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide information about mild warnings triggered during
             processing.
           </adm:synopsis>
         </adm:value>
         <adm:value name="notice">
           <adm:synopsis>
-            The error log severity that will be used for the most
+            The error log severity that is used for the most
             important informational messages (i.e., information that
             should almost always be logged but is not associated with a
             warning or error condition).
@@ -130,21 +134,21 @@
         </adm:value>
         <adm:value name="severe-error">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide information about severe errors encountered during
             processing.
           </adm:synopsis>
         </adm:value>
         <adm:value name="severe-warning">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide information about severe warnings triggered during
             processing.
           </adm:synopsis>
         </adm:value>
         <adm:value name="debug">
           <adm:synopsis>
-            The error log severity that will be used for messages that
+            The error log severity that is used for messages that
             provide debugging information triggered during processing.
           </adm:synopsis>
         </adm:value>
@@ -162,13 +166,13 @@
       defaults to the default-severity. See issue 2503.
     </adm:TODO>
     <adm:synopsis>
-      Property to specify the override severity levels for the logger
+      Specifies the override severity levels for the logger
       based on the category of the messages.
     </adm:synopsis>
     <adm:description>
       Each override severity level should include the category and the
-      severity levels to log for that category. (i.e.,
-      core=mild-error,info,mild-warning). Valid categories are: core,
+      severity levels to log for that category, for example, 
+      core=mild-error,info,mild-warning. Valid categories are: core,
       extensions, protocol, config, log, util, schema, plugin, jeb,
       backend, tools, task, access-control, admin, sync, version,
       quicksetup, admin-tool, dsconfig, user-defined. Valid severities
@@ -178,12 +182,20 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          All messages with the default severity levels will be logged.
+          All messages with the default severity levels are logged.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
+   <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+        <adm:regex>.*</adm:regex>
+        <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            A string in the form category=severity1,severity2...
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
