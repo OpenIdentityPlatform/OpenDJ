@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-db-vlv-index"
   plural-name="local-db-vlv-indexes"
@@ -31,7 +31,6 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
     <adm:user-friendly-plural-name />
     are used to store information about a specific search request that
     makes it possible to efficiently process them using the VLV control.
@@ -51,12 +50,13 @@
   </adm:profile>
   <adm:property name="base-dn" mandatory="true">
     <adm:synopsis>
-      This specifies the base DN used in the search query being indexed.
+      Specifies the base DN used in the search query that is being 
+      indexed.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          The index will need to be rebuilt after this modifying this
+          The index must be rebuilt after modifying this
           property.
         </adm:synopsis>
       </adm:other>
@@ -72,12 +72,12 @@
   </adm:property>
   <adm:property name="scope" mandatory="true">
     <adm:synopsis>
-      This specifies the LDAP scope of the query being indexed.
+      Specifies the LDAP scope of the query that is being indexed.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          The index will need to be rebuilt after this modifying this
+          The index must be rebuilt after modifying this
           property.
         </adm:synopsis>
       </adm:other>
@@ -89,13 +89,13 @@
         </adm:value>
         <adm:value name="single-level">
           <adm:synopsis>
-            Search immediate children of the base object but not include
-            any of their descendants and the base object itself.
+            Search the immediate children of the base object but do not 
+            include any of their descendants or the base object itself.
           </adm:synopsis>
         </adm:value>
         <adm:value name="subordinate-subtree">
           <adm:synopsis>
-            Search the entire subtree below the base object but not
+            Search the entire subtree below the base object but do not
             include the base object itself.
           </adm:synopsis>
         </adm:value>
@@ -115,19 +115,27 @@
   </adm:property>
   <adm:property name="filter" mandatory="true">
     <adm:synopsis>
-      This specifies the LDAP filter used in the query being indexed.
+      Specifies the LDAP filter used in the query that is being indexed.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          The index will need to be rebuilt after this modifying this
+          The index must be rebuilt after modifying this
           property.
         </adm:synopsis>
       </adm:other>
     </adm:requires-admin-action>
     <adm:syntax>
-      <adm:string />
-    </adm:syntax>
+      <adm:string>
+        <adm:pattern>
+        <adm:regex>.*</adm:regex>
+        <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            A valid LDAP search filter.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax> 
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-filter</ldap:name>
@@ -136,20 +144,35 @@
   </adm:property>
   <adm:property name="sort-order" mandatory="true">
     <adm:synopsis>
-      This specifies the names of attributes to sort the entries for the
-      query being indexed.
+      Specifies the names of the attributes that are used to sort the 
+      entries for the query being indexed.
     </adm:synopsis>
+    <adm:description>
+      Multiple attributes can be used to determine the sort order by 
+      listing the attribute names from highest to lowest precedence. 
+      Optionally, + or - can be prefixed to the attribute name to sort 
+      the attribute in ascending order or descending order respectively.
+    </adm:description> 
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          The index will need to be rebuilt after this modifying this
+          The index must be rebuilt after modifying this
           property.
         </adm:synopsis>
       </adm:other>
     </adm:requires-admin-action>
     <adm:syntax>
-      <adm:string />
-    </adm:syntax>
+      <adm:string>
+        <adm:pattern>
+        <adm:regex>.*</adm:regex>
+        <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            Valid attribute types defined in the schema, separated by a 
+            space and optionally prefixed by + or -.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax> 
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-sort-order</ldap:name>
@@ -158,8 +181,15 @@
   </adm:property>
   <adm:property name="name" mandatory="true" read-only="true">
     <adm:synopsis>
-      This specifies a unique name for this VLV index.
+      Specifies a unique name for this VLV index.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          The VLV index name cannot be altered after the index is created.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>  
     <adm:syntax>
       <adm:string />
     </adm:syntax>
@@ -172,9 +202,17 @@
   <adm:property name="max-block-size" read-only="true"
     advanced="true">
     <adm:synopsis>
-      This specifies the number of entry IDs to store in a single sorted
+      Specifies the number of entry IDs to store in a single sorted
       set before it must be split.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+          The blocks are resized lazily the next time the index is 
+          modified.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>  
     <adm:default-behavior>
       <adm:defined>
         <adm:value>4000</adm:value>

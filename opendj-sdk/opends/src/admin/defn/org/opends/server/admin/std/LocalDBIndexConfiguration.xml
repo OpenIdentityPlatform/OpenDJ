@@ -23,21 +23,20 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="local-db-index" plural-name="local-db-indexes"
   package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
     <adm:user-friendly-plural-name />
     are used to store information that makes it possible to locate
     entries very quickly when processing search operations.
   </adm:synopsis>
   <adm:description>
     Indexing is performed on a per-attribute level and different types
-    of indexing may be performed for different kinds of attributes based
+    of indexing may be performed for different kinds of attributes, based
     on how they are expected to be accessed during search operations.
   </adm:description>
   <adm:tag name="database" />
@@ -49,7 +48,7 @@
   </adm:profile>
   <adm:property name="attribute" mandatory="true" read-only="true">
     <adm:synopsis>
-      This specifies the name of the attribute for which the index is to
+      Specifies the name of the attribute for which the index is to
       be maintained.
     </adm:synopsis>
     <adm:syntax>
@@ -63,23 +62,23 @@
   </adm:property>
   <adm:property name="index-entry-limit">
     <adm:synopsis>
-      This specifies the maximum number of entries that will be allowed
+      Specifies the maximum number of entries that are allowed
       to match a given index key before that particular index key is no
       longer maintained.
     </adm:synopsis>
     <adm:description>
       This is analogous to the ALL IDs threshold in the Sun Java System
-      Directory Server. If this is specified, it will override the JE
+      Directory Server. If this is specified, its value overrides the JE
       backend-wide configuration. For no limit, use 0 for the value.
     </adm:description>
     <adm:requires-admin-action>
-      <adm:none>
+      <adm:other>
         <adm:synopsis>
           If any index keys have already reached this limit, indexes
-          will need to be rebuilt before they will be allowed to use the
+          must be rebuilt before they will be allowed to use the
           new limit.
         </adm:synopsis>
-      </adm:none>
+      </adm:other>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:inherited>
@@ -101,7 +100,7 @@
   <adm:property name="index-type" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      This specifies the type(s) of indexing that should be performed
+      Specifies the type(s) of indexing that should be performed
       for the associated attribute.
     </adm:synopsis>
     <adm:description>
@@ -111,9 +110,9 @@
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          If any new index types are added for an attribute and there
-          are values for that attribute which already exist in the
-          database, then the index will need to be rebuilt before it
+          If any new index types are added for an attribute, and 
+          values for that attribute already exist in the
+          database, the index must be rebuilt before it
           will be accurate.
         </adm:synopsis>
       </adm:other>
@@ -122,32 +121,32 @@
       <adm:enumeration>
         <adm:value name="equality">
           <adm:synopsis>
-            This index type will be used to help improve the efficiency
+            This index type is used to improve the efficiency
             of searches using equality search filters.
           </adm:synopsis>
         </adm:value>
         <adm:value name="ordering">
           <adm:synopsis>
-            This index type will be used to help improve the efficiency
+            This index type is used to improve the efficiency
             of searches using "greater than or equal to" or "less then
             or equal to" search filters.
           </adm:synopsis>
         </adm:value>
         <adm:value name="presence">
           <adm:synopsis>
-            This index type will be used to help improve the efficiency
+            This index type is used to improve the efficiency
             of searches using the presence search filters.
           </adm:synopsis>
         </adm:value>
         <adm:value name="substring">
           <adm:synopsis>
-            This index type will be used to help improve the efficiency
+            This index type is used to improve the efficiency
             of searches using substring search filters.
           </adm:synopsis>
         </adm:value>
         <adm:value name="approximate">
           <adm:synopsis>
-            This index type will be used to help improve the efficiency
+            This index type is used to improve the efficiency
             of searches using approximate matching search filters.
           </adm:synopsis>
         </adm:value>
@@ -166,7 +165,7 @@
     <adm:requires-admin-action>
       <adm:other>
         <adm:synopsis>
-          The index will need to be rebuilt before it will reflect the
+          The index must be rebuilt before it will reflect the
           new value.
         </adm:synopsis>
       </adm:other>
