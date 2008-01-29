@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="system-info-monitor-provider"
   plural-name="system-info-monitor-providers"
@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    may be used to publish information about the system and virtual
+    can be used to publish information about the system and virtual
     machine on which the Directory Server is running.
   </adm:synopsis>
   <adm:profile name="ldap">

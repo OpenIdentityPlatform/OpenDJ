@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="matching-rule" plural-name="matching-rules"
   package="org.opends.server.admin.std" abstract="true"
@@ -35,8 +35,12 @@
     assertion values.
   </adm:synopsis>
   <adm:description>
-    The primary types of matching rules are equality, ordering,
-    substring, and approximate.
+    Matching rules are frequently associated with an attribute syntax 
+    and are used to compare values according to that syntax. For example, 
+    the distinguishedNameEqualityMatch matching rule can be used to 
+    determine whether two DNs are equal and can ignore unnecessary spaces 
+    around commas and equal signs, differences in capitalization in 
+    attribute names, an so on.
   </adm:description>
   <adm:tag name="core" />
   <adm:profile name="ldap">
@@ -47,7 +51,7 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
       is enabled for use.
     </adm:synopsis>
@@ -62,7 +66,7 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>

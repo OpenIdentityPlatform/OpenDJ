@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="substring-matching-rule"
   plural-name="substring-matching-rules"
@@ -36,7 +36,7 @@
     against assertion values.
   </adm:synopsis>
   <adm:description>
-    Substring matching may be used to perform partial matching with
+    Substring matching can be used to perform partial matching with
     attribute values.
   </adm:description>
   <adm:profile name="ldap">
