@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -877,9 +877,10 @@ public class ServerDescriptor
     ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     ctls.setReturningAttributes(
     new String[] {
-      "approximate-delay", "waiting-changes", "base-dn"
+      "approx-older-change-not-synchronized-millis", "missing-changes",
+      "base-dn", "server-id"
     });
-    filter = "(approximate-delay=*)";
+    filter = "(missing-changes=*)";
 
     jndiName = new LdapName("cn=monitor");
 
@@ -894,16 +895,26 @@ public class ServerDescriptor
           SearchResult sr = (SearchResult)monitorEntries.next();
 
           String dn = getFirstValue(sr, "base-dn");
+          int replicaId = -1;
+          try
+          {
+            replicaId = new Integer(getFirstValue(sr, "server-id"));
+          }
+          catch (Throwable t)
+          {
+          }
 
           for (ReplicaDescriptor replica: desc.getReplicas())
           {
             if (Utils.areDnsEqual(dn, replica.getSuffix().getDN()) &&
-                replica.isReplicated())
+                replica.isReplicated() &&
+                (replica.getReplicationId() == replicaId))
             {
               try
               {
                 replica.setAgeOfOldestMissingChange(
-                    new Integer(getFirstValue(sr, "approximate-delay")));
+                    new Long(getFirstValue(sr,
+                        "approx-older-change-not-synchronized-millis")));
               }
               catch (Throwable t)
               {
@@ -911,7 +922,7 @@ public class ServerDescriptor
               try
               {
                 replica.setMissingChanges(
-                    new Integer(getFirstValue(sr, "waiting-changes")));
+                    new Integer(getFirstValue(sr, "missing-changes")));
               }
               catch (Throwable t)
               {

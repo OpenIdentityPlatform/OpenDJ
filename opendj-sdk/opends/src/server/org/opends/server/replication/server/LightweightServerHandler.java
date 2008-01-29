@@ -257,6 +257,9 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
         Date date = new Date(olderUpdateTime);
         attributes.add(new Attribute("approx-older-change-not-synchronized",
           date.toString()));
+        attributes.add(
+          new Attribute("approx-older-change-not-synchronized-millis",
+          String.valueOf(olderUpdateTime)));
       }
     }
     catch(Exception e)

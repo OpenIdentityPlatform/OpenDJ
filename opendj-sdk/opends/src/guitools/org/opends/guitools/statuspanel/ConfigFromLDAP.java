@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.statuspanel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -65,11 +66,11 @@ public class ConfigFromLDAP
   private HashSet<String> administrativeUsers = new HashSet<String>();
   private Message errorMessage;
   private boolean replicationConfigured = false;
-  private HashSet<String> replicatedSuffixes = new HashSet<String>();
+  private ArrayList<String> replicatedSuffixes = new ArrayList<String>();
   private HashMap<String, Integer> hmMissingChanges =
     new HashMap<String, Integer>();
-  private HashMap<String, Integer> hmAgeOfOldestMissingChanges =
-    new HashMap<String, Integer>();
+  private HashMap<String, Long> hmAgeOfOldestMissingChanges =
+    new HashMap<String, Long>();
 
   private String dn;
   private String pwd;
@@ -504,13 +505,14 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
-            "ds-cfg-base-dn"
+            "ds-cfg-base-dn",
+            "ds-cfg-server-id"
         });
     filter = "(objectclass=ds-cfg-replication-domain)";
 
     jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
-
+    ArrayList<String> replicaIds = new ArrayList<String>();
     try
     {
       NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
@@ -519,7 +521,8 @@ public class ConfigFromLDAP
       {
         SearchResult sr = (SearchResult)syncProviders.next();
 
-        replicatedSuffixes.addAll(getValues(sr, "ds-cfg-base-dn"));
+        replicatedSuffixes.add(getFirstValue(sr, "ds-cfg-base-dn"));
+        replicaIds.add(getFirstValue(sr, "ds-cfg-server-id"));
       }
     }
     catch (NameNotFoundException nse)
@@ -530,9 +533,10 @@ public class ConfigFromLDAP
     ctls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
     ctls.setReturningAttributes(
     new String[] {
-      "approximate-delay", "waiting-changes", "base-dn"
+      "approx-older-change-not-synchronized-millis", "missing-changes",
+      "base-dn", "server-id"
     });
-    filter = "(approximate-delay=*)";
+    filter = "(missing-changes=*)";
 
     jndiName = new LdapName("cn=monitor");
 
@@ -547,16 +551,19 @@ public class ConfigFromLDAP
           SearchResult sr = (SearchResult)monitorEntries.next();
 
           String dn = getFirstValue(sr, "base-dn");
+          String replicaId = getFirstValue(sr, "server-id");
 
-          for (String baseDn: replicatedSuffixes)
+          for (int i=0; i<replicatedSuffixes.size(); i++)
           {
-
-            if (Utils.areDnsEqual(dn, baseDn))
+            String baseDn = replicatedSuffixes.get(i);
+            String id = replicaIds.get(i);
+            if (Utils.areDnsEqual(dn, baseDn) && id.equals(replicaId))
             {
               try
               {
                 hmAgeOfOldestMissingChanges.put(baseDn,
-                  new Integer(getFirstValue(sr, "approximate-delay")));
+                  new Long(getFirstValue(sr,
+                      "approx-older-change-not-synchronized-millis")));
               }
               catch (Throwable t)
               {
@@ -564,7 +571,7 @@ public class ConfigFromLDAP
               try
               {
                 hmMissingChanges.put(baseDn,
-                  new Integer(getFirstValue(sr, "waiting-changes")));
+                  new Integer(getFirstValue(sr, "missing-changes")));
               }
               catch (Throwable t)
               {
@@ -762,7 +769,7 @@ public class ConfigFromLDAP
   {
     BaseDNDescriptor.Type type;
     int missingChanges = -1;
-    int ageOfOldestMissingChange = -1;
+    long ageOfOldestMissingChange = -1;
     String mapSuffixDn = null;
 
     boolean replicated = false;
@@ -783,11 +790,11 @@ public class ConfigFromLDAP
       type = BaseDNDescriptor.Type.REPLICATED;
 
       Integer missing = hmMissingChanges.get(mapSuffixDn);
-      Integer age = hmAgeOfOldestMissingChanges.get(mapSuffixDn);
+      Long age = hmAgeOfOldestMissingChanges.get(mapSuffixDn);
 
       if (age != null)
       {
-        ageOfOldestMissingChange = age.intValue();
+        ageOfOldestMissingChange = age.longValue();
       }
 
       if (missing != null)

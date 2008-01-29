@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -42,7 +42,7 @@ public class ReplicaDescriptor
   private Set<String> replicationServers = new HashSet<String>();
   private int replicationId = -1;
   private int missingChanges = -1;
-  private int ageOfOldestMissingChange = -1;
+  private long ageOfOldestMissingChange = -1;
 
   /**
    * Returns the number of entries contained in the replica.
@@ -167,7 +167,7 @@ public class ReplicaDescriptor
    * Returns the age of the oldest missing change.
    * @return the age of the oldest missing change.
    */
-  public int getAgeOfOldestMissingChange()
+  public long getAgeOfOldestMissingChange()
   {
     return ageOfOldestMissingChange;
   }
@@ -176,7 +176,7 @@ public class ReplicaDescriptor
    * Sets the age of the oldest missing change.
    * @param ageOfOldestMissingChange the age of the oldest missing change.
    */
-  public void setAgeOfOldestMissingChange(int ageOfOldestMissingChange)
+  public void setAgeOfOldestMissingChange(long ageOfOldestMissingChange)
   {
     this.ageOfOldestMissingChange = ageOfOldestMissingChange;
   }
