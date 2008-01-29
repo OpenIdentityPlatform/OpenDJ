@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="size-limit-log-retention-policy"
   plural-name="size-limit-log-retention-policies"
@@ -31,8 +31,8 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    Retention policy based on the amount of space taken by the log files
-    on disk.
+    Retention policy based on the amount of space taken by all the log 
+    files on disk.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -51,7 +51,7 @@
   </adm:property-override>
   <adm:property name="disk-space-used" mandatory="true">
     <adm:synopsis>
-      The maximum total disk space used by the log files.
+      Specifies the maximum total disk space used by the log files.
     </adm:synopsis>
     <adm:syntax>
       <adm:size lower-limit="1" />

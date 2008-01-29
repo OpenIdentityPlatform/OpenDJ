@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="file-count-log-retention-policy"
   plural-name="file-count-log-retention-policies"
@@ -50,8 +50,8 @@
   </adm:property-override>
   <adm:property name="number-of-files" mandatory="true">
     <adm:synopsis>
-      Number of log files to retain before the oldest ones will be
-      cleaned.
+      Specifies the number of archived log files to retain before the 
+      oldest ones are cleaned.
     </adm:synopsis>
     <adm:syntax>
       <adm:integer lower-limit="1" />

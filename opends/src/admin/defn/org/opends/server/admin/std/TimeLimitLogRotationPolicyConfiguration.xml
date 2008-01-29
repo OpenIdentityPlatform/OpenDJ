@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="time-limit-log-rotation-policy"
   plural-name="time-limit-log-rotation-policies"
@@ -49,7 +49,9 @@
     </adm:default-behavior>
   </adm:property-override>
   <adm:property name="rotation-interval" mandatory="true">
-    <adm:synopsis>The time interval between rotations.</adm:synopsis>
+    <adm:synopsis>
+       Specifies the time interval between rotations.
+    </adm:synopsis>
     <adm:syntax>
       <adm:duration base-unit="ms" lower-limit="1" />
     </adm:syntax>
