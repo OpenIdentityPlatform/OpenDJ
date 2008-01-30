@@ -607,7 +607,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
 
     } else if (cStep == UpgradeWizardStep.REVIEW) {
       Boolean startServer =
-              (Boolean) qs.getFieldValue(FieldName.SERVER_START);
+              (Boolean) qs.getFieldValue(FieldName.SERVER_START_UPGRADER);
       uud.setStartServer(startServer);
     }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.installer;
 
@@ -3709,7 +3709,7 @@ public abstract class Installer extends GuiApplication {
    */
   private void updateUserDataForReviewPanel(QuickSetup qs)
   {
-    Boolean b = (Boolean) qs.getFieldValue(FieldName.SERVER_START);
+    Boolean b = (Boolean) qs.getFieldValue(FieldName.SERVER_START_INSTALLER);
     getUserData().setStartServer(b);
     b = (Boolean) qs.getFieldValue(FieldName.ENABLE_WINDOWS_SERVICE);
     getUserData().setEnableWindowsService(b);

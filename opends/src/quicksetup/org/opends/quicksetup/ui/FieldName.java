@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.ui;
@@ -163,7 +163,11 @@ public enum FieldName
   /**
    * The value associated with this is a Boolean.
    */
-  SERVER_START,
+  SERVER_START_INSTALLER,
+  /**
+   * The value associated with this is a Boolean.
+   */
+  SERVER_START_UPGRADER,
   /**
    * The value associated with this is a Boolean.
    */
