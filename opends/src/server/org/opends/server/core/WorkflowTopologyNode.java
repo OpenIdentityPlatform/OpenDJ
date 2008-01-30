@@ -299,6 +299,12 @@ public class WorkflowTopologyNode extends WorkflowTopology
       WorkflowTopologyNode newWorkflow
       )
   {
+    // Dont try to add the workflow to itself.
+    if (newWorkflow == this)
+    {
+      return;
+    }
+
     // Check whether subordinates of current workflow should move to the
     // new workflow subordinate list.
     ArrayList<WorkflowTopologyNode> curSubordinateList =
@@ -308,10 +314,17 @@ public class WorkflowTopologyNode extends WorkflowTopology
     {
       DN newDN = newWorkflow.getBaseDN();
       DN subordinateDN = curSubordinate.getBaseDN();
+
+      // Dont try to add workflow when baseDNs are
+      // the same on both workflows.
+      if (newDN.equals(subordinateDN)) {
+        return;
+      }
+
       if (subordinateDN.isDescendantOf(newDN))
       {
         removeSubordinate(curSubordinate);
-        newWorkflow.addSubordinateNoCheck(curSubordinate, newWorkflow);
+        newWorkflow.addSubordinate(curSubordinate);
       }
     }
 
