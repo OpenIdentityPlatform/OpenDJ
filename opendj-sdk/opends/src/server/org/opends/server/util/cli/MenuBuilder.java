@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.cli;
 
@@ -276,13 +276,7 @@ public final class MenuBuilder<T> {
         }
 
         // Get the user's choice.
-        MenuCallback<T> choice;
-        try {
-          choice = app.readValidatedInput(promptMsg, validator);
-        } catch (CLIException e) {
-          // Should never happen.
-          throw new RuntimeException(e);
-        }
+        MenuCallback<T> choice = app.readValidatedInput(promptMsg, validator);
 
         // Invoke the user's selected choice.
         MenuResult<T> result = choice.invoke(app);
