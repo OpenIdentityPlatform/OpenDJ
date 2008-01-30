@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -136,7 +136,7 @@ public class InstallReviewPanel extends ReviewPanel {
   public Object getFieldValue(FieldName fieldName)
   {
     Object value = null;
-    if (fieldName == FieldName.SERVER_START)
+    if (fieldName == FieldName.SERVER_START_INSTALLER)
     {
       value = getStartCheckBox().isSelected();
     }
