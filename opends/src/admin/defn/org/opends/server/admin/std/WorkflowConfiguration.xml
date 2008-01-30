@@ -115,7 +115,7 @@
       .
     </adm:synopsis>
     <adm:syntax>
-      <adm:string />
+      <adm:dn />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

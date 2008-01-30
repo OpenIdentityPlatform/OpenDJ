@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -297,7 +297,7 @@ public class WorkflowConfigManager
       WorkflowElement.getWorkflowElement(rootWorkflowElementID);
 
     // Get the base DN targeted by the workflow
-    DN baseDN = DN.decode(workflowCfg.getBaseDN());
+    DN baseDN = workflowCfg.getBaseDN();
 
     // Create the workflow and register it with the server
     WorkflowImpl workflowImpl =
