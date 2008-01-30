@@ -405,8 +405,11 @@ public class DN
 
   /**
    * Indicates whether this DN is a descendant of the provided DN
-   * (i.e., that the RDN components of the provided DN are the same as
-   * the last RDN components for this DN).
+   * (i.e., that the RDN components of the provided DN are the
+   * same as the last RDN components for this DN).  Note that if
+   * this DN equals the provided DN it is still considered to be
+   * a descendant of the provided DN by this method as both then
+   * reside within the same subtree.
    *
    * @param  dn  The DN for which to make the determination.
    *
