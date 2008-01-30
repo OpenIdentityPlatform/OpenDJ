@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core;
@@ -377,9 +377,12 @@ public class BaseDnRegistry {
       // because some of the structural entries will be missing.
       if (! subordinateBackends.isEmpty())
       {
-        Message message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
+        // Suppress this warning message on server shutdown.
+        if (!DirectoryServer.getInstance().isShuttingDown()) {
+          Message message = WARN_DEREGISTER_BASEDN_MISSING_HIERARCHY.get(
             String.valueOf(baseDN), backend.getBackendID());
-        errors.add(message);
+          errors.add(message);
+        }
 
         if (!testOnly)
         {
