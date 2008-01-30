@@ -225,7 +225,7 @@ public class NetworkGroup
         if (curNode.insertSubordinate(workflowNode))
         {
           // new workflow has been inserted in the topology
-          break;
+          continue;
         }
 
         // ... or try to insert the existing workflow below the new
@@ -233,7 +233,7 @@ public class NetworkGroup
         if (workflowNode.insertSubordinate(curNode))
         {
           // new workflow has been inserted in the topology
-          break;
+          continue;
         }
       }
 
