@@ -966,7 +966,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     || getCurrentProgressStep() ==
             UninstallProgressStep.FINISHED_WITH_ERROR
     || getCurrentProgressStep() ==
-            UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE;
+            UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE
+    || getCurrentProgressStep() ==
+            UninstallProgressStep.FINISHED_WITH_ERROR_DELETING;
   }
 
   /**
