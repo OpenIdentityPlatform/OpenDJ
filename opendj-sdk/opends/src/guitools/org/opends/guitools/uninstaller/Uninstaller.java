@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -91,6 +91,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   private ProgressStep status = UninstallProgressStep.NOT_STARTED;
   private boolean runStarted;
   private boolean errorOnRemoteOccurred;
+  private boolean errorDeletingOccurred;
 
   private HashMap<ProgressStep, Integer> hmRatio =
           new HashMap<ProgressStep, Integer>();
@@ -656,7 +657,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             getFormattedSuccess(successMsg));
 
     Message nonCriticalMsg;
-    if (isCli())
+    if (!isCli())
     {
       nonCriticalMsg =
         INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR_ON_REMOTE.get();
@@ -668,6 +669,18 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     hmSummary.put(UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE,
             getFormattedWarning(nonCriticalMsg));
+    if (!isCli())
+    {
+      nonCriticalMsg =
+        INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR_DELETING.get();
+    }
+    else
+    {
+      nonCriticalMsg =
+        INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR_DELETING_CLI.get();
+    }
+    hmSummary.put(UninstallProgressStep.FINISHED_WITH_ERROR_DELETING,
+        getFormattedWarning(nonCriticalMsg));
     hmSummary.put(UninstallProgressStep.FINISHED_WITH_ERROR,
             getFormattedError(
                     INFO_SUMMARY_UNINSTALL_FINISHED_WITH_ERROR.get()));
@@ -790,8 +803,24 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           notifyListeners(getTaskSeparator());
         }
 
-        deleteExternalDatabaseFiles(dbsToDelete);
-        displaySeparator = true;
+        try
+        {
+          deleteExternalDatabaseFiles(dbsToDelete);
+          displaySeparator = true;
+        }
+        catch (ApplicationException ae)
+        {
+          if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
+          {
+            errorDeletingOccurred = true;
+            Message msg = getFormattedWarning(ae.getMessageObject());
+            notifyListeners(msg);
+          }
+          else
+          {
+            throw ae;
+          }
+        }
       }
 
       Set<String> logsToDelete =
@@ -803,8 +832,24 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           notifyListeners(getTaskSeparator());
         }
 
-        deleteExternalLogFiles(logsToDelete);
-        displaySeparator = true;
+        try
+        {
+          deleteExternalLogFiles(logsToDelete);
+          displaySeparator = true;
+        }
+        catch (ApplicationException ae)
+        {
+          if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
+          {
+            errorDeletingOccurred = true;
+            Message msg = getFormattedWarning(ae.getMessageObject());
+            notifyListeners(msg);
+          }
+          else
+          {
+            throw ae;
+          }
+        }
       }
 
       UninstallUserData userData = getUninstallUserData();
@@ -820,12 +865,32 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       if (somethingToDelete) {
         status = UninstallProgressStep.DELETING_INSTALLATION_FILES;
-        deleteInstallationFiles(getRatio(status),
+        try
+        {
+          deleteInstallationFiles(getRatio(status),
                 getRatio(UninstallProgressStep.FINISHED_SUCCESSFULLY));
+        }
+        catch (ApplicationException ae)
+        {
+          if (ae.getType() == ReturnCode.FILE_SYSTEM_ACCESS_ERROR)
+          {
+            errorDeletingOccurred = true;
+            Message msg = getFormattedWarning(ae.getMessageObject());
+            notifyListeners(msg);
+          }
+          else
+          {
+            throw ae;
+          }
+        }
       }
       if (errorOnRemoteOccurred)
       {
         status = UninstallProgressStep.FINISHED_WITH_ERROR_ON_REMOTE;
+      }
+      else if (errorDeletingOccurred)
+      {
+        status = UninstallProgressStep.FINISHED_WITH_ERROR_DELETING;
       }
       else
       {

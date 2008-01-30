@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -85,6 +85,11 @@ public enum UninstallProgressStep implements ProgressStep {
   FINISHED_WITH_ERROR_ON_REMOTE,
 
   /**
+   * Installation finished but not all the files could be deleted.
+   */
+  FINISHED_WITH_ERROR_DELETING,
+
+  /**
    * Installation finished with an error.
    */
   FINISHED_WITH_ERROR;
@@ -95,7 +100,8 @@ public enum UninstallProgressStep implements ProgressStep {
   public boolean isLast() {
     return this == FINISHED_SUCCESSFULLY ||
     this == FINISHED_WITH_ERROR ||
-    this == FINISHED_WITH_ERROR_ON_REMOTE;
+    this == FINISHED_WITH_ERROR_ON_REMOTE ||
+    this == FINISHED_WITH_ERROR_DELETING;
   }
 
   /**
