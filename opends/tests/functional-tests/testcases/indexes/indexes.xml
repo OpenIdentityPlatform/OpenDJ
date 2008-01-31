@@ -621,6 +621,7 @@
             testLine = line.split(' ')
             indexTests.append(indexTest(testLine[0], testLine[1], testLine[2], 
                               testLine[3], testLine[4]))
+        f.close()
           
         indexTestNumber=0
         previousTestName=''

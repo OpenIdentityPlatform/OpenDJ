@@ -60,6 +60,7 @@
                 else: 
                     lineSingle = line.split(':')
                     componentList.append(lineSingle)
+            f.close()
           
             componentNumber=0
             testNumber=0
@@ -144,6 +145,7 @@
                 else: 
                     lineSingle = line.split(':')
                     componentList2.append(lineSingle)
+            f.close()
           
             componentNumber=0
             testNumber=0

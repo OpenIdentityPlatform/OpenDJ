@@ -112,15 +112,24 @@ class report_generation:
     from javax.xml.transform.stream import StreamSource
     from javax.xml.transform.stream import StreamResult
 
-    self.xslSource   = StreamSource(FileInputStream("%s" % stylesheet))
-    self.tfactory    = TransformerFactory.newInstance()
-    self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
-    self.transformer = self.xslTemplate.newTransformer()
+    self.xsl   = FileInputStream("%s" % stylesheet)
+    self.xml   = FileInputStream("%s" % xml)
+    self.html  = FileOutputStream("%s" % output)
 
-    self.source = StreamSource(FileInputStream("%s" % xml))
-    self.result = StreamResult(FileOutputStream("%s" % output))
+    try:
+      self.xslSource   = StreamSource(self.xsl)
+      self.tfactory    = TransformerFactory.newInstance()
+      self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
+      self.transformer = self.xslTemplate.newTransformer()
 
-    self.transformer.transform(self.source, self.result)
+      self.source = StreamSource(self.xml)
+      self.result = StreamResult(self.html)
+
+      self.transformer.transform(self.source, self.result)
+    finally:
+      self.xsl.close()
+      self.xml.close()
+      self.html.close()
 
   def transformSuitesReport(self,stylesheet,xml,output,params):
     from java.io import FileInputStream
@@ -131,17 +140,26 @@ class report_generation:
     from javax.xml.transform.stream import StreamSource
     from javax.xml.transform.stream import StreamResult
 
-    self.xslSource   = StreamSource(FileInputStream("%s" % stylesheet))
-    self.tfactory    = TransformerFactory.newInstance()
-    self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
-    self.transformer = self.xslTemplate.newTransformer()
+    self.xsl   = FileInputStream("%s" % stylesheet)
+    self.xml   = FileInputStream("%s" % xml)
+    self.html  = FileOutputStream("%s" % output)
 
-    self.source = StreamSource(FileInputStream("%s" % xml))
-    self.result = StreamResult(FileOutputStream("%s" % output))
+    try:
+      self.xslSource   = StreamSource(self.xsl)
+      self.tfactory    = TransformerFactory.newInstance()
+      self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
+      self.transformer = self.xslTemplate.newTransformer()
 
-    self.myAttr  = basic_utils().printKey(params)
-    self.myValue = basic_utils().printKeyValue(params)
+      self.source = StreamSource(self.xml)
+      self.result = StreamResult(self.html)
 
-    self.transformer.setParameter(self.myAttr, self.myValue)
-    self.transformer.transform(self.source, self.result)
+      self.myAttr  = basic_utils().printKey(params)
+      self.myValue = basic_utils().printKeyValue(params)
+
+      self.transformer.setParameter(self.myAttr, self.myValue)
+      self.transformer.transform(self.source, self.result)
+    finally:
+      self.xsl.close()
+      self.xml.close()
+      self.html.close()
 
