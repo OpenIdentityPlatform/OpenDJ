@@ -60,7 +60,8 @@
                 else: 
                     lineSingle = line.split(':')
                     componentList.append(lineSingle)
-          
+            f.close()
+
             componentNumber=0
             testNumber=0
         </script>
