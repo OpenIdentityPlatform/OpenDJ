@@ -1,0 +1,838 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-15">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="StarOffice 8  (Solaris Sparc)">
+	<META NAME="CREATED" CONTENT="20080130;17044400">
+	<META NAME="CHANGED" CONTENT="20080130;20091700">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 8.5in 11in; margin-left: 1.25in; margin-right: 1.25in; margin-top: 1in; margin-bottom: 1in }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<P><FONT SIZE=5 STYLE="font-size: 20pt"><U><B>Upgrade-Revert 2-server
+replication topology</B></U></FONT></P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=3 STYLE="page-break-inside: avoid">
+	<COL WIDTH=256*>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP>
+			<P><I><B>Test purpose:</B></I> Test upgrade/revert facility over a
+			2-server replicated topology</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP>
+			<P><I><B>Test summary:</B></I> Set up topology using OpenDS
+			&ldquo;version-0&rdquo; zip package; upgrade the servers in the
+			topology to OpenDS &ldquo;version-1&rdquo;; revert the servers in
+			the topology to original &ldquo;version-0&rdquo;.</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=100% VALIGN=TOP>
+			<P><I><B>Test steps:</B></I></P>
+			<OL START=0>
+				<LI><P><A HREF="#Step-0">Pick up OpenDS zip package, version-0</A></P>
+				<LI><P><A HREF="#Step-1">Set up 1st server using GUI</A></P>
+				<LI><P><A HREF="#Step-2">Set up 2nd server using GUI</A></P>
+				<LI><P><A HREF="#Step-3">Add one entry on each server instance</A></P>
+				<LI><P><A HREF="#Step-4">Upgrade 1st server to version-1</A></P>
+				<LI><P><A HREF="#Step-5">Add one entry on each server instance</A></P>
+				<LI><P><A HREF="#Step-6">Upgrade 2nd server to version-1</A></P>
+				<LI><P><A HREF="#Step-7">Add entry on each server instance</A></P>
+				<LI><P><A HREF="#Step-8">Restart server instances</A></P>
+				<LI><P><A HREF="#Step-9">Delete entry on one server</A></P>
+				<LI><P><A HREF="#Step-10">Downgrade (revert) 1st server</A></P>
+				<LI><P><A HREF="#Step-11">Delete entry on server instance</A></P>
+				<LI><P><A HREF="#Step-12">Downgrade 2nd server</A></P>
+				<LI><P><A HREF="#Step-13">Delete entry on server instance</A></P>
+				<LI><P><A HREF="#Step-14">Restart servers</A></P>
+				<LI><P><A HREF="#Step-15">Delete entry on server instance</A></P>
+			</OL>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<HR>
+<P><BR><BR>
+</P>
+<P><A NAME="Step-0"></A><BR><B>0. Pick up OpenDS zip package,
+version-0</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			start-ds -F</B><BR>OpenDS Directory Server 1.0.0<BR>Build
+			ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			20080125094425Z<BR>Major Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1<BR>Minor Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Point Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Version Qualifier:<BR>Revision Number:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			3751<BR>Fix IDs:<BR>Debug Build:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			false<BR>Build OS:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			SunOS 5.10 sparc<BR>Build User:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			ugaston<BR>Build Java Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0<BR>Build Java Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Build JVM Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0-b105<BR>Build JVM Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Upgrade Event IDs:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1,2,3,4,5<BR></FONT></FONT><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-1"></A><A NAME="Step-2"></A><A NAME="Step-3"></A><BR><BR><BR><B>1.
+Set up 1st server using setup GUI:</B><BR><BR>&nbsp;&nbsp;&nbsp;
+<I>Settings</I>:<BR>&nbsp;&nbsp;&nbsp; - ldap: 1389<BR>&nbsp;&nbsp;&nbsp;
+- ldaps: 1636<BR>&nbsp;&nbsp;&nbsp; - self-signed certificate<BR>&nbsp;&nbsp;&nbsp;
+- startTLS enabled<BR>&nbsp;&nbsp;&nbsp; <BR>&nbsp;&nbsp;&nbsp;
+<I>Topology options:</I><BR>&nbsp;&nbsp;&nbsp; - part of replication
+topology<BR>&nbsp;&nbsp;&nbsp; - replication port: 1212<BR><BR>&nbsp;&nbsp;&nbsp;
+<I>Directory Data:</I><BR>&nbsp;&nbsp;&nbsp; - base DN: o=example<BR>&nbsp;&nbsp;&nbsp;
+- import file: Short_Example.ldif (100 entries)<BR><BR><BR><BR><B>2.
+Set up 2nd server using setup GUI:</B><BR><BR>&nbsp;&nbsp;&nbsp;
+<I>Settings</I>:<BR>&nbsp;&nbsp;&nbsp; - ldap: 2389<BR>&nbsp;&nbsp;&nbsp;
+- ldaps: 2636<BR>&nbsp;&nbsp;&nbsp; - self-signed certificate<BR>&nbsp;&nbsp;&nbsp;
+- startTLS enabled<BR><BR>&nbsp;&nbsp;&nbsp; <I>Topology options:</I><BR>&nbsp;&nbsp;&nbsp;
+- part of replication topology<BR>&nbsp;&nbsp;&nbsp; - replication
+port: 2323<BR>&nbsp;&nbsp;&nbsp; - already another server in topology
+(port: 1389)<BR><BR>&nbsp;&nbsp;&nbsp; Global admin ID: admin<BR>&nbsp;&nbsp;&nbsp;
+Global admin pwd: admin<BR><BR>&nbsp;&nbsp;&nbsp; <I>Data
+Replication:</I><BR>&nbsp;&nbsp;&nbsp; - create local instance of
+existing base DN and configure replication (o=example, 100
+entries)<BR><BR><BR><BR><B>3. Add one entry on each server instance:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 100<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 100</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapmodify -a&nbsp; -p 1389 -D &quot;cn=directory manager&quot;
+			-w secret12<BR>dn: uid=pmoriarty, ou=People, o=example<BR>cn:
+			Professor Moriarty<BR>sn: Moriarty<BR>givenname:
+			Professor<BR>objectclass: top<BR>objectclass: person<BR>objectclass:
+			organizationalPerson<BR>objectclass: inetOrgPerson<BR>ou:
+			Accounting<BR>ou: People<BR>l: London<BR>uid:
+			pmoriarty<BR>userpassword: jajejijoju<BR></B><SPAN STYLE="font-weight: medium"><BR>Processing
+			ADD request for uid=pmoriarty,ou=People,o=example<BR>ADD operation
+			successful for DN uid=pmoriarty,ou=People,o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 101<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 101</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium"><BR></SPAN><B>$
+			./ldapmodify -a&nbsp; -p 2389 -D &quot;cn=directory manager&quot;
+			-w secret12<BR>dn: uid=dwatson, ou=People, o=example<BR>cn: Doctor
+			Watson<BR>sn: Watson<BR>givenname: Doctor<BR>objectclass:
+			top<BR>objectclass: person<BR>objectclass:
+			organizationalPerson<BR>objectclass: inetOrgPerson<BR>ou:
+			Accounting<BR>ou: People<BR>l: Baker Street<BR>uid:
+			dwatson<BR>userpassword: elementary</B><SPAN STYLE="font-weight: medium"><BR><BR>Processing
+			ADD request for uid=dwatson,ou=People,o=example<BR>ADD operation
+			successful for DN uid=dwatson,ou=People,o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 102<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 102</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-4"></A><BR><BR><BR><B>4. Upgrade 1st server to
+version-1:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			upgrade<BR></B><SPAN STYLE="font-weight: medium">Would you like to
+			upgrade this installation to a newer version or revert to an<BR>older
+			version?<BR><BR>&nbsp;&nbsp;&nbsp; 1)&nbsp; Upgrade to a newer
+			version<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp; Revert to a previous
+			version<BR><BR>Enter choice [1]:<BR>Enter the name and path of the
+			OpenDS install file (.zip):
+			</SPAN><B>/usr/project/iplanet/ws/opends.ug/opends/build/package/OpenDS-1.0.0.zip</B><SPAN STYLE="font-weight: medium"><BR>Initializing
+			Upgrade ..... Done.<BR>Calculating Schema Customizations .....
+			Done.<BR>Calculating Configuration Customizations .....
+			Done.<BR>Backing Up Files ..... Done.<BR>Upgrading Components
+			..... Done.<BR>Preparing Customizations ..... Done.<BR>Applying
+			Schema Customizations ..... Done.<BR>Applying Configuration
+			Customizations ..... Done.<BR>Verifying Upgrade .....
+			Done.<BR>Starting Directory Server ..... Done.<BR>Cleaning Up
+			..... Done.<BR>Recording Upgrade History ..... Done.<BR>See
+			/amaiur/servers/server1/OpenDS-1.0.0/history/log for a history
+			installation<BR>history.<BR>OpenDS QuickUpgrade Completed
+			Successfully.&nbsp; The OpenDS installation
+			at<BR>/amaiur/servers/server1/OpenDS-1.0.0 has now been upgraded
+			to version OpenDS<BR>Directory Server 1.0.0 (Build ID:
+			20080128143348Z).<BR><BR>See /var/tmp/opends-upgrade-57522.log for
+			a detailed log of this operation.<BR><BR></SPAN><B><BR>$ tail
+			/var/tmp/opends-upgrade-57522.log<BR></B><SPAN STYLE="font-weight: medium">Jan
+			28, 2008 4:54:39 PM
+			org.opends.quicksetup.util.FileManager$DeleteOperation apply<BR>INFO:
+			deleting&nbsp; directory
+			/amaiur/servers/server1/OpenDS-1.0.0/tmp/upgrade<BR>Jan 28, 2008
+			4:54:39 PM org.opends.quicksetup.upgrader.Upgrader run<BR>INFO:
+			clean up complete<BR>Jan 28, 2008 4:54:39 PM
+			org.opends.quicksetup.upgrader.Upgrader run<BR>INFO: recording
+			upgrade history<BR>Jan 28, 2008 4:54:39 PM
+			org.opends.quicksetup.upgrader.Upgrader run<BR>INFO: history
+			recorded<BR>Jan 28, 2008 4:54:39 PM
+			org.opends.quicksetup.upgrader.Upgrader run<BR>INFO: upgrade
+			completed successfully</SPAN><B><BR><BR><BR>$ grep ERROR
+			/var/tmp/opends-upgrade-57522.log<BR></B><SPAN STYLE="font-weight: medium">INFO:
+			server: [28/Jan/2008:16:52:46 +0100] category=SYNC
+			severity=SEVERE_ERROR msgID=14942294 msg=Replication server caught
+			exception while listening for client connections Socket
+			closed<BR>INFO: server: [28/Jan/2008:16:52:46 +0100] category=SYNC
+			severity=SEVERE_ERROR msgID=-1 msg=Error during the changelog
+			database trimming or flush process. The Changelog service is going
+			to shutdown(JE 3.2.70) Can't open a cursor Database state can't be
+			DbState.CLOSED must be DbState.OPEN (Database.java:1079
+			Database.java:369 ReplicationDB.java:365 ReplicationDB.java:315
+			ReplicationDB.java:206 DbHandler.java:408 DbHandler.java:358
+			Thread.java:619)<BR>INFO: server: [28/Jan/2008:16:52:46 +0100]
+			category=SYNC severity=SEVERE_ERROR msgID=-1 msg=Error closing the
+			changelog database :(JE 3.2.70) There is 1 open Database in the
+			Environment.<BR><BR><BR></SPAN><B><BR>$ start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
+			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			20080128143348Z<BR>Major Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1<BR>Minor Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Point Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Version Qualifier:<BR>Revision Number:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			3777<BR>Fix IDs:<BR>Debug Build:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			false<BR>Build OS:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			SunOS 5.10 sparc<BR>Build User:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			ugaston<BR>Build Java Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0<BR>Build Java Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Build JVM Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0-b105<BR>Build JVM Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Upgrade Event IDs:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1,2,3,4,5</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 102<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 102</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-5"></A><BR><BR><BR><B>5. Add one entry on each
+server instance:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapmodify -a&nbsp; -p 1389 -D &quot;cn=directory manager&quot;
+			-w secret12<BR>dn: uid=ilestrade, ou=People, o=example<BR>cn:
+			Inspecteur Lestrade<BR>sn: Lestrade<BR>givenname:
+			Inspecteur<BR>objectclass: top<BR>objectclass: person<BR>objectclass:
+			organizationalPerson<BR>objectclass: inetOrgPerson<BR>ou:
+			Accounting<BR>ou: People<BR>l: Scotland Yard<BR>uid:
+			ilestrade<BR>userpassword: illcatchyou<BR></B><SPAN STYLE="font-weight: medium"><BR>Processing
+			ADD request for uid=ilestrade,ou=People,o=example<BR>ADD operation
+			successful for DN uid=ilestrade,ou=People,o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 103<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 103</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapmodify -a&nbsp; -p 2389 -D &quot;cn=directory manager&quot;
+			-w secret12<BR>dn: uid=acdoyle, ou=People, o=example<BR>cn: Arthur
+			Connan Doyle<BR>sn: Doyle<BR>givenname: Arthur Connan<BR>objectclass:
+			top<BR>objectclass: person<BR>objectclass:
+			organizationalPerson<BR>objectclass: inetOrgPerson<BR>ou:
+			Accounting<BR>ou: People<BR>l: London<BR>uid:
+			acdoyle<BR>userpassword: sherlock</B><SPAN STYLE="font-weight: medium"><BR><BR>Processing
+			ADD request for uid=acdoyle,ou=People,o=example<BR>ADD operation
+			successful for DN uid=acdoyle,ou=People,o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 104<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 104</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-6"></A><BR><BR><BR><B>6. Upgrade 2nd server to
+version-1:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			upgrade<BR></B><SPAN STYLE="font-weight: medium">Would you like to
+			upgrade this installation to a newer version or revert to an<BR>older
+			version?<BR><BR>&nbsp;&nbsp;&nbsp; 1)&nbsp; Upgrade to a newer
+			version<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp; Revert to a previous
+			version<BR><BR>Enter choice [1]:<BR>Enter the name and path of the
+			OpenDS install file (.zip):
+			</SPAN><B>/usr/project/iplanet/ws/opends.ug/opends/build/package/OpenDS-1.0.0.zip</B><SPAN STYLE="font-weight: medium"><BR>Initializing
+			Upgrade ..... Done.<BR>Calculating Schema Customizations .....
+			Done.<BR>Calculating Configuration Customizations .....
+			Done.<BR>Backing Up Files ..... Done.<BR>Upgrading Components
+			..... Done.<BR>Preparing Customizations ..... Done.<BR>Applying
+			Schema Customizations ..... Done.<BR>Applying Configuration
+			Customizations ..... Done.<BR>Verifying Upgrade .....
+			Done.<BR>Starting Directory Server ..... Done.<BR>Cleaning Up
+			..... Done.<BR>Recording Upgrade History ..... Done.<BR>See
+			/amaiur/servers/server2/OpenDS-1.0.0/history/log for a history
+			installation<BR>history.<BR>OpenDS QuickUpgrade Completed
+			Successfully.&nbsp; The OpenDS installation
+			at<BR>/amaiur/servers/server2/OpenDS-1.0.0 has now been upgraded
+			to version OpenDS<BR>Directory Server 1.0.0 (Build ID:
+			20080128143348Z).<BR><BR>See /var/tmp/opends-upgrade-28222.log for
+			a detailed log of this operation.<BR><BR></SPAN><B><BR>$ tail
+			/var/tmp/opends-upgrade-28222.log<BR></B><SPAN STYLE="font-weight: medium">Jan
+			28, 2008 5:16:07 PM
+			org.opends.quicksetup.util.FileManager$DeleteOperation apply<BR>INFO:
+			deleting&nbsp; directory
+			/amaiur/servers/server2/OpenDS-1.0.0/tmp/upgrade<BR>Jan 28, 2008
+			5:16:07 PM org.opends.quicksetup.upgrader.Upgrader run<BR>INFO:
+			clean up complete<BR>Jan 28, 2008 5:16:07 PM
+			org.opends.quicksetup.upgrader.Upgrader run<BR>INFO: recording
+			upgrade history<BR>Jan 28, 2008 5:16:07 PM
+			org.opends.quicksetup.upgrader.Upgrader run<BR>INFO: history
+			recorded<BR>Jan 28, 2008 5:16:07 PM
+			org.opends.quicksetup.upgrader.Upgrader run<BR>INFO: upgrade
+			completed successfully<BR><BR></SPAN><B><BR>$ grep ERROR
+			/var/tmp/opends-upgrade-28222.log<BR></B><SPAN STYLE="font-weight: medium">INFO:
+			server: [28/Jan/2008:17:14:14 +0100] category=SYNC
+			severity=SEVERE_ERROR msgID=14942294 msg=Replication server caught
+			exception while listening for client connections Socket
+			closed</SPAN><B><BR><BR><BR><BR>$ start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
+			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			20080128143348Z<BR>Major Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1<BR>Minor Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Point Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Version Qualifier:<BR>Revision Number:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			3777<BR>Fix IDs:<BR>Debug Build:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			false<BR>Build OS:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			SunOS 5.10 sparc<BR>Build User:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			ugaston<BR>Build Java Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0<BR>Build Java Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Build JVM Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0-b105<BR>Build JVM Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Upgrade Event IDs:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1,2,3,4,5</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 104<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 104</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-7"></A><BR><BR><BR><B>7. Add entry on each server
+instance:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapmodify -a&nbsp; -p 2389 -D &quot;cn=directory manager&quot;
+			-w secret12<BR>dn: uid=hpoirot, ou=People, o=example<BR>cn:
+			Hercules Poirot<BR>sn: Poirot<BR>givenname: Hercules<BR>objectclass:
+			top<BR>objectclass: person<BR>objectclass:
+			organizationalPerson<BR>objectclass: inetOrgPerson<BR>ou:
+			Accounting<BR>ou: People<BR>l: Belgium<BR>uid:
+			hpoirot<BR>userpassword: hastings<BR></B><SPAN STYLE="font-weight: medium"><BR>Processing
+			ADD request for uid=hpoirot,ou=People,o=example<BR>ADD operation
+			successful for DN uid=hpoirot,ou=People,o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 105<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 105</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapmodify -a&nbsp; -p 1389 -D &quot;cn=directory manager&quot;
+			-w secret12<BR>dn: uid=mmarple, ou=People, o=example<BR>cn: Miss
+			Marple<BR>sn: Marple<BR>givenname: Miss<BR>objectclass:
+			top<BR>objectclass: person<BR>objectclass:
+			organizationalPerson<BR>objectclass: inetOrgPerson<BR>ou:
+			Accounting<BR>ou: People<BR>l: Kent<BR>uid: mmarple<BR>userpassword:
+			teapot<BR></B><SPAN STYLE="font-weight: medium"><BR>Processing ADD
+			request for uid=mmarple,ou=People,o=example<BR>ADD operation
+			successful for DN uid=mmarple,ou=People,o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 106<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 106</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-8"></A><BR><BR><BR><B>8. Restart server instances</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./stop-ds -R</B></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-9"></A><BR><BR><BR><B>9. Delete entry on one server:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapdelete&nbsp; -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 &quot;uid=mmarple, ou=People, o=example&quot; <BR></B><SPAN STYLE="font-weight: medium">Processing
+			DELETE request for uid=mmarple, ou=People, o=example<BR>DELETE
+			operation successful for DN uid=mmarple, ou=People, o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 105<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 105</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-10"></A><BR><BR><BR><B>10. Downgrade (revert) 1st
+server:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			upgrade<BR></B><SPAN STYLE="font-weight: medium">Would you like to
+			upgrade this installation to a newer version or revert to an<BR>older
+			version?<BR><BR>&nbsp;&nbsp;&nbsp; 1)&nbsp; Upgrade to a newer
+			version<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp; Revert to a previous
+			version<BR><BR>Enter choice [1]: </SPAN><B>2</B><SPAN STYLE="font-weight: medium"><BR>Confirm
+			Reversion<BR>How would you like to specify the archive used to
+			revert this instance?<BR><BR>&nbsp;&nbsp;&nbsp; 1)&nbsp; Use the
+			most recent versioned archive<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp;
+			Manually specify a reversion archive directory<BR><BR>Enter choice
+			[1]: </SPAN><B>1</B><SPAN STYLE="font-weight: medium"><BR>Confirm
+			Reversion<BR>This installation will be reverted to version OpenDS
+			Directory Server 1.0.0<BR>(Build ID: 20080125094425Z) using the
+			files
+			in<BR>/amaiur/servers/server1/OpenDS-1.0.0/history/1201535573019/files.<BR><BR>&nbsp;&nbsp;&nbsp;
+			1)&nbsp; Continue<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp; Cancel<BR><BR>Enter
+			choice [1]:<BR>Stopping Directory Server ..... Done.<BR>Initializing
+			Reversion ..... Done.<BR>Reverting Components ..... Done.<BR>Starting
+			Directory Server ..... Done.<BR>Cleaning Up ..... Done.<BR>Recording
+			Reversion History ..... Done.<BR>See
+			/amaiur/servers/server1/OpenDS-1.0.0/history/log for a history
+			installation<BR>history.<BR>OpenDS Reversion Completed
+			Successfully.&nbsp; The OpenDS installation
+			at<BR>/amaiur/servers/server1/OpenDS-1.0.0 has now been reverted
+			to version OpenDS<BR>Directory Server 1.0.0 (Build ID:
+			20080125094425Z).<BR>See /var/tmp/opends-upgrade-58428.log for a
+			detailed log of this operation.<BR>$<BR><BR></SPAN><B><BR>$ tail
+			/var/tmp/opends-upgrade-58428.log<BR></B><SPAN STYLE="font-weight: medium">Jan
+			28, 2008 6:03:49 PM
+			org.opends.quicksetup.util.FileManager$DeleteOperation apply<BR>INFO:
+			deleting&nbsp; directory
+			/amaiur/servers/server1/OpenDS-1.0.0/tmp/revert/lib<BR>Jan 28,
+			2008 6:03:49 PM
+			org.opends.quicksetup.util.FileManager$DeleteOperation apply<BR>INFO:
+			deleting&nbsp; directory
+			/amaiur/servers/server1/OpenDS-1.0.0/tmp/revert<BR>Jan 28, 2008
+			6:03:49 PM org.opends.quicksetup.upgrader.Reverter end<BR>INFO:
+			Recording history<BR>Jan 28, 2008 6:03:49 PM
+			org.opends.quicksetup.upgrader.Reverter end<BR>INFO: History
+			recorded<BR>Jan 28, 2008 6:03:49 PM
+			org.opends.quicksetup.upgrader.Reverter end<BR>INFO: reversion
+			completed successfully<BR></SPAN><B><BR>$ grep ERROR
+			/var/tmp/opends-upgrade-58428.log<BR></B><SPAN STYLE="font-weight: medium">INFO:
+			server: [28/Jan/2008:18:02:58 +0100] category=SYNC
+			severity=SEVERE_ERROR msgID=14942294 msg=Replication server caught
+			exception while listening for client connections Socket closed<BR><BR></SPAN><B><BR>$
+			start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
+			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			20080125094425Z<BR>Major Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1<BR>Minor Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Point Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Version Qualifier:<BR>Revision Number:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			3751<BR>Fix IDs:<BR>Debug Build:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			false<BR>Build OS:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			SunOS 5.10 sparc<BR>Build User:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			ugaston<BR>Build Java Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0<BR>Build Java Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Build JVM Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0-b105<BR>Build JVM Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Upgrade Event IDs:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1,2,3,4,5<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-11"></A><BR><BR><BR><B>11. Delete entry on server
+instance:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapdelete&nbsp; -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 &quot;uid=hpoirot, ou=People, o=example&quot; <BR></B><SPAN STYLE="font-weight: medium">Processing
+			DELETE request for uid=hpoirot, ou=People, o=example<BR>DELETE
+			operation successful for DN uid=hpoirot, ou=People, o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 104<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 104</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-12"></A><BR><BR><BR><B>12. Downgrade 2nd server:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			upgrade<BR></B><SPAN STYLE="font-weight: medium">Would you like to
+			upgrade this installation to a newer version or revert to an<BR>older
+			version?<BR><BR>&nbsp;&nbsp;&nbsp; 1)&nbsp; Upgrade to a newer
+			version<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp; Revert to a previous
+			version<BR><BR>Enter choice [1]: </SPAN><B>2</B><SPAN STYLE="font-weight: medium"><BR>Confirm
+			Reversion<BR>How would you like to specify the archive used to
+			revert this instance?<BR><BR>&nbsp;&nbsp;&nbsp; 1)&nbsp; Use the
+			most recent versioned archive<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp;
+			Manually specify a reversion archive directory<BR><BR>Enter choice
+			[1]: </SPAN><B>1</B><SPAN STYLE="font-weight: medium"><BR>Confirm
+			Reversion<BR>This installation will be reverted to version OpenDS
+			Directory Server 1.0.0<BR>(Build ID: 20080125094425Z) using the
+			files
+			in<BR>/amaiur/servers/server2/OpenDS-1.0.0/history/1201536864019/files.<BR><BR>&nbsp;&nbsp;&nbsp;
+			1)&nbsp; Continue<BR>&nbsp;&nbsp;&nbsp; 2)&nbsp; Cancel<BR><BR>Enter
+			choice [1]:<BR>Stopping Directory Server ..... Done.<BR>Initializing
+			Reversion ..... Done.<BR>Reverting Components ..... Done.<BR>Starting
+			Directory Server ..... Done.<BR>Cleaning Up ..... Done.<BR>Recording
+			Reversion History ..... Done.<BR>See
+			/amaiur/servers/server2/OpenDS-1.0.0/history/log for a history
+			installation<BR>history.<BR>OpenDS Reversion Completed
+			Successfully.&nbsp; The OpenDS installation
+			at<BR>/amaiur/servers/server2/OpenDS-1.0.0 has now been reverted
+			to version OpenDS<BR>Directory Server 1.0.0 (Build ID:
+			20080125094425Z).<BR>See /var/tmp/opends-upgrade-51663.log for a
+			detailed log of this operation.<BR>$<BR></SPAN><B><BR>$ tail
+			/var/tmp/opends-upgrade-51663.log<BR></B><SPAN STYLE="font-weight: medium">Jan
+			28, 2008 6:10:27 PM
+			org.opends.quicksetup.util.FileManager$DeleteOperation apply<BR>INFO:
+			deleting&nbsp; directory
+			/amaiur/servers/server2/OpenDS-1.0.0/tmp/revert/lib<BR>Jan 28,
+			2008 6:10:27 PM
+			org.opends.quicksetup.util.FileManager$DeleteOperation apply<BR>INFO:
+			deleting&nbsp; directory
+			/amaiur/servers/server2/OpenDS-1.0.0/tmp/revert<BR>Jan 28, 2008
+			6:10:27 PM org.opends.quicksetup.upgrader.Reverter end<BR>INFO:
+			Recording history<BR>Jan 28, 2008 6:10:27 PM
+			org.opends.quicksetup.upgrader.Reverter end<BR>INFO: History
+			recorded<BR>Jan 28, 2008 6:10:27 PM
+			org.opends.quicksetup.upgrader.Reverter end<BR>INFO: reversion
+			completed successfully<BR></SPAN><B><BR>$ grep ERROR
+			/var/tmp/opends-upgrade-51663.log<BR></B><SPAN STYLE="font-weight: medium">$<BR></SPAN><B><BR>$
+			start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
+			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			20080125094425Z<BR>Major Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1<BR>Minor Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Point Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			0<BR>Version Qualifier:<BR>Revision Number:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			3751<BR>Fix IDs:<BR>Debug Build:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			false<BR>Build OS:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			SunOS 5.10 sparc<BR>Build User:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			ugaston<BR>Build Java Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0<BR>Build Java Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Build JVM Version:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1.6.0-b105<BR>Build JVM Vendor:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			Sun Microsystems Inc.<BR>Upgrade Event IDs:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			1,2,3,4,5</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-13"></A><BR><BR><BR><B>13. Delete entry on server
+instance:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapdelete&nbsp; -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 &quot;uid=acdoyle, ou=People, o=example&rdquo;<BR></B><SPAN STYLE="font-weight: medium">Processing
+			DELETE request for uid=acdoyle, ou=People, o=example<BR>DELETE
+			operation successful for DN uid=acdoyle, ou=People, o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 103<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 103</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-14"></A><BR><BR><BR><B>14. Restart servers</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./stop-ds -R</B></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><A NAME="Step-15"></A><BR><BR><BR><B>15. Delete entry on server
+instance:</B></P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$./ldapdelete&nbsp;
+			-p 1389 -D &quot;cn=directory manager&quot; -w secret12
+			&quot;uid=ilestrade, ou=People, o=example&rdquo;<BR></B></FONT></FONT><FONT FACE="Courier New, monospace"><FONT SIZE=2><SPAN STYLE="font-weight: medium">Processing
+			DELETE request for uid=ilestrade, ou=People, o=example<BR>DELETE
+			operation successful for DN uid=ilestrade, ou=People, o=example<BR>$</SPAN></FONT></FONT></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 102<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 102</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapdelete&nbsp; -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 &quot;uid=dwatson, ou=People, o=example&rdquo;</B><SPAN STYLE="font-weight: medium"><BR>Processing
+			DELETE request for uid=dwatson, ou=People, o=example<BR>DELETE
+			operation successful for DN uid=dwatson, ou=People, o=example<BR>$</SPAN></FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=884 BORDER=0 CELLPADDING=4 CELLSPACING=0 BGCOLOR="#f1f1f1" STYLE="page-break-inside: avoid">
+	<COL WIDTH=876>
+	<TR>
+		<TD WIDTH=876 VALIGN=TOP>
+			<P STYLE="background: #f1f1f1"><FONT FACE="Courier New, monospace"><FONT SIZE=2><B><BR>$
+			./ldapsearch -p 1389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 101<BR><B>$
+			./ldapsearch -p 2389 -D &quot;cn=directory manager&quot; -w
+			secret12 -b &quot;o=example&quot; &quot;objectclass=*&quot; dn |
+			grep 'dn: ' | wc -l</B><BR>&nbsp;&nbsp;&nbsp;&nbsp; 101</FONT></FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
