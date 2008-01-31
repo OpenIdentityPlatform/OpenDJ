@@ -48,10 +48,10 @@
 
       <!--- Test Case : Retention policy -->
       <!---
-        #@TestMarker     size limit retention policy
-        #@TestName       Check dsconfig properties of size limit retention policy 
+        #@TestMarker     Retention Policy Properties Tests
+        #@TestName       Size limit retention policy 
         #@TestIssue      
-        #@TestPurpose    check the size limit retention policy properties.
+        #@TestPurpose    Check the size limit retention policy properties.
         #@TestPreamble   none
         #@TestStep       Check the size limit retention policy's properties are correctly set and get using dsconfig
         #@TestStep       Set a property
@@ -145,10 +145,10 @@
 
       <!--- Test Case : free-disk-space Retention policy -->
       <!---
-        #@TestMarker     free-disk-space retention policy
-        #@TestName       Check dsconfig properties of size limit retention policy 
+        #@TestMarker     Retention Policy Properties Tests
+        #@TestName       free-disk-space retention policy 
         #@TestIssue      
-        #@TestPurpose    check the free-disk-space retention policy properties.
+        #@TestPurpose    Check the free-disk-space retention policy properties.
         #@TestPreamble   none
         #@TestStep       Check the free-disk-space retention policy's properties are correctly set and get using dsconfig
         #@TestStep       Set a property
@@ -246,10 +246,10 @@
 
       <!--- Test Case : free-disk-space Retention policy -->
       <!---
-        #@TestMarker     file-count retention policy
-        #@TestName       Check dsconfig properties of size limit retention policy 
+        #@TestMarker     Retention Policy Properties Tests
+        #@TestName       file-count retention policy 
         #@TestIssue      
-        #@TestPurpose    check the file-count retention policy properties.
+        #@TestPurpose    Check the file-count retention policy properties.
         #@TestPreamble   none
         #@TestStep       Check the file-count retention policy's properties are correctly set and get using dsconfig
         #@TestStep       Set a property

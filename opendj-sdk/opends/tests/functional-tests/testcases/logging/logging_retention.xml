@@ -49,9 +49,9 @@
 
         <!--- Test Case : retention policy -->
         <!---
-          #@TestMarker     size limit  retention 
-          #@TestName       size limit  retention 
-          #@TestIssue      Check the count retention policy
+          #@TestMarker     Retention Policy Tests
+          #@TestName       Count limit retention policy
+          #@TestPurpose    Check the count retention policy
           #@TestPreamble   none
           #@TestStep       Create a new count limit retention policy
           #@TestStep       Configure the count Limit retention policy with a Max file to 3

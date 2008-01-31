@@ -25,6 +25,14 @@
  !
  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
+ 
+<!--
+            Place group-specific test information here.
+            #@TestGroupName		Logging
+            #@TestGroupPurpose		Test the ability of the server to log information in the appropriated log files
+-->
+
+ 
 <stax>
   <defaultcall function="main_logging"/>
   <function name="main_logging">

@@ -36,8 +36,8 @@
 
       
 <!--- Test Suite information
-#@TestSuiteName       Logger properties Tests
-#@TestSuitePurpose    Verify the logging properties
+#@TestSuiteName       Log publisher properties Tests
+#@TestSuitePurpose    Verify the log publisher properties
 #@TestSuiteID         Logging
 #@TestSuiteGroup      Logging
 #@TestGroup           Logging
@@ -48,12 +48,12 @@
       
       <!--- Test Case : access logger -->
       <!---
-        #@TestMarker     access logger
-        #@TestName       access logger properties check
+        #@TestMarker     Log publisher properties Tests
+        #@TestName       Publisher access logger properties
         #@TestIssue      
-        #@TestPurpose    check the access logger properties.
+        #@TestPurpose    check the publisher access logger properties.
         #@TestPreamble   none
-        #@TestStep       Check the  Access Logger's properties are correctly set and get using dsconfig
+        #@TestStep       Check the publisher  Access Logger's properties are correctly set and get using dsconfig
         #@TestStep       Set a property
         #@TestStep       Get the property and check it has been correctly updated
         #@TestPostamble  none
@@ -418,12 +418,12 @@
       
       <!--- Test Case : Error logger -->
       <!---
-        #@TestMarker           error logger
-        #@TestName             error logger properties check
+        #@TestMarker           Log publisher properties Tests
+        #@TestName             Publisher error logger properties
         #@TestIssue                   
-        #@TestPurpose          check the error logger properties.
+        #@TestPurpose          check the Publisher error logger properties.
         #@TestPreamble         none
-        #@TestStep             Check the  error Logger's properties are correctly set and get using dsconfig
+        #@TestStep             Check the Publisher error Logger's properties are correctly set and get using dsconfig
         #@TestStep             Set a property
         #@TestStep             Get the property and check it has been correctly updated
         #@TestPostamble        none
@@ -504,12 +504,12 @@
       
       <!--- Test Case : Debug logger -->
       <!---
-          #@TestMarker     Debug logger
-          #@TestName       Debug logger properties check
+          #@TestMarker     Log publisher properties Tests
+          #@TestName       Publisher Debug logger properties
           #@TestIssue      
-          #@TestPurpose    check the Debug logger properties.
+          #@TestPurpose    check the Publisher Debug logger properties.
           #@TestPreamble   none
-          #@TestStep       Check the  Debug Logger's properties are correctly set and get using dsconfig
+          #@TestStep       Check the Publisher Debug Logger's properties are correctly set and get using dsconfig
           #@TestStep       Set a property
           #@TestStep       Get the property and check it has been correctly updated
           #@TestPostamble  none
