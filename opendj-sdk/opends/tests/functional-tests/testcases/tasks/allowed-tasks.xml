@@ -35,25 +35,27 @@
         </script>
         <call function="'testSuite_Preamble'" />        
         
+
         <!--- Test Suite information
-          #@TestSuiteName      Tasks
-          #@TestSuitePurpose   control which tasks are allowed
+          #@TestSuiteName      Allowed tasks
+          #@TestSuitePurpose   Control which tasks are allowed
           #@TestSuiteID        export Tests
           #@TestSuiteGroup     export
           #@TestGroup          tasks
           #@TestScript         allowed-tasks.xml
           #@TestHTMLLink       http://opends.dev.java.net/
           -->
+          
 
          
                          
         <!--- Test Case information
-          #@TestMarker          Backend tasks Tests
-          #@TestName            Backend:  tasks control
-          #@TestPurpose         control which tasks are allowed
+          #@TestMarker          Allowed tasks
+          #@TestName            Tasks control
+          #@TestPurpose         Control which tasks are allowed
           #@TestPreamble
-          #@TestSteps           change the list of allowed tasks 
-          #@TestSteps           check  we can only schedule allowed tasks
+          #@TestStep            Change the list of allowed tasks 
+          #@TestStep            Check  we can only schedule allowed tasks
           #@TestPostamble
           #@TestResult
           -->

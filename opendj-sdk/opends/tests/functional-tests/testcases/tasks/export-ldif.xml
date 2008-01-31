@@ -36,24 +36,26 @@
         <call function="'testSuite_Preamble'" />        
         
         <!--- Test Suite information
-          #@TestSuiteName      Tasks
-          #@TestSuitePurpose    Verify that the basic export functionality is working in mode task
-          #@TestSuiteID            export Tests
-          #@TestSuiteGroup       export
-          #@TestGroup             tasks
-          #@TestScript             export.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
+          #@TestSuiteName      Export tasks
+          #@TestSuitePurpose   Validate the export functionality in mode task
+          #@TestSuiteID        export Tests
+          #@TestSuiteGroup     export
+          #@TestGroup          tasks
+          #@TestScript         export_ldif.xml
+          #@TestHTMLLink       http://opends.dev.java.net/
           -->
 
+          
                          
         <!--- Test Case information
-          #@TestMarker          Backend export Tests
-          #@TestName            Backend: export: LDIF Default
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a Basic export in task mode to be executed immedialy in asynchronous mode
+          #@TestMarker       Export tasks
+          #@TestName         Export task in asynchronous mode
+          #@TestPurpose      Schedule a Export in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
-          #@TestSteps            execute a export-ldif in a task
-          #@TestSteps            specify the -t option with the value 0 to schedule for immediate execution      
+          #@TestStep         Execute a export-ldif in a task
+          #@TestStep         Specify the -t option with the value 0    
+          #@TestStep         The task is scheduled for immediate execution
+          #@TestStep         The script returns immedialy after scheduling the task           
           #@TestPostamble
           #@TestResult
           -->
@@ -94,13 +96,13 @@
         
         
         <!--- Test Case information
-          #@TestMarker          Backend export Tests
-          #@TestName            Backend: export: LDIF Default
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a Basic export in task mode to be executed immedialy in synchronous mode
+          #@TestMarker          Export tasks
+          #@TestName            Export task in synchronous mode
+          #@TestPurpose         Schedule a Export in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
-          #@TestSteps            execute a export-ldif in a task
-          #@TestSteps            don't specify the -t option  to schedule for immediate execution and wait the end of the task to return    
+          #@TestStep            Execute a export-ldif in a task
+          #@TestStep            Don't specify the -t option
+          #@TestStep            The task is scheduled for immediate execution and the script must wait the end of the export
           #@TestPostamble
           #@TestResult
           -->
@@ -141,13 +143,12 @@
         
         
         <!--- Test Case information
-          #@TestMarker          Backend export Tests
-          #@TestName            Backend: export: LDIF Default
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a Basic export in task mode to be executed immedialy in asynchronous mode
+          #@TestMarker          Export tasks
+          #@TestName             Schedule a Export task
+          #@TestPurpose          Schedule a Export in task mode
           #@TestPreamble
-          #@TestSteps            execute a export-ldif in a task
-          #@TestSteps            specify the -t option with the value non null  to schedule an  execution      
+          #@TestStep             Execute a export-ldif in a task
+          #@TestStep             Specify the -t option with the value non null  to schedule an  execution      
           #@TestPostamble
           #@TestResult
           -->

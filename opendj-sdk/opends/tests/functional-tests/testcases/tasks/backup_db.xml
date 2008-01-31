@@ -24,176 +24,177 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
- ! -->
+! -->
 <stax>
   <defaultcall function="backup_db"/>
   <function name="backup_db" scope="local">
     <block name="STAXCurrentFunction">    
-    <sequence>
-      <script>
-        CurrentTestPath['suite']=STAXCurrentFunction
-      </script>
-      <call function="'testSuite_Preamble'" />
-
-      
-          <!--- Test Suite information
-          #@TestSuiteName      Tasks
-          #@TestSuitePurpose    Verify that the  backup functionality is working in mode task
-          #@TestSuiteID            backup Tests
-          #@TestSuiteGroup       backup
-          #@TestGroup             tasks
-          #@TestScript             backup.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
+      <sequence>
+        <script>
+          CurrentTestPath['suite']=STAXCurrentFunction
+        </script>
+        <call function="'testSuite_Preamble'" />
+        
+        
+        <!--- Test Suite information
+          #@TestSuiteName      Backup tasks
+          #@TestSuitePurpose   Validate the backup functionality in mode task
+          #@TestSuiteID        backup Tests
+          #@TestSuiteGroup     backup
+          #@TestGroup          tasks
+          #@TestScript         backup_db.xml
+          #@TestHTMLLink       http://opends.dev.java.net/
           -->
 
                          
-          <!--- Test Case information
-          #@TestMarker          Backend backup Tests
-          #@TestName            Backend: backup
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a backup in task mode to be executed immedialy in asynchronous mode
+        <!--- Test Case information
+          #@TestMarker        Backup tasks
+          #@TestName          Backup task in asynchronous mode
+          #@TestPurpose       Schedule a backup in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
-          #@TestSteps            execute a backup in a task
-          #@TestSteps            specify the -t option with the value 0 to schedule for immediate execution      
+          #@TestStep         Execute a backup in mode task
+          #@TestStep         Specify the -t 0 
+          #@TestStep         The task is scheduled for immediate execution
+          #@TestSteps        The script returns immedialy after scheduling the task       
           #@TestPostamble
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule backup task for immediate execution in asynchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>              
-                         
-                            
-              <call function="'backup'">
-                { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'backupDir'  :  '%s/tasks/backup_asynchronous' % logsRemoteDataDir,
-                  'startTask'  : '0',
-                  'backEnd'   : 'userRoot'}
-              </call>
-              
-              <message>'--- Check log files backup_asynchronous ---'</message>
-	      <call function="'listFolder'">
-               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-                 'foldername' : '%s/tasks' % logsRemoteDataDir,
-                 'filename'   : 'backup_asynchronous'
-               }
-              </call>     
-              
-              <!-- check  the export ldif file has been created-->
-              <if expr="len(cmdResult) == 0">
-                    <call function="'testFailed'"/>
-              <else>
-                    <call function="'testPassed'"/>          
-              </else>
-              </if>   
-   
-	    <call function="'testCase_Postamble'"/>
-	  </sequence>
-      </testcase>
-   
-                         
-          <!--- Test Case information
-          #@TestMarker          Backend Backup
-          #@TestName            Backend: Backup
-          #@TestPurpose        schedule a Backup in task mode to be executed immedialy in synchronous mode
-          #@TestPreamble
-          #@TestSteps            execute a Backup in a task
-          #@TestSteps            don't specify the -t option  to schedule for immediate execution and wait the end of the task to return    
-          #@TestPostamble
-          #@TestResult
-          -->
+        <testcase name="getTestCaseName('schedule backup task for immediate execution in asynchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>              
             
-          <testcase name="getTestCaseName('schedule backup task for immediate execution in synchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>              
-                                    
-              <call function="'backup'">
-                { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                  'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir,
-                  'backEnd'   : 'userRoot'}
-              </call>
-                    
-              <message>'--- Check log files ---'</message>
-              <call function="'listFolder'">
+            
+            <call function="'backup'">
+              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'backupDir'  :  '%s/tasks/backup_asynchronous' % logsRemoteDataDir,
+              'startTask'  : '0',
+              'backEnd'   : 'userRoot'}
+            </call>
+            
+            <message>'--- Check log files backup_asynchronous ---'</message>
+            <call function="'listFolder'">
               { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-                'foldername' : '%s/tasks' % logsRemoteDataDir,
-                'filename'   : 'backup_synchronous'
+              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'filename'   : 'backup_asynchronous'
               }
-              </call>
-              <!-- check  the export ldif file has been created-->
-              <if expr="len(cmdResult) == 0">
-                    <call function="'testFailed'"/>
+            </call>     
+            
+            <!-- check  the export ldif file has been created-->
+            <if expr="len(cmdResult) == 0">
+              <call function="'testFailed'"/>
               <else>
-                    <call function="'testPassed'"/>          
+                <call function="'testPassed'"/>          
               </else>
-              </if>                     
-              
-	    <call function="'testCase_Postamble'"/>
-	  </sequence>
-      </testcase>               
-      
-                         
-          <!--- Test Case information
-          #@TestMarker          Backend Backup
-          #@TestName            Backend: Backup
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a Backup in task mode to be executed immedialy in asynchronous mode
+            </if>   
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <!--- Test Case information
+          #@TestMarker        Backup tasks
+          #@TestName          Backup task in synchronous mode
+          #@TestPurpose       Schedule a Backup in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
-          #@TestSteps            execute a Backup in a task
-          #@TestSteps            specify the -t option with the value non null  to schedule an  execution      
+          #@TestStep         Execute a backup in mode task
+          #@TestStep         Don't specify the -t option
+          #@TestStep         The task is scheduled for immediate execution and the script must wait the end of the task to return    
           #@TestPostamble
           #@TestResult
           -->
             
-          <testcase name="getTestCaseName('schedule backup task for scheduled execution in asynchronous mode')">
-            <sequence>
-              <call function="'testCase_Preamble'"/>              
+        <testcase name="getTestCaseName('schedule backup task for immediate execution in synchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>              
             
-                                    
-              <call function="'backup'">
-                { 'location'    : STAF_REMOTE_HOSTNAME ,
-                  'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
-                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-									'startTask'  : '20061212000000',	                
-                  'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir,
-                  'backEnd'   : 'userRoot'}
-              </call>
-                                  
-              
-              <message>'--- Check log files backup_schedule_asynchronous ---'</message>
-							<call function="'listFolder'">
-								{ 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
-								  'foldername' : '%s/tasks' % logsRemoteDataDir,
-								  'filename'   : 'backup_schedule_asynchronous'
-								 }
-              </call>     
-              
-              <!-- check  the export ldif file has been created-->
-            	<if expr="len(cmdResult) == 0">
-                    <call function="'testFailed'"/>
+            <call function="'backup'">
+              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir,
+              'backEnd'   : 'userRoot'}
+            </call>
+            
+            <message>'--- Check log files ---'</message>
+            <call function="'listFolder'">
+              { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
+              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'filename'   : 'backup_synchronous'
+              }
+            </call>
+            <!-- check  the export ldif file has been created-->
+            <if expr="len(cmdResult) == 0">
+              <call function="'testFailed'"/>
               <else>
-                    <call function="'testPassed'"/>          
+                <call function="'testPassed'"/>          
               </else>
-              </if>   
-                         
-                
-	 			     <call function="'testCase_Postamble'"/>
-	      </sequence>
-      </testcase>
-         
-                                                  
- <call function="'testSuite_Postamble'" />
- </sequence>
- </block>      
-</function>
+            </if>                     
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>               
+        
+        
+        <!--- Test Case information
+          #@TestMarker      Backup tasks
+          #@TestName        Schedule a Backup task
+          #@TestPurpose     Schedule a Backup in task mode
+          #@TestPreamble
+          #@TestStep        Execute a Backup in task mode
+          #@TestStep        specify the -t option with the value non null to schedule an execution      
+          #@TestPostamble
+          #@TestResult
+          -->
+            
+        <testcase name="getTestCaseName('schedule backup task for scheduled execution in asynchronous mode')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>              
+            
+            
+            <call function="'backup'">
+              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'startTask'  : '20061212000000',	                
+              'backupDir'  :  '%s/tasks/backup_schedule_asynchronous' % logsRemoteDataDir,
+              'backEnd'   : 'userRoot'}
+            </call>
+            
+            
+            <message>'--- Check log files backup_schedule_asynchronous ---'</message>
+            <call function="'listFolder'">
+              { 'location'   : '%s' % (STAF_REMOTE_HOSTNAME),
+              'foldername' : '%s/tasks' % logsRemoteDataDir,
+              'filename'   : 'backup_schedule_asynchronous'
+              }
+            </call>     
+            
+            <!-- check  the export ldif file has been created-->
+            <if expr="len(cmdResult) == 0">
+              <call function="'testFailed'"/>
+              <else>
+                <call function="'testPassed'"/>          
+              </else>
+            </if>   
+            
+            
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <call function="'testSuite_Postamble'" />
+      </sequence>
+    </block>      
+  </function>
 </stax>

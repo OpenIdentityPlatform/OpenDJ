@@ -37,24 +37,24 @@
         
         
         <!--- Test Suite information
-          #@TestSuiteName      Tasks
-          #@TestSuitePurpose    Verify that the basic import functionality is working in mode task
-          #@TestSuiteID            Import Tests
-          #@TestSuiteGroup       Import
-          #@TestGroup             tasks
-          #@TestScript             import.xml
+          #@TestSuiteName       Import Tasks
+          #@TestSuitePurpose    Validate the Import functionality in mode task
+          #@TestSuiteID         Import Tests
+          #@TestSuiteGroup      Import
+          #@TestGroup           tasks
+          #@TestScript          import_ldif.xml
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
 
                    
         <!--- Test Case information
-          #@TestMarker          Backend Import Tests
-          #@TestName            Backend: Import: LDIF Default
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a Basic import in task mode to be executed immedialy in synchronous mode
+          #@TestMarker           Import Tasks
+          #@TestName             Import task in synchronous mode 
+          #@TestPurpose          Schedule a import in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
-          #@TestSteps            execute a import-ldif in a task
-          #@TestSteps            don't specify the -t option  to schedule for immediate execution and wait the end of the task to return    
+          #@TestStep             Execute a import-ldif in a task
+          #@TestStep             Don't specify the -t option
+          #@TestStep             The task is scheduled for immediate execution and the script must wait the end of the import
           #@TestPostamble
           #@TestResult
           -->
@@ -64,14 +64,14 @@
             <call function="'testCase_Preamble'"/>              
             
             <call function="'ImportLdifWithScript'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
               'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'  : '%s/tasks/import.ldif' % logsRemoteDataDir,
-              'dsAppend' : ' ',
-              'dsBackEnd'   : 'userRoot'}
+              'dsLdifFile'     : '%s/tasks/import.ldif' % logsRemoteDataDir,
+              'dsAppend'       : ' ',
+              'dsBackEnd'      : 'userRoot'}
             </call>
             
             <!-- Check data are imported -->
@@ -85,16 +85,16 @@
             <!-- Delete entries -->
             <call function="'DeleteEntry'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'		: 'uid=scarter,dc=example,dc=com' }
+              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'           : 'uid=scarter,dc=example,dc=com' }
             </call>
             <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+              { 'dsInstanceHost'        : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'          : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'            : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'          : DIRECTORY_INSTANCE_PSWD ,
               'dsBaseDN'		: 'uid=tmorris,dc=example,dc=com' }
             </call>          
             
@@ -104,16 +104,17 @@
         
         
         <!--- Test Case information
-          #@TestMarker          Backend Import Tests
-          #@TestName            Backend: Import: LDIF Default
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a Basic import in task mode to be executed immedialy in asynchronous mode
+
+          #@TestMarker           Import Tasks
+          #@TestName             Import task in asynchronous mode 
+          #@TestPurpose          Schedule a import in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
-          #@TestSteps            execute a import-ldif in a task
-          #@TestSteps            specify the -t option with the value 0 to schedule for immediate execution      
-          #@TestPostamble
-          #@TestResult
-          -->
+          #@TestStep             Execute a import-ldif in a task
+          #@TestStep             specify the -t option with the value 0
+          #@TestStep             The task is scheduled for immediate execution
+          @TestStep              The script returns immedialy after scheduling the task                
+          #@TestPostamble        
+       --> 
             
         <testcase name="getTestCaseName('schedule import-ldif task for immediate execution in asynchronous mode')">
           <sequence>
@@ -145,18 +146,18 @@
             
             <!-- Delete entries -->
             <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
+              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'		: 'uid=scarter,dc=example,dc=com' }
+              'dsBaseDN'         : 'uid=scarter,dc=example,dc=com' }
             </call>
             <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
+              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'		: 'uid=tmorris,dc=example,dc=com' }
+              'dsBaseDN'         : 'uid=tmorris,dc=example,dc=com' }
             </call>          
             
             <call function="'testCase_Postamble'"/>
@@ -164,33 +165,32 @@
         </testcase>
         
         
-        
-        <!--- Test Case information
-          #@TestMarker          Backend Import Tests
-          #@TestName            Backend: Import: LDIF Default
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a import-ldif in task mode to be executed in asynchronous mode
+     <!--- Test Case information
+
+          #@TestMarker           Import Tasks
+          #@TestName             Schedule a Import task
+          #@TestPurpose          Schedule a import in task mode
           #@TestPreamble
-          #@TestSteps            execute a import-ldif in a task
-          #@TestSteps            specify the -t option with the value non null  to schedule an  execution      
-          #@TestPostamble
-          #@TestResult
-          -->
+          #@TestStep             Execute a import-ldif in a task
+          @TestStep              specify the -t option with the value non null  to schedule an  execution  
+          #@TestPostamble        
+       --> 
+    
             
         <testcase name="getTestCaseName('schedule import-ldif task for scheduled execution in asynchronous mode')">
           <sequence>
             <call function="'testCase_Preamble'"/>              
             
             <call function="'ImportLdifWithScript'">
-              { 'location'    : STAF_REMOTE_HOSTNAME ,
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
               'dsInstanceHost' :  DIRECTORY_INSTANCE_HOST,
               'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
-              'dsInstanceDn'  : DIRECTORY_INSTANCE_DN,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'dsLdifFile'  : '%s/tasks/import.ldif' % logsRemoteDataDir,
-              'dsAppend' : ' ',
-              'startTask'  : '20061212000000',
-              'dsBackEnd'   : 'userRoot'}
+              'dsLdifFile'     : '%s/tasks/import.ldif' % logsRemoteDataDir,
+              'dsAppend'       : ' ',
+              'startTask'      : '20061212000000',
+              'dsBackEnd'      : 'userRoot'}
             </call>
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
@@ -207,18 +207,18 @@
             
             <!-- Delete entries -->
             <call function="'DeleteEntry'">
-              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
+              'dsInstanceDn'	 : DIRECTORY_INSTANCE_DN ,
               'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'		: 'uid=scarter,dc=example,dc=com' }
+              'dsBaseDN'         : 'uid=scarter,dc=example,dc=com' }
             </call>
             <call function="'DeleteEntry'">
               { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'	: DIRECTORY_INSTANCE_DN ,
-              'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'		: 'uid=tmorris,dc=example,dc=com' }
+              'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'        : 'uid=tmorris,dc=example,dc=com' }
             </call>          
             
             <call function="'testCase_Postamble'"/>
