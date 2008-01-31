@@ -35,26 +35,24 @@
         </script>
         <call function="'testSuite_Preamble'" />
         
-        
-        <!--- Test Suite information
-          #@TestSuiteName      Tasks
-          #@TestSuitePurpose    Verify that the  restore functionality is working in mode task
-          #@TestSuiteID            restore Tests
-          #@TestSuiteGroup       restore
-          #@TestGroup             tasks
-          #@TestScript             restore.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
-          -->
 
+        <!--- Test Suite information
+          #@TestSuiteName      Restore tasks
+          #@TestSuitePurpose   Validate the restore functionality in mode task
+          #@TestSuiteID        restore Tests
+          #@TestSuiteGroup     restore
+          #@TestGroup          tasks
+          #@TestScript         restore_db.xml
+          #@TestHTMLLink       http://opends.dev.java.net/
+          -->
                          
         <!--- Test Case information
-          #@TestMarker          Backend restore Tests
-          #@TestName            Backend: restore
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a restore in task mode to be executed immedialy in asynchronous mode
+          #@TestMarker          Restore tasks
+          #@TestName            Restore task in asynchronous mode
+          #@TestPurpose         schedule a restore in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
-          #@TestSteps            execute a restore in a task
-          #@TestSteps            specify the -t option with the value 0 to schedule for immediate execution      
+          #@TestStep            Execute a restore in a task
+          #@TestStep            Specify the -t option with the value 0 to schedule for immediate execution      
           #@TestPostamble
           #@TestResult
           -->
@@ -62,8 +60,6 @@
         <testcase name="getTestCaseName('schedule restore task for immediate execution in asynchronous mode')">
           <sequence>
             <call function="'testCase_Preamble'"/>              
-            
-            
             
             <call function="'restore'">
               { 'location'    : STAF_REMOTE_HOSTNAME ,
@@ -82,12 +78,13 @@
         
         
         <!--- Test Case information
-          #@TestMarker          Backend restore
-          #@TestName            Backend: restore
-          #@TestPurpose        schedule a restore in task mode to be executed immedialy in synchronous mode
+          #@TestMarker           Restore tasks
+          #@TestName             Restore task in synchronous mode
+          #@TestPurpose          Schedule a restore in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
-          #@TestSteps            execute a restore in a task
-          #@TestSteps            don't specify the -t option  to schedule for immediate execution and wait the end of the task to return    
+          #@TestStep             Execute a restore in a task
+          #@TestStep             Don't specify the -t option
+          #@TestStep             The task is scheduled for immediate execution and the script must wait the end of the restore            
           #@TestPostamble
           #@TestResult
           -->
@@ -113,15 +110,13 @@
         
         
         <!--- Test Case information
-          #@TestMarker          Backend restore
-          #@TestName            Backend: restore
-          #@TestID                 LDIF Default
-          #@TestPurpose        schedule a restore in task mode to be executed immedialy in asynchronous mode
+          #@TestMarker           Restore tasks
+          #@TestName             Schedule a Restore task
+          #@TestPurpose          Schedule a restore in task mode
           #@TestPreamble
-          #@TestSteps            execute a restore in a task
-          #@TestSteps            specify the -t option with the value non null  to schedule an  execution      
-          #@TestPostamble
-          #@TestResult
+          #@TestStep             Execute a restore in a task
+          #@TestStep             Specify the -t option with the value non null  to schedule an  execution
+          #@TestPostamble        
           -->
             
         <testcase name="getTestCaseName('schedule restore task for scheduled execution in asynchronous mode')">

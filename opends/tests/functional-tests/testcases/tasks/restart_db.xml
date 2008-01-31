@@ -28,42 +28,41 @@
 <stax>
   <defaultcall function="restart_db"/>
   <function name="restart_db" scope="local">
-    <block name="STAXCurrentFunction">    
+    <block name="STAXCurrentFunction">
       <sequence>
         <script>
           CurrentTestPath['suite']=STAXCurrentFunction
         </script>
         <call function="'testSuite_Preamble'" />
-        
-        
+
+   
         <!--- Test Suite information
-          #@TestSuiteName      Tasks
-          #@TestSuitePurpose    Verify that the restart functionality is working in mode task
-          #@TestSuiteID            restart Tests
-          #@TestSuiteGroup       restart
-          #@TestGroup             tasks
-          #@TestScript             restart.xml
-          #@TestHTMLLink        http://opends.dev.java.net/
+          #@TestSuiteName      Restart tasks
+          #@TestSuitePurpose   Validate the stop and restart functionality in mode task
+          #@TestSuiteID        restart Tests
+          #@TestSuiteGroup     restart
+          #@TestGroup          tasks
+          #@TestScript         restart_db.xml
+          #@TestHTMLLink       http://opends.dev.java.net/
           -->
 
-               
-                         
+
         <!--- Test Case information
-          #@TestMarker          Backend restart Tests
-          #@TestName            Backend: restart
-          #@TestPurpose        schedule a restart in task mode to be executed immedialy in asynchronous mode
+          #@TestMarker          Restart tasks
+          #@TestName            Restart task in asynchronous mode
+          #@TestPurpose         Schedule a restart in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
-          #@TestSteps            execute a restart in a task
-          #@TestSteps            specify the -t option with the value non null  to schedule an  execution     
+          #@TestStep            Execute a restart in task
+          #@TestStep            Specify the -t option with the value non null  to schedule an  execution
           #@TestPostamble
           #@TestResult
           -->
-            
+
         <testcase name="getTestCaseName('schedule restart task for scheduled execution in asynchronous mode')">
           <sequence>
-            <call function="'testCase_Preamble'"/>             
-            
-            
+            <call function="'testCase_Preamble'"/>
+
+
             <call function="'StopDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME,
               'dsHost'    : DIRECTORY_INSTANCE_HOST,
@@ -73,44 +72,44 @@
               'dsRestart' : ' ',
               'dsStopTime' : '20061212000000' }
             </call>
-            
+
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
               'sleepForMilliSeconds'  :  10000 }
             </call>
-            
+
             <call function="'SearchObject'">
-              { 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'	    : DIRECTORY_INSTANCE_SFX,
-              'dsFilter'		: 'objectclass=*'	,
-              'dsScope'		: 'base',
-              'expectedRC'	    :  0 }
+              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'        : DIRECTORY_INSTANCE_SFX,
+              'dsFilter'        : 'objectclass=*'	,
+              'dsScope'	        : 'base',
+              'expectedRC'      :  0 }
             </call>
-            
+
             <call function="'testCase_Postamble'"/>
           </sequence>
-        </testcase>               
-        
-        
+        </testcase>
+
+
         <!--- Test Case information
-          #@TestMarker          Backend stop Tests
-          #@TestName            Backend: stop
-          #@TestPurpose        schedule a stop in task mode to be executed immedialy in asynchronous mode
+          #@TestMarker          Restart tasks
+          #@TestName            Stop task in asynchronous mode
+          #@TestPurpose         Schedule a stop in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
-          #@TestSteps            execute a stop in a task
-          #@TestSteps            specify the -t option with the value non null  to schedule an  execution     
+          #@TestStep            Execute a stop in task mode
+          #@TestStep            Specify the -t option with the value non null to schedule an execution
           #@TestPostamble
           #@TestResult
           -->
-            
+
         <testcase name="getTestCaseName('schedule stop server task for scheduled execution in asynchronous mode')">
           <sequence>
-            <call function="'testCase_Preamble'"/>             
-            
-            
+            <call function="'testCase_Preamble'"/>
+
+
             <call function="'StopDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME,
               'dsHost'    : DIRECTORY_INSTANCE_HOST,
@@ -119,7 +118,7 @@
               'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
               'dsStopTime' : '20061212000000' }
             </call>
-            
+
             <call function="'SearchObject'">
               { 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -130,18 +129,18 @@
               'dsScope'		: 'base',
               'expectedRC'	    :  91 }
             </call>
-            
+
             <!--- Start DS -->
             <call function="'StartDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME }
-            </call>              
+            </call>
             <call function="'testCase_Postamble'"/>
           </sequence>
-        </testcase>               
-        
-        
+        </testcase>
+
+
         <call function="'testSuite_Postamble'" />
       </sequence>
-    </block>      
+    </block>
   </function>
 </stax>

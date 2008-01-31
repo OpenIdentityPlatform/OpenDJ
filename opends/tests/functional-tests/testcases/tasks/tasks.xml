@@ -25,6 +25,13 @@
  !
  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
 ! -->
+
+<!--
+            Place group-specific test information here.
+            #@TestGroupName		Tasks
+            #@TestGroupPurpose		Check the Directory server manages correctly the tasks
+-->
+
 <stax>
   <defaultcall function="main_tasks"/>
   <function name="main_tasks">
