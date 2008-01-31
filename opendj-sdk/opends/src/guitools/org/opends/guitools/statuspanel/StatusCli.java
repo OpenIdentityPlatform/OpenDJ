@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.statuspanel;
@@ -119,7 +119,12 @@ class StatusCli extends ConsoleApplication
      * User cancelled (for instance not accepting the certificate proposed) or
      * could not use the provided connection parameters in interactive mode.
      */
-    USER_CANCELLED_OR_DATA_ERROR(3);
+    USER_CANCELLED_OR_DATA_ERROR(3),
+    /**
+     * This occurs for instance when the authentication provided by the user is
+     * not valid.
+     */
+    ERROR_READING_CONFIGURATION_WITH_LDAP(4);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -430,6 +435,12 @@ class StatusCli extends ConsoleApplication
           onLineConf.readConfiguration();
           updateDescriptorWithOnLineInfo(desc, onLineConf);
           writeStatus(desc);
+
+          if (desc.getErrorMessage() != null)
+          {
+            return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
+            getReturnCode();
+          }
         }
         else
         {
@@ -443,6 +454,7 @@ class StatusCli extends ConsoleApplication
       {
         println();
         println(ce.getMessageObject());
+        return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
       }
     }
 
