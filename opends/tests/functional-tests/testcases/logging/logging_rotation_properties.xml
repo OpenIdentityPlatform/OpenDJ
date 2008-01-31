@@ -47,10 +47,9 @@
 
       <!--- Test Case : Rotation policy -->
       <!---
-        #@TestMarker           size limitRotation policy
-        #@TestName             Check dsconfig properties of size limit Rotation policy 
-        #@TestIssue                   
-        #@TestPurpose          check the size limit rotation policy properties.
+        #@TestMarker           Rotation Policy Properties Tests
+        #@TestName             size limit Rotation policy 
+        #@TestPurpose          Check the size limit rotation policy properties.
         #@TestPreamble         none
         #@TestStep             Check the size limit rotation policy's properties are correctly set and get using dsconfig
         #@TestStep             Set a property
@@ -140,10 +139,9 @@
       
       <!--- Test Case : time limit Rotation policy -->
       <!---
-        #@TestMarker           time limit Rotation policy
-        #@TestName             Check dsconfig properties of time limit Rotation policy 
-        #@TestIssue                   
-        #@TestPurpose          check the time limit rotation policy properties.
+        #@TestMarker           Rotation Policy Properties Tests
+        #@TestName             time limit Rotation policy 
+        #@TestPurpose          Check the time limit rotation policy properties.
         #@TestPreamble         none
         #@TestStep             Check the time limit rotation policy's properties are correctly set and get using dsconfig
         #@TestStep             Set a property
@@ -236,18 +234,20 @@
       </testcase>
       
       <!--- Test Case : fixed time limit Rotation policy -->
+      
       <!---
-        #@TestMarker           fixed time limit Rotation policy
-        #@TestName             Check dsconfig properties of fixed fixed time limit Rotation policy 
+        #@TestMarker           Rotation Policy Properties Tests
+        #@TestName             fixed time limit Rotation policy
         #@TestIssue                   
-        #@TestPurpose          check the fixed time limit rotation policy properties.
+        #@TestPurpose          Check the fixed time limit rotation policy properties.
         #@TestPreamble         none
         #@TestStep             Check the fixed time limit rotation policy's properties are correctly set and get using dsconfig
         #@TestStep             Set a property
         #@TestStep             Get the property and check it has been correctly updated
         #@TestPostamble        none
         #@TestResult           Success if OpenDS returns 0 for all operations
-      -->
+      -->      
+  
       <testcase name="getTestCaseName('fixed time limit Rotation policy')">
         <sequence>
           <call function="'testCase_Preamble'"/>

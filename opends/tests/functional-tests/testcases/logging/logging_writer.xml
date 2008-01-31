@@ -38,8 +38,8 @@
       
 
 <!--- Test Suite information
-#@TestSuiteName       basic tests on logging
-#@TestSuitePurpose    Basic tests on logging
+#@TestSuiteName       Basic tests on logging
+#@TestSuitePurpose    Check the log of information under Access or Debug files is correctly done
 #@TestSuiteID         Logging
 #@TestSuiteGroup      Logging
 #@TestGroup           Logging
@@ -48,12 +48,13 @@
 -->      
       <!-- #################################### -->
       <!--
-        #@TestMarker      access logger
-        #@TestName        access logger properties check
+        #@TestMarker      Basic tests on logging
+        #@TestName        Basic test on access log publisher
         #@TestIssue       
-        #@TestPurpose     check the asynchronous mode with auto-flush works
+        #@TestPurpose     Check informations are correclty logged under Access log files.
+        #@TestPurpose     the Access log publisher is configured with asynchronous mode and auto-flush
         #@TestPreamble    none
-        #@TestStep        Set the Access Logger's properties to be an asynchronous mode
+        #@TestStep        Set the publisher Access Logger's properties to be an asynchronous mode
         #@TestStep        Set the auto-flush to TRUE
         #@TestStep        Set the append property to false
         #@TestStep        Configure the Size Limit rotation policy with a Max size to 1mb
@@ -215,10 +216,10 @@
       
       <!-- #################################### -->
       <!--
-          #@TestMarker       Debug logger
-          #@TestName         Debug logger properties check
+          #@TestMarker       Basic tests on logging
+          #@TestName         Basic test on Debug log publisher
           #@TestIssue        
-          #@TestPurpose      Basic tests on the Debug logger
+          #@TestPurpose      Check informations are correclty logged under Debug log files.
           #@TestPreamble     none
           #@TestStep         Enabled the Debug  Logger
           #@TestStep         Define a specific log file for debug message 

@@ -47,12 +47,12 @@
 -->
 
       <!---
-          #@TestMarker     size limit  rotation
-          #@TestName       size limit  rotation
-          #@TestIssue      Check the size limit rotation policy
+          #@TestMarker     Rotation Policy Tests
+          #@TestName       Size limit rotation
+          #@TestPurpose    Check the size limit rotation policy
           #@TestPreamble   none
           #@TestStep       Create a new size limit rotation policy
-          #@TestStep       Configure the Size Limit rotation policy with a Max size to 4kb
+          #@TestStep       Configure the Size Limit rotation policy with a Max size to 64kb
           #@TestStep       Execute ldapsearch request until the log are rotate
           #@TestPostamble  none
           #@TestResult     the logs size must match the rotation size
