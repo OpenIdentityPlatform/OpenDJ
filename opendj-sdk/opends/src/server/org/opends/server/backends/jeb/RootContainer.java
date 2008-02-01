@@ -402,11 +402,17 @@ public class RootContainer
       // is filled.
       try
       {
-        long timeEnd = System.currentTimeMillis() + timeLimit;
-
         // Configure preload of Leaf Nodes (LNs) containing the data values.
         PreloadConfig preloadConfig = new PreloadConfig();
         preloadConfig.setLoadLNs(true);
+
+        Message message =
+            NOTE_JEB_CACHE_PRELOAD_STARTED.get(backend.getBackendID());
+        logError(message);
+
+        boolean isInterrupted = false;
+
+        long timeEnd = System.currentTimeMillis() + timeLimit;
 
         for (DatabaseContainer db : dbList)
         {
@@ -427,17 +433,44 @@ public class RootContainer
           }
 
           // Stop if the cache is full or the time limit has been exceeded.
-          if (preloadStats.getStatus() != PreloadStatus.SUCCESS)
+          PreloadStatus preloadStatus = preloadStats.getStatus();
+          if (preloadStatus != PreloadStatus.SUCCESS)
           {
+            if (preloadStatus == PreloadStatus.EXCEEDED_TIME) {
+              message =
+                NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_TIME.get(
+                backend.getBackendID(), db.getName());
+              logError(message);
+            } else if (preloadStatus == PreloadStatus.FILLED_CACHE) {
+              message =
+                NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_SIZE.get(
+                backend.getBackendID(), db.getName());
+              logError(message);
+            } else {
+              message =
+                NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_UNKNOWN.get(
+                backend.getBackendID(), db.getName());
+              logError(message);
+            }
+
+            isInterrupted = true;
             break;
           }
+
+          message = NOTE_JEB_CACHE_DB_PRELOADED.get(db.getName());
+          logError(message);
+        }
+
+        if (!isInterrupted) {
+          message = NOTE_JEB_CACHE_PRELOAD_DONE.get(backend.getBackendID());
+          logError(message);
         }
 
         // Log an informational message about the size of the cache.
         EnvironmentStats stats = env.getStats(new StatsConfig());
         long total = stats.getCacheTotalBytes();
 
-        Message message =
+        message =
             NOTE_JEB_CACHE_SIZE_AFTER_PRELOAD.get(total / (1024 * 1024));
         logError(message);
       }
@@ -447,6 +480,12 @@ public class RootContainer
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
+
+        Message message =
+          ERR_JEB_CACHE_PRELOAD.get(backend.getBackendID(),
+          (e.getCause() != null ? e.getCause().getMessage() :
+            stackTraceToSingleLineString(e)));
+        logError(message);
       }
     }
   }
