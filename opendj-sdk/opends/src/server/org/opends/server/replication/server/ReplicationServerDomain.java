@@ -1328,9 +1328,8 @@ public class ReplicationServerDomain
           TRACER.debugInfo(
           "In " + this.replicationServer.getMonitorInstanceName() +
           " baseDn=" + baseDn + " getRemoteMonitorData in cache");
-       // The current data are still valid. No need to renew them.
-        // FIXME
-        return null;
+        // The current data are still valid. No need to renew them.
+        return monitorData;
       }
 
       wrkMonitorData = new MonitorData();
