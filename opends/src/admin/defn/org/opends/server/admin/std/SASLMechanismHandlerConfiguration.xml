@@ -32,9 +32,12 @@
   xmlns:ldap="http://www.opends.org/admin-ldap"
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
-    <adm:user-friendly-plural-name />
-    are responsible for the processing associated with SASL bind
-    operations.
+   The SASL mechanism handler configuration entry is the parent 
+   for all SASL mechanism handlers defined in the OpenDS 
+   Directory Server. SASL mechanism handlers are responsible for 
+   authenticating users during the course of processing a SASL 
+   (Simple Authentication and Security Layer, as defined in 
+   RFC 4422) bind. 
   </adm:synopsis>
   <adm:tag name="security" />
   <adm:profile name="ldap">
@@ -48,9 +51,8 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
-      <adm:user-friendly-name />
-      is enabled for use.
+      Indicates whether the
+      SASL mechanism handler is enabled for use.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -63,10 +65,12 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
-      <adm:user-friendly-name />
-      implementation.
+      Specifies the fully-qualified name of the Java class that provides the
+      SASL mechanism handler implementation.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>

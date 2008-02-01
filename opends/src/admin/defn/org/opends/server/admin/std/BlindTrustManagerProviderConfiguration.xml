@@ -31,11 +31,11 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    provides a mechanism for blindly trusting any certificate presented
-    to it without performing any kind of validation, including ignoring
-    the validity dates included within the certificate.
+    The blind trust manager provider always trusts any certificate that 
+    is presented to it, regardless of its issuer, subject, and validity 
+    dates. Use the blind trust manager provider only for testing 
+    purposes, because it allows clients to use forged certificates 
+    and authenticate as virtually any user in the server.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

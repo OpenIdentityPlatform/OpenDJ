@@ -32,12 +32,18 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    contains the Directory Server root DSE.
+    contains the directory server root DSE.  The root DSE is the entry with the null DN (that is, a DN of "", containing 
+    zero RDN components) and exists to provide useful information about 
+    the capabilities of the server, including about the SASL mechanisms, 
+    controls, extended operations, and other types of features that the server 
+    supports.
   </adm:synopsis>
   <adm:description>
-    This is a special meta-backend that will dynamically generate the
-    root DSE entry for base-level searches, and will simply redirect to
-    other backends for operations in other scopes.
+    The OpenDS Directory Server root DSE entry contains operational 
+    attributes and are not be returned to the client unless they are 
+    explicitly requested. OpenDS also treats the root DSE as a parent to 
+    all other suffixes  and has searches below the root DSE performed in 
+    all user backends (or using a configurable set of base DNs). 
   </adm:description>
   <adm:tag name="core" />
   <adm:tag name="database" />
@@ -49,7 +55,7 @@
   </adm:profile>
   <adm:property name="subordinate-base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the set of base DNs that will be used for singleLevel,
+      Specifies the set of base DNs that is used for singleLevel,
       wholeSubtree, and subordinateSubtree searches based at the root
       DSE.
     </adm:synopsis>
@@ -73,7 +79,7 @@
     <adm:synopsis>
       Indicates whether all attributes in the root DSE should be treated
       like user attributes (and therefore returned to clients by
-      default) regardless of the Directory Server schema configuration.
+      default) regardless of the directory server schema configuration.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />

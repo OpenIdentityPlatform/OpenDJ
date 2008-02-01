@@ -32,8 +32,8 @@
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are used to publish updates to Directory Servers within a
-    Replication Domain.
+    are used to publish updates to the directory servers within a
+    replication domain.
   </adm:synopsis>
   <adm:tag name="replication" />
   <adm:profile name="ldap">
@@ -44,14 +44,15 @@
   </adm:profile>
   <adm:property name="replication-server" multi-valued="true">
     <adm:synopsis>
-      Specifies the addresses of other
-      <adm:user-friendly-plural-name />
-      to which this
-      <adm:user-friendly-name />
-      should try to connect at startup time.
+      specifies the address and port of every replication server in the environment. Each 
+      value for this attribute should consist of the address of a replication server followed 
+      by a colon and the port number on which it is listening.
     </adm:synopsis>
     <adm:description>
-      Addresses must be specified using the syntax: hostname:port
+      Addresses must be specified using the syntax: hostname:port. This attribute is multi-valued because 
+      it provides a list of all the replication servers that have been configured in the environment. Each 
+      replication server remains permanently connected to all other servers specified by ds-cfg-replication-server 
+      in order to broadcast changes.
     </adm:description>
     <adm:default-behavior>
       <adm:undefined />
@@ -83,7 +84,7 @@
     <adm:description>
       Each
       <adm:user-friendly-name />
-      must have a different server ID.
+      must have a unique server ID.
     </adm:description>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
@@ -98,7 +99,7 @@
     <adm:synopsis>
       Specifies the window size that the
       <adm:user-friendly-name />
-      will use when communicating with other
+      uses when communicating with other
       <adm:user-friendly-plural-name />
       .
     </adm:synopsis>
@@ -118,14 +119,22 @@
   </adm:property>
   <adm:property name="queue-size" advanced="true">
     <adm:synopsis>
-      Specifies the number of changes that will be kept in memory for
-      each Directory Server in the Replication Domain.
+      Specifies the number of changes that are kept in memory for
+      each directory server in the replication domain.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:none>
+        <adm:synopsis>
+           Adjust the window size to improve replication if necessary.
+        </adm:synopsis>
+      </adm:none>
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>10000</adm:value>
       </adm:defined>
     </adm:default-behavior>
+
     <adm:syntax>
       <adm:integer />
     </adm:syntax>
@@ -138,9 +147,9 @@
   <adm:property name="replication-db-directory" mandatory="true"
     read-only="true">
     <adm:synopsis>
-      The path where the
+      Specifies the path where the
       <adm:user-friendly-name />
-      will store all persistent information.
+      stores all persistent information.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -158,9 +167,9 @@
   </adm:property>
   <adm:property name="replication-purge-delay" advanced="true">
     <adm:synopsis>
-      The time (in seconds) after which the
+      Specifies the time (in seconds) after which the
       <adm:user-friendly-name />
-      will erase all persistent information.
+      erases all persistent information.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -178,12 +187,15 @@
   </adm:property>
   <adm:property name="replication-port" mandatory="true">
     <adm:synopsis>
-      The port on which this
+      Specifies the port on which this
       <adm:user-friendly-name />
-      will wait for connections from other
+      waits for connections from other
       <adm:user-friendly-plural-name />
-      or Directory Servers.
+      or directory servers.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="65535" />
     </adm:syntax>

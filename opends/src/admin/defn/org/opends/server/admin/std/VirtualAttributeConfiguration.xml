@@ -32,8 +32,10 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are responsible for dynamically generating attribute values which
+    are responsible for dynamically generating attribute values that
     appear in entries but are not persistently stored in the backend.
+    Virtual attributes are associated with a virtual attribute 
+    provider, which contains the logic for generating the value.
   </adm:synopsis>
   <adm:tag name="core" />
   <adm:profile name="ldap">
@@ -47,10 +49,12 @@
   </adm:profile>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
-      <adm:user-friendly-name />
-      implementation.
+      Specifies the fully-qualified name of the virtual attribute 
+      provider class that generates the attribute values.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
@@ -66,7 +70,7 @@
   </adm:property>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
       is enabled for use.
     </adm:synopsis>
@@ -81,7 +85,7 @@
   </adm:property>
   <adm:property name="attribute-type" mandatory="true">
     <adm:synopsis>
-      Specifies the attribute type for the attribute whose values should
+      Specifies the attribute type for the attribute whose values are to
       be dynamically assigned by the virtual attribute.
     </adm:synopsis>
     <adm:syntax>
@@ -96,12 +100,14 @@
   <adm:property name="base-dn" multi-valued="true">
     <adm:synopsis>
       Specifies the base DNs for the branches containing entries that
-      may be eligible to use this virtual attribute.
+      are eligible to use this virtual attribute.
+      If no values are given, then the server generates virtual attributes 
+      anywhere in the server.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The location of the entry in the server will not be taken into
+          The location of the entry in the server is not taken into
           account when determining whether an entry is eligible to use
           this virtual attribute.
         </adm:synopsis>
@@ -118,13 +124,17 @@
   </adm:property>
   <adm:property name="group-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the DNs of the groups whose members may be eligible to
+      Specifies the DNs of the groups whose members can be eligible to
       use this virtual attribute.
+      If no values are given, then group 
+      membership is not taken into account when generating the virtual 
+      attribute. If one or more group DNs are specified, then only 
+      members of those groups are allowed to have the virtual attribute.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Group membership will not be taken into account when
+          Group membership is not taken into account when
           determining whether an entry is eligible to use this virtual
           attribute.
         </adm:synopsis>
@@ -141,8 +151,12 @@
   </adm:property>
   <adm:property name="filter" multi-valued="true">
     <adm:synopsis>
-      Specifies the search filters for entries that may be eligible to
-      use this virtual attribute.
+      Specifies the search filters to be applied against entries to 
+      determine if the virtual attribute is to be generated for those 
+      entries. If no values are given, then any entry is eligible to 
+      have the value generated. If one or more filters are specified, 
+      then only entries that match at least one of those filters are 
+      allowed to have the virtual attribute.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -150,7 +164,15 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string />
+      <adm:string>
+        <adm:pattern>
+          <adm:regex />
+          <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            Any valid search filter string.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -160,8 +182,9 @@
   </adm:property>
   <adm:property name="conflict-behavior">
     <adm:synopsis>
-      Specifies the behavior that the server should exhibit for entries
-      that contain one or more real values for the associated attribute.
+      Specifies the behavior that the server is to exhibit for entries
+      that already contain one or more real values for the associated 
+      attribute.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -172,20 +195,23 @@
       <adm:enumeration>
         <adm:value name="real-overrides-virtual">
           <adm:synopsis>
-            Any real values contained in the entry should be preserved
-            and virtual values should not be generated.
+            Indicates that any real values contained in the entry are 
+            preserved and used, and virtual values are not generated.
           </adm:synopsis>
         </adm:value>
         <adm:value name="virtual-overrides-real">
           <adm:synopsis>
-            Any real values contained in the entry should be suppressed
-            and virtual values should be generated.
+            Indicates that the virtual attribute provider suppresses
+            any real values contained in the entry
+            and generates virtual values and uses them.
           </adm:synopsis>
         </adm:value>
         <adm:value name="merge-real-and-virtual">
           <adm:synopsis>
-            Any real values contained in the entry should be preserved
-            and merged with the set of generated virtual values.
+            Indicates that the virtual attribute provider 
+            is to preserve any real values contained in the entry 
+            and merge them with the set of generated virtual values
+            so that both the real and virtual values are used.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
