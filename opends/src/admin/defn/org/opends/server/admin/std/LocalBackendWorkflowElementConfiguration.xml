@@ -42,6 +42,15 @@
       <ldap:superior>ds-cfg-workflow-element</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
   <adm:property name="backend" mandatory="true" read-only="true">
     <adm:synopsis>
       Identifies the backend accessed by the workflow element.
