@@ -120,6 +120,7 @@ public class ServerReader extends DirectoryThread
       {
         ReplicationMessage msg = session.receive();
 
+        /*
         if (debugEnabled())
         {
           TRACER.debugInfo(
@@ -128,6 +129,7 @@ public class ServerReader extends DirectoryThread
               (handler.isReplicationServer()?" From RS ":" From LS")+
               " with serverId=" + serverId + " receives " + msg);
         }
+        */
         if (msg instanceof AckMessage)
         {
           AckMessage ack = (AckMessage) msg;

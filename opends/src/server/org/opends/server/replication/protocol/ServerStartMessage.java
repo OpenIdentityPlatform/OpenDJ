@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -54,6 +54,7 @@ public class ServerStartMessage extends StartMessage implements
   private int maxReceiveDelay;
   private int maxSendDelay;
   private int windowSize;
+  private boolean handshakeOnly;
   private ServerState serverState = null;
 
   /**
@@ -87,6 +88,8 @@ public class ServerStartMessage extends StartMessage implements
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
+   * @param handshakeOnly Whether this message is only to get an handshake
+   *                      with the server or not.
    */
   public ServerStartMessage(short serverId, DN baseDn, int maxReceiveDelay,
                             int maxReceiveQueue, int maxSendDelay,
@@ -95,7 +98,8 @@ public class ServerStartMessage extends StartMessage implements
                             ServerState serverState,
                             short protocolVersion,
                             long generationId,
-                            boolean sslEncryption)
+                            boolean sslEncryption,
+                            boolean handshakeOnly)
   {
     super(protocolVersion, generationId);
 
@@ -109,6 +113,7 @@ public class ServerStartMessage extends StartMessage implements
     this.heartbeatInterval = heartbeatInterval;
     this.sslEncryption = sslEncryption;
     this.serverState = serverState;
+    this.handshakeOnly = handshakeOnly;
 
     try
     {
@@ -209,10 +214,19 @@ public class ServerStartMessage extends StartMessage implements
       sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
+
+      /*
+       * read the handshakeOnly flag
+       */
+      length = getNextLength(in, pos);
+      handshakeOnly = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
+      pos += length +1;
+
       /*
       * read the ServerState
       */
       serverState = new ServerState(in, pos, in.length-1);
+
     } catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
@@ -322,6 +336,8 @@ public class ServerStartMessage extends StartMessage implements
       byte[] byteSSLEncryption =
                      String.valueOf(sslEncryption).getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();
+      byte[] byteHandshakeOnly =
+        String.valueOf(handshakeOnly).getBytes("UTF-8");
 
       int length = byteDn.length + 1 + byteServerId.length + 1 +
                    byteServerUrl.length + 1 +
@@ -332,6 +348,7 @@ public class ServerStartMessage extends StartMessage implements
                    byteWindowSize.length + 1 +
                    byteHeartbeatInterval.length + 1 +
                    byteSSLEncryption.length + 1 +
+                   byteHandshakeOnly.length + 1 +
                    byteServerState.length + 1;
 
       /* encode the header in a byte[] large enough to also contain the mods */
@@ -357,6 +374,8 @@ public class ServerStartMessage extends StartMessage implements
       pos = addByteArray(byteHeartbeatInterval, resultByteArray, pos);
 
       pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
+
+      pos = addByteArray(byteHandshakeOnly, resultByteArray, pos);
 
       pos = addByteArray(byteServerState, resultByteArray, pos);
 
@@ -400,5 +419,17 @@ public class ServerStartMessage extends StartMessage implements
   public boolean getSSLEncryption()
   {
     return sslEncryption;
+  }
+
+  /**
+   * Get the SSL encryption value for the ldap server that created the
+   * message.
+   *
+   * @return The SSL encryption value for the ldap server that created the
+   *         message.
+   */
+  public boolean isHandshakeOnly()
+  {
+    return handshakeOnly;
   }
 }

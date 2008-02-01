@@ -316,6 +316,10 @@ public class ChangeNumberTest extends ReplicationTestCase
 
     CN1 = new ChangeNumber((long)0, 3, (short)0);
 
+    // 3-0 = 3
+    CN2 = new ChangeNumber((long)0, 0, (short)0);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);
+    
     // 3-1 = 2
     CN2 = new ChangeNumber((long)0, 1, (short)0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 2);
@@ -326,6 +330,16 @@ public class ChangeNumberTest extends ReplicationTestCase
 
     // 3-4 == MAXINT (modulo)
     CN2 = new ChangeNumber((long)0, 4, (short)0);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), Integer.MAX_VALUE);
+
+    CN1 = new ChangeNumber((long)0, 0, (short)0);
+
+    // 0-0 = 0
+    CN2 = new ChangeNumber((long)0, 0, (short)0);
+    assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
+    
+    // 0-1 = MAXINT(modulo)
+    CN2 = new ChangeNumber((long)0, 1, (short)0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), Integer.MAX_VALUE);
   }
 }

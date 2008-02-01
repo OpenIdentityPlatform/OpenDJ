@@ -433,7 +433,7 @@ public class ReplicationBroker implements InternalSearchListener
       ServerStartMessage msg = new ServerStartMessage(serverID, baseDn,
         maxReceiveDelay, maxReceiveQueue, maxSendDelay, maxSendQueue,
         halfRcvWindow * 2, heartbeatInterval, state,
-        protocolVersion, generationId, isSslEncryption);
+        protocolVersion, generationId, isSslEncryption, !keepConnection);
       session.publish(msg);
 
       /*

@@ -65,14 +65,19 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
-   * Data structure to manage the state of the replication server
-   * and the state informations for the LDAP servers connected.
+   * Data structure to manage the state of this replication server
+   * and the state informations for the servers connected to it.
    *
    */
   class SubTopoMonitorData
   {
-    ServerState replServerState;
+    // This replication server DbState
+    ServerState replServerDbState;
+    // The data related to the LDAP servers connected to this RS
     HashMap<Short, ServerData> ldapStates =
+      new HashMap<Short, ServerData>();
+    // The data related to the RS servers connected to this RS
+    HashMap<Short, ServerData> rsStates =
       new HashMap<Short, ServerData>();
   }
 
@@ -93,9 +98,9 @@ public class MonitorMessage extends RoutableMessage implements
    * Sets the state of the replication server.
    * @param state The state.
    */
-  public void setReplServerState(ServerState state)
+  public void setReplServerDbState(ServerState state)
   {
-    data.replServerState = state;
+    data.replServerDbState = state;
   }
 
   /**
@@ -103,20 +108,27 @@ public class MonitorMessage extends RoutableMessage implements
    * @param serverId The serverID.
    * @param state The server state.
    * @param approxFirstMissingDate  The approximation of the date
-   * of the older missing change.
-   *
+   * of the older missing change. null when none.
+   * @param isLDAP Specifies whether the server is a LS or a RS
    */
-  public void setLDAPServerState(short serverId, ServerState state,
-      Long approxFirstMissingDate)
+  public void setServerState(short serverId, ServerState state,
+      Long approxFirstMissingDate, boolean isLDAP)
   {
     if (data.ldapStates == null)
     {
       data.ldapStates = new HashMap<Short, ServerData>();
     }
+    if (data.rsStates == null)
+    {
+      data.rsStates = new HashMap<Short, ServerData>();
+    }
     ServerData sd = new ServerData();
     sd.state = state;
     sd.approxFirstMissingDate = approxFirstMissingDate;
-    data.ldapStates.put(serverId, sd);
+    if (isLDAP)
+      data.ldapStates.put(serverId, sd);
+    else
+      data.rsStates.put(serverId, sd);
   }
 
   /**
@@ -130,16 +142,37 @@ public class MonitorMessage extends RoutableMessage implements
   }
 
   /**
+   * Get the server state for the RS server with the provided serverId.
+   * @param serverId The provided serverId.
+   * @return The state.
+   */
+  public ServerState getRSServerState(short serverId)
+  {
+    return data.rsStates.get(serverId).state;
+  }
+
+
+  /**
    * Get the approximation of the date of the older missing change for the
    * LDAP Server with the provided server Id.
    * @param serverId The provided serverId.
    * @return The approximated state.
    */
-  public Long getApproxFirstMissingDate(short serverId)
+  public Long getLDAPApproxFirstMissingDate(short serverId)
   {
     return data.ldapStates.get(serverId).approxFirstMissingDate;
   }
 
+  /**
+   * Get the approximation of the date of the older missing change for the
+   * RS Server with the provided server Id.
+   * @param serverId The provided serverId.
+   * @return The approximated state.
+   */
+  public Long getRSApproxFirstMissingDate(short serverId)
+  {
+    return data.rsStates.get(serverId).approxFirstMissingDate;
+  }
 
   /**
    * Creates a new EntryMessage from its encoded form.
@@ -182,39 +215,51 @@ public class MonitorMessage extends RoutableMessage implements
       try
       {
         ASN1Sequence s0 = ASN1Sequence.decodeAsSequence(encodedS);
+        // loop on the servers
         for (ASN1Element el0 : s0.elements())
         {
           ServerState newState = new ServerState();
           short serverId = 0;
           Long outime = (long)0;
+          boolean isLDAPServer = false;
           ASN1Sequence s1 = el0.decodeAsSequence();
+
+          // loop on the list of CN of the state
           for (ASN1Element el1 : s1.elements())
           {
             ASN1OctetString o = el1.decodeAsOctetString();
             String s = o.stringValue();
             ChangeNumber cn = new ChangeNumber(s);
-            if ((data.replServerState != null) && (serverId == 0))
+            if ((data.replServerDbState != null) && (serverId == 0))
             {
+              // we are on the first CN that is a fake CN to store the serverId
+              // and the older update time
               serverId = cn.getServerId();
               outime = cn.getTime();
+              isLDAPServer = (cn.getSeqnum()>0);
             }
             else
             {
+              // we are on a normal CN
               newState.update(cn);
             }
           }
 
-          // the first state is the replication state
-          if (data.replServerState == null)
+          if (data.replServerDbState == null)
           {
-            data.replServerState = newState;
+            // the first state is the replication state
+            data.replServerDbState = newState;
           }
           else
           {
+            // the next states are the server states
             ServerData sd = new ServerData();
             sd.state = newState;
             sd.approxFirstMissingDate = outime;
-            data.ldapStates.put(serverId, sd);
+            if (isLDAPServer)
+              data.ldapStates.put(serverId, sd);
+            else
+              data.rsStates.put(serverId, sd);
           }
         }
       } catch(Exception e)
@@ -245,14 +290,17 @@ public class MonitorMessage extends RoutableMessage implements
       ASN1Sequence stateElementSequence = new ASN1Sequence();
       ArrayList<ASN1Element> stateElementList = new ArrayList<ASN1Element>();
 
-      // First loop computes the length
+      /**
+       * First loop computes the length
+       */
+
       /* Put the serverStates ... */
       stateElementSequence = new ASN1Sequence();
       stateElementList = new ArrayList<ASN1Element>();
 
       /* first put the Replication Server state */
       ArrayList<ASN1OctetString> cnOctetList =
-        data.replServerState.toASN1ArrayList();
+        data.replServerDbState.toASN1ArrayList();
       ArrayList<ASN1Element> cnElementList = new ArrayList<ASN1Element>();
       for (ASN1OctetString soci : cnOctetList)
       {
@@ -288,6 +336,35 @@ public class MonitorMessage extends RoutableMessage implements
         cnSequence = new ASN1Sequence(cnElementList);
         stateElementList.add(cnSequence);
       }
+
+      // then the rs server data
+      servers = data.rsStates.keySet();
+      for (Short sid : servers)
+      {
+        // State
+        ServerState statei = data.rsStates.get(sid).state;
+        // First missing date
+        Long outime =  data.rsStates.get(sid).approxFirstMissingDate;
+
+        // retrieves the change numbers as an arrayList of ANSN1OctetString
+        cnOctetList = statei.toASN1ArrayList();
+        cnElementList = new ArrayList<ASN1Element>();
+
+        // a fake changenumber helps storing the LDAP server ID
+        // and the olderupdatetime
+        ChangeNumber cn = new ChangeNumber(outime,0,sid);
+        cnElementList.add(new ASN1OctetString(cn.toString()));
+
+        // the changenumbers
+        for (ASN1OctetString soci : cnOctetList)
+        {
+          cnElementList.add(soci);
+        }
+
+        cnSequence = new ASN1Sequence(cnElementList);
+        stateElementList.add(cnSequence);
+      }
+
       stateElementSequence.setElements(stateElementList);
       int seqLen = stateElementSequence.encode().length;
 
@@ -298,7 +375,9 @@ public class MonitorMessage extends RoutableMessage implements
       // Allocate the array sized from the computed length
       byte[] resultByteArray = new byte[length];
 
-      // Second loop build the array
+      /**
+       * Second loop really builds the array
+       */
 
       /* put the type of the operation */
       resultByteArray[0] = MSG_TYPE_REPL_SERVER_MONITOR;
@@ -313,7 +392,7 @@ public class MonitorMessage extends RoutableMessage implements
 
       /* first put the Replication Server state */
       cnOctetList =
-        data.replServerState.toASN1ArrayList();
+        data.replServerDbState.toASN1ArrayList();
       cnElementList = new ArrayList<ASN1Element>();
       for (ASN1OctetString soci : cnOctetList)
       {
@@ -322,7 +401,7 @@ public class MonitorMessage extends RoutableMessage implements
       cnSequence = new ASN1Sequence(cnElementList);
       stateElementList.add(cnSequence);
 
-      // then the LDAP server state
+      // then the LDAP server datas
       servers = data.ldapStates.keySet();
       for (Short sid : servers)
       {
@@ -334,10 +413,10 @@ public class MonitorMessage extends RoutableMessage implements
         cnElementList = new ArrayList<ASN1Element>();
 
         // a fake changenumber helps storing the LDAP server ID
-        ChangeNumber cn = new ChangeNumber(outime,0,sid);
+        ChangeNumber cn = new ChangeNumber(outime,1,sid);
         cnElementList.add(new ASN1OctetString(cn.toString()));
 
-        // the changenumbers
+        // the changenumbers that make the state
         for (ASN1OctetString soci : cnOctetList)
         {
           cnElementList.add(soci);
@@ -346,6 +425,33 @@ public class MonitorMessage extends RoutableMessage implements
         cnSequence = new ASN1Sequence(cnElementList);
         stateElementList.add(cnSequence);
       }
+
+      // then the RS server datas
+      servers = data.rsStates.keySet();
+      for (Short sid : servers)
+      {
+        ServerState statei = data.rsStates.get(sid).state;
+        Long outime = data.rsStates.get(sid).approxFirstMissingDate;
+
+        // retrieves the change numbers as an arrayList of ANSN1OctetString
+        cnOctetList = statei.toASN1ArrayList();
+        cnElementList = new ArrayList<ASN1Element>();
+
+        // a fake changenumber helps storing the LDAP server ID
+        ChangeNumber cn = new ChangeNumber(outime,0,sid);
+        cnElementList.add(new ASN1OctetString(cn.toString()));
+
+        // the changenumbers that make the state
+        for (ASN1OctetString soci : cnOctetList)
+        {
+          cnElementList.add(soci);
+        }
+
+        cnSequence = new ASN1Sequence(cnElementList);
+        stateElementList.add(cnSequence);
+      }
+
+
       stateElementSequence.setElements(stateElementList);
       pos = addByteArray(stateElementSequence.encode(), resultByteArray, pos);
 
@@ -361,18 +467,27 @@ public class MonitorMessage extends RoutableMessage implements
    * Get the state of the replication server that sent this message.
    * @return The state.
    */
-  public ServerState getReplServerState()
+  public ServerState getReplServerDbState()
   {
-    return data.replServerState;
+    return data.replServerDbState;
   }
 
   /**
    * Returns an iterator on the serverId of the connected LDAP servers.
    * @return The iterator.
    */
-  public Iterator<Short> iterator()
+  public Iterator<Short> ldapIterator()
   {
     return data.ldapStates.keySet().iterator();
+  }
+
+  /**
+   * Returns an iterator on the serverId of the connected RS servers.
+   * @return The iterator.
+   */
+  public Iterator<Short> rsIterator()
+  {
+    return data.rsStates.keySet().iterator();
   }
 
   /**
@@ -381,21 +496,33 @@ public class MonitorMessage extends RoutableMessage implements
   @Override
   public String toString()
   {
-    String stateS = " RState:";
-    stateS += "/" + data.replServerState.toString();
-    stateS += " LDAPStates:";
-    Iterator<ServerData> it = data.ldapStates.values().iterator();
-    while (it.hasNext())
+    String stateS = "\nRState:[";
+    stateS += data.replServerDbState.toString();
+    stateS += "]";
+
+    stateS += "\nLDAPStates:[";
+    for (Short sid : data.ldapStates.keySet())
     {
-      ServerData sd = it.next();
-      stateS += "/ state=" + sd.state.toString()
-      + " afmd=" + sd.approxFirstMissingDate + "] ";
+      ServerData sd = data.ldapStates.get(sid);
+      stateS +=
+               "\n[LSstate("+ sid + ")=" +
+                sd.state.toString() + "]" +
+                " afmd=" + sd.approxFirstMissingDate + "]";
     }
 
+    stateS += "\nRSStates:[";
+    for (Short sid : data.rsStates.keySet())
+    {
+      ServerData sd = data.rsStates.get(sid);
+      stateS +=
+               "\n[RSState("+ sid + ")=" +
+               sd.state.toString() + "]" +
+               " afmd=" + sd.approxFirstMissingDate + "]";
+    }
     String me = this.getClass().getCanonicalName() +
-    " sender=" + this.senderID +
+    "[ sender=" + this.senderID +
     " destination=" + this.destination +
-    " states=" + stateS +
+    " data=[" + stateS + "]" +
     "]";
     return me;
   }
