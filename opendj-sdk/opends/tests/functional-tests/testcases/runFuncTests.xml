@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ !      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  ! -->
 <stax>
   <defaultcall function="main" />
@@ -125,7 +125,12 @@
       add keyword 'main_virtualAttributes' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
       -->
 
-
+      <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/monitoring/monitoring.xml' % (TESTS_DIR)" />
+      <!--
+      add keyword 'main_monitoring' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
+      
       <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>
