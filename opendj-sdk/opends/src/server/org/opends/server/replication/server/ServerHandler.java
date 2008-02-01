@@ -857,16 +857,6 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
     if (olderUpdateCN == null)
       return null;
 
-    ReplicationIterator ri =
-      replicationServerDomain.getChangelogIterator(serverId, olderUpdateCN);
-    if (ri != null)
-    {
-      if (ri.next())
-      {
-        ChangeNumber firstMissingChange = ri.getChange().getChangeNumber();
-        return firstMissingChange.getTime();
-      }
-    }
     return olderUpdateCN.getTime();
   }
 
@@ -1081,9 +1071,16 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
             ChangeNumber lastCsn = serverState.getMaxChangeNumber(serverId);
             ReplicationIterator iterator =
               replicationServerDomain.getChangelogIterator(serverId, lastCsn);
-            if ((iterator != null) && (iterator.getChange() != null))
+            if (iterator != null)
             {
-              iteratorSortedSet.add(iterator);
+              if (iterator.getChange() != null)
+              {
+                iteratorSortedSet.add(iterator);
+              }
+              else
+              {
+                iterator.releaseCursor();
+              }
             }
           }
           while (!iteratorSortedSet.isEmpty() && (lateQueue.size()<100))
