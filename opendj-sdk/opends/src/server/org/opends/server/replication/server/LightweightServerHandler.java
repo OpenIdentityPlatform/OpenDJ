@@ -200,16 +200,6 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
-    if (debugEnabled())
-      TRACER.debugInfo(
-          "In " +
-          this.replServerHandler.getDomain().getReplicationServer().
-          getMonitorInstanceName()+
-          " LWSH for remote server " + this.serverId +
-          " connected to:" + this.replServerHandler.getMonitorInstanceName() +
-      " getMonitor data");
-
-
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     attributes.add(new Attribute("server-id",
@@ -220,12 +210,12 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
         replServerHandler.getMonitorInstanceName()));
 
     // Retrieves the topology counters
+    MonitorData md;
     try
     {
-      rsDomain.retrievesRemoteMonitorData();
+      md = rsDomain.getMonitorData();
 
-      // Compute the latency for the current SH
-      ServerState remoteState = rsDomain.getServerState(serverId);
+      ServerState remoteState = md.getLDAPServerState(serverId);
       if (remoteState == null)
       {
         remoteState = new ServerState();
@@ -241,29 +231,39 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
       {
         values.add(new AttributeValue(type,str));
       }
+      if (values.size() == 0)
+      {
+        values.add(new AttributeValue(type,"unknown"));
+      }
       Attribute attr = new Attribute(type, ATTR_SERVER_STATE, values);
       attributes.add(attr);
 
-      // add the latency attribute to our monitor data
-      // Compute the latency for the current SH
-      int missingChanges = rsDomain.getMissingChanges(remoteState);
-      attributes.add(new Attribute("missing-changes",
-          String.valueOf(missingChanges)));
-
-      // Add the oldest missing update
-      Long olderUpdateTime = rsDomain.getApproxFirstMissingDate(serverId);
-      if (olderUpdateTime != null)
+      // Oldest missing update
+      Long approxFirstMissingDate=md.getApproxFirstMissingDate(serverId);
+      if ((approxFirstMissingDate != null) && (approxFirstMissingDate>0))
       {
-        Date date = new Date(olderUpdateTime);
+        Date date = new Date(approxFirstMissingDate);
         attributes.add(new Attribute("approx-older-change-not-synchronized",
           date.toString()));
         attributes.add(
-          new Attribute("approx-older-change-not-synchronized-millis",
-          String.valueOf(olderUpdateTime)));
+            new Attribute("approx-older-change-not-synchronized-millis",
+            String.valueOf(approxFirstMissingDate)));
       }
+
+      // Missing changes
+      long missingChanges = md.getMissingChanges(serverId);
+      attributes.add(new Attribute("missing-changes",
+          String.valueOf(missingChanges)));
+
+      // Replication delay
+      long delay = md.getApproxDelay(serverId);
+      attributes.add(new Attribute("approximate-delay",
+          String.valueOf(delay)));
+
     }
     catch(Exception e)
     {
+      // TODO: improve the log
       // We failed retrieving the remote monitor data.
       attributes.add(new Attribute("error",
         stackTraceToSingleLineString(e)));

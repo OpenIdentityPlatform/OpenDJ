@@ -120,6 +120,7 @@ public class ServerWriter extends DirectoryThread
           continue;
         }
 
+        /*
         if (debugEnabled())
         {
           TRACER.debugInfo(
@@ -131,6 +132,7 @@ public class ServerWriter extends DirectoryThread
             " server=" + handler.getServerId() +
             " generationId=" + handler.getGenerationId());
         }
+        */
         session.publish(update);
       }
     }

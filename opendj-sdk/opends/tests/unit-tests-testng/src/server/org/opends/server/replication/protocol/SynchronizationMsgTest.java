@@ -496,7 +496,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     state.update(new ChangeNumber((long)1, 1,(short)1));
     ServerStartMessage msg = new ServerStartMessage(serverId, baseDN,
         window, window, window, window, window, window, state, (short)1, 
-        (long)1, true);
+        (long)1, true, false);
     ServerStartMessage newMsg = new ServerStartMessage(msg.getBytes());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
@@ -511,6 +511,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         newMsg.getServerState().getMaxChangeNumber((short)1));
     assertEquals(msg.getVersion(), newMsg.getVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
+    assertEquals(msg.isHandshakeOnly(), newMsg.isHandshakeOnly());
   }
 
   @DataProvider(name="changelogStart")
@@ -614,20 +615,28 @@ public class SynchronizationMsgTest extends ReplicationTestCase
                                        (short) 123, sid2);
     s2.update(cn2);
 
+    // LS3 state
+    ServerState s3 = new ServerState();
+    short sid3 = 333;
+    ChangeNumber cn3 = new ChangeNumber(now,
+                                       (short) 123, sid3);
+    s3.update(cn3);
+
     MonitorMessage msg =
       new MonitorMessage(sender, dest);
-    msg.setReplServerState(rsState);
-    msg.setLDAPServerState(sid1, s1, now+1);
-    msg.setLDAPServerState(sid2, s2, now+2);
+    msg.setReplServerDbState(rsState);
+    msg.setServerState(sid1, s1, now+1, true);
+    msg.setServerState(sid2, s2, now+2, true);
+    msg.setServerState(sid3, s3, now+3, false);
     
     byte[] b = msg.getBytes();
     MonitorMessage newMsg = new MonitorMessage(b);
 
-    assertEquals(rsState, msg.getReplServerState());
-    assertEquals(newMsg.getReplServerState().toString(), 
-        msg.getReplServerState().toString());
+    assertEquals(rsState, msg.getReplServerDbState());
+    assertEquals(newMsg.getReplServerDbState().toString(), 
+        msg.getReplServerDbState().toString());
     
-    Iterator<Short> it = newMsg.iterator();
+    Iterator<Short> it = newMsg.ldapIterator();
     while (it.hasNext())
     {
       short sid = it.next();
@@ -635,16 +644,32 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       if (sid == sid1)
       {
         assertEquals(s.toString(), s1.toString(), "");
-        assertEquals((Long)(now+1), newMsg.getApproxFirstMissingDate(sid), "");
+        assertEquals((Long)(now+1), newMsg.getLDAPApproxFirstMissingDate(sid), "");
       }
       else if (sid == sid2)
       {
         assertEquals(s.toString(), s2.toString());        
-        assertEquals((Long)(now+2), newMsg.getApproxFirstMissingDate(sid), "");
+        assertEquals((Long)(now+2), newMsg.getLDAPApproxFirstMissingDate(sid), "");
       }
       else
       {
-        fail("Bad sid");
+        fail("Bad sid" + sid);
+      }
+    }
+
+    Iterator<Short> it2 = newMsg.rsIterator();
+    while (it2.hasNext())
+    {
+      short sid = it2.next();
+      ServerState s = newMsg.getRSServerState(sid);
+      if (sid == sid3)
+      {
+        assertEquals(s.toString(), s3.toString(), "");
+        assertEquals((Long)(now+3), newMsg.getRSApproxFirstMissingDate(sid), "");
+      }
+      else
+      {
+        fail("Bad sid " + sid);
       }
     }
 

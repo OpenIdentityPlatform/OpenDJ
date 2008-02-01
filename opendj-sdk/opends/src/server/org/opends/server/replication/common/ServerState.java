@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.common;
 
@@ -338,5 +338,24 @@ public class ServerState implements Iterable<Short>
   public boolean isEmpty()
   {
     return list.isEmpty();
+  }
+
+  /**
+   * Make a duplicate of this state.
+   * @return The duplicate of this state.
+   */
+  public ServerState duplicate()
+  {
+    ServerState newState = new ServerState();
+    synchronized (this)
+    {
+      for (Short key  : list.keySet())
+      {
+        ChangeNumber change = list.get(key);
+        Short id =  change.getServerId();
+        newState.list.put(id,change);
+      }
+    }
+    return newState;
   }
 }

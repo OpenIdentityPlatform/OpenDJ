@@ -874,7 +874,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       ServerStartMessage msg =
         new ServerStartMessage((short) 1723, DN.decode("dc=example,dc=com"),
             0, 0, 0, 0, WINDOW, (long) 5000, new ServerState(),
-            ProtocolVersion.currentVersion(), 0, sslEncryption);
+            ProtocolVersion.currentVersion(), 0, sslEncryption, false);
       session.publish(msg);
 
       // Read the Replication Server state from the ReplServerStartMessage that
@@ -907,7 +907,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           0, 0, 0, 0, WINDOW, (long) 5000, replServerState,
           ProtocolVersion.currentVersion(),
           ReplicationTestCase.getGenerationId(baseDn),
-          sslEncryption);
+          sslEncryption, false);
       session.publish(msg);
 
       // Read the ReplServerStartMessage that come back.
