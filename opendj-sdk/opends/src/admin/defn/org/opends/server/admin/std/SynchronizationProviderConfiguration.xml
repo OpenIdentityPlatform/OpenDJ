@@ -33,20 +33,8 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are responsible for handling synchronization of the Directory Server
+    are responsible for handling Synchronization of the Directory Server
     data with other OpenDS instances or other data repositories.
-    The OpenDS Directory Server takes a centralized approach to 
-    replication, rather than the point-to-point approach taken by Sun 
-    Java System Directory Server. In OpenDS, one or more replication 
-    servers are created in the environment. The replication servers 
-    typically do not store user data but keep a log of all changes made 
-    within the topology. Each Directory Server instance in the topology 
-    is pointed at the replication servers. This plan simplifies the 
-    deployment and management of the environment. Although you can run 
-    the replication server on the same system (or even in the same 
-    instance) as the Directory Server, the two servers can be separated 
-    onto different systems. This approach can provide better performance 
-    or functionality in large environments.
   </adm:synopsis>
   <adm:tag name="replication" />
   <adm:profile name="ldap">
@@ -60,7 +48,7 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicates whether the
+      Indicate whether the
       <adm:user-friendly-name />
       is enabled for use.
     </adm:synopsis>
@@ -75,7 +63,7 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      Specifies the fully-qualified name of the Java class that provides the
+      The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>

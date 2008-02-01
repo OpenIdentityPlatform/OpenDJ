@@ -37,11 +37,11 @@
   <adm:description>
     A
     <adm:user-friendly-name />
-    can perform a task such as mapping DNs, renaming attributes,
+    may perform a task such as mapping DNs, renaming attributes,
     filtering attributes, joining data sources, proxying, or
     load-balancing. The simplest
     <adm:user-friendly-name />
-    is the Local Backend Work Flow Element, which routes data
+    is the Local Backend Work Flow Element which is used to route data
     to a Backend.
   </adm:description>
   <adm:tag name="core" />
@@ -63,7 +63,7 @@
     <adm:description>
       If a
       <adm:user-friendly-name />
-      is not enabled, then its contents are not accessible when
+      is not enabled, then its contents will not be accessible when
       processing operations.
     </adm:description>
     <adm:syntax>
@@ -78,7 +78,7 @@
   <adm:property name="workflow-element-id" mandatory="true"
     read-only="true">
     <adm:synopsis>
-      Provides a name that identifies the associated
+      Provides a name that will be used to identify the associated
       <adm:user-friendly-name />
       .
     </adm:synopsis>
@@ -98,7 +98,7 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      Specifies the fully-qualified name of the Java class that provides the
+      The fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>

@@ -31,22 +31,10 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The CRAM-MD5 SASL mechanism provides the ability for clients to 
-    perform password-based authentication in a manner that does not 
-    expose their password in the clear. Rather than including the 
-    password in the bind request, the CRAM-MD5 mechanism uses a 
-    two-step process in which the client needs only to prove that it 
-    knows the password. The server sends randomly-generated data to 
-    the client that is to be used in the process, which makes it 
-    resistant to replay attacks. The one-way message digest 
-    algorithm ensures that the original clear-text password is not 
-    exposed.  Note that the algorithm used by the CRAM-MD5 mechanism 
-    requires that both the client and the server have access to the 
-    clear-text password (or potentially a value that is derived from 
-    the clear-text password). In order to authenticate to the server 
-    using CRAM-MD5, the password for a user's account must be encoded 
-    using a reversible password storage scheme that allows the server 
-    to have access to the clear-text value. 
+    The
+    <adm:user-friendly-name />
+    is used to perform all processing related to SASL CRAM-MD5
+    authentication.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -65,10 +53,8 @@
   </adm:property-override>
   <adm:property name="identity-mapper" mandatory="true">
     <adm:synopsis>
-      Specifies the name of the identity mapper that is to be used
-      with this SASL mechanism handler to match the authentication 
-      ID included in the SASL bind request to the corresponding 
-      user in the directory.
+      Specifies the name of the identity mapper that should be used to
+      match the client authentication ID to a user entry.
     </adm:synopsis>
     <adm:syntax>
       <adm:aggregation relation-name="identity-mapper"

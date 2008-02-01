@@ -32,22 +32,10 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    configuration is the parent of all the Root DN Users defined in the
-    directory server. In addition, it also defines the default set of
+    configuration contains all the Root DN Users defined in the
+    Directory Server. In addition, it also defines the default set of
     privileges that Root DN Users will automatically inherit.
   </adm:synopsis>
-  <adm:description>
-    Because the ds-cfg-root-dn-user objectclass is an auxiliary class, each 
-    root DN entry must have its own structural class (for example, inetOrgPerson) that 
-    allows the additional attributes to include in that entry. Because root users in the 
-    OpenDS Directory Server have actual entries, it is possible to provide other attributes 
-    that might be necessary to allow for stronger authentication mechanisms 
-    (for example, a certificate for use with SASL EXTERNAL, or information used for identity 
-    mapping). It is also possible to have multiple root DNs in the OpenDS Directory 
-    Server, which means that each of them can have their own password 
-    (and associated password policy) and other settings on an individual basis rather 
-    than requiring all administrators to share a single root DN and password.
-  </adm:description>
   <adm:tag name="core" />
   <adm:profile name="ldap">
     <ldap:object-class>

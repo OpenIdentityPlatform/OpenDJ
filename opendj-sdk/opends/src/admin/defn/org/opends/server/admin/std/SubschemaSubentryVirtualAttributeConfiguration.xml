@@ -33,9 +33,9 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-      generates a virtual attribute that specifies the location of the 
-      subschemaSubentry with the schema definitions in effect for the 
-      entry. This attribute is defined in RFC 4512.
+    may be used to generate a virtual attribute that specifies the
+    location of the subschemaSubentry with the schema definitions in
+    effect for the entry.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

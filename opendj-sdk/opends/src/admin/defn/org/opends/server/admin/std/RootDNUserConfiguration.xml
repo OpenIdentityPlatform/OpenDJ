@@ -32,12 +32,12 @@
   <adm:synopsis>
     A
     <adm:user-friendly-name />
-    is an administrative user who is granted special privileges which
-    are not available to non-root users (for example, the ability to bind to
+    are administrative users who may be granted special privileges which
+    are not available to non-root users (e.g., the ability to bind to
     the server in lockdown mode).
   </adm:synopsis>
   <adm:description>
-    By default, a
+    By default a
     <adm:user-friendly-name />
     inherits the default set of privileges defined in the Root DN
     configuration.
@@ -57,7 +57,7 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          This root user is only allowed to bind using the DN of
+          This root user will only be allowed to bind using the DN of
           the associated configuration entry.
         </adm:synopsis>
       </adm:alias>

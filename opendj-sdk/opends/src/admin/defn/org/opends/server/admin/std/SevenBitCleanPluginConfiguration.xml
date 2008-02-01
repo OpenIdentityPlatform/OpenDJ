@@ -31,17 +31,18 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The Seven Bit Clean plug-in
-    ensures that values for a specified set of attributes
+    The
+    <adm:user-friendly-name />
+    may be used to ensure that values for a specified set of attributes
     are 7-bit clean.
   </adm:synopsis>
   <adm:description>
     That is, for those attributes, the values are not allowed to contain
     any bytes having the high-order bit set, which is used to indicate
-    the presence of non-ASCII characters. Some applications do not
+    the presence of non-ASCII characters. Some applications may not
     properly handle attribute values that contain non-ASCII characters,
-    and this plug-in can help ensure that attributes used by those
-    applications do not contain characters that can cause problems in
+    and this plugin may help ensure that attributes used by those
+    applications do not contain characters which may cause problems in
     those applications.
   </adm:description>
   <adm:profile name="ldap">
@@ -93,7 +94,7 @@
   </adm:property>
   <adm:property name="base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the base DN below which the checking is performed.
+      Specifies the base DN below which the checking will be performed.
     </adm:synopsis>
     <adm:description>
       Any attempt to update a value for one of the configured attributes

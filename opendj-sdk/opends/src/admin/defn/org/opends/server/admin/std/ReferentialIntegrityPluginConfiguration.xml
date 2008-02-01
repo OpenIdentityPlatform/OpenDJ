@@ -31,17 +31,17 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The Referential Integrity plug-in
-    maintains referential integrity for DN valued attributes.
+    The
+    <adm:user-friendly-name />
+    is used to maintain referential integrity for DN valued attributes.
   </adm:synopsis>
   <adm:description>
-    The values of these attributes can reference entries that have been
+    The values of these attributes may reference entries that have been
     deleted by a delete operation or renamed by a modify DN operation.
-    The referential integrity plug-in either removes stale references to
-    deleted entries or updates references to renamed entries. The
-    plug-in allows the scope of this referential
-    check to be limited to a set of base DNs if desired. The plug-in 
-    also can be
+    The referential integrity plugin will remove stale references to
+    deleted entries or update references to renamed entries. The
+    referential integrity plugin allows the scope of this referential
+    check to be limited to a set of base DNs if desired. It also can be
     configured to perform the referential checking in the background
     mode specified intervals.
   </adm:description>
@@ -73,12 +73,12 @@
     multi-valued="true">
     <adm:synopsis>
       Specifies the attribute types for which referential integrity
-      is to be maintained.
+      should be maintained.
     </adm:synopsis>
     <adm:description>
-      At least one attribute type must be specified, and the syntax
-      of any attributes must be either a distinguished name
-      (1.3.6.1.4.1.1466.115.121.1.12) or name and optional UID
+      There must be at least one attribute type specified and the syntax
+      of them must either be distinguished name
+      (1.3.6.1.4.1.1466.115.121.1.12) or name and optional uid
       (1.3.6.1.4.1.1466.115.121.1.34).
     </adm:description>
     <adm:syntax>
@@ -92,13 +92,13 @@
   </adm:property>
   <adm:property name="base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the base DN that limits the scope within which 
-      referential integrity is maintained.
+      Specifies the scope within which referential integrity will be
+      maintained.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Referential integrity is maintained in all public naming
+          Referential integrity will be maintained in all public naming
           contexts.
         </adm:synopsis>
       </adm:alias>
@@ -114,11 +114,11 @@
   </adm:property>
   <adm:property name="log-file">
     <adm:synopsis>
-      Specifies the log file location where the update records are
-      written when the plug-in is in background-mode processing.
+      Specifies the log file location where the update records will be
+      written when the plugin is in background mode processing.
     </adm:synopsis>
     <adm:description>
-      The default location is the logs directory of the server
+      The default location is in the logs directory of the server
       instance, using the file name "referint".
     </adm:description>
     <adm:default-behavior>
@@ -127,15 +127,7 @@
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:string>
-        <adm:pattern>
-          <adm:regex>.*</adm:regex>
-          <adm:usage>FILE</adm:usage>
-          <adm:synopsis>
-            A path to an existing file that is readable by the server.
-          </adm:synopsis>
-        </adm:pattern>
-      </adm:string>
+      <adm:string />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -145,8 +137,8 @@
   </adm:property>
   <adm:property name="update-interval">
     <adm:synopsis>
-      Specifies the interval in seconds when referential integrity
-      updates are made.
+      Specifies the interval, in seconds, when referential integrity
+      updates will be made.
     </adm:synopsis>
     <adm:description>
       If this value is 0, then the updates are made synchronously in the
