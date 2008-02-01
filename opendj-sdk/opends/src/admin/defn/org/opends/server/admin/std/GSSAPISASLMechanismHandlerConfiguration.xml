@@ -31,10 +31,14 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    is used to perform all processing related to SASL GSSAPI
+    The GSSAPI SASL mechanism 
+    performs all processing related to SASL GSSAPI
     authentication using Kerberos V5.
+    The GSSAPI SASL mechanism provides the ability for clients 
+    to authenticate themselves to the server using existing 
+    authentication in a Kerberos environment. This mechanism 
+    provides the ability to achieve single sign-on for 
+    Kerberos-based clients.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -74,11 +78,13 @@
   </adm:property>
   <adm:property name="kdc-address">
     <adm:synopsis>
-      Specifies the address of the KDC that should be used for Kerberos
+      Specifies the address of the KDC that is to be used for Kerberos
       processing.
     </adm:synopsis>
     <adm:description>
-      If provided, this should be a fully-qualified DNS-resolvable name.
+      If provided, this must a fully-qualified DNS-resolvable name.
+      If this is not provided, then the server attempts to determine it 
+      from the system-wide Kerberos configuration.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
@@ -146,8 +152,11 @@
   </adm:property>
   <adm:property name="identity-mapper" mandatory="true">
     <adm:synopsis>
-      Specifies the name of the identity mapper that should be used to
-      match the Kerberos principal to a user entry.
+      Specifies the name of the identity mapper that is to be used
+      with this SASL mechanism handler 
+      to match the Kerberos principal 
+      included in the SASL bind request to the corresponding
+      user in the directory.
     </adm:synopsis>
     <adm:syntax>
       <adm:aggregation relation-name="identity-mapper"

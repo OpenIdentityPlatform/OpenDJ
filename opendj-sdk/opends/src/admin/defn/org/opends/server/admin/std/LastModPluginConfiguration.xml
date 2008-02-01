@@ -30,12 +30,17 @@
   extends="plugin" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
+    The Last Mod plug-in
     is used to ensure that the creatorsName and createTimestamp
     attributes are included in an entry whenever it is added to the
-    server, and to ensure that the modifiersName and modifyTimestamp
+    server and also to ensure that the modifiersName and modifyTimestamp
     attributes are updated whenever an entry is modified or renamed.
+    This behavior is described in RFC 4512. The implementation for 
+    the LastMod plugin is contained in the 
+    org.opends.server.plugins.LastModPlugin class. It must be 
+    configured with the preOperationAdd, preOperationModify, and 
+    preOperationModifyDN plugin types, but it does not have any 
+    other custom configuration. 
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

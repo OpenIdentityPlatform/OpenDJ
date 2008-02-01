@@ -35,7 +35,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to provide multi-master replication of data across multiple
+    provides multi-master replication of data across multiple
     Directory Server instances.
   </adm:synopsis>
   <adm:profile name="ldap">
@@ -81,10 +81,10 @@
   </adm:property-override>
   <adm:property name="num-update-replay-threads" mandatory="false" read-only="false" advanced="true">
     <adm:synopsis>
-      Specifies the number of update replay threads
+      Specifies the number of update replay threads. 
     </adm:synopsis>
     <adm:description>
-      This is the number of threads created for replaying every updates
+      This value is the number of threads created for replaying every updates
       received for all the replication domains.
     </adm:description>
     <adm:default-behavior>

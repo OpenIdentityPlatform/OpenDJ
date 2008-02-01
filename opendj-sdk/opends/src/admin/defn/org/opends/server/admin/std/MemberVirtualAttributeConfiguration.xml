@@ -33,14 +33,23 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to generate a member or uniqueMember attribute whose values
-    are the DNs of the members of a specified group.
+    generates a member or uniqueMember attribute whose values are 
+    the DNs of the members of a specified virtual static group.
   </adm:synopsis>
   <adm:description>
-    This is used to implement virtual static group functionality, in
-    which it is possible to create an entry which looks like a static
-    group but obtains all of its membership from a dynamic group (or
-    some other type of group, including another static group).
+    This component is used to implement virtual static group 
+    functionality, in which it is possible to create an entry 
+    that looks like a static group but obtains all of its 
+    membership from a dynamic group (or some other type of 
+    group, including another static group).
+    This implementation is most efficient when attempting to 
+    determine whether a given user is a member of a group 
+    (for example, with a filter like 
+    "(uniqueMember=uid=john.doe,ou=People,dc=example,dc=com)") 
+    when the search does not actually return the membership 
+    attribute. Although it works to generate the entire set of 
+    values for the member or uniqueMember attribute, this can be 
+    an expensive operation for a large group.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -70,10 +79,15 @@
       the virtual attribute.
     </adm:synopsis>
     <adm:description>
-      This can be a very expensive operation in some cases, and is not
-      in-line with the primary function of virtual static groups, which
+      This operation can be very expensive in some cases and is not
+      consistent with the primary function of virtual static groups, which
       is to make it possible to use static group idioms to determine
       whether a given user is a member.
+      If this attribute is set to false, attempts to retrieve the entire 
+      set of values receive an empty set, and only attempts to determine 
+      whether the attribute has a specific value or set of values 
+      (which is the primary anticipated use for virtual static groups) 
+      are handled properly.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
