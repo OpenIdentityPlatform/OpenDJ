@@ -33,13 +33,13 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    creates virtual attributes with user-defined values in
-    entries that match the criteria defined in the plug-in's
+    is used to create virtual attributes with user-defined values in
+    entries that match the criteria defined in the plugin's
     configuration.
   </adm:synopsis>
   <adm:description>
-    The functionality of these attributes is similar to Class 
-    of Service (CoS) in the Sun Java System Directory Server.
+    This provides functionality that is similar to Class of Service
+    (CoS) in the Sun Java System Directory Server.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -58,7 +58,7 @@
   </adm:property-override>
   <adm:property name="value" mandatory="true" multi-valued="true">
     <adm:synopsis>
-      Specifies the values to be included in the virtual
+      Specifies the value(s) which should be included in virtual
       attribute.
     </adm:synopsis>
     <adm:syntax>

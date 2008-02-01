@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    enforces constraints on the value of an attribute within a
+    is used enforce constraints on the value of an attribute within a
     portion of the directory.
   </adm:synopsis>
   <adm:description>
@@ -83,12 +83,12 @@
   </adm:property>
   <adm:property name="base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies a base DN within which the attribute must be unique.
+      Specifies a base DN that the attribute must be unique within.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The plug-in uses the server's public naming contexts in the
+          The plugin will use the server's public naming contexts in the
           searches.
         </adm:synopsis>
       </adm:alias>

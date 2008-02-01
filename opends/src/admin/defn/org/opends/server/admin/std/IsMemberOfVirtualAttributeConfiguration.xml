@@ -33,8 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    generates the isMemberOf operational attribute, 
-    which contains the DNs of
+    may be used to generate a virtual attribute that contains the DNs of
     the groups in which the user is a member.
   </adm:synopsis>
   <adm:profile name="ldap">

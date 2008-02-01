@@ -31,7 +31,7 @@
   xmlns:ldap="http://www.opends.org/admin-ldap"
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
-    Plug-ins
+    <adm:user-friendly-plural-name />
     provide a mechanism for executing custom code at specified points in
     operation processing and in the course of other events like
     connection establishment and termination, server startup and
@@ -49,8 +49,9 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicates whether the
-      plug-in is enabled for use.
+      Indicate whether the
+      <adm:user-friendly-name />
+      is enabled for use.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -63,8 +64,9 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      Specifies the fully-qualified name of the Java class that provides the
-      plug-in implementation.
+      The fully-qualified name of the Java class that provides the
+      <adm:user-friendly-name />
+      implementation.
     </adm:synopsis>
     <adm:syntax>
       <adm:java-class>
@@ -82,7 +84,8 @@
   <adm:property name="plugin-type" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      Specifies the set of plug-in types for the plug-in, which specifies the times at which the plug-in is invoked. 
+      The plugin types, which define the conditions under which this
+      plugin should be invoked.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:component-restart />
@@ -368,13 +371,13 @@
   </adm:property>
   <adm:property name="invoke-for-internal-operations" advanced="true">
     <adm:synopsis>
-      Indicates whether the plug-in should be invoked for internal
+      Indicates whether the plugin should be invoked for internal
       operations.
     </adm:synopsis>
     <adm:description>
-      Any plug-in that can be invoked for internal operations
-      must ensure that it does not create any new
-      internal operatons that can cause the same plug-in to be
+      Note that any plugin which may be invoked for internal operations
+      should be careful to ensure that they do not create any new
+      internal operatons that can cause the same plugin to be
       re-invoked.
     </adm:description>
     <adm:default-behavior>

@@ -31,22 +31,15 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The LDAP Attribute Description List plug-in
-    provides the ability for clients to include an attribute list in 
-    a search request that names object classes instead of (or in 
-    addition to) attributes. 
+    The
+    <adm:user-friendly-name />
+    is used to provide the ability to request that search result entries
+    include all attributes that are included by a specified object
+    class.
   </adm:synopsis>
   <adm:description>
-    For example, if a client wishes to 
-    retrieve all of the attributes in the inetOrgPerson object class, 
-    then that client can include "@inetOrgPerson" in the attribute 
-    list rather than naming all of those attributes individually. 
-    This behavior is based on the specification contained in RFC 4529.
-    The implementation for the LDAP attribute description list plugin 
-    is contained in the 
-    org.opends.server.plugins.LDAPADListPlugin class. It must be 
-    configured with the preParseSearch plugin type, but does not have 
-    any other custom configuration.
+    For example, including a requested attribute of "@person" has the
+    effect of requesting all attributes in the person object class.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>

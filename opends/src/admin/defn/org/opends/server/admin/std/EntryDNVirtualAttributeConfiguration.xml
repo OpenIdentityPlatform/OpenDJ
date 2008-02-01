@@ -33,14 +33,11 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    generates the entryDN operational attribute in directory entries, 
-    which contains a normalized form of the entry's DN.
-    This attribute is defined in the draft-zeilenga-ldap-entrydn 
-    Internet Draft and contains the DN of the entry in which it is 
-    contained. 
+    may be used to generate the entryDN operational attribute, which
+    contains a normalized form of the entry's DN.
   </adm:synopsis>
   <adm:description>
-    This component provides the ability to use search filters containing the
+    This provides the ability to use search filters containing the
     entry's DN.
   </adm:description>
   <adm:profile name="ldap">

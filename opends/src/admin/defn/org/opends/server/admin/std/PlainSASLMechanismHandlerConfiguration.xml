@@ -35,14 +35,6 @@
     <adm:user-friendly-name />
     is used to perform all processing related to SASL PLAIN
     authentication.
-    The PLAIN SASL mechanism provides the ability for clients to 
-    authenticate using a username and password. This authentication 
-    is very similar to standard LDAP simple authentication, with the 
-    exception that it can authenticate based on an authentication ID 
-    (for example, a username) rather than requiring a full DN, and 
-    it can also include an authorization ID in addition to the 
-    authentication ID. Note that the SASL PLAIN mechanism does not 
-    make any attempt to protect the password.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -61,10 +53,8 @@
   </adm:property-override>
   <adm:property name="identity-mapper" mandatory="true">
     <adm:synopsis>
-      Specifies the name of the identity mapper that is to be used 
-      with this SASL mechanism handler to match the authentication or 
-      authorization ID included in the SASL bind request to the 
-      corresponding user in the directory.
+      Specifies the name of the identity mapper that should be used to
+      match client authentication and authorization IDs to user entries.
     </adm:synopsis>
     <adm:syntax>
       <adm:aggregation relation-name="identity-mapper"

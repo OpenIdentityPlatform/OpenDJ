@@ -33,7 +33,7 @@
   <adm:synopsis>
     A
     <adm:user-friendly-name />
-    comprises of several directory servers sharing the same synchronized
+    comprises of several Directory Servers sharing the same synchronized
     set of data.
   </adm:synopsis>
   <adm:tag name="replication" />
@@ -48,7 +48,7 @@
     <adm:synopsis>
       Specifies the addresses of the Replication Servers within the
       <adm:user-friendly-name />
-      to which the directory server should try to connect at startup
+      to which the Directory Server should try to connect at startup
       time.
     </adm:synopsis>
     <adm:description>
@@ -73,19 +73,19 @@
   </adm:property>
   <adm:property name="server-id" mandatory="true" read-only="true">
     <adm:synopsis>
-      Specifies a unique identifier for the directory server within the
+      Specifies a unique identifier for the Directory Server within the
       <adm:user-friendly-name />
       .
     </adm:synopsis>
     <adm:description>
-      Each directory server within the same
+      Each Directory Server within the same
       <adm:user-friendly-name />
-      must have a unique server ID. A directory server which is a
+      must have a different server ID. A Directory Server which is a
       member of multiple
       <adm:user-friendly-plural-name />
       may use the same server ID for each of its
       <adm:user-friendly-name />
-      configurations. 
+      configurations.
     </adm:description>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="65535"></adm:integer>
@@ -98,8 +98,7 @@
   </adm:property>
   <adm:property name="base-dn" mandatory="true" read-only="true">
     <adm:synopsis>
-      Specifies the base DN for which to replicate changes. In most cases, it should be set to the user 
-      data suffix for the directory server. 
+      Specifies the base DN of the replicated data.
     </adm:synopsis>
     <adm:syntax>
       <adm:dn />
@@ -112,7 +111,7 @@
   </adm:property>
   <adm:property name="window-size" advanced="true">
     <adm:synopsis>
-      Specifies the window size that the directory server uses when
+      Specifies the window size that the Directory Server will use when
       communicating with Replication Servers.
     </adm:synopsis>
     <adm:default-behavior>
@@ -131,15 +130,15 @@
   </adm:property>
   <adm:property name="heartbeat-interval" advanced="true">
     <adm:synopsis>
-      Specifies the heart-beat interval that the directory server 
-      uses when communicating with replication servers.
+      Specifies the heart-beat interval that the Directory Server will
+      use when communicating with Replication Servers.
     </adm:synopsis>
     <adm:description>
-      The directory server expects a regular heart-beat coming from
-      the replication server within the specified interval. If a
+      The Directory Server will expect a regular heart-beat coming from
+      the Replication Server within the specified interval. If a
       heartbeat is not received within the interval, the Directory
-      Server closes its connection and connects to another
-      replication server.
+      Server will close its connection and connect to another
+      Replication Server.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -157,10 +156,10 @@
   </adm:property>
   <adm:property name="isolation-policy">
     <adm:synopsis>
-      Specifies the behavior of the directory server if a write
+      Specifies the behavior of the Directory Server if a write
       operation is attempted on the data within the
       <adm:user-friendly-name />
-      when none of the configured replication servers are available.
+      when none of the configured Replication Servers are available.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -172,10 +171,10 @@
         <adm:value name="accept-all-updates">
           <adm:synopsis>
             Indicates that updates should be accepted even though it is
-            not possible to send them to any replication server. Best
-            effort is be made to re-send those updates to a
-            replication server when one of them is available; however,
-            those changes are at risk because they are only 
+            not possible to send them to any Replication Server. Best
+            effort will be made to re-send those updates to a
+            Replication Servers when one of them is available, however
+            those changes will be at risk because they will only be
             available from the historical information. This mode may
             also introduce high replication latency.
           </adm:synopsis>
@@ -184,7 +183,7 @@
           <adm:synopsis>
             Indicates that all updates attempted on this
             <adm:user-friendly-name />
-            are rejected when no replication server is available.
+            will be rejected when no Replication Server is available.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>

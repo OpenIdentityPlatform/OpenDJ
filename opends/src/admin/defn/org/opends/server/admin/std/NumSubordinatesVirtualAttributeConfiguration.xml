@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    generates a virtual attribute that specifies the
+    may be used to generate a virtual attribute that specifies the
     number of immediate child entries that exist below the entry.
   </adm:synopsis>
   <adm:profile name="ldap">
