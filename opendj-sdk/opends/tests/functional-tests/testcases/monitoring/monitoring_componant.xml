@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
+! -->
+<stax>
+  <defaultcall function="monitoring_componant"/>
+  <function name="monitoring_componant" scope="local">
+    <block name="STAXCurrentFunction">    
+      <sequence>
+        <script>
+          CurrentTestPath['suite']=STAXCurrentFunction
+        </script>
+        <call function="'testSuite_Preamble'" />
+        
+        
+        <!--- Test Suite information
+#@TestSuiteName       Monitoring componants
+#@TestSuitePurpose    Verify the monitoring of  componants
+#@TestSuiteID         Monitoring
+#@TestSuiteGroup      Monitoring
+#@TestGroup           Monitoring
+#@TestScript          monitoring_componants.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+
+        <!---
+#@TestMarker            monitoring componants
+#@TestName              monitoring componants
+#@TestIssue             Check the monitoring of the componant LDIF connection handler
+#@TestPreamble          none
+#@TestStep               Check the entry on cn=LDIF Connection Handler,cn=monitor is available
+#@TestStep              Disable the LDIF connection handler componant
+#@TestStep              Check the entry on cn=LDIF Connection Handler,cn=monitor is not more available
+#@TestPostamble         none
+
+-->  
+    
+        <testcase name="getTestCaseName('LDIF connection handler monitoring')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <!-- Check the entry on cn=LDIF Connection Handler,cn=monitor is available -->  
+            <message>'######  Monitor the LDIF connection handler ###### '</message>     
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'           : 'cn=LDIF Connection Handler,cn=monitor',
+              'dsFilter'           : 'objectclass=*',
+              'expectedRC'	   :  0 }
+            </call>  	    
+            
+            <message>'-- Disable the LDIF Connection Handler --'</message>   
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'set-connection-handler-prop' ,
+              'objectType'           : 'handler-name',
+              'objectName'           : 'LDIF Connection Handler',
+              'optionsString'        : '--set enabled:false',
+              'expectedRC'           : 0 } 
+            </call>    
+            
+            
+            <!-- Check the entry on cn=LDIF Connection Handler,cn=monitor is not available -->  
+            <message>'######  Monitor the LDIF Connection Handler  ###### '</message>     
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'            : 'cn=LDIF Connection Handler,cn=monitor',
+              'dsFilter'            : 'objectclass=*',
+              'expectedRC'	    :  32 }
+            </call> 
+            
+            <message>'-- Enabled the LDIF Connection Handler --'</message>   
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'set-connection-handler-prop' ,
+              'objectType'           : 'handler-name',
+              'objectName'           : 'LDIF Connection Handler',
+              'optionsString'        : '--set enabled:true',
+              'expectedRC'           : 0 } 
+            </call>              
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        <!---
+#@TestMarker            monitoring componants
+#@TestName              monitoring componants
+#@TestIssue             Check the monitoring of a NEW componant LDIF connection handler
+#@TestPreamble          none
+#@TestStep              Create a new LDIF connection handler
+#@TestStep              Check the entry on cn=myLDIF,cn=monitor is available
+#@TestStep              Delete the new LDIF connection handler componant
+#@TestPostamble         none
+
+-->  
+        <testcase name="getTestCaseName('Monitoring a new LDIF connection handler')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <message>'-- Create a new  LDIF Connection Handler --'</message>   
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'create-connection-handler' ,
+              'objectType'           : 'handler-name',
+              'objectName'           : 'myLDIF',
+              'optionsString'        : '--type ldif --set enabled:true',
+              'expectedRC'           : 0 } 
+            </call>              
+            
+            <!-- Check the entry on cn=myLDIF,cn=monitor is available -->  
+            <message>'######  Monitor the new LDIF connection handler ###### '</message>     
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'           : 'cn=myLDIF,cn=monitor',
+              'dsFilter'           : 'objectclass=*',
+              'expectedRC'	   :  0 }
+            </call>  	    
+            
+            <message>'-- Delete the new  LDIF Connection Handler --'</message>   
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+              'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+              'subcommand'           : 'delete-connection-handler' ,
+              'objectType'           : 'handler-name',
+              'objectName'           : 'myLDIF',
+              'expectedRC'           : 0 } 
+            </call>     
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <!---
+#@TestMarker            monitoring componants
+#@TestName              monitoring componants
+#@TestIssue             Check the monitoring of the componant Backup Backend
+#@TestPreamble          none
+#@TestStep              Check the entry on cn=backup Backend,cn=monitor,cn=monitor is available
+#@TestPostamble         none
+
+-->  
+    
+        <testcase name="getTestCaseName('Backup Backend monitoring')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <!-- Check the entry on cn=backup Backend,cn=monitor is available -->  
+            <message>'######  Monitor the Backup Backend ###### '</message>     
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'           : 'cn=backup Backend,cn=monitor',
+              'dsFilter'           : 'objectclass=*',
+              'expectedRC'	   :  0 }
+            </call>  	    
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        <!---
+#@TestMarker            monitoring componants
+#@TestName              monitoring componants
+#@TestIssue             Check the monitoring of the componant userRoot Backend
+#@TestPreamble          none
+#@TestStep               Check the entry on cn=userRoot Backend,cn=monitor,cn=monitor is available
+#@TestPostamble         none
+
+-->  
+    
+        <testcase name="getTestCaseName('userRoot Backend monitoring')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <!-- Check the entry on cn=userRoot Backend,cn=monitor is available -->  
+            <message>'######  Monitor the userRoot Backend ###### '</message>     
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'           : 'cn=userRoot Backend,cn=monitor',
+              'dsFilter'           : 'objectclass=*',
+              'expectedRC'	   :  0 }
+            </call>  	    
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <!---
+#@TestMarker            monitoring componants
+#@TestName              monitoring componants
+#@TestIssue             Check the monitoring of the componant tasks Backend
+#@TestPreamble          none
+#@TestStep               Check the entry on cn=tasks Backend,cn=monitor,cn=monitor is available
+#@TestPostamble         none
+
+-->  
+    
+        <testcase name="getTestCaseName('tasks Backend monitoring')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            
+            <!-- Check the entry on cn=tasks Backend,cn=monitor is available -->  
+            <message>'######  Monitor the tasks Backend ###### '</message>     
+            <call function="'SearchObject'">
+              { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'       : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,	
+              'dsBaseDN'           : 'cn=tasks Backend,cn=monitor',
+              'dsFilter'           : 'objectclass=*',
+              'expectedRC'	   :  0 }
+            </call>  	    
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        
+        <call function="'testSuite_Postamble'" />
+      </sequence>
+    </block>      
+  </function>
+</stax>
