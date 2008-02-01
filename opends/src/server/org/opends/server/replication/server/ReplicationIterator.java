@@ -22,15 +22,15 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
-
-import com.sleepycat.je.DatabaseException;
 
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMessage;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
+
+import com.sleepycat.je.DatabaseException;
 
 /**
  * This class allows to iterate through the changes received from a given
@@ -43,6 +43,9 @@ public class ReplicationIterator
 
   /**
    * Creates a new ReplicationIterator.
+   * All created iterator must be released by the caller using the
+   * releaseCursor() method.
+   *
    * @param id the Identifier of the server on which the iterator applies.
    * @param db The db where the iterator must be created.
    * @param changeNumber The ChangeNumber after which the iterator must start.
@@ -56,7 +59,9 @@ public class ReplicationIterator
   {
     cursor = db.openReadCursor(changeNumber);
     if (cursor == null)
+    {
       throw new Exception("no new change");
+    }
      if (this.next() == false)
      {
        cursor.close();

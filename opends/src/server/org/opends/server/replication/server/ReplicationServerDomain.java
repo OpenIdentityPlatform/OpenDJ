@@ -572,6 +572,9 @@ public class ReplicationServerDomain
 
   /**
    * Creates and returns an iterator.
+   * When the iterator is not used anymore, the caller MUST call the
+   * ReplicationIterator.releaseCursor() method to free the ressources
+   * and locks used by the ReplicationIterator.
    *
    * @param serverId Identifier of the server for which the iterator is created.
    * @param changeNumber Starting point for the iterator.
