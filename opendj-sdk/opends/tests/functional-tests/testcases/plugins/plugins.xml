@@ -25,18 +25,25 @@
  !
  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
+
+
+<!--
+            Place group-specific test information here.
+            #@TestGroupName		Plugins
+            #@TestGroupPurpose		Test the directory server Pluggins
+-->
 <stax>
   <defaultcall function="main_plugins"/>
   <function name="main_plugins">
     <sequence>
       <block name="'plugins'">
-         <sequence>
-           <script>
-             CurrentTestPath['group']='plugins'
-           </script>
+        <sequence>
+          <script>
+            CurrentTestPath['group']='plugins'
+          </script>
           
           <call function="'testGroup_Preamble'" />
-          <iterate var="_test" in="['setup','refint','uniqueness','lastmod','entryUUID','cleanup']" >
+          <iterate var="_test" in="['setup','uniqueness','lastmod','entryUUID','refint','cleanup']" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/plugins/plugins_%s.xml' % (TESTS_DIR,_test)"/>

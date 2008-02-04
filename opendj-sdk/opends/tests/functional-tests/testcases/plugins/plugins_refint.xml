@@ -38,12 +38,23 @@
 
 
       
+<!--- Test Suite information
+#@TestSuiteName       Plugin referential integrity on groups
+#@TestSuitePurpose    Validate Plugin referential integrity on groups
+#@TestSuiteID         Plugins 
+#@TestSuiteGroup      Plugins
+#@TestGroup           Plugins
+#@TestScript          plugins_refint.xml
+#@TestHTMLLink        http://opends.dev.java.net/
+-->
+      
 <!--
-#@TestMarker       Plugin referential integrity
-#@TestName         Plugin referential integrity
-#@TestIssue        Setup
+#@TestMarker       Plugin referential integrity on groups
+#@TestName         Plugin referential integrity setup
+#@TestPurpose      Setup
 #@TestPreamble     none
-#@TestStep         Create Group
+#@TestStep         Create the child_staticgroup static Group of users under dc=group,dc=com
+#@TestStep         Create the top_staticgroup static Group of users under dc=com
 #@TestPostamble    none
 #@TestResult       The test is passed if  the  creation is done
 -->  
@@ -87,7 +98,7 @@
       </sequence>
     </iterate>    
         
-    <message>'######  Add a static Group ###### '</message>
+    <message>'######  Add a static Group under dc=group ###### '</message>
     <message>' '</message>
 
     <script>
@@ -114,8 +125,8 @@
       listAttr = []
       listAttr.append('objectclass:top')
       listAttr.append('objectclass:groupofuniquenames')
-      listAttr.append('description:this is the description of my_staticgroup')
-      listAttr.append('cn:my_staticgroup')
+      listAttr.append('description:this is the description of child_staticgroup')
+      listAttr.append('cn:child_staticgroup')
       listAttr.append('uniqueMember:cn=user01,%s' % DIRECTORY_INSTANCE_SFX)
       listAttr.append('uniqueMember:cn=user02,%s' % DIRECTORY_INSTANCE_SFX)      
       listAttr.append('uniqueMember:cn=user03,%s' % DIRECTORY_INSTANCE_SFX)  
@@ -130,7 +141,7 @@
          'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	  : DIRECTORY_INSTANCE_DN ,
          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'        : 'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+         'DNToAdd'        : 'cn=child_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
          'listAttributes' : listAttr,
          'expectedRC'     :  0
        }
@@ -142,8 +153,8 @@
       listAttr = []
       listAttr.append('objectclass:top')
       listAttr.append('objectclass:groupofuniquenames')
-      listAttr.append('description:this is the description of my_staticgroup on top ')
-      listAttr.append('cn:my_staticgroup')
+      listAttr.append('description:this is the description of top_staticgroup on top ')
+      listAttr.append('cn:top_staticgroup')
       listAttr.append('uniqueMember:cn=user01,%s' % DIRECTORY_INSTANCE_SFX)
       listAttr.append('uniqueMember:cn=user02,%s' % DIRECTORY_INSTANCE_SFX)      
       listAttr.append('uniqueMember:cn=user03,%s' % DIRECTORY_INSTANCE_SFX)  
@@ -158,7 +169,7 @@
          'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
          'dsInstanceDn'	  : DIRECTORY_INSTANCE_DN ,
          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-         'DNToAdd'        : 'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
+         'DNToAdd'        : 'cn=top_staticgroup,%s' % DIRECTORY_INSTANCE_SFX,
          'listAttributes' : listAttr,
          'expectedRC'     :  0
        }
@@ -170,7 +181,7 @@
           'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
           'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsBaseDN'        :  'cn=top_staticgroup,%s' % DIRECTORY_INSTANCE_SFX,
           'dsFilter'        : 'objectclass=groupOfUniqueNames'	,
           'attributes'      : 'uniqueMember',
           'expectedRC'	    :  0 }
@@ -192,7 +203,7 @@
           'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
           'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
           'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'          :  'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsBaseDN'          :  'cn=child_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
           'dsFilter'          : 'objectclass=groupOfUniqueNames'	,
           'attributes'        : 'uniqueMember',
           'expectedRC'	      :  0 }
@@ -216,11 +227,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--set enabled:true',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Referential Integrity',
+        'optionsString'        : '--set enabled:true',
         'expectedRC'           : 0 } 
     </call>	
      
@@ -230,12 +241,15 @@
           
          
 <!--
-#@TestMarker         Plugin referential integrity
-#@TestName           Referential integrity check on group after a change of base DN
+#@TestMarker         Plugin referential integrity on groups
+#@TestName           Referential check is limited to the scope
+#@TestPurpose        Check the referential integrity check is limited to the specified scope
 #@TestPreamble       none
-#@TestStep           Check change of the base-dn  attribute is dynamic
+#@TestStep           Set the base-dn to dc=groups,dc=com
 #@TestStep           Delete the user06
-#@TestStep           Check that the references to the deleted user are still present
+#@TestStep           The reference must be limited to the scope dc=groups,dc=com
+#@TestStep           The references to the delete user must be removed under cn=child_staticgroup,dc=group,dc=com
+#@TestStep           The references to the delete user must still be present under cn=top_staticgroup,dc=com
 #@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
@@ -252,11 +266,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--set base-dn:dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Referential Integrity',
+        'optionsString'        : '--set base-dn:dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
         'expectedRC'           : 0 } 
     </call>	    
 
@@ -292,41 +306,43 @@
     <message>'The reference check must be done to the base DN dc=groups,dc=com'</message>       
     <call function="'SearchObject'">
      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  'cn=my_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
-          'attributes'        : 'uniquemember',
+          'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'        :  'cn=child_staticgroup,dc=groups,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'        : 'objectclass=groupOfUniqueNames'	,
+          'attributes'      : 'uniquemember',
           'expectedRC'	    :  0 }
     </call>  		
     
     <script>
       returnString = STAXResult[0][1]
     </script>
+    
     <message>'The references to the delete user must be removed' </message>    
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
          'testString'	   : 'user06',
-         'expectedResult'	   : '0' }
+         'expectedResult'  : '0' }
     </call>                
     
    <message>'The reference check must not be done to the base DN dc=com'</message>   
     
     <call function="'SearchObject'">
      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST ,
-          'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-          'dsInstanceDn'     : DIRECTORY_INSTANCE_DN,
-          'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
-          'dsBaseDN'        :  'cn=my_staticgroup1,%s' % DIRECTORY_INSTANCE_SFX,
-          'dsFilter'            : 'objectclass=groupOfUniqueNames'	,
-          'attributes'        : 'uniquemember',
+          'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
+          'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
+          'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD ,	
+          'dsBaseDN'        :  'cn=top_staticgroup,%s' % DIRECTORY_INSTANCE_SFX,
+          'dsFilter'        : 'objectclass=groupOfUniqueNames'	,
+          'attributes'      : 'uniquemember',
           'expectedRC'	    :  0 }
     </call>  		
     
     <script>
       returnString = STAXResult[0][1]
     </script>
+    
     <message>'The references to the delete user must be still present ' </message>    
     <call function="'searchStringForSubstring'">
       { 'returnString'	   : returnString ,
@@ -338,15 +354,15 @@
     <message>'  '</message> 
        
     <call function="'dsconfig'">
-      { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
-        'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
-        'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--reset base-dn',
-        'expectedRC'           : 0 } 
+      { 'dsInstanceHost'     : DIRECTORY_INSTANCE_HOST,
+        'dsInstancePort'     : DIRECTORY_INSTANCE_PORT ,
+        'dsInstanceDn'       : DIRECTORY_INSTANCE_DN ,
+        'dsInstancePswd'     : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'         : 'set-plugin-prop' ,
+        'objectType'         : 'plugin-name' ,
+        'objectName'         : 'Referential Integrity',
+        'optionsString'      : '--reset base-dn',
+        'expectedRC'         : 0 } 
     </call>	    
         
     
@@ -356,18 +372,20 @@
                        
                           
 <!--
-#@TestMarker         Plugin referential integrity
-#@TestName           Referential integrity check on GROUPS
+#@TestMarker         Plugin referential integrity on groups
+#@TestName           The referential integrity plugin removes only references to deleted entries
+#@TestPurpose        Check the referential integrity plugin removes only references to deleted entries
 #@TestPreamble       none
 #@TestStep           Delete a user
 #@TestStep           Check that the references to the deleted user are gone.
-#@TestStep           Check that the references to an existing user are still present.
+#@TestStep           Check that there is no impact on the others references. 
+#@TestStep           The references to an existing user must still be present.
 #@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
     
    
- <testcase name="getTestCaseName('Referential integrity on groups with default attribute-type')">
+ <testcase name="getTestCaseName('The referential integrity plugin removes only references to deleted entries')">
   <sequence>
     <call function="'testCase_Preamble'"/>
  
@@ -375,7 +393,6 @@
     <message>' '</message>
 
     <!-- Delete an entry -->
-
     <call function="'DeleteEntry'">
      { 'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
         'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
@@ -417,23 +434,22 @@
     <call function="'testCase_Postamble'"/>
   </sequence>
  </testcase>
-
-      
-
                   
 <!--
-#@TestMarker        Plugin referential integrity
-#@TestName          Referential integrity check on GROUPS after a change of configuration
-#@TestPreamble      none
-#@TestStep           Check change of the attribute-type attribute is dynamic
-#@TestStep           Delete the user02  
+#@TestMarker         Plugin referential integrity on groups
+#@TestName           The referential integrity is checked on the specified attribut-type
+#@TestPurpose        Check the referential integrity is checked on the specified attribut-type
+#@TestPreamble       none
+#@TestStep           Remove the attribute uniquemember from the list of attribute-type
+#@TestStep           Delete a user entry
 #@TestStep           Check that the references to the deleted user are still present
+#@TestStep           Restore the attribute uniquemember from the list of attribute-type
 #@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
     
    
- <testcase name="getTestCaseName('Check the change of the attribute-type attribute')">
+ <testcase name="getTestCaseName('Check the referential integrity is checked on the specified attribut-type')">
   <sequence>
     <call function="'testCase_Preamble'"/>
   
@@ -513,18 +529,20 @@
       
           
 <!--
-#@TestMarker       Plugin referential integrity
-#@TestName         Referential integrity check on group after a change of plugin-type
-#@TestPreamble    none
-#@TestStep           Check change of the plugin-type attribute is dynamic
+#@TestMarker         Plugin referential integrity on groups
+#@TestName           The referential integrity is checked on the specified plugin-type
+#@TestPurpose        Check the referential integrity is checked on the specified plugin-type
+#@TestPreamble       none
+#@TestStep           Remove the plugin-type attribute  postoperationdelete
 #@TestStep           Delete the user05
 #@TestStep           Check that the references to the deleted user are still present
-#@TestPostamble    none
+#@TestStep           Add the plugin-type attribute  postoperationdelete 
+#@TestPostamble      none
 #@TestResult         all steps must be success
--->  
-    
-   
- <testcase name="getTestCaseName('Check the change of the plugin-type attribute')">
+-->
+
+
+ <testcase name="getTestCaseName(' The referential integrity is checked on the specified plugin-type')">
   <sequence>
     <call function="'testCase_Preamble'"/>
  
@@ -535,11 +553,11 @@
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
         'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
         'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
-        'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
-        'subcommand'          : 'set-plugin-prop' ,
-        'objectType'             : 'plugin-name' ,
-        'objectName'            : 'Referential Integrity',
-        'optionsString'          : '--remove plugin-type:postoperationdelete',
+        'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+        'subcommand'           : 'set-plugin-prop' ,
+        'objectType'           : 'plugin-name' ,
+        'objectName'           : 'Referential Integrity',
+        'optionsString'        : '--remove plugin-type:postoperationdelete',
         'expectedRC'           : 0 } 
     </call>	    
 
@@ -621,13 +639,14 @@
           
 
 <!--
-#@TestMarker       Plugin referential integrity
-#@TestName         Referential integrity check on groups is disabled
-#@TestPreamble    none
+#@TestMarker         Plugin referential integrity on groups
+#@TestName           The referential integrity is disabled
+#@TestPurpose        Check the server behavior when referential integrity is disabled
+#@TestPreamble       none
 #@TestStep           Disable the referential integrity plugin
 #@TestStep           Delete an user
 #@TestStep           Check that the references to the deleted user are still present
-#@TestPostamble    none
+#@TestPostamble      none
 #@TestResult         all steps must be success
 -->  
     
