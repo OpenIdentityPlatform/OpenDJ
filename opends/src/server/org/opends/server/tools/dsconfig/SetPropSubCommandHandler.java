@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -277,13 +277,15 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
 
       try {
-        // Commit the changes.
-        mo.commit();
+        // Commit the changes if necessary
+        if (mo.isModified()) {
+          mo.commit();
 
-        // Output success message.
-        app.println();
-        Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
-        app.printVerboseMessage(msg);
+          // Output success message.
+          app.println();
+          Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
+          app.printVerboseMessage(msg);
+        }
 
         return MenuResult.success();
       } catch (MissingMandatoryPropertiesException e) {
