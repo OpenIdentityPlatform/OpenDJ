@@ -364,7 +364,6 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
   /**
    * {@inheritDoc}
    */
-  @Override
   public boolean isModified() {
     ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
     for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
