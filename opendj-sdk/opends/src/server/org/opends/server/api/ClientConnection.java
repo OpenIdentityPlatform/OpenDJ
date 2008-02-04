@@ -1020,8 +1020,9 @@ public abstract class ClientConnection
     else
     {
       if (operation.getAuthorizationDN().equals(
-               authenticationInfo.getAuthorizationDN()))
-      {
+               authenticationInfo.getAuthorizationDN()) ||
+          (operation.getAuthorizationDN().equals(DN.NULL_DN) &&
+           !authenticationInfo.isAuthenticated())) {
         result = privileges.contains(privilege) ||
                  DirectoryServer.isDisabled(privilege);
         if (debugEnabled())
