@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="traditional-work-queue"
   plural-name="traditional-work-queues" extends="work-queue"
@@ -43,6 +43,15 @@
       <ldap:superior>ds-cfg-work-queue</ldap:superior>
     </ldap:object-class>
   </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+  	<adm:default-behavior>
+  		<adm:defined>
+  			<adm:value>
+  				org.opends.server.extensions.TraditionalWorkQueue
+  			</adm:value>
+  		</adm:defined>
+  	</adm:default-behavior>
+  </adm:property-override>
   <adm:property name="num-worker-threads" mandatory="true">
     <adm:synopsis>
       The number of worker threads that should be used to process
