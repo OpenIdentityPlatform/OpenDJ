@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client;
@@ -131,6 +131,17 @@ public interface ManagedObject<T extends ConfigurationClient> extends
       OperationRejectedException, AuthorizationException,
       CommunicationException;
 
+
+  /**
+   * Determines whether or not this managed object has been modified since it
+   * was constructed.
+   * In other words, whether or not the set of pending values differs from
+   * the set of active values.
+   *
+   * @return Returns <code>true</code> if this managed object has been
+   *         modified since it was constructed.
+   */
+  boolean isModified();
 
 
   /**

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.ldap;
@@ -359,6 +359,21 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
         attribute.add(pd.accept(visitor, value, null));
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isModified() {
+    ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
+    for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
+      Property<?> p = getProperty(pd);
+      if (p.isModified()) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }
