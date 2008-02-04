@@ -36,7 +36,7 @@
       <call function="'testSuite_Preamble'" />
 
 <!--- Test Suite information
-#@TestSuiteName       Plugin entryUUID Tests
+#@TestSuiteName       Plugin entryUUID
 #@TestSuitePurpose    Verify the plugin entryUUID
 #@TestSuiteID         Plugins 
 #@TestSuiteGroup      Plugins
@@ -48,15 +48,12 @@
       
 <!---
 #@TestMarker            Plugin entryUUID
-#@TestName              Plugin entryUUID
-#@TestIssue             Check the plugin entryUUID
+#@TestName              Plugin entryUUID setup
+#@TestPurpose           Plugins entryUUID setup
 #@TestPreamble          none
-#@TestStep              Enable the plugin entryUUID
 #@TestStep              Disable  the virtual attribute entryUUID
-#@TestStep              Add an entry
-#@TestStep              Execute ldapsearch request to get entryUUID attribute
 #@TestPostamble         none
-#@TestResult            The test is passed if the attribute entryUUID is returned
+#@TestResult            none
 -->  
     
  <testcase name="getTestCaseName('Plugins entryUUID setup')">
@@ -83,8 +80,8 @@
                         
 <!---
 #@TestMarker            Plugin entryUUID
-#@TestName              Plugin entryUUID
-#@TestIssue             Check the plugin entryUUID
+#@TestName              Plugin entryUUID enable
+#@TestPurpose           Check the serve behavior when the plugin entryUUID is activated
 #@TestPreamble          none
 #@TestStep              Enable the plugin entryUUID
 #@TestStep              Disable  the virtual attribute entryUUID
@@ -194,15 +191,15 @@
 
 <!---
 #@TestMarker            Plugin entryUUID
-#@TestName              Plugin entryUUID
-#@TestIssue             Check the plugin entryUUID
+#@TestName              Plugin entryUUID disable
+#@TestPurpose           Check the server behavior when the plugin entryUUID is disabled
 #@TestPreamble          none
 #@TestStep              Disable the plugin entryUUID
 #@TestStep              Disable  the virtual attribute entryUUID
 #@TestStep              Add an entry
 #@TestStep              Execute ldapsearch request to get entryUUID attribute
 #@TestPostamble         none
-#@TestResult           The test is passed if the attribute entryUUID is not returned
+#@TestResult            The test is passed if the attribute entryUUID is not returned
 -->  
     
  <testcase name="getTestCaseName('Plugins entryUUID disable')">

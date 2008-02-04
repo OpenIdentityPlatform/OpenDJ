@@ -35,31 +35,13 @@
       </script>
       <call function="'testSuite_Preamble'" />
 
-<!--- Test Suite information
-#@TestSuiteName       Plugin lastmod Tests
-#@TestSuitePurpose    Verify the plugin lastmod
-#@TestSuiteID         Plugins 
-#@TestSuiteGroup      Plugins
-#@TestGroup           Plugins
-#@TestScript          plugins_lastmod.xml
-#@TestHTMLLink        http://opends.dev.java.net/
--->
 
-<!---
-#@TestMarker          Plugin lastmod
-#@TestName            Plugin lastmod
-#@TestIssue             Check the plugin lastmod for add operations
-#@TestPreamble       none
-#@TestStep              Add an entry
-#@TestStep              Execute ldapsearch request to get createTimestamp attribute
-#@TestPostamble     none
-#@TestResult           The test is passed if the attribute createTimestamp is returned
--->  
- 
+    
  <testcase name="getTestCaseName('Plugins lastmod enabled  for add operations')">
   <sequence>
     <call function="'testCase_Preamble'"/>
-
+<!-- 3Add an entry -->
+<!-- Execute ldapsearch request to get createTimestamp attribute -->
     <!-- Add an entry --> 
 
     <message>'######  Add an entry  ###### '</message>          
@@ -118,14 +100,14 @@
 
                         
 <!---
-#@TestMarker          Plugin lastmod
-#@TestName            Plugin lastmod
-#@TestIssue             Check the plugin lastmod for modify operations
-#@TestPreamble       none
-#@TestStep              Modify an entry
-#@TestStep              Execute ldapsearch request to get modifyTimestamp attribute
-#@TestPostamble     none
-#@TestResult           The test is passed if the attribute modifyTimestamp is returned
+#@TestMarker          Plugin lastmod Tests
+#@TestName            Plugins lastmod enabled for modify operation
+#@TestIssue           Check the plugin lastmod for modify operations
+#@TestPreamble        none
+#@TestStep            Modify an entry
+#@TestStep            Execute ldapsearch request to get modifyTimestamp attribute
+#@TestPostamble       none
+#@TestResult          The test is passed if the attribute modifyTimestamp is returned
 -->  
  
  <testcase name="getTestCaseName('Plugins lastmod enabled for modify operations')">
@@ -176,15 +158,15 @@
  </testcase>
             
 <!---
-#@TestMarker          Plugin lastmod
-#@TestName            Plugin lastmod
-#@TestIssue             Disable the plugin lastmod for add operations
-#@TestPreamble       none
-#@TestStep              Disable the plugin lastmod
-#@TestStep              Add an entry
-#@TestStep              Execute ldapsearch request to get createTimestamp attribute
-#@TestPostamble     none
-#@TestResult           The test is passed if the attribute createTimestamp is not returned
+#@TestMarker          Plugin lastmod Tests
+#@TestName            Plugins lastmod disabled  for add operations
+#@TestPurpose         Disable the plugin lastmod for add operations
+#@TestPreamble        none
+#@TestStep            Disable the plugin lastmod
+#@TestStep            Add an entry
+#@TestStep            Execute ldapsearch request to get createTimestamp attribute
+#@TestPostamble       none
+#@TestResult          The test is passed if the attribute createTimestamp is not returned
 -->  
     
  <testcase name="getTestCaseName('Plugins lastmod disabled  for add operations')">
@@ -274,14 +256,14 @@
 
 
 <!---
-#@TestMarker          Plugin lastmod
-#@TestName            Plugin lastmod
-#@TestIssue             Disable the plugin lastmod for modify operations
-#@TestPreamble       none
-#@TestStep              Disable the plugin lastmod
-#@TestStep              modify an entry
-#@TestStep              Execute ldapsearch request to get modifyTimestamp attribute
-#@TestPostamble     none
+#@TestMarker          Plugin lastmod Tests
+#@TestName            Plugins lastmod disabled  for modify operations
+#@TestPurpose         Disable the plugin lastmod for modify operations
+#@TestPreamble        none
+#@TestStep            Disable the plugin lastmod
+#@TestStep            modify an entry
+#@TestStep            Execute ldapsearch request to get modifyTimestamp attribute
+#@TestPostamble       none
 #@TestResult           The test is passed if the attribute modifyTimestamp is not returned
 -->  
     
@@ -362,13 +344,13 @@
 
 
 <!---
-#@TestMarker          Plugin lastmod
-#@TestName            Plugin lastmod
-#@TestIssue             Cleanup
-#@TestPreamble       none
-#@TestStep              Delete entries
-#@TestPostamble     none
-#@TestResult           The test is passed if the entries are deleted
+#@TestMarker          Plugin lastmod Tests
+#@TestName            Plugin lastmod 4
+#@TestPurpose         Cleanup
+#@TestPreamble        none
+#@TestStep            Delete entries
+#@TestPostamble       none
+#@TestResult          The test is passed if the entries are deleted
 -->  
     
  <testcase name="getTestCaseName('Plugins lastmod - cleanup')">
