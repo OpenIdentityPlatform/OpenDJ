@@ -74,6 +74,12 @@
           The storetype. can be JKS or PKCS12
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -87,19 +93,11 @@
           'location'  : location,
           'command'   : '%s/bin/keytool' % JAVA_HOME,
           'arguments' : '-genkey -alias %s -keyalg rsa -dname "%s" -keystore %s -storepass %s -keypass %s -storetype %s ' % (certAlias,dname,keystore,storepass,keypass,storetype),
-          'path'      : dsConfigPath
+          'path'      : dsConfigPath,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-           'result'     : STAXReason
-        }
-      </call>
-      <return>STAXReason</return>
+      <return>STAXResult</return>
     </sequence>
   </function>
   
@@ -147,6 +145,12 @@
           The storetype. can be JKS or PKCS12
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -161,19 +165,11 @@
           'location'  : location,
           'command'   : '%s/bin/keytool' % JAVA_HOME,
           'arguments' : '-selfcert -alias %s -keystore "%s"  -keypass "%s" -storepass "%s" -storetype "%s" ' % (certAlias,keystore,keypass,storepass,storetype),
-          'path'      : dsConfigPath
+          'path'      : dsConfigPath,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode  ,
-          'result'     : STAXReason
-        }
-      </call>
-      <return>STAXReason</return>
+      <return>STAXResult</return>
     </sequence>
   </function>
   
@@ -226,6 +222,12 @@
           Output file to store certificate
         </function-arg-description> 
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -246,18 +248,11 @@
           'location'   : location,
           'command'    : '%s/bin/keytool' % JAVA_HOME,
           'arguments'  : '-export -alias %s -file %s -keystore "%s"  -storepass "%s" -storetype %s %s' % (certAlias,outputfile,keystore,storepass,storetype,STAFCmdParams),
-          'path'       : dsConfigPath
+          'path'       : dsConfigPath,
+          'expectedRC' : expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason }
-      </call>
-      <return>STAXReason</return>  
+      <return>STAXResult</return>  
     </sequence>
   </function>
   
@@ -305,6 +300,12 @@
           Certificate to import
         </function-arg-description>  
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       
@@ -320,19 +321,11 @@
           'location'    : location,
           'command'     : '%s/bin/keytool' % JAVA_HOME,
           'arguments'   : '-import  -alias %s -file %s -keystore "%s"  -storepass "%s" -storetype %s -noprompt' % (certAlias,inputfile,keystore,storepass,storetype),
-          'path'        : dsConfigPath
+          'path'        : dsConfigPath,
+          'expectedRC'  : expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason 
-        }
-      </call>
-      <return>STAXReason</return>  
+      <return>STAXResult</return>
     </sequence>
   </function>
   
@@ -375,6 +368,12 @@
           fingerprint. can be MD5 or SHA1
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Local variables -->
@@ -388,19 +387,11 @@
           'location'  : location,
           'command'   : '%s/bin/keytool' % JAVA_HOME,
           'arguments' : ' -list -v -keystore "%s"  -storepass "%s"  -alias "%s"' % (keystore,storepass,certAlias),
-          'path'      : dsConfigPath
+          'path'      : dsConfigPath,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason
-        }
-      </call>
-      <return>STAXReason</return>
+      <return>STAXResult</return>
     </sequence>
   </function>
   

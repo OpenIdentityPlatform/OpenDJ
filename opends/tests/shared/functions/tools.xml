@@ -85,6 +85,13 @@
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
       </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -118,25 +125,10 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-         STAXCode=RC
-         STAXReason=STAXResult
-      </script>
-      <if expr="STAXCode != 0">
-        <sequence>
-          <message level="'error'">
-            'make-ldif failed (Code=%s,Reason=%s).' % (STAXCode,STAXReason)
-          </message>
-        </sequence>
-      </if>
-      <call function="'checktestRC'">
-       { 'returncode' : STAXCode ,
-         'result'     : STAXReason }
-      </call>
-
-    <return>[STAXCode, STAXReason]</return>
+      <return>[RC, STAXResult]</return>
     </sequence>
   </function> 
   
@@ -428,6 +420,13 @@
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
       </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -461,6 +460,7 @@
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }
       </call>
       <return>STAXResult</return>
@@ -896,6 +896,12 @@
           [ 'uid', 'telephonenumber' ]
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -908,7 +914,8 @@
         { 'name'      : 'rebuild index',
           'location'  : location,
           'command'   : _cmd,
-          'arguments' : _args
+          'arguments' : _args,
+          'expectedRC': expectedRC
         }
       </call>
       <return>STAXResult</return>
@@ -938,6 +945,12 @@
           Specify a list of attributes to trigger index verification on
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -950,7 +963,8 @@
         { 'name'      : 'verify index',
           'location'  : location,
           'command'   : _cmd,
-          'arguments' : _args
+          'arguments' : _args,
+          'expectedRC': expectedRC
         }
       </call>
       <return>STAXResult</return>

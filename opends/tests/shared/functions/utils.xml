@@ -53,7 +53,7 @@
     </function-map-args>
 
     <sequence>
-      <if expr="expected == NO_CHECK">
+      <if expr="expected == 'noCheck'">
         <return/>
       </if>                
       <if expr="returncode == expected">
@@ -106,7 +106,7 @@
       </function-arg-def>
     </function-map-args>  
     <sequence>    
-      <if expr="expected == NO_CHECK">
+      <if expr="expected == 'noCheck'">
         <return/>
       </if>        
       <if expr="returncode == expected">
@@ -494,9 +494,9 @@
     </sequence>
   </function>
 
-  <function name="setOSvariables">
+  <function name="getOSvariables">
     <function-prolog>
-      Set OS related variables
+      Get OS related variables
     </function-prolog>
     <function-map-args>
       <function-arg-def name="hostname" type="required">
@@ -1446,10 +1446,10 @@
           The duration that the process is allowed to run
         </function-arg-description>
       </function-arg-def>      
-      <function-arg-def name="verbose" default="True" type="optional">
+      <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          A boolean (use True or False here, case matters) to output the 
-          outputs of the command
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
     </function-map-args>
@@ -1471,6 +1471,7 @@
       </message>
 
       <block name="'%s:Wrapper for %s' % (_id,re.compile('\..*$').sub('',os.path.basename(command)))">
+      
           <process name="name">
             <location>location</location>
             <command>command</command>
@@ -1481,12 +1482,20 @@
             <stderr mode="'stdout'"/>
             <returnstdout/>
           </process>
+      
       </block>
       
-      <if expr="verbose == True">
-        <message level="'info'">
-          '%s: Command returned:\n%s' % (_id,STAXResult[0][1])
-        </message>
+      <script>
+        cmdRC = RC
+        cmdOutput = STAXResult
+      </script>
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checktestRC'">
+          { 'returncode' : cmdRC,
+            'result'     : cmdOutput[0][1],
+            'expected'   : expectedRC
+          }
+        </call>
       </if>
       <script>
         def dig(var):
@@ -1504,10 +1513,10 @@
             return 'could not evaluate the following component: %s' % var
         
         if stripOutput == True:
-          STAXResult=dig(STAXResult)
+          cmdOutput=dig(cmdOutput)
       </script>
       <return>
-        STAXResult
+        cmdOutput
       </return>
     </sequence>
   </function>
