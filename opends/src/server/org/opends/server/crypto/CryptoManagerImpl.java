@@ -176,11 +176,9 @@ public class CryptoManagerImpl
   private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache
           = new ConcurrentHashMap<KeyEntryID, MacKeyEntry>();
 
-  // The shared secret key wrapping transformation.
-  // TODO: Trying OAEPWITHSHA-512ANDMGF1PADDING throws an exception "Key too
-  // TODO: small...". https://opends.dev.java.net/issues/show_bug.cgi?id=2474
-  private static final String sharedSecretKeyWrappingTransformation
-          = "RSA/ECB/OAEPWITHSHA-1ANDMGF1PADDING";
+
+  // The preferred key wrapping transformation
+  private String preferredKeyWrappingTransformation;
 
 
   // TODO: Move the following configuration to backup or backend configuration.
@@ -386,24 +384,25 @@ public class CryptoManagerImpl
         isAcceptable = false;
       }
     }
-
-    // Shared secret key wrapping cipher and validation. Note that this value is
-    // not set from a configuration attribute, but it needs to be validated, and
-    // validation depends on the MAC cipher produced above for a secret key to
-    // wrap.
-    if (3 != sharedSecretKeyWrappingTransformation.split("/", 0).length) {
-      unacceptableReasons.add(
-              ERR_CRYPTOMGR_FULL_KEY_WRAPPING_TRANSFORMATION_REQUIRED.get(
-                      sharedSecretKeyWrappingTransformation));
-      isAcceptable = false;
-    }
-    else {
-      try {
-        /* Note that the TrustStoreBackend not available at initial,
-           CryptoManager configuration, hence a "dummy" certificate must be used
-           to validate the choice of secret key wrapping cipher. Otherwise, call
-           getInstanceKeyCertificateFromLocalTruststore() */
-        final String certificateBase64 =
+    // Requested secret key wrapping cipher and validation. Validation
+    // depends on MAC cipher for secret key.
+    String requestedKeyWrappingTransformation
+            = cfg.getKeyWrappingTransformation();
+    if (! requestedKeyWrappingTransformation.equals(
+            this.preferredKeyWrappingTransformation)) {
+      if (3 != requestedKeyWrappingTransformation.split("/", 0).length) {
+        unacceptableReasons.add(
+                ERR_CRYPTOMGR_FULL_KEY_WRAPPING_TRANSFORMATION_REQUIRED.get(
+                        requestedKeyWrappingTransformation));
+        isAcceptable = false;
+      }
+      else {
+        try {
+          /* Note that the TrustStoreBackend not available at initial,
+         CryptoManager configuration, hence a "dummy" certificate must be used
+         to validate the choice of secret key wrapping cipher. Otherwise, call
+         getInstanceKeyCertificateFromLocalTruststore() */
+          final String certificateBase64 =
                 "MIIB2jCCAUMCBEb7wpYwDQYJKoZIhvcNAQEEBQAwNDEbMBkGA1UEChMST3B" +
                 "lbkRTIENlcnRpZmljYXRlMRUwEwYDVQQDEwwxMC4wLjI0OC4yNTEwHhcNMD" +
                 "cwOTI3MTQ0NzUwWhcNMjcwOTIyMTQ0NzUwWjA0MRswGQYDVQQKExJPcGVuR" +
@@ -415,25 +414,25 @@ public class CryptoManagerImpl
                 "jucN34MZwvzbmFHT/leUu3/cpykbGM9HL2QUX7iKvv2LJVqexhj7CLoXxZP" +
                 "oNL+HHKW0vi5/7W5KwOZsPqKI2SdYV7nDqTZklm5ZP0gmIuNO6mTqBRtC2D" +
                 "lplX1Iq+BrQJAmteiPtwhdZD+EIghe51CaseImjlLlY2ZK8w==";
-        final byte[] certificate = Base64.decode(certificateBase64);
-        final String keyID = getInstanceKeyID(certificate);
-        final SecretKey macKey = MacKeyEntry.generateKeyEntry(null,
-                requestedMACAlgorithm,
-                requestedMACAlgorithmKeyLengthBits).getSecretKey();
-        encodeSymmetricKeyAttribute(sharedSecretKeyWrappingTransformation,
-                keyID, certificate, macKey);
-      }
-      catch (Exception ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          final byte[] certificate = Base64.decode(certificateBase64);
+          final String keyID = getInstanceKeyID(certificate);
+          final SecretKey macKey = MacKeyEntry.generateKeyEntry(null,
+                  requestedMACAlgorithm,
+                  requestedMACAlgorithmKeyLengthBits).getSecretKey();
+          encodeSymmetricKeyAttribute(requestedKeyWrappingTransformation,
+                  keyID, certificate, macKey);
         }
-        unacceptableReasons.add(
-                ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
-                        getExceptionMessage(ex)));
-        isAcceptable = false;
+        catch (Exception ex) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+          }
+          unacceptableReasons.add(
+                  ERR_CRYPTOMGR_CANNOT_GET_PREFERRED_KEY_WRAPPING_CIPHER.get(
+                          getExceptionMessage(ex)));
+          isAcceptable = false;
+        }
       }
     }
-
     return isAcceptable;
   }
 
@@ -453,7 +452,7 @@ public class CryptoManagerImpl
     preferredMACAlgorithmKeyLengthBits = cfg.getMacKeyLength();
     preferredCipherTransformation = cfg.getCipherTransformation();
     preferredCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
-
+    preferredKeyWrappingTransformation = cfg.getKeyWrappingTransformation();
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -833,7 +832,7 @@ public class CryptoManagerImpl
           final SecretKey secretKey)
           throws CryptoManagerException {
     return encodeSymmetricKeyAttribute(
-            sharedSecretKeyWrappingTransformation,
+            preferredKeyWrappingTransformation,
          wrappingKeyID,
          wrappingKeyCertificateData,
          secretKey);
@@ -1030,7 +1029,7 @@ public class CryptoManagerImpl
     final byte[] wrappingKeyCert =
             certMap.get(requestedInstanceKeyID);
     return encodeSymmetricKeyAttribute(
-            sharedSecretKeyWrappingTransformation,
+            preferredKeyWrappingTransformation,
          requestedInstanceKeyID, wrappingKeyCert, secretKey);
   }
 
