@@ -82,6 +82,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
         </function-arg-def>
@@ -127,21 +128,11 @@
           'arguments'   : STAFCmdParams,
           'location'    : mylocation,
           'name'        : 'Add Entry From LDIF',
-          'verbose'     : verbose
-        }
-      </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC
+          'expectedRC'  : expectedRC
         }
       </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -360,6 +351,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
         </function-arg-def>    
@@ -486,21 +478,13 @@
         { 'name'      : 'LDAP Modify Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
       
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -562,6 +546,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
         </function-arg-def>    
@@ -604,21 +589,13 @@
         { 'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'name'      : 'Modify Entry from ldif file'
+          'name'      : 'Modify Entry from ldif file',
+          'expectedRC': expectedRC
         }
       </call>
       
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -933,6 +910,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
         </function-arg-def>    
@@ -1207,7 +1185,8 @@
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. Default value is 0. Wildcard 'noCheck' to not check the RC
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
         </function-arg-def>    
@@ -1263,22 +1242,12 @@
         { 'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'location'  : location,
-          'name'      : 'ldapsearch'
+          'name'      : 'ldapsearch',
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <if expr="expectedRC != 'noCheck'">
-        <call function="'checktestRC'">
-          { 'returncode' : STAXCode ,
-            'result'     : STAXReason ,
-            'expected'   : expectedRC }
-        </call>
-      </if>        
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
 
@@ -1340,7 +1309,8 @@
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          expected value. Default is 0
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
     </function-map-args>
@@ -1349,20 +1319,12 @@
         { 'name'      : 'Search Base Object No Password',
           'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
           'arguments' : '-h %s -p %s -D "%s" %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,dsInstanceDn,extraParams,dsBaseDN,dsFilter),
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -1418,6 +1380,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
         </function-arg-def>    
@@ -1427,20 +1390,12 @@
         { 'name'      : 'Anonymous Search Base Object',
           'location'  : location,
           'command'   : '%s/ldapsearch%s' % (dsBinPath,fileExt),
-          'arguments' : '-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter)
+          'arguments' : '-h %s -p %s %s -b "%s" "%s"' % (dsInstanceHost,dsInstancePort,extraParams,dsBaseDN,dsFilter),
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -1635,6 +1590,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
@@ -1747,20 +1703,12 @@
         { 'name'      : 'LDAP Delete Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -1822,6 +1770,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
@@ -1866,20 +1815,12 @@
         { 'name'      : 'Delete Object',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
     
@@ -2087,6 +2028,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
@@ -2198,20 +2140,12 @@
         { 'name'      : 'LDAP Compare Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -2279,6 +2213,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
@@ -2320,20 +2255,12 @@
         { 'name'      : 'Compare Object',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -2521,6 +2448,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
       </function-arg-def>    
@@ -2613,20 +2541,12 @@
         { 'name'      : 'LDAP Password Modify Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -2725,6 +2645,7 @@
     <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
         Expected return code value. Default value is 0
+        Wildcard 'noCheck' to not check the RC
       </function-arg-description>
       <function-arg-property name="type" value="string"/>
     </function-arg-def>      
@@ -2778,31 +2699,26 @@
         
         STAFCmd='modifyAnAttribute' 
       </script>
+      
+      <if expr="suppressTestStatus == '1'">
+        <script>
+          expectedRC = 'noCheck'
+        </script>
+      </if>
+      
       <call function="'runCommand'" >
         { 'name'      : 'Modify An Attribute value',
           'command'   : '%s/bin/java' % JAVA_HOME,
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
           'path'      : '%s/../%s' % (dsPath,relativeJavaDir),
-          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)]
+          'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
       
-      <if expr="suppressTestStatus != '1'">
-        <sequence>
-          <call function="'checktestRC'">
-          { 'returncode' : STAXCode ,
-            'result'     : STAXReason,
-            'expected'   : expectedRC }
-          </call>
-        </sequence>
-      </if>
       <return>
-        [STAXCode,STAXReason]
+        [RC,STAXResult]
       </return>
     </sequence>
     
@@ -2908,6 +2824,7 @@
     <function-arg-def name="expectedRC" type="optional" default="0">
       <function-arg-description>
         Expected return code value. Default value is 0
+        Wildcard 'noCheck' to not check the RC
       </function-arg-description>
       <function-arg-property name="type" value="string"/>
     </function-arg-def>      
@@ -3003,7 +2920,8 @@
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          expected value. Default is 0
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
       </function-arg-def>
     </function-map-args>
@@ -3037,20 +2955,12 @@
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
           'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
-          'path'      : '%s/../%s' % (dsPath,relativeJavaDir)
+          'path'      : '%s/../%s' % (dsPath,relativeJavaDir),
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>
@@ -3119,6 +3029,7 @@
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
@@ -3156,20 +3067,12 @@
           'arguments' : '%s %s' % (STAFCmd,STAFCmdParams),
           'location'  : location,
           'env'       : ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/../%s' % (dsPath,relativeJavaDir)],
-          'path'      : '%s/../%s' % (dsPath,relativeJavaDir)
+          'path'      : '%s/../%s' % (dsPath,relativeJavaDir),
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
-      </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>

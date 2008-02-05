@@ -320,7 +320,7 @@
             </call>
             
              <script> 
-                 returnString = STAXReason[0][1]
+                 returnString = STAXResult[0][1]
             </script> 
     
             <call function="'checktestString'">

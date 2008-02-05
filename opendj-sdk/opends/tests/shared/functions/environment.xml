@@ -119,7 +119,7 @@
     <sequence>
     
       <!-- Resolve any OS related variables -->           
-      <call function="'setOSvariables'">
+      <call function="'getOSvariables'">
         { 'hostname' : STAF_REMOTE_HOSTNAME }
       </call>
 
@@ -154,7 +154,6 @@
 
         DSCONFIG = 'dsconfig'       
         DSREPLICATION = 'dsreplication'   
-        NO_CHECK = 'noCheck'  
           
         AdminUID = 'admin'
         AdminPswd = 'admin'

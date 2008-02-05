@@ -98,7 +98,7 @@
           Help option
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
-      </function-arg-def>    
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -151,12 +151,9 @@
           'name'      : 'Setup DS Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'path'      : dsPath
+          'path'      : dsPath,
+          'expectedRC': 'noCheck'
         }
-      </call>
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
       </call>
     </sequence>
   </function>
@@ -208,7 +205,13 @@
           Directory server build information
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
-      </function-arg-def>                
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -248,19 +251,11 @@
         { 'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'location'  : location
+          'location'  : location,
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        startRC=RC
-        startResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-          { 'returncode' : startRC ,
-            'result'     : startResult }
-      </call>
-     
-      <return>startResult</return>
+      <return>STAXResult</return>
           
     </sequence>
     
@@ -404,6 +399,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -488,12 +489,9 @@
         { 'location'  : location,
           'name'      : 'Stop DS Script',
           'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }
-      </call>
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
       </call>
       <call function="'Sleep'">
         { 'sleepForMilliSeconds'  : 3000 }
@@ -668,7 +666,13 @@
           Optional extra parameters for specific test cases
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>    
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
       
     <sequence>
@@ -684,18 +688,11 @@
         { 'location'  : location,
           'name'      : 'Offline Import',
           'command'   : '%s/import-ldif%s' % (dsBinPath,fileExt),
-          'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams)
+          'arguments' : '-l %s -n %s %s' % (ldifFile,backEnd,extraParams),
+          'expectedRC': expectedRC
         }
       </call>
-      <script>
-        importRC=RC
-        importResult=STAXResult
-      </script>
-      <call function="'checkRC'">
-          { 'returncode' : importRC ,
-            'result'     : importResult }
-      </call>
-      <return>importRC</return>
+      <return>RC</return>
     </sequence>
   </function>
     
@@ -865,7 +862,13 @@
           Start time for task
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-      </function-arg-def>            
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -962,14 +965,10 @@
         { 'location'  : location,
           'name'      : 'Offline Import Script',
           'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }
       </call>
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult }
-      </call>
-            
     </sequence>
   </function>
 
@@ -1482,7 +1481,8 @@
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. Default value is 0
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
@@ -1528,26 +1528,13 @@
         { 'location'  : location,
           'name'      : 'Export Script',
           'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
-        }              
-      </call> 
-      <message> 
-        '%s %s' % (STAFCmd,STAFCmdParams)
-      </message>
-
-     <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }
       </call>
       <return>
-        STAXReason
-      </return>                
+        STAXResult
+      </return>
     </sequence>
   </function>
   
@@ -1842,7 +1829,8 @@
       </function-arg-def>             
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. Default value is 0
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
 	    </function-arg-def>
@@ -1886,23 +1874,14 @@
         { 'location'  : location,
           'name'      : 'Backup Script',
           'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }              
       </call> 
-   
-    <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC
-        }
-      </call>
+      
       <return>
-        STAXReason
-      </return>                
+        STAXResult
+      </return>
     </sequence>
   </function>      
      
@@ -2157,7 +2136,8 @@
       </function-arg-def>        
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
-          Expected return code value. Default value is 0
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>      
@@ -2198,24 +2178,15 @@
         { 'location'  : location,
           'name'      : 'Restore Script',
           'command'   : STAFCmd,
-          'arguments' : STAFCmdParams
-        }              
-      </call> 
-   
-    <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
         }
-      </call>
+      </call> 
+      
       <return>
-        STAXReason
-      </return>                
-    </sequence>      
+        STAXResult
+      </return>
+    </sequence>
   </function>
 
   <!-- Restore Task Function --> 
@@ -3215,7 +3186,7 @@
           Sleep time in milliseconds between ldap check tries
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
-      </function-arg-def> 
+      </function-arg-def>
       
     </function-map-args>
 
@@ -3375,7 +3346,13 @@
           Help option
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
-      </function-arg-def>    
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -3410,21 +3387,12 @@
           'name'      : 'Status Script',
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'path'      : dsPath
+          'path'      : dsPath,
+          'expectedRC': expectedRC
         }
       </call>
-
-      <script>
-        CmdRC=RC
-        CmdResult=STAXResult
-      </script>
-
-      <call function="'checkRC'">
-        { 'returncode' : CmdRC ,
-          'result'     : CmdResult }
-      </call>
-
-      <return>CmdResult</return>
+      
+      <return>STAXResult</return>
       
     </sequence>
 
@@ -3495,7 +3463,13 @@
           Help option
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
-      </function-arg-def>    
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -3544,21 +3518,12 @@
           'name'      : 'Base 64 %s Script' % subcommand,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
-          'path'      : dsPath
+          'path'      : dsPath,
+          'expectedRC': expectedRC
         }
       </call>
-
-      <script>
-        CmdRC=RC
-        CmdResult=STAXResult
-      </script>
-
-      <call function="'checkRC'">
-        { 'returncode' : CmdRC ,
-          'result'     : CmdResult }
-      </call>
-
-      <return>CmdResult</return>
+      
+      <return>STAXResult</return>
             
     </sequence>
   </function>
