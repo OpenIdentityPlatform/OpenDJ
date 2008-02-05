@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+#      Portions Copyright 2006-2008 Sun Microsystems, Inc.
 
 
 # This script may be used to request that the Directory Server shut down.
@@ -49,8 +49,10 @@ export INSTANCE_ROOT
 
 cd "${WORKING_DIR}"
 
-
-
+# We keep this values to reset the environment before calling start-ds.
+ORIGINAL_JAVA_ARGS=${OPENDS_JAVA_ARGS}
+ORIGINAL_JAVA_HOME=${OPENDS_JAVA_HOME}
+ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
 
 
 # Specify the script name so that we can use the specified java properties.
@@ -68,7 +70,7 @@ then
 fi
 
 
-"${OPENDS_JAVA_BIN}" ${JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
   org.opends.server.tools.StopDS --checkStoppability "${@}"
 EC=${?}
 
@@ -165,6 +167,12 @@ if test ${MUST_START_USING_SYSTEM_CALL} -eq 0
 then
   if test ${STOPPED} -eq 0
   then
+# Set the original values that the user had on the environment in order to be
+# sure that the start-ds script works with the proper arguments (in particular
+# if the user specified not to overwrite the environment).
+    OPENDS_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
+    OPENDS_JAVA_HOME=${ORIGINAL_JAVA_HOME}
+    OPENDS_JAVA_BIN=${ORIGINAL_JAVA_BIN}
     if test ${QUIET_MODE} -eq 0
     then
       "${INSTANCE_ROOT}/bin/start-ds" --quiet

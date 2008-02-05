@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+rem      Portions Copyright 2006-2008 Sun Microsystems, Inc.
 
 setlocal
 
@@ -33,6 +33,11 @@ set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 
+rem We keep this values to reset the environment before calling start-ds.
+set ORIGINAL_JAVA_ARGS=%OPENDS_JAVA_ARGS%
+set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
+set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
+
 set INSTANCE_ROOT=%DIR_HOME%
 
 set LOG="%INSTANCE_ROOT%\logs\native-windows.out"
@@ -41,8 +46,6 @@ set SCRIPT=stop-ds.bat
 rem This is the template to use for logging.  Make sure to use >>
 rem echo %SCRIPT%: your-message-here >> %LOG%
 echo %SCRIPT%: invoked >> %LOG%
-
-set SCRIPT_NAME=start-ds
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
@@ -70,6 +73,12 @@ goto end
 
 :startUsingSystemCall
 echo %SCRIPT%: start using system call >> %LOG%
+rem Set the original values that the user had on the environment in order to be
+rem sure that the start-ds script works with the proper arguments (in particular
+rem if the user specified not to overwrite the environment).
+set OPENDS_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
+set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
+set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 "%DIR_HOME%\bat\start-ds.bat"
 goto end
 
