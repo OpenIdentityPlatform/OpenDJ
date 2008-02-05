@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -170,6 +170,7 @@ public class LDAPPasswordModify
     BooleanArgument   useSSL;
     BooleanArgument   useStartTLS;
     FileBasedArgument bindPWFile;
+    StringArgument    certNickname           = null;
     FileBasedArgument currentPWFile;
     FileBasedArgument newPWFile;
     FileBasedArgument sslKeyStorePINFile;
@@ -351,6 +352,13 @@ public class LDAPPasswordModify
                    INFO_LDAPPWMOD_DESCRIPTION_KEYSTORE_PINFILE.get());
       sslKeyStorePINFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
       argParser.addArgument(sslKeyStorePINFile);
+
+      certNickname = new StringArgument("certnickname", null, "certNickname",
+          false, false, true, "{nickname}", null, null,
+          INFO_DESCRIPTION_CERT_NICKNAME.get());
+      certNickname.setPropertyName("certNickname");
+      argParser.addArgument(certNickname);
+
 
 
       sslTrustStore =
@@ -605,9 +613,18 @@ public class LDAPPasswordModify
 
       try
       {
+        String clientAlias;
+        if (certNickname.isPresent())
+        {
+          clientAlias = certNickname.getValue();
+        }
+        else
+        {
+          clientAlias = null;
+        }
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
         sslConnectionFactory.init(sslBlindTrust.isPresent(),
-                                  sslKeyStore.getValue(), keyPIN, null,
+                                  sslKeyStore.getValue(), keyPIN, clientAlias,
                                   sslTrustStore.getValue(), trustPIN);
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);
       }
