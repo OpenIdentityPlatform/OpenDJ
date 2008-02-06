@@ -343,21 +343,23 @@ public class AciHandler
                  * Check if we have rights to delete all values of
                  * an attribute type in the resource entry.
                  */
-                if(resourceEntry.hasAttribute(modAttrType)) {
-                  container.setCurrentAttributeType(modAttrType);
-                  List<Attribute> attrList =
+              if(resourceEntry.hasAttribute(modAttrType)) {
+                container.setCurrentAttributeType(modAttrType);
+                List<Attribute> attrList =
                    resourceEntry.getAttribute(modAttrType,modAttr.getOptions());
+                if(attrList != null) {
                   for (Attribute a : attrList) {
                     for (AttributeValue v : a.getValues()) {
                       container.setCurrentAttributeValue(v);
                       container.setRights(ACI_WRITE_DELETE);
                       if(!skipAccessCheck &&
-                           !accessAllowed(container))
+                              !accessAllowed(container))
                         return false;
                     }
                   }
                 }
-             }
+              }
+            }
 
             if(modAttr.hasValue()) {
                for(AttributeValue v : modAttr.getValues()) {
