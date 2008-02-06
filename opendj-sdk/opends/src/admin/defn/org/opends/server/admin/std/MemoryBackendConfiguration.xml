@@ -23,14 +23,16 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="memory-backend" plural-name="memory-backends"
   package="org.opends.server.admin.std" extends="backend"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The memory backend provides a Directory Server backend
+    The 
+    <adm:user-friendly-name />
+    provides a Directory Server backend
     implementation that stores entries in memory.
   </adm:synopsis>
   <adm:description>

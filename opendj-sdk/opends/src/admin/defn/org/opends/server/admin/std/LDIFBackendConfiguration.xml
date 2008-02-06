@@ -23,18 +23,20 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="ldif-backend" plural-name="ldif-backends"
   package="org.opends.server.admin.std" extends="backend"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The LDIF backend provides a mechanism for interacting with data
+    The 
+    <adm:user-friendly-name />
+    provides a mechanism for interacting with data
     stored in an LDIF file.
   </adm:synopsis>
   <adm:description>
-    All basic LDAP operations are supported in the LDIF backend,
+    All basic LDAP operations are supported in the LDIF backend 
     although it has minimal support for custom controls.
   </adm:description>
   <adm:profile name="ldap">
@@ -59,7 +61,7 @@
   </adm:property-override>
   <adm:property name="ldif-file" mandatory="true">
     <adm:synopsis>
-      This specifies the path to the LDIF file containing the data for
+      Specifies the path to the LDIF file containing the data for
       this backend.
     </adm:synopsis>
     <adm:requires-admin-action>
@@ -76,7 +78,7 @@
   </adm:property>
   <adm:property name="is-private-backend">
     <adm:synopsis>
-      This indicates whether the backend should be considered a private
+      Indicates whether the backend should be considered a private
       backend, which indicates that it is used for storing operational
       data rather than user-defined information.
     </adm:synopsis>

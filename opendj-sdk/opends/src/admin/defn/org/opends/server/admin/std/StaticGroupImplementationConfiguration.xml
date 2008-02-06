@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="static-group-implementation"
   plural-name="static-group-implementations"
@@ -38,9 +38,8 @@
     group.
   </adm:synopsis>
   <adm:description>
-    Note that it is possible to nest static groups, which can be
-    accomplished by including the DN of a nested group in the member
-    list for the parent group.
+    Note that it is possible to nest static groups by including the DN of a 
+    nested group in the member list for the parent group.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>

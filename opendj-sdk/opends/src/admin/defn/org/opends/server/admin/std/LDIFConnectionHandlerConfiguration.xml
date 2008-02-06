@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="ldif-connection-handler"
   plural-name="ldif-connection-handlers"
@@ -33,13 +33,13 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    may be used to process changes in the server using internal
+    is used to process changes in the server using internal
     operations, where the changes to process are read from an LDIF file.
   </adm:synopsis>
   <adm:description>
-    The connection handler will periodically look for the existence of a
-    new file, will process the changes contained in that file as
-    internal operations, and will write the result to an output file
+    The connection handler periodically looks for the existence of a
+    new file, processes the changes contained in that file as
+    internal operations, and writse the result to an output file
     with comments indicating the result of the processing. NOTE: By
     default
     <adm:user-friendly-name />

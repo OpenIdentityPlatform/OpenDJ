@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="cancel-extended-operation-handler"
   plural-name="cancel-extended-operation-handlers"
@@ -39,8 +39,8 @@
   </adm:synopsis>
   <adm:description>
     It allows clients to cancel operations initiated from earlier
-    requests, and will ensure that both the cancel request and the
-    operation being canceled will receive response messages.
+    requests. The property ensures that both the cancel request and the
+    operation being canceled receives response messages.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>

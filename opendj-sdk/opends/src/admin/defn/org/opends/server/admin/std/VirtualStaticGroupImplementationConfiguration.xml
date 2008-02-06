@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="virtual-static-group-implementation"
   plural-name="virtual-static-group-implementations"
@@ -39,7 +39,7 @@
   </adm:synopsis>
   <adm:description>
     The primary benefit of virtual static groups is that they make it
-    possible to present other types of groups (e.g., dynamic groups) as
+    possible to present other types of groups (for example, dynamic groups) as
     if they were static groups for the benefit of applications that do
     not support alternate grouping mechanisms.
   </adm:description>

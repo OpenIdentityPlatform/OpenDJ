@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="trust-store-backend"
   plural-name="trust-store-backends" extends="backend"
@@ -97,14 +97,14 @@
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect the next time that
+          Changes to this property take effect the next time that
           the key manager is accessed.
         </adm:synopsis>
       </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
-        <adm:synopsis>The JVM default value will be used.</adm:synopsis>
+        <adm:synopsis>The JVM default value is used.</adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="directory-string-attribute-syntax"
   plural-name="directory-string-attribute-syntaxes"
@@ -31,8 +31,9 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    <adm:user-friendly-plural-name />
-    define an attribute syntax for storing arbitrary string (and
+    The
+    <adm:user-friendly-name />
+    defines an attribute syntax for storing arbitrary string (and
     sometimes binary) data.
   </adm:synopsis>
   <adm:profile name="ldap">
@@ -52,13 +53,13 @@
   </adm:property-override>
   <adm:property name="allow-zero-length-values" advanced="true">
     <adm:synopsis>
-      Indicate whether zero-length (i.e., empty string) values will be
+      Indicates whether zero-length (that is, an empty string) values are
       allowed.
     </adm:synopsis>
     <adm:description>
       This is technically not allowed by the revised LDAPv3
       specification, but some environments may require it for backward
-      compatibility with servers that did allow it.
+      compatibility with servers that do allow it.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="attribute-type-description-attribute-syntax"
   plural-name="attribute-type-description-attribute-syntaxes"
@@ -44,6 +44,9 @@
     </ldap:object-class>
   </adm:profile>
   <adm:property-override name="java-class" advanced="true">
+	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
@@ -54,13 +57,13 @@
   </adm:property-override>
   <adm:property name="strip-syntax-min-upper-bound" advanced="true">
     <adm:synopsis>
-      Indicate whether the suggested minimum upper bound appended to an
+      Indicates whether the suggested minimum upper bound appended to an
       attribute's syntax OID in it's schema definition Attribute Type
       Description is stripped off.
     </adm:synopsis>
     <adm:description>
       When retrieving the server's schema, some APIs (JNDI) fail in
-      their syntax lookup methods because they don't parse this value
+      their syntax lookup methods, because they do not parse this value
       correctly. This configuration option allows the server to be
       configured to provide schema definitions these APIs can parse
       correctly.

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="soft-reference-entry-cache"
   plural-name="soft-reference-entry-caches"
@@ -31,9 +31,10 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
+    The
     <adm:user-friendly-name />
     is a Directory Server entry cache implementation that uses soft
-    references to manage objects in a way that will allow them to be
+    references to manage objects to allow them to be
     freed if the JVM is running low on memory.
   </adm:synopsis>
   <adm:profile name="ldap">
@@ -53,7 +54,7 @@
   </adm:property-override>
   <adm:property name="lock-timeout" advanced="true">
     <adm:synopsis>
-      The length of time in milliseconds to wait while attempting to
+      Specifies the length of time in milliseconds to wait while attempting to
       acquire a read or write lock.
     </adm:synopsis>
     <adm:default-behavior>

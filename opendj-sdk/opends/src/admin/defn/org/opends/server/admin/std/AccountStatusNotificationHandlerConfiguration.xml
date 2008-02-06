@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="account-status-notification-handler"
   plural-name="account-status-notification-handlers"
@@ -32,11 +32,12 @@
   xmlns:ldap="http://www.opends.org/admin-ldap"
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
-    <adm:user-friendly-name />
-    is invoked whenever certain types of events occur that could change
-    the status of a user account. The
-    <adm:user-friendly-name />
-    may be used to notify the user and/or administrators of the change.
+     <adm:user-friendly-plural-name />
+     are invoked to provide notification to users in some form (for example, 
+     by an email message) when the status of a user's account has changed 
+     in some way. The 
+    <adm:user-friendly-name /> 
+    can be used to notify the user and/or administrators of the change.
   </adm:synopsis>
   <adm:tag name="user-management" />
   <adm:profile name="ldap">
@@ -50,9 +51,10 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
-      <adm:user-friendly-name />
-      is enabled for use.
+      Indicates whether the
+      <adm:user-friendly-name /> 
+      is enabled. Only enabled handlers are invoked whenever 
+      a related event occurs in the server.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -65,10 +67,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>

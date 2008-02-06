@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="smtp-account-status-notification-handler"
   plural-name="smtp-account-status-notification-handlers"
@@ -32,8 +32,9 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
+    The
     <adm:user-friendly-name />
-    is an account status notification handler that can be used to send
+    is a notification handler that sends
     email messages to end users and/or administrators whenever an
     account status notification is generated.
   </adm:synopsis>
@@ -59,21 +60,20 @@
   <adm:property name="email-address-attribute-type"
     multi-valued="true">
     <adm:synopsis>
-      Specifies which attribute in user entries may be used to obtain
-      the email address to use when notifying the end user.
+      Specifies which attribute in the user's entries may be used to obtain
+      the email address when notifying the end user.
     </adm:synopsis>
     <adm:description>
-      Multiple attributes can be specified as separate values, and in
-      that case all email addresses identified in all such values will
-      receive the notification.
+      You can specify more than one email address as separate values. In this case,
+      the OpenDS server sends a notification to all email addresses identified.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
           If no email address attribute types are specified, then no
-          attempt will be made to send email notification messages to
+          attempt is made to send email notification messages to
           end users. Only those users specified in the set of additional
-          recipient addresses will be sent the notification messages.
+          recipient addresses are sent the notification messages.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -88,7 +88,7 @@
   </adm:property>
   <adm:property name="recipient-address" multi-valued="true">
     <adm:synopsis>
-      Specifies an email address to which notification messages will be
+      Specifies an email address to which notification messages are
       sent, either instead of or in addition to the end user for whom
       the notification has been generated.
     </adm:synopsis>
@@ -101,7 +101,7 @@
         <adm:synopsis>
           If no additional recipient addresses are specified, then only
           the end users that are the subjects of the account status
-          notifications will receive the notification messages.
+          notifications receive the notification messages.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -120,7 +120,7 @@
       Indicates whether an email notification message should be
       generated and sent to the set of notification recipients even if
       the user entry does not contain any values for any of the email
-      address attributes (and therefore it will not be possible to
+      address attributes (that is, in cases when it is not be possible to
       notify the end user).
     </adm:synopsis>
     <adm:description>
@@ -146,8 +146,8 @@
   </adm:property>
   <adm:property name="sender-address" mandatory="true">
     <adm:synopsis>
-      Specifies the e-mail address from which the message will be sent.
-      Note that this does not necessarily have to be a legitimate e-mail
+      Specifies the email address from which the message is sent.
+      Note that this does not necessarily have to be a legitimate email
       address.
     </adm:synopsis>
     <adm:syntax>
@@ -171,7 +171,7 @@
       subject that should be used for the associated notification
       message. If an email message is generated for an account status
       notification type for which no subject is defined, then that
-      message will be given a generic subject.
+      message is given a generic subject.
     </adm:description>
     <adm:syntax>
       <adm:string />
@@ -185,8 +185,8 @@
   <adm:property name="message-template-file" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      Specifies the path to the file containing the message template
-      that is to be used to generate the email notification messages.
+      Specifies the path to the file containing the message template 
+      to generate the email notification messages.
     </adm:synopsis>
     <adm:description>
       The values for this property should begin with the name of an
@@ -194,7 +194,7 @@
       to the template file that should be used for that notification
       type. If an account status notification has a notification type
       that is not associated with a message template file, then no email
-      message will be generated for that notification.
+      message is generated for that notification.
     </adm:description>
     <adm:syntax>
       <adm:string />

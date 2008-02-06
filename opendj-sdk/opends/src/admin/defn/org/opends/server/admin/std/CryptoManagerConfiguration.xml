@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="crypto-manager" plural-name="crypto-managers"
   package="org.opends.server.admin.std"
@@ -45,12 +45,12 @@
   </adm:profile>
   <adm:property name="digest-algorithm" advanced="true">
     <adm:synopsis>
-      The preferred message digest algorithm for the Directory Server.
+      Specifies the preferred message digest algorithm for the Directory Server.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately and 
           only affect cryptographic operations performed after the
           change.
         </adm:synopsis>
@@ -72,13 +72,13 @@
   </adm:property>
   <adm:property name="mac-algorithm" advanced="true">
     <adm:synopsis>
-      The preferred MAC algorithm for the Directory Server.
+      Specifies the preferred MAC algorithm for the Directory Server.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
-          only affect cryptographic operations performed after the
+          Changes to this property take effect immediately but only 
+          affect cryptographic operations performed after the
           change.
         </adm:synopsis>
       </adm:none>
@@ -99,13 +99,13 @@
   </adm:property>
   <adm:property name="mac-key-length" advanced="true">
     <adm:synopsis>
-      The preferred key length in bits for the preferred MAC algorithm.
+      Specifies the key length in bits for the preferred MAC algorithm.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
-          only affect cryptographic operations performed after the
+          Changes to this property take effect immediately but only 
+          affect cryptographic operations performed after the
           change.
         </adm:synopsis>
       </adm:none>
@@ -126,14 +126,14 @@
   </adm:property>
   <adm:property name="cipher-transformation" advanced="true">
     <adm:synopsis>
-      The preferred cipher for the Directory Server, to be specified
+      Specifies the cipher for the Directory Server 
       using the syntax algorithm/mode/padding.
     </adm:synopsis>
     <adm:description>
       The full transformation is required: specifying only an algorithm
       and allowing the cipher provider to supply the default mode and
       padding is not supported, because there is no guarantee these
-      default values will be the same among different implementations.
+      default values are the same among different implementations.
       Some cipher algorithms, including RC4 and ARCFOUR, do not have a
       mode or padding, and hence must be specified using NONE for the
       mode field and NoPadding for the padding field. For example,
@@ -142,7 +142,7 @@
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately but  
           only affect cryptographic operations performed after the
           change.
         </adm:synopsis>
@@ -164,12 +164,12 @@
   </adm:property>
   <adm:property name="cipher-key-length" advanced="true">
     <adm:synopsis>
-      The preferred key length in bits for the preferred cipher.
+      Specifies the key length in bits for the preferred cipher.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately but 
           only affect cryptographic operations performed after the
           change.
         </adm:synopsis>
@@ -219,13 +219,13 @@
   </adm:property>
   <adm:property name="ssl-protocol" multi-valued="true">
     <adm:synopsis>
-      Specifies the names of the SSL protocols that will be allowed for
+      Specifies the names of the SSL protocols that are allowed for
       use in SSL or TLS communication.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately but 
           only impact new SSL/TLS-based sessions created after the
           change.
         </adm:synopsis>
@@ -250,13 +250,13 @@
   </adm:property>
   <adm:property name="ssl-cipher-suite" multi-valued="true">
     <adm:synopsis>
-      Specifies the names of the SSL cipher suites that will be allowed
+      Specifies the names of the SSL cipher suites that are allowed
       for use in SSL or TLS communication.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately but 
           only impact new SSL/TLS-based sessions created after the
           change.
         </adm:synopsis>
@@ -287,7 +287,7 @@
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately but 
           only impact new SSL/TLS-based sessions created after the
           change.
         </adm:synopsis>

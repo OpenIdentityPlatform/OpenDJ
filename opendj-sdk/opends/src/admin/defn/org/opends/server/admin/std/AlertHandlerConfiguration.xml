@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="alert-handler" plural-name="alert-handlers"
   package="org.opends.server.admin.std"
@@ -31,7 +31,7 @@
   xmlns:ldap="http://www.opends.org/admin-ldap"
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
-    <adm:user-friendly-name />
+    <adm:user-friendly-plural-name />
     are used to notify administrators of significant problems or notable
     events that occur in the Directory Server.
   </adm:synopsis>
@@ -47,9 +47,9 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
-      is enabled for use.
+      is enabled.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -62,10 +62,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
@@ -86,16 +89,16 @@
     </adm:synopsis>
     <adm:description>
       If there are any values for this attribute, then only alerts with
-      one of the specified types will be allowed (unless they are also
+      one of the specified types are allowed (unless they are also
       included in the disabled alert types). If there are no values for
-      this attribute, then any alerts with a type not included in the
-      list of disabled alert types will be allowed.
+      this attribute, then any alert with a type not included in the
+      list of disabled alert types is allowed.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
           All alerts with types not included in the set of disabled
-          alert types will be allowed.
+          alert types are allowed.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -115,18 +118,18 @@
     </adm:synopsis>
     <adm:description>
       If there are any values for this attribute, then no alerts with
-      any of the specified types will be allowed. If there are no values
+      any of the specified types are allowed. If there are no values
       for this attribute, then only alerts with a type included in the
-      set of enabled alert types will be allowed, or if there are no
-      values for the enabled alert types option then all alert types
-      will be allowed.
+      set of enabled alert types are allowed, or if there are no
+      values for the enabled alert types option, then all alert types
+      are allowed.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
           If there is a set of enabled alert types, then only alerts
-          with one of those types will be allowed. Otherwise, all alerts
-          will be allowed.
+          with one of those types are allowed. Otherwise, all alerts
+          are allowed.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

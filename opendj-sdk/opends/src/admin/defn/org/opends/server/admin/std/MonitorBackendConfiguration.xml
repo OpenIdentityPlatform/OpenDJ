@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="monitor-backend"
   plural-name="monitor-backends" package="org.opends.server.admin.std"
@@ -31,7 +31,9 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The monitor backend allows clients to access the information made
+    The 
+    <adm:user-friendly-name />
+    allows clients to access the information made
     available by Directory Server monitor providers.
   </adm:synopsis>
   <adm:profile name="ldap">

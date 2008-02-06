@@ -23,29 +23,26 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="task-backend" plural-name="task-backends"
   package="org.opends.server.admin.std" extends="backend"
   advanced="true" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The task backend provides a mechanism for processing tasks in the
+    The Task Backend provides a mechanism for scheduling tasks in the
     OpenDS Directory Server. Tasks are intended to provide access to
     certain types of administrative functions in the server that may not
-    otherwise be convenient to perform remotely.
+    be convenient to perform remotely.
   </adm:synopsis>
   <adm:description>
-    Tasks that are currently available for use provide the ability to
-    backup and restore backends, to import and export LDIF files, and to
-    stop and restart the server. The details of the task to perform are
-    held in an entry that is added below the root of the task backend,
-    and then the task backend is responsible for decoding that task
-    entry and ensuring that it is processed as requested. Tasks may be
-    invoked immediately, but they may also be scheduled for execution at
-    some future time. It is also expected that task backend will be
-    given the ability to process recurring tasks, which can be used to
-    help ensure that maintenance operations (e.g., backups) are
+    OpenDS supports tasks to backup and restore backends, to import and export LDIF 
+    files, and to stop and restart the server. The details of a task are
+    in an entry that is below the root of the Task Backend. The Task Backend 
+    is responsible for decoding that task entry and ensuring that it is processed 
+    as requested. Tasks may be invoked immediately, but they may also be scheduled for execution at
+    some future time. The task backend can also process recurring tasks to
+    ensure that maintenance operations (for example, backups) are
     performed automatically on a regular basis.
   </adm:description>
   <adm:profile name="ldap">
@@ -72,11 +69,11 @@
   </adm:property-override>
   <adm:property name="task-backing-file" mandatory="true">
     <adm:synopsis>
-      This specifies the path to the backing file for storing
+      Specifies the path to the backing file for storing
       information about the tasks configured in the server.
     </adm:synopsis>
     <adm:description>
-      It may be either an absolute path or a path that is relative to
+      It may be either an absolute path or a relative path to
       the base of the OpenDS Directory Server instance.
     </adm:description>
     <adm:syntax>
@@ -90,7 +87,7 @@
   </adm:property>
   <adm:property name="task-retention-time">
     <adm:synopsis>
-      This specifies the length of time that task entries should be
+      Specifies the length of time that task entries should be
       retained after processing on the associated task has been
       completed.
     </adm:synopsis>
@@ -110,14 +107,14 @@
   </adm:property>
   <adm:property name="notification-sender-address">
     <adm:synopsis>
-      This specifies the e-mail address to use as the sender (i.e.,
-      "From:") address for notification mail messages generated when a
-      task completes execution.
+      Specifies the email address to use as the sender (that is,
+      the "From:" address) address for notification mail messages generated 
+      when a task completes execution.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The default sender address used will be
+          The default sender address used is
           "opends-task-notification@" followed by the canonical address
           of the system on which the server is running.
         </adm:synopsis>

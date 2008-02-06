@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="group-implementation"
   plural-name="group-implementations"
@@ -37,8 +37,8 @@
   </adm:synopsis>
   <adm:description>
     Different group implementations may have different ways of
-    determining membership (e.g., it may explicitly list the members,
-    and/or it may dynamically determine membership).
+    determining membership. For example, some groups may explicitly list the members,
+    and/or they may dynamically determine membership.
   </adm:description>
   <adm:tag name="core" />
   <adm:profile name="ldap">
@@ -52,9 +52,9 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
-      is enabled for use.
+      is enabled.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -67,10 +67,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>org.opends.server.api.Group</adm:instance-of>

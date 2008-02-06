@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="connection-handler"
   plural-name="connection-handlers"
@@ -49,9 +49,9 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
-      is enabled for use.
+      is enabled.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -64,10 +64,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
@@ -83,16 +86,16 @@
   </adm:property>
   <adm:property name="allowed-client" multi-valued="true">
     <adm:synopsis>
-      This property specifies a set of address masks that may be used to
-      determine the addresses of the clients that are allowed to
+      Specifies a set of address masks that determines the 
+      addresses of the clients that are allowed to
       establish connections to this connection handler.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this configuration attribute will take effect
-          immediately but will not interfere with connections that may
-          already be established.
+          Changes to this configuration attribute take effect
+          immediately and do not interfere with connections that may
+          have already been established.
         </adm:synopsis>
       </adm:none>
     </adm:requires-admin-action>
@@ -100,8 +103,8 @@
       <adm:alias>
         <adm:synopsis>
           All clients with addresses that do not match an address on the
-          deny list will be allowed. If there is no deny list, then all
-          clients will be allowed.
+          deny list are allowed. If there is no deny list, then all
+          clients are allowed.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -116,22 +119,22 @@
   </adm:property>
   <adm:property name="denied-client" multi-valued="true">
     <adm:synopsis>
-      This property specifies a set of address masks that may be used to
-      determine the addresses of the clients that are not allowed to
+      Specifies a set of address masks that determines
+      the addresses of the clients that are not allowed to
       establish connections to this connection handler.
     </adm:synopsis>
     <adm:description>
       If both allowed and denied client masks are defined and a client
       connection matches one or more masks in both lists, then the
-      connection will be denied. If only a denied list is specified,
-      then any client not matching a mask in that list will be allowed.
+      connection is denied. If only a denied list is specified,
+      then any client not matching a mask in that list is allowed.
     </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this configuration attribute will take effect
-          immediately but will not interfere with connections that may
-          already be established.
+          Changes to this configuration attribute take effect
+          immediately and do not interfere with connections that may
+          have already been established.
         </adm:synopsis>
       </adm:none>
     </adm:requires-admin-action>
@@ -139,8 +142,8 @@
       <adm:alias>
         <adm:synopsis>
           If an allow list is specified, then only clients with
-          addresses on the allow list will be allowed. Otherwise, all
-          clients will be allowed.
+          addresses on the allow list are allowed. Otherwise, all
+          clients are allowed.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="fifo-entry-cache"
   plural-name="fifo-entry-caches" package="org.opends.server.admin.std"
@@ -73,7 +73,7 @@
   </adm:property-override>
   <adm:property name="lock-timeout" advanced="true">
     <adm:synopsis>
-      The length of time to wait while attempting to acquire a read or
+      Specifies the length of time to wait while attempting to acquire a read or
       write lock.
     </adm:synopsis>
     <adm:default-behavior>
@@ -93,7 +93,7 @@
   </adm:property>
   <adm:property name="max-memory-percent">
     <adm:synopsis>
-      The maximum memory usage for the entry cache as a percentage of
+      Specifies the maximum memory usage for the entry cache as a percentage of
       the total JVM memory.
     </adm:synopsis>
     <adm:default-behavior>
@@ -112,7 +112,7 @@
   </adm:property>
   <adm:property name="max-entries">
     <adm:synopsis>
-      The maximum number of entries that we will allow in the cache.
+      Specifies the maximum number of entries that we will allow in the cache.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
