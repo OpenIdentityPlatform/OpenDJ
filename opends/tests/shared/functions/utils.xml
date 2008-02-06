@@ -1567,13 +1567,12 @@
       </call>
                                 
       <script>
-        pid = STAXResult[:-1]
-            
         if isWindows:
           _cmd = 'tskill'
-          _args = pid
+          _args = STAXResult
         else:
           _cmd = 'kill'
+          pid = STAXResult[:-1]
           _args = '-9 %s' % pid
       </script>
       <call function="'runCommand'">
