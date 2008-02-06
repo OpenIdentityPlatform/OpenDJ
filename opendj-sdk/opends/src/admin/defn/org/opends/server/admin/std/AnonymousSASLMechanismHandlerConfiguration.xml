@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="anonymous-sasl-mechanism-handler"
   plural-name="anonymous-sasl-mechanism-handlers"
@@ -31,11 +31,19 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    is used to perform all processing related to SASL ANONYMOUS
-    authentication.
+    The ANONYMOUS SASL mechanism provides the ability for clients to 
+    perform an anonymous bind using a SASL mechanism. 
   </adm:synopsis>
+  <adm:description>
+    The only real 
+    benefit that this provides over a normal anonymous bind (that is, 
+    using simple authentication with no password) is that the ANONYMOUS 
+    SASL mechanism also allows the client to include a trace string in 
+    the request. This trace string can help identify the application that 
+    performed the bind (although since there is no authentication, 
+    there is no assurance that some other client did not spoof that 
+    trace string).
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-anonymous-sasl-mechanism-handler</ldap:name>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="has-subordinates-virtual-attribute"
   plural-name="has-subordinates-virtual-attributes"
@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    may be used to generate a virtual attribute that indicates whether
+    generates a virtual attribute that indicates whether
     the entry has any subordinate entries.
   </adm:synopsis>
   <adm:profile name="ldap">

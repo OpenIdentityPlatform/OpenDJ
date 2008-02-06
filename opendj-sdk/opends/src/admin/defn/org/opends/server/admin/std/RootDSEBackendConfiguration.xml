@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="root-dse-backend"
   plural-name="root-dse-backends" package="org.opends.server.admin.std"
@@ -35,8 +35,8 @@
     contains the Directory Server root DSE.
   </adm:synopsis>
   <adm:description>
-    This is a special meta-backend that will dynamically generate the
-    root DSE entry for base-level searches, and will simply redirect to
+    This is a special meta-backend that dynamically generates the
+    root DSE entry for base-level searches and simply redirects to
     other backends for operations in other scopes.
   </adm:description>
   <adm:tag name="core" />
@@ -49,14 +49,14 @@
   </adm:profile>
   <adm:property name="subordinate-base-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies the set of base DNs that will be used for singleLevel,
+      Specifies the set of base DNs used for singleLevel,
       wholeSubtree, and subordinateSubtree searches based at the root
       DSE.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The set of all user-defined suffixes will be used.
+          The set of all user-defined suffixes is used.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -71,7 +71,7 @@
   </adm:property>
   <adm:property name="show-all-attributes" mandatory="true">
     <adm:synopsis>
-      Indicates whether all attributes in the root DSE should be treated
+      Indicates whether all attributes in the root DSE are to be treated
       like user attributes (and therefore returned to clients by
       default) regardless of the Directory Server schema configuration.
     </adm:synopsis>

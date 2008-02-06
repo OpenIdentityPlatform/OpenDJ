@@ -33,7 +33,7 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are responsible for determining whether to trust presented
+    determine whether to trust presented
     certificates.
   </adm:synopsis>
   <adm:tag name="security" />

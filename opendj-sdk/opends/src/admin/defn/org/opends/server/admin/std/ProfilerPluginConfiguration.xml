@@ -23,16 +23,15 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="profiler-plugin"
   plural-name="profiler-plugins" package="org.opends.server.admin.std"
   extends="plugin" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    is used to capture profiling information about operations performed
+    The Profiler plug-in
+    captures profiling information about operations performed
     inside the JVM while the Directory Server is running.
   </adm:synopsis>
   <adm:profile name="ldap">
@@ -66,19 +65,25 @@
   </adm:property-override>
   <adm:property name="profile-sample-interval" mandatory="true">
     <adm:synopsis>
-      Specifies the sample interval that should be used when capturing
-      profiling information in the server.
+      Specifies the sample interval in milliseconds to be used when 
+      capturing profiling information in the server. 
     </adm:synopsis>
+    <adm:description>
+      When capturing 
+      data, the profiler thread sleeps for this length of time 
+      between calls to obtain traces for all threads running in the 
+      JVM.
+    </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this configuration attribute will take effect the
+          Changes to this configuration attribute take effect the
           next time the profiler is started.
         </adm:synopsis>
       </adm:none>
     </adm:requires-admin-action>
     <adm:syntax>
-      <adm:duration lower-limit="1" base-unit="ms" />
+      <adm:duration lower-limit="1" upper-limit="2147483647" base-unit="ms" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -88,15 +93,26 @@
   </adm:property>
   <adm:property name="profile-directory" mandatory="true">
     <adm:synopsis>
-      Specifies the path to the directory into which profile information
-      will be written.
+      Specifies the path to the directory where profile information
+      is to be written. This path may be either an absolute path or a path 
+      that is relative to the root of the OpenDS Directory Server 
+      instance.
     </adm:synopsis>
     <adm:description>
       The directory must exist and the Directory Server must have
       permission to create new files in it.
     </adm:description>
     <adm:syntax>
-      <adm:string />
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>DIR</adm:usage>
+          <adm:synopsis>
+            The path to any directory that exists on the filesystem 
+            and that can be read and written by the server user.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -106,12 +122,16 @@
   </adm:property>
   <adm:property name="enable-profiling-on-startup" mandatory="true">
     <adm:synopsis>
-      Indicates whether the profiler plugin should start collecting data
+      Indicates whether the profiler plug-in is to start collecting data
       automatically when the Directory Server is started.
     </adm:synopsis>
     <adm:description>
-      This will only be read when the server is started, and any changes
-      will take effect on the next restart.
+      This property is read only when the server is 
+      started, and any changes take effect on the next restart.
+      This property is typically set to "false" unless startup 
+      profiling is required, because otherwise the volume of data that 
+      can be collected can cause the server to run out of memory if it 
+      is not turned off in a timely manner.
     </adm:description>
     <adm:syntax>
       <adm:boolean />
@@ -127,12 +147,12 @@
       Specifies the action that should be taken by the profiler.
     </adm:synopsis>
     <adm:description>
-      A value of "start" will cause the profiler thread to start
+      A value of "start" causes the profiler thread to start
       collecting data if it is not already active. A value of "stop"
-      will cause the profiler thread to stop collecting data and write
-      it do disk, and a value of "cancel" will cause the profiler thread
+      causes the profiler thread to stop collecting data and write
+      it to disk, and a value of "cancel" causes the profiler thread
       to stop collecting data and discard anything that has been
-      captured. These operations will occur immediately.
+      captured. These operations occur immediately.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>

@@ -23,20 +23,28 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="last-mod-plugin"
   plural-name="last-mod-plugins" package="org.opends.server.admin.std"
   extends="plugin" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
+    The 
     <adm:user-friendly-name />
     is used to ensure that the creatorsName and createTimestamp
     attributes are included in an entry whenever it is added to the
-    server, and to ensure that the modifiersName and modifyTimestamp
+    server and also to ensure that the modifiersName and modifyTimestamp
     attributes are updated whenever an entry is modified or renamed.
   </adm:synopsis>
+  <adm:description>
+    This behavior is described in RFC 4512. The implementation for 
+    the LastMod plugin is contained in the 
+    org.opends.server.plugins.LastModPlugin class. It must be 
+    configured with the preOperationAdd, preOperationModify, and 
+    preOperationModifyDN plugin types, but it does not have any 
+    other custom configuration. 
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-last-mod-plugin</ldap:name>

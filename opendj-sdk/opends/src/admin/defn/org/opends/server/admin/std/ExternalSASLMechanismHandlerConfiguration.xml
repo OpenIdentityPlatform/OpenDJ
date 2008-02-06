@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to perform all processing related to SASL EXTERNAL
+    performs all processing related to SASL EXTERNAL
     authentication.
   </adm:synopsis>
   <adm:profile name="ldap">
@@ -86,11 +86,11 @@
   </adm:property>
   <adm:property name="certificate-attribute">
     <adm:synopsis>
-      Specifies the name of the attribute that should hold user
+      Specifies the name of the attribute to hold user
       certificates.
     </adm:synopsis>
     <adm:description>
-      This must specify the name of a valid attribute type defined in
+      This property must specify the name of a valid attribute type defined in
       the server schema.
     </adm:description>
     <adm:default-behavior>

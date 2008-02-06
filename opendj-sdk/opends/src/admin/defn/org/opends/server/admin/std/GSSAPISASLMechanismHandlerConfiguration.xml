@@ -31,11 +31,17 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    is used to perform all processing related to SASL GSSAPI
+    The GSSAPI SASL mechanism 
+    performs all processing related to SASL GSSAPI
     authentication using Kerberos V5.
   </adm:synopsis>
+  <adm:description>
+    The GSSAPI SASL mechanism provides the ability for clients 
+    to authenticate themselves to the server using existing 
+    authentication in a Kerberos environment. This mechanism 
+    provides the ability to achieve single sign-on for 
+    Kerberos-based clients.
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-gssapi-sasl-mechanism-handler</ldap:name>
@@ -53,12 +59,12 @@
   </adm:property-override>
   <adm:property name="realm">
     <adm:synopsis>
-      Specifies the realm that should be used for GSSAPI authentication.
+      Specifies the realm to be used for GSSAPI authentication.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will attempt to determine the realm from the
+          The server attempts to determine the realm from the
           underlying system configuration.
         </adm:synopsis>
       </adm:alias>
@@ -74,16 +80,18 @@
   </adm:property>
   <adm:property name="kdc-address">
     <adm:synopsis>
-      Specifies the address of the KDC that should be used for Kerberos
+      Specifies the address of the KDC that is to be used for Kerberos
       processing.
     </adm:synopsis>
     <adm:description>
-      If provided, this should be a fully-qualified DNS-resolvable name.
+      If provided, this property must be a fully-qualified DNS-resolvable name.
+      If this property is not provided, then the server attempts to determine it 
+      from the system-wide Kerberos configuration.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will attempt to determine the KDC address from the
+          The server attempts to determine the KDC address from the
           underlying system configuration.
         </adm:synopsis>
       </adm:alias>
@@ -103,13 +111,13 @@
       Kerberos processing.
     </adm:synopsis>
     <adm:description>
-      If provided, this should be either an absolute path or one that is
+      If provided, this is either an absolute path or one that is
       relative to the server instance root.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will attempt to use the system-wide default keytab.
+          The server attempts to use the system-wide default keytab.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -130,8 +138,8 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will attempt to dynamically determine the
-          fully-qualified domain name.
+          The server attempts to determine the
+          fully-qualified domain name dynamically .
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -146,8 +154,11 @@
   </adm:property>
   <adm:property name="identity-mapper" mandatory="true">
     <adm:synopsis>
-      Specifies the name of the identity mapper that should be used to
-      match the Kerberos principal to a user entry.
+      Specifies the name of the identity mapper that is to be used
+      with this SASL mechanism handler 
+      to match the Kerberos principal 
+      included in the SASL bind request to the corresponding
+      user in the directory.
     </adm:synopsis>
     <adm:syntax>
       <adm:aggregation relation-name="identity-mapper"

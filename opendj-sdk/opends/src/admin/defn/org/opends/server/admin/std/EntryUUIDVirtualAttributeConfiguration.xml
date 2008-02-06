@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="entry-uuid-virtual-attribute"
   plural-name="entry-uuid-virtual-attributes"
@@ -33,14 +33,14 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    may be used to ensure that all entries contained in private backends
-    will have values for the entryUUID operational attribute.
+    ensures that all entries contained in private backends
+    have values for the entryUUID operational attribute.
   </adm:synopsis>
   <adm:description>
-    The entryUUID values will be generated based on a normalized
-    representation of the entry's DN, which should not cause a
-    consistency problem because we do not allow modify DN operations to
-    be performed in private backends.
+    The entryUUID values are generated based on a normalized
+    representation of the entry's DN, which does not cause a
+    consistency problem because OpenDS does not allow modify DN 
+    operations to be performed in private backends.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>

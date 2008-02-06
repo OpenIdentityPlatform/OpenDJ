@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="work-queue" plural-name="work-queues"
   package="org.opends.server.admin.std"
@@ -33,12 +33,14 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
+    provides the configuration for the server work queue and 
     is responsible for ensuring that requests received from clients are
     processed in a timely manner.
   </adm:synopsis>
   <adm:description>
+    Only a single work queue can be defined in the server.
     Whenever a connection handler receives a client request, it should
-    be placed in the work queue so that it may be processed
+    place the request in the work queue to be processed
     appropriately.
   </adm:description>
   <adm:tag name="core" />
@@ -53,10 +55,13 @@
   </adm:profile>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
