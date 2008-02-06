@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="file-based-trust-manager-provider"
   plural-name="file-based-trust-manager-providers"
@@ -31,13 +31,14 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    provider accesses key information in a file on the local filesystem.
+    The file-based trust manager provider determines whether to trust a 
+    presented certificate based on whether that certificate exists in a 
+    server trust store file. 
   </adm:synopsis>
   <adm:description>
-    Multiple file formats may be supported, depending on the providers
-    supported by the underlying Java runtime.
+    The trust store file can be in either JKS 
+    (the default Java key store format) or PKCS#12 (a standard 
+    certificate format) form.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -58,16 +59,24 @@
     <adm:TODO>Should use a file-based property definition?</adm:TODO>
     <adm:synopsis>
       Specifies the path to the file containing the trust information.
-      It may be an absolute path, or a path that is relative to the
+      It can be an absolute path or a path that is relative to the
       <adm:product-name />
       instance root.
     </adm:synopsis>
     <adm:description>
-      Changes to this configuration attribute will take effect the next
+      Changes to this configuration attribute take effect the next
       time that the trust manager is accessed.
     </adm:description>
     <adm:syntax>
-      <adm:string />
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            An absolute path or a path that is relative to the OpenDS Directory Server instance root.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -84,17 +93,25 @@
       Specifies the format for the data in the trust store file.
     </adm:synopsis>
     <adm:description>
-      Valid values should always include 'JKS' and 'PKCS12', but
-      different implementations may allow other values as well. If no
-      value is provided, then the JVM-default value will be used.
-      Changes to this configuration attribute will take effect the next
-      time that the trust manager is accessed.
+      Valid values always include 'JKS' and 'PKCS12', but different 
+      implementations can allow other values as well. If no value is 
+      provided, then the JVM default value is used. Changes to this 
+      configuration attribute take effect the next time that the 
+      trust manager is accessed.  
     </adm:description>
     <adm:default-behavior>
       <adm:undefined />
     </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
+        <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            Any key store format supported by the Java runtime environment. The "JKS" and "PKCS12" formats are typically available in Java environments.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

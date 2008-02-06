@@ -37,6 +37,24 @@
     watch a queue and pick up an operation to process whenever one
     becomes available.
   </adm:synopsis>
+  <adm:description>
+    The traditional work queue is named that because its implementation 
+    is similar to that used by the Sun Java System Directory Server. 
+    The traditional work queue is a FIFO queue serviced by a fixed 
+    number of worker threads. However, there are a couple of notable 
+    differences in its design: 1) The number of worker threads is fixed, 
+    but it can be changed on the fly and those changes take effect 
+    immediately. In the Sun Java System Directory Server, changes to the 
+    number of worker threads require a server restart to take effect. 
+    2) The work queue in the Sun Java System Directory Server is 
+    unbounded. If all threads are busy processing existing operations 
+    and new requests arrive, they continue to accumulate in the work 
+    queue and the server appears to be frozen. In the OpenDS Directory 
+    Server, it is possible to place a size limit on the work queue. 
+    When this number of operations are in the queue, waiting to be 
+    picked up by threads, any new requests received are rejected with 
+    an error message. 
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-traditional-work-queue</ldap:name>
@@ -54,11 +72,17 @@
   </adm:property-override>
   <adm:property name="num-worker-threads" mandatory="true">
     <adm:synopsis>
-      The number of worker threads that should be used to process
-      operations placed into the queue.
-    </adm:synopsis>
+      Specifies the number of worker threads to be used for processing
+      operations placed in the queue. 
+  </adm:synopsis>
+  <adm:description>
+      If the value is increased, 
+      the additional worker threads are created immediately. If the 
+      value is reduced, the appropriate number of threads are destroyed 
+      as operations complete processing.
+    </adm:description>
     <adm:syntax>
-      <adm:integer lower-limit="1" />
+      <adm:integer lower-limit="1" upper-limit="2147483647" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
@@ -68,23 +92,28 @@
   </adm:property>
   <adm:property name="max-work-queue-capacity">
     <adm:synopsis>
-      The maximum number of queued operations that can be in the work
+      Specifies the maximum number of queued operations that can be in the work
       queue at any given time.
     </adm:synopsis>
     <adm:description>
       If the work queue is already full and additional requests are
-      received by the server, they will be rejected.
+      received by the server, the requests are rejected.
+      A value of zero indicates that there is no limit to the size 
+      of the queue.
     </adm:description>
+    <adm:requires-admin-action>
+      <adm:server-restart />
+    </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The work queue will not impose any limit on the number of
+          The work queue does not impose any limit on the number of
           operations that can be enqueued at any one time.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0" />
+      <adm:integer lower-limit="0" upper-limit="2147483647"/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>

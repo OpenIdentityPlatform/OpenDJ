@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="user-defined-virtual-attribute"
   plural-name="user-defined-virtual-attributes"
@@ -33,13 +33,13 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to create virtual attributes with user-defined values in
-    entries that match the criteria defined in the plugin's
+    creates virtual attributes with user-defined values in
+    entries that match the criteria defined in the plug-in's
     configuration.
   </adm:synopsis>
   <adm:description>
-    This provides functionality that is similar to Class of Service
-    (CoS) in the Sun Java System Directory Server.
+    The functionality of these attributes is similar to Class 
+    of Service (CoS) in the Sun Java System Directory Server.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -58,7 +58,7 @@
   </adm:property-override>
   <adm:property name="value" mandatory="true" multi-valued="true">
     <adm:synopsis>
-      Specifies the value(s) which should be included in virtual
+      Specifies the values to be included in the virtual
       attribute.
     </adm:synopsis>
     <adm:syntax>

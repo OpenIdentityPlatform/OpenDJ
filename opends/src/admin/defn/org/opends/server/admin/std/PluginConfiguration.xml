@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="plugin" plural-name="plugins"
   package="org.opends.server.admin.std"
@@ -49,9 +49,8 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
-      <adm:user-friendly-name />
-      is enabled for use.
+      Indicates whether the
+      plug-in is enabled for use.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -64,9 +63,8 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
-      <adm:user-friendly-name />
-      implementation.
+      Specifies the fully-qualified name of the Java class that provides the
+      plug-in implementation.
     </adm:synopsis>
     <adm:syntax>
       <adm:java-class>
@@ -84,8 +82,7 @@
   <adm:property name="plugin-type" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      The plugin types, which define the conditions under which this
-      plugin should be invoked.
+      Specifies the set of plug-in types for the plug-in, which specifies the times at which the plug-in is invoked. 
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:component-restart />
@@ -371,13 +368,13 @@
   </adm:property>
   <adm:property name="invoke-for-internal-operations" advanced="true">
     <adm:synopsis>
-      Indicates whether the plugin should be invoked for internal
+      Indicates whether the plug-in should be invoked for internal
       operations.
     </adm:synopsis>
     <adm:description>
-      Note that any plugin which may be invoked for internal operations
-      should be careful to ensure that they do not create any new
-      internal operatons that can cause the same plugin to be
+      Any plug-in that can be invoked for internal operations
+      must ensure that it does not create any new
+      internal operatons that can cause the same plug-in to be
       re-invoked.
     </adm:description>
     <adm:default-behavior>

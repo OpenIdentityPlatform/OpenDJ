@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-20008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="entry-dn-virtual-attribute"
   plural-name="entry-dn-virtual-attributes"
@@ -33,11 +33,14 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    may be used to generate the entryDN operational attribute, which
-    contains a normalized form of the entry's DN.
+    generates the entryDN operational attribute in directory entries, 
+    which contains a normalized form of the entry's DN.
   </adm:synopsis>
   <adm:description>
-    This provides the ability to use search filters containing the
+    This attribute is defined in the draft-zeilenga-ldap-entrydn 
+    Internet Draft and contains the DN of the entry in which it is 
+    contained. 
+    This component provides the ability to use search filters containing the
     entry's DN.
   </adm:description>
   <adm:profile name="ldap">

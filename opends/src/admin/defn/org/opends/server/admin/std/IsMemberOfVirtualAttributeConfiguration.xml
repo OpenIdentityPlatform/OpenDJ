@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="is-member-of-virtual-attribute"
   plural-name="is-member-of-virtual-attributes"
@@ -33,7 +33,8 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    may be used to generate a virtual attribute that contains the DNs of
+    generates the isMemberOf operational attribute, 
+    which contains the DNs of
     the groups in which the user is a member.
   </adm:synopsis>
   <adm:profile name="ldap">

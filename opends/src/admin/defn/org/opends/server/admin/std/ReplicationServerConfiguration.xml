@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -32,7 +32,7 @@
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are used to publish updates to Directory Servers within a
+    publish updates to Directory Servers within a
     Replication Domain.
   </adm:synopsis>
   <adm:tag name="replication" />
@@ -48,7 +48,7 @@
       <adm:user-friendly-plural-name />
       to which this
       <adm:user-friendly-name />
-      should try to connect at startup time.
+      tries to connect at startup time.
     </adm:synopsis>
     <adm:description>
       Addresses must be specified using the syntax: hostname:port
@@ -77,8 +77,7 @@
     read-only="true">
     <adm:synopsis>
       Specifies a unique identifier for the
-      <adm:user-friendly-name />
-      .
+      <adm:user-friendly-name />.
     </adm:synopsis>
     <adm:description>
       Each
@@ -98,9 +97,8 @@
     <adm:synopsis>
       Specifies the window size that the
       <adm:user-friendly-name />
-      will use when communicating with other
-      <adm:user-friendly-plural-name />
-      .
+      uses when communicating with other
+      <adm:user-friendly-plural-name />.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -118,7 +116,7 @@
   </adm:property>
   <adm:property name="queue-size" advanced="true">
     <adm:synopsis>
-      Specifies the number of changes that will be kept in memory for
+      Specifies the number of changes that are kept in memory for
       each Directory Server in the Replication Domain.
     </adm:synopsis>
     <adm:default-behavior>
@@ -140,7 +138,7 @@
     <adm:synopsis>
       The path where the
       <adm:user-friendly-name />
-      will store all persistent information.
+      stores all persistent information.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -160,7 +158,7 @@
     <adm:synopsis>
       The time (in seconds) after which the
       <adm:user-friendly-name />
-      will erase all persistent information.
+      erases all persistent information.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -180,7 +178,7 @@
     <adm:synopsis>
       The port on which this
       <adm:user-friendly-name />
-      will wait for connections from other
+      waits for connections from other
       <adm:user-friendly-plural-name />
       or Directory Servers.
     </adm:synopsis>

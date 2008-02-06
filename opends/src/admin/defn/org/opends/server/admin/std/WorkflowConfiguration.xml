@@ -32,7 +32,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is a list of processing steps (Work Flow Elements) which are applied
+    is a list of processing steps (Work Flow Elements) that are applied
     to data as it is retrieved from the Directory Server.
   </adm:synopsis>
   <adm:tag name="core" />
@@ -51,7 +51,7 @@
     <adm:description>
       If a
       <adm:user-friendly-name />
-      is not enabled, then its contents will not be accessible when
+      is not enabled, then its contents are not accessible when
       processing operations.
     </adm:description>
     <adm:syntax>
@@ -65,9 +65,8 @@
   </adm:property>
   <adm:property name="workflow-id" mandatory="true" read-only="true">
     <adm:synopsis>
-      Provides a name that will be used to identify the
-      <adm:user-friendly-name />
-      .
+      Provides a name that identifies the
+      <adm:user-friendly-name />.
     </adm:synopsis>
     <adm:description>
       The name must be unique among all

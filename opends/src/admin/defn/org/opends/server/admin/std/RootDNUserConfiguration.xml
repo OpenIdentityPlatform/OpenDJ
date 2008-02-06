@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="root-dn-user" plural-name="root-dn-users"
   package="org.opends.server.admin.std"
@@ -32,8 +32,8 @@
   <adm:synopsis>
     A
     <adm:user-friendly-name />
-    are administrative users who may be granted special privileges which
-    are not available to non-root users (e.g., the ability to bind to
+    are administrative users who can granted special privileges that
+    are not available to non-root users (for example, the ability to bind to
     the server in lockdown mode).
   </adm:synopsis>
   <adm:description>
@@ -51,13 +51,13 @@
   </adm:profile>
   <adm:property name="alternate-bind-dn" multi-valued="true">
     <adm:synopsis>
-      Specifies one or more alternate DNs that may be used to bind to
+      Specifies one or more alternate DNs that can be used to bind to
       the server as this root user.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          This root user will only be allowed to bind using the DN of
+          This root user is allowed to bind only using the DN of
           the associated configuration entry.
         </adm:synopsis>
       </adm:alias>

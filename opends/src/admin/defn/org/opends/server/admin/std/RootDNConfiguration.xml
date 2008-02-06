@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="root-dn" plural-name="root-dns"
   package="org.opends.server.admin.std"
@@ -34,7 +34,7 @@
     <adm:user-friendly-name />
     configuration contains all the Root DN Users defined in the
     Directory Server. In addition, it also defines the default set of
-    privileges that Root DN Users will automatically inherit.
+    privileges that Root DN Users automatically inherit.
   </adm:synopsis>
   <adm:tag name="core" />
   <adm:profile name="ldap">

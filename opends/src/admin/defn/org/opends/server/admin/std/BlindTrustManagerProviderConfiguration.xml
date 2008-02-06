@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="blind-trust-manager-provider"
   plural-name="blind-trust-manager-providers"
@@ -31,12 +31,15 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The
-    <adm:user-friendly-name />
-    provides a mechanism for blindly trusting any certificate presented
-    to it without performing any kind of validation, including ignoring
-    the validity dates included within the certificate.
+    The blind trust manager provider always trusts any certificate that 
+    is presented to it, regardless of its issuer, subject, and validity 
+    dates. 
   </adm:synopsis>
+  <adm:description>
+    Use the blind trust manager provider only for testing 
+    purposes, because it allows clients to use forged certificates 
+    and authenticate as virtually any user in the server.
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-blind-trust-manager-provider</ldap:name>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="entry-uuid-plugin"
   plural-name="entry-uuid-plugins" package="org.opends.server.admin.std"
@@ -32,9 +32,29 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used to generate values for the entryUUID operational attribute
+    generates values for the entryUUID operational attribute
     whenever an entry is added via protocol or imported from LDIF.
   </adm:synopsis>
+  <adm:description>
+    The entryUUID plug-in ensures that all entries 
+    added to the server, whether through an LDAP add operation or via 
+    an LDIF import, are assigned an entryUUID operational attribute if 
+    they do not already have one. The entryUUID attribute contains a 
+    universally unique identifier that can be used to identify an entry 
+    in a manner that does not change (even in the event of a modify DN 
+    operation). This plug-in generates a random UUID for entries created 
+    by an add operation, but the UUID is constructed from the DN of the 
+    entry during an LDIF import (which means that the same LDIF file 
+    can be imported on different systems but still get the same value 
+    for the entryUUID attribute). This behavior is based on the 
+    specification contained in RFC 4530. The implementation for the 
+    entry UUID plug-in is contained in the 
+    org.opends.server.plugins.EntryUUIDPlugin class. It must be 
+    configured with the preOperationAdd and ldifImport plug-in types, 
+    but it does not have any other custom configuration. This 
+    plug-in must be enabled in any directory that is intended to be used 
+    in a synchronization environment.  
+  </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-entry-uuid-plugin</ldap:name>

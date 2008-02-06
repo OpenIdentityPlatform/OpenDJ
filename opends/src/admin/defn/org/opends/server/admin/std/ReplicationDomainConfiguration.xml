@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
@@ -74,8 +74,7 @@
   <adm:property name="server-id" mandatory="true" read-only="true">
     <adm:synopsis>
       Specifies a unique identifier for the Directory Server within the
-      <adm:user-friendly-name />
-      .
+      <adm:user-friendly-name />.
     </adm:synopsis>
     <adm:description>
       Each Directory Server within the same
@@ -134,10 +133,10 @@
       use when communicating with Replication Servers.
     </adm:synopsis>
     <adm:description>
-      The Directory Server will expect a regular heart-beat coming from
+      The Directory Server expects a regular heart-beat coming from
       the Replication Server within the specified interval. If a
       heartbeat is not received within the interval, the Directory
-      Server will close its connection and connect to another
+      Server closes its connection and connects to another
       Replication Server.
     </adm:description>
     <adm:default-behavior>
@@ -172,10 +171,10 @@
           <adm:synopsis>
             Indicates that updates should be accepted even though it is
             not possible to send them to any Replication Server. Best
-            effort will be made to re-send those updates to a
+            effort is made to re-send those updates to a
             Replication Servers when one of them is available, however
-            those changes will be at risk because they will only be
-            available from the historical information. This mode may
+            those changes are at risk because they are only 
+            available from the historical information. This mode can
             also introduce high replication latency.
           </adm:synopsis>
         </adm:value>
@@ -183,7 +182,7 @@
           <adm:synopsis>
             Indicates that all updates attempted on this
             <adm:user-friendly-name />
-            will be rejected when no Replication Server is available.
+            are rejected when no Replication Server is available.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
