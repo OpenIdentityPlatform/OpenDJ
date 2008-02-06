@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="dsee-compat-access-control-handler"
   plural-name="dseecompat-access-control-handlers"
@@ -33,8 +33,9 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provides a Sun Java System Directory Server Enterprise Edition
-    compatible access control implementation.
+    provides an implementation that uses syntax compatible with the 
+    Sun Java System Directory Server Enterprise Edition
+    access control handlers.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -62,8 +63,8 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          No global access control rules will be defined, which means
-          that no access will be allowed for any data in the server
+          No global access control rules are defined, which means
+          that no access is allowed for any data in the server
           unless specifically granted by access control rules in the
           data.
         </adm:synopsis>

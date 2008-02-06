@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="get-symmetric-key-extended-operation-handler"
   plural-name="get-symmetric-key-extended-operation-handlers"
@@ -34,7 +34,6 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provides support for the get symmetric key extended operation, which
     is used by the OpenDS cryptographic framework for creating and
     obtaining symmetric encryption keys.
   </adm:synopsis>

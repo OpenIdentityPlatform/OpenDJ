@@ -80,7 +80,7 @@
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately, but
+          Changes to this property take effect immediately, but
           only for subsequent attempts to access the key manager
           provider for associated client connections.
         </adm:synopsis>

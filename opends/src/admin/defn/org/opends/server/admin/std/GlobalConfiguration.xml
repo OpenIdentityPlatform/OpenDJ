@@ -34,7 +34,9 @@
     Global Configurations
   </adm:user-friendly-plural-name>
   <adm:synopsis>
-    The global configuration contains properties that affect the overall
+    The 
+    <adm:user-friendly-name />
+    contains properties that affect the overall
     operation of the
     <adm:product-name />
     .
@@ -51,8 +53,8 @@
       Indicates whether schema enforcement is active.
     </adm:synopsis>
     <adm:description>
-      When schema enforcement is activate the Directory Server will
-      ensure that all operations result in entries that are valid
+      When schema enforcement is activated, the Directory Server 
+      ensures that all operations result in entries are valid
       according to the defined server schema. It is strongly recommended
       that this option be left enabled to prevent the inadvertent
       addition of invalid data into the server.
@@ -73,7 +75,7 @@
   </adm:property>
   <adm:property name="default-password-policy" mandatory="true">
     <adm:synopsis>
-      Specifies the name of the password policy that will be in effect
+      Specifies the name of the password policy that is in effect
       for users whose entries do not specify an alternate password
       policy (either via a real or virtual attribute).
     </adm:synopsis>
@@ -109,8 +111,8 @@
   <adm:property name="allow-attribute-name-exceptions"
     advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should allow the use of
-      underscores in attribute names, and should allow attribute names
+      Indicates whether the Directory Server should allow underscores 
+      in attribute names and allow attribute names
       to begin with numeric digits (both of which are violations of the
       LDAP standards).
     </adm:synopsis>
@@ -131,9 +133,8 @@
   <adm:property name="invalid-attribute-syntax-behavior"
     advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations which
-      would result in an attribute value that violates the associated
-      attribute syntax.
+      Specifies how the Directory Server should handle operations whenever
+      an attribute value violates the associated attribute syntax.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -144,7 +145,7 @@
       <adm:enumeration>
         <adm:value name="accept">
           <adm:synopsis>
-            The Directory Server will silently accept attribute values
+            The Directory Server silently accepts attribute values
             that are invalid according to their associated syntax.
             Matching operations targeting those values may not behave as
             expected.
@@ -152,15 +153,15 @@
         </adm:value>
         <adm:value name="reject">
           <adm:synopsis>
-            The Directory Server will reject attribute values that are
+            The Directory Server rejects attribute values that are
             invalid according to their associated syntax.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warn">
           <adm:synopsis>
-            The Directory Server will accept attribute values that are
-            invalid according to their associated syntax, but will also
-            log a warning message to the error log. Matching operations
+            The Directory Server accepts attribute values that are
+            invalid according to their associated syntax, but also
+            logs a warning message to the error log. Matching operations
             targeting those values may not behave as expected.
           </adm:synopsis>
         </adm:value>
@@ -174,9 +175,8 @@
   </adm:property>
   <adm:property name="server-error-result-code" advanced="true">
     <adm:synopsis>
-      Specifies the numeric value of the result code that should be used
-      for cases in which request processing fails due to an internal
-      server error.
+      Specifies the numeric value of the result code when request 
+      processing fails due to an internal server error.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -195,9 +195,8 @@
   <adm:property name="single-structural-objectclass-behavior"
     advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations which
-      would result in an entry without any structural object class, or
-      that would result in an entry containing multiple structural
+      Specifies how the Directory Server should handle operations an entry does 
+      not contain a structural object class or contains multiple structural
       classes.
     </adm:synopsis>
     <adm:default-behavior>
@@ -209,7 +208,7 @@
       <adm:enumeration>
         <adm:value name="accept">
           <adm:synopsis>
-            The Directory Server will silently accept entries that do
+            The Directory Server silently accepts entries that do
             not contain exactly one structural object class. Certain
             schema features that depend on the entry's structural class
             may not behave as expected.
@@ -217,14 +216,14 @@
         </adm:value>
         <adm:value name="reject">
           <adm:synopsis>
-            The Directory Server will reject entries that do not contain
+            The Directory Server rejects entries that do not contain
             exactly one structural object class.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warn">
           <adm:synopsis>
-            The Directory Server will accept entries that do not contain
-            exactly one structural object class, but will also log a
+            The Directory Server accepts entries that do not contain
+            exactly one structural object class, but also logs a
             warning message to the error log. Certain schema features
             that depend on the entry's structural class may not behave
             as expected.
@@ -268,11 +267,10 @@
   <adm:property name="size-limit">
     <adm:synopsis>
       Specifies the maximum number of entries that the Directory Server
-      should return to the client in the course of processing a search
-      operation.
+      should return to the client durin a search operation.
     </adm:synopsis>
     <adm:description>
-      A value of 0 indicates that no size limit will be enforced. Note
+      A value of 0 indicates that no size limit is enforced. Note
       that this is the default server-wide limit, but it may be
       overridden on a per-user basis using the ds-rlim-size-limit
       operational attribute.
@@ -297,7 +295,7 @@
       should spend processing a search operation.
     </adm:synopsis>
     <adm:description>
-      A value of 0 seconds indicates that no time limit will be
+      A value of 0 seconds indicates that no time limit is
       enforced. Note that this is the default server-wide time limit,
       but it may be overridden on a per-user basis using the
       ds-rlim-time-limit operational attribute.
@@ -319,7 +317,7 @@
   <adm:property name="proxied-authorization-identity-mapper"
     mandatory="true">
     <adm:synopsis>
-      Specifies the name of the identity mapper that will be used to map
+      Specifies the name of the identity mapper to map
       authorization ID values (using the "u:" form) provided in the
       proxied authorization control to the corresponding user entry.
     </adm:synopsis>
@@ -346,8 +344,8 @@
   </adm:property>
   <adm:property name="writability-mode">
     <adm:synopsis>
-      Specifies which kinds of write operations the Directory Server
-      should attempt to process.
+      Specifies the kinds of write operations the Directory Server
+      can process.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
@@ -358,22 +356,22 @@
       <adm:enumeration>
         <adm:value name="enabled">
           <adm:synopsis>
-            The Directory Server will attempt to process all write
+            The Directory Server attempts to process all write
             operations that are requested of it, regardless of their
             origin.
           </adm:synopsis>
         </adm:value>
         <adm:value name="disabled">
           <adm:synopsis>
-            The Directory Server will reject all write operations that
+            The Directory Server rejects all write operations that
             are requested of it, regardless of their origin.
           </adm:synopsis>
         </adm:value>
         <adm:value name="internal-only">
           <adm:synopsis>
-            The Directory Server will attempt to process write
+            The Directory Server attempts to process write
             operations requested as internal operations or through
-            synchronization, but will reject any such operations
+            synchronization, but rejects any such operations
             requested from external clients.
           </adm:synopsis>
         </adm:value>
@@ -389,7 +387,7 @@
     <adm:synopsis>
       Indicates whether the Directory Server should reject any request
       (other than bind or StartTLS requests) received from a client that
-      has not yet authenticated, whose last authentication attempt was
+      has not yet been authenticated, whose last authentication attempt was
       unsuccessful, or whose last authentication attempt used anonymous
       authentication.
     </adm:synopsis>
@@ -443,7 +441,7 @@
       This includes any entry that the server must examine in the course
       of processing the request, regardless of whether it actually
       matches the search criteria. A value of 0 indicates that no
-      lookthrough limit will be enforced. Note that this is the default
+      lookthrough limit is enforced. Note that this is the default
       server-wide limit, but it may be overridden on a per-user basis
       using the ds-rlim-lookthrough-limit operational attribute.
     </adm:description>
@@ -464,7 +462,7 @@
   <adm:property name="smtp-server" multi-valued="true">
     <adm:synopsis>
       Specifies the address (and optional port number) for a mail server
-      that can be used to send e-mail messages via SMTP.
+      that can be used to send email messages via SMTP.
     </adm:synopsis>
     <adm:description>
       It may be an IP address or resolvable hostname, optionally
@@ -473,9 +471,7 @@
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          If no values are defined, then it will not be possible to take
-          advantage of server features that may provide the ability to
-          send e-mail via SMTP.
+          If no values are defined, then the server cannot send email via SMTP.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -505,12 +501,12 @@
     </adm:synopsis>
     <adm:description>
       Any attempt to invoke a task not included in the list of allowed
-      tasks will be rejected.
+      tasks is rejected.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          If no values are defined, then the server will not allow any
+          If no values are defined, then the server does not allow any
           tasks to be invoked.
         </adm:synopsis>
       </adm:alias>
@@ -530,14 +526,14 @@
       the server.
     </adm:synopsis>
     <adm:description>
-      If a privilege is disabled, then it will be assumed that all
-      clients (including unauthenticated clients) will have that
+      If a privilege is disabled, then it is assumed that all
+      clients (including unauthenticated clients) have that
       privilege.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          If no values are defined, then the server will enforce all
+          If no values are defined, then the server enforces all
           privileges.
         </adm:synopsis>
       </adm:alias>
@@ -681,7 +677,7 @@
     <adm:description>
       Note that these messages may include information that could
       potentially be used by an attacker. If this option is disabled,
-      then these messages will appear only in the server's access log.
+      then these messages appears only in the server's access log.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -703,8 +699,7 @@
       remain established since its last completed operation.
     </adm:synopsis>
     <adm:description>
-      A value of "0 seconds" indicates that no idle time limit will be
-      enforced.
+      A value of "0 seconds" indicates that no idle time limit is enforced.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -726,7 +721,7 @@
       configuration whenever the startup process completes successfully.
     </adm:synopsis>
     <adm:description>
-      This can ensure that the server provides a "last known good"
+      This ensures that the server provides a "last known good"
       configuration, which can be used as a reference (or copied into
       the active config) if the server fails to start with the current
       "active" configuration.
@@ -758,15 +753,15 @@
       <adm:enumeration>
         <adm:value name="auto">
           <adm:synopsis>
-            In the "auto" configuration mode there is no workflow
+            In the "auto" configuration mode, there is no workflow
             configuration. The workflows are created automatically based
-            on the backend configuration. There will be one workflow per
+            on the backend configuration. There is one workflow per
             backend base DN.
           </adm:synopsis>
         </adm:value>
         <adm:value name="manual">
           <adm:synopsis>
-            In the "manual" configuration mode each workflow is created
+            In the "manual" configuration mode, each workflow is created
             according to its description in the configuration.
           </adm:synopsis>
         </adm:value>
@@ -780,7 +775,7 @@
   </adm:property>
   <adm:property name="etime-resolution" mandatory="false">
     <adm:synopsis>
-      The resolution to use for operation elapsed processing time (etime)
+      Specifies the resolution to use for operation elapsed processing time (etime)
       measurements.
     </adm:synopsis>
     <adm:default-behavior>

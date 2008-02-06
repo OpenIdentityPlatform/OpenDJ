@@ -36,7 +36,7 @@
     is used to interact with clients using LDAP.
   </adm:synopsis>
   <adm:description>
-    In particular, it provides full support for LDAPv3 and limited
+    It provides full support for LDAPv3 and limited
     support for LDAPv2.
   </adm:description>
   <adm:constraint>
@@ -126,7 +126,7 @@
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately, but
+          Changes to this property take effect immediately, but
           only for subsequent attempts to access the key manager
           provider for associated client connections.
         </adm:synopsis>
@@ -176,7 +176,7 @@
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately, but
+          Changes to this property take effect immediately, but
           only for subsequent attempts to access the trust manager
           provider for associated client connections.
         </adm:synopsis>
@@ -226,7 +226,7 @@
       Multiple addresses may be provided as separate values for this
       attribute. If no values are provided, then the
       <adm:user-friendly-name />
-      will listen on all interfaces.
+      listens on all interfaces.
     </adm:description>
     <adm:requires-admin-action>
       <adm:component-restart />
@@ -247,14 +247,14 @@
   </adm:property>
   <adm:property name="allow-ldap-v2">
     <adm:synopsis>
-      Indicates whether connections from LDAPv2 clients will be allowed.
+      Indicates whether connections from LDAPv2 clients are allowed.
     </adm:synopsis>
     <adm:description>
-      If LDAPv2 clients will be allowed, then only a minimal degree of
-      special support will be provided for them to ensure that
-      LDAPv3-specific protocol elements (e.g., Configuration Guide 25
+      If LDAPv2 clients are allowed, then only a minimal degree of
+      special support are provided for them to ensure that
+      LDAPv3-specific protocol elements (for example, Configuration Guide 25
       controls, extended response messages, intermediate response
-      messages, referrals, etc.) are not sent to an LDAPv2 client.
+      messages, referrals) are not sent to an LDAPv2 client.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -279,7 +279,7 @@
     <adm:description>
       If enabled, the
       <adm:user-friendly-name />
-      will maintain statistics about the number and types of operations
+      maintains statistics about the number and types of operations
       requested over LDAP and the amount of data sent and received.
     </adm:description>
     <adm:default-behavior>
@@ -303,7 +303,7 @@
       should use TCP keep-alive.
     </adm:synopsis>
     <adm:description>
-      If enabled, the SO_KEEPALIVE socket option to indicate that TCP
+      If enabled, the SO_KEEPALIVE socket option is used to indicate that TCP
       keepalive messages should periodically be sent to the client to
       verify that the associated connection is still valid. This may
       also help prevent cases in which intermediate network hardware
@@ -333,13 +333,13 @@
       should use TCP no-delay.
     </adm:synopsis>
     <adm:description>
-      If enabled, the TCP_NODELAY socket option will be used to ensure
+      If enabled, the TCP_NODELAY socket option is used to ensure
       that response messages to the client are sent immediately rather
       than potentially waiting to determine whether additional response
       messages can be sent in the same packet. In most cases, using the
-      TCP_NODELAY socket option will provide better performance and
+      TCP_NODELAY socket option provides better performance and
       lower response times, but disabling it may help for some cases in
-      which the server will send a large number of entries to a client
+      which the server sends a large number of entries to a client
       in response to a search request.
     </adm:description>
     <adm:default-behavior>
@@ -363,7 +363,7 @@
       should reuse socket descriptors.
     </adm:synopsis>
     <adm:description>
-      If enabled, the SO_REUSEADDR socket option will be used on the
+      If enabled, the SO_REUSEADDR socket option is used on the
       server listen socket to potentially allow the reuse of socket
       descriptors for clients in a TIME_WAIT state. This may help the
       server avoid temporarily running out of socket descriptors in
@@ -415,15 +415,13 @@
   <adm:property name="max-request-size" advanced="true">
     <adm:synopsis>
       Specifies the size of the largest LDAP request message that will
-      be allowed by this
-      <adm:user-friendly-name />
-      .
+      be allowed by this LDAP Connection handler.      
     </adm:synopsis>
     <adm:description>
       This property is analogous to the maxBERSize configuration
       attribute of the Sun Java System Directory Server. This can help
       prevent denial-of-service attacks by clients that indicate they
-      will send extremely large requests to the server causing it to
+      send extremely large requests to the server causing it to
       attempt to allocate large amounts of memory.
     </adm:description>
     <adm:default-behavior>
@@ -442,7 +440,7 @@
   </adm:property>
   <adm:property name="num-request-handlers" advanced="true">
     <adm:synopsis>
-      Specifies the number of request handlers that will be used to read
+      Specifies the number of request handlers that are used to read
       requests from clients.
     </adm:synopsis>
     <adm:description>
@@ -450,7 +448,7 @@
       <adm:user-friendly-name />
       uses one thread to accept new connections from clients, but uses
       one or more additional threads to read requests from existing
-      client connections. This can help ensure that new requests are
+      client connections. This ensures that new requests are
       read efficiently and that the connection handler itself does not
       become a bottleneck when the server is under heavy load from many
       clients at the same time.
@@ -474,14 +472,14 @@
   </adm:property>
   <adm:property name="allow-start-tls">
     <adm:synopsis>
-      Indicates whether clients will be allowed to use StartTLS.
+      Indicates whether clients are allowed to use StartTLS.
     </adm:synopsis>
     <adm:description>
       If enabled, the
       <adm:user-friendly-name />
-      will allow clients to use the StartTLS extended operation to
+      allows clients to use the StartTLS extended operation to
       initiate secure communication over an otherwise insecure channel.
-      Note that this will only be allowed if the
+      Note that this is only allowed if the
       <adm:user-friendly-name />
       is not configured to use SSL, and if the server is configured with
       a valid key manager provider and a valid trust manager provider.
@@ -521,22 +519,22 @@
       <adm:enumeration>
         <adm:value name="disabled">
           <adm:synopsis>
-            Clients will not be required to provide their own
+            Clients are not required to provide their own
             certificates when performing SSL negotiation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="optional">
           <adm:synopsis>
-            Clients will be requested to provide their own certificates
-            when performing SSL negotiation, but will still accept the
+            Clients are requested to provide their own certificates
+            when performing SSL negotiation, but still accept the
             connection even if the client does not provide a
             certificate.
           </adm:synopsis>
         </adm:value>
         <adm:value name="required">
           <adm:synopsis>
-            Clients will be required to provide their own certificates
-            when performing SSL negotiation, and will be refused access
+            Clients are required to provide their own certificates
+            when performing SSL negotiation and are refused access
             if the do not provide a certificate.
           </adm:synopsis>
         </adm:value>
@@ -551,13 +549,13 @@
   <adm:property name="accept-backlog" advanced="true">
     <adm:synopsis>
       Specifies the maximum number of pending connection attempts that
-      will be allowed to queue up in the accept backlog before the
+      are allowed to queue up in the accept backlog before the
       server starts rejecting new connection attempts.
     </adm:synopsis>
     <adm:description>
       This is primarily an issue for cases in which a large number of
       connections are established to the server in a very short period
-      of time (e.g., a benchmark utility that creates a large number of
+      of time (for example, a benchmark utility that creates a large number of
       client threads that each have their own connection to the server)
       and the connection handler is unable to keep up with the rate at
       which the new connections are established.
@@ -583,14 +581,14 @@
   </adm:property>
   <adm:property name="ssl-protocol" multi-valued="true">
     <adm:synopsis>
-      Specifies the names of the SSL protocols that will be allowed for
+      Specifies the names of the SSL protocols that are allowed for
       use in SSL or StartTLS communication.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
-          only impact new SSL/TLS-based sessions created after the
+          Changes to this property take effect immediately but only 
+          impact new SSL/TLS-based sessions created after the
           change.
         </adm:synopsis>
       </adm:none>
@@ -614,13 +612,13 @@
   </adm:property>
   <adm:property name="ssl-cipher-suite" multi-valued="true">
     <adm:synopsis>
-      Specifies the names of the SSL cipher suites that will be allowed
+      Specifies the names of the SSL cipher suites that are allowed
       for use in SSL or StartTLS communication.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          Changes to this property will take effect immediately but will
+          Changes to this property take effect immediately but will
           only impact new SSL/TLS-based sessions created after the
           change.
         </adm:synopsis>
@@ -650,7 +648,7 @@
     </adm:synopsis>
     <adm:description>
       If an attempt to write data to a client takes longer than this
-      length of time, then the client connection will be terminated.
+      length of time, then the client connection is terminated.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>

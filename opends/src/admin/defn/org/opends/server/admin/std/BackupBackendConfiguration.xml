@@ -23,20 +23,21 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="backup-backend" plural-name="backup-backends"
   package="org.opends.server.admin.std" extends="backend"
   advanced="true" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The backup backend provides read-only access to the set of backups
-    that are available for the OpenDS Directory Server.
+    The
+    <adm:user-friendly-name />
+    provides read-only access to the set of backups
+    that are available for the OpenDS Directory Server. 
   </adm:synopsis>
   <adm:description>
-    The backup backend is provided as a convenience feature that makes
-    it easier to determine what backups are available to be restored if
-    necessary.
+    It is provided as a convenience feature that makes it easier to determine what
+    backups are available to be restored if necessary.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -65,8 +66,8 @@
       backups for a particular backend.
     </adm:synopsis>
     <adm:description>
-      This is a multivalued property, and each value may specify a
-      different backup directory if desired (e.g., one for each backend
+      This is a multivalued property. Each value may specify a
+      different backup directory if desired (one for each backend
       for which backups are taken). Values may be either absolute paths
       or paths that are relative to the base of the OpenDS Directory
       Server installation.

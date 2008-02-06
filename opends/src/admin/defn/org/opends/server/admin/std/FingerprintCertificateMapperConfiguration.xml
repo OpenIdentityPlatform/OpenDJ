@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="fingerprint-certificate-mapper"
   plural-name="fingerprint-certificate-mappers"
@@ -70,7 +70,7 @@
   </adm:property>
   <adm:property name="fingerprint-algorithm" mandatory="true">
     <adm:synopsis>
-      Specifies the name of the digest algorithm which should be used to
+      Specifies the name of the digest algorithm to
       compute the fingerprint of client certificates.
     </adm:synopsis>
     <adm:syntax>
@@ -100,13 +100,13 @@
       Specifies the set of base DNs below which to search for users.
     </adm:synopsis>
     <adm:description>
-      The base DNs will be used when performing searches to map the
+      The base DNs are used when performing searches to map the
       client certificates to a user entry.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The server will perform the search in all public naming
+          The server performs the search in all public naming
           contexts.
         </adm:synopsis>
       </adm:alias>

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="error-log-account-status-notification-handler"
   plural-name="error-log-account-status-notification-handlers"
@@ -32,10 +32,11 @@
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    <adm:user-friendly-name />
-    is an account status notification handler that writes information
-    about status notifications using the Directory Server's error
-    logging facility.
+    The
+    <adm:user-friendly-name /> 
+    is a notification handler that writes information 
+    to the server error log whenever an appropriate account status event 
+    occurs.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -59,93 +60,80 @@
   <adm:property name="account-status-notification-type" mandatory="true"
     multi-valued="true">
     <adm:synopsis>
-      Indicates which types of event can trigger an account status
-      notification.
+      Indicates which types of event can trigger an account status notification.
     </adm:synopsis>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="account-temporarily-locked">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been temporarily locked after
-            too many failed attempts.
+            Generate a notification whenever a user account has been temporarily 
+            locked after too many failed attempts.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-permanently-locked">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been permanently locked after
-            too many failed attempts.
+            Generate a notification whenever a user account has been permanently 
+            locked after too many failed attempts.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-unlocked">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been unlocked by an
+            Generate a notification whenever a user account has been unlocked by an
             administrator.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-idle-locked">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been locked because it was idle
-            for too long.
+            Generate a notification whenever a user account has been locked 
+            because it was idle for too long.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-reset-locked">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been locked because it the
-            password had been reset by an administrator but not changed
+            Generate a notification whenever a user account has been locked, 
+            because the password had been reset by an administrator but not changed
             by the user within the required interval.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-disabled">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been disabled by an
+            Generate a notification whenever a user account has been disabled by an
             administrator.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-enabled">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user account has been enabled by an
+            Generate a notification whenever a user account has been enabled by an
             administrator.
           </adm:synopsis>
         </adm:value>
         <adm:value name="account-expired">
           <adm:synopsis>
-            Indicates that an account status message should be generated
-            whenever a user authentication has failed because the
-            account has expired.
+            Generate a notification whenever a user authentication has failed 
+            because the account has expired.
           </adm:synopsis>
         </adm:value>
         <adm:value name="password-expired">
           <adm:synopsis>
-            Indicates that an account status notification message should
-            be generated whenever a user authentication has failed
+            Generate a notification whenever a user authentication has failed
             because the password has expired.
           </adm:synopsis>
         </adm:value>
         <adm:value name="password-expiring">
           <adm:synopsis>
-            Indicates that an account status notification message should
-            be generated the first time that a password expiration
-            warning is encountered for a user password.
+            Generate a notification whenever a password expiration
+            warning is encountered for a user password for the first time.
           </adm:synopsis>
         </adm:value>
         <adm:value name="password-reset">
           <adm:synopsis>
-            Indicates that an account status notification message should
-            be generated whenever a user's password is reset by an
+            Generate a notification whenever a user's password is reset by an
             administrator.
           </adm:synopsis>
         </adm:value>
         <adm:value name="password-changed">
           <adm:synopsis>
-            Indicates whether an account status notification message
-            should be generated whenever a user changes his/her own
+            Generate a notification whenever a user changes his/her own
             password.
           </adm:synopsis>
         </adm:value>

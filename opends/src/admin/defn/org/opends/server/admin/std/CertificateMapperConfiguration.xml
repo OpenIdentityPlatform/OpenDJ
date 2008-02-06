@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="certificate-mapper"
   plural-name="certificate-mappers"
@@ -50,9 +50,9 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
-      is enabled for use.
+      is enabled.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -65,11 +65,14 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
-    <adm:syntax>
+ 	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
+     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
           org.opends.server.api.CertificateMapper

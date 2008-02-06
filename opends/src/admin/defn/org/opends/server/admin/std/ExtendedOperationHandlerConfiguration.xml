@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="extended-operation-handler"
   plural-name="extended-operation-handlers"
@@ -33,8 +33,7 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are responsible for all processing of different types of extended
-    operations in the server.
+    processes the different types of extended operations in the server.
   </adm:synopsis>
   <adm:tag name="core" />
   <adm:profile name="ldap">
@@ -50,8 +49,8 @@
     <adm:synopsis>
       Indicates whether the
       <adm:user-friendly-name />
-      is enabled for use (i.e. whether the types of extended operations
-      that it defines will be allowed in the server).
+      is enabled (that is, whether the types of extended operations
+      are allowed in the server).
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -64,10 +63,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+	<adm:requires-admin-action>
+	  <adm:component-restart />
+	</adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>

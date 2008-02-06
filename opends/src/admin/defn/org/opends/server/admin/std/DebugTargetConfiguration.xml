@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="debug-target" plural-name="debug-targets"
   package="org.opends.server.admin.std"
@@ -33,6 +33,13 @@
     <adm:user-friendly-plural-name />
     define the types of messages logged by the debug logPublisher.
   </adm:synopsis>
+  <adm:description>
+    Debug targets allow for fine-grain control of which messages are logged
+    based on the package, class, or method that generated the message. Each
+    debug target configuration entry resides below the entry with RDN of
+    "cn=Debug Target" immediately below the parent ds-cfg-debug-log-publisher 
+    entry.
+  </adm:description>
   <adm:tag name="logging" />
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -42,10 +49,10 @@
   </adm:profile>
   <adm:property name="debug-scope" mandatory="true" read-only="true">
     <adm:synopsis>
-      The fully-qualified OpenDS Java package, class, or method affected
+      Specifies the fully-qualified OpenDS Java package, class, or method affected
       by the settings in this target definition. Use the number
-      character (#) to separate the class name and the method name. (ie.
-      org.opends.server.core.DirectoryServer#startUp)
+      character (#) to separate the class name and the method name 
+      (that is, org.opends.server.core.DirectoryServer#startUp).
     </adm:synopsis>
     <adm:syntax>
       <adm:string>
@@ -53,9 +60,9 @@
           <adm:regex>
             ^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(#[A-Za-z][A-Za-z0-9_]*)?$
           </adm:regex>
-          <adm:usage>JAVA_NAME</adm:usage>
+          <adm:usage>STRING</adm:usage>
           <adm:synopsis>
-            A fully-qualified OpenDS Java package, class, or method
+            The fully-qualified OpenDS Java package, class, or method
             name.
           </adm:synopsis>
         </adm:pattern>
@@ -69,40 +76,40 @@
   </adm:property>
   <adm:property name="debug-level" mandatory="true">
     <adm:synopsis>
-      The lowest severity level of debug messages to log.
+      Specifies the lowest severity level of debug messages to log.
     </adm:synopsis>
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="disabled">
-          <adm:synopsis>No messages will be logged.</adm:synopsis>
+          <adm:synopsis>No messages are logged.</adm:synopsis>
         </adm:value>
         <adm:value name="error">
           <adm:synopsis>
-            Messages with severity level of ERROR or higher will be
+            Messages with severity level of ERROR or higher are
             logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warning">
           <adm:synopsis>
-            Messages with severity level of WARNING or higher will be
+            Messages with severity level of WARNING or higher are
             logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="info">
           <adm:synopsis>
-            Messages with severity level of INFO or higher will be
+            Messages with severity level of INFO or higher are
             logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="verbose">
           <adm:synopsis>
-            Messages with severity level of VERBOSE or higher will be
+            Messages with severity level of VERBOSE or higher are
             logged.
           </adm:synopsis>
         </adm:value>
         <adm:value name="all">
           <adm:synopsis>
-            Messages with any severity level will be logged.
+            Messages with any severity level are logged.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
@@ -115,12 +122,12 @@
   </adm:property>
   <adm:property name="debug-category" multi-valued="true">
     <adm:synopsis>
-      The debug message categories to be logged.
+      Specifies the debug message categories to be logged.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          Messages with any category will be logged if they have a
+          Messages with any category are logged if they have a
           sufficient debug level.
         </adm:synopsis>
       </adm:alias>
@@ -128,31 +135,31 @@
     <adm:syntax>
       <adm:enumeration>
         <adm:value name="caught">
-          <adm:synopsis>Exception caught.</adm:synopsis>
+          <adm:synopsis>Exception caught</adm:synopsis>
         </adm:value>
         <adm:value name="constructor">
-          <adm:synopsis>Constructor entry.</adm:synopsis>
+          <adm:synopsis>Constructor entry</adm:synopsis>
         </adm:value>
         <adm:value name="data">
-          <adm:synopsis>Raw data dump.</adm:synopsis>
+          <adm:synopsis>Raw data dump</adm:synopsis>
         </adm:value>
         <adm:value name="database-access">
           <adm:synopsis>Access to a backend database.</adm:synopsis>
         </adm:value>
         <adm:value name="enter">
-          <adm:synopsis>Method entry.</adm:synopsis>
+          <adm:synopsis>Method entry</adm:synopsis>
         </adm:value>
         <adm:value name="exit">
-          <adm:synopsis>Method exit.</adm:synopsis>
+          <adm:synopsis>Method exit</adm:synopsis>
         </adm:value>
         <adm:value name="message">
-          <adm:synopsis>Arbitrary debug message.</adm:synopsis>
+          <adm:synopsis>Arbitrary debug message</adm:synopsis>
         </adm:value>
         <adm:value name="protocol">
-          <adm:synopsis>Protocol element dump.</adm:synopsis>
+          <adm:synopsis>Protocol element dump</adm:synopsis>
         </adm:value>
         <adm:value name="thrown">
-          <adm:synopsis>Exception throw from method.</adm:synopsis>
+          <adm:synopsis>Exception throw from method</adm:synopsis>
         </adm:value>
       </adm:enumeration>
     </adm:syntax>
@@ -164,7 +171,7 @@
   </adm:property>
   <adm:property name="omit-method-entry-arguments">
     <adm:synopsis>
-      Property to indicate whether to include method arguments in debug
+      Specifies the property to indicate whether to include method arguments in debug
       messages.
     </adm:synopsis>
     <adm:default-behavior>
@@ -183,7 +190,7 @@
   </adm:property>
   <adm:property name="omit-method-return-value">
     <adm:synopsis>
-      Property to indicate whether to include the return value in debug
+      Specifies the property to indicate whether to include the return value in debug
       messages.
     </adm:synopsis>
     <adm:default-behavior>
@@ -202,7 +209,7 @@
   </adm:property>
   <adm:property name="include-throwable-cause">
     <adm:synopsis>
-      Property to indicate whether to include the cause of exceptions in
+      Specifies the property to indicate whether to include the cause of exceptions in
       exception thrown and caught messages.
     </adm:synopsis>
     <adm:default-behavior>
@@ -221,7 +228,7 @@
   </adm:property>
   <adm:property name="throwable-stack-frames">
     <adm:synopsis>
-      Property to indicate the number of stack frames to include in the
+      Specifies the property to indicate the number of stack frames to include in the
       stack trace for method entry and exception thrown messages.
     </adm:synopsis>
     <adm:default-behavior>

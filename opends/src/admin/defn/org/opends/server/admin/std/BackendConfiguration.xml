@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="backend" plural-name="backends"
   package="org.opends.server.admin.std"
@@ -36,9 +36,9 @@
     presented by the server.
   </adm:synopsis>
   <adm:description>
-    The data may be stored locally (e.g., in an embedded database),
-    remotely (e.g., in an external system), or generated on the fly
-    (e.g., calculated from other information that is available).
+    The data may be stored locally in an embedded database,
+    remotely in an external system, or generated on the fly
+    (for example, calculated from other information that is available).
   </adm:description>
   <adm:tag name="database" />
   <adm:profile name="ldap">
@@ -52,10 +52,10 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicates whether the backend is enabled for use in the server.
+      Indicates whether the backend is enabled in the server.
     </adm:synopsis>
     <adm:description>
-      If a backend is not enabled, then its contents will not be
+      If a backend is not enabled, then its contents are not 
       accessible when processing operations.
     </adm:description>
     <adm:syntax>
@@ -69,7 +69,7 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       backend implementation.
     </adm:synopsis>
     <adm:requires-admin-action>
@@ -88,11 +88,11 @@
   </adm:property>
   <adm:property name="backend-id" mandatory="true" read-only="true">
     <adm:synopsis>
-      Provides a name that will be used to identify the associated
-      backend.
+      Specifies a name to identify the associated backend.
     </adm:synopsis>
     <adm:description>
-      The name must be unique among all backends in the server.
+      The name must be unique among all backends in the server. The backend ID may 
+      not be altered after the backend is created in the server.
     </adm:description>
     <adm:syntax>
       <adm:string />
@@ -140,22 +140,21 @@
   </adm:property>
   <adm:property name="base-dn" mandatory="true" multi-valued="true">
     <adm:synopsis>
-      Specifies the base DN(s) for the data that the backend will
-      handle.
+      Specifies the base DN(s) for the data that the backend handles.
     </adm:synopsis>
     <adm:description>
       A single backend may be responsible for one or more base DNs. Note
-      that no two backends may have the same base DN, although one
+      that no two backends may have the same base DN although one
       backend may have a base DN that is below a base DN provided by
       another backend (similar to the use of sub-suffixes in the Sun
-      Java System Directory Server). Note that if any of the base DNs is
+      Java System Directory Server). If any of the base DNs is
       subordinate to a base DN for another backend, then all base DNs
       for that backend must be subordinate to that same base DN.
     </adm:description>
     <adm:requires-admin-action>
       <adm:none>
         <adm:synopsis>
-          No administrative action is required by default, although some
+          No administrative action is required by default although some
           action may be required on a per-backend basis before the new
           base DN may be used.
         </adm:synopsis>

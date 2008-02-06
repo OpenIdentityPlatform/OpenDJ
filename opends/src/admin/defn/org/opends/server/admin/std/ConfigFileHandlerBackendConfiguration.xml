@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="config-file-handler-backend"
   plural-name="config-file-handler-backends"
@@ -31,10 +31,11 @@
   advanced="true" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    The config file handler backend provides the ability for clients to
-    access the server configuration over protocol, allowing both read
-    and write operations (although modify DN operations are not
-    supported for entries in the server configuration).
+    The
+    <adm:user-friendly-name />
+    allows clients to access the server configuration over protocol, and 
+    allow both read and write operations. Note: Modify DN operations are not
+    supported for entries in the server configuration.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

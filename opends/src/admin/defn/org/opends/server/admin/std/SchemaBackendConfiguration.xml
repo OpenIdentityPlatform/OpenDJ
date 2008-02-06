@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="schema-backend" plural-name="schema-backends"
   package="org.opends.server.admin.std" extends="backend"
@@ -38,12 +38,12 @@
     structure rules that it contains.
   </adm:synopsis>
   <adm:description>
-    The server will allow modify operations in this backend to alter the
+    The server allows "modify" operations in this backend to alter the
     server schema definitions. The configuration entry for this backend
     is based on the ds-cfg-schema-backend structural object class. Note
     that any attribute types included in this entry that are not
     included in this object class (or the parent ds-cfg-backend class)
-    will appear directly in the schema entry.
+    appears directly in the schema entry.
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -68,18 +68,18 @@
   <adm:property name="schema-entry-dn" advanced="true"
     multi-valued="true">
     <adm:synopsis>
-      This defines the base DNs of the subtrees in which the schema
-      information will be published, in addition to the value included
+      Defines the base DNs of the subtrees in which the schema
+      information is published in addition to the value included
       in the base-dn property.
     </adm:synopsis>
     <adm:description>
       The value provided in the base-dn property is the only one that
-      will appear in the subschemaSubentry operational attribute of the
+      appears in the subschemaSubentry operational attribute of the
       server's root DSE (which is necessary because that is a
       single-valued attribute) and as a virtual attribute in other
-      entries, but the schema-entry-dn attribute may be used to make the
-      schema information available in other locations as well in case
-      certain client applications have been hard-coded to expect the
+      entries. The schema-entry-dn attribute may be used to make the
+      schema information available in other locations to accommodate 
+      certain client applications that have been hard-coded to expect the
       schema to reside in a specific location.
     </adm:description>
     <adm:default-behavior>
@@ -105,7 +105,7 @@
       This may provide compatibility with some applications that expect
       schema attributes like attributeTypes and objectClasses to be
       included by default even if they are not requested. Note that the
-      ldapSyntaxes attribute will always be treated as operational in
+      ldapSyntaxes attribute is always treated as operational in
       order to avoid problems with attempts to modify the schema over
       protocol.
     </adm:description>

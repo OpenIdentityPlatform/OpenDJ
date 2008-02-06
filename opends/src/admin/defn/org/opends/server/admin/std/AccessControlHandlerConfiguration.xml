@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="access-control-handler"
   plural-name="access-control-handlers"
@@ -33,8 +33,18 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    manage the application-wide access-control.
+      manage the application-wide access control. The OpenDS access control 
+      handler is defined through an extensible interface, so that alternate 
+      implementations can be created. Only one access control handler may be 
+      active in the server at any given time.  
   </adm:synopsis>
+  <adm:description>
+     Note that OpenDS also has a privilege subsystem, which may have an impact 
+     on what clients may be allowed to do in the server. For example, any user 
+     with the bypass-acl privilege is not subject to access control 
+     checking regardless of whether the access control implementation is 
+     enabled.
+  </adm:description>
   <adm:tag name="security" />
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -47,9 +57,12 @@
   </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Indicate whether the
+      Indicates whether the
       <adm:user-friendly-name />
-      is enabled for use.
+      is enabled. If set to FALSE, then no access control is enforced, and any 
+      client (including unauthenticated or anonymous clients) could be allowed to perform any 
+      operation if not subject to other restrictions, such as those enforced by the privilege 
+      subsystem.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />
@@ -62,10 +75,13 @@
   </adm:property>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
-      The fully-qualified name of the Java class that provides the
+      Specifies the fully-qualified name of the Java class that provides the
       <adm:user-friendly-name />
       implementation.
     </adm:synopsis>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
     <adm:syntax>
       <adm:java-class>
         <adm:instance-of>
