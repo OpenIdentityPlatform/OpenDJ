@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.uninstaller;
@@ -109,11 +109,11 @@ class UninstallCliHelper extends ConsoleApplication {
    * user for additional information if what is provided in the arguments is not
    * enough.
    * @param args the ArgumentParser with the allowed arguments of the command
-   * line.
+   * line.  The code assumes that the arguments have already been parsed.
    * @param rawArguments the arguments provided in the command line.
    * @return the UserData object with what the user wants to uninstall
    * and null if the user cancels the uninstallation.
-   * @throws UserDataException if there is an error parsing the data
+   * @throws UserDataException if there is an error with the data
    * in the arguments.
    */
   public UninstallUserData createUserData(UninstallerArgumentParser args,
@@ -130,14 +130,6 @@ class UninstallCliHelper extends ConsoleApplication {
 
     /* Step 1: analyze the arguments.
      */
-    try
-    {
-      args.parseArguments(rawArguments);
-    }
-    catch (ArgumentException ae)
-    {
-      throw new UserDataException(null, ae.getMessageObject());
-    }
 
     isInteractive = args.isInteractive();
 
@@ -698,7 +690,7 @@ class UninstallCliHelper extends ConsoleApplication {
     while (!couldConnect && accepted)
     {
 
-            // This is done because we do not need to ask the user about these
+      // This is done because we do not need to ask the user about these
       // parameters.  If we force their presence the class
       // LDAPConnectionConsoleInteraction will not prompt the user for
       // them.
@@ -713,11 +705,25 @@ class UninstallCliHelper extends ConsoleApplication {
       secureArgsList.portArg.addValue(
           secureArgsList.portArg.getDefaultValue());
       secureArgsList.bindDnArg.clearValues();
-      secureArgsList.bindDnArg.addValue(ADSContext.getAdministratorDN(uid));
-      secureArgsList.bindDnArg.setPresent(true);
+      if (uid != null)
+      {
+        secureArgsList.bindDnArg.addValue(ADSContext.getAdministratorDN(uid));
+        secureArgsList.bindDnArg.setPresent(true);
+      }
+      else
+      {
+        secureArgsList.bindDnArg.setPresent(false);
+      }
       secureArgsList.bindPasswordArg.clearValues();
-      secureArgsList.bindPasswordArg.addValue(pwd);
-      secureArgsList.bindPasswordArg.setPresent(true);
+      if (pwd != null)
+      {
+        secureArgsList.bindPasswordArg.addValue(pwd);
+        secureArgsList.bindPasswordArg.setPresent(true);
+      }
+      else
+      {
+        secureArgsList.bindPasswordArg.setPresent(false);
+      }
 
       // We already know if SSL or StartTLS can be used.  If we cannot
       // use them we will not propose them in the connection parameters
