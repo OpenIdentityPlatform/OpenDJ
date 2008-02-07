@@ -82,6 +82,11 @@ public class InitializeTargetTask extends Task
    */
   @Override public void initializeTask() throws DirectoryException
   {
+    if (TaskState.isDone(getTaskState()))
+    {
+      return;
+    }
+
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
