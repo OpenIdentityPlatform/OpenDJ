@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -47,7 +47,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 
 /**
- * This class defines a thread that will be used to teriminate client
+ * This class defines a thread that will be used to terminate client
  * connections if they have been idle for too long.
  */
 public class IdleTimeLimitThread
