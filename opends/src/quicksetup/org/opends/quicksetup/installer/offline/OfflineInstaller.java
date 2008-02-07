@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.offline;
@@ -123,12 +123,28 @@ public class OfflineInstaller extends Installer
           notifyListeners(getTaskSeparator());
         }
         setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
+        PointAdder pointAdder = new PointAdder();
         if (!isVerbose())
         {
-          notifyListeners(getFormattedWithPoints(
+          notifyListeners(getFormattedProgress(
               INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
+          pointAdder.start();
         }
-        new ServerController(this).startServer(!isVerbose());
+        try
+        {
+          new ServerController(this).startServer(!isVerbose());
+        }
+        catch (ApplicationException ae)
+        {
+          throw ae;
+        }
+        finally
+        {
+          if (!isVerbose())
+          {
+            pointAdder.stop();
+          }
+        }
         if (!isVerbose())
         {
           notifyListeners(getFormattedDoneWithLineBreak());

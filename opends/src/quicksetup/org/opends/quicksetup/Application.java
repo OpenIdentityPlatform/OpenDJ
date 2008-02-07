@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup;
@@ -663,10 +663,9 @@ public abstract class Application implements ProgressNotifier, Runnable {
   protected void notifyListenersOfLog() {
     File logFile = QuickSetupLog.getLogFile();
     if (logFile != null) {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
-      mb.append(formatter.getLineBreak());
-      notifyListeners(mb.toMessage());
+      notifyListeners(getFormattedProgress(
+          INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath())));
+      notifyListeners(getLineBreak());
     }
   }
 

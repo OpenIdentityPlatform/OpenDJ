@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -37,6 +37,8 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.server.util.SetupUtils;
 
 import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
@@ -327,34 +329,27 @@ public class ServerController {
         StartReader errReader = new StartReader(err, startedId, true);
         StartReader outputReader = new StartReader(out, startedId, false);
 
-        long finishedTime = 0;
-        while (!errReader.isFinished() || !outputReader.isFinished())
-        {
-          try
-          {
-            Thread.sleep(100);
-          } catch (InterruptedException ie)
-          {
-          }
+        int returnValue = process.waitFor();
 
-          if (errReader.startedIdFound() || outputReader.startedIdFound())
-          {
-            /* When we start the server in windows and we are not running it
-             * under a windows service, the readers are kept open forever.
-             * Once we find that is finished, wait at most 7 seconds.
-             */
-            if (finishedTime == 0)
-            {
-              finishedTime = System.currentTimeMillis();
-            }
-            else
-            {
-              if (System.currentTimeMillis() - finishedTime > 7000)
-              {
-                break;
-              }
-            }
-          }
+        LOG.log(Level.INFO, "start-ds return value: "+returnValue);
+
+        if (returnValue != 0)
+        {
+          throw new ApplicationException(ReturnCode.START_ERROR,
+              INFO_ERROR_STARTING_SERVER_CODE.get(
+                  String.valueOf(returnValue)), null);
+        }
+        if (outputReader.isFinished())
+        {
+          LOG.log(Level.INFO, "Output reader finished.");
+        }
+        if (errReader.isFinished())
+        {
+          LOG.log(Level.INFO, "Error reader finished.");
+        }
+        if (!outputReader.startedIdFound() && !errReader.startedIdFound())
+        {
+          LOG.log(Level.WARNING, "Started ID could not be found");
         }
 
         // Collect any messages found in the output
@@ -396,13 +391,13 @@ public class ServerController {
         {
           /*
            * There are no exceptions from the readers and they are marked as
-           * finished. This means that the server has written in its output the
-           * message id informing that it started. So it seems that everything
-           * went fine.
+           * finished. So it seems that everything went fine.
            *
            * However we can have issues with the firewalls or do not have rights
-           * to connect.  Just check if we can connect to the server.
-           * Try 5 times with an interval of 1 second between try.
+           * to connect or since the startup process is asynchronous we will
+           * have to wait for the databases and the listeners to initialize.
+           * Just check if we can connect to the server.
+           * Try 10 times with an interval of 5 seconds between try.
            */
           boolean connected = false;
           Configuration config = installation.getCurrentConfiguration();
@@ -422,11 +417,12 @@ public class ServerController {
             userPw = null;
           }
 
-          for (int i=0; i<5 && !connected; i++)
+          InitialLdapContext ctx = null;
+          for (int i=0; i<10 && !connected; i++)
           {
             try
             {
-              Utils.createLdapContext(
+              ctx = Utils.createLdapContext(
                   ldapUrl,
                   userDn, userPw, 3000, null);
               connected = true;
@@ -434,11 +430,24 @@ public class ServerController {
             catch (NamingException ne)
             {
             }
+            finally
+            {
+              if (ctx != null)
+              {
+                try
+                {
+                  ctx.close();
+                }
+                catch (Throwable t)
+                {
+                }
+              }
+            }
             if (!connected)
             {
               try
               {
-                Thread.sleep(1000);
+                Thread.sleep(5000);
               }
               catch (Throwable t)
               {
@@ -471,6 +480,11 @@ public class ServerController {
         throw new ApplicationException(
             ReturnCode.START_ERROR,
             getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ioe), ioe);
+      } catch (InterruptedException ie)
+      {
+        throw new ApplicationException(
+            ReturnCode.START_ERROR,
+            getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ie), ie);
       }
     } finally {
       if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
@@ -636,6 +650,7 @@ public class ServerController {
             }
           } catch (Throwable t)
           {
+            LOG.log(Level.WARNING, "Error reading output: "+t, t);
             ex = new ApplicationException(
                 ReturnCode.START_ERROR,
                 getThrowableMsg(errorTag, t), t);
