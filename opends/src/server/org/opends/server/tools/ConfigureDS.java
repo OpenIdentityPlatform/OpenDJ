@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -672,7 +672,7 @@ public class ConfigureDS
           BooleanConfigAttribute enablePortAttr =
             new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
                 INFO_LDAPS_CONNHANDLER_DESCRIPTION_ENABLE.get(),
-                    true, true, true);
+                    true, true);
           configEntry.putConfigAttribute(enablePortAttr);
         }
         catch (Exception e)
@@ -704,7 +704,7 @@ public class ConfigureDS
           BooleanConfigAttribute enablePortAttr =
             new BooleanConfigAttribute(ATTR_CONNECTION_HANDLER_ENABLED,
                 INFO_JMX_CONNHANDLER_DESCRIPTION_ENABLE.get(),
-                    true, true, true);
+                    true, true);
           configEntry.putConfigAttribute(enablePortAttr);
         }
         catch (Exception e)
@@ -729,7 +729,7 @@ public class ConfigureDS
           BooleanConfigAttribute startTLS =
             new BooleanConfigAttribute(ATTR_ALLOW_STARTTLS,
                 INFO_LDAP_CONNHANDLER_DESCRIPTION_ALLOW_STARTTLS.get(),
-                    true, true, true);
+                    true, true);
           configEntry.putConfigAttribute(startTLS);
         }
         catch (Exception e)
@@ -755,7 +755,7 @@ public class ConfigureDS
             BooleanConfigAttribute enableAttr =
               new BooleanConfigAttribute(ATTR_KEYMANAGER_ENABLED,
                   INFO_CONFIG_KEYMANAGER_DESCRIPTION_ENABLED.get(),
-                      true, true, true);
+                      true, true);
             configEntry.putConfigAttribute(enableAttr);
           }
           catch (Exception e)
@@ -841,7 +841,7 @@ public class ConfigureDS
             BooleanConfigAttribute enableAttr =
               new BooleanConfigAttribute(ATTR_TRUSTMANAGER_ENABLED,
                   ERR_CONFIG_TRUSTMANAGER_DESCRIPTION_ENABLED.get(),
-                      true, true, true);
+                      true, true);
             configEntry.putConfigAttribute(enableAttr);
           }
           catch (Exception e)
