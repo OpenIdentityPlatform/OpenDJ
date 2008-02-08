@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="plugin-root" plural-name="plugin-roots"
   package="org.opends.server.admin.std"
@@ -39,7 +39,7 @@
     It may also include configuration attributes that define the order
     in which those plugins should be loaded and invoked.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-plugin-root</ldap:name>

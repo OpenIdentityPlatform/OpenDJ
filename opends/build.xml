@@ -44,6 +44,7 @@
   <property name="javadoc.dir"      location="${build.dir}/javadoc"    />
   <property name="docgen.dir"       location="${build.dir}/docgen"    />
   <property name="configguide.dir"  location="${docgen.dir}/configuration_guide"    />
+  <property name="configguideldap.dir"  location="${docgen.dir}/configuration_guide_with_ldap_mapping"    />
   <property name="resource.dir"     location="resource"                />
   <property name="scripts.dir"      location="${resource.dir}/bin"     />
   <property name="config.dir"       location="${resource.dir}/config"  />
@@ -133,7 +134,8 @@
   <property name="admin.defn.dir"  location="src/admin/defn" />
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
-
+  <property name="configguide.resource.dir" location="resource/admin/config-guide" />
+  
   <!-- Properties for generating messages. -->
   <property name="msg.prop.dir"    location="src/messages/messages" />
   <property name="msg.javagen.dir" location="src/messages/generated" />
@@ -760,13 +762,19 @@
   </target>
 
 
-  <!-- Generate the Configuration guide. -->
-  <target name="docgen" depends="compile,copymessages"
-       description="Generate the Configuration guide (html).">
+  <!-- Generate the Configuration guides. -->
+  <target name="docgen" depends="configguide,configguideldap"
+       description="Generate the Configuration guides (1 standard + 1 with ldap mapping) (html).">
+  </target>  
+  
+  <!-- Generate the Standard Configuration guide. -->
+  <target name="configguide" depends="compile,copymessages"
+       description="Generate the Configuration guide (standard) (html).">
     <mkdir dir="${configguide.dir}" />
-    <!-- copy the stylesheet file -->
-    <copy todir="${configguide.dir}"
-          file="${admin.rules.dir}/opends-config.css" />
+    <!-- copy the resource files -->
+    <copy todir="${configguide.dir}">
+          <fileset file="${configguide.resource.dir}/*" />
+    </copy>
     <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
       <classpath>
         <fileset dir="${lib.dir}">
@@ -774,7 +782,27 @@
         </fileset>
         <dirset dir="${classes.dir}" />
       </classpath>
-      <arg value="${configguide.dir}"/>
+      <jvmarg value="-DGenerationDir=${configguide.dir}"/>
+    </java>         
+  </target>
+
+  <!-- Generate the Configuration guide with LDAP mapping. -->
+  <target name="configguideldap" depends="compile,copymessages"
+       description="Generate the Configuration guide (with LDAP mapping) (html).">
+    <mkdir dir="${configguideldap.dir}" />
+    <!-- copy the resource files -->
+    <copy todir="${configguideldap.dir}">
+          <fileset file="${configguide.resource.dir}/*" />
+    </copy>
+    <java fork="true" classname="org.opends.server.admin.doc.ConfigGuideGeneration" failonerror="true">
+      <classpath>
+        <fileset dir="${lib.dir}">
+          <include name="*.jar" />
+        </fileset>
+        <dirset dir="${classes.dir}" />
+      </classpath>
+      <jvmarg value="-DGenerationDir=${configguideldap.dir}"/>
+      <jvmarg value="-DLdapMapping"/>
     </java>         
   </target>
 

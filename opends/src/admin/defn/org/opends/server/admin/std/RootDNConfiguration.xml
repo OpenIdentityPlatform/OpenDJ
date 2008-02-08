@@ -36,7 +36,7 @@
     Directory Server. In addition, it also defines the default set of
     privileges that Root DN Users automatically inherit.
   </adm:synopsis>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-root-dn</ldap:name>

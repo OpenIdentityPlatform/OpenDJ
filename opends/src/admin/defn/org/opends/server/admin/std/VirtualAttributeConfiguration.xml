@@ -39,7 +39,7 @@
     Virtual attributes are associated with a virtual attribute 
     provider, which contains the logic for generating the value.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-virtual-attribute</ldap:name>

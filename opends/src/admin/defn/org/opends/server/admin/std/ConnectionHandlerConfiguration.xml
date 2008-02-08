@@ -37,7 +37,7 @@
     including accepting the connections, reading requests, and sending
     responses.
   </adm:synopsis>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-connection-handler</ldap:name>

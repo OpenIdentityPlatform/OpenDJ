@@ -40,7 +40,7 @@
     determining membership. For example, some groups may explicitly list the members,
     and/or they may dynamically determine membership.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-group-implementation</ldap:name>

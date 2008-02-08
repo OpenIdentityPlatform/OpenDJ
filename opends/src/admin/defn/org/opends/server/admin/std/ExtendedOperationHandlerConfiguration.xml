@@ -35,7 +35,7 @@
     <adm:user-friendly-plural-name />
     processes the different types of extended operations in the server.
   </adm:synopsis>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-extended-operation-handler</ldap:name>

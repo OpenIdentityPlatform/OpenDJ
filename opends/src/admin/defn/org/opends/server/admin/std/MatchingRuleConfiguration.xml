@@ -42,7 +42,7 @@
     around commas and equal signs, differences in capitalization in 
     attribute names, an so on.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-matching-rule</ldap:name>

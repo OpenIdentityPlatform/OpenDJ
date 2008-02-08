@@ -466,7 +466,7 @@
   <adm:tag-definition name="security">
     <adm:synopsis>Authentication and authorization</adm:synopsis>
   </adm:tag-definition>
-  <adm:tag-definition name="core">
+  <adm:tag-definition name="core-server">
     <adm:synopsis>Core server</adm:synopsis>
   </adm:tag-definition>
 </adm:root-managed-object>

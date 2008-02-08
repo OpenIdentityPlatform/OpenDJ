@@ -41,7 +41,7 @@
     <adm:product-name />
     .
   </adm:synopsis>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-root-config</ldap:name>

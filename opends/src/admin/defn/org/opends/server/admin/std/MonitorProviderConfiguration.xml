@@ -38,7 +38,7 @@
   <adm:description>
     This information is useful for monitoring or troubleshooting.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-monitor-provider</ldap:name>
