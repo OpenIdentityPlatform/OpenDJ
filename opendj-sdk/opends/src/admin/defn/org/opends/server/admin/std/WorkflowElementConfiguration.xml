@@ -44,7 +44,7 @@
     is the Local Backend Work Flow Element, which routes data
     to a Backend.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-workflow-element</ldap:name>

@@ -35,7 +35,7 @@
     are used to notify administrators of significant problems or notable
     events that occur in the Directory Server.
   </adm:synopsis>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-alert-handler</ldap:name>

@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.opends.messages.Message;
@@ -59,6 +60,7 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.SizePropertyDefinition;
 import org.opends.server.admin.StringPropertyDefinition;
+import org.opends.server.admin.Tag;
 import org.opends.server.admin.TopCfgDefn;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.std.meta.RootCfgDefn;
@@ -79,20 +81,35 @@ public class ConfigGuideGeneration {
   private final String ACI_SYNTAX_PAGE = OPENDS_WIKI + "/page/ACISyntax";
   private final String CSS_FILE = "opends-config.css";
 
+  private final String MAIN_FILE = "index.html";
+  private final String INHERITANCE_TREE_FILE =
+    "ManagedObjectInheritanceTree.html";
+  private final String RELATION_TREE_FILE = "ManagedObjectRelationTree.html";
+  private final String MO_LIST_FILE = "ManagedObjectList.html";
+  private final String PROPERTIES_INDEX_FILE = "PropertiesIndex.html";
+  private final String WELCOME_FILE = "welcome.html";
+
+  private static final String CONFIG_GUIDE_DIR = "opends_config_guide";
+  private final String MAIN_FRAME = "mainFrame";
+
   /**
    * Entry point for documentation generation.
    *
-   * @param args The output generation directory (optional)
+   * Properties:
+   * GenerationDir - The directory where the doc is generated
+   *              (default is /var/tmp/[CONFIG_GUIDE_DIR>])
+   * LdapMapping - Presence means that the LDAP mapping section is to be
+   *               generated (default is no)
+   *
+   * @param args none.
    */
   public static void main(String[] args) {
-    if (args.length == 0) {
+    Properties properties = System.getProperties();
+    generationDir = properties.getProperty("GenerationDir");
+    if (generationDir == null) {
       // Default dir is prefixed by the system-dependent default temporary dir
       generationDir = System.getProperty("java.io.tmpdir") + File.separator +
-        "opends_config_guide";
-    } else if ((args.length != 1) || !(new File(args[0])).isDirectory()) {
-      usage();
-    } else {
-      generationDir = args[0];
+        CONFIG_GUIDE_DIR;
     }
     // Create new dir if necessary
     try {
@@ -102,6 +119,11 @@ public class ConfigGuideGeneration {
       System.exit(1);
     }
     System.out.println("Generation directory is : " + generationDir);
+
+    if (properties.getProperty("LdapMapping") != null) {
+      ldapMapping = true;
+    }
+
     ConfigGuideGeneration myGen = new ConfigGuideGeneration();
     myGen.generate();
   }
@@ -110,10 +132,10 @@ public class ConfigGuideGeneration {
     init();
 
     // Generate the inheritance tree of all the managed objects
-    genManagedObjectInheritanceTree(topMoList);
+    genManagedObjectInheritanceTree(catTopMoList);
 
     // Generate the relation tree of all the managed objects
-    genManagedObjectRelationTree(topRelList);
+    genManagedObjectRelationTree(catTopRelList);
 
     // Generate all the managed objects and their children
     genAllManagedObject(topMoList);
@@ -123,7 +145,10 @@ public class ConfigGuideGeneration {
 
     // Generate an index of properties
     genPropertiesIndex();
-  }
+
+    // Generate the Welcome page
+    genWelcome();
+   }
 
   private void init() {
 
@@ -161,94 +186,166 @@ public class ConfigGuideGeneration {
       topMoList.put(topObject.getName(), topObject);
     }
 
+
+    // Build a list of top relations by category (core, database, ...)
+    for (RelationDefinition rel : topRelList.values()) {
+      AbstractManagedObjectDefinition<?, ?> mo = rel.getChildDefinition();
+      Collection<Tag> tags = mo.getAllTags();
+      for (Tag tag : tags) {
+        TreeMap<String, RelationDefinition> catMap =
+          catTopRelList.get(tag.getName());
+        if (catMap == null) {
+          catMap = new TreeMap<String, RelationDefinition>();
+          catTopRelList.put(tag.getName(), catMap);
+        }
+        catMap.put(mo.getName(), rel);
+      }
+    }
+
+    // Build a list of top managed objects by category (core, database, ...)
+    for (AbstractManagedObjectDefinition<?, ?> topObject : topMoList.values()) {
+      Collection<Tag> tags = topObject.getAllTags();
+      for (Tag tag : tags) {
+        TreeMap<String, AbstractManagedObjectDefinition> catMap =
+          catTopMoList.get(tag.getName());
+        if (catMap == null) {
+          catMap = new TreeMap<String, AbstractManagedObjectDefinition>();
+          catTopMoList.put(tag.getName(), catMap);
+        }
+        catMap.put(topObject.getName(), topObject);
+      }
+    }
+
   }
 
   /**
    * Generate the inheritance tree of all the managed objects.
    */
+  @SuppressWarnings("unchecked")
   private void genManagedObjectInheritanceTree(
-    TreeMap<String, AbstractManagedObjectDefinition> list) {
+    TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> list) {
 
-    htmlHeader("OpenDS - Configuring Specific Server Components - " +
-      "Inheritance tree");
-    heading2("Configuring Specific Server Components - Inheritance tree");
-    genMoInheritanceTree(list);
-    generateFile("ManagedObjectInheritanceTree.html");
+    htmlHeader("OpenDS Configuration Reference - Inheritance View");
+    tabMenu(INHERITANCE_TREE_FILE);
+    viewHelp("This view represents the inheritance relationships between " +
+      "configuration components.");
+    jumpSection();
+
+    for (String catName : list.keySet()) {
+      heading3(getFriendlyName(catName));
+      // Get the list of the category
+      TreeMap<String, AbstractManagedObjectDefinition> catList =
+        list.get(catName);
+      for (AbstractManagedObjectDefinition mo : catList.values()) {
+        paragraph(
+          getLink(mo.getUserFriendlyName().toString(),
+          mo.getName() + ".html", MAIN_FRAME));
+        if (mo.hasChildren()) {
+          genMoInheritanceTree(makeMOTreeMap(mo.getChildren()));
+        }
+      }
+    }
+
+    htmlFooter();
+    generateFile(INHERITANCE_TREE_FILE);
   }
 
   @SuppressWarnings("unchecked")
   private void genMoInheritanceTree(
-    TreeMap<String, AbstractManagedObjectDefinition> list) {
+    TreeMap<String, AbstractManagedObjectDefinition> catList) {
 
     beginList();
-    for (AbstractManagedObjectDefinition mo : list.values()) {
-      if (listLevel == 1) {
-        paragraph(
-          getLink(mo.getUserFriendlyPluralName().toString(),
-          mo.getName() + ".html"));
-      } else {
-        link(mo.getUserFriendlyName().toString(), mo.getName() + ".html");
-      }
+    for (AbstractManagedObjectDefinition mo : catList.values()) {
+      link(mo.getUserFriendlyName().toString(), mo.getName() + ".html",
+        MAIN_FRAME);
       if (mo.hasChildren()) {
         genMoInheritanceTree(makeMOTreeMap(mo.getChildren()));
       }
     }
     endList();
-    if (listLevel == 1) {
-      newline();
-    }
   }
+
+   private void jumpSection() {
+     htmlBuff.append("<p class=\"category-index\">" +
+       "<strong>Jump To:</strong><br>\n");
+
+     String[] catNames = catTopMoList.keySet().toArray(new String[0]);
+    for (int ii=0; ii < catNames.length; ii++) {
+      if (ii != 0) {
+        htmlBuff.append(", ");
+      }
+      String catFriendlyName = getFriendlyName(catNames[ii]);
+      htmlBuff.append(getLink(catFriendlyName, "#" + catFriendlyName));
+    }
+    htmlBuff.append("</p>\n");
+   }
+
 
   /**
    * Generate the relation tree of all the managed objects.
    */
   private void genManagedObjectRelationTree(
-    TreeMap<String, RelationDefinition> list) {
+    TreeMap <String, TreeMap<String, RelationDefinition>> list) {
 
-    htmlHeader("OpenDS - Configuring Specific Server Components - " +
-      "Containment tree");
-    heading2("Configuring Specific Server Components - Containment tree");
-    paragraph(
-      "This tree represents the composition relation between components. " +
-      "This means that a child component is deleted " +
-      "when its parent is deleted.");
-    genMORelationTree(list);
-    generateFile("ManagedObjectRelationTree.html");
+    htmlHeader("OpenDS Configuration Reference - Structure View");
+    tabMenu(RELATION_TREE_FILE);
+    viewHelp("This view represents the structural relationships between " +
+      "components and indicates how certain components can exist only within " +
+      "container components.");
+    jumpSection();
+
+    for (String catName : list.keySet()) {
+      heading3(getFriendlyName(catName));
+      // Get the list of the category
+      TreeMap<String, RelationDefinition> catList = list.get(catName);
+      genMORelationTree(catList);
+    }
+
+    htmlFooter();
+    generateFile(RELATION_TREE_FILE);
   }
 
-  @SuppressWarnings("unchecked")
-  private void genMORelationTree(TreeMap<String, RelationDefinition> subList) {
-    if (!subList.values().isEmpty()) {
-      beginList();
-      for (RelationDefinition rel : subList.values()) {
-        AbstractManagedObjectDefinition childMo = rel.getChildDefinition();
-        AbstractManagedObjectDefinition parentMo = rel.getParentDefinition();
-        relList.put(childMo.getName(), rel);
-        String linkStr = getLink(childMo.getUserFriendlyName().toString(),
-          childMo.getName() + ".html");
-        String fromStr = "";
-        if (!parentMo.getName().equals("")) {
-          fromStr = " (from " +
-            getLink(parentMo.getUserFriendlyName().toString(),
-            parentMo.getName() + ".html") + ")";
-        }
-        bullet(linkStr + fromStr);
-        genMORelationTree(makeRelTreeMap(childMo.getAllRelationDefinitions()));
-        if (childMo.hasChildren()) {
-          for (Iterator<AbstractManagedObjectDefinition> it =
-            childMo.getChildren().iterator(); it.hasNext();) {
 
-            AbstractManagedObjectDefinition mo = it.next();
-            genMORelationTree(makeRelTreeMap(mo.getAllRelationDefinitions()));
-          }
-        }
-        if (listLevel == 1) {
-          newline();
+  @SuppressWarnings("unchecked")
+  private void genMORelationTree(TreeMap<String, RelationDefinition> list) {
+    for (RelationDefinition rel : list.values()) {
+      AbstractManagedObjectDefinition childMo = rel.getChildDefinition();
+      AbstractManagedObjectDefinition parentMo = rel.getParentDefinition();
+      relList.put(childMo.getName(), rel);
+      String linkStr = getLink(childMo.getUserFriendlyName().toString(),
+        childMo.getName() + ".html", MAIN_FRAME);
+      String fromStr = "";
+      if (!parentMo.getName().equals("")) {
+        fromStr = " (from " +
+          getLink(parentMo.getUserFriendlyName().toString(),
+          parentMo.getName() + ".html", MAIN_FRAME) + ")";
+      }
+      if (!inList) {
+        paragraph(linkStr + fromStr);
+      } else {
+        bullet(linkStr + fromStr);
+      }
+      genMORelationSubTree(makeRelTreeMap(childMo.getAllRelationDefinitions()));
+      if (childMo.hasChildren()) {
+        for (Iterator<AbstractManagedObjectDefinition> it =
+          childMo.getChildren().iterator(); it.hasNext();) {
+
+          AbstractManagedObjectDefinition mo = it.next();
+          genMORelationSubTree(makeRelTreeMap(mo.getAllRelationDefinitions()));
         }
       }
+    }
+  }
+
+
+  private void genMORelationSubTree(TreeMap<String, RelationDefinition> list) {
+    if (!list.values().isEmpty()) {
+      beginList();
+      genMORelationTree(list);
       endList();
     }
   }
+
 
   /**
    * Generate all the managed objects HTML pages.
@@ -271,22 +368,27 @@ public class ConfigGuideGeneration {
     // Header
     //------------------------------------------------------------------------
 
-    String title = "The " + mo.getUserFriendlyName() + " Configuration";
+    homeLink();
+    String title = mo.getUserFriendlyName().toString();
     htmlHeader("OpenDS - " + title);
 
     // title
     heading2(title);
 
+    // Abstract notice
+    if (mo.hasChildren()) {
+      paragraph(
+        "Note: this is an abstract component, that cannot be instantiated.",
+        TextStyle.ITALIC);
+    }
+
     // description
     paragraph(mo.getSynopsis());
     paragraph(mo.getDescription());
 
-    newline();
-    horizontalLine();
-
     // sub-components
     if (mo.hasChildren()) {
-      heading4("Direct Subcomponents");
+      heading3("Direct Subcomponents");
       paragraph("The following " + mo.getUserFriendlyPluralName() +
         " are available in the server :");
       beginList();
@@ -298,21 +400,22 @@ public class ConfigGuideGeneration {
       }
       endList();
 
-      paragraph("All the " + mo.getUserFriendlyPluralName() +
+      paragraph("These " + mo.getUserFriendlyPluralName() +
         " inherit from the properties described below.");
     }
 
     // Parent
     if (!mo.getParent().isTop()) {
-      heading4("Parent Component");
-      paragraph("The " + mo.getUserFriendlyName() + " component inherits from "
-        + getLink(mo.getParent().getUserFriendlyName().toString(),
+      heading3("Parent Component");
+      paragraph("The " + mo.getUserFriendlyName() +
+        " component inherits from the " +
+        getLink(mo.getParent().getUserFriendlyName().toString(),
         mo.getParent().getName() + ".html"));
     }
 
     // Relations
     if (!mo.getRelationDefinitions().isEmpty()) {
-      heading4("Relations From this Component");
+      heading3("Relations From this Component");
       paragraph(
         "The following components have a direct composition relation FROM " +
         mo.getUserFriendlyPluralName() + " :");
@@ -337,7 +440,7 @@ public class ConfigGuideGeneration {
         }
       }
       if (!isRoot) {
-        heading4("Relations To this Component");
+        heading3("Relations To this Component");
         paragraph(
           "The following components have a direct composition relation TO " +
           mo.getUserFriendlyPluralName() + " :");
@@ -351,17 +454,18 @@ public class ConfigGuideGeneration {
       }
     }
 
-    newline();
-    horizontalLine();
-    newline();
-
-    // Page links
-    paragraph("This page describes the " + mo.getUserFriendlyName() + ":");
-    beginList();
-    link("Properties", "#Properties");
-    link("LDAP Mapping", "#LDAP Mapping");
-    endList();
-    newline();
+    // Page links in case of LDAP mapping
+    if (ldapMapping) {
+      newline();
+      horizontalLine();
+      newline();
+      paragraph("This page describes the " + mo.getUserFriendlyName() + ":");
+      beginList();
+      link("Properties", "#Properties");
+      link("LDAP Mapping", "#LDAP Mapping");
+      endList();
+      newline();
+    }
 
 
     //------------------------------------------------------------------------
@@ -370,28 +474,189 @@ public class ConfigGuideGeneration {
 
     heading3("Properties");
 
-    paragraph(mo.getUserFriendlyPluralName() +
-      " contain the following properties:");
+    paragraph("The links below will jump you down the page to the " +
+      "description of a particular property.");
     newline();
 
+    TreeMap<String, PropertyDefinition> basicProps =
+      new TreeMap<String, PropertyDefinition>();
+    TreeMap<String, PropertyDefinition> advancedProps =
+      new TreeMap<String, PropertyDefinition>();
     // Properties actually defined in this managed object
     @SuppressWarnings("unchecked")
     Collection<PropertyDefinition> props = mo.getAllPropertyDefinitions();
-    TreeMap<String, PropertyDefinition> propList = makePropTreeMap(props);
-    for ( PropertyDefinition prop : propList.values()) {
-      generateProperty(mo, prop);
+    for ( PropertyDefinition prop : props) {
+      if (prop.hasOption(PropertyOption.ADVANCED)) {
+        advancedProps.put(prop.getName(), prop);
+      } else {
+        basicProps.put(prop.getName(), prop);
+      }
+    }
+
+    propertiesLinkTable(basicProps, advancedProps);
+
+    // basic properties
+    if (basicProps.size() > 0) {
+      heading4("Basic Properties");
+      for ( PropertyDefinition prop : basicProps.values()) {
+        generateProperty(mo, prop);
+        newline();
+      }
       newline();
     }
 
-    newline();
+    // advanced properties
+    if (advancedProps.size() > 0) {
+      heading4("Advanced Properties");
+      for ( PropertyDefinition prop : advancedProps.values()) {
+        generateProperty(mo, prop);
+        newline();
+      }
+      newline();
+    }
 
+    if (ldapMapping) {
+      genLdapMapping(mo);
+    }
+
+    htmlFooter();
+
+    generateFile(mo.getName() + ".html");
+  }
+
+
+  private TreeMap<String, PropertyDefinition>
+    getPropertyList(AbstractManagedObjectDefinition mo) {
+
+    @SuppressWarnings("unchecked")
+    Collection<PropertyDefinition> props = mo.getAllPropertyDefinitions();
+    return makePropTreeMap(props);
+  }
+
+  private void homeLink() {
+    htmlBuff.append("<div style=\"font-size:11px;margin-top:-10px;" +
+      "margin-bottom:-10px; text-align:right\"><a href=\"" +
+      MAIN_FILE +
+      "\" target=\"_top\">Configuration Reference Home</a></div>");
+  }
+
+
+  private void generateProperty(
+    AbstractManagedObjectDefinition mo, PropertyDefinition prop) {
+
+    // Property name
+    paragraph(getAnchor(prop.getName()) + prop.getName(), TextStyle.STANDARD,
+      "propertyname");
+
+    // Property table
+    startTable();
+    tableRow("Description",
+      ((prop.getSynopsis() != null) ? prop.getSynopsis().toString()+ " " : "") +
+      ((prop.getDescription() != null) ?
+        prop.getDescription().toString() : ""));
+
+    // Default value
+    String defValueStr = getDefaultBehaviorString(prop);
+    tableRow("Default Value", defValueStr);
+
+    tableRow("Allowed Values", getSyntaxStr(prop));
+
+    tableRow("Multi-valued",
+      (prop.hasOption(PropertyOption.MULTI_VALUED) ? "Yes" : "No"));
+
+    if (prop.hasOption(PropertyOption.MANDATORY)) {
+      tableRow("Required", "Yes");
+    } else {
+      tableRow("Required", "No");
+    }
+
+    String action = "None";
+    if (prop.getAdministratorAction() != null) {
+      Message synopsis = prop.getAdministratorAction().getSynopsis();
+      Type actionType = prop.getAdministratorAction().getType();
+      String actionStr = "";
+      if (actionType == actionType.COMPONENT_RESTART) {
+        actionStr = "The " + mo.getUserFriendlyName() +
+          " must be disabled and re-enabled for changes to this setting " +
+          "to take effect";
+      } else if (actionType == actionType.SERVER_RESTART) {
+        actionStr = "Restart the server";
+      } else if (actionType == actionType.NONE) {
+        actionStr = "None";
+      }
+      String dot = (actionStr.equals("") ? "" : ". ");
+      action = actionStr +
+        ((synopsis != null) ? dot + synopsis : "");
+    }
+    tableRow("Admin Action Required", action);
+
+    if (prop.hasOption(PropertyOption.ADVANCED)) {
+      tableRow("Advanced Property", "Yes");
+    } else {
+      tableRow("Advanced Property", "No");
+    }
+
+    endTable();
+
+  }
+
+
+  private void propertiesLinkTable(TreeMap<String,
+    PropertyDefinition> basicProps,
+    TreeMap<String, PropertyDefinition> advancedProps) {
+    htmlBuff.append(
+      "<table border=\"0\" cellspacing=\"0\" class=\"jump-table\">\n" +
+      "  <tr>\n" +
+      "    <th>Basic Properties:</th>\n" +
+      "    <th>Advanced Properties:</th>\n" +
+      "  </tr>\n");
+
+    PropertyDefinition[] basicPropsArray =
+      basicProps.values().toArray(new PropertyDefinition[0]);
+    PropertyDefinition[] advancedPropsArray =
+      advancedProps.values().toArray(new PropertyDefinition[0]);
+
+    for (int ii=0;
+        (ii < basicPropsArray.length) || (ii < advancedPropsArray.length);
+        ii++) {
+      String basicPropName =
+        ii < basicPropsArray.length ? basicPropsArray[ii].getName() : null;
+      String advancedPropName =
+        ii < advancedPropsArray.length ?
+          advancedPropsArray[ii].getName() : null;
+
+      String basicHtmlCell = "";
+      if (basicPropName != null) {
+        basicHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + basicPropName + "\">"
+          + basicPropName + "</a></td>\n";
+      } else if ((basicPropsArray.length == 0) && (ii == 0)) {
+        basicHtmlCell = "  <td>&nbsp;None</td>\n";
+      }
+
+      String advancedHtmlCell = "";
+      if (advancedPropName != null) {
+        advancedHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + advancedPropName +
+          "\">" + advancedPropName + "</a></td>\n";
+      } else if ((advancedPropsArray.length == 0) && (ii == 0)) {
+        advancedHtmlCell = "  <td>&nbsp;None</td>\n";
+      }
+
+      htmlBuff.append("<tr>\n");
+      htmlBuff.append(basicHtmlCell + advancedHtmlCell);
+      htmlBuff.append("</tr>\n");
+    }
+    htmlBuff.append("</table>\n");
+  }
+
+
+  private void genLdapMapping(AbstractManagedObjectDefinition mo) {
     //------------------------------------------------------------------------
     // LDAP mapping
     //------------------------------------------------------------------------
 
     heading3("LDAP Mapping");
     paragraph(
-      "Each dscfg configuration property can be mapped to a specific " +
+      "Each configuration property can be mapped to a specific " +
       "LDAP attribute under the \"cn=config\" entry. " +
       "The mappings that follow are provided for information only. " +
       "In general, you should avoid changing the server configuration " +
@@ -428,64 +693,8 @@ public class ConfigGuideGeneration {
     // Properties table
     startTable();
     tableRow("Property", "LDAP attribute");
-    for ( PropertyDefinition prop : propList.values()) {
+    for ( PropertyDefinition prop : getPropertyList(mo).values()) {
       tableRow(prop.getName(), ldapProfile.getAttributeName(mo, prop));
-    }
-
-    endTable();
-
-    htmlFooter();
-
-    generateFile(mo.getName() + ".html");
-  }
-
-  private void generateProperty(
-    AbstractManagedObjectDefinition mo, PropertyDefinition prop) {
-
-    // Property name
-    paragraph(getAnchor(prop.getName()) + prop.getName(), TextStyle.BOLD);
-
-    // Property table
-    startTable();
-    tableRow("Description",
-      ((prop.getSynopsis() != null) ? prop.getSynopsis().toString()+ " " : "") +
-      ((prop.getDescription() != null) ?
-        prop.getDescription().toString() : ""));
-
-    // Default value
-    String defValueStr = getDefaultBehaviorString(prop);
-    tableRow("Default Value", defValueStr);
-
-    tableRow("Allowed Values", getSyntaxStr(prop));
-
-    tableRow("Multi-valued",
-      (prop.hasOption(PropertyOption.MULTI_VALUED) ? "Yes" : "No"));
-
-    if (prop.hasOption(PropertyOption.MANDATORY)) {
-      tableRow("Required", "Yes");
-    }
-
-    if (prop.getAdministratorAction() != null) {
-      Message synopsis = prop.getAdministratorAction().getSynopsis();
-      Type actionType = prop.getAdministratorAction().getType();
-      String actionStr = "";
-      if (actionType == actionType.COMPONENT_RESTART) {
-        actionStr = "The " + mo.getUserFriendlyName() +
-          " must be disabled and re-enabled for changes to this setting " +
-          "to take effect";
-      } else if (actionType == actionType.SERVER_RESTART) {
-        actionStr = "Restart the server";
-      } else if (actionType == actionType.NONE) {
-        actionStr = "None";
-      }
-      String action = actionStr +
-        ((synopsis != null) ? ". " + synopsis : "");
-      tableRow("Admin Action Required", action);
-    }
-
-
-    if (prop.hasOption(PropertyOption.ADVANCED)) {
-      tableRow("Advanced Property", "Yes");
     }
 
     endTable();
@@ -495,12 +704,32 @@ public class ConfigGuideGeneration {
   private void genManagedObjectList(
     TreeMap<String, AbstractManagedObjectDefinition> list) {
 
-    htmlHeader("Component List");
+    htmlHeader("OpenDS Configuration Reference - Components View");
+    tabMenu(MO_LIST_FILE);
+    viewHelp("This view provides a list of all configuration components, " +
+      "in alphabetical order.");
+
+    newline();
+    StringBuffer moPointers = new StringBuffer();
+    String lettersPointers = "";
+    String firstChar = ".";
     for (AbstractManagedObjectDefinition mo : list.values()) {
-      link(mo.getUserFriendlyName().toString(), mo.getName() + ".html");
+      if (!mo.getName().startsWith(firstChar)) {
+        firstChar = mo.getName().substring(0, 1);
+        String letter = firstChar.toUpperCase();
+        moPointers.append(getAnchor(letter) + getHeading2(letter));
+        lettersPointers += getLink(letter, "#" + letter) + " ";
+      }
+      moPointers.append(
+        "<p> " +
+        getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html",
+        MAIN_FRAME) +
+        "</p>\n");
     }
+    paragraph(lettersPointers);
+    htmlBuff.append(moPointers);
     htmlFooter();
-    generateFile("ManagedObjectList.html");
+    generateFile(MO_LIST_FILE);
   }
 
   private void genPropertiesIndex() {
@@ -527,19 +756,68 @@ public class ConfigGuideGeneration {
         lettersPointers += getLink(letter, "#" + letter) + " ";
       }
       String propLink = getLink(propName,
-        mo.getName() + ".html" + "#" + propName);
+        mo.getName() + ".html" + "#" + propName, MAIN_FRAME);
       String moLink =
-        getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html");
-      paragraph(propLink + " (" + moLink + ")");
+        getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html",
+        MAIN_FRAME, "#666");
+      paragraph(propLink + "  [ " + moLink + " ]");
     }
 
     String indexBody = htmlBuff.toString();
     htmlBuff = new StringBuffer();
-    htmlHeader("Properties Index");
+    htmlHeader("OpenDS Configuration Reference - Properties View");
+    tabMenu(PROPERTIES_INDEX_FILE);
+    viewHelp("This view provides a list of all configuration properties, " +
+      "in alphabetical order, and indicates the configuration component to " +
+      "which each property applies.");
+
+    newline();
     paragraph(lettersPointers);
     htmlBuff.append(indexBody);
     htmlFooter();
-    generateFile("PropertiesIndex.html");
+    generateFile(PROPERTIES_INDEX_FILE);
+  }
+
+    private void genWelcome() {
+    htmlHeader("OpenDS Configuration Reference - Welcome");
+    heading2("Welcome");
+    paragraph("Welcome to the OpenDS Configuration Reference. This document " +
+      "describes the OpenDS configuration properties that can be manipulated " +
+      "with the dsconfig command.");
+    paragraph("Configuration components are grouped according to the area of " +
+      "the server in which they are used, as follows:");
+
+    beginList();
+    for (String catName : catTopMoList.keySet()) {
+      bullet(getFriendlyName(catName));
+    }
+    endList();
+
+    paragraph(
+      "For ease of reference, the configuration is described on multiple " +
+      "tabs. These tabs provide alternative views of the configuration " +
+      "components:");
+    beginList();
+    bullet("The <strong>Inheritance</strong> view represents the inheritance " +
+      "relationships between configuration components. A sub-component " +
+      "inherits all of the properties of its parent component.");
+    bullet("The <strong>Structure</strong> view represents the structural " +
+      "relationships between components and indicates how certain components " +
+      "can exist only within container components. When a container " +
+      "component is deleted, all of the components within it are also " +
+      "deleted.");
+    bullet(
+      "The <strong>Components</strong> view provides an alphabetical list " +
+      "of all configuration components.");
+    bullet(
+      "The <strong>Properties</strong> view provides an alphabetical list " +
+      "of all configuration properties, and indicates the configuration " +
+      "component to which each property applies.");
+    endList();
+
+    htmlFooter();
+    generateFile(WELCOME_FILE);
+
   }
 
   private String getBaseDN(
@@ -840,14 +1118,10 @@ public class ConfigGuideGeneration {
 
   private void htmlHeader(String pageTitle) {
     htmlBuff.append(getHtmlHeader(pageTitle) +
-      "<body style=\"color: rgb(0, 0, 0); " +
-      "background-color: rgb(255, 255, 255);\">\n");
+      "<body \">\n");
 
   }
 
-//  private void htmlHeaderForFrames(String pageTitle) {
-//    htmlBuff.append(getHtmlHeader(pageTitle));
-//  }
   private String getHtmlHeader(String pageTitle) {
     return ("<html>\n" +
       "<head>\n" +
@@ -859,18 +1133,69 @@ public class ConfigGuideGeneration {
       "</head>\n");
   }
 
+  // Add a Tab Menu, the active tab is the one given as parameter
+  private void tabMenu(String activeTab) {
+    htmlBuff.append(
+      "<div class=\"tabmenu\"> " +
+
+      "<span><a " +
+      (activeTab.equals(INHERITANCE_TREE_FILE) ? "class=\"activetab\" " : "") +
+      "href=" + INHERITANCE_TREE_FILE +
+      " title=\"Inheritance View of Components\">Inheritance</a></span> " +
+
+      "<span><a " +
+      (activeTab.equals(RELATION_TREE_FILE) ? "class=\"activetab\" " : "") +
+      "href=" + RELATION_TREE_FILE +
+      " title=\"Relational View of Components\">Structure</a></span> " +
+
+      "<span><a " +
+      (activeTab.equals(MO_LIST_FILE) ? "class=\"activetab\" " : "") +
+      "href=" + MO_LIST_FILE +
+      " title=\"Alphabetical Index of Components\">Components</a></span> " +
+
+      "<span><a " +
+      (activeTab.equals(PROPERTIES_INDEX_FILE) ? "class=\"activetab\" " : "") +
+      "href=" + PROPERTIES_INDEX_FILE +
+      " title=\"Alphabetical Index of Properties\" >Properties</a></span>" +
+
+      "</div>" +
+      "\n"
+      );
+  }
+
   private String getLink(String str, String link) {
-    return "<a href=\"" + link + "\">" + str + "</a>";
+    return getLink(str, link, null, null);
+  }
+
+  private String getLink(String str, String link, String target) {
+    return getLink(str, link, target, null);
+  }
+
+  private String getLink(String str, String link, String target, String color) {
+    return "<a " +
+      (color != null ? "style=\"color:" + color + "\" " : "") +
+      "href=\"" + link + "\"" +
+      (target == null ? "" : " target=\"" + target + "\"") +
+      ">"
+      + str + "</a>";
   }
 
   private void link(String str, String link) {
+    link(str, link, null, null);
+  }
+
+  private void link(String str, String link, String target) {
+    link(str, link, target, null);
+  }
+
+  private void link(String str, String link, String target, String color) {
     String htmlStr = "";
     if (!inList && getIndentPixels() > 0) {
       htmlStr += "<div style=\"margin-left: " + getIndentPixels() + "px;\">";
     } else if (inList) {
       htmlStr += "<li>";
     }
-    htmlStr += getLink(str, link);
+    htmlStr += getLink(str, link, target, color);
     if (!inList && getIndentPixels() > 0) {
       htmlStr += "</div>";
     } else if (inList) {
@@ -899,25 +1224,40 @@ public class ConfigGuideGeneration {
 
   private void paragraph(Message description, TextStyle style) {
     if (description != null) {
-      paragraph(description.toString(), style);
+      paragraph(description.toString(), style, null);
     }
   }
 
   private void paragraph(String description) {
-    paragraph(description, TextStyle.STANDARD);
+    paragraph(description, TextStyle.STANDARD, null);
   }
 
   private void paragraph(String description, TextStyle style) {
-    String firstTag;
+    paragraph(description, style, null);
+  }
+
+  private void paragraph(String description, TextStyle style, String pClass) {
+    String indentStr = "";
+    String styleStr = "";
+    String classStr = "";
     if (getIndentPixels() > 0) {
-      firstTag = "<p style=\"margin-left: " + getIndentPixels() + "px;\">";
-    } else if (style == style.BOLD) {
-      firstTag = "<p style=\"font-weight: bold;\">";
-    } else {
-      firstTag = "<p>";
+      indentStr = "style=\"margin-left: " + getIndentPixels() + "px;\"";
     }
+    if (style == style.BOLD) {
+      styleStr = "style=\"font-weight: bold;\"";
+    } else if (style == style.ITALIC) {
+      styleStr = "style=\"font-style: italic;\"";
+    }
+    if (pClass != null) {
+      classStr = "class=" + pClass;
+    }
+
     htmlBuff.append(
-      firstTag +
+      "<p " +
+      indentStr + " " +
+      styleStr + " " +
+      classStr +
+      ">" +
       description +
       "</p>\n");
   }
@@ -936,6 +1276,25 @@ public class ConfigGuideGeneration {
       ">\n");
 
     htmlBuff.append("<tbody>\n");
+  }
+
+  /*
+   * Generate a "friendly" name from a string :
+   * '-' and '_' replaced by space
+   * first letter of a word in uppercase
+   */
+  private String getFriendlyName(String str) {
+    String retStr = "";
+    String[] words = str.split("\\p{Punct}");
+    for (int ii = 0; ii < words.length; ii++) {
+      if (ii>0) {
+        retStr += " ";
+      }
+      String word = words[ii];
+       String firstChar = word.substring(0, 1).toUpperCase();
+       retStr += firstChar + word.substring(1, word.length());
+    }
+    return retStr;
   }
 
   private void tableRow(String... strings) {
@@ -1007,6 +1366,15 @@ public class ConfigGuideGeneration {
     System.exit(1);
   }
 
+  private void viewHelp(String helpStr) {
+    htmlBuff.append(
+      "<p class=\"view-help\" >" +
+      helpStr +
+      "</p>" +
+      "\n"
+      );
+  }
+
   private void generateFile(String fileName) {
     // Write the html buffer in a file
     try {
@@ -1027,14 +1395,20 @@ public class ConfigGuideGeneration {
     new TreeMap<String, RelationDefinition>();
   private TreeMap<String, RelationDefinition> relList =
     new TreeMap<String, RelationDefinition>();
+  private TreeMap<String, TreeMap<String, RelationDefinition>> catTopRelList =
+    new TreeMap<String, TreeMap<String, RelationDefinition>>();
   // managed object list
   private TreeMap<String, AbstractManagedObjectDefinition> moList =
     new TreeMap<String, AbstractManagedObjectDefinition>();
   private TreeMap<String, AbstractManagedObjectDefinition> topMoList =
     new TreeMap<String, AbstractManagedObjectDefinition>();
+  private TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>
+    catTopMoList =
+    new TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>>();
   private int ind = 0;
   private StringBuffer htmlBuff = new StringBuffer();
   private static String generationDir;
+    private static boolean ldapMapping = false;
   private boolean inList = false;
   private int listLevel = 0;
 }

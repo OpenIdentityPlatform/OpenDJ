@@ -43,7 +43,7 @@
     place the request in the work queue to be processed
     appropriately.
   </adm:description>
-  <adm:tag name="core" />
+  <adm:tag name="core-server" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-work-queue</ldap:name>

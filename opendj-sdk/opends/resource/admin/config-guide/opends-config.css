@@ -1,20 +1,20 @@
-
 body                     { font-family: Arial, Helvetica, sans-serif; 
                            font-size: 12px;
-                           color: #333; background-color: #fff; margin:20px }
+                           color: #333; background-color: #fff; margin:20px 15px }
 
 /* +++ 210 Page titles, headings, and paragraphs +++ */
 .pagename                { font-size: 1.7em; font-weight: normal;color:#5F6466; 
                            margin: 0.5em 0.5em 0.5em 0; }
 h1                       { font-size: 2.0em; font-weight: normal;
-	                         margin-top: 0em; margin-bottom: 0em; }
-h2                       { font-size: 1.7em; font-weight: normal; 
-                           margin: 2.1em 0em 1em 0em;
+	                         margin-top: 0em; margin-bottom: 0em; color:#000}
+h2                       { font-size: 1.6em; font-weight: normal; 
+                           margin: 0.5em 0em 1em 0em;
 						   
-	                        border-bottom: 1px #D9D9D9 solid; padding-bottom:5px }
+	                        border-bottom: 1px #D9D9D9 solid; padding-bottom:5px; color:#000}
 h3                       { font-size: 1.4em; font-weight: bold;
-                           margin: 1.2em 0em .8em 0em; }
-h4                       { font-size: 1.2em; font-weight: bold;
+                           margin: 1.5em 0em .8em 0em;
+						   border-top: 1px #D9D9D9 solid; padding-top:10px;color:#000 }
+h4                       { font-size: 1.2em; font-weight: bold;color:#000;
                            margin: 1.2em 0em .8em 0em; }
 h5                       { font-size: 1.0em; font-weight: bold;
 	                         margin: 1.2em 0em .8em 0em; }
@@ -23,13 +23,14 @@ h6                       { font-size: 0.8em; font-weight: bold;
 p                        { margin: .75em 0 1em 0; }
 strong, b                { font-weight: bold;	}
 
-a                        { color: #006699; }
+a:link                        { color: #006699; }
+a:visited                { color: #0099CC; } 
 
 
-ol                    { margin: 0.8em 0 0.8em 0.8em }
+/*ol                       { margin: 0.8em 0 0.8em 0.8em }
 ul                       { margin: 0.8em 0.2em } 
 li                       { margin: 0.6em 0.1em}
-li > p                   { margin-top: 0.2em }
+li > p                   { margin-top: 0.2em }*/
 ol                       { list-style-type:decimal }
 ol ol                    { list-style-type:lower-alpha }
 ol ol ol                 { list-style-type:lower-roman }
@@ -44,25 +45,33 @@ ul ol ol ol ol ol        { list-style-type:lower-alpha }
 ul ol ol ol ol ol ol     { list-style-type:lower-roman }
 ul                       { list-style:square }
 
+ol                       { margin-top:0.8em;margin-bottom:0.8em}
+ul                       { margin-top:0.8em;margin-bottom:0.8em } 
+li                       { margin-top:0.6em;margin-bottom:0.6em}
+li > p                   { margin-top: 0.2em }
+
+
 dl {margin-top:10px}
 dl dt                    { font-weight: bold;margin-bottom:3px }
 dl dd                    { margin-left: 10px; }
 
 
-.tabmenu                 { margin: 0; margin-left: -10px;padding: 0.25em 0 0.25em 1em;
-                           border-bottom: 1px solid #8f989f;margin-bottom:20px }
-.tabmenu span            { margin: 0; padding: 0; overflow: hidden; }
+.tabmenu                 {  font-size: 11px;margin: 0; margin-left: -15px;margin-top:29px;padding: 0.25em 0 0.25em 1em;
+                           border-bottom: 1px solid #8f989f;margin-bottom:10px; width:105% ; white-space:nowrap}
+.tabmenu span            { margin: 0; padding: 0; }
 .tabmenu span a          { color: #1A1A1A; background: #eee;
-                           margin: 0 0 0 -4px; padding: 4px 9px 3px;
+                           margin: 0 0 0 -4px; padding: 4px 9px 2px;
                            text-decoration: none; cursor: pointer;
                            border: 1px solid gray; border-bottom:none;background-image:url(tab_deselected.jpg); }
 .tabmenu span a:hover      {text-decoration:underline; }
+.tabmenu span a:visited    {color: #1A1A1A; }
+
 
 .tabmenu .activetab      { color: #1A1A1A; 
                            font-weight: normal;
                            background-image:url(tab_selected.gif);background-color: #fff; cursor: default; border-bottom: 1px solid #fff; }
 
-
+.view-help {color:#333;; font-size:11px; margin-bottom:-10px}
 
 
 table               { border:none;border-bottom:dotted 1px #ccc;margin: 0px 0px 20px;font-size: 12px;}
@@ -71,22 +80,22 @@ table tr th       { border:none;border-top: dotted 1px #ccc;padding:5px 10px;bac
 table tr td       { border:none;border-top: dotted 1px #ccc;padding:4px 10px;vertical-align:top;
 	                       empty-cells: show;font-size: 12px; }
 
-.breadcrumb { background-color:#f5f5f5; color:#f5994f; position:absolute;top:0;left:0;width:100%; padding:6px 15px;font-weight:normal;border-bottom:dotted 1px #ccc; }
+.breadcrumb { background-color:#f5f5f5; color:#f5994f; position:absolute;top:0;left:0;right:0; padding:6px 15px;font-weight:normal;border-bottom:dotted 1px #ccc;width:100% }
 /*.breadcrumb a {color: #f5994f} */
-.pageactions a           { background-color: #f5f5f5;
-							font-size:10px;
-                        	 border: 1px solid  #999;
-							background-image:url(pageaction.gif);
-						   text-decoration:none;
-                           line-height: normal; padding: 0.25em 0.5em;
-						   color:#333;
-                         }
+.pageactions a           { background-color: #f5f5f5;font-size:10px; border: 1px solid  #999;background-image:url(pageaction.gif);text-decoration:none; padding: 0.2em 0.5em;color:#333; }
 
 
 /*.titletable {border-top:none;border-bottom: 1px #D9D9D9 solid;margin-bottom:20px } */
-.titletable {border:none;margin-bottom:5px;margin-top:10px }
-.titletable h2 {border:none; margin-bottom: .4em; margin-top:.8em }
+.titletable {border:none;margin-bottom:5px;margin-top:5px }
+.titletable h2 { font-size:2.1em;border:none; margin-bottom: .2em; margin-top:.4em }
 .titletable td { vertical-align:middle; border-top:none;padding-left:0px } 
-.propertyname {font-size: 14px; font-weight: bold;padding:3px 0px 3px 10px;margin: 0px;border-top: dotted 1px #ccc;background-color:#f5f5f5; }
-
-
+.propertyname {font-size: 12px; font-weight: bold;padding:3px 0px 3px 10px;margin: 0px;border-top: dotted 1px #ccc;background-color:#f5f5f5; }
+.alpha-index a {font-size:11px;margin-right:1px; font-weight:bold}
+.alpha-index span {font-size:11px;margin-right:1px; }
+.alpha-index {margin:20px 0px -10px; padding-bottom:0px}
+.category-index {margin:20px 0px -10px; padding-bottom:0px; font-size:11px}
+hr {border: 0; color: #eee; background-color: #eee; height: 1px; width: 100%; text-align: left;}
+.jump-table {border:none; }
+.jump-table tr td {border:none;padding:1px 20px 1px 20px;}
+.jump-table tr th { border:none;padding:1px 20px 3px 10px;font-weight: bold;text-align:left;vertical-align:bottom; 
+	                       empty-cells: show; background-color:#fff; color:#333}
