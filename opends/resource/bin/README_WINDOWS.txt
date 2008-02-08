@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems, Inc.
  */
 Note that all the batch files under the 'bin' directory have been moved to the
 'bat' directory.

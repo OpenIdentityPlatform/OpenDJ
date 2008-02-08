@@ -23,7 +23,7 @@
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
 
   <xsl:variable name="tests" select="/qa/functional-tests/results/test"/>

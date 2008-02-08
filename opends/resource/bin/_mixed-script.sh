@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2007 Sun Microsystems, Inc.
+#      Copyright 2008 Sun Microsystems, Inc.
 
 
 # This script is used to invoke processes that might be run on server or

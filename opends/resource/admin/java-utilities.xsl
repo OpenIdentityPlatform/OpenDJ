@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Copyright 2008 Sun Microsystems, Inc.
   ! -->
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -64,7 +64,7 @@
                      ' * CDDL HEADER END&#xa;',
                      ' *&#xa;',
                      ' *&#xa;',
-                     ' *      Portions Copyright 2007 Sun Microsystems, Inc.&#xa;',
+                     ' *      Copyright 2008 Sun Microsystems, Inc.&#xa;',
                      ' */&#xa;')" />
   </xsl:template>
   <!--

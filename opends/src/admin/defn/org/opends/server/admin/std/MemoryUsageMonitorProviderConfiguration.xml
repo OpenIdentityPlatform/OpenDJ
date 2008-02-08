@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="memory-usage-monitor-provider"
   plural-name="memory-usage-monitor-providers"

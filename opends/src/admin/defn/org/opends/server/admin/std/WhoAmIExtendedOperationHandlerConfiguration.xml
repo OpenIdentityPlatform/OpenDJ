@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007 Sun Microsystems, Inc.
+  !      Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="who-am-i-extended-operation-handler"
   plural-name="who-am-i-extended-operation-handlers"

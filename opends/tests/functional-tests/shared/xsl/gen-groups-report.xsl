@@ -24,7 +24,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  !
  ! CDDL HEADER END
  !
- !      Portions Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
