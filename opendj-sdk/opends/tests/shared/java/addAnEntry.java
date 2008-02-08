@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2008 Sun Microsystems, Inc.
  */
 /*
  * Copyright (c) 1998. Sun Microsystems, Inc. All Rights Reserved.

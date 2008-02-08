@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2007 Sun Microsystems, Inc.
+rem      Copyright 2008 Sun Microsystems, Inc.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false

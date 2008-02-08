@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2006 Sun Microsystems, Inc.
+#      Copyright 2008 Sun Microsystems, Inc.
 
 
 # Change to the location of this build script.

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2008 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="last-mod-plugin"
   plural-name="last-mod-plugins" package="org.opends.server.admin.std"

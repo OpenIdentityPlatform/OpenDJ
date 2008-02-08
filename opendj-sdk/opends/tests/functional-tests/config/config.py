@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2008 Sun Microsystems, Inc.
 
 TEST_OS_STRING              = ''
 TEST_JVM_STRING             = ''
