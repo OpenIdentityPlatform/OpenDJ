@@ -43,7 +43,8 @@
           </script>
           
           <call function="'testGroup_Preamble'" />
-          <iterate var="_test" in="['setup','uniqueness','lastmod','entryUUID','refint','cleanup']" >
+          <!-- 'setup','7bit','uniqueness','lastmod','entryUUID','refint','cleanup' -->
+          <iterate var="_test" in="['setup','7bit','uniqueness','lastmod','entryUUID','refint','cleanup']" >
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/plugins/plugins_%s.xml' % (TESTS_DIR,_test)"/>
