@@ -56,6 +56,7 @@ public class ReplayThread extends DirectoryThread
   private BlockingQueue<UpdateToReplay> updateToReplayQueue = null;
   private boolean shutdown = false;
   private boolean done = false;
+  private static int count = 0;
 
   /**
    * Constructor for the ReplayThread.
@@ -64,7 +65,7 @@ public class ReplayThread extends DirectoryThread
    */
   public ReplayThread(BlockingQueue<UpdateToReplay> updateToReplayQueue)
   {
-     super("Replication Replay thread");
+     super("Replication Replay thread " + count++);
      this.updateToReplayQueue = updateToReplayQueue;
   }
 
@@ -130,7 +131,7 @@ public class ReplayThread extends DirectoryThread
   {
     try
     {
-      while (done == false)
+      while ((done == false) && (this.isAlive()))
       {
         Thread.sleep(50);
       }

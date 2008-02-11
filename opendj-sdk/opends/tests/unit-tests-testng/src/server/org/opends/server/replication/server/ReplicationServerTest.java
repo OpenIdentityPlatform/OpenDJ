@@ -248,6 +248,7 @@ public class ReplicationServerTest extends ReplicationTestCase
                       "uid");
       server1.publish(msg);
       ReplicationMessage msg2 = server2.receive();
+      server2.updateWindowAfterReplay();
       if (msg2 instanceof DeleteMsg)
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -263,6 +264,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       msg = new DeleteMsg("o=test", secondChangeNumberServer1, "uid");
       server1.publish(msg);
       msg2 = server2.receive();
+      server2.updateWindowAfterReplay();
       if (msg2 instanceof DeleteMsg)
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -280,6 +282,7 @@ public class ReplicationServerTest extends ReplicationTestCase
                       "other-uid");
       server2.publish(msg);
       msg2 = server1.receive();
+      server1.updateWindowAfterReplay();
       if (msg2 instanceof DeleteMsg)
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -295,6 +298,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       msg = new DeleteMsg("o=test", secondChangeNumberServer2, "uid");
       server2.publish(msg);
       msg2 = server1.receive();
+      server1.updateWindowAfterReplay();
       if (msg2 instanceof DeleteMsg)
       {
         DeleteMsg del = (DeleteMsg) msg2;
@@ -329,6 +333,7 @@ public class ReplicationServerTest extends ReplicationTestCase
                              100, replicationServerPort, 1000, false);
 
       ReplicationMessage msg2 = broker.receive();
+      broker.updateWindowAfterReplay();
       if (!(msg2 instanceof DeleteMsg))
         fail("ReplicationServer basic transmission failed:" + msg2);
       else
@@ -367,6 +372,7 @@ public class ReplicationServerTest extends ReplicationTestCase
                              100, replicationServerPort, 5000, state);
 
       ReplicationMessage msg2 = broker.receive();
+      broker.updateWindowAfterReplay();
       if (!(msg2 instanceof DeleteMsg))
       {
         fail("ReplicationServer basic transmission failed:" + msg2);
@@ -776,6 +782,7 @@ public class ReplicationServerTest extends ReplicationTestCase
             msg2 = broker2.receive();
             if (msg2 == null)
               break;
+            broker2.updateWindowAfterReplay();
           }
           catch (Exception e)
           {
@@ -982,6 +989,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         while (true)
         {
           ReplicationMessage msg = broker.receive();
+          broker.updateWindowAfterReplay();
           if (msg == null)
             break;
           }
