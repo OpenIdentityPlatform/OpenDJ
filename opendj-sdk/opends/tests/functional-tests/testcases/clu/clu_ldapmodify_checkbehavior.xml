@@ -55,24 +55,24 @@
           <!--- Define default value for basedn and dsfilename -->
           <script>
             basedn = 'ou=ldapmodify,o=clu tests,dc=example,dc=com'
-            dsfilename = '%s/clu/data/ldapmodify_checkbehavior.ldif' \
+            dsfilename = '%s/clu/ldapmodify_checkbehavior.ldif' \
             % logsRemoteDataDir
           </script>
           
           <!--- Test Case information
-            #@TestMarker          ldapmodify check behavior tests
-            #@TestName            ldapmodify: change attribute value
-            #@TestIssue           none
-            #@TestPurpose         Verify that the operation is successful and 
-                                  that the attribute value has been modified.
-            #@TestPreamble        none
-            #@TestStep            Check that the "postCode" value for "uid=user.1"
-                                  is 93520.
-            #@TestStep            Modify the "postalCode" value using ldapmodify.
-            #@TestStep            Check that the "postCode" value for "uid=user.1"
-                                  is 70000.
-            #@TestPostamble       none
-            #@TestResult          Success if the "postalCode" value is 70000.
+            #@TestMarker        ldapmodify check behavior tests
+            #@TestName          ldapmodify: change attribute value
+            #@TestIssue         none
+            #@TestPurpose       Verify that the operation is successful and 
+                                that the attribute value has been modified.
+            #@TestPreamble      none
+            #@TestStep          Check that the "postCode" value for "uid=user.1"
+                                is 93520.
+            #@TestStep          Modify the "postalCode" value using ldapmodify.
+            #@TestStep          Check that the "postCode" value for "uid=user.1"
+                                is 70000.
+            #@TestPostamble     none
+            #@TestResult        Success if the "postalCode" value is 70000.
           -->
           <testcase name="getTestCaseName
           ('ldapmodify: change attribute value')">
