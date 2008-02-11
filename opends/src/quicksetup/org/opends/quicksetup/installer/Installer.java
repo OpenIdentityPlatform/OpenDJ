@@ -873,13 +873,22 @@ public abstract class Installer extends GuiApplication {
     final String[] args = new String[argList.size()];
     argList.toArray(args);
     StringBuilder cmd = new StringBuilder();
+    boolean nextPassword = false;
     for (String s : argList)
     {
       if (cmd.length() > 0)
       {
         cmd.append(" ");
       }
-      cmd.append(s);
+      if (nextPassword)
+      {
+        cmd.append("{rootUserPassword}");
+      }
+      else
+      {
+        cmd.append(s);
+      }
+      nextPassword = s.equals("-w");
     }
     LOG.log(Level.INFO, "configure DS cmd: "+cmd);
     final InstallerHelper helper = new InstallerHelper();
