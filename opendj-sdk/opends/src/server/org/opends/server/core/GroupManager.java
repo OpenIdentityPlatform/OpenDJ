@@ -659,6 +659,7 @@ public class GroupManager
           {
             Group groupInstance = groupImplementation.newInstance(entry);
             groupInstances.put(entry.getDN(), groupInstance);
+            refreshToken++;
           }
           catch (Exception e)
           {
