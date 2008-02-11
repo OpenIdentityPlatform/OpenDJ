@@ -954,17 +954,9 @@ public class ReplicationBroker implements InternalSearchListener
         {
           WindowMessage windowMsg = (WindowMessage) msg;
           sendWindow.release(windowMsg.getNumAck());
-        } else
+        }
+        else
         {
-          if (msg instanceof UpdateMessage)
-          {
-            rcvWindow--;
-            if (rcvWindow < halfRcvWindow)
-            {
-              session.publish(new WindowMessage(halfRcvWindow));
-              rcvWindow += halfRcvWindow;
-            }
-          }
           return msg;
         }
       } catch (SocketTimeoutException e)
@@ -985,6 +977,30 @@ public class ReplicationBroker implements InternalSearchListener
       }
     }
     return null;
+  }
+
+  /**
+   * This method allows to do the necessary computing for the window
+   * management after treatment by the worker threads.
+   *
+   * This should be called once the replay thread have done their job
+   * and the window can be open again.
+   */
+  public synchronized void updateWindowAfterReplay()
+  {
+    try
+    {
+      rcvWindow--;
+      if (rcvWindow < halfRcvWindow)
+      {
+        session.publish(new WindowMessage(halfRcvWindow));
+        rcvWindow += halfRcvWindow;
+      }
+    } catch (IOException e)
+    {
+      // Any error on the socket will be handled by the thread calling receive()
+      // just ignore.
+    }
   }
 
   /**

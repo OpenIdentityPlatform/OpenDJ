@@ -155,6 +155,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
         while (true)
         {
           broker.receive();
+          broker.updateWindowAfterReplay();
           rcvCount++;
         }
       }
