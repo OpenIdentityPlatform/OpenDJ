@@ -31,7 +31,6 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_NO_PROP_FILE;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_PROP_FILE_PATH;
-import static org.opends.server.tools.ToolConstants.OPTION_VALUE_PROP_FILE_PATH;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -106,7 +105,7 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
 
     StringArgument propertiesFileArgument = new StringArgument(
         "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
-        true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+        true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_PROP_FILE_PATH.get());
     defaultArgs.add(propertiesFileArgument);
     setFilePropertiesArgument(propertiesFileArgument);

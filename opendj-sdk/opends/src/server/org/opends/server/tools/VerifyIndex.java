@@ -154,7 +154,7 @@ public class VerifyIndex
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
+                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                               ConfigFileHandler.class.getName(), null,
                               INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -163,7 +163,8 @@ public class VerifyIndex
 
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
+                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
@@ -172,7 +173,7 @@ public class VerifyIndex
       baseDNString =
            new StringArgument("basedn", OPTION_SHORT_BASEDN,
                               OPTION_LONG_BASEDN, true, false, true,
-                              OPTION_VALUE_BASEDN, null, null,
+                              INFO_BASEDN_PLACEHOLDER.get(), null, null,
                               INFO_VERIFYINDEX_DESCRIPTION_BASE_DN.get());
       argParser.addArgument(baseDNString);
 
@@ -180,7 +181,7 @@ public class VerifyIndex
       indexList =
            new StringArgument("index", 'i', "index",
                               false, true, true,
-                              "{index}", null, null,
+                              INFO_INDEX_PLACEHOLDER.get(), null, null,
                               INFO_VERIFYINDEX_DESCRIPTION_INDEX_NAME.get());
       argParser.addArgument(indexList);
 

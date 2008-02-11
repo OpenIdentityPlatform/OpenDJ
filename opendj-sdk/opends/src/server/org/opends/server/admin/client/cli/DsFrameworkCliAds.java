@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.OutputStream;
@@ -187,7 +188,7 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
 
     createAdsBackendNameArg = new StringArgument("backendName",
         OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, false, true,
-        OPTION_VALUE_BACKENDNAME,
+        INFO_BACKENDNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_BACKENDNAME_DESCRIPTION.get());
     createAdsSubCmd.addArgument(createAdsBackendNameArg);
 
@@ -199,7 +200,7 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
 
     deleteAdsBackendNameArg = new StringArgument("backendName",
         OPTION_SHORT_BACKENDNAME, OPTION_LONG_BACKENDNAME, true, true,
-        OPTION_VALUE_BACKENDNAME,
+        INFO_BACKENDNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_BACKENDNAME_DESCRIPTION.get());
     deleteAdsSubCmd.addArgument(deleteAdsBackendNameArg);
   }

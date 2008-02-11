@@ -181,7 +181,7 @@ public class ManageTasks extends ConsoleApplication {
 
        StringArgument propertiesFileArgument = new StringArgument(
           "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
-          true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
@@ -194,13 +194,13 @@ public class ManageTasks extends ConsoleApplication {
 
       task = new StringArgument(
               "info", 'i', "info",
-              false, true, "{taskID}",
+              false, true, INFO_TASK_ID_PLACEHOLDER.get(),
               INFO_TASKINFO_TASK_ARG_DESCRIPTION.get());
       argParser.addArgument(task);
 
       cancel = new StringArgument(
               "cancel", 'c', "cancel",
-              false, true, "{taskID}",
+              false, true, INFO_TASK_ID_PLACEHOLDER.get(),
               INFO_TASKINFO_TASK_ARG_CANCEL.get());
       argParser.addArgument(cancel);
 

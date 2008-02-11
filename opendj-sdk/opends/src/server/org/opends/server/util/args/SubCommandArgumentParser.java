@@ -22,12 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -1829,14 +1828,14 @@ public class SubCommandArgumentParser extends ArgumentParser
     String value;
     if (a.needsValue())
     {
-      String valuePlaceholder = a.getValuePlaceholder();
-      if (valuePlaceholder == null)
+      Message pHolder = a.getValuePlaceholder();
+      if (pHolder == null)
       {
         value = " {value}";
       }
       else
       {
-        value = " " + valuePlaceholder;
+        value = " " + pHolder;
       }
     }
     else

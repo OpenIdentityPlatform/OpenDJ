@@ -173,21 +173,22 @@ public class EncodePassword
 
 
       clearPassword = new StringArgument("clearpw", 'c', "clearPassword", false,
-                                         false, true, "{clearPW}", null, null,
+                                         false, true, INFO_CLEAR_PWD.get(),
+                                         null, null,
                                          INFO_ENCPW_DESCRIPTION_CLEAR_PW.get());
       argParser.addArgument(clearPassword);
 
 
       clearPasswordFile =
            new FileBasedArgument("clearpwfile", 'f', "clearPasswordFile", false,
-                                 false, "{filename}", null, null,
+                                 false, INFO_FILE_PLACEHOLDER.get(), null, null,
                                  INFO_ENCPW_DESCRIPTION_CLEAR_PW_FILE.get());
       argParser.addArgument(clearPasswordFile);
 
 
       encodedPassword = new StringArgument(
               "encodedpw", 'e', "encodedPassword",
-              false, false, true, "{encodedPW}",
+              false, false, true, INFO_ENCODED_PWD_PLACEHOLDER.get(),
               null, null,
               INFO_ENCPW_DESCRIPTION_ENCODED_PW.get());
       argParser.addArgument(encodedPassword);
@@ -195,7 +196,8 @@ public class EncodePassword
 
       encodedPasswordFile =
            new FileBasedArgument("encodedpwfile", 'E', "encodedPasswordFile",
-                                 false, false, "{filename}", null, null,
+                                 false, false, INFO_FILE_PLACEHOLDER.get(),
+                                 null, null,
                                  INFO_ENCPW_DESCRIPTION_ENCODED_PW_FILE.get());
       argParser.addArgument(encodedPasswordFile);
 
@@ -203,7 +205,7 @@ public class EncodePassword
       configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                                        OPTION_LONG_CONFIG_CLASS,
                                        true, false, true,
-                                       OPTION_VALUE_CONFIG_CLASS,
+                                       INFO_CONFIGCLASS_PLACEHOLDER.get(),
                                        ConfigFileHandler.class.getName(), null,
                                        INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -211,7 +213,8 @@ public class EncodePassword
 
 
       configFile = new StringArgument("configfile", 'F', "configFile",
-                                      true, false, true, "{configFile}", null,
+                                      true, false, true,
+                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
                                       null,
                                       INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
@@ -219,7 +222,9 @@ public class EncodePassword
 
 
       schemeName = new StringArgument("scheme", 's', "storageScheme", false,
-                                      false, true, "{scheme}", null, null,
+                                      false, true,
+                                      INFO_STORAGE_SCHEME_PLACEHOLDER.get(),
+                                      null, null,
                                       INFO_ENCPW_DESCRIPTION_SCHEME.get());
       argParser.addArgument(schemeName);
 

@@ -199,7 +199,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     referencedHostNameArg = new StringArgument("referencedHostName",
         ToolConstants.OPTION_SHORT_HOST,
         OPTION_LONG_REFERENCED_HOST_NAME, false, false, true,
-        ToolConstants.OPTION_VALUE_HOST,
+        INFO_HOST_PLACEHOLDER.get(),
         uData.getHostName(), OPTION_LONG_REFERENCED_HOST_NAME,
         INFO_DESCRIPTION_REFERENCED_HOST.get());
     defaultArgs.add(referencedHostNameArg);

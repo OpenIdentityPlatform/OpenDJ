@@ -695,7 +695,7 @@ public class LDAPSearch
     {
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
@@ -708,14 +708,15 @@ public class LDAPSearch
 
       hostName = new StringArgument("host", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false, true,
-                                    OPTION_VALUE_HOST, "localhost", null,
+                                    INFO_HOST_PLACEHOLDER.get(), "localhost",
+                                    null,
                                     INFO_DESCRIPTION_HOST.get());
       hostName.setPropertyName(OPTION_LONG_HOST);
       argParser.addArgument(hostName);
 
       port = new IntegerArgument("port", OPTION_SHORT_PORT,
                                  OPTION_LONG_PORT, false, false, true,
-                                 OPTION_VALUE_PORT, 389, null,
+                                 INFO_PORT_PLACEHOLDER.get(), 389, null,
                                  INFO_DESCRIPTION_PORT.get());
       port.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(port);
@@ -734,7 +735,7 @@ public class LDAPSearch
 
       bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
-                                  OPTION_VALUE_BINDDN, null, null,
+                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
                                   INFO_DESCRIPTION_BINDDN.get());
       bindDN.setPropertyName(OPTION_LONG_BINDDN);
       argParser.addArgument(bindDN);
@@ -742,7 +743,7 @@ public class LDAPSearch
       bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
                                         OPTION_LONG_BINDPWD,
                                         false, false, true,
-                                        OPTION_VALUE_BINDPWD,
+                                        INFO_BINDPWD_PLACEHOLDER.get(),
                                         null, null,
                                         INFO_DESCRIPTION_BINDPASSWORD.get());
       bindPassword.setPropertyName(OPTION_LONG_BINDPWD);
@@ -752,28 +753,29 @@ public class LDAPSearch
            new FileBasedArgument("bindPasswordFile", OPTION_SHORT_BINDPWD_FILE,
                                  OPTION_LONG_BINDPWD_FILE,
                                  false, false,
-                                 OPTION_VALUE_BINDPWD_FILE, null,
+                                 INFO_BINDPWD_FILE_PLACEHOLDER.get(), null,
                                  null, INFO_DESCRIPTION_BINDPASSWORDFILE.get());
       bindPasswordFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
       argParser.addArgument(bindPasswordFile);
 
       baseDN = new StringArgument("baseDN", OPTION_SHORT_BASEDN,
                                   OPTION_LONG_BASEDN, true, false, true,
-                                  OPTION_VALUE_BASEDN, null, null,
+                                  INFO_BASEDN_PLACEHOLDER.get(), null, null,
                                   INFO_SEARCH_DESCRIPTION_BASEDN.get());
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 
       searchScope = new StringArgument(
               "searchScope", 's', "searchScope", false,
-              false, true, "{searchScope}", null, null,
+              false, true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(), null, null,
               INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
       searchScope.setPropertyName("searchScope");
       argParser.addArgument(searchScope);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
                                     OPTION_LONG_FILENAME, false, false,
-                                    true, OPTION_VALUE_FILENAME, null, null,
+                                    true, INFO_FILE_PLACEHOLDER.get(), null,
+                                    null,
                                     INFO_SEARCH_DESCRIPTION_FILENAME.get());
       searchScope.setPropertyName(OPTION_LONG_FILENAME);
       argParser.addArgument(filename);
@@ -788,7 +790,8 @@ public class LDAPSearch
       saslOptions = new StringArgument("saslOption", OPTION_SHORT_SASLOPTION,
                                        OPTION_LONG_SASLOPTION, false,
                                        true, true,
-                                       OPTION_VALUE_SASLOPTION, null, null,
+                                       INFO_SASL_OPTION_PLACEHOLDER.get(), null,
+                                       null,
                                        INFO_DESCRIPTION_SASL_PROPERTIES.get());
       saslOptions.setPropertyName(OPTION_LONG_SASLOPTION);
       argParser.addArgument(saslOptions);
@@ -801,7 +804,8 @@ public class LDAPSearch
       keyStorePath = new StringArgument("keyStorePath",
                                   OPTION_SHORT_KEYSTOREPATH,
                                   OPTION_LONG_KEYSTOREPATH, false, false, true,
-                                  OPTION_VALUE_KEYSTOREPATH, null, null,
+                                  INFO_KEYSTOREPATH_PLACEHOLDER.get(), null,
+                                  null,
                                   INFO_DESCRIPTION_KEYSTOREPATH.get());
       keyStorePath.setPropertyName(OPTION_LONG_KEYSTOREPATH);
       argParser.addArgument(keyStorePath);
@@ -809,7 +813,8 @@ public class LDAPSearch
       keyStorePassword = new StringArgument("keyStorePassword",
                                   OPTION_SHORT_KEYSTORE_PWD,
                                   OPTION_LONG_KEYSTORE_PWD, false, false,
-                                  true, OPTION_VALUE_KEYSTORE_PWD, null, null,
+                                  true, INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
+                                  null, null,
                                   INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
       keyStorePassword.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
       argParser.addArgument(keyStorePassword);
@@ -819,7 +824,7 @@ public class LDAPSearch
                                  OPTION_SHORT_KEYSTORE_PWD_FILE,
                                  OPTION_LONG_KEYSTORE_PWD_FILE,
                                  false, false,
-                                 OPTION_VALUE_KEYSTORE_PWD_FILE,
+                                 INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(),
                                  null, null,
                                  INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
       keyStorePasswordFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
@@ -828,7 +833,7 @@ public class LDAPSearch
       certNickname = new StringArgument(
               "certnickname", OPTION_SHORT_CERT_NICKNAME,
               OPTION_LONG_CERT_NICKNAME,
-              false, false, true, "{nickname}", null,
+              false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
               null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       certNickname.setPropertyName(OPTION_LONG_CERT_NICKNAME);
       argParser.addArgument(certNickname);
@@ -837,7 +842,8 @@ public class LDAPSearch
                                   OPTION_SHORT_TRUSTSTOREPATH,
                                   OPTION_LONG_TRUSTSTOREPATH,
                                   false, false, true,
-                                  OPTION_VALUE_TRUSTSTOREPATH, null, null,
+                                  INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null,
+                                  null,
                                   INFO_DESCRIPTION_TRUSTSTOREPATH.get());
       trustStorePath.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
       argParser.addArgument(trustStorePath);
@@ -845,7 +851,8 @@ public class LDAPSearch
       trustStorePassword =
            new StringArgument("trustStorePassword", null,
                               OPTION_LONG_TRUSTSTORE_PWD,
-                              false, false, true, OPTION_VALUE_TRUSTSTORE_PWD,
+                              false, false, true,
+                              INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(),
                               null,
                               null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
       trustStorePassword.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
@@ -856,7 +863,7 @@ public class LDAPSearch
                    "truststorepasswordfile",
                    OPTION_SHORT_TRUSTSTORE_PWD_FILE,
                    OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                   OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                   INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
                    INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
       trustStorePasswordFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
       argParser.addArgument(trustStorePasswordFile);
@@ -865,7 +872,8 @@ public class LDAPSearch
                                         OPTION_SHORT_PROXYAUTHID,
                                         OPTION_LONG_PROXYAUTHID, false,
                                         false, true,
-                                        OPTION_VALUE_PROXYAUTHID, null, null,
+                                        INFO_PROXYAUTHID_PLACEHOLDER.get(),
+                                        null, null,
                                         INFO_DESCRIPTION_PROXY_AUTHZID.get());
       proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
       argParser.addArgument(proxyAuthzID);
@@ -885,7 +893,7 @@ public class LDAPSearch
 
       pSearchInfo = new StringArgument("psearchinfo", 'C', "persistentSearch",
                              false, false, true,
-                             "ps[:changetype[:changesonly[:entrychgcontrols]]]",
+                             INFO_PSEARCH_PLACEHOLDER.get(),
                               null, null, INFO_DESCRIPTION_PSEARCH_INFO.get());
       pSearchInfo.setPropertyName("persistentSearch");
       argParser.addArgument(pSearchInfo);
@@ -893,7 +901,7 @@ public class LDAPSearch
       simplePageSize = new IntegerArgument(
               "simplepagesize", null,
               "simplePageSize", false, false, true,
-              "{numEntries}", 1000, null, true, 1,
+              INFO_NUM_ENTRIES_PLACEHOLDER.get(), 1000, null, true, 1,
               false, 0,
               INFO_DESCRIPTION_SIMPLE_PAGE_SIZE.get());
       simplePageSize.setPropertyName("simplePageSize");
@@ -903,7 +911,7 @@ public class LDAPSearch
               "assertionfilter", null,
               OPTION_LONG_ASSERTION_FILE,
               false, false,
-              true, OPTION_VALUE_ASSERTION_FILE,
+              true, INFO_ASSERTION_FILTER_PLACEHOLDER.get(),
               null, null,
               INFO_DESCRIPTION_ASSERTION_FILTER.get());
       assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
@@ -912,14 +920,14 @@ public class LDAPSearch
       matchedValuesFilter = new StringArgument(
               "matchedvalues", null,
               "matchedValuesFilter", false, true, true,
-              "{filter}", null, null,
+              INFO_FILTER_PLACEHOLDER.get(), null, null,
               INFO_DESCRIPTION_MATCHED_VALUES_FILTER.get());
       matchedValuesFilter.setPropertyName("matchedValuesFilter");
       argParser.addArgument(matchedValuesFilter);
 
       sortOrder = new StringArgument(
               "sortorder", 'S', "sortOrder", false,
-              false, true, "{sortOrder}", null, null,
+              false, true, INFO_SORT_ORDER_PLACEHOLDER.get(), null, null,
               INFO_DESCRIPTION_SORT_ORDER.get());
       sortOrder.setPropertyName("sortOrder");
       argParser.addArgument(sortOrder);
@@ -928,14 +936,14 @@ public class LDAPSearch
            new StringArgument(
                    "vlvdescriptor", 'G', "virtualListView", false,
                    false, true,
-                   "{before:after:index:count | before:after:value}",
+                   INFO_VLV_PLACEHOLDER.get(),
                    null, null, INFO_DESCRIPTION_VLV.get());
       vlvDescriptor.setPropertyName("virtualListView");
       argParser.addArgument(vlvDescriptor);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
-                    "{controloid[:criticality[:value|::b64value|:<fileurl]]}",
+                    INFO_LDAP_CONTROL_PLACEHOLDER.get(),
                     null, null, INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
@@ -944,7 +952,7 @@ public class LDAPSearch
               new StringArgument("effectiveRightsUser",
                       OPTION_SHORT_EFFECTIVERIGHTSUSER,
                       OPTION_LONG_EFFECTIVERIGHTSUSER, false, false, true,
-                      "{authzid}", null, null,
+                      INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
                       INFO_DESCRIPTION_EFFECTIVERIGHTS_USER.get( ));
       effectiveRightsUser.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSUSER);
       argParser.addArgument(effectiveRightsUser);
@@ -953,27 +961,32 @@ public class LDAPSearch
               new StringArgument("effectiveRightsAttrs",
                       OPTION_SHORT_EFFECTIVERIGHTSATTR,
                       OPTION_LONG_EFFECTIVERIGHTSATTR, false, true, true,
-                      "{attribute}", null, null,
+                      INFO_ATTRIBUTE_PLACEHOLDER.get(), null, null,
                       INFO_DESCRIPTION_EFFECTIVERIGHTS_ATTR.get( ));
       effectiveRightsAttrs.setPropertyName(OPTION_LONG_EFFECTIVERIGHTSATTR);
       argParser.addArgument(effectiveRightsAttrs);
 
       version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
                                     OPTION_LONG_PROTOCOL_VERSION, false, false,
-                                    true, OPTION_VALUE_PROTOCOL_VERSION, 3,
+                                    true,
+                                    INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3,
                                     null, INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding", false,
-                                       false, true, "{encoding}", null, null,
+                                       false, true,
+                                       INFO_ENCODING_PLACEHOLDER.get(), null,
+                                       null,
                                        INFO_DESCRIPTION_ENCODING.get());
       encodingStr.setPropertyName("encoding");
       argParser.addArgument(encodingStr);
 
       dereferencePolicy =
            new StringArgument("derefpolicy", 'a', "dereferencePolicy", false,
-                              false, true, "{dereferencePolicy}", null,  null,
+                              false, true,
+                              INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
       dereferencePolicy.setPropertyName("dereferencePolicy");
       argParser.addArgument(dereferencePolicy);
@@ -984,13 +997,17 @@ public class LDAPSearch
       argParser.addArgument(typesOnly);
 
       sizeLimit = new IntegerArgument("sizeLimit", 'z', "sizeLimit", false,
-                                      false, true, "{sizeLimit}", 0, null,
+                                      false, true,
+                                      INFO_SIZE_LIMIT_PLACEHOLDER.get(), 0,
+                                      null,
                                       INFO_SEARCH_DESCRIPTION_SIZE_LIMIT.get());
       sizeLimit.setPropertyName("sizeLimit");
       argParser.addArgument(sizeLimit);
 
       timeLimit = new IntegerArgument("timeLimit", 'l', "timeLimit", false,
-                                      false, true, "{timeLimit}", 0, null,
+                                      false, true,
+                                      INFO_TIME_LIMIT_PLACEHOLDER.get(), 0,
+                                      null,
                                       INFO_SEARCH_DESCRIPTION_TIME_LIMIT.get());
       timeLimit.setPropertyName("timeLimit");
       argParser.addArgument(timeLimit);

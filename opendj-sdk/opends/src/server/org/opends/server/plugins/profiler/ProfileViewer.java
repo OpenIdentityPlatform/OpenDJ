@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins.profiler;
 import org.opends.messages.Message;
@@ -59,6 +59,7 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.PluginMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -120,7 +121,7 @@ public class ProfileViewer
     {
       fileNames =
         new StringArgument("filenames", 'f', "fileName", true, true, true,
-                           "{file}", null, null,
+                           INFO_FILE_PLACEHOLDER.get(), null, null,
                            INFO_PROFILEVIEWER_DESCRIPTION_FILENAMES.get());
       argParser.addArgument(fileNames);
 

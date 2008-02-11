@@ -181,14 +181,16 @@ public class ConfigureDS
     try
     {
       configFile = new StringArgument("configfile", 'c', "configFile", true,
-                                      false, true, "{configFile}", null, null,
+                                      false, true,
+                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                                      null,
                                       INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
       configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                              OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, OPTION_VALUE_CONFIG_CLASS,
+                             false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                              ConfigFileHandler.class.getName(), null,
                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -196,13 +198,15 @@ public class ConfigureDS
 
       ldapPort = new IntegerArgument("ldapport", OPTION_SHORT_PORT,
                                     "ldapPort", false, false,
-                                     true, "{ldapPort}", 389, null, true, 1,
+                                     true, INFO_LDAPPORT_PLACEHOLDER.get(), 389,
+                                     null, true, 1,
                                      true, 65535,
                                      INFO_CONFIGDS_DESCRIPTION_LDAP_PORT.get());
       argParser.addArgument(ldapPort);
 
       ldapsPort = new IntegerArgument("ldapsPort", 'P', "ldapsPort", false,
-          false, true, "{ldapPort}", 636, null, true, 1, true, 65535,
+          false, true, INFO_LDAPPORT_PLACEHOLDER.get(), 636, null, true, 1,
+          true, 65535,
           INFO_CONFIGDS_DESCRIPTION_LDAPS_PORT.get());
       argParser.addArgument(ldapsPort);
 
@@ -212,7 +216,8 @@ public class ConfigureDS
       argParser.addArgument(enableStartTLS);
 
       jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
-          true, "{jmxPort}", SetupUtils.getDefaultJMXPort(), null, true, 1,
+          true, INFO_JMXPORT_PLACEHOLDER.get(), SetupUtils.getDefaultJMXPort(),
+          null, true, 1,
           true, 65535,
           INFO_CONFIGDS_DESCRIPTION_JMX_PORT.get());
       argParser.addArgument(jmxPort);
@@ -221,7 +226,7 @@ public class ConfigureDS
           'k',
           "keyManagerProviderDN",
           false, false,
-          true, "{keyManagerProviderDN}",
+          true, INFO_KEY_MANAGER_PROVIDER_DN_PLACEHOLDER.get(),
           null,
           null,
           INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PROVIDER_DN.get());
@@ -231,7 +236,7 @@ public class ConfigureDS
           't',
           "trustManagerProviderDN",
           false, false,
-          true, "{trustManagerProviderDN}",
+          true, INFO_TRUST_MANAGER_PROVIDER_DN_PLACEHOLDER.get(),
           null,
           null,
           INFO_CONFIGDS_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN.get());
@@ -241,7 +246,7 @@ public class ConfigureDS
           'm',
           "keyManagerPath",
           false, false, true,
-          "{keyManagerPath}",
+          INFO_KEY_MANAGER_PATH_PLACEHOLDER.get(),
           null,
           null,
           INFO_CONFIGDS_DESCRIPTION_KEYMANAGER_PATH.get());
@@ -251,7 +256,7 @@ public class ConfigureDS
           'a',
           "certNickName",
           false, false,
-          true, "{certNickName}",
+          true, INFO_NICKNAME_PLACEHOLDER.get(),
           null,
           null,
           INFO_CONFIGDS_DESCRIPTION_CERTNICKNAME.get());
@@ -260,7 +265,7 @@ public class ConfigureDS
       baseDNString = new StringArgument(
           "basedn", OPTION_SHORT_BASEDN,
           OPTION_LONG_BASEDN, false, true,
-          true, OPTION_VALUE_BASEDN,
+          true, INFO_BASEDN_PLACEHOLDER.get(),
           "dc=example,dc=com",
           null,
           INFO_CONFIGDS_DESCRIPTION_BASE_DN.get());
@@ -269,7 +274,7 @@ public class ConfigureDS
       rootDNString = new StringArgument(
           "rootdn", OPTION_SHORT_ROOT_USER_DN,
           OPTION_LONG_ROOT_USER_DN, false, false,
-          true, OPTION_VALUE_ROOT_USER_DN,
+          true, INFO_ROOT_USER_DN_PLACEHOLDER.get(),
           "cn=Directory Manager", null,
           INFO_CONFIGDS_DESCRIPTION_ROOT_DN.get());
       argParser.addArgument(rootDNString);
@@ -277,7 +282,7 @@ public class ConfigureDS
       rootPassword = new StringArgument(
           "rootpw", OPTION_SHORT_BINDPWD,
           "rootPassword", false,
-          false, true, "{rootUserPW}", null, null,
+          false, true, INFO_ROOT_USER_PWD_PLACEHOLDER.get(), null, null,
           INFO_CONFIGDS_DESCRIPTION_ROOT_PW.get());
       argParser.addArgument(rootPassword);
 
@@ -285,7 +290,7 @@ public class ConfigureDS
           "rootpwfile",
           OPTION_SHORT_BINDPWD_FILE,
           "rootPasswordFile", false, false,
-          "{filename}", null, null,
+          INFO_FILE_PLACEHOLDER.get(), null, null,
           INFO_CONFIGDS_DESCRIPTION_ROOT_PW_FILE.get());
       argParser.addArgument(rootPasswordFile);
 
@@ -298,8 +303,8 @@ public class ConfigureDS
       serverRoot = new StringArgument("serverRoot",
               ToolConstants.OPTION_SHORT_SERVER_ROOT,
               ToolConstants.OPTION_LONG_SERVER_ROOT,
-              false, false, true, "{serverRootDir}", null, null,
-              null);
+              false, false, true, INFO_SERVER_ROOT_DIR_PLACEHOLDER.get(), null,
+              null, null);
       serverRoot.setHidden(true);
       argParser.addArgument(serverRoot);
     }

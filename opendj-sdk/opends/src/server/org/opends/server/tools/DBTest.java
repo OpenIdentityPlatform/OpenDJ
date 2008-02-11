@@ -40,7 +40,6 @@ import static org.opends.messages.ToolMessages.*;
 import org.opends.messages.Message;
 import static org.opends.server.tools.ToolConstants.OPTION_SHORT_CONFIG_CLASS;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_CONFIG_CLASS;
-import static org.opends.server.tools.ToolConstants.OPTION_VALUE_CONFIG_CLASS;
 import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
 import org.opends.server.extensions.ConfigFileHandler;
@@ -190,14 +189,15 @@ public class DBTest
       configClass =
           new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                              OPTION_LONG_CONFIG_CLASS, true, false,
-                             true, OPTION_VALUE_CONFIG_CLASS,
+                             true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                              ConfigFileHandler.class.getName(), null,
                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
 
       configFile =
           new StringArgument("configfile", 'f', "configFile", true, false,
-                             true, "{configFile}", null, null,
+                             true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                             null,
                              INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
 
@@ -244,7 +244,7 @@ public class DBTest
                     INFO_DESCRIPTION_DBTEST_SUBCMD_LIST_ENTRY_CONTAINERS.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
-                             "{backendID}", null, null,
+                             INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                              INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
       sub.addArgument(backendID);
 
@@ -253,12 +253,13 @@ public class DBTest
                  INFO_DESCRIPTION_DBTEST_SUBCMD_LIST_DATABASE_CONTAINERS.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
-                             "{backendID}", null, null,
+                             INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                              INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
       sub.addArgument(backendID);
       baseDN =
           new StringArgument("basedn", 'b', "baseDN", false,
-                             false, true, "{baseDN}", null, null,
+                             false, true, INFO_BASEDN_PLACEHOLDER.get(), null,
+                             null,
                              INFO_DESCRIPTION_DBTEST_BASE_DN.get());
       sub.addArgument(baseDN);
 
@@ -267,17 +268,19 @@ public class DBTest
                   INFO_DESCRIPTION_DBTEST_SUBCMD_DUMP_DATABASE_CONTAINER.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
-                             "{backendID}", null, null,
+                             INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                              INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
       sub.addArgument(backendID);
       baseDN =
           new StringArgument("basedn", 'b', "baseDN", true,
-                             false, true, "{baseDN}", null, null,
+                             false, true, INFO_BASEDN_PLACEHOLDER.get(), null,
+                             null,
                              INFO_DESCRIPTION_DBTEST_BASE_DN.get());
       sub.addArgument(baseDN);
       databaseName =
           new StringArgument("databasename", 'd', "databaseName", true,
-                             false, true, "{databaseName}", null, null,
+                             false, true, INFO_DATABASE_NAME_PLACEHOLDER.get(),
+                             null, null,
                              INFO_DESCRIPTION_DBTEST_DATABASE_NAME.get());
       sub.addArgument(databaseName);
       skipDecode =
@@ -285,20 +288,29 @@ public class DBTest
                               INFO_DESCRIPTION_DBTEST_SKIP_DECODE.get());
       sub.addArgument(skipDecode);
       maxKeyValue = new StringArgument("maxkeyvalue", 'K', "maxKeyValue", false,
-                                       false, true, "{maxKeyValue}", null, null,
+                                       false, true,
+                                       INFO_MAX_KEY_VALUE_PLACEHOLDER.get(),
+                                       null, null,
                                    INFO_DESCRIPTION_DBTEST_MAX_KEY_VALUE.get());
       sub.addArgument(maxKeyValue);
       minKeyValue = new StringArgument("minkeyvalue", 'k', "minKeyValue", false,
-                                       false, true, "{minKeyValue}", null, null,
+                                       false, true,
+                                       INFO_MIN_KEY_VALUE_PLACEHOLDER.get(),
+                                       null,
+                                       null,
                                    INFO_DESCRIPTION_DBTEST_MIN_KEY_VALUE.get());
       sub.addArgument(minKeyValue);
       maxDataSize = new IntegerArgument("maxdatasize", 'S', "maxDataSize",
-                                        false, false, true, "{maxDataSize}", -1,
+                                        false, false, true,
+                                        INFO_MAX_DATA_SIZE_PLACEHOLDER.get(),
+                                        -1,
                                         null,
                                    INFO_DESCRIPTION_DBTEST_MAX_DATA_SIZE.get());
       sub.addArgument(maxDataSize);
       minDataSize = new IntegerArgument("mindatasize", 's', "minDataSize",
-                                        false, false, true, "{minDataSize}", -1,
+                                        false, false, true,
+                                        INFO_MIN_DATA_SIZE_PLACEHOLDER.get(),
+                                        -1,
                                         null,
                                    INFO_DESCRIPTION_DBTEST_MIN_DATA_SIZE.get());
       sub.addArgument(minDataSize);
@@ -308,12 +320,13 @@ public class DBTest
                         INFO_DESCRIPTION_DBTEST_SUBCMD_LIST_INDEX_STATUS.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
-                             "{backendID}", null, null,
+                             INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                              INFO_DESCRIPTION_DBTEST_BACKEND_ID.get());
       sub.addArgument(backendID);
       baseDN =
           new StringArgument("basedn", 'b', "baseDN", true,
-                             true, true, "{baseDN}", null, null,
+                             true, true, INFO_BASEDN_PLACEHOLDER.get(), null,
+                             null,
                              INFO_DESCRIPTION_DBTEST_BASE_DN.get());
       sub.addArgument(baseDN);
 

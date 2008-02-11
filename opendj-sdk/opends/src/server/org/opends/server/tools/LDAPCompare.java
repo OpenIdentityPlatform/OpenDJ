@@ -383,7 +383,7 @@ public class LDAPCompare
     {
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
@@ -396,14 +396,15 @@ public class LDAPCompare
 
       hostName = new StringArgument("host", OPTION_SHORT_HOST,
                                     OPTION_LONG_HOST, false, false, true,
-                                    OPTION_VALUE_HOST, "localhost", null,
+                                    INFO_HOST_PLACEHOLDER.get(), "localhost",
+                                    null,
                                     INFO_DESCRIPTION_HOST.get());
       hostName.setPropertyName(OPTION_LONG_HOST);
       argParser.addArgument(hostName);
 
       port = new IntegerArgument("port", OPTION_SHORT_PORT,
                                  OPTION_LONG_PORT, false, false, true,
-                                 OPTION_VALUE_PORT, 389, null,
+                                 INFO_PORT_PLACEHOLDER.get(), 389, null,
                                  INFO_DESCRIPTION_PORT.get());
       port.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(port);
@@ -422,7 +423,7 @@ public class LDAPCompare
 
       bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
-                                  OPTION_VALUE_BINDDN, null, null,
+                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
                                   INFO_DESCRIPTION_BINDDN.get());
       bindDN.setPropertyName(OPTION_LONG_BINDDN);
       argParser.addArgument(bindDN);
@@ -430,7 +431,7 @@ public class LDAPCompare
       bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
                                         OPTION_LONG_BINDPWD,
                                         false, false, true,
-                                        OPTION_VALUE_BINDPWD,
+                                        INFO_BINDPWD_PLACEHOLDER.get(),
                                         null, null,
                                         INFO_DESCRIPTION_BINDPASSWORD.get());
       bindPassword.setPropertyName(OPTION_LONG_BINDPWD);
@@ -441,14 +442,15 @@ public class LDAPCompare
                                  OPTION_SHORT_BINDPWD_FILE,
                                  OPTION_LONG_BINDPWD_FILE,
                                  false, false,
-                                 OPTION_VALUE_BINDPWD_FILE, null,
+                                 INFO_BINDPWD_FILE_PLACEHOLDER.get(), null,
                                  null, INFO_DESCRIPTION_BINDPASSWORDFILE.get());
       bindPasswordFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
       argParser.addArgument(bindPasswordFile);
 
       filename = new StringArgument("filename", OPTION_SHORT_FILENAME,
                                     OPTION_LONG_FILENAME, false, false,
-                                    true, OPTION_VALUE_FILENAME, null, null,
+                                    true, INFO_FILE_PLACEHOLDER.get(), null,
+                                    null,
                                     INFO_COMPARE_DESCRIPTION_FILENAME.get());
       filename.setPropertyName(OPTION_LONG_FILENAME);
       argParser.addArgument(filename);
@@ -463,7 +465,8 @@ public class LDAPCompare
       saslOptions = new StringArgument("saslOption", OPTION_SHORT_SASLOPTION,
                                        OPTION_LONG_SASLOPTION, false,
                                        true, true,
-                                       OPTION_VALUE_SASLOPTION, null, null,
+                                       INFO_SASL_OPTION_PLACEHOLDER.get(), null,
+                                       null,
                                        INFO_DESCRIPTION_SASL_PROPERTIES.get());
       saslOptions.setPropertyName(OPTION_LONG_SASLOPTION);
       argParser.addArgument(saslOptions);
@@ -477,7 +480,7 @@ public class LDAPCompare
                                         OPTION_SHORT_KEYSTOREPATH,
                                         OPTION_LONG_KEYSTOREPATH,
                                         false, false, true,
-                                        OPTION_VALUE_KEYSTOREPATH,
+                                        INFO_KEYSTOREPATH_PLACEHOLDER.get(),
                                         null, null,
                                         INFO_DESCRIPTION_KEYSTOREPATH.get());
       keyStorePath.setPropertyName(OPTION_LONG_KEYSTOREPATH);
@@ -486,7 +489,8 @@ public class LDAPCompare
       keyStorePassword = new StringArgument("keyStorePassword",
                                   OPTION_SHORT_KEYSTORE_PWD,
                                   OPTION_LONG_KEYSTORE_PWD, false, false,
-                                  true, "{keyStorePassword}", null, null,
+                                  true, INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
+                                  null, null,
                                   INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
       keyStorePassword.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
       argParser.addArgument(keyStorePassword);
@@ -496,7 +500,7 @@ public class LDAPCompare
                                  OPTION_SHORT_KEYSTORE_PWD_FILE,
                                  OPTION_LONG_KEYSTORE_PWD_FILE,
                                  false, false,
-                                 OPTION_VALUE_KEYSTORE_PWD_FILE,
+                                 INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(),
                                  null, null,
                                  INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
       keyStorePasswordFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
@@ -504,7 +508,8 @@ public class LDAPCompare
 
       certNickname =
               new StringArgument("certnickname", 'N', "certNickname",
-                                 false, false, true, "{nickname}", null,
+                                 false, false, true,
+                                 INFO_NICKNAME_PLACEHOLDER.get(), null,
                                  null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       certNickname.setPropertyName("certNickname");
       argParser.addArgument(certNickname);
@@ -514,7 +519,7 @@ public class LDAPCompare
                                 OPTION_SHORT_TRUSTSTOREPATH,
                                 OPTION_LONG_TRUSTSTOREPATH,
                                 false, false, true,
-                                OPTION_VALUE_TRUSTSTOREPATH,
+                                INFO_TRUSTSTOREPATH_PLACEHOLDER.get(),
                                 null, null,
                                 INFO_DESCRIPTION_TRUSTSTOREPATH.get());
       trustStorePath.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
@@ -524,7 +529,7 @@ public class LDAPCompare
            new StringArgument("trustStorePassword", null,
                               OPTION_LONG_TRUSTSTORE_PWD,
                               false, false, true,
-                              OPTION_VALUE_TRUSTSTORE_PWD, null,
+                              INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null,
                               null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
       trustStorePassword.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
       argParser.addArgument(trustStorePassword);
@@ -534,36 +539,39 @@ public class LDAPCompare
                                "trustStorePasswordFile",
                                OPTION_SHORT_TRUSTSTORE_PWD_FILE,
                                OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                               OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                               INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null,
+                               null,
                                INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
       trustStorePasswordFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
       argParser.addArgument(trustStorePasswordFile);
 
       assertionFilter = new StringArgument("assertionfilter", null,
                                  OPTION_LONG_ASSERTION_FILE, false, false, true,
-                                 OPTION_VALUE_ASSERTION_FILE, null, null,
+                                 INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null,
+                                 null,
                                  INFO_DESCRIPTION_ASSERTION_FILTER.get());
       assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
       argParser.addArgument(assertionFilter);
 
       controlStr =
            new StringArgument("control", 'J', "control", false, true, true,
-                    "{controloid[:criticality[:value|::b64value|:<filePath]]}",
-                    null, null, INFO_DESCRIPTION_CONTROLS.get());
+               INFO_LDAP_CONTROL_PLACEHOLDER.get(),
+               null, null, INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
       version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
                                     OPTION_LONG_PROTOCOL_VERSION,
                                     false, false, true,
-                                    OPTION_VALUE_PROTOCOL_VERSION,
+                                    INFO_PROTOCOL_VERSION_PLACEHOLDER.get(),
                                     3, null, INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
       encodingStr = new StringArgument("encoding", 'i', "encoding",
                                       false, false,
-                                      true, "{encoding}", null, null,
+                                      true, INFO_ENCODING_PLACEHOLDER.get(),
+                                      null, null,
                                       INFO_DESCRIPTION_ENCODING.get());
       encodingStr.setPropertyName("encoding");
       argParser.addArgument(encodingStr);

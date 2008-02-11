@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin.client.cli;
@@ -433,19 +433,20 @@ public final class SecureConnectionCliArgs
     argList.add(useStartTLSArg);
 
     hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
-        OPTION_LONG_HOST, false, false, true, OPTION_VALUE_HOST, "localhost",
+        OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
+        "localhost",
         null, INFO_DESCRIPTION_HOST.get());
     hostNameArg.setPropertyName(OPTION_LONG_HOST);
     argList.add(hostNameArg);
 
     portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
-        false, false, true, OPTION_VALUE_PORT, 389, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
         INFO_DESCRIPTION_PORT.get());
     portArg.setPropertyName(OPTION_LONG_PORT);
     argList.add(portArg);
 
     bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
-        OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
+        OPTION_LONG_BINDDN, false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
         "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
     bindDnArg.setPropertyName(OPTION_LONG_BINDDN);
     argList.add(bindDnArg);
@@ -453,7 +454,7 @@ public final class SecureConnectionCliArgs
     // It is up to the classes that required admin UID to make this argument
     // visible and add it.
     adminUidArg = new StringArgument("adminUID", 'I',
-        "adminUID", false, false, true, "adminUID",
+        "adminUID", false, false, true, INFO_ADMINUID_PLACEHOLDER.get(),
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_ADMIN_UID.get());
     adminUidArg.setPropertyName("adminUID");
@@ -461,13 +462,14 @@ public final class SecureConnectionCliArgs
 
     bindPasswordArg = new StringArgument("bindPassword",
         OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
-        OPTION_VALUE_BINDPWD, null, null, INFO_DESCRIPTION_BINDPASSWORD.get());
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_BINDPASSWORD.get());
     bindPasswordArg.setPropertyName(OPTION_LONG_BINDPWD);
     argList.add(bindPasswordArg);
 
     bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
-        OPTION_VALUE_BINDPWD_FILE, null, null,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_BINDPASSWORDFILE.get());
     bindPasswordFileArg.setPropertyName(OPTION_LONG_BINDPWD_FILE);
     argList.add(bindPasswordFileArg);
@@ -476,7 +478,7 @@ public final class SecureConnectionCliArgs
             "sasloption", OPTION_SHORT_SASLOPTION,
             OPTION_LONG_SASLOPTION, false,
             true, true,
-            OPTION_VALUE_SASLOPTION, null, null,
+            INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
             INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
     saslOptionArg.setPropertyName(OPTION_LONG_SASLOPTION);
     argList.add(saslOptionArg);
@@ -488,28 +490,28 @@ public final class SecureConnectionCliArgs
 
     trustStorePathArg = new StringArgument("trustStorePath",
         OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
-        false, true, OPTION_VALUE_TRUSTSTOREPATH, null, null,
+        false, true, INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_TRUSTSTOREPATH.get());
     trustStorePathArg.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
     argList.add(trustStorePathArg);
 
     trustStorePasswordArg = new StringArgument("trustStorePassword",
         OPTION_SHORT_TRUSTSTORE_PWD, OPTION_LONG_TRUSTSTORE_PWD, false, false,
-        true, OPTION_VALUE_TRUSTSTORE_PWD, null, null,
+        true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
     trustStorePasswordArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
     argList.add(trustStorePasswordArg);
 
     trustStorePasswordFileArg = new FileBasedArgument("trustStorePasswordFile",
         OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
-        false, false, OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+        false, false, INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
     trustStorePasswordFileArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
     argList.add(trustStorePasswordFileArg);
 
     keyStorePathArg = new StringArgument("keyStorePath",
         OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
-        true, OPTION_VALUE_KEYSTOREPATH, null, null,
+        true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_KEYSTOREPATH.get());
     keyStorePathArg.setPropertyName(OPTION_LONG_KEYSTOREPATH);
     argList.add(keyStorePathArg);
@@ -517,21 +519,21 @@ public final class SecureConnectionCliArgs
     keyStorePasswordArg = new StringArgument("keyStorePassword",
         OPTION_SHORT_KEYSTORE_PWD,
         OPTION_LONG_KEYSTORE_PWD, false, false, true,
-        OPTION_VALUE_KEYSTORE_PWD, null, null,
+        INFO_KEYSTORE_PWD_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
     keyStorePasswordArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
     argList.add(keyStorePasswordArg);
 
     keyStorePasswordFileArg = new FileBasedArgument("keystorePasswordFile",
         OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
-        false, OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
+        false, INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
     keyStorePasswordFileArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
     argList.add(keyStorePasswordFileArg);
 
     certNicknameArg = new StringArgument("certNickname",
         OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
-        false, false, true, OPTION_VALUE_CERT_NICKNAME, null, null,
+        false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_CERT_NICKNAME.get());
     certNicknameArg.setPropertyName(OPTION_LONG_CERT_NICKNAME);
     argList.add(certNicknameArg);

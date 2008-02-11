@@ -163,7 +163,7 @@ public class ListBackends
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
+                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                               ConfigFileHandler.class.getName(), null,
                               INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -172,7 +172,8 @@ public class ListBackends
 
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
+                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
@@ -180,7 +181,7 @@ public class ListBackends
 
       backendID = new StringArgument(
               "backendid", 'n', "backendID", false,
-              true, true, "{backendID}", null, null,
+              true, true, INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
               INFO_LISTBACKENDS_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
@@ -188,7 +189,7 @@ public class ListBackends
       baseDN = new StringArgument(
               "basedn", OPTION_SHORT_BASEDN,
               OPTION_LONG_BASEDN, false, true, true,
-              OPTION_VALUE_BASEDN, null, null,
+              INFO_BASEDN_PLACEHOLDER.get(), null, null,
               INFO_LISTBACKENDS_DESCRIPTION_BASE_DN.get());
       argParser.addArgument(baseDN);
 

@@ -238,7 +238,7 @@ public class StopDS
     {
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
@@ -251,7 +251,7 @@ public class StopDS
 
       host = new StringArgument("host", OPTION_SHORT_HOST,
                                 OPTION_LONG_HOST, false, false, true,
-                                OPTION_VALUE_HOST, "127.0.0.1", null,
+                                INFO_HOST_PLACEHOLDER.get(), "127.0.0.1", null,
                                 INFO_STOPDS_DESCRIPTION_HOST.get());
       host.setPropertyName(OPTION_LONG_HOST);
       argParser.addArgument(host);
@@ -259,7 +259,7 @@ public class StopDS
       port = new IntegerArgument(
               "port", OPTION_SHORT_PORT,
               OPTION_LONG_PORT, false, false, true,
-              OPTION_VALUE_PORT, 389, null, true, 1,
+              INFO_PORT_PLACEHOLDER.get(), 389, null, true, 1,
               true, 65535, INFO_STOPDS_DESCRIPTION_PORT.get());
       port.setPropertyName(OPTION_LONG_PORT);
       argParser.addArgument(port);
@@ -279,7 +279,7 @@ public class StopDS
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
-                                  OPTION_VALUE_BINDDN, null, null,
+                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
                                   INFO_STOPDS_DESCRIPTION_BINDDN.get());
       bindDN.setPropertyName(OPTION_LONG_BINDDN);
       argParser.addArgument(bindDN);
@@ -287,7 +287,7 @@ public class StopDS
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
                                   OPTION_LONG_BINDPWD, false, false,
                                   true,
-                                  OPTION_VALUE_BINDPWD, null, null,
+                                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
                                   INFO_STOPDS_DESCRIPTION_BINDPW.get());
       bindPW.setPropertyName(OPTION_LONG_BINDPWD);
       argParser.addArgument(bindPW);
@@ -297,7 +297,7 @@ public class StopDS
               OPTION_SHORT_BINDPWD_FILE,
               OPTION_LONG_BINDPWD_FILE,
               false, false,
-              OPTION_VALUE_BINDPWD_FILE,
+              INFO_BINDPWD_FILE_PLACEHOLDER.get(),
               null, null,
               INFO_STOPDS_DESCRIPTION_BINDPWFILE.get());
       bindPWFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
@@ -307,7 +307,7 @@ public class StopDS
               "sasloption", OPTION_SHORT_SASLOPTION,
               OPTION_LONG_SASLOPTION, false,
               true, true,
-              OPTION_VALUE_SASLOPTION, null, null,
+              INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
               INFO_STOPDS_DESCRIPTION_SASLOPTIONS.get());
       saslOption.setPropertyName(OPTION_LONG_SASLOPTION);
       argParser.addArgument(saslOption);
@@ -317,7 +317,7 @@ public class StopDS
               OPTION_SHORT_PROXYAUTHID,
               OPTION_LONG_PROXYAUTHID, false,
               false, true,
-              OPTION_VALUE_PROXYAUTHID, null,
+              INFO_PROXYAUTHID_PLACEHOLDER.get(), null,
               null,
               INFO_STOPDS_DESCRIPTION_PROXYAUTHZID.get());
       proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
@@ -325,7 +325,7 @@ public class StopDS
 
       stopReason = new StringArgument(
               "stopreason", 'r', "stopReason", false,
-              false, true, "{stopReason}", null, null,
+              false, true, INFO_STOP_REASON_PLACEHOLDER.get(), null, null,
               INFO_STOPDS_DESCRIPTION_STOP_REASON.get());
       stopReason.setPropertyName("stopReason");
       argParser.addArgument(stopReason);
@@ -347,7 +347,9 @@ public class StopDS
       argParser.addArgument(restart);
 
       stopTimeStr = new StringArgument("stoptime", 't', "stopTime", false,
-                                       false, true, "{stopTime}", null, null,
+                                       false, true,
+                                       INFO_STOP_TIME_PLACEHOLDER.get(), null,
+                                       null,
                                        INFO_STOPDS_DESCRIPTION_STOP_TIME.get());
       stopTimeStr.setPropertyName("stopTime");
       argParser.addArgument(stopTimeStr);
@@ -361,7 +363,7 @@ public class StopDS
                                         OPTION_SHORT_KEYSTOREPATH,
                                         OPTION_LONG_KEYSTOREPATH,
                                         false, false, true,
-                                        OPTION_VALUE_KEYSTOREPATH,
+                                        INFO_KEYSTOREPATH_PLACEHOLDER.get(),
                                         null, null,
                                         INFO_STOPDS_DESCRIPTION_KSFILE.get());
       keyStoreFile.setPropertyName(OPTION_LONG_KEYSTOREPATH);
@@ -370,7 +372,7 @@ public class StopDS
       keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
                                       OPTION_LONG_KEYSTORE_PWD,
                                       false, false, true,
-                                      OPTION_VALUE_KEYSTORE_PWD,
+                                      INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
                                       null, null,
                                       INFO_STOPDS_DESCRIPTION_KSPW.get());
       keyStorePW.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
@@ -381,7 +383,7 @@ public class StopDS
               OPTION_SHORT_KEYSTORE_PWD_FILE,
               OPTION_LONG_KEYSTORE_PWD_FILE,
               false, false,
-              OPTION_VALUE_KEYSTORE_PWD_FILE,
+              INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(),
               null, null,
               INFO_STOPDS_DESCRIPTION_KSPWFILE.get());
       keyStorePWFile.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
@@ -389,7 +391,7 @@ public class StopDS
 
       certNickname = new StringArgument(
               "certnickname", 'N', "certNickname",
-              false, false, true, "{nickname}", null,
+              false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
               null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       certNickname.setPropertyName("certNickname");
       argParser.addArgument(certNickname);
@@ -398,7 +400,7 @@ public class StopDS
                                           OPTION_SHORT_TRUSTSTOREPATH,
                                           OPTION_LONG_TRUSTSTOREPATH,
                                           false, false, true,
-                                          OPTION_VALUE_TRUSTSTOREPATH,
+                                          INFO_TRUSTSTOREPATH_PLACEHOLDER.get(),
                                           null, null,
                                           INFO_STOPDS_DESCRIPTION_TSFILE.get());
       trustStoreFile.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
@@ -408,7 +410,7 @@ public class StopDS
               "truststorepw", 'T',
               OPTION_LONG_TRUSTSTORE_PWD,
               false, false,
-              true, OPTION_VALUE_TRUSTSTORE_PWD, null,
+              true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null,
               null, INFO_STOPDS_DESCRIPTION_TSPW.get());
       trustStorePW.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
       argParser.addArgument(trustStorePW);
@@ -417,7 +419,8 @@ public class StopDS
                                   OPTION_SHORT_TRUSTSTORE_PWD_FILE,
                                   OPTION_LONG_TRUSTSTORE_PWD_FILE,
                                   false, false,
-                                  OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                                  INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(),
+                                  null, null,
                                   INFO_STOPDS_DESCRIPTION_TSPWFILE.get());
       trustStorePWFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
       argParser.addArgument(trustStorePWFile);

@@ -240,7 +240,8 @@ public class ConfigureWindowsService
       argParser.addArgument(serviceState);
 
       cleanupService = new StringArgument("cleanupservice", 'c',
-          "cleanupService", false, false, true, "{serviceName}", null, null,
+          "cleanupService", false, false, true,
+          INFO_SERVICE_NAME_PLACEHOLDER.get(), null, null,
           INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP.get());
       argParser.addArgument(cleanupService);
 

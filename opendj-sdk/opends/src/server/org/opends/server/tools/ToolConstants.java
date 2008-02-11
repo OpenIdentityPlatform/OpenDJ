@@ -119,12 +119,6 @@ public class ToolConstants
   public static final String OPTION_LONG_CONFIG_CLASS = "configClass";
 
   /**
-   * The placeholder value of configClass that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_CONFIG_CLASS = "{configClass}";
-
-  /**
    * The value for the short option hostname.
    */
   public static final char OPTION_SHORT_HOST = 'h';
@@ -135,12 +129,6 @@ public class ToolConstants
   public static final String OPTION_LONG_HOST = "hostname";
 
   /**
-   * The placeholder value of hostname that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_HOST = "{host}";
-
-  /**
    * The value for the short option port.
    */
   public static final char OPTION_SHORT_PORT = 'p';
@@ -149,12 +137,6 @@ public class ToolConstants
    * The value for the long option port.
    */
   public static final String OPTION_LONG_PORT = "port";
-
-  /**
-   * The placeholder value of port that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_PORT = "{port}";
 
   /**
    * The value for the short option useSSL.
@@ -177,12 +159,6 @@ public class ToolConstants
   public static final String OPTION_LONG_BASEDN = "baseDN";
 
   /**
-   * The placeholder value of baseDN that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_BASEDN = "{baseDN}";
-
-  /**
    * The value for the short option rootUserDN.
    */
   public static final char OPTION_SHORT_ROOT_USER_DN = 'D';
@@ -191,12 +167,6 @@ public class ToolConstants
    * The value for the long option rootUserDN.
    */
   public static final String OPTION_LONG_ROOT_USER_DN = "rootUserDN";
-
-  /**
-   * The placeholder value of hostname that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_ROOT_USER_DN = "{rootUserDN}";
 
   /**
    * The value for the short option bindDN.
@@ -209,12 +179,6 @@ public class ToolConstants
   public static final String OPTION_LONG_BINDDN = "bindDN";
 
   /**
-   * The placeholder value of bindDN that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_BINDDN = "{bindDN}";
-
-  /**
    * The value for the short option bindPassword.
    */
   public static final char OPTION_SHORT_BINDPWD = 'w';
@@ -225,12 +189,6 @@ public class ToolConstants
   public static final String OPTION_LONG_BINDPWD = "bindPassword";
 
   /**
-   * The placeholder value of bindPassword that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_BINDPWD = "{bindPassword}";
-
-  /**
    * The value for the short option bindPasswordFile.
    */
   public static final char OPTION_SHORT_BINDPWD_FILE = 'j';
@@ -239,13 +197,6 @@ public class ToolConstants
    * The value for the long option bindPasswordFile.
    */
   public static final String OPTION_LONG_BINDPWD_FILE = "bindPasswordFile";
-
-  /**
-   * The placeholder value of bindPasswordFile that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_BINDPWD_FILE = "{bindPasswordFile}";
-
 
   /**
    * The value for the short option compress.
@@ -268,12 +219,6 @@ public class ToolConstants
   public static final String OPTION_LONG_FILENAME = "filename";
 
   /**
-   * The placeholder value of filename that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_FILENAME = "{filename}";
-
-  /**
    * The value for the short option ldifFile.
    */
   public static final char OPTION_SHORT_LDIF_FILE = 'l';
@@ -282,12 +227,6 @@ public class ToolConstants
    * The value for the long option ldifFile.
    */
   public static final String OPTION_LONG_LDIF_FILE = "ldifFile";
-
-  /**
-   * The placeholder value of ldifFile that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_LDIF_FILE = "{ldifFile}";
 
   /**
    * The value for the short option useStartTLS.
@@ -310,12 +249,6 @@ public class ToolConstants
   public static final String OPTION_LONG_RANDOM_SEED = "randomSeed";
 
   /**
-   * The placeholder value of randomSeed that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_RANDOM_SEED = "{seed}";
-
-  /**
    * The value for the short option keyStorePath.
    */
   public static final char OPTION_SHORT_KEYSTOREPATH = 'K';
@@ -324,12 +257,6 @@ public class ToolConstants
    * The value for the long option keyStorePath.
    */
   public static final String OPTION_LONG_KEYSTOREPATH = "keyStorePath";
-
-  /**
-   * The placeholder value of keyStorePath that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_KEYSTOREPATH = "{keyStorePath}";
 
   /**
    * The value for the short option trustStorePath.
@@ -342,12 +269,6 @@ public class ToolConstants
   public static final String OPTION_LONG_TRUSTSTOREPATH = "trustStorePath";
 
   /**
-   * The placeholder value of trustStorePath that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_TRUSTSTOREPATH = "{trustStorePath}";
-
-  /**
    * The value for the short option keyStorePassword.
    */
   public static final char OPTION_SHORT_KEYSTORE_PWD = 'W';
@@ -358,12 +279,6 @@ public class ToolConstants
   public static final String OPTION_LONG_KEYSTORE_PWD = "keyStorePassword";
 
   /**
-   * The placeholder value of keyStorePassword that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_KEYSTORE_PWD = "{keyStorePassword}";
-
-  /**
    * The value for the short option trustStorePassword.
    */
   public static final char OPTION_SHORT_TRUSTSTORE_PWD = 'T';
@@ -372,13 +287,6 @@ public class ToolConstants
    * The value for the long option trustStorePassword.
    */
   public static final String OPTION_LONG_TRUSTSTORE_PWD = "trustStorePassword";
-
-  /**
-   * The placeholder value of trustStorePassword that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_TRUSTSTORE_PWD =
-    "{trustStorePassword}";
 
   /**
    * The value for the short option keyStorePasswordFile .
@@ -392,12 +300,6 @@ public class ToolConstants
     "keyStorePasswordFile";
 
   /**
-   * The placeholder value of keyStorePasswordFile that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_KEYSTORE_PWD_FILE = "{path}";
-
-  /**
    * The value for the short option keyStorePasswordFile .
    */
   public static final char OPTION_SHORT_TRUSTSTORE_PWD_FILE = 'U';
@@ -407,13 +309,6 @@ public class ToolConstants
    */
   public static final String OPTION_LONG_TRUSTSTORE_PWD_FILE =
     "trustStorePasswordFile";
-
-  /**
-   * The placeholder value of keyStorePasswordFile that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_TRUSTSTORE_PWD_FILE = "{path}";
-
   /**
    * The value for the short option trustAll .
    */
@@ -435,21 +330,9 @@ public class ToolConstants
   public static final String OPTION_LONG_CERT_NICKNAME = "certNickname";
 
   /**
-   * The placeholder value of certNickname that will be  displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_CERT_NICKNAME = "{nickname}";
-
-  /**
    * The value for the long option assertionFilter .
    */
   public static final String OPTION_LONG_ASSERTION_FILE = "assertionFilter";
-
-  /**
-   * The placeholder value of assertionFilter  that will be displayed in usage
-   * information.
-   */
-  public static final String OPTION_VALUE_ASSERTION_FILE = "{filter}";
 
   /**
    * The value for the short option dry-run.
@@ -492,12 +375,6 @@ public class ToolConstants
   public static final String OPTION_LONG_PROXYAUTHID = "proxyAs";
 
   /**
-   * The placeholder value of proxyAs  that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_PROXYAUTHID = "{authzID}";
-
-  /**
    * The value for the short option saslOption.
    */
   public static final char OPTION_SHORT_SASLOPTION = 'o';
@@ -506,12 +383,6 @@ public class ToolConstants
    * The value for the long option saslOption.
    */
   public static final String OPTION_LONG_SASLOPTION = "saslOption";
-
-  /**
-   * The placeholder value of saslOption that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_SASLOPTION = "{name=value}";
 
   /**
    * The value for the short option geteffectiverights control authzid.
@@ -549,12 +420,6 @@ public class ToolConstants
            "ldapVersion";
 
     /**
-     * The placeholder value of protocol version that will be
-     * displayed in usage information.
-     */
-    public static final String OPTION_VALUE_PROTOCOL_VERSION = "{version}";
-
-    /**
      * The value for the long option version.
      */
      public static final char OPTION_SHORT_PRODUCT_VERSION = 'V';
@@ -575,12 +440,6 @@ public class ToolConstants
   public static final String OPTION_LONG_DESCRIPTION = "description";
 
   /**
-   * The placeholder value of description that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_DESCRIPTION = "{description}";
-
-  /**
    * The value for the short option groupName attributes.
    */
   public static final char OPTION_SHORT_GROUPNAME = 'g';
@@ -590,12 +449,6 @@ public class ToolConstants
    * attribute.
    */
   public static final String OPTION_LONG_GROUPNAME= "groupName";
-
-  /**
-   * The placeholder value of groupName that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_GROUPNAME = "{group-name}";
 
   /**
    * The value for the short option newGroupName attribute.
@@ -620,12 +473,6 @@ public class ToolConstants
   public static final String OPTION_LONG_MEMBERNAME= "memberName";
 
   /**
-   * The placeholder value of member-name that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_MEMBERNAME = "{member-name}";
-
-  /**
    * The value for the short option backendName attributes.
    */
   public static final char OPTION_SHORT_BACKENDNAME = 'b';
@@ -635,12 +482,6 @@ public class ToolConstants
    * attribute.
    */
   public static final String OPTION_LONG_BACKENDNAME= "backendName";
-
-  /**
-   * The placeholder value of backendName that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_BACKENDNAME = "{backend-name}";
 
   /**
    * The value for the short option serverID attributes.
@@ -654,12 +495,6 @@ public class ToolConstants
   public static final String OPTION_LONG_SERVERID= "serverID";
 
   /**
-   * The placeholder value of serverID that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_SERVERID = "{serverID}";
-
-  /**
    * The value for the short option userID attributes.
    */
   public static final String OPTION_SHORT_USERID = null;
@@ -671,12 +506,6 @@ public class ToolConstants
   public static final String OPTION_LONG_USERID= "userID";
 
   /**
-   * The placeholder value of userID that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_USERID = "{userID}";
-
-  /**
    * The value for the short option set.
    */
   public static final Character OPTION_SHORT_SET = null;
@@ -685,11 +514,6 @@ public class ToolConstants
   * The value for the long option set.
   */
  public static final String OPTION_LONG_SET = "set";
-
- /**
-  * The placeholder value for the long option set.
-  */
- public static final String OPTION_VALUE_SET = "{PROP:VAL}";
 
   /**
    * Value for the server root option short form.
@@ -752,11 +576,6 @@ public class ToolConstants
   public static final Character OPTION_SHORT_START_DATETIME = 't';
 
   /**
-   * Placeholder string for the usage statement.
-   */
-  public static final String OPTION_VALUE_START_DATETIME = "{startTime}";
-
-  /**
    * The value for the long option propertiesFilePAth .
    */
   public static final String OPTION_LONG_PROP_FILE_PATH = "propertiesFilePath";
@@ -776,13 +595,6 @@ public class ToolConstants
    */
   public static final Character OPTION_SHORT_SYNCHRONOUS_TASK_MODE = 'Y';
 
-
-  /**
-   * The placeholder value of propertiesFilePAth that will be
-   * displayed in usage information.
-   */
-  public static final String OPTION_VALUE_PROP_FILE_PATH =
-    "{propertiesFilePath}";
 
   /**
    * The value for the long option propertiesFilePAth .
@@ -884,24 +696,6 @@ public class ToolConstants
    * Short form of failed dependency action option.
    */
   public static final Character OPTION_SHORT_FAILED_DEPENDENCY_ACTION = null;
-
-
-  /**
-   * Value placeholder for options taking email addresses.
-   */
-  public static final String OPTION_VALUE_EMAIL_ADDRESS = "{emailAddress}";
-
-
-  /**
-   * Value placeholder for options taking task IDs.
-   */
-  public static final String OPTION_VALUE_TASK_ID = "{taskId}";
-
-
-  /**
-   * Value placeholder for options taking actions.
-   */
-  public static final String OPTION_VALUE_ACTION = "{action}";
 
 
   /**

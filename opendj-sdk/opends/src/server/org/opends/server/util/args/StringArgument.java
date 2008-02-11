@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -60,7 +60,7 @@ public class StringArgument
    */
   public StringArgument(String name, Character shortIdentifier,
                         String longIdentifier, boolean isRequired,
-                        boolean needsValue, String valuePlaceholder,
+                        boolean needsValue, Message valuePlaceholder,
                         Message description)
          throws ArgumentException
   {
@@ -104,7 +104,7 @@ public class StringArgument
   public StringArgument(String name, Character shortIdentifier,
                         String longIdentifier, boolean isRequired,
                         boolean isMultiValued, boolean needsValue,
-                        String valuePlaceholder, String defaultValue,
+                        Message valuePlaceholder, String defaultValue,
                         String propertyName, Message description)
          throws ArgumentException
   {

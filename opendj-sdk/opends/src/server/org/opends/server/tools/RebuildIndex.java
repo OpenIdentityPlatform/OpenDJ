@@ -146,7 +146,7 @@ public class RebuildIndex
     {
       configClass =
            new StringArgument("configclass", 'C', "configClass", true, false,
-                              true, "{configClass}",
+                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                               ConfigFileHandler.class.getName(), null,
                               INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -155,7 +155,8 @@ public class RebuildIndex
 
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
+                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
@@ -163,7 +164,7 @@ public class RebuildIndex
 
       baseDNString =
            new StringArgument("basedn", 'b', "baseDN", true, false, true,
-                              "{baseDN}", null, null,
+                              INFO_BASEDN_PLACEHOLDER.get(), null, null,
                               INFO_REBUILDINDEX_DESCRIPTION_BASE_DN.get());
       argParser.addArgument(baseDNString);
 
@@ -171,7 +172,7 @@ public class RebuildIndex
       indexList =
            new StringArgument("index", 'i', "index",
                               false, true, true,
-                              "{index}", null, null,
+                              INFO_INDEX_PLACEHOLDER.get(), null, null,
                               INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get());
       argParser.addArgument(indexList);
 
