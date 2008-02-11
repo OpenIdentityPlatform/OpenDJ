@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 import org.opends.messages.Message;
@@ -296,13 +296,14 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     subCommands.add(registerServerSubCmd);
 
     registerServerServerIdArg = new StringArgument("serverID", null,
-        OPTION_LONG_SERVERID, false, true, OPTION_VALUE_SERVERID,
+        OPTION_LONG_SERVERID, false, true, INFO_SERVERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     registerServerSubCmd.addArgument(registerServerServerIdArg);
 
     registerServerSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     registerServerSubCmd.addArgument(registerServerSetArg);
 
     // unregister-server subcommand
@@ -312,7 +313,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     subCommands.add(unregisterServerSubCmd);
 
     unregisterServerServerIDArg = new StringArgument("serverID", null,
-        OPTION_LONG_SERVERID, false, true, OPTION_VALUE_SERVERID,
+        OPTION_LONG_SERVERID, false, true, INFO_SERVERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     unregisterServerSubCmd.addArgument(unregisterServerServerIDArg);
 
@@ -329,7 +330,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     subCommands.add(getServerPropertiesSubCmd);
 
     getServerPropertiesServerIdArg = new StringArgument("serverID", null,
-        OPTION_LONG_SERVERID, false, true, OPTION_VALUE_SERVERID,
+        OPTION_LONG_SERVERID, false, true, INFO_SERVERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     getServerPropertiesServerIdArg.setMultiValued(true);
     getServerPropertiesSubCmd.addArgument(getServerPropertiesServerIdArg);
@@ -342,13 +343,14 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
     subCommands.add(setServerPropertiesSubCmd);
 
     setServerPropertiesServerIdArg = new StringArgument("serverID", null,
-        OPTION_LONG_SERVERID, true, true, OPTION_VALUE_SERVERID,
+        OPTION_LONG_SERVERID, true, true, INFO_SERVERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_SERVERID_DESCRIPTION.get());
     setServerPropertiesSubCmd.addArgument(setServerPropertiesServerIdArg);
 
     setServerPropertiesSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     setServerPropertiesSubCmd.addArgument(setServerPropertiesSetArg);
 
 
@@ -365,7 +367,8 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.ID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          prop.getAttributeName(), false, false, true, "", null, null, null);
+          prop.getAttributeName(), false, false, true, Message.raw(""), null,
+          null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -377,7 +380,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       String attName = prop.getAttributeName();
       readonlyServerProperties.add(prop);
       StringArgument arg = new StringArgument(attName, null, attName, true,
-          false, true, "", "localhost", null, null);
+          false, true, Message.raw(""), "localhost", null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -388,7 +391,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LDAP_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName, true,
-          true, true, attName, 389, null, null);
+          true, true, Message.raw(attName), 389, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -399,7 +402,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.JMX_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, attName, null);
+          false, true, Message.raw(attName), null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -411,7 +414,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.JMXS_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, attName, null);
+          false, true, Message.raw(attName), null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -423,7 +426,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LDAPS_PORT;
       String attName = prop.getAttributeName();
       IntegerArgument arg = new IntegerArgument(attName, null, attName,
-          false, true, attName, null);
+          false, true, Message.raw(attName), null);
       arg.setMultiValued(true);
       serverProperties.put(prop, arg);
     }
@@ -435,7 +438,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.CERTIFICATE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, null);
+          false, true, Message.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -446,7 +449,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_PATH;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, null);
+          false, true, Message.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -457,7 +460,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, null);
+          false, true, Message.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -468,7 +471,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.HOST_OS;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, null);
+          false, true, Message.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -534,7 +537,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.LOCATION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          false, true, attName, null, null, null);
+          false, true, Message.raw(attName), null, null, null);
       serverProperties.put(prop, arg);
     }
 
@@ -545,7 +548,7 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.GROUPS;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, attName, false,
-          true, true, attName, null, null, null);
+          true, true, Message.raw(attName), null, null, null);
       arg.setHidden(true);
       serverProperties.put(prop, arg);
     }
@@ -557,7 +560,8 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_KEY_ID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, prop
-          .getAttributeName(), false, false, true, "", null, null, null);
+          .getAttributeName(), false, false, true, Message.raw(""), null, null,
+          null);
       serverProperties.put(prop, arg);
     }
 
@@ -568,7 +572,8 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
       ServerProperty prop = ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null, prop
-          .getAttributeName(), false, false, true, "", null, null, null);
+          .getAttributeName(), false, false, true, Message.raw(""), null, null,
+          null);
       serverProperties.put(prop, arg);
     }
   }
@@ -654,13 +659,11 @@ public class DsFrameworkCliServer implements DsFrameworkCliSubCommandGroup
         Set<Map<ServerProperty, Object>> serverList =
           adsCtx.readServerRegistry();
         boolean found = false;
-        Map<ServerProperty,Object> serverProperties = null ;
         for (Map<ServerProperty,Object> elm : serverList)
         {
           if (serverId.equals(elm.get(ServerProperty.ID)))
           {
             found = true ;
-            serverProperties = elm ;
             break ;
           }
         }

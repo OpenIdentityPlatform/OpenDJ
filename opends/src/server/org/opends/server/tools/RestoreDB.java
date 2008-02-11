@@ -184,7 +184,7 @@ public class RestoreDB extends TaskTool {
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
+                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                               ConfigFileHandler.class.getName(), null,
                               INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -193,22 +193,23 @@ public class RestoreDB extends TaskTool {
 
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
+                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
-
       backupIDString =
            new StringArgument("backupid", 'I', "backupID", false, false, true,
-                              "{backupID}", null, null,
+                              INFO_BACKUPID_PLACEHOLDER.get(), null, null,
                               INFO_RESTOREDB_DESCRIPTION_BACKUP_ID.get());
       argParser.addArgument(backupIDString);
 
 
       backupDirectory =
            new StringArgument("backupdirectory", 'd', "backupDirectory", true,
-                              false, true, "{backupDir}", null, null,
+                              false, true, INFO_BACKUPDIR_PLACEHOLDER.get(),
+                              null, null,
                               INFO_RESTOREDB_DESCRIPTION_BACKUP_DIR.get());
       argParser.addArgument(backupDirectory);
 

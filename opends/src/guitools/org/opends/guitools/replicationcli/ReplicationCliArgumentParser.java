@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.replicationcli;
@@ -426,13 +426,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     int index = 0;
 
     baseDNsArg = new StringArgument("baseDNs", OPTION_SHORT_BASEDN,
-        OPTION_LONG_BASEDN, false, true, true, OPTION_VALUE_BASEDN, null,
+        OPTION_LONG_BASEDN, false, true, true, INFO_BASEDN_PLACEHOLDER.get(),
+        null,
         null, INFO_DESCRIPTION_REPLICATION_BASEDNS.get());
     baseDNsArg.setPropertyName(OPTION_LONG_BASEDN);
     defaultArgs.add(index++, baseDNsArg);
 
     secureArgsList.adminUidArg = new StringArgument("adminUID", 'I',
-        "adminUID", false, false, true, "adminUID",
+        "adminUID", false, false, true, INFO_ADMINUID_PLACEHOLDER.get(),
         Constants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(
             ENABLE_REPLICATION_SUBCMD_NAME));
@@ -442,14 +443,14 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     secureArgsList.bindPasswordArg = new StringArgument("adminPassword",
         OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
-        OPTION_VALUE_BINDPWD, null, null,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
     defaultArgs.add(index++, secureArgsList.bindPasswordArg);
 
     secureArgsList.bindPasswordFileArg = new FileBasedArgument(
         "adminPasswordFile",
         OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
-        OPTION_VALUE_BINDPWD_FILE, null, null,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
     defaultArgs.add(index++, secureArgsList.bindPasswordFileArg);
 
@@ -477,7 +478,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     StringArgument propertiesFileArgument = new StringArgument(
         "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
-        true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+        true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_PROP_FILE_PATH.get());
     defaultArgs.add(propertiesFileArgument);
     setFilePropertiesArgument(propertiesFileArgument);
@@ -500,26 +501,27 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
 
     hostName1Arg = new StringArgument("host1", OPTION_SHORT_HOST,
-        "host1", false, false, true, OPTION_VALUE_HOST, getDefaultHostValue(),
+        "host1", false, false, true, INFO_HOST_PLACEHOLDER.get(),
+        getDefaultHostValue(),
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
 
     port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
-        false, false, true, OPTION_VALUE_PORT, 389, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
 
     bindDn1Arg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
-        "bindDN1", false, false, true, OPTION_VALUE_BINDDN,
+        "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
         "cn=Directory Manager", null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
 
     bindPassword1Arg = new StringArgument("bindPassword1",
         null, "bindPassword1", false, false, true,
-        OPTION_VALUE_BINDPWD, null, null,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
 
     bindPasswordFile1Arg = new FileBasedArgument("bindPasswordFile1",
         null, "bindPasswordFile1", false, false,
-        OPTION_VALUE_BINDPWD_FILE, null, null,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
 
     useSSL1Arg = new BooleanArgument("useSSL1", OPTION_SHORT_USE_SSL,
@@ -530,7 +532,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_ENABLE_REPLICATION_STARTTLS1.get());
 
     replicationPort1Arg = new IntegerArgument("replicationPort1", 'r',
-        "replicationPort1", false, false, true, OPTION_VALUE_PORT, 8989, null,
+        "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        8989, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
 
     secureReplication1Arg = new BooleanArgument("secureReplication1", null,
@@ -538,26 +541,27 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_ENABLE_SECURE_REPLICATION1.get());
 
     hostName2Arg = new StringArgument("host2", 'O',
-        "host2", false, false, true, OPTION_VALUE_HOST, getDefaultHostValue(),
+        "host2", false, false, true, INFO_HOST_PLACEHOLDER.get(),
+        getDefaultHostValue(),
         null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
 
     port2Arg = new IntegerArgument("port2", null, "port2",
-        false, false, true, OPTION_VALUE_PORT, 389, null,
+        false, false, true, INFO_PORT_PLACEHOLDER.get(), 389, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
 
     bindDn2Arg = new StringArgument("bindDN2", null,
-        "bindDN2", false, false, true, OPTION_VALUE_BINDDN,
+        "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
         "cn=Directory Manager", null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
 
     bindPassword2Arg = new StringArgument("bindPassword2",
         null, "bindPassword2", false, false, true,
-        OPTION_VALUE_BINDPWD, null, null,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
 
     bindPasswordFile2Arg = new FileBasedArgument("bindPasswordFile2",
         'F', "bindPasswordFile2", false, false,
-        OPTION_VALUE_BINDPWD_FILE, null, null,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
 
     useSSL2Arg = new BooleanArgument("useSSL2", 'z',
@@ -568,7 +572,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_ENABLE_REPLICATION_STARTTLS2.get());
 
     replicationPort2Arg = new IntegerArgument("replicationPort2", 'R',
-        "replicationPort2", false, false, true, OPTION_VALUE_PORT, 8989, null,
+        "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
+        8989, null,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
 
     secureReplication2Arg = new BooleanArgument("secureReplication2", null,
@@ -623,7 +628,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_DISABLE_REPLICATION.get());
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     secureArgsList.bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
-        OPTION_LONG_BINDDN, false, false, true, OPTION_VALUE_BINDDN,
+        OPTION_LONG_BINDDN, false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
         "cn=Directory Manager", OPTION_LONG_BINDDN,
         INFO_DESCRIPTION_DISABLE_REPLICATION_BINDDN.get());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
@@ -643,12 +648,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     hostNameSourceArg = new StringArgument("hostSource", OPTION_SHORT_HOST,
-        "hostSource", false, false, true, OPTION_VALUE_HOST,
+        "hostSource", false, false, true, INFO_HOST_PLACEHOLDER.get(),
         getDefaultHostValue(), null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
 
     portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
-        "portSource", false, false, true, OPTION_VALUE_PORT, 389, null,
+        "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(), 389,
+        null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
 
     useSSLSourceArg = new BooleanArgument("useSSLSource", OPTION_SHORT_USE_SSL,
@@ -660,12 +666,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_STARTTLS_SOURCE.get());
 
     hostNameDestinationArg = new StringArgument("hostDestination", 'O',
-        "hostDestination", false, false, true, OPTION_VALUE_HOST,
+        "hostDestination", false, false, true, INFO_HOST_PLACEHOLDER.get(),
         getDefaultHostValue(), null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
 
     portDestinationArg = new IntegerArgument("portDestination", null,
-        "portDestination", false, false, true, OPTION_VALUE_PORT, 389, null,
+        "portDestination", false, false, true, INFO_PORT_PLACEHOLDER.get(), 389,
+        null,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
 
     useSSLDestinationArg = new BooleanArgument("useSSLDestination", 'z',

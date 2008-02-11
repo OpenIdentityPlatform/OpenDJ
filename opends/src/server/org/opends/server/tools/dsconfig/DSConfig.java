@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -542,7 +542,7 @@ public final class DSConfig extends ConsoleApplication {
 
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
 
       noPropertiesFileArgument = new BooleanArgument(

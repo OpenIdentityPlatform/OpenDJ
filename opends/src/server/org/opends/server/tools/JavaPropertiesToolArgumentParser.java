@@ -83,7 +83,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
 
     propertiesFileArg = new StringArgument("propertiesFile",
         'p', "propertiesFile", false,
-        false, true, "{path}", getDefaultPropertiesValue(),
+        false, true, INFO_PATH_PLACEHOLDER.get(), getDefaultPropertiesValue(),
         "propertiesFile",
         INFO_JAVAPROPERTIES_DESCRIPTION_PROPERTIES_FILE.get(
             getDefaultPropertiesValue()));
@@ -92,7 +92,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
 
     destinationFileArg = new StringArgument("destinationFile",
         'd', "destinationFile", false,
-        false, true, "{path}", getDefaultDestinationValue(),
+        false, true, INFO_PATH_PLACEHOLDER.get(), getDefaultDestinationValue(),
         "destinationFile",
         INFO_JAVAPROPERTIES_DESCRIPTION_DESTINATION_FILE.get(
             getDefaultDestinationValue()));

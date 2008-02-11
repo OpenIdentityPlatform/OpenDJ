@@ -9222,7 +9222,8 @@ public class DirectoryServer
     try
     {
       configClass = new StringArgument("configclass", 'C', "configClass",
-                                       true, false, true, "{configClass}",
+                                       true, false, true,
+                                       INFO_CONFIGCLASS_PLACEHOLDER.get(),
                                        ConfigFileHandler.class.getName(), null,
                                        INFO_DSCORE_DESCRIPTION_CONFIG_CLASS
                                                .get());
@@ -9231,7 +9232,8 @@ public class DirectoryServer
 
 
       configFile = new StringArgument("configfile", 'f', "configFile",
-                                      true, false, true, "{configFile}", null,
+                                      true, false, true,
+                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
                                       null,
                                       INFO_DSCORE_DESCRIPTION_CONFIG_FILE
                                               .get());

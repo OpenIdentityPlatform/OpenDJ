@@ -22,6 +22,7 @@
  * CDDL HEADER END
  *
  *
+ *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
@@ -848,14 +849,14 @@ public class ManageAccount
     {
       host = new StringArgument("host", OPTION_SHORT_HOST,
                                 OPTION_LONG_HOST, false, false, true,
-                                OPTION_VALUE_HOST, "127.0.0.1", null,
+                                INFO_HOST_PLACEHOLDER.get(), "127.0.0.1", null,
                                 INFO_PWPSTATE_DESCRIPTION_HOST.get());
       argParser.addGlobalArgument(host);
 
       port = new IntegerArgument(
               "port", OPTION_SHORT_PORT,
               OPTION_LONG_PORT, false, false, true,
-              OPTION_VALUE_PORT, 389, null, true, 1,
+              INFO_PORT_PLACEHOLDER.get(), 389, null, true, 1,
               true, 65535, INFO_PWPSTATE_DESCRIPTION_PORT.get());
       argParser.addGlobalArgument(port);
 
@@ -872,14 +873,14 @@ public class ManageAccount
 
       bindDN = new StringArgument("binddn", OPTION_SHORT_BINDDN,
                                   OPTION_LONG_BINDDN, false, false, true,
-                                  OPTION_VALUE_BINDDN, null, null,
+                                  INFO_BINDDN_PLACEHOLDER.get(), null, null,
                                   INFO_PWPSTATE_DESCRIPTION_BINDDN.get());
       argParser.addGlobalArgument(bindDN);
 
       bindPW = new StringArgument("bindpw", OPTION_SHORT_BINDPWD,
                                   OPTION_LONG_BINDPWD, false, false,
                                   true,
-                                  OPTION_VALUE_BINDPWD, null, null,
+                                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
                                   INFO_PWPSTATE_DESCRIPTION_BINDPW.get());
       argParser.addGlobalArgument(bindPW);
 
@@ -888,13 +889,14 @@ public class ManageAccount
               OPTION_SHORT_BINDPWD_FILE,
               OPTION_LONG_BINDPWD_FILE,
               false, false,
-              OPTION_VALUE_BINDPWD_FILE,
+              INFO_BINDPWD_FILE_PLACEHOLDER.get(),
               null, null,
               INFO_PWPSTATE_DESCRIPTION_BINDPWFILE.get());
       argParser.addGlobalArgument(bindPWFile);
 
       targetDN = new StringArgument("targetdn", 'b', "targetDN", true, false,
-                                    true, "{targetDN}", null, null,
+                                    true, INFO_TARGETDN_PLACEHOLDER.get(), null,
+                                    null,
                                     INFO_PWPSTATE_DESCRIPTION_TARGETDN.get());
       argParser.addGlobalArgument(targetDN);
 
@@ -902,7 +904,7 @@ public class ManageAccount
               "sasloption", OPTION_SHORT_SASLOPTION,
               OPTION_LONG_SASLOPTION, false,
               true, true,
-              OPTION_VALUE_SASLOPTION, null, null,
+              INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
               INFO_PWPSTATE_DESCRIPTION_SASLOPTIONS.get());
       argParser.addGlobalArgument(saslOption);
 
@@ -914,7 +916,7 @@ public class ManageAccount
                                         OPTION_SHORT_KEYSTOREPATH,
                                         OPTION_LONG_KEYSTOREPATH,
                                         false, false, true,
-                                        OPTION_VALUE_KEYSTOREPATH,
+                                        INFO_KEYSTOREPATH_PLACEHOLDER.get(),
                                         null, null,
                                         INFO_PWPSTATE_DESCRIPTION_KSFILE.get());
       argParser.addGlobalArgument(keyStoreFile);
@@ -922,7 +924,7 @@ public class ManageAccount
       keyStorePW = new StringArgument("keystorepw", OPTION_SHORT_KEYSTORE_PWD,
                                       OPTION_LONG_KEYSTORE_PWD,
                                       false, false, true,
-                                      OPTION_VALUE_KEYSTORE_PWD,
+                                      INFO_KEYSTORE_PWD_PLACEHOLDER.get(),
                                       null, null,
                                       INFO_PWPSTATE_DESCRIPTION_KSPW.get());
       argParser.addGlobalArgument(keyStorePW);
@@ -930,13 +932,14 @@ public class ManageAccount
       keyStorePWFile = new FileBasedArgument("keystorepwfile",
                                 OPTION_SHORT_KEYSTORE_PWD_FILE,
                                 OPTION_LONG_KEYSTORE_PWD_FILE, false, false,
-                                OPTION_VALUE_KEYSTORE_PWD_FILE, null, null,
+                                INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null,
+                                null,
                                 INFO_PWPSTATE_DESCRIPTION_KSPWFILE.get());
       argParser.addGlobalArgument(keyStorePWFile);
 
       certNickname = new StringArgument(
               "certnickname", 'N', "certNickname",
-              false, false, true, "{nickname}", null,
+              false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null,
               null, INFO_DESCRIPTION_CERT_NICKNAME.get());
       argParser.addGlobalArgument(certNickname);
 
@@ -945,7 +948,7 @@ public class ManageAccount
               OPTION_SHORT_TRUSTSTOREPATH,
               OPTION_LONG_TRUSTSTOREPATH,
               false, false, true,
-              OPTION_VALUE_TRUSTSTOREPATH,
+              INFO_TRUSTSTOREPATH_PLACEHOLDER.get(),
               null, null,
               INFO_PWPSTATE_DESCRIPTION_TSFILE.get());
       argParser.addGlobalArgument(trustStoreFile);
@@ -954,7 +957,7 @@ public class ManageAccount
               "truststorepw", 'T',
               OPTION_LONG_TRUSTSTORE_PWD,
               false, false,
-              true, OPTION_VALUE_TRUSTSTORE_PWD, null,
+              true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null,
               null, INFO_PWPSTATE_DESCRIPTION_TSPW.get());
       argParser.addGlobalArgument(trustStorePW);
 
@@ -962,7 +965,8 @@ public class ManageAccount
                                   OPTION_SHORT_TRUSTSTORE_PWD_FILE,
                                   OPTION_LONG_TRUSTSTORE_PWD_FILE,
                                   false, false,
-                                  OPTION_VALUE_TRUSTSTORE_PWD_FILE, null, null,
+                                  INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(),
+                                  null, null,
                                   INFO_PWPSTATE_DESCRIPTION_TSPWFILE.get());
       argParser.addGlobalArgument(trustStorePWFile);
 
@@ -975,8 +979,8 @@ public class ManageAccount
 
 
       HashSet<String> booleanValues = new HashSet<String>(2);
-      booleanValues.add("true");
-      booleanValues.add("false");
+      booleanValues.add(INFO_MULTICHOICE_TRUE_VALUE.get().toString());
+      booleanValues.add(INFO_MULTICHOICE_FALSE_VALUE.get().toString());
 
 
       Message msg = INFO_DESCRIPTION_PWPSTATE_GET_ALL.get();
@@ -993,7 +997,8 @@ public class ManageAccount
                                      msg);
       sc.addArgument(new MultiChoiceArgument(ARG_OP_VALUE, 'O',
                               "operationValue", true, false, true,
-                              "{true|false}", null, null, booleanValues, false,
+                              INFO_TRUE_FALSE_PLACEHOLDER.get(), null, null,
+                              booleanValues, false,
                               INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get()));
 
       msg = INFO_DESCRIPTION_PWPSTATE_CLEAR_ACCOUNT_DISABLED_STATE.get();
@@ -1005,7 +1010,8 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_SET_ACCOUNT_EXPIRATION_TIME.get();
       sc = new SubCommand(argParser, SC_SET_ACCOUNT_EXPIRATION_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, "{time}", null, null,
+                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
@@ -1026,7 +1032,8 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_SET_PASSWORD_CHANGED_TIME.get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, "{time}", null, null,
+                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
@@ -1042,7 +1049,8 @@ public class ManageAccount
               .get();
       sc = new SubCommand(argParser, SC_SET_PASSWORD_EXP_WARNED_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, "{time}", null, null,
+                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
@@ -1067,7 +1075,8 @@ public class ManageAccount
       sc = new SubCommand(argParser, SC_ADD_AUTHENTICATION_FAILURE_TIME,
               msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, "{time}", null, null,
+                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
@@ -1075,7 +1084,8 @@ public class ManageAccount
       sc = new SubCommand(argParser, SC_SET_AUTHENTICATION_FAILURE_TIMES,
                           msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, "{time}", null, null,
+                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUES.get()));
       sc.setHidden(true);
 
@@ -1101,7 +1111,8 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_SET_LAST_LOGIN_TIME.get();
       sc = new SubCommand(argParser, SC_SET_LAST_LOGIN_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, "{time}", null, null,
+                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
@@ -1119,7 +1130,8 @@ public class ManageAccount
       sc = new SubCommand(argParser, SC_SET_PASSWORD_RESET_STATE, msg);
       sc.addArgument(new MultiChoiceArgument(ARG_OP_VALUE, 'O',
                               "operationValue", true, false, true,
-                              "{true|false}", null, null, booleanValues, false,
+                              INFO_TRUE_FALSE_PLACEHOLDER.get(), null, null,
+                              booleanValues, false,
                               INFO_DESCRIPTION_OPERATION_BOOLEAN_VALUE.get()));
       sc.setHidden(true);
 
@@ -1137,14 +1149,16 @@ public class ManageAccount
       msg = INFO_DESCRIPTION_PWPSTATE_ADD_GRACE_LOGIN_USE_TIME.get();
       sc = new SubCommand(argParser, SC_ADD_GRACE_LOGIN_USE_TIME, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, "{time}", null, null,
+                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 
       msg = INFO_DESCRIPTION_PWPSTATE_SET_GRACE_LOGIN_USE_TIMES.get();
       sc = new SubCommand(argParser, SC_SET_GRACE_LOGIN_USE_TIMES, msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, true, true, "{time}", null, null,
+                              false, true, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUES.get()));
       sc.setHidden(true);
 
@@ -1164,7 +1178,8 @@ public class ManageAccount
       sc = new SubCommand(argParser, SC_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME,
                           msg);
       sc.addArgument(new StringArgument(ARG_OP_VALUE, 'O', "operationValue",
-                              false, false, true, "{time}", null, null,
+                              false, false, true, INFO_TIME_PLACEHOLDER.get(),
+                              null, null,
                               INFO_DESCRIPTION_OPERATION_TIME_VALUE.get()));
       sc.setHidden(true);
 

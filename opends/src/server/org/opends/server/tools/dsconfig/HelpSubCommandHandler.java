@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -30,6 +30,7 @@ package org.opends.server.tools.dsconfig;
 
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 import java.io.PrintStream;
@@ -717,13 +718,14 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     this.categoryArgument = new StringArgument(OPTION_DSCFG_LONG_CATEGORY,
         OPTION_DSCFG_SHORT_CATEGORY, OPTION_DSCFG_LONG_CATEGORY, false, false,
-        true, "{CATEGORY}", null, null, INFO_DSCFG_DESCRIPTION_HELP_CATEGORY
-            .get());
+        true, INFO_CATEGORY_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_HELP_CATEGORY.get());
     this.subCommand.addArgument(this.categoryArgument);
 
     this.typeArgument = new StringArgument(OPTION_DSCFG_LONG_TYPE,
         OPTION_DSCFG_SHORT_TYPE, OPTION_DSCFG_LONG_TYPE, false, false, true,
-        "{TYPE}", null, null, INFO_DSCFG_DESCRIPTION_HELP_TYPE.get());
+        INFO_TYPE_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_HELP_TYPE.get());
     this.subCommand.addArgument(this.typeArgument);
 
     this.inheritedModeArgument = new BooleanArgument(

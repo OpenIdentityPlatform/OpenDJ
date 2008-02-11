@@ -134,14 +134,14 @@ public class WaitForFileDelete
     {
       targetFilePath =
            new StringArgument("targetfile", 'f', "targetFile", true, false,
-                              true, "{path}", null, null,
+                              true, INFO_PATH_PLACEHOLDER.get(), null, null,
                               INFO_WAIT4DEL_DESCRIPTION_TARGET_FILE.get());
       argParser.addArgument(targetFilePath);
 
 
       logFilePath = new StringArgument(
               "logfile", 'l', "logFile", false, false,
-              true, "{path}", null, null,
+              true, INFO_PATH_PLACEHOLDER.get(), null, null,
               INFO_WAIT4DEL_DESCRIPTION_LOG_FILE.get());
       argParser.addArgument(logFilePath);
 
@@ -149,13 +149,14 @@ public class WaitForFileDelete
       outputFilePath = new StringArgument(
               "outputfile", 'o', "outputFile",
               false, false,
-              true, "{path}", null, null,
+              true, INFO_PATH_PLACEHOLDER.get(), null, null,
               INFO_WAIT4DEL_DESCRIPTION_OUTPUT_FILE.get());
       argParser.addArgument(outputFilePath);
 
 
       timeout = new IntegerArgument("timeout", 't', "timeout", true, false,
-                                    true, "{seconds}", 60, null, true, 0, false,
+                                    true, INFO_SECONDS_PLACEHOLDER.get(), 60,
+                                    null, true, 0, false,
                                     0, INFO_WAIT4DEL_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
 

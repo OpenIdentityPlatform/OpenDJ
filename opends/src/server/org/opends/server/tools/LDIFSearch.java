@@ -197,47 +197,48 @@ public class LDIFSearch
     {
       ldifFile = new StringArgument(
               "ldiffile", 'l', "ldifFile", false, true,
-              true, "{ldifFile}", null, null,
+              true, INFO_LDIFFILE_PLACEHOLDER.get(), null, null,
               INFO_LDIFSEARCH_DESCRIPTION_LDIF_FILE.get());
       argParser.addArgument(ldifFile);
 
       baseDNString = new StringArgument(
               "basedn", OPTION_SHORT_BASEDN,
               OPTION_LONG_BASEDN, false, true,
-              true, OPTION_VALUE_BASEDN, "", null,
+              true, INFO_BASEDN_PLACEHOLDER.get(), "", null,
               INFO_LDIFSEARCH_DESCRIPTION_BASEDN.get());
       argParser.addArgument(baseDNString);
 
       scopeString = new MultiChoiceArgument(
               "scope", 's', "scope", false, false,
-              true, "{scope}", SCOPE_STRING_SUB,
+              true, INFO_SCOPE_PLACEHOLDER.get(), SCOPE_STRING_SUB,
               null, scopeStrings, false,
               INFO_LDIFSEARCH_DESCRIPTION_SCOPE.get());
       argParser.addArgument(scopeString);
 
       configFile = new StringArgument(
               "configfile", 'c', "configFile", false,
-              false, true, "{configFile}", null, null,
+              false, true, INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
       configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                              OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, OPTION_VALUE_CONFIG_CLASS,
+                             false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                              ConfigFileHandler.class.getName(), null,
                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
       filterFile = new FileBasedArgument("filterfile", 'f', "filterFile", false,
-                            false, "{filterFile}", null, null,
+                            false, INFO_FILTER_FILE_PLACEHOLDER.get(), null,
+                            null,
                             INFO_LDIFSEARCH_DESCRIPTION_FILTER_FILE.get());
       argParser.addArgument(filterFile);
 
       outputFile = new StringArgument(
               "outputfile", 'o', "outputFile", false,
-              false, true, "{outputFile}", null, null,
+              false, true, INFO_OUTPUT_FILE_PLACEHOLDER.get(), null, null,
               INFO_LDIFSEARCH_DESCRIPTION_OUTPUT_FILE.get());
       argParser.addArgument(outputFile);
 
@@ -254,14 +255,14 @@ public class LDIFSearch
 
       sizeLimit = new IntegerArgument(
               "sizelimit", 'z', "sizeLimit", false,
-              false, true, "{sizeLimit}", 0, null,
+              false, true, INFO_SIZE_LIMIT_PLACEHOLDER.get(), 0, null,
               true, 0, false, 0,
               INFO_LDIFSEARCH_DESCRIPTION_SIZE_LIMIT.get());
       argParser.addArgument(sizeLimit);
 
       timeLimit = new IntegerArgument(
               "timelimit", 't', "timeLimit", false,
-              false, true, "{timeLimit}", 0, null,
+              false, true, INFO_TIME_LIMIT_PLACEHOLDER.get(), 0, null,
               true, 0, false, 0,
               INFO_LDIFSEARCH_DESCRIPTION_TIME_LIMIT.get());
       argParser.addArgument(timeLimit);

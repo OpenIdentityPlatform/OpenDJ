@@ -52,6 +52,7 @@ import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
 
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
 
@@ -442,37 +443,43 @@ public final class Base64
 
 
       encodedData = new StringArgument("encodeddata", 'd', "encodedData", false,
-                             false, true, "{data}", null, null,
+                             false, true, INFO_DATA_PLACEHOLDER.get(), null,
+                             null,
                              INFO_BASE64_ENCODED_DATA_DESCRIPTION.get());
       decodeSubCommand.addArgument(encodedData);
 
 
       encodedFile = new StringArgument("encodedfile", 'f', "encodedDataFile",
-                             false, false, true, "{path}", null, null,
+                             false, false, true, INFO_PATH_PLACEHOLDER.get(),
+                             null, null,
                              INFO_BASE64_ENCODED_FILE_DESCRIPTION.get());
       decodeSubCommand.addArgument(encodedFile);
 
 
       toRawFile = new StringArgument("torawfile", 'o', "toRawFile", false,
-                                     false, true, "{path}", null, null,
+                                     false, true, INFO_PATH_PLACEHOLDER.get(),
+                                     null, null,
                                      INFO_BASE64_TO_RAW_FILE_DESCRIPTION.get());
       decodeSubCommand.addArgument(toRawFile);
 
 
       rawData = new StringArgument("rawdata", 'd', "rawData", false, false,
-                                   true, "{data}", null, null,
+                                   true, INFO_DATA_PLACEHOLDER.get(), null,
+                                   null,
                                    INFO_BASE64_RAW_DATA_DESCRIPTION.get());
       encodeSubCommand.addArgument(rawData);
 
 
       rawFile = new StringArgument("rawfile", 'f', "rawDataFile", false, false,
-                                   true, "{path}", null, null,
+                                   true, INFO_PATH_PLACEHOLDER.get(), null,
+                                   null,
                                    INFO_BASE64_RAW_FILE_DESCRIPTION.get());
       encodeSubCommand.addArgument(rawFile);
 
 
       toEncodedFile = new StringArgument("toencodedfile", 'o', "toEncodedFile",
-                               false, false, true, "{path}", null, null,
+                               false, false, true, INFO_PATH_PLACEHOLDER.get(),
+                               null, null,
                                INFO_BASE64_TO_ENCODED_FILE_DESCRIPTION.get());
       encodeSubCommand.addArgument(toEncodedFile);
 
@@ -500,7 +507,8 @@ public final class Base64
     }
     catch (ArgumentException ae)
     {
-      System.err.println(ERR_CANNOT_PARSE_ARGS.get(ae.getMessage()).toString());
+      System.err.println(
+          ERR_ERROR_PARSING_ARGS.get(ae.getMessage()).toString());
       System.exit(1);
     }
 

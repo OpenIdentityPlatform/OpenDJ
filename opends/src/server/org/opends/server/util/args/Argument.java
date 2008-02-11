@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -86,7 +86,7 @@ public abstract class Argument
 
   // The value placeholder for this argument, which will be used in usage
   // information.
-  private String valuePlaceholder;
+  private Message valuePlaceholder;
 
   // Indicates whether this argument was provided in the set of properties
   // found is a properties file.
@@ -127,7 +127,7 @@ public abstract class Argument
   protected Argument(String name, Character shortIdentifier,
                      String longIdentifier, boolean isRequired,
                      boolean isMultiValued, boolean needsValue,
-                     String valuePlaceholder, String defaultValue,
+                     Message valuePlaceholder, String defaultValue,
                      String propertyName,
                      Message description)
             throws ArgumentException
@@ -356,7 +356,7 @@ public abstract class Argument
    *          the generated usage information, or <CODE>null</CODE> if there is
    *          none.
    */
-  public String getValuePlaceholder()
+  public Message getValuePlaceholder()
   {
     return valuePlaceholder;
   }
@@ -371,7 +371,7 @@ public abstract class Argument
    * @param  valuePlaceholder  The value placeholder that will be displayed for
    *                           this argument in the generated usage information.
    */
-  public void setValuePlaceholder(String valuePlaceholder)
+  public void setValuePlaceholder(Message valuePlaceholder)
   {
     this.valuePlaceholder = valuePlaceholder;
   }

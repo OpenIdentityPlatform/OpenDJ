@@ -210,7 +210,7 @@ public class ImportLDIF extends TaskTool {
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
+                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                               ConfigFileHandler.class.getName(), null,
                               INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -219,7 +219,8 @@ public class ImportLDIF extends TaskTool {
 
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
+                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
@@ -228,14 +229,15 @@ public class ImportLDIF extends TaskTool {
       ldifFiles =
            new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
                               OPTION_LONG_LDIF_FILE, false, true, true,
-                              OPTION_VALUE_LDIF_FILE, null, null,
+                              INFO_LDIFFILE_PLACEHOLDER.get(), null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_LDIF_FILE.get());
       argParser.addArgument(ldifFiles);
 
 
       templateFile =
            new StringArgument("templatefile", 'A', "templateFile", false, false,
-                              true, "{templateFile}", null, null,
+                              true, INFO_TEMPLATE_FILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_LDIFIMPORT_DESCRIPTION_TEMPLATE_FILE.get());
       argParser.addArgument(templateFile);
 
@@ -255,7 +257,7 @@ public class ImportLDIF extends TaskTool {
 
       backendID =
            new StringArgument("backendid", 'n', "backendID", false, false, true,
-                              "{backendID}", null, null,
+                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
@@ -267,14 +269,16 @@ public class ImportLDIF extends TaskTool {
 
       includeBranchStrings =
            new StringArgument("includebranch", 'b', "includeBranch", false,
-                              true, true, "{branchDN}", null, null,
+                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_BRANCH.get());
       argParser.addArgument(includeBranchStrings);
 
 
       excludeBranchStrings =
            new StringArgument("excludebranch", 'B', "excludeBranch", false,
-                              true, true, "{branchDN}", null, null,
+                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_BRANCH.get());
       argParser.addArgument(excludeBranchStrings);
 
@@ -282,7 +286,8 @@ public class ImportLDIF extends TaskTool {
       includeAttributeStrings =
            new StringArgument(
                    "includeattribute", 'i', "includeAttribute",
-                   false, true, true, "{attribute}", null, null,
+                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
+                   null,
                    INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get());
       argParser.addArgument(includeAttributeStrings);
 
@@ -290,7 +295,8 @@ public class ImportLDIF extends TaskTool {
       excludeAttributeStrings =
            new StringArgument(
                    "excludeattribute", 'e', "excludeAttribute",
-                   false, true, true, "{attribute}", null, null,
+                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
+                   null,
                    INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get());
       argParser.addArgument(excludeAttributeStrings);
 
@@ -298,28 +304,31 @@ public class ImportLDIF extends TaskTool {
       includeFilterStrings =
            new StringArgument(
                    "includefilter", 'I', "includeFilter",
-                   false, true, true, "{filter}", null, null,
+                   false, true, true, INFO_FILTER_PLACEHOLDER.get(), null, null,
                    INFO_LDIFIMPORT_DESCRIPTION_INCLUDE_FILTER.get());
       argParser.addArgument(includeFilterStrings);
 
 
       excludeFilterStrings =
            new StringArgument("excludefilter", 'E', "excludeFilter",
-                              false, true, true, "{filter}", null, null,
+                              false, true, true, INFO_FILTER_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFIMPORT_DESCRIPTION_EXCLUDE_FILTER.get());
       argParser.addArgument(excludeFilterStrings);
 
 
       rejectFile =
            new StringArgument("rejectfile", 'R', "rejectFile", false, false,
-                              true, "{rejectFile}", null, null,
+                              true, INFO_REJECT_FILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_LDIFIMPORT_DESCRIPTION_REJECT_FILE.get());
       argParser.addArgument(rejectFile);
 
 
       skipFile =
            new StringArgument("skipfile", null, "skipFile", false, false,
-                              true, "{skipFile}", null, null,
+                              true, INFO_SKIP_FILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_LDIFIMPORT_DESCRIPTION_SKIP_FILE.get());
       argParser.addArgument(skipFile);
 
@@ -333,7 +342,7 @@ public class ImportLDIF extends TaskTool {
       randomSeed =
            new IntegerArgument("randomseed", OPTION_SHORT_RANDOM_SEED,
                                OPTION_LONG_RANDOM_SEED, false, false,
-                               true, OPTION_VALUE_RANDOM_SEED,
+                               true, INFO_SEED_PLACEHOLDER.get(),
                                0, null, false, 0, false, 0,
                                INFO_LDIFIMPORT_DESCRIPTION_RANDOM_SEED.get());
       argParser.addArgument(randomSeed);

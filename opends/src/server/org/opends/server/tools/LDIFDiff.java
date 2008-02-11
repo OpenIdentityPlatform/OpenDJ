@@ -175,19 +175,19 @@ public class LDIFDiff
     {
       sourceLDIF = new StringArgument(
               "sourceldif", 's', "sourceLDIF", true,
-              false, true, "{filename}", null, null,
+              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
               INFO_LDIFDIFF_DESCRIPTION_SOURCE_LDIF.get());
       argParser.addArgument(sourceLDIF);
 
       targetLDIF = new StringArgument(
               "targetldif", 't', "targetLDIF", true,
-              false, true, "{filename}", null, null,
+              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
               INFO_LDIFDIFF_DESCRIPTION_TARGET_LDIF.get());
       argParser.addArgument(targetLDIF);
 
       outputLDIF = new StringArgument(
               "outputldif", 'o', "outputLDIF", false,
-              false, true, "{filename}", null, null,
+              false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
               INFO_LDIFDIFF_DESCRIPTION_OUTPUT_LDIF.get());
       argParser.addArgument(outputLDIF);
 
@@ -205,14 +205,16 @@ public class LDIFDiff
       argParser.addArgument(singleValueChanges);
 
       configFile = new StringArgument("configfile", 'c', "configFile", false,
-                                      false, true, "{configFile}", null, null,
+                                      false, true,
+                                      INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                                      null,
                                       INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
 
       configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                              OPTION_LONG_CONFIG_CLASS, false,
-                             false, true, OPTION_VALUE_CONFIG_CLASS,
+                             false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                              ConfigFileHandler.class.getName(), null,
                              INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);

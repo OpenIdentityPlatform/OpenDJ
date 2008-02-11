@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
 
 
 import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 
 import java.util.HashMap;
@@ -531,25 +532,29 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     // Create the --set argument.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
         OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
-        "{PROP:VAL}", null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     this.subCommand.addArgument(this.propertySetArgument);
 
     // Create the --reset argument.
     this.propertyResetArgument = new StringArgument(OPTION_DSCFG_LONG_RESET,
         OPTION_DSCFG_SHORT_RESET, OPTION_DSCFG_LONG_RESET, false, true, true,
-        "{PROP}", null, null, INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
+        INFO_PROPERTY_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
     this.subCommand.addArgument(this.propertyResetArgument);
 
     // Create the --add argument.
     this.propertyAddArgument = new StringArgument(OPTION_DSCFG_LONG_ADD,
         OPTION_DSCFG_SHORT_ADD, OPTION_DSCFG_LONG_ADD, false, true, true,
-        "{PROP:VAL}", null, null, INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
     this.subCommand.addArgument(this.propertyAddArgument);
 
     // Create the --remove argument.
     this.propertyRemoveArgument = new StringArgument(OPTION_DSCFG_LONG_REMOVE,
         OPTION_DSCFG_SHORT_REMOVE, OPTION_DSCFG_LONG_REMOVE, false, true, true,
-        "{PROP:VAL}", null, null, INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
     this.subCommand.addArgument(this.propertyRemoveArgument);
 
     // Register the tags associated with the child managed objects.

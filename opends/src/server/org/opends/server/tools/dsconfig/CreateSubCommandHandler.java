@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
 
 
 import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 
 import java.util.Collection;
@@ -1010,7 +1011,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     // property values.
     this.propertySetArgument = new StringArgument(OPTION_DSCFG_LONG_SET,
         OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
-        "{PROP:VALUE}", null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     this.subCommand.addArgument(this.propertySetArgument);
 
     // Build the -t option usage.
@@ -1028,13 +1030,15 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     if (!types.containsKey(DSConfig.GENERIC_TYPE)) {
       // The option is mandatory when non-interactive.
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
-          OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}", null, null,
+          OPTION_DSCFG_LONG_TYPE, false, false, true,
+          INFO_TYPE_PLACEHOLDER.get(), null, null,
           INFO_DSCFG_DESCRIPTION_TYPE.get(r.getChildDefinition()
               .getUserFriendlyName(), typeUsage));
     } else {
       // The option has a sensible default "generic".
       this.typeArgument = new StringArgument("type", OPTION_DSCFG_SHORT_TYPE,
-          OPTION_DSCFG_LONG_TYPE, false, false, true, "{TYPE}",
+          OPTION_DSCFG_LONG_TYPE, false, false, true,
+          INFO_TYPE_PLACEHOLDER.get(),
           DSConfig.GENERIC_TYPE, null, INFO_DSCFG_DESCRIPTION_TYPE_DEFAULT.get(
               r.getChildDefinition().getUserFriendlyName(),
               DSConfig.GENERIC_TYPE, typeUsage));

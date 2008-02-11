@@ -22,6 +22,7 @@
  * CDDL HEADER END
  *
  *
+ *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
@@ -57,6 +58,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -527,36 +529,38 @@ public final class EMailMessage
     try
     {
       host = new StringArgument("host", 'h', "host", true, true, true,
-                                "{host}", "127.0.0.1", null,
+                                INFO_HOST_PLACEHOLDER.get(), "127.0.0.1", null,
                                 INFO_EMAIL_HOST_DESCRIPTION.get());
       argParser.addArgument(host);
 
 
       from = new StringArgument("from", 'f', "from", true, false, true,
-                                "{address}", null, null,
+                                INFO_ADDRESS_PLACEHOLDER.get(), null, null,
                                 INFO_EMAIL_FROM_DESCRIPTION.get());
       argParser.addArgument(from);
 
 
-      to = new StringArgument("to", 't', "to", true, true, true, "{address}",
+      to = new StringArgument("to", 't', "to", true, true, true,
+                              INFO_ADDRESS_PLACEHOLDER.get(),
                               null, null, INFO_EMAIL_TO_DESCRIPTION.get());
       argParser.addArgument(to);
 
 
       subject = new StringArgument("subject", 's', "subject", true, false, true,
-                                   "{subject}", null, null,
+                                   INFO_SUBJECT_PLACEHOLDER.get(), null, null,
                                    INFO_EMAIL_SUBJECT_DESCRIPTION.get());
       argParser.addArgument(subject);
 
 
       bodyFile = new StringArgument("bodyfile", 'b', "body", true, true, true,
-                                    "{path}", null, null,
+                                    INFO_PATH_PLACEHOLDER.get(), null, null,
                                     INFO_EMAIL_BODY_DESCRIPTION.get());
       argParser.addArgument(bodyFile);
 
 
       attachFile = new StringArgument("attachfile", 'a', "attach", false, true,
-                                      true, "{path}", null, null,
+                                      true, INFO_PATH_PLACEHOLDER.get(), null,
+                                      null,
                                       INFO_EMAIL_ATTACH_DESCRIPTION.get());
       argParser.addArgument(attachFile);
 
@@ -579,7 +583,8 @@ public final class EMailMessage
     }
     catch (ArgumentException ae)
     {
-      System.err.println(ERR_CANNOT_PARSE_ARGS.get(ae.getMessage()).toString());
+      System.err.println(
+          ERR_ERROR_PARSING_ARGS.get(ae.getMessage()).toString());
       System.exit(1);
     }
 

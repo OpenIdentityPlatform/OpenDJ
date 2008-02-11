@@ -147,25 +147,29 @@ public class CreateRCScript
     try
     {
       outputFile = new StringArgument("outputfile", 'f', "outputFile", true,
-                                      false, true, "{path}", null, null,
+                                      false, true, INFO_PATH_PLACEHOLDER.get(),
+                                      null, null,
                                       INFO_CREATERC_OUTFILE_DESCRIPTION.get());
       argParser.addArgument(outputFile);
 
 
       userName = new StringArgument("username", 'u', "userName", false, false,
-                                    true, "{username}", null, null,
+                                    true, INFO_USER_NAME_PLACEHOLDER.get(),
+                                    null, null,
                                     INFO_CREATERC_USER_DESCRIPTION.get());
       argParser.addArgument(userName);
 
 
       javaHome = new StringArgument("javahome", 'j', "javaHome", false, false,
-                                    true, "{path}", null, null,
+                                    true, INFO_PATH_PLACEHOLDER.get(), null,
+                                    null,
                                     INFO_CREATERC_JAVA_HOME_DESCRIPTION.get());
       argParser.addArgument(javaHome);
 
 
       javaArgs = new StringArgument("javaargs", 'J', "javaArgs", false, false,
-                                    true, "{args}", null,null,
+                                    true, INFO_ARGS_PLACEHOLDER.get(), null,
+                                    null,
                                     INFO_CREATERC_JAVA_ARGS_DESCRIPTION.get());
       argParser.addArgument(javaArgs);
 

@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
 
 
 import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -468,19 +469,20 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             // Use syntax and description from naming property.
             PropertyDefinitionUsageBuilder b =
               new PropertyDefinitionUsageBuilder(false);
-            String usage = "{" + b.getUsage(pd) + "}";
+            Message usage = Message.raw("{" + b.getUsage(pd) + "}");
             arg = new StringArgument(argName, null, argName, false, true,
                 usage, INFO_DSCFG_DESCRIPTION_NAME_CREATE_EXT.get(d
                     .getUserFriendlyName(), pd.getName(), pd.getSynopsis()));
           } else {
             arg = new StringArgument(argName, null, argName, false, true,
-                "{NAME}", INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d
-                    .getUserFriendlyName()));
+                INFO_NAME_PLACEHOLDER.get(),
+                INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(
+                    d.getUserFriendlyName()));
           }
         } else {
           // A normal naming argument.
           arg = new StringArgument(argName, null, argName, false, true,
-              "{NAME}", INFO_DSCFG_DESCRIPTION_NAME.get(
+              INFO_NAME_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_NAME.get(
                   d.getUserFriendlyName()));
         }
         subCommand.addArgument(arg);
@@ -1069,7 +1071,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       throws ArgumentException {
     this.propertyArgument = new StringArgument(OPTION_DSCFG_LONG_PROPERTY,
         OPTION_DSCFG_SHORT_PROPERTY, OPTION_DSCFG_LONG_PROPERTY, false, true,
-        true, "{PROP}", null, null, INFO_DSCFG_DESCRIPTION_PROP.get());
+        true, INFO_PROPERTY_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP.get());
     subCommand.addArgument(propertyArgument);
   }
 
@@ -1106,7 +1109,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       throws ArgumentException {
     this.unitSizeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_SIZE,
         OPTION_DSCFG_SHORT_UNIT_SIZE, OPTION_DSCFG_LONG_UNIT_SIZE, false, true,
-        "{UNIT}", INFO_DSCFG_DESCRIPTION_UNIT_SIZE.get());
+        INFO_UNIT_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_UNIT_SIZE.get());
     this.unitSizeArgument.setPropertyName(OPTION_DSCFG_LONG_UNIT_SIZE);
 
     subCommand.addArgument(unitSizeArgument);
@@ -1126,7 +1129,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       throws ArgumentException {
     this.unitTimeArgument = new StringArgument(OPTION_DSCFG_LONG_UNIT_TIME,
         OPTION_DSCFG_SHORT_UNIT_TIME, OPTION_DSCFG_LONG_UNIT_TIME, false, true,
-        "{UNIT}", INFO_DSCFG_DESCRIPTION_UNIT_TIME.get());
+        INFO_UNIT_PLACEHOLDER.get(), INFO_DSCFG_DESCRIPTION_UNIT_TIME.get());
     this.unitTimeArgument.setPropertyName(OPTION_DSCFG_LONG_UNIT_TIME);
 
     subCommand.addArgument(unitTimeArgument);

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 import org.opends.messages.Message;
@@ -293,13 +293,14 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     subCommands.add(createAdminUserSubCmd);
 
     createAdminUserUserIdArg = new StringArgument("userID", null,
-        OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
+        OPTION_LONG_USERID, false, true, INFO_USERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     createAdminUserSubCmd.addArgument(createAdminUserUserIdArg);
 
     createAdminUserSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     createAdminUserSubCmd.addArgument(createAdminUserSetArg);
 
     // delete-admin-user subcommand.
@@ -309,7 +310,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     subCommands.add(deleteAdminUserSubCmd);
 
     deleteAdminUserUserIdArg = new StringArgument("userID", null,
-        OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
+        OPTION_LONG_USERID, false, true, INFO_USERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     deleteAdminUserSubCmd.addArgument(deleteAdminUserUserIdArg);
 
@@ -326,7 +327,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     subCommands.add(getAdminUserPropertiesSubCmd);
 
     getAdminUserPropertiesUserIdArg = new StringArgument("userID", null,
-        OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
+        OPTION_LONG_USERID, false, true, INFO_USERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     getAdminUserPropertiesUserIdArg.setMultiValued(true);
     getAdminUserPropertiesSubCmd.addArgument(getAdminUserPropertiesUserIdArg);
@@ -338,13 +339,14 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     subCommands.add(setAdminUserPropertiesSubCmd);
 
     setAdminUserPropertiesUserIdArg = new StringArgument("userID", null,
-        OPTION_LONG_USERID, false, true, OPTION_VALUE_USERID,
+        OPTION_LONG_USERID, false, true, INFO_USERID_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_USERID_DESCRIPTION.get());
     setAdminUserPropertiesSubCmd.addArgument(setAdminUserPropertiesUserIdArg);
 
     setAdminUserPropertiesSetArg = new StringArgument(OPTION_LONG_SET,
         OPTION_SHORT_SET, OPTION_LONG_SET, false, true, true,
-        OPTION_VALUE_SET, null, null, INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+        INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+        INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
     setAdminUserPropertiesSubCmd.addArgument(setAdminUserPropertiesSetArg);
 
     // list-admin-user-properties subcommand.
@@ -366,7 +368,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.UID;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, "", null, null, null);
+          attName, false, false, true, Message.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -378,7 +380,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.PASSWORD;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, "", null, null, null);
+          attName, false, false, true, Message.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -389,7 +391,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.DESCRIPTION;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, "", null, null, null);
+          attName, false, false, true, Message.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
     }
 
@@ -400,7 +402,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.ADMINISTRATOR_DN;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, false, false, true, "", null, null, null);
+          attName, false, false, true, Message.raw(""), null, null, null);
       userAdminProperties.put(prop, arg);
       readonlyadminUserProperties.add(prop);
     }
@@ -412,7 +414,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       AdministratorProperty prop = AdministratorProperty.PRIVILEGE;
       String attName = prop.getAttributeName();
       StringArgument arg = new StringArgument(attName, null,
-          attName, true, true, true, "", "root", null, null);
+          attName, true, true, true, Message.raw(""), "root", null, null);
       userAdminProperties.put(prop, arg);
     }
   }

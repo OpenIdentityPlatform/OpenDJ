@@ -190,7 +190,7 @@ public class BackUpDB extends TaskTool
            new StringArgument(
                    "configclass", OPTION_SHORT_CONFIG_CLASS,
                    OPTION_LONG_CONFIG_CLASS, true, false,
-                   true, OPTION_VALUE_CONFIG_CLASS,
+                   true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                    ConfigFileHandler.class.getName(), null,
                    INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -200,7 +200,7 @@ public class BackUpDB extends TaskTool
       configFile =
            new StringArgument(
                    "configfile", 'f', "configFile", true, false,
-                   true, "{configFile}", null, null,
+                   true, INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
                    INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
@@ -209,7 +209,7 @@ public class BackUpDB extends TaskTool
       backendID =
            new StringArgument(
                    "backendid", 'n', "backendID", false, true, true,
-                   "{backendID}", null, null,
+                   INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                    INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
@@ -223,7 +223,7 @@ public class BackUpDB extends TaskTool
       backupIDString =
            new StringArgument(
                    "backupid", 'I', "backupID", false, false, true,
-                   "{backupID}", null, null,
+                   INFO_BACKUPID_PLACEHOLDER.get(), null, null,
                    INFO_BACKUPDB_DESCRIPTION_BACKUP_ID.get());
       argParser.addArgument(backupIDString);
 
@@ -231,7 +231,7 @@ public class BackUpDB extends TaskTool
       backupDirectory =
            new StringArgument(
                    "backupdirectory", 'd', "backupDirectory", true,
-                   false, true, "{backupDir}", null, null,
+                   false, true, INFO_BACKUPDIR_PLACEHOLDER.get(), null, null,
                    INFO_BACKUPDB_DESCRIPTION_BACKUP_DIR.get());
       argParser.addArgument(backupDirectory);
 
@@ -245,7 +245,8 @@ public class BackUpDB extends TaskTool
       incrementalBaseID =
            new StringArgument(
                    "incrementalbaseid", 'B', "incrementalBaseID",
-                   false, false, true, "{backupID}", null, null,
+                   false, false, true, INFO_BACKUPID_PLACEHOLDER.get(), null,
+                   null,
                    INFO_BACKUPDB_DESCRIPTION_INCREMENTAL_BASE_ID.get());
       argParser.addArgument(incrementalBaseID);
 

@@ -190,7 +190,7 @@ public class ExportLDIF extends TaskTool {
       configClass =
            new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
                               OPTION_LONG_CONFIG_CLASS, true, false,
-                              true, OPTION_VALUE_CONFIG_CLASS,
+                              true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
                               ConfigFileHandler.class.getName(), null,
                               INFO_DESCRIPTION_CONFIG_CLASS.get());
       configClass.setHidden(true);
@@ -199,7 +199,8 @@ public class ExportLDIF extends TaskTool {
 
       configFile =
            new StringArgument("configfile", 'f', "configFile", true, false,
-                              true, "{configFile}", null, null,
+                              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                              null,
                               INFO_DESCRIPTION_CONFIG_FILE.get());
       configFile.setHidden(true);
       argParser.addArgument(configFile);
@@ -208,7 +209,7 @@ public class ExportLDIF extends TaskTool {
       ldifFile =
            new StringArgument("ldiffile", OPTION_SHORT_LDIF_FILE,
                               OPTION_LONG_LDIF_FILE,true, false, true,
-                              OPTION_VALUE_LDIF_FILE, null, null,
+                              INFO_LDIFFILE_PLACEHOLDER.get(), null, null,
                               INFO_LDIFEXPORT_DESCRIPTION_LDIF_FILE.get());
       argParser.addArgument(ldifFile);
 
@@ -221,21 +222,23 @@ public class ExportLDIF extends TaskTool {
 
       backendID =
            new StringArgument("backendid", 'n', "backendID", true, false, true,
-                              "{backendID}", null, null,
+                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,
                               INFO_LDIFEXPORT_DESCRIPTION_BACKEND_ID.get());
       argParser.addArgument(backendID);
 
 
       includeBranchStrings =
            new StringArgument("includebranch", 'b', "includeBranch", false,
-                              true, true, "{branchDN}", null, null,
+                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_BRANCH.get());
       argParser.addArgument(includeBranchStrings);
 
 
       excludeBranchStrings =
            new StringArgument("excludebranch", 'B', "excludeBranch", false,
-                              true, true, "{branchDN}", null, null,
+                              true, true, INFO_BRANCH_DN_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_BRANCH.get());
       argParser.addArgument(excludeBranchStrings);
 
@@ -243,7 +246,8 @@ public class ExportLDIF extends TaskTool {
       includeAttributeStrings =
            new StringArgument(
                    "includeattribute", 'i', "includeAttribute",
-                   false, true, true, "{attribute}", null, null,
+                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
+                   null,
                    INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_ATTRIBUTE.get());
       argParser.addArgument(includeAttributeStrings);
 
@@ -251,21 +255,24 @@ public class ExportLDIF extends TaskTool {
       excludeAttributeStrings =
            new StringArgument(
                    "excludeattribute", 'e', "excludeAttribute",
-                   false, true, true, "{attribute}", null, null,
+                   false, true, true, INFO_ATTRIBUTE_PLACEHOLDER.get(), null,
+                   null,
                    INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_ATTRIBUTE.get());
       argParser.addArgument(excludeAttributeStrings);
 
 
       includeFilterStrings =
            new StringArgument("includefilter", 'I', "includeFilter",
-                              false, true, true, "{filter}", null, null,
+                              false, true, true, INFO_FILTER_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFEXPORT_DESCRIPTION_INCLUDE_FILTER.get());
       argParser.addArgument(includeFilterStrings);
 
 
       excludeFilterStrings =
            new StringArgument("excludefilter", 'E', "excludeFilter",
-                              false, true, true, "{filter}", null, null,
+                              false, true, true, INFO_FILTER_PLACEHOLDER.get(),
+                              null, null,
                               INFO_LDIFEXPORT_DESCRIPTION_EXCLUDE_FILTER.get());
       argParser.addArgument(excludeFilterStrings);
 
@@ -278,7 +285,8 @@ public class ExportLDIF extends TaskTool {
 
       wrapColumn =
            new IntegerArgument("wrapcolumn", null, "wrapColumn", false, false,
-                               true, "{wrapColumn}", 0, null, true, 0, false, 0,
+                               true, INFO_WRAP_COLUMN_PLACEHOLDER.get(), 0,
+                               null, true, 0, false, 0,
                                INFO_LDIFEXPORT_DESCRIPTION_WRAP_COLUMN.get());
       argParser.addArgument(wrapColumn);
 

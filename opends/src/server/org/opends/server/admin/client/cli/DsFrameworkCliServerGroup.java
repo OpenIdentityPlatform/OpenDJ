@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.cli;
 
 import static org.opends.messages.AdminMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.IOException;
@@ -331,13 +332,13 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     createGroupDescriptionArg = new StringArgument("description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
-        true, OPTION_VALUE_DESCRIPTION, "", null,
+        true, INFO_DESCRIPTION_PLACEHOLDER.get(), "", null,
         INFO_ADMIN_ARG_DESCRIPTION_DESCRIPTION.get());
     createGroupSubCmd.addArgument(createGroupDescriptionArg);
 
     createGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
-        OPTION_VALUE_GROUPNAME,
+        INFO_GROUPNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_CREATE_GROUP_GROUPNAME_DESCRIPTION.get());
     createGroupSubCmd.addArgument(createGroupGroupNameArg);
 
@@ -349,19 +350,19 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     modifyGroupDescriptionArg = new StringArgument("new-description",
         OPTION_SHORT_DESCRIPTION, OPTION_LONG_DESCRIPTION, false, false,
-        true, OPTION_VALUE_DESCRIPTION, "", null,
+        true, INFO_DESCRIPTION_PLACEHOLDER.get(), "", null,
         INFO_ADMIN_ARG_NEW_DESCRIPTION_DESCRIPTION.get());
     modifyGroupSubCmd.addArgument(modifyGroupDescriptionArg);
 
     modifyGroupGroupIdArg = new StringArgument("new-groupName",
         OPTION_SHORT_NEWGROUPNAME, OPTION_LONG_NEWGROUPNAME, false, false, true,
-        OPTION_VALUE_GROUPNAME, "", null,
+        INFO_GROUPNAME_PLACEHOLDER.get(), "", null,
         INFO_ADMIN_ARG_NEW_GROUPNAME_DESCRIPTION.get());
     modifyGroupSubCmd.addArgument(modifyGroupGroupIdArg);
 
     modifyGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
-        OPTION_VALUE_GROUPNAME,
+        INFO_GROUPNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     modifyGroupSubCmd.addArgument(modifyGroupGroupNameArg);
 
@@ -372,7 +373,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     deleteGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
-        OPTION_VALUE_GROUPNAME,
+        INFO_GROUPNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     deleteGroupSubCmd.addArgument(deleteGroupGroupNameArg);
 
@@ -389,13 +390,13 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     addToGoupMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
-        OPTION_VALUE_MEMBERNAME,
+        INFO_MEMBERNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_ADD_MEMBERNAME_DESCRIPTION.get());
     addToGroupSubCmd.addArgument(addToGoupMemberNameArg);
 
     addToGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
-        OPTION_VALUE_GROUPNAME,
+        INFO_GROUPNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     addToGroupSubCmd.addArgument(addToGroupGroupNameArg);
 
@@ -407,13 +408,13 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     removeFromGoupMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
-        OPTION_VALUE_MEMBERNAME,
+        INFO_MEMBERNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_REMOVE_MEMBERNAME_DESCRIPTION.get());
     removeFromGroupSubCmd.addArgument(removeFromGoupMemberNameArg);
 
     removeFromGroupGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
-        OPTION_VALUE_GROUPNAME,
+        INFO_GROUPNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     removeFromGroupSubCmd.addArgument(removeFromGroupGroupNameArg);
 
@@ -425,7 +426,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     listMembersGroupNameArg = new StringArgument("groupName",
         OPTION_SHORT_GROUPNAME, OPTION_LONG_GROUPNAME, true, true,
-        OPTION_VALUE_GROUPNAME,
+        INFO_GROUPNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_GROUPNAME_DESCRIPTION.get());
     listMembersSubCmd.addArgument(listMembersGroupNameArg);
 
@@ -437,7 +438,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
 
     listMembershipMemberNameArg = new StringArgument("memberName",
         OPTION_SHORT_MEMBERNAME, OPTION_LONG_MEMBERNAME, true, true,
-        OPTION_VALUE_MEMBERNAME,
+        INFO_MEMBERNAME_PLACEHOLDER.get(),
         INFO_ADMIN_ARG_MEMBERNAME_DESCRIPTION.get());
     listMembershipSubCmd.addArgument(listMembershipMemberNameArg);
 

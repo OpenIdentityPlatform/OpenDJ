@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -78,7 +78,7 @@ public class IntegerArgument
    */
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
-                         boolean needsValue, String valuePlaceholder,
+                         boolean needsValue, Message valuePlaceholder,
                          Message description)
          throws ArgumentException
   {
@@ -125,7 +125,7 @@ public class IntegerArgument
    */
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
-                         boolean needsValue, String valuePlaceholder,
+                         boolean needsValue, Message valuePlaceholder,
                          boolean hasLowerBound, int lowerBound,
                          boolean hasUpperBound, int upperBound,
                          Message description)
@@ -183,7 +183,7 @@ public class IntegerArgument
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
                          boolean isMultiValued, boolean needsValue,
-                         String valuePlaceholder, int defaultValue,
+                         Message valuePlaceholder, int defaultValue,
                          String propertyName,
                          Message description)
          throws ArgumentException
@@ -242,7 +242,7 @@ public class IntegerArgument
   public IntegerArgument(String name, Character shortIdentifier,
                          String longIdentifier, boolean isRequired,
                          boolean isMultiValued, boolean needsValue,
-                         String valuePlaceholder, int defaultValue,
+                         Message valuePlaceholder, int defaultValue,
                          String propertyName, boolean hasLowerBound,
                          int lowerBound, boolean hasUpperBound, int upperBound,
                          Message description)

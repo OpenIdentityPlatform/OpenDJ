@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -143,7 +143,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
       StringArgument propertiesFileArgument = new StringArgument(
           "propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
-          false, false, true, OPTION_VALUE_PROP_FILE_PATH, null, null,
+          false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
@@ -158,7 +158,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
               OPTION_LONG_START_DATETIME,
               OPTION_SHORT_START_DATETIME,
               OPTION_LONG_START_DATETIME, false, false,
-              true, OPTION_VALUE_START_DATETIME,
+              true, INFO_START_DATETIME_PLACEHOLDER.get(),
               null, null,
               INFO_DESCRIPTION_START_DATETIME.get());
       argParser.addArgument(startArg, taskGroup);
@@ -167,7 +167,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
               OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
               OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL,
               OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
-              false, true, true, OPTION_VALUE_EMAIL_ADDRESS,
+              false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
               null, null, INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get());
       argParser.addArgument(completionNotificationArg, taskGroup);
 
@@ -175,7 +175,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
               OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
               OPTION_SHORT_ERROR_NOTIFICATION_EMAIL,
               OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
-              false, true, true, OPTION_VALUE_EMAIL_ADDRESS,
+              false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
               null, null, INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get());
       argParser.addArgument(errorNotificationArg, taskGroup);
 
@@ -183,7 +183,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
               OPTION_LONG_DEPENDENCY,
               OPTION_SHORT_DEPENDENCY,
               OPTION_LONG_DEPENDENCY,
-              false, true, true, OPTION_VALUE_TASK_ID,
+              false, true, true, INFO_TASK_ID_PLACEHOLDER.get(),
               null, null, INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
       argParser.addArgument(dependencyArg, taskGroup);
 
@@ -192,7 +192,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
               OPTION_LONG_FAILED_DEPENDENCY_ACTION,
               OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
               OPTION_LONG_FAILED_DEPENDENCY_ACTION,
-              false, true, true, OPTION_VALUE_ACTION,
+              false, true, true, INFO_ACTION_PLACEHOLDER.get(),
               null, null, INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
                 StaticUtils.collectionToString(fdaValSet, ","),
                 FailedDependencyAction.defaultValue().name()));

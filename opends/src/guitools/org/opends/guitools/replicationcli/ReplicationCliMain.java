@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.replicationcli;
@@ -79,7 +79,6 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.messages.UtilityMessages;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.QuickSetupLog;
@@ -264,7 +263,7 @@ public class ReplicationCliMain extends ConsoleApplication
     catch (ArgumentException ae)
     {
       Message message =
-        UtilityMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+        ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
       LOG.log(Level.SEVERE, "Complete error stack:", ae);
       returnValue = CANNOT_INITIALIZE_ARGS;

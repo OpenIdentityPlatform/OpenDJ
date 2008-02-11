@@ -316,7 +316,7 @@ public class UpgradeLauncher extends Launcher {
               FILE_OPTION_SHORT,
               FILE_OPTION_LONG,
               false, false, true,
-              "{file}",
+              INFO_FILE_PLACEHOLDER.get(),
               null, null, INFO_UPGRADE_DESCRIPTION_FILE.get());
       argParser.addArgument(file);
 
@@ -332,7 +332,7 @@ public class UpgradeLauncher extends Launcher {
               REVERT_ARCHIVE_OPTION_SHORT,
               REVERT_ARCHIVE_OPTION_LONG,
               false, false, true,
-              "{directory}",
+              INFO_DIRECTORY_PLACEHOLDER.get(),
               null, null, INFO_REVERT_DESCRIPTION_DIRECTORY.get());
       argParser.addArgument(reversionArchive);
 
