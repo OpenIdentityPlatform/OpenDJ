@@ -506,7 +506,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         String name = globalLongIDMap.get(longID).getName();
 
         Message message = ERR_SUBCMDPARSER_DUPLICATE_GLOBAL_ARG_LONG_ID.get(
-            longID, argumentName, name);
+            argument.getLongIdentifier(), argumentName, name);
         throw new ArgumentException(message);
       }
 
@@ -518,7 +518,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           String name    = s.getArgument(longID).getName();
 
           Message message = ERR_SUBCMDPARSER_GLOBAL_ARG_LONG_ID_CONFLICT.get(
-              longID, argumentName, name, cmdName);
+              argument.getLongIdentifier(), argumentName, name, cmdName);
           throw new ArgumentException(message);
         }
       }
@@ -782,6 +782,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         }
 
         // If we're not case-sensitive, then convert the name to lowercase.
+        String origArgName = argName;
         if (! longArgumentsCaseSensitive)
         {
           argName = toLowerCase(argName);
@@ -823,7 +824,8 @@ public class SubCommandArgumentParser extends ArgumentParser
             {
               // There is no such global argument.
               Message message =
-                  ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID.get(argName);
+                  ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_LONG_ID.get(
+                      origArgName);
               throw new ArgumentException(message);
             }
           }
@@ -861,7 +863,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 // There is no such global or subcommand argument.
                 Message message =
-                    ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID.get(argName);
+                    ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_LONG_ID.get(origArgName);
                 throw new ArgumentException(message);
               }
             }
@@ -912,7 +914,7 @@ public class SubCommandArgumentParser extends ArgumentParser
           if (a.hasValue() && (! a.isMultiValued()))
           {
             Message message =
-                ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(argName);
+                ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName);
             throw new ArgumentException(message);
           }
 
@@ -923,7 +925,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           if (argValue != null)
           {
             Message message =
-                ERR_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(argName);
+                ERR_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(
+                    origArgName);
             throw new ArgumentException(message);
           }
         }

@@ -327,7 +327,8 @@ public class SubCommand
       if (longIDMap.containsKey(longID))
       {
         Message message = ERR_ARG_SUBCOMMAND_DUPLICATE_LONG_ID.get(
-            argumentName, name, longID, longIDMap.get(longID).getName());
+            argumentName, name, argument.getLongIdentifier(),
+            longIDMap.get(longID).getName());
         throw new ArgumentException(message);
       }
 
@@ -335,7 +336,8 @@ public class SubCommand
       if (arg != null)
       {
         Message message = ERR_ARG_SUBCOMMAND_ARGUMENT_LONG_ID_GLOBAL_CONFLICT.
-            get(argumentName, name, longID, arg.getName());
+            get(argumentName, name, argument.getLongIdentifier(),
+                arg.getName());
         throw new ArgumentException(message);
       }
     }

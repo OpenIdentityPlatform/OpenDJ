@@ -622,7 +622,7 @@ public class ArgumentParser
         String conflictingName = longIDMap.get(longID).getName();
 
         Message message = ERR_ARGPARSER_DUPLICATE_LONG_ID.get(
-            argument.getName(), String.valueOf(longID), conflictingName);
+            argument.getName(), argument.getLongIdentifier(), conflictingName);
         throw new ArgumentException(message);
       }
     }
@@ -860,6 +860,7 @@ public class ArgumentParser
         }
 
         // If we're not case-sensitive, then convert the name to lowercase.
+        String origArgName = argName;
         if (! longArgumentsCaseSensitive)
         {
           argName = toLowerCase(argName);
@@ -898,7 +899,7 @@ public class ArgumentParser
           {
             // There is no such argument registered.
             Message message =
-                ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(argName);
+                ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(origArgName);
             throw new ArgumentException(message);
           }
         }
@@ -929,7 +930,8 @@ public class ArgumentParser
             if ((i+1) == numArguments)
             {
               Message message =
-                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID.get(argName);
+                  ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID.get(
+                      origArgName);
               throw new ArgumentException(message);
             }
 
@@ -940,7 +942,7 @@ public class ArgumentParser
           if (! a.valueIsAcceptable(argValue, invalidReason))
           {
             Message message = ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(
-                argValue, argName, invalidReason.toString());
+                argValue, origArgName, invalidReason.toString());
             throw new ArgumentException(message);
           }
 
@@ -949,7 +951,7 @@ public class ArgumentParser
           if (a.hasValue() && (! a.isMultiValued()))
           {
             Message message =
-                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(argName);
+                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName);
             throw new ArgumentException(message);
           }
 
@@ -960,7 +962,8 @@ public class ArgumentParser
           if (argValue != null)
           {
             Message message =
-                ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(argName);
+                ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(
+                    origArgName);
             throw new ArgumentException(message);
           }
         }
