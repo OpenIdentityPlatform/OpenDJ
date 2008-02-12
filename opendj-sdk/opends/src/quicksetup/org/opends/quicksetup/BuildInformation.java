@@ -28,6 +28,7 @@
 package org.opends.quicksetup;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.SetupUtils.*;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.DynamicConstants;
@@ -56,27 +57,6 @@ public class BuildInformation implements Comparable {
 
   static private final Logger LOG =
           Logger.getLogger(BuildInformation.class.getName());
-
-  // These string values must be synchronized with Directory
-  // Server's main method.  These string values are considered
-  // stable by the server team and not candidates for
-  // internationalization.
-  static private final String NAME = "Name";
-  static private final String BUILD_ID = "Build ID";
-  static private final String MAJOR_VERSION = "Major Version";
-  static private final String MINOR_VERSION = "Minor Version";
-  static private final String POINT_VERSION = "Point Version";
-  static private final String REVISION_NUMBER = "Revision Number";
-  static private final String VERSION_QUALIFIER = "Version Qualifier";
-  static private final String INCOMPATIBILITY_EVENTS = "Upgrade Event IDs";
-  static private final String FIX_IDS = "Fix IDs";
-  static private final String DEBUG_BUILD = "Debug Build";
-  static private final String BUILD_OS = "Build OS";
-  static private final String BUILD_USER = "Build User";
-  static private final String BUILD_JAVA_VERSION = "Build Java Version";
-  static private final String BUILD_JAVA_VENDOR = "Build Java Vendor";
-  static private final String BUILD_JVM_VERSION = "Build JVM Version";
-  static private final String BUILD_JVM_VENDOR = "Build JVM Vendor";
 
   /**
    * Reads build information for a particular installation by reading the
@@ -391,7 +371,6 @@ public class BuildInformation implements Comparable {
                 INFO_ERROR_PROP_VALUE.get(prop), null);
       }
     }
-
   }
 
 }

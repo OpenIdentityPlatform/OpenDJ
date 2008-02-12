@@ -82,6 +82,44 @@ public class SetupUtils
    */
   public static final String LIBRARIES_PATH_RELATIVE = "lib";
 
+  /* These string values must be synchronized with Directory Server's main
+   * method.  These string values are considered stable by the server team and
+   * not candidates for internationalization. */
+  /** Product name. */
+  public static final String NAME = "Name";
+  /** Build ID. */
+  public static final String BUILD_ID = "Build ID";
+  /** Major version. */
+  public static final String MAJOR_VERSION = "Major Version";
+  /** Minor version. */
+  public static final String MINOR_VERSION = "Minor Version";
+  /** Point version of the product. */
+  public static final String POINT_VERSION = "Point Version";
+  /** Revision number in SVN. */
+  public static final String REVISION_NUMBER = "Revision Number";
+  /** The version qualifier. */
+  public static final String VERSION_QUALIFIER = "Version Qualifier";
+  /** Incompatibilities found between builds (used by the upgrade tool). */
+  public static final String INCOMPATIBILITY_EVENTS = "Upgrade Event IDs";
+  /** Fix IDs associated with the build. */
+  public static final String FIX_IDS = "Fix IDs";
+  /** Debug build identifier. */
+  public static final String DEBUG_BUILD = "Debug Build";
+  /** The OS used during the build. */
+  public static final String BUILD_OS = "Build OS";
+  /** The user that generated the build. */
+  public static final String BUILD_USER = "Build User";
+  /** The java version used to generate the build. */
+  public static final String BUILD_JAVA_VERSION = "Build Java Version";
+  /** The java vendor of the JVM used to build. */
+  public static final String BUILD_JAVA_VENDOR = "Build Java Vendor";
+  /** The version of the JVM used to create the build. */
+  public static final String BUILD_JVM_VERSION = "Build JVM Version";
+  /** The vendor of the JVM used to create the build. */
+  public static final String BUILD_JVM_VENDOR = "Build JVM Vendor";
+  /** The build number. */
+  public static final String BUILD_NUMBER = "Build Number";
+
   /**
    * Creates a MakeLDIF template file using the provided information.
    *
