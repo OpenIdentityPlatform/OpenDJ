@@ -823,8 +823,15 @@ public class ConfigGuideGeneration {
   private String getBaseDN(
     AbstractManagedObjectDefinition mo, LDAPProfile ldapProfile) {
 
-    if (relList.get(mo.getName()) != null) {
-      return ldapProfile.getRelationRDNSequence(relList.get(mo.getName()));
+    RelationDefinition rel = relList.get(mo.getName());
+    if (rel != null) {
+      String baseDn = ldapProfile.getRelationRDNSequence(rel);
+      if (!baseDn.equals("")) {
+        return baseDn;
+      } else {
+        // Check the parent relation
+        return getBaseDN(rel.getParentDefinition(), ldapProfile);
+      }
     } else if (moList.get(mo.getParent().getName()) != null) {
       // check its superior
       return getBaseDN(moList.get(mo.getParent().getName()), ldapProfile);
@@ -1118,7 +1125,7 @@ public class ConfigGuideGeneration {
 
   private void htmlHeader(String pageTitle) {
     htmlBuff.append(getHtmlHeader(pageTitle) +
-      "<body \">\n");
+      "<body>\n");
 
   }
 
@@ -1140,22 +1147,22 @@ public class ConfigGuideGeneration {
 
       "<span><a " +
       (activeTab.equals(INHERITANCE_TREE_FILE) ? "class=\"activetab\" " : "") +
-      "href=" + INHERITANCE_TREE_FILE +
+      "href=\"" + INHERITANCE_TREE_FILE + "\"" +
       " title=\"Inheritance View of Components\">Inheritance</a></span> " +
 
       "<span><a " +
       (activeTab.equals(RELATION_TREE_FILE) ? "class=\"activetab\" " : "") +
-      "href=" + RELATION_TREE_FILE +
+      "href=\"" + RELATION_TREE_FILE + "\"" +
       " title=\"Relational View of Components\">Structure</a></span> " +
 
       "<span><a " +
       (activeTab.equals(MO_LIST_FILE) ? "class=\"activetab\" " : "") +
-      "href=" + MO_LIST_FILE +
+      "href=\"" + MO_LIST_FILE + "\"" +
       " title=\"Alphabetical Index of Components\">Components</a></span> " +
 
       "<span><a " +
       (activeTab.equals(PROPERTIES_INDEX_FILE) ? "class=\"activetab\" " : "") +
-      "href=" + PROPERTIES_INDEX_FILE +
+      "href=\"" + PROPERTIES_INDEX_FILE + "\"" +
       " title=\"Alphabetical Index of Properties\" >Properties</a></span>" +
 
       "</div>" +
