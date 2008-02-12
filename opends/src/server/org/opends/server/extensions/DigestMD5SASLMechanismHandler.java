@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -672,14 +672,6 @@ public class DigestMD5SASLMechanismHandler
       bindOperation.setAuthFailureReason(message);
       return;
     }
-    else if (responseDigestURI == null)
-    {
-      bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-      Message message = ERR_SASLDIGESTMD5_NO_DIGEST_URI_IN_RESPONSE.get();
-      bindOperation.setAuthFailureReason(message);
-      return;
-    }
     else if (responseDigest == null)
     {
       bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
@@ -687,6 +679,18 @@ public class DigestMD5SASLMechanismHandler
       Message message = ERR_SASLDIGESTMD5_NO_DIGEST_IN_RESPONSE.get();
       bindOperation.setAuthFailureReason(message);
       return;
+    }
+
+
+    // Slight departure from draft-ietf-sasl-rfc2831bis-06 in order to
+    // support legacy/broken client implementations, such as Solaris
+    // Native LDAP Client, which omit digest-uri directive. the presence
+    // of digest-uri directive erroneously read "may" in the RFC and has
+    // been fixed later in the DRAFT to read "must". if the client does
+    // not include digest-uri directive use the empty string instead.
+    if (responseDigestURI == null)
+    {
+      responseDigestURI = "";
     }
 
 
