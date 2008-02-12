@@ -28,8 +28,6 @@ package org.opends.server.loggers;
 import org.opends.messages.Message;
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.InitializationException;
@@ -49,12 +47,6 @@ public class SizeBasedRotationPolicy implements
     RotationPolicy<SizeLimitLogRotationPolicyCfg>,
     ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
   private long sizeLimit;
 
   SizeLimitLogRotationPolicyCfg currentConfig;
@@ -109,13 +101,6 @@ public class SizeBasedRotationPolicy implements
   public boolean rotateFile(MultifileTextWriter writer)
   {
     long fileSize = writer.getBytesWritten();
-
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("%d bytes written in current log file. " +
-          "Next rotation occurs at %d bytes", writer.getBytesWritten(),
-                                              sizeLimit);
-    }
 
     return fileSize >= sizeLimit;
   }
