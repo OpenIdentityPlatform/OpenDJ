@@ -9866,28 +9866,41 @@ public class DirectoryServer
 
   private static
   void printFullVersionInformation() {
-    System.out.println(NOTE_VERSION.get(getVersionString()));
-    System.out.println(NOTE_BUILD_ID.get(BUILD_ID));
-    System.out.println(NOTE_MAJOR_VERSION.get(MAJOR_VERSION));
-    System.out.println(NOTE_MINOR_VERSION.get(MINOR_VERSION));
-    System.out.println(NOTE_POINT_VERSION.get(POINT_VERSION));
-    System.out.println(NOTE_VERSION_QUALIFIER.get(VERSION_QUALIFIER));
+    /**
+     * This option is used by the upgrade to identify the server build and it
+     * can eventually also be used to be sent to the support in case of an
+     * issue.  Since this is not a public interface and since it is better
+     * to always have it in English for the support team, the message is
+     * not localized.
+     */
+    String separator = ": ";
+    System.out.println(getVersionString());
+    System.out.println(SetupUtils.BUILD_ID+separator+BUILD_ID);
+    System.out.println(SetupUtils.MAJOR_VERSION+separator+MAJOR_VERSION);
+    System.out.println(SetupUtils.MINOR_VERSION+separator+MINOR_VERSION);
+    System.out.println(SetupUtils.POINT_VERSION+separator+POINT_VERSION);
+    System.out.println(SetupUtils.VERSION_QUALIFIER+separator+
+        VERSION_QUALIFIER);
     if (BUILD_NUMBER > 0)
     {
-      System.out.println(NOTE_BUILD_NUMBER.get(
-                     new DecimalFormat("000").format(BUILD_NUMBER)));
+      System.out.println(SetupUtils.BUILD_NUMBER+separator+
+                     new DecimalFormat("000").format(BUILD_NUMBER));
     }
-    System.out.println(NOTE_REVISION_NUMBER.get(REVISION_NUMBER));
-    System.out.println(NOTE_FIX_IDS.get(FIX_IDS));
-    System.out.println(NOTE_DEBUG_BUILD.get(DEBUG_BUILD));
-    System.out.println(NOTE_BUILD_OS.get(BUILD_OS));
-    System.out.println(NOTE_BUILD_USER.get(BUILD_USER));
-    System.out.println(NOTE_BUILD_JAVA_VERSION.get(BUILD_JAVA_VERSION));
-    System.out.println(NOTE_BUILD_JAVA_VENDOR.get(BUILD_JAVA_VENDOR));
-    System.out.println(NOTE_BUILD_JVM_VERSION.get(BUILD_JVM_VERSION));
-    System.out.println(NOTE_BUILD_JVM_VENDOR.get(BUILD_JVM_VENDOR));
-    System.out.println(NOTE_UPGRADE_EVENTS.get(StaticUtils.listToString(
-                      VersionCompatibilityIssue.getAllEvents(), ",")));
+    System.out.println(SetupUtils.REVISION_NUMBER+separator+REVISION_NUMBER);
+    System.out.println(SetupUtils.FIX_IDS+separator+FIX_IDS);
+    System.out.println(SetupUtils.DEBUG_BUILD+separator+DEBUG_BUILD);
+    System.out.println(SetupUtils.BUILD_OS+separator+BUILD_OS);
+    System.out.println(SetupUtils.BUILD_USER+separator+BUILD_USER);
+    System.out.println(SetupUtils.BUILD_JAVA_VERSION+separator+
+        BUILD_JAVA_VERSION);
+    System.out.println(SetupUtils.BUILD_JAVA_VENDOR+separator+
+        BUILD_JAVA_VENDOR);
+    System.out.println(SetupUtils.BUILD_JVM_VERSION+separator+
+        BUILD_JVM_VERSION);
+    System.out.println(SetupUtils.BUILD_JVM_VENDOR+separator+BUILD_JVM_VENDOR);
+    System.out.println(SetupUtils.INCOMPATIBILITY_EVENTS+separator+
+        StaticUtils.listToString(
+            VersionCompatibilityIssue.getAllEvents(), ","));
   }
 
 }
