@@ -144,7 +144,7 @@ public class UninstallLauncher extends Launcher {
         INFO_UNINSTALL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
     try
     {
-      argParser.initializeGlobalArguments(System.err);
+      argParser.initializeGlobalArguments(System.out);
     }
     catch (ArgumentException ae)
     {

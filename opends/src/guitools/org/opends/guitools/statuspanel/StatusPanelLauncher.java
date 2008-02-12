@@ -33,6 +33,7 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.opends.guitools.statuspanel.StatusCli.ErrorReturnCode;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
 import org.opends.server.core.DirectoryServer;
@@ -106,13 +107,13 @@ public class StatusPanelLauncher
       {
         // TODO Auto-generated catch block
       }
-      System.exit(1);
+      System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
     }
     else
     if (printUsage)
     {
       printUsage(System.out);
-      System.exit(1);
+      System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
 
     } else
     {
@@ -243,7 +244,7 @@ public class StatusPanelLauncher
     }
     catch (Throwable t)
     {
-      System.out.println("ERROR: "+t);
+      System.err.println("ERROR: "+t);
       t.printStackTrace();
     }
   }

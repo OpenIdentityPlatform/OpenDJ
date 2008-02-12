@@ -267,7 +267,7 @@ class StatusCli extends ConsoleApplication
     argParser = new StatusCliArgumentParser(StatusCli.class.getName());
     try
     {
-      argParser.initializeGlobalArguments(getErrorStream());
+      argParser.initializeGlobalArguments(getOutputStream());
     }
     catch (ArgumentException ae)
     {
