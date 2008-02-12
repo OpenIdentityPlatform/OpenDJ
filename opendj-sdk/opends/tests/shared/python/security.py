@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2007 Sun Microsystems, Inc.
+#      Copyright 2008 Sun Microsystems, Inc.
 
 def retrieve_aci(filename):
     aci_file = open(filename,"r")

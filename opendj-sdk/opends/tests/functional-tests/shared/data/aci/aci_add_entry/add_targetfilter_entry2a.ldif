@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2007 Sun Microsystems, Inc.
+#      Copyright 2008 Sun Microsystems, Inc.
 #
 
 dn: uid=jrunner, ou=People, ou=non-aci branch, o=Add Tests, o=ACI Tests, dc=example,dc=com

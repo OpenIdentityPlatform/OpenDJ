@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+rem      Copyright 2007-2008 Sun Microsystems, Inc.
 
 echo Backing configuration up
 move "${tests.config}" "${tests.config.backup}"

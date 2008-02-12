@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2008 Sun Microsystems, Inc.
 #
 
 dn: uid=jwallace,ou=People, ou=branch one, ou=aci branch, o=Modify RDN Tests, o=ACI Tests, dc=example,dc=com

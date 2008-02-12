@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2008 Sun Microsystems, Inc.
 #
 
 dn: cn=testuser-1,ou=people,o=example
