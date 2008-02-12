@@ -780,8 +780,8 @@ public class ConfigGuideGeneration {
 
     private void genWelcome() {
     htmlHeader("OpenDS Configuration Reference - Welcome");
-    heading2("Welcome");
-    paragraph("Welcome to the OpenDS Configuration Reference. This document " +
+    heading2("About This Reference");
+    paragraph("This reference " +
       "describes the OpenDS configuration properties that can be manipulated " +
       "with the dsconfig command.");
     paragraph("Configuration components are grouped according to the area of " +
@@ -814,6 +814,14 @@ public class ConfigGuideGeneration {
       "of all configuration properties, and indicates the configuration " +
       "component to which each property applies.");
     endList();
+
+    newline();
+    paragraph("When you set up OpenDS, certain components are created in the " +
+      "configuration by default. These components are configured with " +
+      "specific values, which are not necessarily the same as the " +
+      "\"default values\" of new components that you create using dsconfig. " +
+      "The \"default values\" listed in this document refer to the values " +
+      "of the new components that you create using dsconfig.");
 
     htmlFooter();
     generateFile(WELCOME_FILE);
