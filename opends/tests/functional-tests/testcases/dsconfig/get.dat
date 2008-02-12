@@ -21,7 +21,7 @@
 # CDDL HEADER END
 #
 #
-#      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2008 Sun Microsystems, Inc.
 #
 get-account-status-notification-handler-prop:handler-name:Error Log Handler:account-status-notification-type:
 get-alert-handler-prop:handler-name:JMX Alert Handler:disabled-alert-type:enabled-alert-type:

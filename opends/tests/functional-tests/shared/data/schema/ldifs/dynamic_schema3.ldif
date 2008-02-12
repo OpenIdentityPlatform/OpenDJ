@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2007 Sun Microsystems, Inc.
+#      Copyright 2008 Sun Microsystems, Inc.
 #
 
 dn: addschema3AT=schema3,dc=dynamic-schema-tests-2,dc=example,dc=com

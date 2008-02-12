@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2006-2007 Sun Microsystems, Inc.
+#      Copyright 2006-2008 Sun Microsystems, Inc.
 #
 
 dn: uddiUUID=4001,uddiBusinessKey=biz,ou=uddi tests,o=rfc tests,dc=example,dc=com

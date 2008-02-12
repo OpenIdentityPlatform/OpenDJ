@@ -20,7 +20,7 @@
 #
 # CDDL HEADER END
 #
-#      Portions Copyright 2007-2008 Sun Microsystems, Inc.
+#      Copyright 2007-2008 Sun Microsystems, Inc.
 #
 
 uid=jcrawler, ou=People, ou=Level One, o=SASL Tests, dc=example,dc=com
