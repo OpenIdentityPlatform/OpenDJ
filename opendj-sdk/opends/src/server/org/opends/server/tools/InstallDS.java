@@ -1622,7 +1622,18 @@ public class InstallDS extends ConsoleApplication
         errorWithPath = true;
       }
     }
-    if (!errorWithPath)
+    boolean pwdProvided = true;
+    if (pwd == null)
+    {
+      pwdProvided = false;
+      errorMessages.add(INFO_ERROR_NO_KEYSTORE_PASSWORD.get());
+    }
+    else if (pwd.length() == 0)
+    {
+      pwdProvided = false;
+      errorMessages.add(INFO_ERROR_EMPTY_KEYSTORE_PASSWORD.get());
+    }
+    if (!errorWithPath && pwdProvided)
     {
       try
       {
@@ -1927,7 +1938,9 @@ public class InstallDS extends ConsoleApplication
           msg.getDescriptor().equals(INFO_PKCS11_KEYSTORE_DOES_NOT_EXIST) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JKS_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE))
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE) ||
+          msg.getDescriptor().equals(INFO_ERROR_NO_KEYSTORE_PASSWORD) ||
+          msg.getDescriptor().equals(INFO_ERROR_EMPTY_KEYSTORE_PASSWORD))
       {
         found = true;
         break;
