@@ -100,7 +100,7 @@ subtargets=
     <target name="uninstall" depends="status-do,stop-do,uninstall-do"/>
 	<!-- Uninstallation section - bottom -->
 	
-	<!-- Configuration secton - top -->
+	<!-- Configuration section - top -->
     <target name="configure-do"
             description="configures product to listen on the right port number"
             if="product.installed" >
