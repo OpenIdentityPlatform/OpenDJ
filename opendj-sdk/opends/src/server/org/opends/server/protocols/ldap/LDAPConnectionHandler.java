@@ -41,8 +41,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -80,6 +78,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SSLClientAuthPolicy;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -704,81 +703,26 @@ public final class LDAPConnectionHandler extends
     // Perform any additional initialization that might be required.
     statTracker = new LDAPStatistics(handlerName + " Statistics");
 
-
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
-    LinkedList<ServerSocket> testListenSockets = new LinkedList<ServerSocket>();
-    try
-    {
-      for (InetAddress a : listenAddresses)
-      {
-        try
-        {
-          // HACK:
-          // With dual stacks we can have a situation when INADDR_ANY/PORT
-          // is bound in TCP4 space but available in TCP6 space and since
-          // JavaServerSocket implemantation will always use TCP46 on dual
-          // stacks the bind below will always succeed in such cases thus
-          // shadowing anything that is already bound to INADDR_ANY/PORT.
-          // While technically correct, with IPv4 and IPv6 being separate
-          // address spaces, it presents a problem to end users because a
-          // common case scenario is to have a single service serving both
-          // address spaces ie listening to the same port in both spaces
-          // on wildcard addresses 0 and ::. ServerSocket implemantation
-          // does not provide any means of working with each address space
-          // separately such as doing TCP4 or TCP6 only binds thus we have
-          // to do a dummy connect to INADDR_ANY/PORT to check if it is
-          // bound to something already. This is only needed for wildcard
-          // addresses as specific IPv4 or IPv6 addresses will always be
-          // handled in their respective address space.
-          if (a.isAnyLocalAddress()) {
-            Socket s = new Socket();
-            try {
-              // This might fail on some stacks but this is the best we
-              // can do. No need for explicit timeout since it is local
-              // address and we have to know for sure unless it fails.
-              s.connect(new InetSocketAddress(a, listenPort));
-            } catch (IOException e) {
-              // Expected, ignore.
-            }
-            if (s.isConnected()) {
-              s.close();
-              throw new IOException(
-                ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
-            }
-          }
-
-          ServerSocket s = new ServerSocket();
-          s.setReuseAddress(allowReuseAddress);
-          s.bind(new InetSocketAddress(a, listenPort));
-          testListenSockets.add(s);
+    for (InetAddress a : listenAddresses) {
+      try {
+        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress)) {
+          throw new IOException(
+            ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
         }
-        catch (IOException e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.
-              get(String.valueOf(config.dn()), a.getHostAddress(), listenPort,
-                  getExceptionMessage(e));
-          logError(message);
-          throw new InitializationException(message);
+      } catch (IOException e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
+
+        Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
+          String.valueOf(config.dn()), a.getHostAddress(),
+          listenPort, getExceptionMessage(e));
+        logError(message);
+        throw new InitializationException(message);
       }
     }
-    finally
-    {
-      for (ServerSocket s : testListenSockets)
-      {
-        try
-        {
-          s.close();
-        } catch (Exception e) {}
-      }
-    }
-
 
     // Create and start the request handlers.
     requestHandlers = new LDAPRequestHandler[numRequestHandlers];
@@ -790,14 +734,12 @@ public final class LDAPConnectionHandler extends
       requestHandlers[i].start();
     }
 
-
     // Register the set of supported LDAP versions.
     DirectoryServer.registerSupportedLDAPVersion(3, this);
     if (config.isAllowLDAPV2())
     {
       DirectoryServer.registerSupportedLDAPVersion(2, this);
     }
-
 
     // Register this as a change listener.
     config.addLDAPChangeListener(this);
@@ -813,6 +755,32 @@ public final class LDAPConnectionHandler extends
                                            List<Message> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg config = (LDAPConnectionHandlerCfg) configuration;
+
+    // Attempt to bind to the listen port on all configured addresses to
+    // verify whether the connection handler will be able to start.
+    listenPort = config.getListenPort();
+    listenAddresses = config.getListenAddress();
+    allowReuseAddress = config.isAllowTCPReuseAddress();
+
+    for (InetAddress a : listenAddresses) {
+      try {
+        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress)) {
+          throw new IOException(
+            ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+        }
+      } catch (IOException e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
+          String.valueOf(config.dn()), a.getHostAddress(),
+          listenPort, getExceptionMessage(e));
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
+
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 

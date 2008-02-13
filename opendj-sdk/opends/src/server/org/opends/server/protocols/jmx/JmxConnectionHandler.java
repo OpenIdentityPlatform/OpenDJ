@@ -36,8 +36,6 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -60,6 +58,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -328,48 +327,16 @@ public final class JmxConnectionHandler extends
     // Configuration is ok.
     currentConfig = config;
 
-
     // Attempt to bind to the listen port to verify whether the connection
     // handler will be able to start.
-    ServerSocket s = null;
     try
     {
-      // HACK:
-      // With dual stacks we can have a situation when INADDR_ANY/PORT
-      // is bound in TCP4 space but available in TCP6 space and since
-      // JavaServerSocket implemantation will always use TCP46 on dual
-      // stacks the bind below will always succeed in such cases thus
-      // shadowing anything that is already bound to INADDR_ANY/PORT.
-      // While technically correct, with IPv4 and IPv6 being separate
-      // address spaces, it presents a problem to end users because a
-      // common case scenario is to have a single service serving both
-      // address spaces ie listening to the same port in both spaces
-      // on wildcard addresses 0 and ::. ServerSocket implemantation
-      // does not provide any means of working with each address space
-      // separately such as doing TCP4 or TCP6 only binds thus we have
-      // to do a dummy connect to INADDR_ANY/PORT to check if it is
-      // bound to something already. This is only needed for wildcard
-      // addresses as specific IPv4 or IPv6 addresses will always be
-      // handled in their respective address space.
-      Socket clientSocket = new Socket();
-      try {
-        // This might fail on some stacks but this is the best we
-        // can do. No need for explicit timeout since it is local
-        // address and we have to know for sure unless it fails.
-        clientSocket.connect(new InetSocketAddress(
-          config.getListenPort()));
-      } catch (IOException e) {
-        // Expected, ignore.
-      }
-      if (clientSocket.isConnected()) {
-        clientSocket.close();
+      if (StaticUtils.isAddressInUse(
+        new InetSocketAddress(config.getListenPort()).getAddress(),
+        config.getListenPort(), true)) {
         throw new IOException(
           ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
       }
-
-      s = new ServerSocket();
-      s.setReuseAddress(true);
-      s.bind(new InetSocketAddress(config.getListenPort()));
     }
     catch (Exception e)
     {
@@ -378,13 +345,6 @@ public final class JmxConnectionHandler extends
               getExceptionMessage(e));
       logError(message);
       throw new InitializationException(message);
-    }
-    finally
-    {
-      try
-      {
-        s.close();
-      } catch (Exception e) {}
     }
 
     if (config.isUseSSL()) {
@@ -441,6 +401,27 @@ public final class JmxConnectionHandler extends
                                            List<Message> unacceptableReasons)
   {
     JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
+
+    // Attempt to bind to the listen port to verify whether the connection
+    // handler will be able to start.
+    try
+    {
+      if (StaticUtils.isAddressInUse(
+        new InetSocketAddress(config.getListenPort()).getAddress(),
+        config.getListenPort(), true)) {
+        throw new IOException(
+          ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+      }
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_JMX_CONNHANDLER_CANNOT_BIND.
+          get(String.valueOf(config.dn()), config.getListenPort(),
+              getExceptionMessage(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
+
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
