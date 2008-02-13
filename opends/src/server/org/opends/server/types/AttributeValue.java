@@ -28,13 +28,12 @@ package org.opends.server.types;
 
 
 
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
+
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1OctetString;
 
 
 
@@ -237,114 +236,6 @@ public final class AttributeValue
     }
 
     return normalizedValue.stringValue();
-  }
-
-
-
-  /**
-   * Retrieves a string representation of the user-defined form of
-   * this attribute value in a form suitable for use in a DN.
-   *
-   * @return  A string representation of the user-defined form of this
-   *          attribute value in a form suitable for use in a DN.
-   */
-  public String getDNStringValue()
-  {
-    return getDNValue(getStringValue());
-  }
-
-
-
-  /**
-   * Retrieves a string representation of the normalized form of this
-   * attribute value in a form suitable for use in a DN.
-   *
-   * @return  A string representation of the normalized form of this
-   *          attribute value in a form suitable for use in a DN.
-   *
-   * @throws  DirectoryException  If an error occurs while trying to
-   *                              normalize the value (e.g., if it is
-   *                              not acceptable for use with the
-   *                              associated equality matching rule).
-   */
-  public String getNormalizedDNStringValue()
-         throws DirectoryException
-  {
-    return getDNValue(getNormalizedStringValue());
-  }
-
-
-
-  /**
-   * Retrieves a version of the provided value in a form that is
-   * properly escaped for use in a DN or RDN.
-   *
-   * @param  value  The value to be represented in a DN-safe form.
-   *
-   * @return  A version of the provided value in a form that is
-   *          properly escaped for use in a DN or RDN.
-   */
-  private static String getDNValue(String value)
-  {
-    if ((value == null) || (value.length() == 0))
-    {
-      return "";
-    }
-
-    StringBuilder buffer = new StringBuilder(value);
-
-    int length = buffer.length();
-    for (int i=0; i < length; i++)
-    {
-      char c = buffer.charAt(i);
-
-      if ((c < ' ') || (c > '~'))
-      {
-        buffer.deleteCharAt(i);
-        length -= 1;
-
-        for (byte b : getBytes(String.valueOf(c)))
-        {
-          buffer.insert(i++, "\\");
-          buffer.insert(i++, byteToLowerHex(b));
-          i++;
-
-          length += 3;
-        }
-
-        i -= 1;
-      }
-      else
-      {
-        switch (buffer.charAt(i))
-        {
-          case ',':
-          case '+':
-          case '"':
-          case '\\':
-          case '<':
-          case '>':
-          case ';':
-            buffer.insert(i++, '\\');
-            length++;
-        }
-      }
-    }
-
-    char c = buffer.charAt(0);
-    if ((c == ' ') || (c == '#'))
-    {
-      buffer.insert(0, '\\');
-      length++;
-    }
-
-    if (buffer.charAt(length-1) == ' ')
-    {
-      buffer.insert(length-1, '\\');
-      length++;
-    }
-
-    return buffer.toString();
   }
 
 

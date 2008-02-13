@@ -26,7 +26,7 @@
  */
 package org.opends.server.util;
 
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -36,10 +36,9 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -167,7 +166,7 @@ public final class TestLDIFWriter extends UtilTestCase {
         "changetype: modify\n" +
         "delete: description\n" +
         "\n",
-        "dn: uid=rogasawara,ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius\n" +
+        "dn:: dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVz\n" +
         "changetype: modify\n" +
         "add: description\n" +
         "description:: dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVz" +
@@ -258,7 +257,7 @@ public final class TestLDIFWriter extends UtilTestCase {
   }
 
   /**
-   * Test the {@link LDIFWriter#writeComment(String, int)} method.
+   * Test the {@link LDIFWriter#writeComment(Message, int)} method.
    *
    * @param comment
    *          The input comment string.
