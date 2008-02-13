@@ -79,6 +79,8 @@ public class ConfigGuideGeneration {
 
   private final String OPENDS_WIKI = "https://www.opends.org/wiki";
   private final String ACI_SYNTAX_PAGE = OPENDS_WIKI + "/page/ACISyntax";
+  private final String DURATION_SYNTAX_PAGE = OPENDS_WIKI +
+    "/page/DefinitionDuration";
   private final String CSS_FILE = "opends-config.css";
 
   private final String MAIN_FILE = "index.html";
@@ -906,6 +908,8 @@ public class ConfigGuideGeneration {
       public String visitDuration(DurationPropertyDefinition prop, Void p) {
         String durationStr = "";
 
+        durationStr += getLink("A duration Syntax", DURATION_SYNTAX_PAGE) +
+          ". ";
         if (prop.isAllowUnlimited()) {
           durationStr += "A value of \"-1\" or \"unlimited\" for no limit. ";
         }
