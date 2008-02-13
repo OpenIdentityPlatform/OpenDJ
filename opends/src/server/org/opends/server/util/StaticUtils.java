@@ -40,6 +40,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -2619,6 +2623,82 @@ public final class StaticUtils
 
     // If we've gotten here, then the value is fine.
     return true;
+  }
+
+
+
+  /**
+   * Indicates whether the provided TCP address is already in use.
+   *
+   * @param  address        IP address of the TCP address for which to make
+   *                        the determination.
+   * @param  port           TCP port number of the TCP address for which to
+   *                        make the determination.
+   * @param  allowReuse     Whether or not TCP address reuse is allowed when
+   *                        making the determination.
+   *
+   * @return  <CODE>true</CODE> if the provided TCP address is already in
+   *          use, or <CODE>false</CODE> otherwise.
+   */
+  public static boolean isAddressInUse(
+    InetAddress address, int port,
+    boolean allowReuse)
+  {
+    // Return pessimistic.
+    boolean isInUse = true;
+    Socket clientSocket = null;
+    ServerSocket serverSocket = null;
+    try {
+      // HACK:
+      // With dual stacks we can have a situation when INADDR_ANY/PORT
+      // is bound in TCP4 space but available in TCP6 space and since
+      // JavaServerSocket implemantation will always use TCP46 on dual
+      // stacks the bind below will always succeed in such cases thus
+      // shadowing anything that is already bound to INADDR_ANY/PORT.
+      // While technically correct, with IPv4 and IPv6 being separate
+      // address spaces, it presents a problem to end users because a
+      // common case scenario is to have a single service serving both
+      // address spaces ie listening to the same port in both spaces
+      // on wildcard addresses 0 and ::. ServerSocket implemantation
+      // does not provide any means of working with each address space
+      // separately such as doing TCP4 or TCP6 only binds thus we have
+      // to do a dummy connect to INADDR_ANY/PORT to check if it is
+      // bound to something already. This is only needed for wildcard
+      // addresses as specific IPv4 or IPv6 addresses will always be
+      // handled in their respective address space.
+      if (address.isAnyLocalAddress()) {
+        clientSocket = new Socket();
+        try {
+          // This might fail on some stacks but this is the best we
+          // can do. No need for explicit timeout since it is local
+          // address and we have to know for sure unless it fails.
+          clientSocket.connect(new InetSocketAddress(address, port));
+        } catch (IOException e) {
+        // Expected, ignore.
+        }
+        if (clientSocket.isConnected()) {
+          isInUse = true;
+        }
+      }
+      serverSocket = new ServerSocket();
+      serverSocket.setReuseAddress(allowReuse);
+      serverSocket.bind(new InetSocketAddress(address, port));
+      isInUse = false;
+    } catch (IOException e) {
+      isInUse = true;
+    } finally {
+      try {
+        if (serverSocket != null) {
+          serverSocket.close();
+        }
+      } catch (Exception e) {}
+      try {
+        if (clientSocket != null) {
+          clientSocket.close();
+        }
+      } catch (Exception e) {}
+    }
+    return isInUse;
   }
 
 
