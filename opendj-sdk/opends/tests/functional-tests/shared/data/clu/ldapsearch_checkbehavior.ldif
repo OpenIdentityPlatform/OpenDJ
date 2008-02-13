@@ -1,0 +1,187 @@
+dn: dc=mycom
+objectClass: top
+objectClass: domain
+dc: mycom
+
+dn: dc=example,dc=mycom
+objectClass: top
+objectClass: domain
+dc: example
+
+dn: o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: organization
+o: clu tests
+
+dn: ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: organizationalunit
+ou: ldapsearch
+
+dn: uid=user.0,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaccf
+sn: Amar
+cn: Aaccf Amar
+initials: APA
+employeeNumber: 0
+uid: user.0
+mail: user.0@example.mycom
+userPassword: password
+telephoneNumber: +1 140 374 9062
+homePhone: +1 413 500 4984
+pager: +1 250 147 3106
+mobile: +1 086 604 6557
+street: 83837 Central Street
+l: Santa Barbara
+st: NJ
+postalCode: 57656
+postalAddress: Aaccf Amar$83837 Central Street$Santa Barbara, NJ  57656
+description: This is the description for Aaccf Amar.
+
+dn: uid=user.1,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaren
+sn: Atp
+cn: Aaren Atp
+initials: AVA
+employeeNumber: 1
+uid: user.1
+mail: user.1@example.mycom
+userPassword: password
+telephoneNumber: +1 705 284 6303
+homePhone: +1 119 705 9603
+pager: +1 575 714 2075
+mobile: +1 206 947 0972
+street: 90369 Lincoln Street
+l: Lafayette
+st: RI
+postalCode: 61381
+postalAddress: Aaren Atp$90369 Lincoln Street$Lafayette, RI  61381
+description: This is the description for Aaren Atp.
+
+dn: uid=user.2,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aarika
+sn: Atpco
+cn: Aarika Atpco
+initials: AQA
+employeeNumber: 2
+uid: user.2
+mail: user.2@example.mycom
+userPassword: password
+telephoneNumber: +1 240 116 1006
+homePhone: +1 524 998 9690
+pager: +1 808 020 8342
+mobile: +1 885 252 0855
+street: 64447 Spruce Street
+l: Providence
+st: WA
+postalCode: 89035
+postalAddress: Aarika Atpco$64447 Spruce Street$Providence, WA  89035
+description: This is the description for Aarika Atpco.
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aaron
+sn: Atrc
+cn: Aaron Atrc
+initials: AAA
+employeeNumber: 3
+uid: user.3
+mail: user.3@example.mycom
+userPassword: password
+telephoneNumber: +1 980 000 3369
+homePhone: +1 870 933 0016
+pager: +1 096 390 4404
+mobile: +1 863 963 6402
+street: 96369 Sixth Street
+l: San Antonio
+st: ND
+postalCode: 07852
+postalAddress: Aaron Atrc$96369 Sixth Street$San Antonio, ND  07852
+description: This is the description for Aaron Atrc.
+
+dn: uid=user.4,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Aartjan
+sn: Aalders
+cn: Aartjan Aalders
+initials: AYA
+employeeNumber: 4
+uid: user.4
+mail: user.4@example.mycom
+userPassword: password
+telephoneNumber: +1 428 104 9299
+homePhone: +1 239 749 1115
+pager: +1 205 023 3110
+mobile: +1 188 661 6039
+street: 38248 Johnson Street
+l: North Platte
+st: LA
+postalCode: 03941
+postalAddress: Aartjan Aalders$38248 Johnson Street$North Platte, LA  03941
+description: This is the description for Aartjan Aalders.
+
+dn: uid=user.5,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abagael
+sn: Aasen
+cn: Abagael Aasen
+initials: AEA
+employeeNumber: 5
+uid: user.5
+mail: user.5@example.mycom
+userPassword: password
+telephoneNumber: +1 093 200 1952
+homePhone: +1 691 947 3811
+pager: +1 932 721 7390
+mobile: +1 614 906 3581
+street: 23182 Park Street
+l: Albany
+st: ID
+postalCode: 12135
+postalAddress: Abagael Aasen$23182 Park Street$Albany, ID  12135
+description: This is the description for Abagael Aasen.
+
+dn: uid=user.6,ou=ldapsearch,o=clu tests,dc=example,dc=mycom
+objectClass: top
+objectClass: person
+objectClass: organizationalperson
+objectClass: inetorgperson
+givenName: Abagail
+sn: Abadines
+cn: Abagail Abadines
+initials: AMA
+employeeNumber: 6
+uid: user.6
+mail: user.6@example.mycom
+userPassword: password
+telephoneNumber: +1 694 083 3855
+homePhone: +1 500 993 9169
+pager: +1 533 256 0160
+mobile: +1 230 330 8000
+street: 26941 Spring Street
+l: Odessa
+st: NC
+postalCode: 83936
+postalAddress: Abagail Abadines$26941 Spring Street$Odessa, NC  83936
+description: This is the description for Abagail Abadines.
