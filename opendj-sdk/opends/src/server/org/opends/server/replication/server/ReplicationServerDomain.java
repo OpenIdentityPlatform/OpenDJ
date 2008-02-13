@@ -1572,10 +1572,13 @@ public class ReplicationServerDomain
               // this is the latency of the remote RSi regarding another RSj
               // let's update the latency of the LSes connected to RSj
               ServerHandler rsjHdr = replicationServers.get(rsid);
-              for(short remotelsid : rsjHdr.getConnectedServerIds())
+              if (rsjHdr != null)
               {
-                Long newfmd = msg.getRSApproxFirstMissingDate(rsid);
-                wrkMonitorData.setFirstMissingDate(remotelsid, newfmd);
+                for(short remotelsid : rsjHdr.getConnectedServerIds())
+                {
+                  Long newfmd = msg.getRSApproxFirstMissingDate(rsid);
+                  wrkMonitorData.setFirstMissingDate(remotelsid, newfmd);
+                }
               }
             }
           }
