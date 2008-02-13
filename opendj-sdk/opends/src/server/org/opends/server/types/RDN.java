@@ -451,14 +451,120 @@ public final class RDN
 
 
   /**
+   * Retrieves a version of the provided value in a form that is
+   * properly escaped for use in a DN or RDN.
+   *
+   * @param  value  The value to be represented in a DN-safe form.
+   *
+   * @return  A version of the provided value in a form that is
+   *          properly escaped for use in a DN or RDN.
+   */
+  private static String getDNValue(String value) {
+    if ((value == null) || (value.length() == 0)) {
+      return "";
+    }
+
+    // Only copy the string value if required.
+    boolean needsEscaping = false;
+    int length = value.length();
+
+    needsEscaping: {
+      char c = value.charAt(0);
+      if ((c == ' ') || (c == '#')) {
+        needsEscaping = true;
+        break needsEscaping;
+      }
+
+      if (value.charAt(length - 1) == ' ') {
+        needsEscaping = true;
+        break needsEscaping;
+      }
+
+      for (int i = 0; i < length; i++) {
+        c = value.charAt(i);
+        if (c < ' ') {
+          needsEscaping = true;
+          break needsEscaping;
+        } else {
+          switch (c) {
+          case ',':
+          case '+':
+          case '"':
+          case '\\':
+          case '<':
+          case '>':
+          case ';':
+            needsEscaping = true;
+            break needsEscaping;
+          }
+        }
+      }
+    }
+
+    if (!needsEscaping) {
+      return value;
+    }
+
+    // We need to copy and escape the string (allow for at least one
+    // escaped character).
+    StringBuilder buffer = new StringBuilder(length + 3);
+
+    // If the lead character is a space or a # it must be escaped.
+    int start = 0;
+    char c = value.charAt(0);
+    if ((c == ' ') || (c == '#')) {
+      buffer.append('\\');
+      buffer.append(c);
+      start = 1;
+    }
+
+    // Escape remaining characters as necessary.
+    for (int i = start; i < length; i++) {
+      c = value.charAt(i);
+      if (c < ' ') {
+        for (byte b : getBytes(String.valueOf(c))) {
+          buffer.append('\\');
+          buffer.append(byteToLowerHex(b));
+        }
+      } else {
+        switch (value.charAt(i)) {
+        case ',':
+        case '+':
+        case '"':
+        case '\\':
+        case '<':
+        case '>':
+        case ';':
+          buffer.append('\\');
+          buffer.append(c);
+          break;
+        default:
+          buffer.append(c);
+          break;
+        }
+      }
+    }
+
+    // If the last character is a space it must be escaped.
+    if (value.charAt(length - 1) == ' ') {
+      length = buffer.length();
+      buffer.insert(length - 1, '\\');
+    }
+
+    return buffer.toString();
+  }
+
+
+
+  /**
    * Decodes the provided string as an RDN.
    *
-   * @param  rdnString  The string to decode as an RDN.
-   *
-   * @return  The decoded RDN.
-   *
-   * @throws  DirectoryException  If a problem occurs while trying to
-   *                              decode the provided string as a RDN.
+   * @param rdnString
+   *          The string to decode as an RDN.
+   * @return The decoded RDN.
+   * @throws DirectoryException
+   *           If a problem occurs while trying to decode the provided
+   *           string as a RDN.
    */
   public static RDN decode(String rdnString)
          throws DirectoryException
@@ -899,14 +1005,18 @@ public final class RDN
 
       buffer.append(attributeNames[0]);
       buffer.append("=");
-      buffer.append(attributeValues[0].getDNStringValue());
+
+      String s = attributeValues[0].getStringValue();
+      buffer.append(getDNValue(s));
 
       for (int i=1; i < numValues; i++)
       {
         buffer.append("+");
         buffer.append(attributeNames[i]);
         buffer.append("=");
-        buffer.append(attributeValues[i].getDNStringValue());
+
+        s = attributeValues[i].getStringValue();
+        buffer.append(getDNValue(s));
       }
 
       rdnString = buffer.toString();
@@ -972,8 +1082,8 @@ public final class RDN
 
       try
       {
-        buffer.append(
-             attributeValues[0].getNormalizedDNStringValue());
+        String s = attributeValues[0].getNormalizedStringValue();
+        buffer.append(getDNValue(s));
       }
       catch (Exception e)
       {
@@ -982,7 +1092,8 @@ public final class RDN
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        buffer.append(attributeValues[0].getStringValue());
+        String s = attributeValues[0].getStringValue();
+        buffer.append(getDNValue(s));
       }
     }
     else
@@ -997,7 +1108,8 @@ public final class RDN
 
         try
         {
-          b2.append(attributeValues[i].getNormalizedStringValue());
+          String s = attributeValues[i].getNormalizedStringValue();
+          b2.append(getDNValue(s));
         }
         catch (Exception e)
         {
@@ -1006,7 +1118,8 @@ public final class RDN
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          b2.append(attributeValues[i].getStringValue());
+          String s = attributeValues[i].getStringValue();
+          b2.append(getDNValue(s));
         }
 
         rdnElementStrings.add(b2.toString());
@@ -1048,7 +1161,6 @@ public final class RDN
     {
       if (attributeTypes[0].equals(rdn.attributeTypes[0]))
       {
-        int valueComparison;
         OrderingMatchingRule omr =
              attributeTypes[0].getOrderingMatchingRule();
         if (omr == null)
