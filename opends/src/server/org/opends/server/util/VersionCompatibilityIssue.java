@@ -44,7 +44,7 @@ import java.util.Collection;
  * Record for version compatibility issues (also known as 'flag days') which
  * are events associated with particular builds or builds between which upgrade
  * or reversion may required additional steps, notification of issues, or
- * be prohibitted altogether.
+ * be prohibited altogether.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
@@ -179,7 +179,7 @@ public final class VersionCompatibilityIssue {
      * following a reversion.  There might be situations where the admin
      * needs to perform some actions before the server restarts (such as
      * the database format being incompatible and the data needing an
-     * export followed by a reimport).  This effect need not be included
+     * export followed by a re-import).  This effect need not be included
      * with <code>UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED</code> and
      * <code>REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED</code> as this
      * is assumed.
@@ -201,12 +201,12 @@ public final class VersionCompatibilityIssue {
   //          a unique ID.
   //
   //          A single issue may be apply to multiple branches of the
-  //          codebase.  For instance a single event might cause a flag
+  //          code-base.  For instance a single event might cause a flag
   //          day between upgrade/reversions from 1.0 to 2.0 as well as
   //          upgrading from 1.0 to 1.1.  Therefore you must make sure
   //          that causes that appear in multiple branches have the same
   //          ID.  Also, IDs should be unique among all causes in the
-  //          codebase.
+  //          code-base.
   //
   // STEP 3:  [scroll down]
   //
@@ -217,6 +217,17 @@ public final class VersionCompatibilityIssue {
    * or more versions of the OpenDS codebase.
    */
   public enum Cause {
+    /**
+     * Incompatible changes in DN normalization. This causes dn2id and
+     * RDN / DN syntax based attribute indexes to be invalidated.
+     */
+    DN_NORMALIZATION_CHANGE_1(
+        7, // Unique ID.  See javadoc for more information.
+        INFO_3873_UPGRADE.get(),
+        INFO_3873_REVERSION.get(),
+        Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED,
+        Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED),
+
     /**
      * Incompatible changes in the backend configuration (the db directory
      * attribute has been modified).
@@ -448,7 +459,7 @@ public final class VersionCompatibilityIssue {
   //***************************************************
 
   static {
-    //
+    register(Cause.DN_NORMALIZATION_CHANGE_1, new BuildVersion(1, 0, 0, 3873));
     register(Cause.BACKEND_CONFIGURATION_CHANGE_1,
         new BuildVersion(1, 0, 0, 3708));
     register(Cause.REPLICATION_SECURITY_CHANGE_1,
@@ -501,9 +512,6 @@ public final class VersionCompatibilityIssue {
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       if (!excludeIds.contains(evt.getCause().getId())) {
         boolean isUpgrade = neu.compareTo(current) >= 0;
-        BuildVersion newVersion = new BuildVersion(neu.getMajorVersion(),
-            neu.getMinorVersion(), neu.getPointVersion(),
-            neu.getRevisionNumber());
         BuildVersion currentVersion = new BuildVersion(
             current.getMajorVersion(), current.getMinorVersion(),
             current.getPointVersion(), current.getRevisionNumber());
