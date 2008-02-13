@@ -1482,7 +1482,7 @@ public class ReplicationServerDomain
         if (!allPermitsAcquired)
         {
           logError(ERR_MISSING_REMOTE_MONITOR_DATA.get());
-          // FIXME let's go on in best effort even with limited data received.
+          // let's go on in best effort even with limited data received.
         }
         else
         {
@@ -1520,13 +1520,11 @@ public class ReplicationServerDomain
 
       if (remoteMonitorResponsesSemaphore == null)
       {
-        // FIXME
-        logError(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(
-            "In " + this.replicationServer.getMonitorInstanceName() +
-            "Receiving " + msg + " from " + msg.getsenderID() +
-            " remoteMonitorResponsesSemaphore should not be null"));
-        // Ignoring the remote monitor data because an error occured
-        // previously
+        // Let's ignore the remote monitor data just received
+        // since the computing processing has been ended.
+        // An error - probably a timemout - occured that was already logged
+        logError(NOTE_IGNORING_REMOTE_MONITOR_DATA.get(
+            Short.toString(msg.getsenderID())));
         return;
       }
 
