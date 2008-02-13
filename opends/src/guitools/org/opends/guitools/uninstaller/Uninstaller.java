@@ -1366,7 +1366,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @throws ApplicationException if something goes wrong.
    */
   protected void disableWindowsService() throws ApplicationException {
-    notifyListeners(getFormattedProgress(
+    notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_DISABLING_WINDOWS_SERVICE.get()));
     int code = ConfigureWindowsService.disableService(System.out, System.err);
 
