@@ -51,10 +51,12 @@
           </script>
           
           <call function="'testSuite_Preamble'"/>
-                    
+          
           <!--- Define default value for dsdn -->
           <script>
-            basedn = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
+            basedn     = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
+            ldifFile   = '%s/clu/ldapsearch_checkbehavior.ldif' \
+            % logsRemoteDataDir
           </script>
           
           <!--- Test Case information
@@ -91,7 +93,7 @@
                 'dsFilter'         : 'uid=user.1*'
                 }                
               </call>
-             
+              
               <script>
                 returnString = STAXResult[0][1]
               </script>
@@ -112,7 +114,296 @@
             </sequence>
             
           </testcase> 
-        
+          
+          <!--- Test Case information
+            #@TestMarker          ldapsearch check behavior tests
+            #@TestName            ldapsearch: check behavior with a basedn of ""
+            #@TestIssue           2934
+            #@TestPurpose         Verify that the number of returned entries is
+                                  correct with a base DN of "".
+            #@TestPreamble        none
+            #@TestStep            Add a new basedn (dc=mycom) to userRoot 
+                                  backend.
+            #@TestStep            Import data into this new basedn.
+            #@TestStep            Do an ldapsearch with a basedn of dc=com and
+                                  check that the number of entries is correct
+            #@TestStep            Do an ldapsearch with a basedn of dc=mycom and
+                                  check that the number of entries is correct
+            #@TestStep            Do an ldapsearch with a basedn of "" and check
+                                  that the number of entries is correct (equal 
+                                  to: entries of dc=com + entries of dc=mycom)
+            #@TestStep            Set value of subordinate-base-dn to dc=com
+            #@TestStep            Do an ldapsearch with a basedn of "" and check
+                                  that the number of entries is correct (equal 
+                                  to: entries of dc=com)
+            #@TestStep            Set value of subordinate-base-dn to dc=mycom                                  
+            #@TestStep            Do an ldapsearch with a basedn of "" and check
+                                  that the number of entries is correct (equal 
+                                  to: entries of dc=mycom)        
+            #@TestStep            Reset value of subordinate-base-dn                                   
+            #@TestPostamble       none
+            #@TestResult          Success if OpenDS returns 0 for all ldap 
+                                  operations, and if the number entries retuned
+                                  is correct with a basedn of "". 
+          -->
+          <testcase name="getTestCaseName
+          ('ldapsearch: check default base-dn')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'ldapsearch: add a new base dn to userRoot backend'
+              </message>
+              
+              <call function="'dsconfigSet'">
+                { 
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'objectName'       : 'backend' ,
+                'propertyType'     : 'backend' ,
+                'propertyName'     : 'userRoot' ,
+                'attributeName'    : 'base-dn' ,
+                'attributeValue'   : 'dc=mycom' ,
+                'modifyType'       : 'add'
+                }
+              </call>
+
+              <message>
+                'ldapsearch: import data into this new base dn'
+              </message>
+              
+              <call function="'StopDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+
+              <call function="'ImportLdifWithScript'">
+                { 
+                'location'    : STAF_REMOTE_HOSTNAME ,
+                'dsAppend'    : 'True' ,
+                'dsLdifFile'  : ldifFile ,
+                'dsBackEnd'   : 'userRoot'
+                }
+              </call>
+         
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+       
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>             
+
+              <message>
+                'ldapsearch: check number of entries with a basedn of dc=com'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsBaseDN'         : 'dc=com' ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'dn' ,
+                'expectedRC'       : 'noCheck'
+                }                
+              </call>
+         
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 1048' 
+                }
+              </call>
+             
+              <message>
+                'ldapsearch: check number of entries with a basedn of dc=mycom'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsBaseDN'         : 'dc=mycom' ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'dn' ,                
+                'expectedRC'       : 'noCheck'
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 11' 
+                }
+              </call>         
+
+              <message>
+                'ldapsearch: check number of entries with a basedn of ""'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsBaseDN'         : ' ' ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'dn' ,                
+                'expectedRC'       : 'noCheck'
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 1059' 
+                }
+              </call>
+
+              <message>
+                'ldapsearch: set value of subordinate-base-dn to dc=com'
+              </message>
+              
+              <call function="'dsconfigSet'">
+                { 
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'objectName'       : 'root-dse-backend' ,
+                'attributeName'    : 'subordinate-base-dn' ,
+                'attributeValue'   : 'dc=com'
+                }
+              </call>
+
+              <message>
+                'ldapsearch: check number of entries with a basedn of ""'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsBaseDN'         : ' ' ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'dn' ,                
+                'expectedRC'       : 'noCheck'
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 1048' 
+                }
+              </call>
+
+              <message>
+                'ldapsearch: set value of subordinate-base-dn to dc=mycom'
+              </message>
+              
+              <call function="'dsconfigSet'">
+                { 
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'objectName'       : 'root-dse-backend' ,
+                'attributeName'    : 'subordinate-base-dn' ,
+                'attributeValue'   : 'dc=mycom'
+                }
+              </call>
+              
+              <message>
+                'ldapsearch: check number of entries with a basedn of ""'
+              </message>    
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsBaseDN'         : ' ' ,
+                'dsFilter'         : 'objectclass=*' ,
+                'dsAttributes'     : 'dn' ,                
+                'expectedRC'       : 'noCheck'
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 11' 
+                }
+              </call>
+              
+              <message>
+                'ldapsearch: reset value of subordinate-base-dn'
+              </message>
+              
+              <call function="'dsconfigSet'">
+                { 
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'objectName'       : 'root-dse-backend' ,
+                'modifyType'       : 'reset' ,
+                'attributeName'    : 'subordinate-base-dn'
+                }
+              </call>
+              
+              <script>
+                knownIssue(2934)
+              </script>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase> 
+          
           <call function="'testSuite_Postamble'"/>
           
         </sequence>
