@@ -1753,10 +1753,11 @@ public abstract class Installer extends GuiApplication {
    * @throws ApplicationException if something goes wrong.
    */
   protected void enableWindowsService() throws ApplicationException {
-      notifyListeners(getFormattedProgress(
+      notifyListeners(getFormattedWithPoints(
         INFO_PROGRESS_ENABLING_WINDOWS_SERVICE.get()));
       InstallerHelper helper = new InstallerHelper();
       helper.enableWindowsService();
+      notifyListeners(getLineBreak());
   }
 
   /**
