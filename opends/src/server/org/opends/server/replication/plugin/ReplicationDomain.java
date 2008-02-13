@@ -266,7 +266,7 @@ public class ReplicationDomain extends DirectoryThread
    * A boolean indicating if the thread used to save the persistentServerState
    * is terminated.
    */
-  private boolean done = false;
+  private boolean done = true;
 
   /**
    * This class contain the context related to an import or export
@@ -1222,6 +1222,8 @@ public class ReplicationDomain extends DirectoryThread
   @Override
   public void run()
   {
+    done = false;
+
     // Create the listener thread
     listenerThread = new ListenerThread(this, updateToReplayQueue);
     listenerThread.start();

@@ -7640,6 +7640,8 @@ public class DirectoryServer
       SynchronizationProvider<SynchronizationProviderCfg> provider)
   {
     directoryServer.synchronizationProviders.add(provider);
+
+    provider.completeSynchronizationProvider();
   }
 
 

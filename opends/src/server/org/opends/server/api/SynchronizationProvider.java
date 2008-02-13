@@ -117,6 +117,17 @@ public abstract class
 
 
   /**
+   * Performs any necessary final initialization processing for this
+   * synchronization provider.
+   * This will be called just after the provider has been
+   * registered with the server but before it has been unloaded.
+   */
+  public void completeSynchronizationProvider()
+  {
+    // No implementation is required by default.
+  }
+
+  /**
    * Performs any necessary finalization for this synchronization
    * provider.  This will be called just after the provider has been
    * deregistered with the server but before it has been unloaded.

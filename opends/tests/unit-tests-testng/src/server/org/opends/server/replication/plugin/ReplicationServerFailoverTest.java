@@ -411,6 +411,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       //domainConf.setHeartbeatInterval(500);
       ReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
+      replicationDomain.start();
 
       // Add other server (doing that after connection insure we connect to
       // the right server)
