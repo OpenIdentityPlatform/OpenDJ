@@ -112,6 +112,8 @@ public class MultimasterReplication
    */
   private static int replayThreadNumber = 10;
 
+  private boolean isRegistered = false;
+
   /**
    * Finds the domain for a given DN.
    *
@@ -200,7 +202,6 @@ public class MultimasterReplication
     }
 
     domains.put(domain.getBaseDN(), domain);
-    domain.start();
     return domain;
   }
 
@@ -321,7 +322,11 @@ public class MultimasterReplication
   {
     try
     {
-      createNewDomain(configuration);
+      ReplicationDomain rd = createNewDomain(configuration);
+      if (isRegistered)
+      {
+        rd.start();
+      }
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     } catch (ConfigException e)
     {
@@ -507,6 +512,8 @@ public class MultimasterReplication
   @Override
   public void finalizeSynchronizationProvider()
   {
+    isRegistered = false;
+
     // shutdown all the domains
     for (ReplicationDomain domain : domains.values())
     {
@@ -731,6 +738,18 @@ public class MultimasterReplication
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void completeSynchronizationProvider()
+  {
+    isRegistered = true;
+
+    // start all the domains
+    for (ReplicationDomain domain : domains.values())
+    {
+      domain.start();
+    }
+  }
 }
-
-

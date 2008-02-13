@@ -179,6 +179,7 @@ public class DependencyTest extends ReplicationTestCase
       domainConf.setHeartbeatInterval(100000);
 
       domain = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin.completeSynchronizationProvider();
 
       // check that last entry in sequence got added.
       Entry lastEntry = getEntry(DN.decode(addDn), 30000, true);
@@ -304,6 +305,7 @@ public class DependencyTest extends ReplicationTestCase
 
       Thread.sleep(2000);
       domain = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin.completeSynchronizationProvider();
       
       ReplicationBroker broker =
         openReplicationSession(baseDn, brokerId, 1000, replServerPort, 1000,
@@ -502,6 +504,7 @@ public class DependencyTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn, serverId, replServers);
 
       domain = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin.completeSynchronizationProvider();
 
       // check that all entries have been deleted and added
       // again by checking that they do have the correct entryuuid
@@ -626,6 +629,7 @@ public class DependencyTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn, serverId, replServers);
 
       domain = MultimasterReplication.createNewDomain(domainConf);
+      replicationPlugin.completeSynchronizationProvider();
 
       // check that all entries have been renamed
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
