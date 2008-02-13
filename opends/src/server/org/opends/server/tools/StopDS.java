@@ -54,6 +54,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.Control;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.NullOutputStream;
@@ -519,15 +520,18 @@ public class StopDS
     if (stopTimeStr.isPresent())
     {
       String timeStr = stopTimeStr.getValue();
-      try
+      if (!TaskTool.NOW.equals(timeStr))
       {
-        stopTime = parseDateTimeString(timeStr);
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        try
+        {
+          stopTime = parseDateTimeString(timeStr);
+        }
+        catch (Exception e)
+        {
+          Message message = ERR_STOPDS_CANNOT_DECODE_STOP_TIME.get();
+          err.println(wrapText(message, MAX_LINE_WIDTH));
+          return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+        }
       }
     }
 
