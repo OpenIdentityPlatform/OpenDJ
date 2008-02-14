@@ -1280,6 +1280,13 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
   {
     active = false;
 
+    // Stop the remote LSHandler
+    for (LightweightServerHandler lsh : connectedServers.values())
+    {
+      lsh.stopHandler();
+    }
+    connectedServers.clear();
+
     try
     {
       session.close();
