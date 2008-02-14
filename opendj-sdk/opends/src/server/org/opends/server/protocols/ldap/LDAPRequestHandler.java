@@ -98,6 +98,9 @@ public class LDAPRequestHandler
   // The name to use for this request handler.
   private String handlerName;
 
+  // Lock for preventing concurrent updates to the select keys.
+  private final Object selectorKeyLock = new Object();
+
 
 
   /**
@@ -303,7 +306,9 @@ public class LDAPRequestHandler
         {
           SocketChannel socketChannel = c.getSocketChannel();
           socketChannel.configureBlocking(false);
-          socketChannel.register(selector, SelectionKey.OP_READ, c);
+          synchronized (selectorKeyLock) {
+            socketChannel.register(selector, SelectionKey.OP_READ, c);
+          }
         }
         catch (Exception e)
         {
@@ -374,7 +379,11 @@ public class LDAPRequestHandler
    */
   public void deregisterClient(LDAPClientConnection clientConnection)
   {
-    SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
+    SelectionKey[] keyArray;
+    synchronized (selectorKeyLock) {
+      keyArray = selector.keys().toArray(new SelectionKey[0]);
+    }
+
     for (SelectionKey key : keyArray)
     {
       LDAPClientConnection conn = (LDAPClientConnection) key.attachment();
@@ -414,7 +423,11 @@ public class LDAPRequestHandler
    */
   public void deregisterAllClients()
   {
-    SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
+    SelectionKey[] keyArray;
+    synchronized (selectorKeyLock) {
+      keyArray = selector.keys().toArray(new SelectionKey[0]);
+    }
+
     for (SelectionKey key : keyArray)
     {
       try
@@ -454,7 +467,10 @@ public class LDAPRequestHandler
    */
   public Collection<LDAPClientConnection> getClientConnections()
   {
-    SelectionKey[] keyArray = selector.keys().toArray(new SelectionKey[0]);
+    SelectionKey[] keyArray;
+    synchronized (selectorKeyLock) {
+      keyArray = selector.keys().toArray(new SelectionKey[0]);
+    }
 
     ArrayList<LDAPClientConnection> connList =
          new ArrayList<LDAPClientConnection>(keyArray.length);
