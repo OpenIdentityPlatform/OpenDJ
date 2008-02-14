@@ -758,26 +758,26 @@ public final class LDAPConnectionHandler extends
 
     // Attempt to bind to the listen port on all configured addresses to
     // verify whether the connection handler will be able to start.
-    listenPort = config.getListenPort();
-    listenAddresses = config.getListenAddress();
-    allowReuseAddress = config.isAllowTCPReuseAddress();
+    if ((currentConfig == null) ||
+      (!currentConfig.isEnabled() && config.isEnabled())) {
+      for (InetAddress a : config.getListenAddress()) {
+        try {
+          if (StaticUtils.isAddressInUse(a, config.getListenPort(),
+            config.isAllowTCPReuseAddress())) {
+            throw new IOException(
+              ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+          }
+        } catch (IOException e) {
+          if (debugEnabled()) {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
 
-    for (InetAddress a : listenAddresses) {
-      try {
-        if (StaticUtils.isAddressInUse(a, listenPort, allowReuseAddress)) {
-          throw new IOException(
-            ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+          Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
+            String.valueOf(config.dn()), a.getHostAddress(),
+            config.getListenPort(), getExceptionMessage(e));
+          unacceptableReasons.add(message);
+          return false;
         }
-      } catch (IOException e) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_LDAP_CONNHANDLER_CANNOT_BIND.get(
-          String.valueOf(config.dn()), a.getHostAddress(),
-          listenPort, getExceptionMessage(e));
-        unacceptableReasons.add(message);
-        return false;
       }
     }
 

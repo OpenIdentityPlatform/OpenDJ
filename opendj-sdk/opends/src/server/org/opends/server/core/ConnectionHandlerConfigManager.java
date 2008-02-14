@@ -252,6 +252,7 @@ public class ConnectionHandlerConfigManager implements
     ConnectionHandler connectionHandler = connectionHandlers.get(dn);
     if (connectionHandler != null) {
       DirectoryServer.deregisterConnectionHandler(connectionHandler);
+      connectionHandlers.remove(dn);
 
       connectionHandler.finalizeConnectionHandler(
               INFO_CONNHANDLER_CLOSED_BY_DELETE.get(),
@@ -443,8 +444,11 @@ public class ConnectionHandlerConfigManager implements
     ConnectionHandler connectionHandler = null;
     Class<? extends ConnectionHandler> theClass;
     try {
+      connectionHandler = connectionHandlers.get(config.dn());
       theClass = pd.loadClass(className, ConnectionHandler.class);
-      connectionHandler = theClass.newInstance();
+      if (connectionHandler == null) {
+        connectionHandler = theClass.newInstance();
+      }
     } catch (Exception e) {
       if (debugEnabled())
       {

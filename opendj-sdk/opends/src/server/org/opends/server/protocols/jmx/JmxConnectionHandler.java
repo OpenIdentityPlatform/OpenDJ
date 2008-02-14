@@ -138,8 +138,12 @@ public final class JmxConnectionHandler extends
       rmiConnectorRestart = true;
     }
 
-    if (!currentConfig.getSSLCertNickname().equals(
-        config.getSSLCertNickname())) {
+    if (((currentConfig.getSSLCertNickname() != null) &&
+          !currentConfig.getSSLCertNickname().equals(
+          config.getSSLCertNickname())) ||
+        ((config.getSSLCertNickname() != null) &&
+          !config.getSSLCertNickname().equals(
+          currentConfig.getSSLCertNickname()))) {
       rmiConnectorRestart = true;
     }
 
@@ -402,24 +406,25 @@ public final class JmxConnectionHandler extends
   {
     JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
 
-    // Attempt to bind to the listen port to verify whether the connection
-    // handler will be able to start.
-    try
-    {
-      if (StaticUtils.isAddressInUse(
-        new InetSocketAddress(config.getListenPort()).getAddress(),
-        config.getListenPort(), true)) {
-        throw new IOException(
-          ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+    if ((currentConfig == null) ||
+        (!currentConfig.isEnabled() && config.isEnabled()) ||
+        (currentConfig.getListenPort() != config.getListenPort())) {
+      // Attempt to bind to the listen port to verify whether the connection
+      // handler will be able to start.
+      try {
+        if (StaticUtils.isAddressInUse(
+          new InetSocketAddress(config.getListenPort()).getAddress(),
+          config.getListenPort(), true)) {
+          throw new IOException(
+            ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+        }
+      } catch (Exception e) {
+        Message message = ERR_JMX_CONNHANDLER_CANNOT_BIND.get(
+          String.valueOf(config.dn()), config.getListenPort(),
+          getExceptionMessage(e));
+        unacceptableReasons.add(message);
+        return false;
       }
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_JMX_CONNHANDLER_CANNOT_BIND.
-          get(String.valueOf(config.dn()), config.getListenPort(),
-              getExceptionMessage(e));
-      unacceptableReasons.add(message);
-      return false;
     }
 
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
