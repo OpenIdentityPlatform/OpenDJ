@@ -906,8 +906,7 @@ public class EntryContainer
       if (baseEntry == null)
       {
         // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(searchOperation.getBaseDN(),
-                                    searchOperation.getScope());
+        dn2uri.targetEntryReferrals(baseDN, searchScope);
 
         Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
         DN matchedDN = getMatchedDN(baseDN);
@@ -1182,8 +1181,7 @@ public class EntryContainer
       if (baseEntry == null)
       {
         // Check for referral entries above the base entry.
-        dn2uri.targetEntryReferrals(searchOperation.getBaseDN(),
-                                    searchOperation.getScope());
+        dn2uri.targetEntryReferrals(baseDN, searchScope);
 
         Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
         DN matchedDN = getMatchedDN(baseDN);
@@ -1193,7 +1191,7 @@ public class EntryContainer
 
       if (!manageDsaIT)
       {
-        dn2uri.checkTargetForReferral(baseEntry, searchOperation.getScope());
+        dn2uri.checkTargetForReferral(baseEntry, searchScope);
       }
 
       /*
@@ -1636,16 +1634,35 @@ public class EntryContainer
     if (searchOperation.getEntriesSent() == 0 &&
          searchOperation.getReferencesSent() == 0)
     {
-      // Check for referral entries above the base entry.
-      dn2uri.targetEntryReferrals(searchOperation.getBaseDN(),
-                                  searchOperation.getScope());
-
-      if (!entryExists(baseDN))
+      // Fetch the base entry if it exists.
+      Entry baseEntry = null;
+      try
       {
+        baseEntry = getEntry(baseDN);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+
+      // The base entry must exist for a successful result.
+      if (baseEntry == null)
+      {
+        // Check for referral entries above the base entry.
+        dn2uri.targetEntryReferrals(baseDN, searchScope);
+
         Message message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN.toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
+      }
+
+      if (!manageDsaIT)
+      {
+        dn2uri.checkTargetForReferral(baseEntry, searchScope);
       }
     }
 
