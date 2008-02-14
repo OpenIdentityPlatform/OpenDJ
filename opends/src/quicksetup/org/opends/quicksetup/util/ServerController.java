@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup.util;
 
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -418,17 +419,19 @@ public class ServerController {
           }
 
           InitialLdapContext ctx = null;
-          for (int i=0; i<10 && !connected; i++)
+          for (int i=0; i<20 && !connected; i++)
           {
             try
             {
               ctx = Utils.createLdapContext(
                   ldapUrl,
-                  userDn, userPw, 3000, null);
+                  userDn, userPw, ConnectionUtils.getDefaultLDAPTimeout(),
+                  null);
               connected = true;
             }
             catch (NamingException ne)
             {
+              LOG.log(Level.WARNING, "Could not connect to server: "+ne, ne);
             }
             finally
             {

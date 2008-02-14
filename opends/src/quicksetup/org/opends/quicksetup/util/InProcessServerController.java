@@ -355,7 +355,7 @@ public class InProcessServerController {
       // seems necessary currenty for the case in which shutdown
       // is called immediately afterward as is done by the upgrader.
 
-      // Connection handlers are stopped and started asynchonously.
+      // Connection handlers are stopped and started asynchronously.
       // Give the connection handlers time to initialize before
       // continuing.
 

@@ -1383,6 +1383,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             ReturnCode.WINDOWS_SERVICE_ERROR,
                 errorMessage, null);
     }
+    notifyListeners(getLineBreak());
   }
 
   private UninstallUserData getUninstallUserData() {

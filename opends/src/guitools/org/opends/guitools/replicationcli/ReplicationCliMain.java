@@ -335,6 +335,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (returnValue == SUCCESSFUL_NOP)
       {
+        boolean subcommandLaunched = true;
         if (argParser.isEnableReplicationSubcommand())
         {
           returnValue = enableReplication();
@@ -368,6 +369,18 @@ public class ReplicationCliMain extends ConsoleApplication
           println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get());
           println(Message.raw(argParser.getUsage()));
           returnValue = ERROR_USER_DATA;
+          subcommandLaunched = false;
+        }
+
+        if (subcommandLaunched)
+        {
+          File logFile = QuickSetupLog.getLogFile();
+          if (logFile != null)
+          {
+            println();
+            println(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
+            println();
+          }
         }
       }
     }
