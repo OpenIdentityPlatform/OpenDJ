@@ -4345,8 +4345,10 @@ public class SchemaBackend
       {
         for (AttributeValue v : a.getValues())
         {
+          // It IS important here to allow the unknown elements that could
+          // appear in the new config schema.
           ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(
-              v.getValue(), newSchema, false);
+              v.getValue(), newSchema, true);
           String schemaFile = newObjectClass.getSchemaFile();
           if (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE))
           {
@@ -4356,6 +4358,11 @@ public class SchemaBackend
             continue;
           }
 
+          // Now we know we are not in the config schema, let's check
+          // the unknown elements ... sadly but simply by redoing the
+          // whole decoding.
+          newObjectClass = ObjectClassSyntax.decodeObjectClass(
+              v.getValue(), newSchema, false);
           oidList.add(newObjectClass.getOID());
           try
           {
