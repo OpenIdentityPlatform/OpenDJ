@@ -338,20 +338,17 @@ public class ServerStatusPooler
       {
         if ((dn == null) || (pwd == null))
         {
-          desc.setAdministrativeUsers(new HashSet<String>());
-          desc.setDatabases(new HashSet<DatabaseDescriptor>());
-          desc.setListeners(new HashSet<ListenerDescriptor>());
-          desc.setOpenConnections(-1);
+          updateDescriptorWithOffLineInfo(desc);
         }
         else
         {
           updateDescriptorWithOnLineInfo(desc);
         }
       }
-      catch (Exception ex)
+      catch (Throwable t)
       {
         // Bug
-        ex.printStackTrace();
+        t.printStackTrace();
       }
     }
 

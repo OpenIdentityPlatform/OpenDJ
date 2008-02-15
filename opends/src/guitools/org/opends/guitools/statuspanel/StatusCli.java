@@ -50,6 +50,7 @@ import org.opends.quicksetup.QuickSetupLog;
 
 import static org.opends.quicksetup.util.Utils.*;
 
+import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.core.DirectoryServer;
@@ -90,6 +91,8 @@ class StatusCli extends ConsoleApplication
   static public final String LOG_FILE_SUFFIX = ".log";
 
   private TrustManager interactiveTrustManager;
+
+  private boolean useInteractiveTrustManager;
 
   /**
    * The enumeration containing the different return codes that the command-line
@@ -313,6 +316,7 @@ class StatusCli extends ConsoleApplication
        */
       ConfigFromFile offLineConf = new ConfigFromFile();
       offLineConf.readConfiguration();
+      boolean authProvided = false;
       try
       {
         if (isServerRunning)
@@ -323,6 +327,8 @@ class StatusCli extends ConsoleApplication
           boolean useStartTLS = argParser.useStartTLS();
           if (argParser.isInteractive())
           {
+            ManagementContext ctx = null;
+
             boolean canUseSSL = offLineConf.getLDAPSURL() != null;
             boolean canUseStartTLS = offLineConf.getStartTLSURL() != null;
             // This is done because we do not need to ask the user about these
@@ -388,8 +394,9 @@ class StatusCli extends ConsoleApplication
               }
               LDAPManagementContextFactory factory =
                 new LDAPManagementContextFactory();
-              factory.getManagementContext(this, ci);
+              ctx = factory.getManagementContext(this, ci);
               interactiveTrustManager = ci.getTrustManager();
+              useInteractiveTrustManager = true;
             }
             catch (ConfigException ce)
             {
@@ -407,39 +414,72 @@ class StatusCli extends ConsoleApplication
             }
             catch (ClientException e) {
               println(e.getMessageObject());
+              // Display the information in the config file
+              ServerStatusDescriptor desc = createServerStatusDescriptor(null,
+                  null);
+              updateDescriptorWithOffLineInfo(desc, offLineConf);
+              writeStatus(desc);
               return
                 ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
+            }
+            finally
+            {
+              if (ctx != null)
+              {
+                try
+                {
+                  ctx.close();
+                }
+                catch (Throwable t)
+                {
+                }
+              }
             }
           }
           else
           {
             bindDn = argParser.getBindDN();
             bindPwd = argParser.getBindPassword();
+          }
 
-            if (bindDn == null)
+          authProvided = bindPwd != null;
+
+          if (bindDn == null)
+          {
+            bindDn = "";
+          }
+          if (bindPwd == null)
+          {
+            bindPwd = "";
+          }
+
+          if (authProvided)
+          {
+            ServerStatusDescriptor desc = createServerStatusDescriptor(
+                bindDn, bindPwd);
+            ConfigFromLDAP onLineConf = new ConfigFromLDAP();
+            ConnectionProtocolPolicy policy =
+              ConnectionProtocolPolicy.getConnectionPolicy(useSSL, useStartTLS);
+            onLineConf.setConnectionInfo(offLineConf, policy, bindDn,
+                bindPwd, getTrustManager());
+            onLineConf.readConfiguration();
+            updateDescriptorWithOnLineInfo(desc, onLineConf);
+            writeStatus(desc);
+
+            if (desc.getErrorMessage() != null)
             {
-              bindDn = "";
-            }
-            if (bindPwd == null)
-            {
-              bindPwd = "";
+              return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
+              getReturnCode();
             }
           }
-          ServerStatusDescriptor desc = createServerStatusDescriptor(
-              bindDn, bindPwd);
-          ConfigFromLDAP onLineConf = new ConfigFromLDAP();
-          ConnectionProtocolPolicy policy =
-            ConnectionProtocolPolicy.getConnectionPolicy(useSSL, useStartTLS);
-          onLineConf.setConnectionInfo(offLineConf, policy, bindDn,
-              bindPwd, getTrustManager());
-          onLineConf.readConfiguration();
-          updateDescriptorWithOnLineInfo(desc, onLineConf);
-          writeStatus(desc);
-
-          if (desc.getErrorMessage() != null)
+          else
           {
-            return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
-            getReturnCode();
+            // The user did not provide authentication: just display the
+            // information we can get reading the config file.
+            ServerStatusDescriptor desc = createServerStatusDescriptor(null,
+                null);
+            updateDescriptorWithOffLineInfo(desc, offLineConf);
+            writeStatus(desc);
           }
         }
         else
@@ -647,7 +687,7 @@ class StatusCli extends ConsoleApplication
       }
       else
       {
-        if (!desc.isAuthenticated())
+        if (!desc.isAuthenticated() || (desc.getErrorMessage() != null))
         {
           text = getNotAvailableBecauseAuthenticationIsRequiredText();
         }
@@ -714,7 +754,7 @@ class StatusCli extends ConsoleApplication
     {
       if (desc.getStatus() == ServerStatusDescriptor.ServerStatus.STARTED)
       {
-        if (!desc.isAuthenticated())
+        if (!desc.isAuthenticated() || (desc.getErrorMessage() != null))
         {
           text = getNotAvailableBecauseAuthenticationIsRequiredText();
         }
@@ -778,7 +818,7 @@ class StatusCli extends ConsoleApplication
       text = Message.raw(desc.getJavaVersion());
       if (text == null)
       {
-        if (!desc.isAuthenticated())
+        if (!desc.isAuthenticated() || (desc.getErrorMessage() != null))
         {
           text = getNotAvailableBecauseAuthenticationIsRequiredText();
         }
@@ -1006,7 +1046,7 @@ class StatusCli extends ConsoleApplication
         }
         else
         {
-          if (!desc.isAuthenticated())
+          if (!desc.isAuthenticated() || (desc.getErrorMessage() != null))
           {
             s = getNotAvailableBecauseAuthenticationIsRequiredText();
           }
@@ -1101,7 +1141,7 @@ class StatusCli extends ConsoleApplication
               {
                 value = getNotAvailableBecauseServerIsDownText();
               }
-              if (!desc.isAuthenticated())
+              if (!desc.isAuthenticated() || (desc.getErrorMessage() != null))
               {
                 value = getNotAvailableBecauseAuthenticationIsRequiredText();
               }
@@ -1127,7 +1167,7 @@ class StatusCli extends ConsoleApplication
           {
             value = getNotAvailableBecauseServerIsDownText();
           }
-          if (!desc.isAuthenticated())
+          if (!desc.isAuthenticated() || (desc.getErrorMessage() != null))
           {
             value = getNotAvailableBecauseAuthenticationIsRequiredText();
           }
@@ -1193,13 +1233,13 @@ class StatusCli extends ConsoleApplication
    */
   private TrustManager getTrustManager()
   {
-    if (interactiveTrustManager == null)
+    if (useInteractiveTrustManager)
     {
-      return argParser.getTrustManager();
+      return interactiveTrustManager;
     }
     else
     {
-      return interactiveTrustManager;
+      return argParser.getTrustManager();
     }
   }
 

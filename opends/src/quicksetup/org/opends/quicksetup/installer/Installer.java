@@ -2213,8 +2213,8 @@ public abstract class Installer extends GuiApplication {
       if ((isADS || isSchema) && isVerbose())
       {
         notifyListeners(getFormattedDone());
+        notifyListeners(getLineBreak());
       }
-      notifyListeners(getLineBreak());
       checkAbort();
     }
   }
