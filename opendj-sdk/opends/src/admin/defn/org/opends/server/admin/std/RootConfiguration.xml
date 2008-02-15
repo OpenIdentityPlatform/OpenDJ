@@ -450,19 +450,6 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="remote-ldap-server" hidden="true">
-    <adm:one-to-many naming-property="ds-cfg-remote-ldap-server-id" />
-    <adm:profile name="ldap">
-      <ldap:rdn-sequence>
-        cn=Remote LDAP servers,cn=config
-      </ldap:rdn-sequence>
-    </adm:profile>
-    <adm:profile name="cli">
-      <cli:relation>
-        <cli:default-property name="enabled" />
-      </cli:relation>
-    </adm:profile>
-  </adm:relation>
   <adm:product-name>OpenDS Directory Server</adm:product-name>
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>
@@ -480,9 +467,6 @@
     <adm:synopsis>Authentication and authorization</adm:synopsis>
   </adm:tag-definition>
   <adm:tag-definition name="core-server">
-    <adm:synopsis>Core server</adm:synopsis>
-  </adm:tag-definition>
-  <adm:tag-definition name="proxy">
     <adm:synopsis>Core server</adm:synopsis>
   </adm:tag-definition>
 </adm:root-managed-object>
