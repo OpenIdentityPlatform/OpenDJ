@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2007-2008 Sun Microsystems, Inc.
+ ! -->
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>setup_ssl</title>
+</head>
+<body>
+<br>
+<table style="width: 100%; text-align: left;" border="1" cellpadding="2"
+ cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;">Test ID</td>
+      <td style="vertical-align: top;">setup_ssl<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Panel<br>
+      </td>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>
+OpenDS GUI setup, SSL panel<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Items<br>
+      </td>
+      <td style="vertical-align: top;"> - run setup command to install
+in GUI<br>
+In the Server Settings Panel , enter expected data for hostname, LDAP
+PORT<br>
+Then for LDAP Secure Access click on Configure<br>
+In the Configure Secure Access Panel, tick the Box Enable SSL and enter
+a valid Port SSLPORT , then click OK<br>
+Then continue to enter data in the Server Settings Panel for
+cn=Directory Manager and its password.<br>
+Click Next<br>
+Leave default value in Topology Options Panel and click Next<br>
+Leave default value in Directory Data Panel and click Next<br>
+Click Finish<br>
+      <br>
+- open status-panel in GUI <br>
+      <br>
+      <small><big>- verify SSL
+connection</big><br>
+./ldapsearch -Z -p SSLPORT -D "cn=directory manager" -w password -b
+"cn=config" -v "(objectclass=*)"</small></td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">Specific checks</td>
+      <td style="vertical-align: top;">- verify that LDAPS is enabled in
+the status-panel </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+<br>
+</body>
+</html>
