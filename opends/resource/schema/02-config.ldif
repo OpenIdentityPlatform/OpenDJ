@@ -2191,6 +2191,10 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.447
   NAME 'ds-cfg-num-update-replay-threads'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.448
+  NAME 'ds-cfg-remote-ldap-server'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3693,4 +3697,11 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.179
   SUP ds-cfg-workflow-element
   STRUCTURAL
   MUST ( ds-cfg-backend )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.180
+  NAME 'ds-cfg-remote-ldap-server'
+  SUP top
+  STRUCTURAL
+  MUST ( cn $
+         ds-cfg-remote-ldap-server )
   X-ORIGIN 'OpenDS Directory Server' )

@@ -20,7 +20,7 @@ echo "PROTOCOL:       ${PROTOCOL}"
 
 if test -z "${ADDRESS}"
 then
-  ADDRESS="builds.opends.org"
+  ADDRESS="www.opends.org"
 fi
 echo "ADDRESS:        ${ADDRESS}"
 echo "PORT:           ${PORT}"
