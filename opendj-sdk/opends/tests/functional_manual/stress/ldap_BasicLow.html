@@ -1,4 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
 <!--
  ! CDDL HEADER START
  !
@@ -24,8 +26,6 @@
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
-<html>
-<head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
   <title>setup_ssl</title>
@@ -37,44 +37,25 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">setup_ssl<br>
+      <td style="vertical-align: top;">ldap_BasicLow<br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small> </small></big></big>
-OpenDS GUI setup, SSL panel<br>
+      <td style="vertical-align: top;">N/A<br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;"> - run setup command to install
-in GUI<br>
-In the Server Settings Panel , enter expected data for hostname, LDAP
-PORT<br>
-Then for LDAP Secure Access click on Configure<br>
-In the Configure Secure Access Panel, tick the Box Enable SSL and enter
-a valid Port SSLPORT , then click OK<br>
-Then continue to enter data in the Server Settings Panel for
-cn=Directory Manager and its password.<br>
-Click Next<br>
-Leave default value in Topology Options Panel and click Next<br>
-Leave default value in Directory Data Panel and click Next<br>
-Click Finish<br>
-      <br>
-- open status-panel in GUI <br>
-      <br>
-      <small><big>- verify SSL
-connection</big><br>
-./ldapsearch -Z -p SSLPORT -D "cn=directory manager" -w password -b
-"cn=config" -v "(objectclass=*)"</small></td>
+      <td style="vertical-align: top;">Cf.
+http://icnc-qa.france.sun.com/project/OpenDS/docs/plans/OpenDS_1.0_LDAP_-_Stress_test_plan.html<small></small></td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;">- verify that LDAPS is enabled in
-the status-panel </td>
+      <td style="vertical-align: top;">N/A <br>
+      </td>
     </tr>
   </tbody>
 </table>
