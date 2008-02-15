@@ -115,8 +115,10 @@ public class UninstallLauncher extends Launcher {
       {
         System.exit(ReturnCode.PRINT_VERSION.getReturnCode());
       }
-      else if (argParser.isUsageArgumentPresent())
+      else if (argParser.usageOrVersionDisplayed())
       {
+        // If there was no problem parsing arguments, this means that the user
+        // asked to display the usage.
         System.exit(ReturnCode.SUCCESSFUL.getReturnCode());
       }
       else
