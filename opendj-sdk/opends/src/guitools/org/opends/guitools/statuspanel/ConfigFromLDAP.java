@@ -223,6 +223,22 @@ public class ConfigFromLDAP
       {
         errorMessage = ERR_READING_CONFIG_LDAP.get(detail);
       }
+
+      /*
+       *  Display the information that we find in the off line configuration.
+       */
+      if (listeners.isEmpty())
+      {
+        listeners.addAll(offlineConf.getListeners());
+      }
+      if (databases.isEmpty())
+      {
+        databases.addAll(offlineConf.getDatabases());
+      }
+      if (administrativeUsers.isEmpty())
+      {
+        administrativeUsers.addAll(offlineConf.getAdministrativeUsers());
+      }
     }
     catch (Throwable t)
     {
