@@ -1345,7 +1345,7 @@ public class ReplicationDomain extends DirectoryThread
             {
               ModifyOperation newOp = (ModifyOperation) op;
               dependency = remotePendingChanges.checkDependencies(newOp);
-              if (!dependency)
+              if ((!dependency) && (!firstTry))
               {
                 done = solveNamingConflict(newOp, msg);
               }
@@ -1362,7 +1362,7 @@ public class ReplicationDomain extends DirectoryThread
               AddOperation newOp = (AddOperation) op;
               AddMsg addMsg = (AddMsg) msg;
               dependency = remotePendingChanges.checkDependencies(newOp);
-              if (!dependency)
+              if ((!dependency) && (!firstTry))
               {
                 done = solveNamingConflict(newOp, addMsg);
               }
@@ -1370,7 +1370,7 @@ public class ReplicationDomain extends DirectoryThread
             {
               ModifyDNMsg newMsg = (ModifyDNMsg) msg;
               dependency = remotePendingChanges.checkDependencies(newMsg);
-              if (!dependency)
+              if ((!dependency) && (!firstTry))
               {
                 ModifyDNOperationBasis newOp = (ModifyDNOperationBasis) op;
                 done = solveNamingConflict(newOp, msg);
