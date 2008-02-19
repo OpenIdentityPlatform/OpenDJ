@@ -37,6 +37,11 @@ if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
 set OLD_SCRIPT_NAME=%SCRIPT_NAME%
 set SCRIPT_NAME=%OLD_SCRIPT_NAME%.online
 
+rem We keep this values to reset the environment before calling _script-util.bat.
+set ORIGINAL_JAVA_ARGS=%OPENDS_JAVA_ARGS%
+set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
+set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
+
 set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTANCE_ROOT%\lib\_script-util.bat"
 if NOT %errorlevel% == 0 exit /B %errorlevel%
@@ -62,6 +67,13 @@ goto end
 
 :launchoffline
 set SCRIPT_NAME=%OLD_SCRIPT_NAME%.offline
+
+rem Set the original values that the user had on the environment in order to be
+rem sure that the script works with the proper arguments (in particular
+rem if the user specified not to overwrite the environment).
+set OPENDS_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
+set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
+set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTANCE_ROOT%\lib\_script-util.bat"
