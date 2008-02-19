@@ -54,6 +54,12 @@ OLD_SCRIPT_NAME=${SCRIPT_NAME}
 SCRIPT_NAME=${OLD_SCRIPT_NAME}.online
 export SCRIPT_NAME
 
+# We keep this values to reset the environment before calling _script-util.sh
+# for the second time.
+ORIGINAL_JAVA_ARGS=${OPENDS_JAVA_ARGS}
+ORIGINAL_JAVA_HOME=${OPENDS_JAVA_HOME}
+ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
+
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
 export SCRIPT_UTIL_CMD
@@ -76,6 +82,13 @@ export SCRIPT_NAME_ARG
 EC=${?}
 if test ${EC} -eq 51
 then
+  # Set the original values that the user had on the environment in order to be
+  # sure that the script works with the proper arguments (in particular
+  # if the user specified not to overwrite the environment).
+  OPENDS_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
+  OPENDS_JAVA_HOME=${ORIGINAL_JAVA_HOME}
+  OPENDS_JAVA_BIN=${ORIGINAL_JAVA_BIN}
+
   # Set the environment to use the offline properties
   SCRIPT_NAME=${OLD_SCRIPT_NAME}.offline
   export SCRIPT_NAME
