@@ -957,7 +957,7 @@ public class ExportLDIF extends TaskTool {
         Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
-        return 0;
+        return 1;
       }
     }
     catch (Exception e)
@@ -965,9 +965,10 @@ public class ExportLDIF extends TaskTool {
       Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
           backend.getBackendID(), getExceptionMessage(e));
       logError(message);
-      return 0;
+      return 1;
     }
 
+    boolean errorOccurred = false;
 
     // Launch the export.
     try
@@ -979,12 +980,14 @@ public class ExportLDIF extends TaskTool {
       Message message =
           ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
       logError(message);
+      errorOccurred = true;
     }
     catch (Exception e)
     {
       Message message =
           ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(getExceptionMessage(e));
       logError(message);
+      errorOccurred = true;
     }
 
 
@@ -1010,7 +1013,14 @@ public class ExportLDIF extends TaskTool {
 
     // Clean up after the export by closing the export config.
     exportConfig.close();
-    return 0;
+    if (!errorOccurred)
+    {
+      return 0;
+    }
+    else
+    {
+      return 1;
+    }
   }
 }
 
