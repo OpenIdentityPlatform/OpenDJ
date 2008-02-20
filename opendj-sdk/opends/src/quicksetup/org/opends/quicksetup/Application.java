@@ -34,6 +34,7 @@ import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
@@ -50,6 +51,7 @@ import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -743,17 +745,20 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * connection.
    * @param dn the dn to be used to authenticate.
    * @param pwd the pwd to be used to authenticate.
+   * @param cnx the ordered list of preferred connections to connect to the
+   * server.
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException if something goes wrong.
    */
   protected InitialLdapContext getRemoteConnection(ServerDescriptor server,
-      String dn, String pwd, ApplicationTrustManager trustManager)
+      String dn, String pwd, ApplicationTrustManager trustManager,
+      LinkedHashSet<PreferredConnection> cnx)
   throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties =
       server.getAdsProperties();
     ServerLoader loader = new ServerLoader(adsProperties, dn, pwd,
-        trustManager);
+        trustManager, cnx);
 
     InitialLdapContext ctx = null;
     try

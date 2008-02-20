@@ -61,6 +61,7 @@ import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.Utils;
 
@@ -1451,13 +1452,14 @@ public abstract class Installer extends GuiApplication {
     {
       notifyListeners(getFormattedWithPoints(
           INFO_PROGRESS_UNCONFIGURING_REPLICATION_REMOTE.get(
-                  server.getHostPort(true))));
+                  getHostPort(server))));
       try
       {
-        ctx = getRemoteConnection(server, getTrustManager());
+        ctx = getRemoteConnection(server, getTrustManager(),
+            getPreferredConnections());
         helper.unconfigureReplication(ctx,
             hmConfiguredRemoteReplication.get(server),
-            server.getHostPort(true));
+            ConnectionUtils.getHostPort(ctx));
       }
       catch (ApplicationException ae)
       {
@@ -1647,7 +1649,7 @@ public abstract class Installer extends GuiApplication {
       {
         notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_CONFIGURING_REPLICATION_REMOTE.get(
-                    server.getHostPort(true))));
+                    getHostPort(server))));
         Integer v = (Integer)server.getServerProperties().get(
             ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT);
         int replicationPort;
@@ -1671,7 +1673,7 @@ public abstract class Installer extends GuiApplication {
             replicationPort = Constants.DEFAULT_REPLICATION_PORT;
             enableSecureReplication = false;
             LOG.log(Level.WARNING, "Could not find replication port for: "+
-                server.getHostPort(true));
+                getHostPort(server));
           }
         }
         HashSet<String> dns = new HashSet<String>();
@@ -1711,11 +1713,12 @@ public abstract class Installer extends GuiApplication {
         }
 
 
-        ctx = getRemoteConnection(server, getTrustManager());
+        ctx = getRemoteConnection(server, getTrustManager(),
+            getPreferredConnections());
         ConfiguredReplication repl =
           helper.configureReplication(ctx, remoteReplicationServers,
               replicationPort, enableSecureReplication,
-              server.getHostPort(true), knownReplicationServerIds,
+              ConnectionUtils.getHostPort(ctx), knownReplicationServerIds,
               knownServerIds);
         long remoteTimeMeasureTime = System.currentTimeMillis();
         long remoteTime = Utils.getServerClock(ctx);
@@ -2033,7 +2036,8 @@ public abstract class Installer extends GuiApplication {
       InitialLdapContext rCtx = null;
       try
       {
-        rCtx = getRemoteConnection(server, getTrustManager());
+        rCtx = getRemoteConnection(server, getTrustManager(),
+            getPreferredConnections());
         ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
@@ -2054,12 +2058,12 @@ public abstract class Installer extends GuiApplication {
         if (Utils.isCertificateException(ne))
         {
           msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-              server.getHostPort(true), ne.toString(true));
+              getHostPort(server), ne.toString(true));
         }
         else
         {
            msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-               server.getHostPort(true), ne.toString(true));
+               getHostPort(server), ne.toString(true));
         }
         throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
             ne);
@@ -2077,7 +2081,7 @@ public abstract class Installer extends GuiApplication {
 
       ReplicaDescriptor replica = suffix.getReplicas().iterator().next();
       ServerDescriptor server = replica.getServer();
-      String hostPort = server.getHostPort(true);
+      String hostPort = getHostPort(server);
 
       boolean isADS = areDnsEqual(dn, ADSContext.getAdministrationSuffixDN());
       boolean isSchema = areDnsEqual(dn, Constants.SCHEMA_DN);
@@ -2114,7 +2118,8 @@ public abstract class Installer extends GuiApplication {
           InitialLdapContext rCtx = null;
           try
           {
-            rCtx = getRemoteConnection(server, getTrustManager());
+            rCtx = getRemoteConnection(server, getTrustManager(),
+                getPreferredConnections());
             ServerDescriptor s = ServerDescriptor.createStandalone(rCtx);
             for (ReplicaDescriptor r : s.getReplicas())
             {
@@ -2130,12 +2135,12 @@ public abstract class Installer extends GuiApplication {
             if (Utils.isCertificateException(ne))
             {
               msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-                  server.getHostPort(true), ne.toString(true));
+                  getHostPort(server), ne.toString(true));
             }
             else
             {
                msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(
-                   server.getHostPort(true), ne.toString(true));
+                   getHostPort(server), ne.toString(true));
             }
             throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg,
                 ne);
@@ -2502,6 +2507,40 @@ public abstract class Installer extends GuiApplication {
   {
     return getUserData().getReplicationOptions().getType() ==
       DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
+  }
+
+  /**
+   * Returns the list of preferred URLs to connect to remote servers.  In fact
+   * it returns only the URL to the remote server specified by the user in
+   * the replication options panel.  The method returns a list for convenience
+   * with other interfaces.
+   * NOTE: this method assumes that the UserData object has already been updated
+   * with the host and port of the remote server.
+   * @return the list of preferred URLs to connect to remote servers.
+   */
+  private LinkedHashSet<PreferredConnection> getPreferredConnections()
+  {
+    LinkedHashSet<PreferredConnection> cnx =
+      new LinkedHashSet<PreferredConnection>();
+    DataReplicationOptions repl = getUserData().getReplicationOptions();
+    if (repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY)
+    {
+      AuthenticationData auth = repl.getAuthenticationData();
+      if (auth != null)
+      {
+        PreferredConnection.Type type;
+        if (auth.useSecureConnection())
+        {
+          type = PreferredConnection.Type.LDAPS;
+        }
+        else
+        {
+          type = PreferredConnection.Type.LDAP;
+        }
+        cnx.add(new PreferredConnection(getLdapUrl(auth), type));
+      }
+    }
+    return cnx;
   }
 
   private String getLdapUrl(AuthenticationData auth)
@@ -3525,7 +3564,7 @@ public abstract class Installer extends GuiApplication {
             (replicationPort > MAX_PORT_VALUE))
         {
           errorMsgs.add(INFO_INVALID_REMOTE_REPLICATION_PORT_VALUE_RANGE.get(
-                  server.getHostPort(true),
+                  getHostPort(server),
                   String.valueOf(MIN_PORT_VALUE),
                   String.valueOf(MAX_PORT_VALUE)));
         }
@@ -3544,7 +3583,7 @@ public abstract class Installer extends GuiApplication {
           {
             errorMsgs.add(
                   INFO_REMOTE_REPLICATION_PORT_ALREADY_CHOSEN_FOR_OTHER_PROTOCOL
-                          .get(server.getHostPort(true)));
+                          .get(getHostPort(server)));
           }
         }
         AuthenticationData authData = new AuthenticationData();
@@ -3763,6 +3802,13 @@ public abstract class Installer extends GuiApplication {
       type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
     }
     lastLoadedCache = new TopologyCache(adsContext, trustManager);
+    LinkedHashSet<PreferredConnection> cnx =
+      new LinkedHashSet<PreferredConnection>();
+    cnx.add(PreferredConnection.getPreferredConnection(
+        adsContext.getDirContext()));
+    // We cannot use getPreferredConnections since the user data has not been
+    // updated yet.
+    lastLoadedCache.setPreferredConnections(cnx);
     lastLoadedCache.reloadTopology();
     Set<SuffixDescriptor> suffixes = lastLoadedCache.getSuffixes();
 
@@ -4015,11 +4061,15 @@ public abstract class Installer extends GuiApplication {
    * @param server the object describing the server.
    * @param trustManager the trust manager to be used to establish the
    * connection.
+   * @param preferredURLs the list of preferred LDAP URLs to be used to connect
+   * to the server.
    * @return the InitialLdapContext to the remote server.
    * @throws ApplicationException if something goes wrong.
    */
   private InitialLdapContext getRemoteConnection(ServerDescriptor server,
-      ApplicationTrustManager trustManager) throws ApplicationException
+      ApplicationTrustManager trustManager,
+      LinkedHashSet<PreferredConnection> cnx)
+  throws ApplicationException
   {
     Map<ADSContext.ServerProperty, Object> adsProperties;
     AuthenticationData auth =
@@ -4052,7 +4102,7 @@ public abstract class Installer extends GuiApplication {
       server.setAdsProperties(adsProperties);
     }
     return  getRemoteConnection(server, auth.getDn(), auth.getPwd(),
-        trustManager);
+        trustManager, cnx);
   }
 
   /**
@@ -4315,6 +4365,7 @@ public abstract class Installer extends GuiApplication {
             LOG.log(Level.INFO, "Initialization completed successfully.");
             notifyListeners(getFormattedProgress(
                 INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
+            notifyListeners(getLineBreak());
           }
         }
       }
@@ -4326,6 +4377,7 @@ public abstract class Installer extends GuiApplication {
         {
           notifyListeners(getFormattedProgress(
             INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get()));
+          notifyListeners(getLineBreak());
         }
       }
       catch (NamingException ne)
@@ -4573,6 +4625,39 @@ public abstract class Installer extends GuiApplication {
       throw new ApplicationException(ReturnCode.BUG,
           Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
     }
+  }
+
+
+  /**
+   * Returns the host port representation of the server to be used in progress
+   * and error messages.  It takes into account the fact the host and port
+   * provided by the user in the replication options panel.
+   * NOTE: the code assumes that the user data with the contents of the
+   * replication options has already been updated.
+   * @param server the ServerDescriptor.
+   * @return the host port string representation of the provided server.
+   */
+  protected String getHostPort(ServerDescriptor server)
+  {
+    String hostPort = null;
+
+    for (PreferredConnection connection : getPreferredConnections())
+    {
+      String url = connection.getLDAPURL();
+      if (url.equals(server.getLDAPURL()))
+      {
+        hostPort = server.getHostPort(false);
+      }
+      else if (url.equals(server.getLDAPsURL()))
+      {
+        hostPort = server.getHostPort(true);
+      }
+    }
+    if (hostPort == null)
+    {
+      hostPort = server.getHostPort(true);
+    }
+    return hostPort;
   }
 }
 

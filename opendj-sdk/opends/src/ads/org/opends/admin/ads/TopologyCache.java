@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ import javax.naming.ldap.LdapName;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 
 /**
@@ -57,6 +59,8 @@ public class TopologyCache
   private String pwd;
   private Set<ServerDescriptor> servers = new HashSet<ServerDescriptor>();
   private Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
+  private LinkedHashSet<PreferredConnection> preferredConnections =
+    new LinkedHashSet<PreferredConnection>();
 
   private final boolean isMultiThreaded = true;
   private final static int MULTITHREAD_TIMEOUT = 90 * 1000;
@@ -173,6 +177,30 @@ public class TopologyCache
   }
 
   /**
+   * Sets the list of LDAP URLs and connection type that are preferred to be
+   * used to connect to the servers.  When we have a server to which we can
+   * connect using a URL on the list we will try to use it.
+   * @param cnx the list of preferred connections.
+   */
+  public void setPreferredConnections(LinkedHashSet<PreferredConnection> cnx)
+  {
+    preferredConnections.clear();
+    preferredConnections.addAll(cnx);
+  }
+
+  /**
+   * Returns the list of LDAP URLs and connection type that are preferred to be
+   * used to connect to the servers.  If a URL is on this list, when we have a
+   * server to which we can connect using that URL and the associated connection
+   * type we will try to use it.
+   * @return the list of preferred connections.
+   */
+  public LinkedHashSet<PreferredConnection> getPreferredConnections()
+  {
+    return new LinkedHashSet<PreferredConnection>(preferredConnections);
+  }
+
+  /**
    * Returns a Set containing all the servers that are registered in the ADS.
    * @return a Set containing all the servers that are registered in the ADS.
    */
@@ -240,7 +268,8 @@ public class TopologyCache
       Map<ServerProperty,Object> serverProperties)
   {
     return new ServerLoader(serverProperties, dn, pwd,
-        trustManager == null ? null : trustManager.createCopy());
+        trustManager == null ? null : trustManager.createCopy(),
+            getPreferredConnections());
   }
 
   /**
