@@ -100,7 +100,10 @@ public class SetupLauncher extends Launcher {
     } else {
       scriptName = Installation.UNIX_SETUP_FILE_NAME;
     }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    if (System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME) == null)
+    {
+      System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    }
     initializeParser();
   }
 

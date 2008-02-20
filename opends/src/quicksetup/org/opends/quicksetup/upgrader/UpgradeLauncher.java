@@ -305,7 +305,10 @@ public class UpgradeLauncher extends Launcher {
     } else {
       scriptName = Installation.UNIX_UPGRADE_FILE_NAME;
     }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    if (System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME) == null)
+    {
+      System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    }
 
     argParser = new ArgumentParser(getClass().getName(),
         INFO_UPGRADE_LAUNCHER_USAGE_DESCRIPTION.get(), false);
@@ -389,6 +392,7 @@ public class UpgradeLauncher extends Launcher {
         }
       } catch (ArgumentException ae) {
         System.err.println(ae.getMessageObject());
+        printUsage(false);
         System.exit(ReturnCode.
                 APPLICATION_ERROR.getReturnCode());
       }

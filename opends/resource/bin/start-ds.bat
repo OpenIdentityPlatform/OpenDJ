@@ -49,7 +49,7 @@ set PATH=%SystemRoot%
 
 echo %SCRIPT%: PATH=%PATH% >> %LOG%
 
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability %*
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability %*
 
 if %errorlevel% == 98 goto serverAlreadyStarted
 if %errorlevel% == 99 goto runDetach
@@ -67,7 +67,7 @@ echo %SCRIPT%: Run no detach  >> %LOG%
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 if exist "%DIR_HOME%\lib\set-java-args.bat %SCRIPT%" DO call "%DIR_HOME%\lib\set-java-args.bat"
-"%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 goto end
 
 
@@ -76,7 +76,7 @@ echo %SCRIPT%: Run detach  >> %LOG%
 if not exist "%DIR_HOME%\logs\server.out" echo. > "%DIR_HOME%\logs\server.out"
 if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.starting"
 if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
-"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" %OPENDS_SERVER_JAVA_ARGS%  %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out"
 goto checkStarted
@@ -89,7 +89,7 @@ if not exist "%DIR_HOME%\logs\server.starting" echo. > "%DIR_HOME%\logs\server.s
 echo. > "%DIR_HOME%\logs\server.startingservice"
 echo. > "%DIR_HOME%\logs\winservice.out"
 if exist "%DIR_HOME%\lib\set-java-args.bat" DO call "%DIR_HOME%\lib\set-java-args.bat"
-"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" -Xrs %OPENDS_SERVER_JAVA_ARGS%  org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
+"%DIR_HOME%\lib\winlauncher.exe" start "%DIR_HOME%" "%OPENDS_JAVA_BIN%" -Xrs %OPENDS_SERVER_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" %*
 echo %SCRIPT%: Waiting for "%DIR_HOME%\logs\server.out" to be deleted >> %LOG%
 "%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.tools.WaitForFileDelete --targetFile "%DIR_HOME%\logs\server.starting" --logFile "%DIR_HOME%\logs\server.out" --outputFile "%DIR_HOME%\logs\winservice.out"
 erase "%DIR_HOME%\logs\server.startingservice"
@@ -106,7 +106,7 @@ if exist "%DIR_HOME%\logs\winservice.out" erase "%DIR_HOME%\logs\winservice.out"
 goto end
 
 :checkStarted
-"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability > NUL 2>&1
+"%OPENDS_JAVA_BIN%" -Xms8M -Xmx8M %SCRIPT_NAME_ARG% org.opends.server.core.DirectoryServer --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%DIR_HOME%\config\config.ldif" --checkStartability > NUL 2>&1
 if %errorlevel% == 98 goto serverStarted
 goto serverNotStarted
 

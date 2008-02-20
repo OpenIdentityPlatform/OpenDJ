@@ -28,17 +28,17 @@ package org.opends.guitools.statuspanel;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opends.guitools.statuspanel.StatusCli.ErrorReturnCode;
+import org.opends.messages.Message;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.Installation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 
@@ -53,6 +53,8 @@ import static org.opends.server.tools.ToolConstants.*;
  */
 public class StatusPanelLauncher
 {
+  static private ArgumentParser argParser;
+
   /** Prefix for log files. */
   static public final String LOG_FILE_PREFIX = "opends-status-";
 
@@ -75,47 +77,48 @@ public class StatusPanelLauncher
       System.err.println("Unable to initialize log");
       t.printStackTrace();
     }
-    boolean printUsage = false;
-    boolean printVersion = false;
-    if ((args != null) && (args.length > 4))
-    {
-      printUsage = true;
-    }
-    for (int i=0; i<args.length; i++)
-    {
-      if (args[i].equalsIgnoreCase("-H") ||
-          args[i].equalsIgnoreCase("--help") ||
-          args[i].equalsIgnoreCase("-?"))
-      {
-        printUsage = true;
-      }
-      else
-      if (args[i].equalsIgnoreCase("-" + OPTION_SHORT_PRODUCT_VERSION) ||
-          args[i].equalsIgnoreCase("--" + OPTION_LONG_PRODUCT_VERSION))
-      {
-        printVersion = true;
-      }
-    }
-    // We first check if we have to print the version
-    if(printVersion)
-    {
-      try
-      {
-        DirectoryServer.printVersion(System.out);
-      }
-      catch (IOException e)
-      {
-        // TODO Auto-generated catch block
-      }
-      System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
-    }
-    else
-    if (printUsage)
-    {
-      printUsage(System.out);
-      System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
 
-    } else
+    argParser = new ArgumentParser(StatusPanelLauncher.class.getName(),
+        INFO_STATUS_PANEL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
+    BooleanArgument showUsage;
+    String scriptName;
+    if (Utils.isWindows()) {
+      scriptName = Installation.WINDOWS_STATUSPANEL_FILE_NAME;
+    } else {
+      scriptName = Installation.UNIX_STATUSPANEL_FILE_NAME;
+    }
+    if (System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME) == null)
+    {
+      System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    }
+    try
+    {
+      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
+          OPTION_LONG_HELP,
+          INFO_DESCRIPTION_USAGE.get());
+      argParser.addArgument(showUsage);
+      argParser.setUsageArgument(showUsage);
+    }
+    catch (Throwable t)
+    {
+      System.err.println("ERROR: "+t);
+      t.printStackTrace();
+    }
+
+//  Validate user provided data
+    try
+    {
+      argParser.parseArguments(args);
+    }
+    catch (ArgumentException ae)
+    {
+      Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      System.err.println(message);
+      System.out.println(Message.raw(argParser.getUsage()));
+
+      System.exit(ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode());
+    }
+    if (!argParser.usageOrVersionDisplayed())
     {
       int exitCode = launchGuiStatusPanel(args);
       if (exitCode != 0)
@@ -216,37 +219,6 @@ public class StatusPanelLauncher
     }
     System.setErr(printStream);
     return returnValue[0];
-  }
-
-  private static void printUsage(PrintStream stream)
-  {
-    ArgumentParser argParser =
-      new ArgumentParser(StatusPanelLauncher.class.getName(),
-        INFO_STATUS_PANEL_LAUNCHER_USAGE_DESCRIPTION.get(), false);
-    BooleanArgument showUsage;
-    String scriptName;
-    if (Utils.isWindows()) {
-      scriptName = Installation.WINDOWS_STATUSPANEL_FILE_NAME;
-    } else {
-      scriptName = Installation.UNIX_STATUSPANEL_FILE_NAME;
-    }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
-    try
-    {
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        INFO_DESCRIPTION_USAGE.get());
-      argParser.addArgument(showUsage);
-      argParser.setUsageArgument(showUsage);
-
-      String msg = argParser.getUsage();
-      stream.println(msg);
-    }
-    catch (Throwable t)
-    {
-      System.err.println("ERROR: "+t);
-      t.printStackTrace();
-    }
   }
 
   /**

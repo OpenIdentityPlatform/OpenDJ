@@ -98,7 +98,10 @@ public class UninstallLauncher extends Launcher {
     } else {
       scriptName = Installation.UNIX_UNINSTALL_FILE_NAME;
     }
-    System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    if (System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME) == null)
+    {
+      System.setProperty(ServerConstants.PROPERTY_SCRIPT_NAME, scriptName);
+    }
 
     initializeParser();
   }
