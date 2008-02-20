@@ -30,7 +30,7 @@ setlocal
 set PATH=%SystemRoot%
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
-set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=stop-ds"
+set SCRIPT_NAME=stop-ds
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 
 rem We keep this values to reset the environment before calling start-ds.
