@@ -76,6 +76,7 @@ import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -372,7 +373,9 @@ public class ReplicationCliMain extends ConsoleApplication
           subcommandLaunched = false;
         }
 
-        if (subcommandLaunched)
+        // Display the log file only if the operation is successful (when there
+        // is a critical error this is already displayed).
+        if (subcommandLaunched && (returnValue == SUCCESSFUL_NOP))
         {
           File logFile = QuickSetupLog.getLogFile();
           if (logFile != null)
@@ -2332,6 +2335,7 @@ public class ReplicationCliMain extends ConsoleApplication
           // LDAPConnectionConsoleInteraction object might have changed.
           TopologyCache cache = new TopologyCache(adsContext,
               getTrustManager());
+          cache.setPreferredConnections(getPreferredConnections(ctx[0]));
           cache.reloadTopology();
 
           reloadTopology = false;
@@ -2409,6 +2413,8 @@ public class ReplicationCliMain extends ConsoleApplication
                         adminPwd, getTrustManager());
                     adsContext = new ADSContext(ctx[0]);
                     cache = new TopologyCache(adsContext, getTrustManager());
+                    cache.setPreferredConnections(
+                        getPreferredConnections(ctx[0]));
                     connected = true;
                   }
                   catch (Throwable t)
@@ -4104,9 +4110,14 @@ public class ReplicationCliMain extends ConsoleApplication
       LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
       try
       {
+        LinkedHashSet<PreferredConnection> cnx =
+          new LinkedHashSet<PreferredConnection>();
+        cnx.addAll(getPreferredConnections(ctx1));
+        cnx.addAll(getPreferredConnections(ctx2));
         if (adsCtx1.hasAdminData())
         {
           TopologyCache cache = new TopologyCache(adsCtx1, getTrustManager());
+          cache.setPreferredConnections(cnx);
           cache.reloadTopology();
           messages.addAll(getErrorMessages(cache));
         }
@@ -4114,6 +4125,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (adsCtx2.hasAdminData())
         {
           TopologyCache cache = new TopologyCache(adsCtx2, getTrustManager());
+          cache.setPreferredConnections(cnx);
           cache.reloadTopology();
           messages.addAll(getErrorMessages(cache));
         }
@@ -4316,9 +4328,14 @@ public class ReplicationCliMain extends ConsoleApplication
     TopologyCache cache2 = null;
     try
     {
+      LinkedHashSet<PreferredConnection> cnx =
+        new LinkedHashSet<PreferredConnection>();
+      cnx.addAll(getPreferredConnections(ctx1));
+      cnx.addAll(getPreferredConnections(ctx2));
       if (adsCtx1.hasAdminData())
       {
         cache1 = new TopologyCache(adsCtx1, getTrustManager());
+        cache1.setPreferredConnections(cnx);
         cache1.reloadTopology();
         usedReplicationServerIds.addAll(getReplicationServerIds(cache1));
       }
@@ -4326,6 +4343,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsCtx2.hasAdminData())
       {
         cache2 = new TopologyCache(adsCtx2, getTrustManager());
+        cache2.setPreferredConnections(cnx);
         cache2.reloadTopology();
         usedReplicationServerIds.addAll(getReplicationServerIds(cache2));
       }
@@ -4582,6 +4600,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsCtx.hasAdminData() && tryToUpdateRemote)
       {
         cache = new TopologyCache(adsCtx, getTrustManager());
+        cache.setPreferredConnections(getPreferredConnections(ctx));
         cache.reloadTopology();
       }
     }
@@ -4732,7 +4751,7 @@ public class ReplicationCliMain extends ConsoleApplication
       for (ServerDescriptor s : serversToUpdate)
       {
         removeReferencesInServer(s, replicationServerHostPort, bindDn, pwd,
-            suffixesToDisable, disableAllBaseDns);
+            suffixesToDisable, disableAllBaseDns, getPreferredConnections(ctx));
       }
 
       if (disableAllBaseDns)
@@ -4785,6 +4804,7 @@ public class ReplicationCliMain extends ConsoleApplication
     try
     {
       cache = new TopologyCache(adsCtx, getTrustManager());
+      cache.setPreferredConnections(getPreferredConnections(ctx));
       cache.reloadTopology();
     }
     catch (TopologyCacheException tce)
@@ -4904,7 +4924,8 @@ public class ReplicationCliMain extends ConsoleApplication
       for (Set<ReplicaDescriptor> replicas : orderedReplicaLists)
       {
         printlnProgress();
-        displayStatus(replicas, uData.isScriptFriendly());
+        displayStatus(replicas, uData.isScriptFriendly(),
+            getPreferredConnections(ctx));
       }
       if (oneReplicated && !uData.isScriptFriendly())
       {
@@ -4920,10 +4941,11 @@ public class ReplicationCliMain extends ConsoleApplication
    * that all the replicas have the same baseDN and that if they are replicated
    * all the replicas are replicated with each other.
    * @param replicas the list of replicas that we are trying to display.
+   * @param cnx the preferred connections used to connect to the server.
    * @param scriptFriendly wheter to display it on script-friendly mode or not.
    */
   private void displayStatus(Set<ReplicaDescriptor> replicas,
-      boolean scriptFriendly)
+      boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx)
   {
 
     boolean isReplicated = false;
@@ -4936,13 +4958,13 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         isReplicated = true;
       }
-      hostPorts.add(replica.getServer().getHostPort(true));
+      hostPorts.add(getHostPort(replica.getServer(), cnx));
     }
     for (String hostPort : hostPorts)
     {
       for (ReplicaDescriptor replica : replicas)
       {
-        if (replica.getServer().getHostPort(true).equals(hostPort))
+        if (getHostPort(replica.getServer(), cnx).equals(hostPort))
         {
           orderedReplicas.add(replica);
         }
@@ -5008,7 +5030,7 @@ public class ReplicationCliMain extends ConsoleApplication
         switch (j)
         {
         case SERVERPORT:
-          v = Message.raw(replica.getServer().getHostPort(true));
+          v = Message.raw(getHostPort(replica.getServer(), cnx));
           break;
         case NUMBER_ENTRIES:
           int nEntries = replica.getEntries();
@@ -5596,7 +5618,7 @@ public class ReplicationCliMain extends ConsoleApplication
               cache.getAdsContext().getDirContext());
 
           ServerLoader loader = new ServerLoader(s.getAdsProperties(),
-              dn, pwd, getTrustManager());
+              dn, pwd, getTrustManager(), cache.getPreferredConnections());
           InitialLdapContext ctx = null;
           try
           {
@@ -5610,13 +5632,15 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           catch (NamingException ne)
           {
-            String hostPort = server.getHostPort(true);
+            String hostPort = getHostPort(server,
+                cache.getPreferredConnections());
             Message msg = getMessageForException(ne, hostPort);
             throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
           }
           catch (OpenDsException ode)
           {
-            String hostPort = server.getHostPort(true);
+            String hostPort = getHostPort(server,
+                cache.getPreferredConnections());
             Message msg = getMessageForEnableException(ode, hostPort, baseDN);
             throw new ReplicationCliException(msg,
                 ERROR_ENABLING_REPLICATION_ON_BASEDN, ode);
@@ -6315,16 +6339,19 @@ public class ReplicationCliMain extends ConsoleApplication
    * to the provided replication server.
    * @param removeFromReplicationServers if references must be removed from
    * the replication servers.
+   * @param preferredURLs the preferred LDAP URLs to be used to connect to the
+   * server.
    * @throws ReplicationCliException if there is an error updating the
    * configuration.
    */
   private void removeReferencesInServer(ServerDescriptor server,
       String replicationServer, String bindDn, String pwd,
-      Collection<String> baseDNs, boolean updateReplicationServers)
+      Collection<String> baseDNs, boolean updateReplicationServers,
+      LinkedHashSet<PreferredConnection> cnx)
   throws ReplicationCliException
   {
     ServerLoader loader = new ServerLoader(server.getAdsProperties(), bindDn,
-        pwd, getTrustManager());
+        pwd, getTrustManager(), cnx);
     InitialLdapContext ctx = null;
     String lastBaseDN = null;
     String hostPort = null;
@@ -6435,7 +6462,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (NamingException ne)
     {
-      hostPort = server.getHostPort(true);
+      hostPort = getHostPort(server, cnx);
       Message msg = getMessageForException(ne, hostPort);
       throw new ReplicationCliException(msg, ERROR_CONNECTING, ne);
     }
@@ -7202,5 +7229,53 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
     return returnValue;
+  }
+
+  /**
+   * Commodity method that generates a list of preferred connection (of just
+   * one) with the information on a given InitialLdapContext.
+   * @param ctx the connection we retrieve the inforamtion from.
+   * @return a list containing the preferred connection object.
+   */
+  private LinkedHashSet<PreferredConnection> getPreferredConnections(
+      InitialLdapContext ctx)
+  {
+    PreferredConnection cnx = PreferredConnection.getPreferredConnection(ctx);
+    LinkedHashSet<PreferredConnection> returnValue =
+      new LinkedHashSet<PreferredConnection>();
+    returnValue.add(cnx);
+    return returnValue;
+  }
+
+  /**
+   * Returns the host port representation of the server to be used in progress,
+   * status and error messages.  It takes into account the fact the host and
+   * port provided by the user.
+   * @param server the ServerDescriptor.
+   * @param cnx the preferred connections list.
+   * @return the host port string representation of the provided server.
+   */
+  protected String getHostPort(ServerDescriptor server,
+      Collection<PreferredConnection> cnx)
+  {
+    String hostPort = null;
+
+    for (PreferredConnection connection : cnx)
+    {
+      String url = connection.getLDAPURL();
+      if (url.equals(server.getLDAPURL()))
+      {
+        hostPort = server.getHostPort(false);
+      }
+      else if (url.equals(server.getLDAPsURL()))
+      {
+        hostPort = server.getHostPort(true);
+      }
+    }
+    if (hostPort == null)
+    {
+      hostPort = server.getHostPort(true);
+    }
+    return hostPort;
   }
 }

@@ -41,6 +41,7 @@ import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.guitools.uninstaller.ui.ConfirmUninstallPanel;
 import org.opends.guitools.uninstaller.ui.LoginDialog;
 import org.opends.quicksetup.ui.*;
@@ -1867,7 +1868,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         String dn = ADSContext.getAdministratorDN(
             getUninstallUserData().getAdminUID());
         String pwd = getUninstallUserData().getAdminPwd();
-        ctx = getRemoteConnection(server, dn, pwd, getTrustManager());
+        ctx = getRemoteConnection(server, dn, pwd, getTrustManager(),
+            new LinkedHashSet<PreferredConnection>());
 
         // Update replication servers and domains.  If the domain
         // is an ADS, then remove it from there.

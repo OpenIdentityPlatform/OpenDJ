@@ -27,6 +27,7 @@
 
 package org.opends.admin.ads.util;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,6 +61,7 @@ public class ServerLoader extends Thread
   private ApplicationTrustManager trustManager;
   private String dn;
   private String pwd;
+  private LinkedHashSet<PreferredConnection> preferredLDAPURLs;
 
   private static final Logger LOG =
     Logger.getLogger(ServerLoader.class.getName());
@@ -72,14 +74,20 @@ public class ServerLoader extends Thread
    * @param pwd the password that we must use to bind to the server.
    * @param trustManager the ApplicationTrustManager to be used when we try
    * to connect to the server.
+   * @param preferredLDAPURLs the list of preferred LDAP URLs that we want
+   * to use to connect to the server.  They will be used only if they correspond
+   * to the URLs that we found in the the server properties.
    */
   public ServerLoader(Map<ServerProperty,Object> serverProperties,
-      String dn, String pwd, ApplicationTrustManager trustManager)
+      String dn, String pwd, ApplicationTrustManager trustManager,
+      LinkedHashSet<PreferredConnection> preferredLDAPURLs)
   {
     this.serverProperties = serverProperties;
     this.dn = dn;
     this.pwd = pwd;
     this.trustManager = trustManager;
+    this.preferredLDAPURLs =
+      new LinkedHashSet<PreferredConnection>(preferredLDAPURLs);
   }
 
   /**
@@ -115,14 +123,14 @@ public class ServerLoader extends Thread
     if (!isOver)
     {
       isInterrupted = true;
-      String ldapUrl = getLdapsUrl(serverProperties);
+      String ldapUrl = getLastLdapUrl();
       if (ldapUrl == null)
       {
-        ldapUrl = getStartTlsLdapUrl(serverProperties);
-      }
-      if (ldapUrl == null)
-      {
-        ldapUrl = getLdapUrl(serverProperties);
+        LinkedHashSet<PreferredConnection> urls = getLDAPURLsByPreference();
+        if (!urls.isEmpty())
+        {
+          ldapUrl = urls.iterator().next().getLDAPURL();
+        }
       }
       lastException = new TopologyCacheException(
           TopologyCacheException.Type.TIMEOUT,
@@ -246,30 +254,35 @@ public class ServerLoader extends Thread
       String host = (String)serverProperties.get(ServerProperty.HOST_NAME);
       trustManager.setHost(host);
     }
-    lastLdapUrl = getLdapsUrl(serverProperties);
 
-    if (lastLdapUrl == null)
+    /* Try to connect to the server in a certain order of preference.  If an
+     * URL fails, we will try with the others.
+     */
+    LinkedHashSet<PreferredConnection> conns = getLDAPURLsByPreference();
+
+    for (PreferredConnection connection : conns)
     {
-      lastLdapUrl = getStartTlsLdapUrl(serverProperties);
-      if (lastLdapUrl == null)
+      if (ctx == null)
       {
-        lastLdapUrl = getLdapUrl(serverProperties);
-        ctx = ConnectionUtils.createLdapContext(lastLdapUrl, dn, pwd,
-            ConnectionUtils.getDefaultLDAPTimeout(), null);
-      }
-      else
-      {
-        ctx = ConnectionUtils.createStartTLSContext(lastLdapUrl, dn, pwd,
-            ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager,
-            null, null);
+        lastLdapUrl = connection.getLDAPURL();
+        switch (connection.getType())
+        {
+        case LDAPS:
+          ctx = ConnectionUtils.createLdapsContext(lastLdapUrl, dn, pwd,
+              ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager,
+              null);
+          break;
+        case START_TLS:
+          ctx = ConnectionUtils.createStartTLSContext(lastLdapUrl, dn, pwd,
+              ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager,
+              null, null);
+          break;
+        default:
+          ctx = ConnectionUtils.createLdapContext(lastLdapUrl, dn, pwd,
+              ConnectionUtils.getDefaultLDAPTimeout(), null);
+        }
       }
     }
-    else
-    {
-      ctx = ConnectionUtils.createLdapsContext(lastLdapUrl, dn, pwd,
-          ConnectionUtils.getDefaultLDAPTimeout(), null, trustManager, null);
-    }
-
     return ctx;
   }
 
@@ -383,5 +396,61 @@ public class ServerLoader extends Thread
       LOG.log(Level.WARNING, "Error parsing authentication DNs.", t);
     }
     return isAdministratorDn;
+  }
+
+  /**
+   * Returns the list of LDAP URLs that can be used to connect to the server.
+   * They are ordered so that the first URL is the preferred URL to be used.
+   * @return the list of LDAP URLs that can be used to connect to the server.
+   * They are ordered so that the first URL is the preferred URL to be used.
+   */
+  private LinkedHashSet<PreferredConnection> getLDAPURLsByPreference()
+  {
+    LinkedHashSet<PreferredConnection> ldapUrls =
+      new LinkedHashSet<PreferredConnection>();
+
+    String ldapsUrl = getLdapsUrl(serverProperties);
+    String startTLSUrl = getStartTlsLdapUrl(serverProperties);
+    String ldapUrl = getLdapUrl(serverProperties);
+
+    /**
+     * Check the preferred connections passed in the constructor.
+     */
+    for (PreferredConnection connection : preferredLDAPURLs)
+    {
+      String url = connection.getLDAPURL();
+      if (url.equalsIgnoreCase(ldapsUrl) &&
+          connection.getType() == PreferredConnection.Type.LDAPS)
+      {
+        ldapUrls.add(connection);
+      }
+      else if (url.equalsIgnoreCase(startTLSUrl) &&
+          connection.getType() == PreferredConnection.Type.START_TLS)
+      {
+        ldapUrls.add(connection);
+      }
+      else if (url.equalsIgnoreCase(ldapUrl) &&
+          connection.getType() == PreferredConnection.Type.LDAP)
+      {
+        ldapUrls.add(connection);
+      }
+    }
+
+    if (ldapsUrl != null)
+    {
+      ldapUrls.add(
+          new PreferredConnection(ldapsUrl, PreferredConnection.Type.LDAPS));
+    }
+    if (startTLSUrl != null)
+    {
+      ldapUrls.add(new PreferredConnection(startTLSUrl,
+              PreferredConnection.Type.START_TLS));
+    }
+    if (ldapUrl != null)
+    {
+      ldapUrls.add(new PreferredConnection(ldapUrl,
+          PreferredConnection.Type.LDAP));
+    }
+    return ldapUrls;
   }
 }

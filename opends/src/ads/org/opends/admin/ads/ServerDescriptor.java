@@ -84,6 +84,10 @@ public class ServerDescriptor
      */
     LDAPS_ENABLED,
     /**
+     * The associated value is an ArrayList of Boolean.
+     */
+    STARTTLS_ENABLED,
+    /**
      * The associated value is an ArrayList of Integer.
      */
     JMX_PORT,
@@ -294,6 +298,80 @@ public class ServerDescriptor
       host = (String)adsProperties.get(ADSContext.ServerProperty.HOST_NAME);
     }
     return host;
+  }
+
+  /**
+   * Returns the URL to access this server using LDAP.  Returns
+   * <CODE>null</CODE> if the server is not configured to listen on an LDAP
+   * port.
+   * @return the URL to access this server using LDAP.
+   */
+  public String getLDAPURL()
+  {
+    String ldapUrl = null;
+    String host = getHostName();
+    int port = -1;
+
+    if (!serverProperties.isEmpty())
+    {
+      ArrayList s = (ArrayList)serverProperties.get(
+          ServerProperty.LDAP_ENABLED);
+      ArrayList p = (ArrayList)serverProperties.get(
+          ServerProperty.LDAP_PORT);
+      if (s != null)
+      {
+        for (int i=0; i<s.size(); i++)
+        {
+          if (Boolean.TRUE.equals(s.get(i)))
+          {
+            port = (Integer)p.get(i);
+            break;
+          }
+        }
+      }
+    }
+    if (port != -1)
+    {
+      ldapUrl = ConnectionUtils.getLDAPUrl(host, port, false);
+    }
+    return ldapUrl;
+  }
+
+  /**
+   * Returns the URL to access this server using LDAPS.  Returns
+   * <CODE>null</CODE> if the server is not configured to listen on an LDAPS
+   * port.
+   * @return the URL to access this server using LDAP.
+   */
+  public String getLDAPsURL()
+  {
+    String ldapsUrl = null;
+    String host = getHostName();
+    int port = -1;
+
+    if (!serverProperties.isEmpty())
+    {
+      ArrayList s = (ArrayList)serverProperties.get(
+          ServerProperty.LDAPS_ENABLED);
+      ArrayList p = (ArrayList)serverProperties.get(
+          ServerProperty.LDAPS_PORT);
+      if (s != null)
+      {
+        for (int i=0; i<s.size(); i++)
+        {
+          if (Boolean.TRUE.equals(s.get(i)))
+          {
+            port = (Integer)p.get(i);
+            break;
+          }
+        }
+      }
+    }
+    if (port != -1)
+    {
+      ldapsUrl = ConnectionUtils.getLDAPUrl(host, port, true);
+    }
+    return ldapsUrl;
   }
 
   /**
@@ -517,6 +595,16 @@ public class ServerDescriptor
         adsProperties.put(adsProps[i][1], String.valueOf(port));
       }
     }
+
+    ArrayList array = (ArrayList)serverProperties.get(
+        ServerProperty.STARTTLS_ENABLED);
+    boolean startTLSEnabled = false;
+    if ((array != null) && !array.isEmpty())
+    {
+      startTLSEnabled = Boolean.TRUE.equals(array.get(array.size() -1));
+    }
+    adsProperties.put(ADSContext.ServerProperty.STARTTLS_ENABLED,
+        startTLSEnabled ? "true" : "false");
     adsProperties.put(ADSContext.ServerProperty.ID, getHostPort(true));
     adsProperties.put(ADSContext.ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
                       getInstancePublicKeyCertificate());
@@ -576,6 +664,7 @@ public class ServerDescriptor
             "ds-cfg-listen-address",
             "ds-cfg-listen-port",
             "ds-cfg-use-ssl",
+            "ds-cfg-allow-start-tls",
             "objectclass"
         });
     String filter = "(objectclass=ds-cfg-ldap-connection-handler)";
@@ -587,11 +676,13 @@ public class ServerDescriptor
     ArrayList<Integer> ldapsPorts = new ArrayList<Integer>();
     ArrayList<Boolean> ldapEnabled = new ArrayList<Boolean>();
     ArrayList<Boolean> ldapsEnabled = new ArrayList<Boolean>();
+    ArrayList<Boolean> startTLSEnabled = new ArrayList<Boolean>();
 
     desc.serverProperties.put(ServerProperty.LDAP_PORT, ldapPorts);
     desc.serverProperties.put(ServerProperty.LDAPS_PORT, ldapsPorts);
     desc.serverProperties.put(ServerProperty.LDAP_ENABLED, ldapEnabled);
     desc.serverProperties.put(ServerProperty.LDAPS_ENABLED, ldapsEnabled);
+    desc.serverProperties.put(ServerProperty.STARTTLS_ENABLED, startTLSEnabled);
 
     while(listeners.hasMore())
     {
@@ -613,6 +704,9 @@ public class ServerDescriptor
       {
         ldapPorts.add(new Integer(port));
         ldapEnabled.add(enabled);
+        enabled = "true".equalsIgnoreCase(
+            getFirstValue(sr, "ds-cfg-allow-start-tls"));
+        startTLSEnabled.add(enabled);
       }
     }
   }
