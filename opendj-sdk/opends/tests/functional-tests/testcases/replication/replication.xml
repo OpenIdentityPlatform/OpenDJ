@@ -38,8 +38,9 @@
           </script>
           <call function="'testGroup_Preamble'"/>            
           <iterate  var="_test" 
-                    in="['totalupdate','binarycopy','ldifimport','resynchronization',
-                         'basic','schema','failover','encryption']">
+                    in="['totalupdate','binarycopy','ldifimport',
+                         'resynchronization','basic','schema','failover',
+                         'encryption','changelog']">
             <sequence>
               <import machine="STAF_LOCAL_HOSTNAME"
                       file="'%s/testcases/replication/%s/%s.xml' % 
