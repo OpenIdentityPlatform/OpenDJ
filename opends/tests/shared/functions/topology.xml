@@ -85,45 +85,45 @@
             </sequence>
           </if>
         </sequence>
-        <else>
-          <!-- MULTIPLE instance deployment: read parameters from
-            topologyDescFile -->
-          <sequence>
-            <message>
-              'MULTIPLE instance deployment: read parameters from %s' \
-              % topologyDescFile
-            </message>
-            
-            <!-- Parse the topology description file and set
-              _topologyServerList -->
-            <call function="'readTopology'">
-              { 'file' : topologyDescFile }
-            </call>
-            
-            <message>
-              'Number of server instances required by the deployment: %s' \
-              % len(_topologyServerList)
-            </message>
-            
-            <iterate var="server" in="_topologyServerList">
-              <sequence>
-                <!-- Create the instance-->
-                <call function="'createInstance'">
-                  { 'dsHost'    : server.getHostname(),
-                    'dsDir'     : server.getDir(),
-                    'dsPort'    : server.getPort(),
-                    'dsSslPort' : server.getSslPort(),
-                    'dsJmxPort' : server.getJmxPort(),
-                    'dsBindDN'  : server.getRootDn(),
-                    'dsBindPwd' : server.getRootPwd(),
-                    'dsBaseDN'  : server.getBaseDn()
-                  }
-                </call>
-                
-              </sequence>
-            </iterate>
-          </sequence>
-        </else>
+      <else>
+        <!-- MULTIPLE instance deployment: read parameters from
+          topologyDescFile -->
+        <sequence>
+          <message>
+            'MULTIPLE instance deployment: read parameters from %s' \
+            % topologyDescFile
+          </message>
+          
+          <!-- Parse the topology description file and set
+            _topologyServerList -->
+          <call function="'readTopology'">
+            { 'file' : topologyDescFile }
+          </call>
+           
+          <message>
+            'Number of server instances required by the deployment: %s' \
+            % len(_topologyServerList)
+          </message>
+          
+          <iterate var="server" in="_topologyServerList">
+            <sequence>
+              <!-- Create the instance-->
+              <call function="'createInstance'">
+                { 'dsHost'    : server.getHostname(),
+                  'dsDir'     : server.getDir(),
+                  'dsPort'    : server.getPort(),
+                  'dsSslPort' : server.getSslPort(),
+                  'dsJmxPort' : server.getJmxPort(),
+                  'dsBindDN'  : server.getRootDn(),
+                  'dsBindPwd' : server.getRootPwd(),
+                  'dsBaseDN'  : server.getBaseDn()
+                }
+              </call>
+              
+            </sequence>
+          </iterate>
+        </sequence>
+      </else>
       </if>
     </sequence>
   </function>
@@ -1917,7 +1917,7 @@
           'dsPath'            : dsPath,
           'dsInstanceHost'    : sourceInstanceHost,
           'dsInstancePort'    : sourceInstancePort,
-          'localOnly'         : True,
+          'localOnly'         : False,
           'replicationDnList' : [suffixDn],
           'adminUID'          : adminUID,
           'adminPswd'         : adminPswd

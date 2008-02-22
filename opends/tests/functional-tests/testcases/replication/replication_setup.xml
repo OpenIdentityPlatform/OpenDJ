@@ -48,6 +48,18 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>          
       </function-arg-def>
+      <function-arg-def name="dataFile"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Name of the data file within shared/data/replication/ for suffix 
+          initialisation.
+          If no filename provided (default), the topology won't be initialised.
+          If a filename provided, after initialisation the suffix will be
+          backuped under masterBackupDir.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
     </function-map-args>    
     
     <sequence>
@@ -93,9 +105,42 @@
             masterReplicationServer = master.getChangelogServer()
             masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
             masterDataDir = '%s/%s' % (master.getDir(),relativeDataDir)
-
+            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
+            masterBackupDir = '%s/replication/master_backup' % masterDataDir
+            
             consumerList = _topologyServerList[1:]              
-          </script>        
+          </script>       
+
+          <if expr="dataFile">
+            <sequence>
+              <script>
+                importDataFile = '%s/replication/%s' % (masterDataDir, dataFile)
+              </script>
+                
+              <message>
+                'Import data from %s into server %s:%s' \
+                % (importDataFile, masterHost, master.getPort())
+              </message>
+              
+              <!-- Import data into "master" Directory Server -->
+              <call function="'ImportLdifWithScript'">
+                { 'location'     : masterHost,
+                  'dsPath'       : masterPath,
+                  'dsBackEnd'    : 'userRoot',          
+                  'dsLdifFile'   : importDataFile
+                }
+              </call>
+            
+              <!-- Backup "master" server -->
+              <call function="'backup'">
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'backupDir' : masterBackupDir
+                }
+              </call>                                         
+            </sequence>
+          </if>
+ 
                           
           <!-- Start the servers in the topology -->        
           <call function="'startServers'">
@@ -131,29 +176,50 @@
                   </message>
                                         
                   <call function="'enableReplication'">
-                    { 'location'  :  clientHost,
-                      'dsPath'  :  clientPath,
-                      'dsInstanceHost'  :  server.getHostname(),
-                      'dsInstancePort'  :  server.getPort(),
-                      'dsInstanceDn'  :  server.getRootDn(),
-                      'dsInstancePswd'  :  server.getRootPwd(),
-                      'dsReplicationPort'  :  replicationServer.getPort(),
-                      'dsSecureReplication'  :  secureReplication,
-                      'refInstanceHost'  :  masterHost,
-                      'refInstancePort'  :  master.getPort(),
-                      'refInstanceDn'  :  master.getRootDn(),
-                      'refInstancePswd'  :  master.getRootPwd(),
-                      'refReplicationPort'  :  masterReplicationServer.getPort(),
-                      'refSecureReplication'  :  secureReplication,
-                      'replicationDnList'  :  replicatedDnList,
-                      'useSecondServerAsSchemaSource'  :  True }                      
+                    { 'location'             : clientHost,
+                      'dsPath'               : clientPath,
+                      'dsInstanceHost'       : server.getHostname(),
+                      'dsInstancePort'       : server.getPort(),
+                      'dsInstanceDn'         : server.getRootDn(),
+                      'dsInstancePswd'       : server.getRootPwd(),
+                      'dsReplicationPort'    : replicationServer.getPort(),
+                      'dsSecureReplication'  : secureReplication,
+                      'refInstanceHost'      : masterHost,
+                      'refInstancePort'      : master.getPort(),
+                      'refInstanceDn'        : master.getRootDn(),
+                      'refInstancePswd'      : master.getRootPwd(),
+                      'refReplicationPort'  : masterReplicationServer.getPort(),
+                      'refSecureReplication' : secureReplication,
+                      'replicationDnList'    : replicatedDnList,
+                      'useSecondServerAsSchemaSource'  :  True
+                    }                      
                   </call>
                 </sequence>
               </if>                
                 
             </sequence>              
-          </iterate>                   
-                                                                                             
+          </iterate>           
+
+          <if expr="dataFile">
+            <sequence>
+              <message>
+                'Initialise topology from %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
+                
+              <!-- Initialise the servers in the topology -->
+              <call function="'initializeReplication'">
+                { 'location'           : clientHost,
+                  'dsPath'             : clientPath,
+                  'sourceInstanceHost' : masterHost,
+                  'sourceInstancePort' : master.getPort(),
+                  'replicationDnList'  : [synchroSuffix]
+                }
+              </call>                   
+              
+            </sequence>              
+          </if>                                                       
+                                                                                                                                    
         </sequence>
 
       </block>

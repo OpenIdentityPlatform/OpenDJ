@@ -1202,7 +1202,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'     :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Import Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1210,7 +1210,11 @@
           'dsBindPswd' : dsInstancePswd,
           'dsTaskLdif' : taskLdif }
       </call>
-      
+
+      <script>
+        STAFCmdRC=STAXResult[0]
+      </script>
+                      
       <!-- Check that the ldap task is completed -->
       <if expr="STAFCmdRC == 0">
         <sequence>
@@ -1668,6 +1672,7 @@
       <!-- Local variables -->
       <script>
         myLocation=location
+        myPath=dsPath
         taskLdifFile='export-task.ldif'
         taskLdif='%s/../%s/%s' % (dsPath,relativeDataDir,taskLdifFile)
         tmpTaskLdif='%s/%s' % (logsTempDir,taskLdifFile)
@@ -1733,7 +1738,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -1741,13 +1746,17 @@
           'dsBindPswd' : dsInstancePswd,
           'dsTaskLdif' : taskLdif }
       </call>
-      
+
+      <script>
+        STAFCmdRC=STAXResult[0]
+      </script>
+              
       <!-- Check that the task is completed -->
       <if expr="STAFCmdRC == 0">
         <sequence>
             <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
-              'dsPath'  :  myPath,
+              'dsPath'     : myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -2046,7 +2055,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Backup Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2054,13 +2063,17 @@
           'dsBindPswd' : dsInstancePswd,
           'dsTaskLdif' : taskLdif }
       </call>
- 
+
+      <script>
+        STAFCmdRC=STAXResult[0]
+      </script>
+         
       <!-- Check that the ldap task is completed -->
       <if expr="STAFCmdRC == 0">
         <sequence>
             <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
-              'dsPath'  :  myPath,
+              'dsPath'     : myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -2306,7 +2319,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Restore Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2314,13 +2327,17 @@
           'dsBindPswd' : dsInstancePswd,
           'dsTaskLdif' : taskLdif }
       </call>
- 
+
+      <script>
+        STAFCmdRC=STAXResult[0]
+      </script>
+         
       <!-- Check that the ldap task is completed -->
       <if expr="STAFCmdRC == 0">
         <sequence>
             <call function="'CheckLdapTask'">
             { 'location'   : myLocation,
-              'dsPath'  :  myPath,
+              'dsPath'     : myPath,
               'dsTaskDn'   : taskDN,
               'dsHost'     : dsInstanceHost,
               'dsPort'     : dsInstancePort,
@@ -2429,7 +2446,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2437,7 +2454,11 @@
           'dsBindPswd' : dsInstancePswd,
           'dsTaskLdif' : taskLdif }
       </call>
-      
+
+      <script>
+        STAFCmdRC=STAXResult[0]
+      </script>
+              
       <return>STAFCmdRC</return>
       
     </sequence>
@@ -2539,7 +2560,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Export Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2548,6 +2569,10 @@
           'dsTaskLdif' : taskLdif }
       </call>
       
+      <script>
+        STAFCmdRC=STAXResult[0]
+      </script>
+        
       <!--- Check that DS started -->
       <if expr="STAFCmdRC == 0">
         <sequence>
@@ -2676,7 +2701,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Schema Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2688,7 +2713,7 @@
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2804,7 +2829,7 @@
       <!-- Start the task using ldap task interface -->
       <call function="'StartLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'taskLabel'  : 'Online Schema Task',
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,
@@ -2816,7 +2841,7 @@
       <!-- Check that the ldap task is completed -->
       <call function="'CheckLdapTask'">
         { 'location'   : myLocation,
-          'dsPath'  :  myPath,
+          'dsPath'     : myPath,
           'dsTaskDn'   : taskDN,
           'dsHost'     : dsInstanceHost,
           'dsPort'     : dsInstancePort,

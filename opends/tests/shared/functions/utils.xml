@@ -1533,8 +1533,8 @@
                         default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
-      </function-arg-description>
-      <function-arg-property name="type" value="hostname"/>
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
       <function-arg-def name="dsPath" 
                         type="optional" 
@@ -1649,5 +1649,83 @@
       </return>
     </sequence>
   </function>
-                        
+
+
+  <function name="grep">
+    <function-prolog>
+      This function search for a given string in a given file.
+      BEWARE! of potential performance degradation when grepping big files due
+      to the use of getFile, which loads the whole file content into a variable.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="filename" type="required">
+        <function-arg-description>
+          File path
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="testString" type="required">
+        <function-arg-description>
+          String searched
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>        
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. 
+          0 for successful grep, 1 for unsuccessful grep. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>        
+    </function-map-args>
+      
+    <sequence>
+      <message>
+        'Search for string \"%s\" in file %s on host %s' % \
+        (testString, filename, location)
+      </message>
+
+      <call function="'getFile'">
+        {
+          'location' : location,
+          'filename' : filename
+        }                
+      </call>
+
+      <script>
+        # getFile returns: STAXResult = [cmdRC, cmdResult]
+        filecontent = STAXResult[1]
+        
+        if (expectedRC == 'noCheck'):
+          # don't care about expected result
+          myExpectedResult = '2'
+        elif (expectedRC == 0):
+          # expect testString to be present in filecontent
+          myExpectedResult = '1'
+        else:
+          # expect testString not to be present in filecontent
+          myExpectedResult = '0'                 
+      </script>        
+
+      <call function="'searchStringForSubstring'">
+        {
+          'testString'     : testString,
+          'returnString'   : filecontent,
+          'expectedResult' : myExpectedResult
+        }
+      </call>
+
+      <return>STAXResult</return>        
+    </sequence>
+  </function>
+
+                                    
 </stax>
