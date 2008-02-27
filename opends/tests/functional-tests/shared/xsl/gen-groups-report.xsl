@@ -108,6 +108,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:attribute>
     <xsl:call-template name="setColour">
       <xsl:with-param name="percent" select="$percent-tests"/>
+      <xsl:with-param name="red" select="'70'"/>
+      <xsl:with-param name="yellow" select="'95'"/>
     </xsl:call-template>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -381,6 +383,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:element name="tr">
             <xsl:call-template name="setColour">
               <xsl:with-param name="percent" select="$test-percent"/>
+              <xsl:with-param name="red" select="'100'"/>
+              <xsl:with-param name="yellow" select="'100'"/>
             </xsl:call-template>
   
             <!-- Group Name -->
@@ -494,7 +498,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
-        <xsl:element name="b">
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="concat($url,$tests-dir)"/>
+          </xsl:attribute>
           <xsl:value-of select="$tests-dir"/>
         </xsl:element>
       </xsl:element>          
@@ -536,12 +543,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template name="setColour">
   <xsl:param name="percent"/>
+  <xsl:param name="red"/>
+  <xsl:param name="yellow"/>
   <xsl:attribute name="bgcolor">
     <xsl:choose>
-      <xsl:when test="$percent &lt; 70">
+      <xsl:when test="$percent &lt; $red">
         <xsl:value-of select="'red'" />
       </xsl:when>
-      <xsl:when test="$percent &lt; 95">
+      <xsl:when test="$percent &lt; $yellow">
         <xsl:value-of select="'yellow'" />
       </xsl:when>
       <xsl:otherwise>
