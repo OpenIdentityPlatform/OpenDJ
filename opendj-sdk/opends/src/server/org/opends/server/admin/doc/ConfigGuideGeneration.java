@@ -77,9 +77,8 @@ public class ConfigGuideGeneration {
   // Note : still to be done :
   // I18n support. Today all the strings are hardcoded in this file
 
-  private final String OPENDS_WIKI = "https://www.opends.org/wiki";
-  private final String ACI_SYNTAX_PAGE = OPENDS_WIKI + "/page/ACISyntax";
-  private final String DURATION_SYNTAX_PAGE = OPENDS_WIKI +
+  private final static String ACI_SYNTAX_REL_URL = "/page/ACISyntax";
+  private final static String DURATION_SYNTAX_REL_URL =
     "/page/DefinitionDuration";
   private final String CSS_FILE = "opends-config.css";
 
@@ -90,6 +89,8 @@ public class ConfigGuideGeneration {
   private final String MO_LIST_FILE = "ManagedObjectList.html";
   private final String PROPERTIES_INDEX_FILE = "PropertiesIndex.html";
   private final String WELCOME_FILE = "welcome.html";
+  private final String MAINTOP_FILE = "maintop.html";
+  private final String INDEX_FILE = "index.html";
 
   private static final String CONFIG_GUIDE_DIR = "opends_config_guide";
   private final String MAIN_FRAME = "mainFrame";
@@ -102,6 +103,10 @@ public class ConfigGuideGeneration {
    *              (default is /var/tmp/[CONFIG_GUIDE_DIR>])
    * LdapMapping - Presence means that the LDAP mapping section is to be
    *               generated (default is no)
+   * OpendsWiki - The URL of the OpenDS Wiki
+   *              (default is "https://www.opends.org/wiki")
+   * OpendsHome - The URL of the OpenDS project Home page
+   *              (default is "http://www.opends.org")
    *
    * @param args none.
    */
@@ -126,6 +131,20 @@ public class ConfigGuideGeneration {
       ldapMapping = true;
     }
 
+    opendsWiki = properties.getProperty("OpendsWiki");
+    if (opendsWiki == null) {
+      // Default is current wiki
+      opendsWiki = "https://www.opends.org/wiki";
+    }
+    aciSyntaxPage = opendsWiki + ACI_SYNTAX_REL_URL;
+    durationSyntaxPage = opendsWiki + DURATION_SYNTAX_REL_URL;
+
+    opendsHome = properties.getProperty("OpendsHome");
+    if (opendsHome == null) {
+      // Default is current OpenDS project home
+      opendsHome = "http://www.opends.org";
+    }
+
     ConfigGuideGeneration myGen = new ConfigGuideGeneration();
     myGen.generate();
   }
@@ -148,8 +167,14 @@ public class ConfigGuideGeneration {
     // Generate an index of properties
     genPropertiesIndex();
 
+    // Generate the Index page
+    genIndexPage();
+
+    // Generate the Main Top page
+    genMainTopPage();
+
     // Generate the Welcome page
-    genWelcome();
+    genWelcomePage();
    }
 
   private void init() {
@@ -780,7 +805,7 @@ public class ConfigGuideGeneration {
     generateFile(PROPERTIES_INDEX_FILE);
   }
 
-    private void genWelcome() {
+    private void genWelcomePage() {
     htmlHeader("OpenDS Configuration Reference - Welcome");
     heading2("About This Reference");
     paragraph("This reference " +
@@ -830,6 +855,54 @@ public class ConfigGuideGeneration {
 
   }
 
+  private void genMainTopPage() {
+    htmlHeader("OpenDS Configuration Reference - Main Top");
+    htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" +
+      "<a href=\"" + opendsWiki + "\" target=\"_parent\">" +
+      "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>" +
+      "Back to OpenDS Wiki</a></span>&nbsp;&nbsp;</div>\n");
+    htmlBuff.append("<table class=\"titletable\" cellspacing=\"0\" " +
+      "width=\"100%\">\n");
+    htmlBuff.append("<tbody><tr>\n");
+    htmlBuff.append("  <td><h2>OpenDS Configuration Reference</h2></td>\n");
+    htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" +
+      "<a href=\"" + opendsHome + "\" target=\"_parent\">" +
+      "<img src=\"opends_logo_sm.png\" alt=\"OpenDS Logo\" align=\"bottom\" " +
+      "border=\"0\" height=\"33\" width=\"104\"></a></td>\n");
+    htmlBuff.append("</tr>\n");
+    htmlBuff.append("</tbody></table>\n");
+
+    htmlFooter();
+    generateFile(MAINTOP_FILE);
+
+  }
+
+  private void genIndexPage() {
+    htmlBuff.append(getHtmlHeader("OpenDS Configuration Reference"));
+
+    htmlBuff.append("<frameset rows=\"80,*\" framespacing=\"1\" " +
+      "frameborder=\"yes\" border=\"1\" bordercolor=\"#333333\">\n");
+    htmlBuff.append("  <frame src=\"" + MAINTOP_FILE + "\" name=\"topFrame\" " +
+      "id=\"topFrame\" border=\"1\" title=\"topFrame\" scrolling=\"no\">\n");
+    htmlBuff.append("  <frameset cols=\"375,*\" frameborder=\"yes\" " +
+      "border=\"1\" " +
+      "framespacing=\"1\">\n");
+    htmlBuff.append("     <frame src=\"" + INHERITANCE_TREE_FILE + "\" " +
+      "name=\"leftFrame\" id=\"leftFrame\" title=\"leftFrame\" " +
+      "scrolling=\"auto\">\n");
+    htmlBuff.append("     <frame src=\"" + WELCOME_FILE +
+      "\" name=\"mainFrame\" " +
+      "id=\"mainFrame\" title=\"mainFrame\" scrolling=\"auto\">\n");
+    htmlBuff.append("   </frameset>\n");
+    htmlBuff.append("</frameset>\n");
+    htmlBuff.append("<noframes><body>\n");
+    htmlBuff.append("</body>\n");
+    htmlBuff.append("</noframes>\n");
+    htmlBuff.append("</html>\n");
+
+    generateFile(INDEX_FILE);
+  }
+
   private String getBaseDN(
     AbstractManagedObjectDefinition mo, LDAPProfile ldapProfile) {
 
@@ -859,7 +932,7 @@ public class ConfigGuideGeneration {
 
       @Override
       public String visitACI(ACIPropertyDefinition prop, Void p) {
-        return getLink("An ACI Syntax", ACI_SYNTAX_PAGE);
+        return getLink("An ACI Syntax", aciSyntaxPage);
       }
 
       @Override
@@ -908,7 +981,7 @@ public class ConfigGuideGeneration {
       public String visitDuration(DurationPropertyDefinition prop, Void p) {
         String durationStr = "";
 
-        durationStr += getLink("A duration Syntax", DURATION_SYNTAX_PAGE) +
+        durationStr += getLink("A duration Syntax", durationSyntaxPage) +
           ". ";
         if (prop.isAllowUnlimited()) {
           durationStr += "A value of \"-1\" or \"unlimited\" for no limit. ";
@@ -1427,7 +1500,11 @@ public class ConfigGuideGeneration {
   private int ind = 0;
   private StringBuffer htmlBuff = new StringBuffer();
   private static String generationDir;
-    private static boolean ldapMapping = false;
+  private static boolean ldapMapping = false;
+  private static String opendsWiki;
+  private static String opendsHome;
+  private static String aciSyntaxPage;
+  private static String durationSyntaxPage;
   private boolean inList = false;
   private int listLevel = 0;
 }
