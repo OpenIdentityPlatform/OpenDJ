@@ -23,14 +23,21 @@
 #
 #      Copyright 2008 Sun Microsystems, Inc.
 
-# Before running system-tests, you need to replace all NEED_VALUE
+# ----------------------------------------------------------------------
+# BEFORE running system-tests, you need to set up your environment
+# 
+# TMPDIR    : is the directory where the results will be stored
+# OPENDSDIR : is the opends framework directory you have checked out
+#             example : MY_PATH/opends
+# ----------------------------------------------------------------------
+
 
 STAF_LOCAL_HOSTNAME         = 'localhost'
 STAF_REMOTE_HOSTNAME        = 'localhost'
-TMPDIR                      = 'NEED_VALUE'
-OPENDSDIR                   = 'NEED_VALUE'
+TMPDIR                      = '/local/qa/realtmp'
+OPENDSDIR                   = '/local/qa/workspace/ws4/opends'
 TESTS_ROOT                  = '%s/tests' % OPENDSDIR
 TESTS_DIR                   = '%s/system-tests' % TESTS_ROOT
 DIRECTORY_INSTANCE_DN       = 'cn=directory manager'
 DIRECTORY_INSTANCE_PSWD     = 'secret12'
-JAVA_HOME                   = 'NEED_VALUE'
+JAVA_HOME                   = '/usr/lib/jvm/java-6-sun/jre'
