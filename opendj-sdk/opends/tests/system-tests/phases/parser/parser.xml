@@ -103,9 +103,17 @@
       
       <!-- replace localhost by real host name -->
       <script>
+        # for instances
         for instance in instances:
           if (instance.getHost() == 'localhost'):
             instance.setHost(STAXServiceMachine.split('.')[0])
+        
+        # for clients
+        for m in scheduler:
+          for c in m.getClients():
+            if (c.getHost() == 'localhost'):
+              c.setHost(STAXServiceMachine.split('.')[0])
+        
       </script>
       
       <!-- ports should not be the same           -->
@@ -148,9 +156,9 @@
       <!-- client id should be unique -->
       <script>
         clients = []
-        for g in scheduler:
-          if (g.getEnabled() == "true"):
-            clients.extend(g.getClients())
+        for m in scheduler:
+          if (m.getEnabled() == "true"):
+            clients.extend(m.getClients())
         
         nbClients = len(clients)
         i = 0
