@@ -33,11 +33,11 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    defines the parent entry for all plugins defined in the server.
+    defines the parent entry for all plug-ins defined in the server.
   </adm:synopsis>
   <adm:description>
-    It may also include configuration attributes that define the order
-    in which those plugins should be loaded and invoked.
+    It can also include configuration attributes that define the order
+    in which those plug-ins are to be loaded and invoked.
   </adm:description>
   <adm:tag name="core-server" />
   <adm:profile name="ldap">
@@ -60,18 +60,21 @@
   </adm:relation>
   <adm:property name="plugin-order-startup">
     <adm:synopsis>
-      Specifies the order in which startup plugins should be loaded and
-      invoked. The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN). The list may include at most one asterisk
-      to indicate the position of any unspecified plugin (and the
-      relative order of those unspecified plugins will be undefined).
+      Specifies the order in which startup plug-ins are to be loaded and
+      invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of plug-in
+      names (where the plug-in name is the RDN value from the plug-in
+      configuration entry DN). The list can include at most one asterisk
+      to indicate the position of any unspecified plug-in (and the
+      relative order of those unspecified plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which startup plugins are loaded and invoked will
-          be undefined.
+          The order in which startup plug-ins are loaded and invoked 
+          is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -86,18 +89,21 @@
   </adm:property>
   <adm:property name="plugin-order-shutdown">
     <adm:synopsis>
-      Specifies the order in which shutdown plugins should be loaded and
-      invoked. The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN). The list may include at most one asterisk
-      to indicate the position of any unspecified plugin (and the
-      relative order of those unspecified plugins will be undefined).
+      Specifies the order in which shutdown plug-ins are to be loaded and
+      invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of plug-in
+      names (where the plug-in name is the RDN value from the plug-in
+      configuration entry DN). The list can include at most one asterisk
+      to indicate the position of any unspecified plug-in (and the
+      relative order of those unspecified plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which shutdown plugins are loaded and invoked
-          will be undefined.
+          The order in which shutdown plug-ins are loaded and invoked
+          is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -112,18 +118,21 @@
   </adm:property>
   <adm:property name="plugin-order-post-connect">
     <adm:synopsis>
-      Specifies the order in which post-connect plugins should be loaded
-      and invoked. The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN). The list may include at most one asterisk
-      to indicate the position of any unspecified plugin (and the
-      relative order of those unspecified plugins will be undefined).
+      Specifies the order in which post-connect plug-ins are to be loaded
+      and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of plug-in
+      names (where the plug-in name is the RDN value from the plug-in
+      configuration entry DN). The list can include at most one asterisk
+      to indicate the position of any unspecified plug-in (and the
+      relative order of those unspecified plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-connect plugins are loaded and invoked
-          will be undefined.
+          The order in which post-connect plug-ins are loaded and invoked
+          is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -138,19 +147,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-disconnect">
     <adm:synopsis>
-      Specifies the order in which post-disconnect plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-disconnect plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-disconnect plugins are loaded and
-          invoked will be undefined.
+          The order in which post-disconnect plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -165,18 +177,21 @@
   </adm:property>
   <adm:property name="plugin-order-ldif-import">
     <adm:synopsis>
-      Specifies the order in which LDIF import plugins should be loaded
-      and invoked. The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN). The list may include at most one asterisk
-      to indicate the position of any unspecified plugin (and the
-      relative order of those unspecified plugins will be undefined).
+      Specifies the order in which LDIF import plug-ins are to be loaded
+      and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of plug-in
+      names (where the plug-in name is the RDN value from the plug-in
+      configuration entry DN). The list can include at most one asterisk
+      to indicate the position of any unspecified plug-in (and the
+      relative order of those unspecified plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which LDIF import plugins are loaded and invoked
-          will be undefined.
+          The order in which LDIF import plug-ins are loaded and invoked
+          is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -191,18 +206,21 @@
   </adm:property>
   <adm:property name="plugin-order-ldif-export">
     <adm:synopsis>
-      Specifies the order in which LDIF export plugins should be loaded
-      and invoked. The value should be a comma-delimited list of plugin
-      names (where the plugin name is the RDN value from the plugin
-      configuration entry DN). The list may include at most one asterisk
-      to indicate the position of any unspecified plugin (and the
-      relative order of those unspecified plugins will be undefined).
+      Specifies the order in which LDIF export plug-ins are to be loaded
+      and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of plug-in
+      names (where the plug-in name is the RDN value from the plug-in
+      configuration entry DN). The list can include at most one asterisk
+      to indicate the position of any unspecified plug-in (and the
+      relative order of those unspecified plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which LDIF export plugins are loaded and invoked
-          will be undefined.
+          The order in which LDIF export plug-ins are loaded and invoked
+          is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -217,19 +235,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-abandon">
     <adm:synopsis>
-      Specifies the order in which pre-parse abandon plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse abandon plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse abandon plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse abandon plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -244,19 +265,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-add">
     <adm:synopsis>
-      Specifies the order in which pre-parse add plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse add plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse add plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse add plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -271,19 +295,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-bind">
     <adm:synopsis>
-      Specifies the order in which pre-parse bind plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse bind plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse bind plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse bind plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -298,19 +325,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-compare">
     <adm:synopsis>
-      Specifies the order in which pre-parse compare plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse compare plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse compare plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse compare plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -325,19 +355,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-delete">
     <adm:synopsis>
-      Specifies the order in which pre-parse delete plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse delete plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse delete plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse delete plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -352,19 +385,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-extended">
     <adm:synopsis>
-      Specifies the order in which pre-parse extended operation plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which pre-parse extended operation plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse extended operation plugins are
-          loaded and invoked will be undefined.
+          The order in which pre-parse extended operation plug-ins are
+          loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -379,19 +415,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-modify">
     <adm:synopsis>
-      Specifies the order in which pre-parse modify plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse modify plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse modify plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse modify plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -406,19 +445,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-modify-dn">
     <adm:synopsis>
-      Specifies the order in which pre-parse modify DN plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse modify DN plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse modify DN plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse modify DN plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -433,19 +475,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-search">
     <adm:synopsis>
-      Specifies the order in which pre-parse search plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse search plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse search plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse search plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -460,19 +505,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-parse-unbind">
     <adm:synopsis>
-      Specifies the order in which pre-parse unbind plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-parse unbind plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-parse unbind plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-parse unbind plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -487,19 +535,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-add">
     <adm:synopsis>
-      Specifies the order in which pre-operation add plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-operation add plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation add plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation add plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -514,19 +565,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-bind">
     <adm:synopsis>
-      Specifies the order in which pre-operation bind plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-operation bind plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation bind plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation bind plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -541,19 +595,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-compare">
     <adm:synopsis>
-      Specifies the order in which pre-operation compare plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-operation compare plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation compare plugins are loaded
-          and invoked will be undefined.
+          The order in which pre-operation compare plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -568,19 +625,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-delete">
     <adm:synopsis>
-      Specifies the order in which pre-operation delete plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-operation delete plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation delete plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation delete plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -596,18 +656,21 @@
   <adm:property name="plugin-order-pre-operation-extended">
     <adm:synopsis>
       Specifies the order in which pre-operation extended operation
-      plugins should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      plug-ins are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation extended operation plugins
-          are loaded and invoked will be undefined.
+          The order in which pre-operation extended operation plug-ins
+          are loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -624,19 +687,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-modify">
     <adm:synopsis>
-      Specifies the order in which pre-operation modify plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-operation modify plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation modify plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation modify plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -651,19 +717,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-modify-dn">
     <adm:synopsis>
-      Specifies the order in which pre-operation modify DN plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which pre-operation modify DN plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation modify DN plugins are loaded
-          and invoked will be undefined.
+          The order in which pre-operation modify DN plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -680,19 +749,22 @@
   </adm:property>
   <adm:property name="plugin-order-pre-operation-search">
     <adm:synopsis>
-      Specifies the order in which pre-operation search plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which pre-operation search plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which pre-operation searc plugins are loaded and
-          invoked will be undefined.
+          The order in which pre-operation searc plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -707,19 +779,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-abandon">
     <adm:synopsis>
-      Specifies the order in which post-operation abandon plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation abandon plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation abandon plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation abandon plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -736,19 +811,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-add">
     <adm:synopsis>
-      Specifies the order in which post-operation add plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation add plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation add plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation add plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -763,19 +841,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-bind">
     <adm:synopsis>
-      Specifies the order in which post-operation bind plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation bind plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation bind plugins are loaded and
-          invoked will be undefined.
+          The order in which post-operation bind plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -790,19 +871,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-compare">
     <adm:synopsis>
-      Specifies the order in which post-operation compare plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation compare plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation compare plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation compare plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -819,19 +903,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-delete">
     <adm:synopsis>
-      Specifies the order in which post-operation delete plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation delete plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation delete plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation delete plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -847,18 +934,21 @@
   <adm:property name="plugin-order-post-operation-extended">
     <adm:synopsis>
       Specifies the order in which post-operation extended operation
-      plugins should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      plug-ins are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation extended operation plugins
-          are loaded and invoked will be undefined.
+          The order in which post-operation extended operation plug-ins
+          are loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -875,19 +965,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-modify">
     <adm:synopsis>
-      Specifies the order in which post-operation modify plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation modify plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation modify plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation modify plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -902,19 +995,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-modify-dn">
     <adm:synopsis>
-      Specifies the order in which post-operation modify DN plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which post-operation modify DN plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation modify DN plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation modify DN plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -931,19 +1027,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-search">
     <adm:synopsis>
-      Specifies the order in which post-operation search plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation search plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation search plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation search plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -958,19 +1057,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-operation-unbind">
     <adm:synopsis>
-      Specifies the order in which post-operation unbind plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-operation unbind plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-operation unbind plugins are loaded
-          and invoked will be undefined.
+          The order in which post-operation unbind plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -985,19 +1087,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-add">
     <adm:synopsis>
-      Specifies the order in which post-response add plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-response add plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response add plugins are loaded and
-          invoked will be undefined.
+          The order in which post-response add plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1012,19 +1117,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-bind">
     <adm:synopsis>
-      Specifies the order in which post-response bind plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-response bind plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response bind plugins are loaded and
-          invoked will be undefined.
+          The order in which post-response bind plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1039,19 +1147,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-compare">
     <adm:synopsis>
-      Specifies the order in which post-response compare plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-response compare plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response compare plugins are loaded
-          and invoked will be undefined.
+          The order in which post-response compare plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1066,19 +1177,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-delete">
     <adm:synopsis>
-      Specifies the order in which post-response delete plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-response delete plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response delete plugins are loaded and
-          invoked will be undefined.
+          The order in which post-response delete plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1094,18 +1208,21 @@
   <adm:property name="plugin-order-post-response-extended">
     <adm:synopsis>
       Specifies the order in which post-response extended operation
-      plugins should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      plug-ins are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response extended operation plugins
-          are loaded and invoked will be undefined.
+          The order in which post-response extended operation plug-ins
+          are loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1122,19 +1239,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-modify">
     <adm:synopsis>
-      Specifies the order in which post-response modify plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-response modify plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response modify plugins are loaded and
-          invoked will be undefined.
+          The order in which post-response modify plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1149,19 +1269,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-modify-dn">
     <adm:synopsis>
-      Specifies the order in which post-response modify DN plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which post-response modify DN plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response modify DN plugins are loaded
-          and invoked will be undefined.
+          The order in which post-response modify DN plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1178,19 +1301,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-synchronization-add">
     <adm:synopsis>
-      Specifies the order in which post-synchronization add plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which post-synchronization add plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-synchronization add plugins are loaded
-          and invoked will be undefined.
+          The order in which post-synchronization add plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1207,19 +1333,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-synchronization-delete">
     <adm:synopsis>
-      Specifies the order in which post-synchronization delete plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which post-synchronization delete plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-synchronization delete plugins are
-          loaded and invoked will be undefined.
+          The order in which post-synchronization delete plug-ins are
+          loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1236,19 +1365,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-synchronization-modify">
     <adm:synopsis>
-      Specifies the order in which post-synchronization modify plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which post-synchronization modify plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-synchronization modify plugins are
-          loaded and invoked will be undefined.
+          The order in which post-synchronization modify plug-ins are
+          loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1266,18 +1398,21 @@
   <adm:property name="plugin-order-post-synchronization-modify-dn">
     <adm:synopsis>
       Specifies the order in which post-synchronization modify DN
-      plugins should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      plug-ins are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-synchronization modify DN plugins are
-          loaded and invoked will be undefined.
+          The order in which post-synchronization modify DN plug-ins are
+          loaded and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1294,19 +1429,22 @@
   </adm:property>
   <adm:property name="plugin-order-post-response-search">
     <adm:synopsis>
-      Specifies the order in which post-response search plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which post-response search plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which post-response search plugins are loaded and
-          invoked will be undefined.
+          The order in which post-response search plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1321,19 +1459,22 @@
   </adm:property>
   <adm:property name="plugin-order-search-result-entry">
     <adm:synopsis>
-      Specifies the order in which search result entry plugins should be
-      loaded and invoked. The value should be a comma-delimited list of
-      plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which search result entry plug-ins are to be
+      loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list of
+      plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which search result entry plugins are loaded and
-          invoked will be undefined.
+          The order in which search result entry plug-ins are loaded and
+          invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1348,19 +1489,22 @@
   </adm:property>
   <adm:property name="plugin-order-search-result-reference">
     <adm:synopsis>
-      Specifies the order in which search result reference plugins
-      should be loaded and invoked. The value should be a
-      comma-delimited list of plugin names (where the plugin name is the
-      RDN value from the plugin configuration entry DN). The list may
-      include at most one asterisk to indicate the position of any
-      unspecified plugin (and the relative order of those unspecified
-      plugins will be undefined).
+      Specifies the order in which search result reference plug-ins
+      are to be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a
+      comma-delimited list of plug-in names (where the plug-in name is the
+      RDN value from the plug-in configuration entry DN). The list can
+      include at most one asterisk to indicate the position of any
+      unspecified plug-in (and the relative order of those unspecified
+      plug-ins is undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which search result reference plugins are loaded
-          and invoked will be undefined.
+          The order in which search result reference plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1377,19 +1521,22 @@
   </adm:property>
   <adm:property name="plugin-order-subordinate-modify-dn">
     <adm:synopsis>
-      Specifies the order in which subordinate modify DN plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which subordinate modify DN plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which subordinate modify DN plugins are loaded
-          and invoked will be undefined.
+          The order in which subordinate modify DN plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
@@ -1404,19 +1551,22 @@
   </adm:property>
   <adm:property name="plugin-order-intermediate-response">
     <adm:synopsis>
-      Specifies the order in which intermediate response plugins should
-      be loaded and invoked. The value should be a comma-delimited list
-      of plugin names (where the plugin name is the RDN value from the
-      plugin configuration entry DN). The list may include at most one
-      asterisk to indicate the position of any unspecified plugin (and
-      the relative order of those unspecified plugins will be
-      undefined).
+      Specifies the order in which intermediate response plug-ins are to
+      be loaded and invoked. 
     </adm:synopsis>
+    <adm:description>
+      The value is a comma-delimited list
+      of plug-in names (where the plug-in name is the RDN value from the
+      plug-in configuration entry DN). The list can include at most one
+      asterisk to indicate the position of any unspecified plug-in (and
+      the relative order of those unspecified plug-ins is
+      undefined).
+    </adm:description>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
-          The order in which intermediate response plugins are loaded
-          and invoked will be undefined.
+          The order in which intermediate response plug-ins are loaded
+          and invoked is undefined.
         </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
