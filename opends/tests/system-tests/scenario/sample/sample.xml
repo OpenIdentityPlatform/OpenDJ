@@ -36,12 +36,12 @@
         
         <!-- directoryName must have the name of the current directory -->
         <script>
-          dirName  = 'sample'
-          confFile = '%s/scenario/%s/conf.xml' % (TESTS_DIR,dirName)
+          dirName   = 'sample'
+          CONF_FILE = '%s/scenario/%s/conf.xml' % (TESTS_DIR,dirName)
         </script>
         <call function="'main_run'">
         {
-         'configurationFile': confFile,
+         'configurationFile': CONF_FILE,
          'runInstallation'  : 'true',
          'runGenerateLdif'  : 'true',
          'runConfiguration' : 'true',

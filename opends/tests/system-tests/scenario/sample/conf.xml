@@ -25,10 +25,13 @@
  !
  !      Copyright 2008 Sun Microsystems, Inc.
  ! -->
- 
-<!-- This conf.xml file is an example, to run it, -->
-<!-- replace variable NEED_VALUE                  -->
- 
+
+<!--==================================================================-->
+<!-- This conf.xml file is an example                                 -->
+<!-- BEFORE running system-tests, you need to set up your environment -->
+<!--==================================================================-->
+
+
 <systemTestConfiguration>
   
   <!-- ================= Global Parameters ===================== -->
@@ -48,14 +51,20 @@
   
   <!-- ================= Instance ============================== -->
   <instance name="I1" product="opends">
-    <host>NEED_VALUE</host>
+    <host>localhost</host>
     <installDir>NEED_VALUE</installDir>
   </instance>
   
   <!-- ================= Instance ============================== -->
   <instance name="I2" product="opends">
-    <host>NEED_VALUE</host>
+    <host>localhost</host>
     <installDir>NEED_VALUE</installDir>
+    <ports>
+      <ldap>1234</ldap>
+      <ldaps>1235</ldaps>
+      <jmx>1236</jmx>
+      <replicationServer>1237</replicationServer>
+    </ports>
   </instance>
   
   
@@ -98,7 +107,7 @@
     <!--== Module 1 ==-->
     <module name="search" enabled="true">
     
-      <client id="1" name="searchLoad" host="NEED_VALUE" start="t30"
+      <client id="1" name="searchLoad" host="localhost" start="t30"
                                                          stop="t60">
         <serverInstance>I1</serverInstance>
         <baseDn>dc=com</baseDn>
@@ -107,7 +116,7 @@
         <attribute>sn</attribute>
       </client>
       
-      <client id="2" name="searchLoad" host="NEED_VALUE" start="t0"
+      <client id="2" name="searchLoad" host="localhost" start="t0"
                                                          stop="t50">
         <serverInstance>I2</serverInstance>
         <baseDn>dc=com</baseDn>
@@ -121,7 +130,7 @@
     <!--== Module 2 ==-->
     <module name="restart_and_modify" enabled="true">
       
-      <client id="3" name="restartDs" host="NEED_VALUE" start="t50"
+      <client id="3" name="restartDs" host="localhost" start="t50"
                                                         dependencyId="1">
         <serverInstance>I2</serverInstance>
         <baseDn>dc=com</baseDn>
@@ -130,7 +139,7 @@
         <attribute>sn</attribute>
       </client>
       
-      <client id="4" name="modifyLoad" host="NEED_VALUE" start="t60"
+      <client id="4" name="modifyLoad" host="localhost" start="t60"
                                                          stop="t100">
         <serverInstance>I1</serverInstance>
         <baseDn>dc=com</baseDn>
