@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+  <!--==============================================================-->
+  <!--=================  INSTALL OPENDS   ==========================-->
+  <!--==============================================================-->
+  <function name="installOpends">
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          list of instances
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffixDn" type="required">
+        <function-arg-description>
+          suffix dn
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+  
+    <sequence>
+      <!--==== install opends in parallel ====-->
+      <paralleliterate in="instances" var="instance">
+        <sequence>
+          <!-- parallel process, all variables defined and values set below -->
+          <!-- are local to this sequence -->
+          <script>
+            cHost = instance.getHost()
+            cLDAPPort = instance.getLDAPPort()
+            cName = instance.getName()
+            cInstallDir = instance.getInstallDir()
+            logName = '%s_%s' % (cHost,cName)
+            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            fileList.append(logFile)
+            
+            # Write start instance tag
+            cFileFd = open(logFile,'w')
+            str = '\n&lt;instance name=\"%s\"' % cName
+            str = '%s host=\"%s\" product=\"opends\"&gt;\n' % (str, cHost)
+            cFileFd.write(str)
+          </script>
+          
+          <!--== clean previous installation if needed ==-->
+          <call function="'cleanPreviousOpendsInstall'">
+          {
+            'host'               : cHost,
+            'instanceInstallDir' : cInstallDir,
+            'fileFd'             : cFileFd
+          }
+          </call>
+          
+          <!--== install -->
+          <call function="'installSetupOpends'">
+          {
+            'instance'           : instance,
+            'fileFd'             : cFileFd,
+            'suffixDn'           : suffixDn
+          }
+          </call>
+          
+          
+          <!--== Post operations ======-->
+          <message>'%s : %s : installation complete'% (cHost,cName)</message>
+          
+          <script>
+            cFileFd.write('&lt;/instance&gt;\n')
+            cFileFd.close()
+            cFileFd = ''
+          </script>
+          
+        </sequence>
+      </paralleliterate>
+      
+      
+      <!--== Update missing parameters -->
+      <call function="'updateMissingParameters'">
+      {'instances' : instances}
+      </call>
+      
+    </sequence>
+  </function>  
+
+
+
+  
+  <!-- ************************************************************ -->
+  <function name="cleanPreviousOpendsInstall">
+    <function-map-args>
+      <function-arg-def name="host" type="required">
+        <function-arg-description>
+          host name
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="instanceInstallDir" type="required">
+        <function-arg-description>
+          installdir path
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor, wildcard : NO_FILE to not write into a file
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+   
+    <sequence>
+      <call function="'writeStartTagStep'">
+      {'tagName' : 'cleanPreviousOpendsInstall',
+       'fileFd'  : fileFd }
+      </call>
+      
+      <!--== Check if installDir exist ==-->
+      <call function="'isFile'">
+      {
+        'location' : host,
+        'fileName' : instanceInstallDir
+      }
+      </call>
+      <script>
+        installDirExist = STAXResult
+      </script>
+      <!--== if installDir exists, stop instance and remove directories ==-->
+      <if expr="installDirExist == TRUE">
+        <sequence>
+          <call function="'writeMessage'">
+          {
+            'content' : 'installdir %s EXISTs on %s, clean it' % \
+                        (instanceInstallDir,host),
+            'fileFd'  : fileFd
+          }
+          </call>
+          
+          <call function="'StopDsWithScript'">
+          {
+            'location'  : host ,
+            'dsPath'    : instanceInstallDir,
+            'fileFd'    : fileFd
+          }
+          </call>
+          
+          <call function="'deleteFolder'">
+          {
+            'location'   : host,
+            'foldername' : instanceInstallDir,
+            'fileFd'     : fileFd
+          }
+          </call>
+        </sequence>
+      </if>
+      <!-- Try to remove process if needed -->
+      <!-- TBD -->
+<!--
+      <call function="'removeProcessIfNeeded'">
+      {
+        'location'   : host,
+        'fileFd'     : fileFd
+      }
+      </call>
+-->
+      
+      <call function="'writeEndTagStep'">{'fileFd' : fileFd}</call>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="installSetupOpends">
+    <function-map-args>
+      <function-arg-def name="instance" type="required">
+        <function-arg-description>
+          instance class
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffixDn" type="required">
+        <function-arg-description>
+          suffix dn
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+   
+    <sequence>
+      
+      <call function="'writeStartTagStep'">
+      { 'tagName' : 'installSetupOpends',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <!--== Create directory and unzip the product ==-->
+      <call function="'createFolder'">
+      {
+        'location'   : instance.getHost(),
+        'foldername' : instance.getInstallDir(),
+        'fileFd'     : fileFd
+      }
+      </call>
+      
+      <!--== Copy opends archive to host ==-->
+      <!-- TBD do
+        1- copy evenif cHost = localhost 
+        2- do not do multiple cp if several instances on same host-->
+      <call function="'copyFile'">
+      {
+        'srcFile'    : instance.getTarball(),
+        'destFile'   : '%s/%s_opends.zip' % (LOG_DIR,instance.getName()),
+        'remoteHost' : instance.getHost(),
+        'fileFd'     : fileFd
+      }
+      </call>
+      
+      <!--== Unzip product ==-->
+      <call function="'unZipFile'">
+      {
+        'location' : instance.getHost(),
+        'zipfile'  : '%s/%s_opends.zip' % (LOG_DIR,instance.getName()),
+        'unzipdir' : '%s/..' % instance.getInstallDir(),
+        'fileFd'   : fileFd
+      }
+      </call>
+      
+      <!--== Setup product ==-->
+      <call function="'SetUpDsWithScript'">
+        { 
+          'location'      : instance.getHost(), 
+          'dsPath'        : instance.getInstallDir(),
+          'dsPort'        : instance.getLDAPPort(),
+          'dsJmxPort'     : instance.getJMXPort(),
+          'dsBindDN'      : DIRECTORY_INSTANCE_DN,
+          'dsBindPwd'     : DIRECTORY_INSTANCE_PSWD,
+          'dsBaseDN'      : suffixDn,
+          'dsDoNotStart'  : 'TRUE',
+          'fileFd'        : fileFd
+        }
+      </call>
+      
+      <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
+      
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="removeProcessIfNeeded">
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+   
+    <sequence>
+      <script>
+        pid = ''
+      </script>
+      
+      <!--== Get uid running the test ==-->
+      <!-- TBD replace sed by jython dictionary -->
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'getUid',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      {'content' : 'Get uid running the test',
+       'fileFd'  : fileFd}
+      </call>
+      <process name="'Get uid running the test'">
+        <location>location</location>
+        <command mode="'shell'">
+          "id\|sed 's/uid=.*(\(.*\)) gid=.*/\1/'"
+        </command>
+        <parms/>
+        <workdir>'/'</workdir>
+        <envs>['PATH=/bin:/usr/bin']</envs>
+        <stderr mode="'stdout'"/>
+        <stdout/>
+        <returnstdout/>
+      </process>
+      <script>
+        user = STAXResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : RC,
+          'result'     : user,
+          'fileFd'     : fileFd }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      
+      <message>'TRACE : user = %s' % user </message>
+      <script>
+        import commands
+        a = commands.getoutput('ps')
+      </script>
+      <message>'TRACE : ps = %s' % a </message>
+
+      <!--== Search running opends process on the machine ==-->
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'psOpends',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      {'content' : 'Search running opends process on %s owned by %s' % \
+                    (location,user),
+       'fileFd'  : fileFd}
+      </call>
+      
+      <process name="'Search running opends process'">
+        <location>location</location>
+        <command mode="'shell'">
+          "ps -edf | grep opends | grep start-ds | grep -v grep | grep %s| awk -F' ' '{print $2}'" % user
+        </command>
+        <parms/>
+        <workdir>'/'</workdir>
+        <envs>['PATH=/bin:/usr/bin']</envs>
+        <stderr mode="'stdout'"/>
+        <stdout/>
+        <returnstdout/>
+      </process>
+      <script>
+        pid = STAXResult[0][1]
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : RC,
+          'result'     : pid,
+          'fileFd'     : fileFd }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      
+      
+      <!--== Try to kill them if found ==-->
+      <message>'TRACE : pid = %s' % pid </message>
+    </sequence>
+  </function>
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="updateMissingParameters">
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--========  Update missing parameters   ======-->
+      <iterate in="instances" var="instance">
+        <sequence>
+        
+          <!--== Get instance informations ==-->
+          <process name="'%s: Get server infos' % instance.getName()">
+            <location>instance.getHost()</location>
+            <command mode="'shell'">
+              "%s/bin/start-ds -s" % instance.getInstallDir()
+            </command>
+            <envs>['PATH=/bin:/usr/bin:']</envs>
+            <stderr mode="'stdout'"/>
+            <stdout/>
+            <returnstdout/>
+          </process>
+          <!--== Parse and store the outputs returned by the CLI  ==-->
+          <script>
+            instanceInfos = STAXResult[0][1].split('\n')
+            
+            version = instanceInfos[0].replace("OpenDS Directory Server ","")
+            dict = {}
+            
+            for line in instanceInfos:
+              key = line[0:line.find(':')].strip()
+              value= line[line.find(':')+1:len(line)].strip()
+              dict[key]=value
+            
+            build = dict['Build ID']
+            
+            os = dict['Operating System']
+            os = os.replace("generic ","")
+            
+            jvmVersion   = dict['JVM Version']
+            jvmVendor    = dict['JVM Vendor']
+            if jvmVendor == 'Sun Microsystems Inc.':
+              jvmVendor  = 'sun'
+            jvmArch      = dict['JVM Architecture'].replace("-bit","")
+            
+            
+            jvm = '%s-%s-server-%s' % (jvmVersion,jvmVendor,jvmArch)
+            
+            # Store infos in instance object
+            instance.setJavaVersion(jvm)
+            instance.setBuildId(build)
+            instance.setOs(os)
+          </script>
+        </sequence>
+      </iterate>
+    </sequence>
+  </function>
+  
+  
+</stax>

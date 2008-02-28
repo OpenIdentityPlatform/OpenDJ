@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="main_log"/>
+
+  <!-- ************************************************************ -->
+  <function name="main_log">
+    <sequence>
+      <message log="1">'main_log() do nothing'</message>
+    </sequence>
+  </function>
+
+  <!-- ************************************************************ -->
+  <function name="createLogDir">
+   <function-prolog>
+      'Create log directories for system test, using LOG_DIR variable'
+    </function-prolog>
+    
+    <sequence>
+      <script>
+        logsClientDir = '%s/client' % LOG_DIR
+        logsConfDir = '%s/configuration' % LOG_DIR
+      </script>
+      
+      <message log="1">
+        'Logs output set to %s' % LOG_DIR
+      </message>
+      
+      <!-- Create folders -->
+      <call function="'createFolder'">
+        { 'location'   : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % LOG_DIR ,
+          'fileFd'     : NO_FILE
+        }
+      </call>
+      <call function="'createFolder'">
+        { 'location'   : STAF_LOCAL_HOSTNAME, 
+          'foldername' : '%s' % LOG_TMP_DIR ,
+          'fileFd'     : NO_FILE
+        }
+      </call>
+      
+    </sequence>
+    
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="getLogFileName">
+    <function-prolog>
+      'return a log file name'
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="type" type="required">
+      </function-arg-def>
+      <function-arg-def name="object" type="required">
+      </function-arg-def>
+      <function-arg-def name="prefix" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <if expr="type == 'client'">
+        <script>
+          logFile = '%s/%s_%s_%s_%s.xml' % \
+                    ( LOG_XML_TMP_DIR,\
+                      prefix,\
+                      object.getName(),\
+                      object.getHost(),\
+                      object.getId() )
+        </script>
+      <elseif expr="type == 'host'">
+        <script>
+          logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,prefix,object)
+        </script>
+      </elseif>
+      </if>
+      <return>
+        logFile
+      </return>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeSummary">
+    <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="scenario" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        fileFd.write('&lt;summary&gt;\n')
+        
+        # write scenario informations into summary part
+        str = '&lt;scenario name=\"%s\"' % scenario.getName()
+        str = '%s duration=\"%s%s\" &gt;\n' % \
+              (str,scenario.getDurationTime(),scenario.getDurationUnit())
+        str = '%s %s \n&lt;/scenario&gt;' % \
+              (str,scenario.getDescription())
+        fileFd.write(str)
+        
+        if ERR_NUM_PARSER != '':
+          str = '&lt;phaseSummmary name=\"parser\" result=\"%s\"/&gt;\n' % \
+                ERR_NUM_PARSER
+          fileFd.write(str)
+        if ERR_NUM_INSTALL != '':
+          str = '&lt;phaseSummmary name=\"installation\" result=\"%s\"/&gt;\n'%\
+                ERR_NUM_INSTALL
+          fileFd.write(str)
+        if ERR_NUM_GEN_LDIF != '':
+          str = '&lt;phaseSummmary name=\"generateLdif\" result=\"%s\"/&gt;\n'%\
+                ERR_NUM_GEN_LDIF
+          fileFd.write(str)
+        if ERR_NUM_CONFIGURATION != '':
+          str = '&lt;phaseSummmary name=\"configuration\" result=\"%s\"/&gt;\n'%\
+                ERR_NUM_CONFIGURATION
+          fileFd.write(str)
+        if ERR_NUM_SCHEDULER != '':
+          str = '&lt;phaseSummmary name=\"scheduler\" result=\"%s\"/&gt;\n' % \
+                ERR_NUM_SCHEDULER
+          fileFd.write(str)
+        if ERR_NUM_VERDICT != '':
+          str = '&lt;phaseSummmary name=\"verdict\" result=\"%s\"/&gt;\n' % \
+                ERR_NUM_VERDICT
+          fileFd.write(str)
+        
+        fileFd.write('&lt;/summary&gt;\n')
+      </script>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="mergeClientsFiles">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          scheduler object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <iterate in="scheduler" var="module">
+        <sequence>
+          <!--== If module is disabled, just write it in xml result ==-->
+          <if expr="module.getEnabled() == 'false'">
+            <script>
+              fileFd.write('\n&lt;module name=\"%s\" enabled=\"false\"/&gt;\n'\
+                            % module.getName() )
+            </script>
+            
+          <!--== Module is enabled and have clients log files ==-->
+          <else>
+            <sequence>
+              <!--== Write module tag ==-->
+              <script>
+                fileFd.write('\n&lt;module name=\"%s\" enabled=\"true\"&gt;\n'\
+                              % module.getName() )
+              </script>
+              <!--== Concat each module's clients log files ==-->
+              <script>
+                cFileList = []
+              </script>
+              <iterate in="module.getClients()" var="client">
+                <sequence>
+                  <call function="'getLogFileName'">
+                    {
+                      'type'   : 'client',
+                      'object' : client,
+                      'prefix' : 'client'
+                    }
+                  </call>
+                  <script>
+                    cFileList.append(STAXResult)
+                  </script>
+                </sequence>
+              </iterate>
+              <!--== Merge files ==-->
+              <call function="'mergeFiles'">
+                {
+                  'fileList' : cFileList,
+                  'fileFd'   : fileFd
+                }
+                </call>
+              
+              <!--== Write end module tag ==-->
+              <script>
+                fileFd.write('\n&lt;/module&gt;\n')
+              </script>
+            </sequence>
+          </else>
+          </if>
+          
+        </sequence>
+      </iterate>
+    
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="mergeFiles">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="fileList" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      
+      <script>
+        msg = ''
+      </script>
+      
+      <if expr="len(fileList) != 0">
+        <iterate in="fileList" var="cFile">
+          <sequence>
+            <script>
+              try:
+                cFd = open(cFile,'r')
+                
+                try:
+                  fileFd.write(cFd.read())
+                except IOError:
+                  msg = '%s\n ERROR concat file % in main file' % (msg,cFile)
+                
+                try:
+                  cFd.close()
+                except IOError:
+                  msg = '%s\n ERROR cant close file %' % (msg,cFile)
+              
+              except IOError:
+                msg = '%s\n ERROR cant open file %' % (msg,cFile)
+              
+            </script>
+            <if expr="msg != ''">
+              <sequence>
+                <message>
+                  'ERROR when merging files : %s' % msg
+                </message>
+                <call function="'writeMessage'">
+                { 'content' : 'ERROR when merging files : %s' % msg,
+                  'fileFd'  : fileFd }
+                </call>
+              </sequence>
+              <!-- no error during merge, remove original file -->
+<!--            <else>
+              <script>
+                import os
+                os.remove(cFile)
+              </script>
+            </else> -->
+            </if>
+          </sequence>
+        </iterate>
+      <else>
+        <message>'WARNING : no file to merge'</message>
+      </else>
+      </if>
+      <return> msg </return>
+    </sequence>
+  </function>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeTag">
+   <function-prolog>
+      ''
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="tagName" type="required">
+        <function-arg-description>
+          name of the tag
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="tagAttr" type="required">
+        <function-arg-description>
+          attribute/value of the tag [[attr1,val1],[attr2,val2],...]
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="content" type="optional" default="''">
+        <function-arg-description>
+          content of the tag 
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+     </function-map-args>
+    <sequence>
+      <script>
+       myString = ''
+       for attr in tagAttr:
+         myString = '%s %s=\"%s\"' % (myString,attr[0],attr[1])
+      </script>
+      
+      <if expr="fileFd == NO_FILE">
+        <message>'%s %s : %s' % (tagName,myString,content)</message>
+      <else>
+       <script>
+         fileFd.write('&lt;%s %s&gt; %s &lt;/%s&gt;\n' % \
+                     (tagName,myString,content,tagName))
+       </script>
+      </else>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeMessage">
+    <function-prolog>
+      write content in file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="content" type="required">
+        <function-arg-description>
+          string to write in a file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          sys.path.append("%s/phases/log" % TESTS_DIR )
+          from log import htmlTransformation
+          content = htmlTransformation(content)
+          fileFd.write('&lt;message&gt;%s&lt;/message&gt;\n' % content)
+        </script>
+      <else>
+        <message>content</message>
+      </else>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeOperationResult">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="returncode" type="required">
+      </function-arg-def>
+      <function-arg-def name="expected" type="required">
+      </function-arg-def>
+      <function-arg-def name="result" type="required">
+      </function-arg-def>
+      <function-arg-def name="status" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd == NO_FILE">
+        <message>
+          '%s return code %s (expected %s) : %s' % \
+          (status,returncode,expected,result)
+        </message>
+      <else>
+      <sequence>
+        <script>
+          sys.path.append("%s/phases/log" % TESTS_DIR )
+          from log import htmlTransformation
+          result = htmlTransformation(result)
+          
+          str = '&lt;operationResult returncode=\"%s\"' % returncode
+          str = '%s expected=\"%s\" status=\"%s\"'  % (str,expected,status)
+          str = '%s&gt; %s &lt;/operationResult&gt;\n'  % (str,result)
+          fileFd.write(str)
+        </script>
+      </sequence>
+      </else>
+      </if>
+    </sequence>
+  </function>
+  
+  <!-- ************************************************************ -->
+  <function name="writeStartTagStep">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="tagName">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;step name=\"%s\"&gt;\n' % tagName)
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+  <function name="writeEndTagStep">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;/step&gt;\n\n')
+        </script>
+      </if>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="writeStartTagOperation">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="tagName">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;operation name=\"%s\"&gt;\n' % tagName)
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+  <function name="writeEndTagOperation">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;/operation&gt;\n\n')
+        </script>
+      </if>
+    </sequence>
+  </function>
+
+
+  
+  <!-- ************************************************************ -->
+  <function name="writeStartTagPhase">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="tagName" type="required">
+      </function-arg-def>
+      <function-arg-def name="tagAttr" type="optional" default='[]'>
+        <function-arg-description>
+          attribute/value of the tag [[attr1,val1],[attr2,val2],...]
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <sequence>
+          <script>
+            fileFd.write('&lt;phase name=\"%s\"' % tagName)
+          </script>
+          <if expr="tagAttr != []">
+            <sequence>
+              <script>
+                str = ''
+                for attr in tagAttr:
+                  str = '%s %s=\"%s\"' % (str,attr[0],attr[1])
+                fileFd.write(str)
+              </script>
+            </sequence>
+          </if>
+          <script>
+            fileFd.write('&gt;\n')
+          </script>
+        </sequence>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeEndTagPhase">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;/phase&gt;\n\n')
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+
+
+  <!-- ************************************************************ -->
+  <function name="writeStartTag">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="nodeName" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;%s&gt;\n' % nodeName)
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeEndTag">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="nodeName" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;/%s&gt;\n' % nodeName)
+        </script>
+      </if>
+    </sequence>
+  </function>
+
+
+
+  </stax>
+

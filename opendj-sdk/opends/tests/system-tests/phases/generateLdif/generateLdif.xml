@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="generateLdif"/>
+
+
+  <!-- ************************************************************ -->
+  <function name="generateLdif">
+    <function-map-args>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--==========  Call preambule  =========-->
+      <call function="'phasePreamble'">
+      { 'phaseName' : 'generateLdif' ,
+        'fileFd'    : LOG_MAIN_FD }
+      </call>
+      
+      <!--==========  Define variables  =========-->
+      <script>
+        fileList = STAXGlobal([])
+      </script>
+      
+      <!--== Get the list of instance used in the topology for this suffix -->
+      <!--== that use importLDIF                                       ====-->
+      <script>
+        topoElements = []
+        mainTopoElements = suffix.getTopology()
+      </script>
+      <iterate in="mainTopoElements" var="topoElement">
+        <sequence>
+          <script>
+            initRule = topoElement.getInitRule()
+            product  = topoElement.getInstanceRef().getProduct()
+            if ( product == 'opends' and initRule == 'importLdif'):
+              topoElements.append(topoElement)
+          </script>
+        </sequence>
+      </iterate>
+      <if expr="topoElements == []">
+        <sequence>
+          <message>
+            'ERROR : no instance using importLdif, should have one at least'
+          </message>
+          <call function="'writeMessage'">
+          { 'content' : 'ERROR : no instance using importLdif for initRule, \
+                         should have one at least' % msg ,
+            'fileFd'  : LOG_MAIN_FD }
+          </call>
+        </sequence>
+      
+      
+      <!-- Some instances use importLdif -->
+      <else>
+        <sequence>
+          
+          <!--===========  Generate template  ==========-->
+          <script>
+            sys.path.append("%s/phases/parser" % TESTS_DIR )
+            from parser import *
+            localTemplateFile = '%s/template.ldif' % (LOG_DIR)
+          </script>
+          <call function="'generateTemplate'">
+          { 'templateFile' : localTemplateFile }
+          </call>
+          
+          <!--===========  For the first host, copy and run makeldif  ======-->
+          <script>
+            str = '\n&lt;instance name=\"%s\"' % topoElements[0].getName()
+            str = '%s host=\"%s\"' % (str, \
+                                    topoElements[0].getInstanceRef().getHost())
+            str = '%s product=\"opends\"&gt;\n' % str
+            LOG_MAIN_FD.write(str)
+            
+            templateFile = '%s/template.ldif' % \
+                            topoElements[0].getInstanceRef().getInstallDir()
+            ldifFile = '%s/data.ldif' % \
+                        topoElements[0].getInstanceRef().getInstallDir()
+          </script>
+          <call function="'copyFile'">
+          { 'location'   : topoElements[0].getInstanceRef().getHost(),
+            'srcFile'    : localTemplateFile,
+            'destFile'   : templateFile,
+            'remoteHost' : topoElements[0].getInstanceRef().getHost(),
+            'fileFd'     : LOG_MAIN_FD
+          }
+          </call>
+          <call function="'makeLdif'">
+          { 'location'     : topoElements[0].getInstanceRef().getHost(),
+            'dsPath'       : topoElements[0].getInstanceRef().getInstallDir(),
+            'templateFile' : templateFile,
+            'ldifFile'     : ldifFile,
+            'fileFd'       : LOG_MAIN_FD
+          }
+          </call>
+          <call function="'ImportLdifWithScript'">
+          {
+            'location'     : topoElements[0].getInstanceRef().getHost(),
+            'dsPath'       : topoElements[0].getInstanceRef().getInstallDir(),
+            'dsLdifFile'   : ldifFile,
+            'dsRejectFile' : '%s/importLdif_rejectedfile.txt' % LOG_TMP_DIR,
+            'fileFd'       : LOG_MAIN_FD
+          }
+          </call>
+          <message>
+            '%s : makeLDIF done' % topoElements[0].getInstanceRef().getHost()
+          </message>
+          <script>LOG_MAIN_FD.write('&lt;/instance&gt;\n')</script>
+          
+          
+          <!--========  For each other hosts, copy and import ldif  ========-->
+          <paralleliterate in="topoElements" var="topoElement">
+            <sequence>
+              <if expr="topoElement.getName() != topoElements[0].getName()">
+                <sequence>
+                  <script>
+                    cHost = topoElement.getInstanceRef().getHost()
+                    cName = topoElement.getInstanceRef().getName()
+                    cInstallDir = topoElement.getInstanceRef().getInstallDir()
+                    
+                    cLdifFile = '%s/data.ldif' % (cInstallDir)
+                    
+                    logName = '%s_%s' % (cHost,cName)
+                    logFile = '%s/phase_genldif_%s.xml' % \
+                              (LOG_XML_TMP_DIR,logName)
+                    fileList.append(logFile)
+                    
+                    # Write start tag
+                    cFileFd = open(logFile,'w')
+                    str = '\n&lt;instance name=\"%s\"' % cName
+                    str = '%s host=\"%s\"' % (str,cHost)
+                    str = '%s product=\"opends\"&gt;\n' % str
+                    cFileFd.write(str)
+                  </script>
+                  
+                  <!--== Copy ldif data file on all instances directory ==-->
+                  <call function="'copyFile'">
+                    { 'location'   : topoElements[0].getHost(),
+                      'srcFile'    : ldifFile,
+                      'destFile'   : cLdifFile,
+                      'remoteHost' : cHost,
+                      'fileFd'     : cFileFd
+                    }
+                  </call>
+                  
+                  <!--========== Import Ldif =============-->
+                  <call function="'ImportLdifWithScript'">
+                  {
+                    'location'    : cHost ,
+                    'dsPath'      : cInstallDir,
+                    'dsLdifFile'  : cLdifFile,
+                    'fileFd'      : cFileFd
+                  }
+                  </call>
+                  
+                  <!--========== Post operations ======-->
+                  <message>'%s : makeLDIF done' % cHost</message>
+                  
+                  <script>
+                    cFileFd.write('&lt;/instance&gt;\n')
+                    cFileFd.close()
+                    cFileFd = ''
+                  </script>
+                </sequence>
+              </if>
+            
+            </sequence>
+          </paralleliterate>
+          
+          
+          <!--==========   Merge files    ==========-->
+          <if expr="len(topoElements) > 1">
+            <call function="'mergeFiles'">
+            {
+              'fileList' : fileList,
+              'fileFd'   : LOG_MAIN_FD
+            }
+            </call>
+          </if>
+        </sequence>
+      </else>
+      </if>
+      
+      <!--==========  Call postphase =========-->
+      <call function="'phasePostamble'">
+      {
+        'phaseName' : 'generateLdif',
+        'fileFd'    : LOG_MAIN_FD
+      }
+      </call>
+    
+    </sequence>
+  </function>
+
+
+
+
+
+  <!-- ************************************************************ -->
+  <function name="generateTemplate">
+    <function-map-args>
+      <function-arg-def name="templateFile" type="required">
+        <function-arg-description>
+          suffix
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'generateTemplate',
+        'fileFd'  : LOG_MAIN_FD }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : LOG_MAIN_FD,
+        'content' : 'Create template file : %s' % (templateFile)
+      }
+      </call>
+    
+      <script>
+        cTemplateFd = open(templateFile,'w')
+        
+        # write needed variables
+        cTemplateFd.write('define maildomain=example.com\n')
+        
+        tree = getSuffixDataForMakeLDIF(suffix.getSuffixDn(),\
+                                        suffix.getNbOfEntries(),\
+                                        suffix.getTree())
+        cTemplateFd.write('%s' % tree)
+        
+        sys.path.append("%s/phases/generateLdif" % TESTS_DIR )
+        
+        from person import writePersonTemplate
+        writePersonTemplate(cTemplateFd)
+        
+        from inetOrgPerson import writeInetOrgPersonTemplate
+        writeInetOrgPersonTemplate(cTemplateFd)
+        
+        from organizationalPerson import writeOrganizationalPersonTemplate
+        writeOrganizationalPersonTemplate(cTemplateFd)
+        
+        from inetOrgPersonJpeg1Mb import writeInetOrgPersonJpeg1MbTemplate
+        writeInetOrgPersonJpeg1MbTemplate(cTemplateFd)
+        
+        # scalablePerson not in opends schema (so comment it) :
+        # "invalid because it violates the server's schema configuration"
+        # from scalablePerson import writeScalablePersonTemplate
+        # writeScalablePersonTemplate(cTemplateFd)
+        
+        cTemplateFd.close()
+      </script>
+      
+      <call function="'isFile'">
+        { 'fileName' : templateFile }
+      </call>
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult,
+          'fileFd'     : LOG_MAIN_FD }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      
+    </sequence>
+  </function>
+  
+  
+</stax>
+

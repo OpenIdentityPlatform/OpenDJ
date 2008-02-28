@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+  <!-- ************************************************************ -->
+  <function name="writeTopology" scope="local">
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          instance object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          scheduler object
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      
+      <!--==========  Write node  =========-->
+      <script>
+        fileFd.write('&lt;topology&gt;\n')
+      </script>
+      
+      <!-- Write instances informations -->
+      <call function="'writeInstances'">
+      {
+        'instanceList' : instances,
+        'fileFd'       : LOG_MAIN_FD
+      }
+      </call>
+      
+      <!-- Write SUFFIX informations -->
+      <call function="'writeSuffix'">
+      {
+        'suffix' : suffix,
+        'fileFd' : LOG_MAIN_FD
+      }
+      </call>
+      
+      <!-- Write SCHEDULER informations -->
+      <call function="'writeScheduler'">
+      {
+        'scheduler' : scheduler,
+        'fileFd'    : LOG_MAIN_FD
+      }
+      </call>
+      
+      <!--==========  close node =========-->
+      <script>
+        fileFd.write('&lt;/topology&gt;\n')
+      </script>
+      
+      
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeInstances" scope="local">
+  
+  <function-map-args>
+      <function-arg-def name="instanceList" type="required">
+        <function-arg-description>
+          List of instances class to write in xml report file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor of the output file
+        </function-arg-description>
+      </function-arg-def> 
+    </function-map-args>
+    
+    <sequence>
+      <call function="'writeStartTag'">
+      {
+        'nodeName' : 'instances',
+        'fileFd'   : fileFd
+      }
+      </call>
+      <iterate var="a" in="instanceList">
+        <sequence>
+          <script>
+            str = '\n &lt;id&gt;%s&lt;/id&gt;\n'     % a.getId()
+            str = '%s &lt;host&gt;%s&lt;/host&gt;\n' % (str,a.getHost())
+            str = '%s &lt;installDir&gt;%s&lt;/installDir&gt;\n' % \
+                  (str,a.getInstallDir())
+            str = '%s &lt;port&gt;\n'                  % str
+            str = '%s &lt;ldap&gt;%s&lt;/ldap&gt;\n'   % (str,a.getLDAPPort())
+            str = '%s &lt;ldaps&gt;%s&lt;/ldaps&gt;\n' % (str,a.getLDAPSPort())
+            str = '%s &lt;jmx&gt;%s&lt;/jmx&gt;\n'     % (str,a.getJMXPort())
+            str = '%s &lt;replicationServer&gt;%s&lt;/replicationServer&gt;\n'%\
+                  (str,a.getREPLPort())
+            str = '%s &lt;/port&gt;\n' % str
+            str = '%s &lt;buildId&gt;%s&lt;/buildId&gt;\n' % \
+                  (str,a.getBuildId())
+            str = '%s &lt;jvm&gt;%s&lt;/jvm&gt;\n' % \
+                  (str,a.getJavaVersion())
+            str = '%s &lt;os&gt;%s&lt;/os&gt;\n' % \
+                  (str,a.getOs())
+            str = '%s &lt;synchroDate&gt;%s&lt;/synchroDate&gt;\n' % \
+                  (str,a.getSynchroDate())
+          </script>
+          
+          <call function="'writeTag'">
+          {
+            'tagName' : 'instance',
+            'tagAttr' : [['name',a.getName()],['product',a.getProduct()]] ,
+            'fileFd'  : fileFd ,
+            'content' : str
+          }
+          </call>
+          
+        </sequence>
+      </iterate>
+      <call function="'writeEndTag'">
+      {
+        'nodeName' : 'instances',
+        'fileFd'   : fileFd
+      }
+      </call>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="writeScheduler" scope="local">
+  
+  <function-map-args>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          scheduler object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor of the output file
+        </function-arg-description>
+      </function-arg-def> 
+    </function-map-args>
+    
+    <sequence>
+      <call function="'writeStartTag'">
+      {
+        'nodeName' : 'schedulerParser',
+        'fileFd'   : fileFd
+      }
+      </call>
+      <if expr="scheduler == []">
+        <message log="1">'topology.xml : ERROR NO SCHEDULER DEFINED'</message>
+      <else>
+        <iterate var="module" in="scheduler">
+          <sequence>
+            
+            <script>
+              msgClients = ''
+              clients = module.getClients()
+              for client in clients:
+                str1 = 'id=\"%s\"' % client.getId()
+                str1 = '%s name=\"%s\"' % (str1,client.getName())
+                str1 = '%s host=\"%s\"' % (str1,client.getHost())
+                str1 = '%s start=\"%s\"' % (str1,client.getStart())
+                str1 = '%s stop=\"%s\"' % (str1,client.getStop())
+                str1 = '%s dependency=\"%s\"' % (str1,client.getDependency())
+                
+                msgClients = '%s&lt;client %s &gt; %s &lt;/client&gt;\n' % \
+                             (msgClients,str1,client.getParams())
+            </script>
+            
+            <call function="'writeTag'">
+            {
+              'tagName' : 'module',
+              'tagAttr' : [['name',module.getName()],['enabled',module.getEnabled()]],
+              'fileFd'  : fileFd ,
+              'content' : msgClients
+            }
+            </call>
+            
+          </sequence>
+        </iterate>
+      </else>
+      </if>
+      <call function="'writeEndTag'">
+      {
+        'nodeName' : 'schedulerParser',
+        'fileFd'   : fileFd
+      }
+      </call>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="writeSuffix" scope="local">
+  
+  <function-map-args>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor of the output file
+        </function-arg-description>
+      </function-arg-def> 
+    </function-map-args>
+    
+    <sequence>
+      <!-- Write Suffix informations -->
+      <script>
+        # SUFFIX TOPOLOGY
+        topoMsg = ''
+        topology = suffix.getTopology()
+        if topology == '':
+          topology = 'ERROR:cant find topology'
+        
+        topoMsg = '%s\n&lt;topology&gt;' % topoMsg
+        for topoInstance in topology:
+          instance = topoInstance.getInstanceRef()
+          topoMsg = '%s\n &lt;instance name=\"%s\"' % \
+                    (topoMsg,instance.getName())
+          topoMsg = '%s initRule=\"%s\"&gt;&lt;/instance&gt;' % \
+                    (topoMsg,topoInstance.getInitRule())
+          
+        topoMsg = '%s\n&lt;/topology&gt;\n' % topoMsg
+        
+        # SUFFIX DATA
+        suffixDataForXml = NOT_DEFINED
+        root = suffix.getTree()
+        suffixDataForXml = getSuffixDataForXML(suffix.getSuffixDn(),root)
+      </script>
+      <call function="'writeStartTag'">
+      {
+        'nodeName' : 'suffixes',
+        'fileFd'   : fileFd
+      }
+      </call>
+      <call function="'writeTag'">
+      {
+        'tagName' : 'suffix',
+        'tagAttr' : [['name',suffix.getSuffixDn()]] ,
+        'fileFd'  : LOG_MAIN_FD ,
+        'content' : '\n %s \
+&lt;numberOfEntries&gt;%s&lt;/numberOfEntries&gt;\n \
+%s \n \
+' % (topoMsg,suffix.getNbOfEntries(),suffixDataForXml)
+      }
+      </call>
+      <call function="'writeEndTag'">
+      {
+        'nodeName' : 'suffixes',
+        'fileFd'   : fileFd
+      }
+      </call>
+      
+    </sequence>
+  </function>
+
+
+
+</stax>

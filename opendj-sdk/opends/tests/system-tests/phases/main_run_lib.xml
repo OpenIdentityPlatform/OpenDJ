@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+  <!-- ************************************************************ -->
+  <function name="mainPreamble">
+   <function-prolog>
+      'preamble before running the system test'
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          instances list
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          clients list
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      
+      <message log="1">
+        '=================== PREAMBLE  ========================='
+      </message>
+      
+      
+      <!--== Do some stuff on instances machines ==-->
+      <paralleliterate in="instances" var="instance">
+        <sequence>
+          <!-- Check that date/hour are synchronised beetween machines -->
+          <!-- TBD -->
+          
+          <!-- Create folders on remote hosts -->
+          <call function="'createFolder'">
+            { 'location'   : instance.getHost(), 
+              'foldername' : '%s' % LOG_DIR ,
+              'fileFd'     : NO_FILE
+            }
+          </call>
+          <call function="'createFolder'">
+            { 'location'   : instance.getHost(), 
+              'foldername' : '%s' % LOG_TMP_DIR ,
+              'fileFd'     : NO_FILE
+            }
+          </call>
+          <call function="'createFolder'">
+            { 'location'   : instance.getHost(), 
+              'foldername' : '%s' % LOG_XML_TMP_DIR ,
+              'fileFd'     : NO_FILE
+            }
+          </call>
+        </sequence>
+      </paralleliterate>
+      
+      
+      <!--== Get the clients list from all modules ==-->
+      <script>
+        clients = []
+        for module in scheduler:
+          if (module.getEnabled() == "true"):
+            clients.extend(module.getClients())
+      </script>
+      
+      <paralleliterate in="clients" var="client">
+        <sequence>
+          <if expr="client.getHost() != NOT_DEFINED">
+            <sequence>
+              <!--== Create folders on remote hosts ==-->
+              <call function="'createFolder'">
+                { 'location'   : client.getHost(), 
+                  'foldername' : '%s' % LOG_DIR ,
+                  'fileFd'     : NO_FILE
+                }
+              </call>
+              <call function="'createFolder'">
+                { 'location'   : client.getHost(), 
+                  'foldername' : '%s' % LOG_TMP_DIR ,
+                  'fileFd'     : NO_FILE
+                }
+              </call>
+              <call function="'createFolder'">
+                { 'location'   : client.getHost(), 
+                  'foldername' : '%s' % LOG_XML_TMP_DIR ,
+                  'fileFd'     : NO_FILE
+                }
+              </call>
+            </sequence>
+          </if>
+        </sequence>
+      </paralleliterate>
+      
+      
+      <message log="1">
+        '== Found %s Error(s) during this phase' % (ERR_NUM[0])
+      </message>
+    </sequence>
+  </function>
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="mainPostamble">
+   <function-prolog>
+      'postamble after running the system test'
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          instances list
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          clients list
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      
+      <message log="1">
+        '=================== POSTAMBLE  ========================='
+      </message>
+      
+      <script> hosts = [] </script>
+      
+      <iterate in="instances" var="instance">
+        <sequence>
+          <!--== Create instance directory on main host ==-->
+          <call function="'createFolder'">
+            { 'location'   : STAXServiceMachine,
+              'foldername' : '%s/%s' % (LOG_DIR,instance.getName()) ,
+              'fileFd'     : NO_FILE
+            }
+          </call>
+          
+          
+          <!--== Log cn=monitor replication stuff ==-->
+          <script>
+            clientHostFullName = '%s%s' % (instance.getHost(),DOMAIN[0])
+            if (clientHostFullName != STAXServiceMachine):
+              outputFile = '%s/cnMonitor.txt' % LOG_DIR
+            else:
+              outputFile = '%s/%s/cnMonitor.txt' % (LOG_DIR,instance.getName())
+          </script>
+          <call function="'ldapSearch'">
+            { 'location'       : instance.getHost(),
+              'dsPath'         : instance.getInstallDir(),
+              'dsInstanceHost' : instance.getHost(),
+              'dsInstancePort' : instance.getLDAPPort(),
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsScope'        : 'sub',
+              'dsBaseDN'       : 'cn=monitor',
+              'dsFilter'       : 'objectclass=*',
+              'expectedRC'     : 0,
+              'fileFd'         : NO_FILE,
+              'outputFile'     : outputFile
+            }
+          </call>
+          <if expr="clientHostFullName != STAXServiceMachine">
+            <call function="'copyFile'">
+            {
+              'srcFile'    : '%s/cnMonitor.txt' % LOG_DIR,
+              'destFile'   : '%s/%s/cnMonitor.txt'%(LOG_DIR,instance.getName()),
+              'location'   : instance.getHost(),
+              'remoteHost' : STAXServiceMachine,
+              'fileFd'     : NO_FILE
+            }
+            </call>
+          </if>
+          
+          <!--== Save conf.ldif file ==-->
+          <call function="'copyFile'">
+          {
+            'srcFile'    : '%s/config/config.ldif'%(instance.getInstallDir()),
+            'destFile'   : '%s/%s/config.ldif' % (LOG_DIR,instance.getName()),
+            'location'   : instance.getHost(),
+            'remoteHost' : STAXServiceMachine,
+            'fileFd'     : NO_FILE
+          }
+          </call>
+          
+          <!--== Move tmp folder from remote hosts to main host ==-->
+          <call function="'moveFolder'">
+          {
+            'sourceHost' : instance.getHost(),
+            'directory'  : '%s/tmp' % LOG_DIR,
+            'hosts'      : hosts
+          }
+          </call>
+          <script> hosts = STAXResult </script>
+        </sequence>
+      </iterate>
+      
+      <!--== Get the clients list from all modules ==-->
+      <script>
+        clients = []
+        for module in scheduler:
+          if (module.getEnabled() == "true"):
+            clients.extend(module.getClients())
+      </script>
+      
+      <iterate in="clients" var="client">
+        <sequence>
+          <call function="'moveFolder'">
+          {
+            'sourceHost' : client.getHost(),
+            'directory'  : '%s/tmp' % LOG_DIR,
+            'hosts'      : hosts
+          }
+          </call>
+          <script> hosts = STAXResult </script>
+        </sequence>
+      </iterate>
+      
+      <!--== Copy xsl file needed to read the report ==-->
+      <call function="'copyFile'">
+      {
+        'srcFile'    : '%s/report/result.xsl' % (TESTS_DIR),
+        'destFile'   : '%s/result.xsl' % LOG_DIR,
+        'remoteHost' : STAXServiceMachine,
+        'fileFd'     : NO_FILE
+      }
+      </call>
+      
+      <!--== Copy css file needed to read the report ==-->
+      <call function="'copyFile'">
+      {
+        'srcFile'    : '%s/report/result.css' % (TESTS_DIR),
+        'destFile'   : '%s/result.css' % LOG_DIR,
+        'remoteHost' : STAXServiceMachine,
+        'fileFd'     : NO_FILE
+      }
+      </call>
+      
+      <!--== Close main output file ==-->
+      <script>
+        LOG_MAIN_FD.write('&lt;/systemTestRoot&gt;\n')
+        LOG_MAIN_FD.close()
+      </script>
+      
+      <message>'***************************************************'</message>
+      <message>'******   RUN IS FINISHED '                          </message>
+      <message>'****** Results stored on %s ' % STAXServiceMachine  </message>
+      <message>'****** %s' % LOG_DIR                                </message>
+      <message>'****** Found %s ERROR(S)' % ERR_NUM_TOTAL           </message>
+      <message>'***************************************************'</message>
+      
+    </sequence>
+  </function>
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="moveFolder">
+   <function-prolog>
+      'copy remote directory to STAXServiceMachine and delete it'
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="sourceHost" type="required">
+        <function-arg-description>
+          remote source host name where directory will be get
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="directory" type="required">
+        <function-arg-description>
+          directory path
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="hosts" type="optional" default="[]">
+        <function-arg-description>
+          if sourceHost is in the hosts list, then do nothing
+          add the sourceHost in the list if operations are done
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        sourceHostFullName = '%s%s' % (sourceHost,DOMAIN[0])
+      </script>
+      <if expr="sourceHost not in hosts
+                and sourceHostFullName != STAXServiceMachine
+                and sourceHost != NOT_DEFINED">
+        <sequence>
+          <call function="'copyFolder'">
+          {
+            'location'      : sourceHost,
+            'fromDirectory' : directory,
+            'toDirectory'   : directory,
+            'remoteHost'    : STAXServiceMachine,
+            'fileFd'        : NO_FILE
+          }
+          </call>
+          <!--
+          <call function="'deleteFolder'">
+            { 'location'   : sourceHost, 
+              'foldername' : '%s' % directory,
+              'fileFd'     : NO_FILE,
+              'expectedRC' : [0]
+            }
+          </call>
+          -->
+          <script>
+            hosts.append(sourceHost)
+          </script>
+        </sequence>
+      </if>
+      <return> hosts </return> 
+    </sequence>
+  </function>
+
+
+</stax>

@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+  <!-- ************************************************************ -->
+  <function name="isAlive" scope="local">
+    <function-prolog>
+      Checks that the ldap server is running
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="pathname"/>
+      </function-arg-def>
+      <function-arg-def name="noOfLoops" type="required">
+        <function-arg-description>
+          Number of iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>      
+      <function-arg-def name="noOfMilliSeconds" type="required">
+        <function-arg-description>
+          Number of seconds to wait between iterations
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="required">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional" default="DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional" default="DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        mypath=dsPath
+        myhost=dsInstanceHost
+        myport=dsInstancePort
+        mydn=dsInstanceDn
+        mypswd=dsInstancePswd
+      </script>
+      
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'isAlive',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : 'Check if server %s:%s is alive' % (myhost,myport)
+      }
+      </call>
+      
+      <script>ldapRC=9999</script>
+      <loop from="1" to="noOfLoops" while="ldapRC != 0">
+        <sequence>
+          <call function="'ldapSearch'">
+            { 'location'       : mylocation,
+              'dsPath'         : mypath,
+              'dsInstanceHost' : myhost,
+              'dsInstancePort' : myport,
+              'dsInstanceDn'   : mydn,
+              'dsInstancePswd' : mypswd,
+              'dsScope'        : 'base',
+              'dsBaseDN'       : 'cn=config',
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : 'dn',
+              'expectedRC'     : 'noCheck',
+              'fileFd'         : fileFd
+            }
+          </call>
+          
+          <script>
+            ldapRC=RC
+            ldapReason=STAXResult
+          </script>
+          
+          <call function="'sleep'">
+            {
+              'sleepForMilliSeconds'  : noOfMilliSeconds,
+              'silentMode' : 'TRUE',
+              'fileFd' : fileFd
+            }
+          </call>
+          
+        </sequence>
+      </loop>
+      
+      <if expr="ldapRC == 0">
+        <sequence>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : 'Server is alive'
+          }
+          </call>
+          <script>returnValue = TRUE</script>
+        </sequence>
+      <else>
+        <sequence>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : 'server is not alive'
+          }
+          </call>
+          <script>returnValue = FALSE</script>
+        </sequence>
+      </else>
+      </if>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <return>returnValue</return>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="verifyTrees">
+    <function-prolog>
+      This function verifies that the tree of an instance belonging to an instances list 
+      (ie instance[n]) is synchronized with instance[n+1]
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="instance" type="required">
+        <function-arg-description>
+          Server that should be taken as reference.
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          List of the instances objectclass to verify against the instance
+          instance must belong to this list
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffixDn" type="required">
+        <function-arg-description>
+          Suffix of the tree to verify.
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="optional" default="verdict">
+        <function-arg-description>
+          Prefix for tmp files
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- == Get instance2 (which is instance index + 1) == -->
+      <script>
+        instance2 = NOT_DEFINED
+        i = 0
+        found = FALSE
+        
+        # get the real instance reference from instances list
+        for cInstance in instances:
+          if cInstance.getName() == instance.getName():
+            instance = cInstance
+            found = TRUE
+            break
+          i += 1
+        
+        if found == TRUE:
+          instanceIndex = instances.index(instance)
+          
+          # if len =1, only one instance, no need to verify tree
+          if len(instances) > 1:
+            lastIndex = len(instances) - 1
+            
+            # if instanceIndex == lastIndex, all previous instances
+            # have been checked, no need to test this instance tree
+            if instanceIndex != lastIndex:
+              instance2 = instances[instanceIndex + 1]
+      </script>
+      <if expr="instance2 != NOT_DEFINED">
+        <sequence>
+          <call function="'writeStartTagStep'">
+          { 'tagName' : 'verifyTrees',
+            'fileFd'  : fileFd }
+          </call>
+          
+          <script>
+            myRC = 0
+            dsPath = instance.getInstallDir()
+            failedServers = []
+            failingServerList = ''
+            referenceServerPath = instance.getInstallDir()
+            referenceTree = '%s/%s_%s_referenceTree.ldif' % (LOG_TMP_DIR,filePrefix,instance.getName()),
+            sampleTree = '%s/%s_%s_sampleTree.ldif' % (LOG_TMP_DIR,filePrefix,instance.getName()),
+            treeDiffs = '%s/%s_%s_treeDiffs.ldif' % (LOG_TMP_DIR,filePrefix,instance.getName())
+            
+            dsAttributes = 'dn postalAddress postalCode description \
+    uid employeeNumber initials givenName pager mobile \
+    cn sn telephoneNumber street homePhone l mail st'
+          
+          </script>
+          
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : 'Verify tree %s taking %s as reference.' % (suffixDn, referenceServerPath)
+          }
+          </call>
+          
+          
+          <!-- == Retrieve the tree from the reference server == -->
+          <call function="'ldapSearch'">
+            { 'location'       : location,
+              'dsPath'         : dsPath,
+              'dsInstanceHost' : instance.getHost(),
+              'dsInstancePort' : instance.getLDAPPort(),
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsBaseDN'       : suffixDn,
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : dsAttributes,
+              'outputFile'     : referenceTree,
+              'fileFd'         : fileFd
+            }
+          </call>
+          <if expr="RC != 0">
+            <!-- == If the reference tree could not be retrieved, return an error == -->
+            <sequence>
+              <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
+              <return> [1, None] </return>
+            </sequence>
+          </if>
+
+          <!-- Retrieve the same tree for instance2 -->
+          <call function="'ldapSearch'">
+            { 'location'       : location,
+              'dsPath'         : dsPath,
+              'dsInstanceHost' : instance2.getHost(),
+              'dsInstancePort' : instance2.getLDAPPort(),
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsBaseDN'       : suffixDn,
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : dsAttributes,
+              'outputFile'     : sampleTree,
+              'fileFd'         : fileFd
+            }
+          </call>
+          <script>
+            ldapSearchRC = STAXResult[0]
+          </script>
+
+          <if expr="ldapSearchRC == 0">
+            <sequence>
+              <!-- == Check if file is empty == -->
+              <call function="'isEmptyFile'">
+                { 'location'   : location,
+                  'fileName'   : sampleTree }
+              </call>
+              <script>
+                myRC = STAXResult
+              </script>
+              <if expr="myRC == TRUE">
+                <message>'WARNING!! : file emtpy %s' % sampleTree </message>
+              </if>
+              
+              <!-- == Compare this tree to the reference one == -->
+              <call function="'ldifDiff'">
+                { 'location'   : location,
+                  'dsPath'     : dsPath, 
+                  'sourceLdif' : sampleTree,
+                  'targetLdif' : referenceTree,
+                  'outputLdif' : treeDiffs,
+                  'fileFd'     : fileFd
+                }
+              </call>
+              <script>
+                if STAXResult != 0 :
+                  failedServers.append('%s:%s' % (instance2.getHost(), instance2.getLDAPPort()))
+              </script>
+            </sequence>
+            <else>
+              <script>
+                failedServers.append('%s:%s' % (instance2.getHost(), instance2.getLDAPPort()))
+              </script>
+            </else>
+          </if>
+          
+          <!-- == Compare both ldapsearch results and set the verdict == -->
+          <if expr="len(failedServers) > 0">
+            <!-- If at least one server failed to successfully compare to the reference tree, -->
+            <!-- return an error, along with the list of the servers that failed to do so     -->
+            <script>
+              myRC = FALSE
+              comma = ','  
+              messageInfo = 'List of non-synchronized servers (tree verify FAILED): %s' % comma.join(failedServers)
+            </script>
+          <else>
+            <script>
+              myRC = TRUE
+              messageInfo = 'SUCCESS : All servers synchronized'
+            </script>
+          </else>
+          </if>
+          <call function="'checkRC'">
+            { 'returncode' : myRC,
+              'result'     : messageInfo,
+              'fileFd'     : fileFd
+            }
+          </call>
+          
+          <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
+          
+          <return>[myRC, failedServers]</return>
+        </sequence>
+      </if>
+    </sequence>
+  </function>
+
+
+
+
+
+  <!-- ************************************************************ -->
+  <function name="ldapSearch">
+    <function-prolog>
+      This function performs an ldapsearch
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsDereferencePolicy" type="optional">
+        <function-arg-description>
+          Specifies dereference alias policy
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTypesOnly" type="optional">
+        <function-arg-description>
+          Specifies to only include attribute type names
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsAssertionFilter" type="optional">
+        <function-arg-description>
+          Use the LDAP assertion control with the provided filter
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsContinueOnError" type="optional">
+        <function-arg-description>
+          Continue processing even if there are errors
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsPersistentSearch" type="optional">
+        <function-arg-description>
+          Use the persistent search control
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsCountEntries" type="optional">
+        <function-arg-description>
+          Count the number of entries returned by the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsReportAuthzID" type="optional">
+        <function-arg-description>
+          Use the authorization identity control
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilename" type="optional">
+        <function-arg-description>
+          File containing a list of search filter strings
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsEncoding" type="optional">
+        <function-arg-description>
+          Use the specified character set for command-line input
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsControl" type="optional">
+        <function-arg-description>
+          Use a request control with the provided information
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTimeLimit" type="optional">
+        <function-arg-description>
+          Maximum length of time in seconds to allow for the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsMatchedValuesFilter" type="optional">
+        <function-arg-description>
+          Use the LDAP matched values control with the provided filter
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsDryRun" type="optional">
+        <function-arg-description>
+          Show what would be done but do not perform any operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSASLExternal" type="optional">
+        <function-arg-description>
+          Use the SASL EXTERNAL authentication mechanism
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsProxyAs" type="optional">
+        <function-arg-description>
+          Use the proxied authorization control with the given authorization ID
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsUsePasswordPolicyControl" type="optional">
+        <function-arg-description>
+          Use the password policy request control
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsSimplePageSize" type="optional">
+        <function-arg-description>
+          Use the simple paged results control with the given page size
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsSortOrder" type="optional">
+        <function-arg-description>
+          Sort the results using the provided sort order
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsVirtualListView" type="optional">
+        <function-arg-description>
+          Use the virtual list view control to retrieve the specified results page
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsGetEffectiveRightsAuthzid" type="optional">
+        <function-arg-description>
+          Use geteffectiverights control with the provided authzid
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsGetEffectiveRightsAttribute" type="optional">
+        <function-arg-description>
+          Specifies geteffectiverights control specific attribute list
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          LDAP protocol version number
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsSizeLimit" type="optional">
+        <function-arg-description>
+          Maximum number of entries to return from the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsDontWrap" type="optional">
+        <function-arg-description>
+          Do not wrap long lines
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVerbose" type="optional">
+        <function-arg-description>
+          Use verbose mode
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory Server Host Name
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory Server Port Number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>                
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Directory Server Manager DN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>     
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Directory Server Manager Password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsScope" type="optional">
+        <function-arg-description>
+          The scope of the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>        
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilter" type="optional">
+        <function-arg-description>
+          The filter for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsAttributes" type="optional">
+        <function-arg-description>
+          Only return these attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="optional">
+        <function-arg-description>
+          Output file containing the search result in ldif format.
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0. Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/ldapsearch' % (dsBinPath)
+
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)
+
+        if dsScope:
+          STAFCmdParamsList.append('-s %s' % dsScope)
+
+        if dsDereferencePolicy:
+          STAFCmdParamsList.append('-a %s' % dsDereferencePolicy)
+         
+        if dsTypesOnly:
+          STAFCmdParamsList.append('-A')
+          
+        if dsAssertionFilter:
+          STAFCmdParamsList.append('--assertionFilter "%s"' % dsAssertionFilter)
+        
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsContinueOnError:
+          STAFCmdParamsList.append('-c')
+          
+        if dsPersistentSearch:
+          STAFCmdParamsList.append('-C %s' % dsPersistentSearch)
+                 
+        if dsCountEntries:
+          STAFCmdParamsList.append('--countEntries')
+                    
+        if dsGetEffectiveRightsAttribute:
+          for attribute in dsGetEffectiveRightsAttribute:
+            STAFCmdParamsList.append('-e %s' % attribute)
+         
+        if dsReportAuthzID:
+          STAFCmdParamsList.append('-E')
+         
+        if dsFilename:
+          STAFCmdParamsList.append('-f %s' % dsFilename)
+                             
+        if dsGetEffectiveRightsAuthzid:
+          STAFCmdParamsList.append('-g %s' % dsGetEffectiveRightsAuthzid)
+                   
+        if dsVirtualListView:
+          STAFCmdParamsList.append('-G %s' % dsVirtualListView)
+  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+           
+        if dsEncoding:
+          STAFCmdParamsList.append('-i %s' % dsEncoding)
+         
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+         
+        if dsControl:
+          STAFCmdParamsList.append('-J %s' % dsControl)
+         
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+          
+        if dsTimeLimit:
+          STAFCmdParamsList.append('-l %s' % dsTimeLimit)
+          
+        if dsMatchedValuesFilter:
+          STAFCmdParamsList.append('--matchedValuesFilter "%s"' % dsMatchedValuesFilter)
+          
+        if dsDryRun:
+          STAFCmdParamsList.append('-n')
+                            
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+          
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort) 
+          
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsUseSASLExternal:
+          STAFCmdParamsList.append('-r')
+                                        
+        if dsSimplePageSize:
+          STAFCmdParamsList.append('--simplePageSize %s' % dsSimplePageSize)
+                                                  
+        if dsSortOrder:
+          STAFCmdParamsList.append('-S %s' % dsSortOrder)
+                    
+        if dsDontWrap:
+          STAFCmdParamsList.append('-T')
+                              
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('--trustStorePassword %s' % dsTrustStorePassword)
+                             
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile)
+                  
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)
+                    
+        if dsUsePasswordPolicyControl:
+          STAFCmdParamsList.append('--usePasswordPolicyControl')
+                              
+        if dsVersion:
+          STAFCmdParamsList.append('-V %s' % dsVersion)
+                              
+        if dsVerbose:
+          STAFCmdParamsList.append('-v')
+                                               
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+                      
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+                            
+        if dsProxyAs:
+          STAFCmdParamsList.append('-Y "%s"' % dsProxyAs)
+                  
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+                                      
+        if dsSizeLimit:
+          STAFCmdParamsList.append('-z %s' % dsSizeLimit)
+                                              
+        if dsFilter:
+          STAFCmdParamsList.append('"%s"' % dsFilter)
+  
+        if dsAttributes:
+          STAFCmdParamsList.append('%s' % dsAttributes)
+
+         
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'ldapSearch',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      
+      <process name="'LDAP Search'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>
+        <stdout if="outputFile != None" mode="'replace'">'%s' % outputFile</stdout>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checkRC'">
+          { 'returncode' : STAXCode,
+            'result'     : STAXReason,
+            'fileFd'     : fileFd }
+        </call>
+      </if>
+
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <return>
+        [STAXCode,STAXReason]
+      </return>
+    </sequence>
+  </function>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</stax>

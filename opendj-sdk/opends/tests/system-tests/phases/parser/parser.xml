@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="parser" scope="local">
+  
+    <function-list-args>
+      <function-required-arg name="configurationFile">
+        Name of file containing XML to be parsed
+      </function-required-arg>
+    </function-list-args>
+    
+    <sequence>
+      
+      <!--==========  Load XML file  =========-->
+      <message log="1"> 
+        'configuration file is : %s' % configurationFile
+      </message>
+      <call function="'parseXML'">configurationFile</call>
+      
+      <!--==========  Parse xml  =========-->
+      <script>
+        instances = []
+        suffix = []
+        scheduler = []
+        
+        sys.path.append("%s/phases/parser" % TESTS_DIR )
+        from parser import *
+        parserResult = main(STAXResult)
+        msg          = parserResult[0]
+        instances    = parserResult[1]
+        suffix       = parserResult[2]
+        scheduler    = parserResult[3]
+        scenario     = parserResult[4]
+        if (parserResult[5] != NOT_DEFINED):
+          DOMAIN[0]  = '.%s' % parserResult[5]
+      </script>
+      
+      
+      <!--========  Set some attributes to add in objects   ======-->
+      <paralleliterate in="instances" var="instance">
+        <sequence>
+          <call function="'getOSvariables'">
+            { 'hostname' : instance.getHost() }
+          </call>
+          <script>
+            # Set OS
+            OSName = STAXResult
+            instance.setOs(OSName)
+            
+            # Set bin directory
+            OSName = OSName.lower()
+            if ( OSName.count('win') == 0 ):
+              binDir = '%s/bin' % instance.getInstallDir()
+            else:
+              binDir = '%s/bat' % instance.getInstallDir()
+            instance.setBinDir(binDir)
+            
+            # Set synchro date
+            #import java.util.Date
+            #date = '%s' % (strftime('%Y-%m-%d %H:%M:%S',localtime()))
+            #instance.setSynchroDate(date)
+          </script>
+          <call function="'getOSDate'">
+            { 'location' : instance.getHost() }
+          </call>
+          <script>
+            instance.setSynchroDate(STAXResult[0])
+          </script>
+        </sequence>
+      </paralleliterate>
+      
+      
+      <!--========  Basic configuration checks       ======-->
+      
+      <!-- replace localhost by real host name -->
+      <script>
+        for instance in instances:
+          if (instance.getHost() == 'localhost'):
+            instance.setHost(STAXServiceMachine.split('.')[0])
+      </script>
+      
+      <!-- ports should not be the same           -->
+      <!-- if several instances on the same host  -->
+      <script>
+        for instance in instances:
+          product = instance.getProduct()
+          if product == 'opends':
+            name1      = instance.getName()
+            host1      = instance.getHost()
+            portLdap1  = instance.getLDAPPort()
+            portLdaps1 = instance.getLDAPSPort()
+            portJmx1   = instance.getJMXPort()
+            
+            for instance2 in instances:
+              name2      = instance2.getName()
+              product2   = instance2.getProduct()
+              host2      = instance2.getHost()
+              portLdap2  = instance2.getLDAPPort()
+              portLdaps2 = instance2.getLDAPSPort()
+              portJmx2   = instance2.getJMXPort()
+              
+              if (name2 != name1 and product2 == 'opends' and
+                  host1 == host2 and portLdap1 == portLdap2):
+                msg = '%s\nWARNING : same LDAP port for %s and %s on %s'%\
+                      (msg,name1,name2,host1)
+              
+              if (name2 != name1 and product2 == 'opends' and
+                  host1 == host2 and portLdaps1 == portLdaps2):
+                msg = '%s\nWARNING : same LDAPS port for %s and %s on %s'%\
+                       (msg,name1,name2,host1)
+              
+              if (name2 != name1 and product2 == 'opends' and
+                  host1 == host2 and portJmx1 == portJmx2):
+                msg = '%s\nWARNING : same JMX port for %s and %s on %s' % \
+                       (msg,name1,name2,host1)
+          # end if product = 'opends'
+      </script>
+      
+      <!-- client id should be unique -->
+      <script>
+        clients = []
+        for g in scheduler:
+          if (g.getEnabled() == "true"):
+            clients.extend(g.getClients())
+        
+        nbClients = len(clients)
+        i = 0
+        while i &lt; nbClients:
+          client1 = clients.pop()
+          for client2 in clients:
+            if client1.getId() == client2.getId():
+              msg = '%s\ERROR: clients %s and %s have same id %s, must NOT!'%\
+                     (msg,client1.getName(),client2.getName(),client1.getId())
+          i += 1
+      </script>
+      
+      <!-- check instances have "synchronized" date -->
+      <script>
+        myInstances = []
+        for instance in instances:
+          myInstances.append(instance)
+        
+        for instance in instances:
+          sDate1 = instance.getSynchroDate()
+          day1 = sDate1[0:sDate1.find('-')-1].strip()
+          time1 = sDate1[sDate1.find('-')+1:len(sDate1)].strip()
+          hour1 = time1[0:time1.find(':')-1].strip()
+          minute1 = time1[time1.find(':')+1:len(time1)].strip()
+          myInstances.remove(instance)
+          
+          for instance2 in myInstances:
+            sDate2 = instance2.getSynchroDate()
+            day2 = sDate2[0:sDate2.find('-')-1].strip()
+            time2 = sDate2[sDate2.find('-')+1:len(sDate2)].strip()
+            hour2 = time1[0:time2.find(':')-1].strip()
+            minute2 = time2[time2.find(':')+1:len(time2)].strip()
+            
+            if day1 != day2:
+              msg = '%s\nERROR %s (%s) and %s (%s) day dates are not synchronised' % \
+                    (msg,instance.getName(),day1,instance2.getName(),day2)
+            if hour1 != hour2:
+              msg = '%s\nERROR %s (%s) and %s (%s) hours are not synchronised' % \
+                    (msg,instance.getName(),hour1,instance2.getName(),hour2)
+            if minute1 != minute2:
+              msg = '%s\nWARNING %s (%s) and %s (%s) minutes are not synchronised' % \
+                    (msg,instance.getName(),minute1,instance2.getName(),minute2)
+      </script>
+      
+      
+      <!--==========  Display output parsing  =========-->
+      <if expr="msg.find('TRACE') != -1">
+        <!-- If trace found during parsing, display message -->
+         <message log="1">'TRACE found : \"%s\"' % msg</message>
+      </if>
+      
+      <if expr="msg.find('WARNING') != -1">
+        <!-- If warning found during parsing, display message -->
+        <message log="1">'WARNING found : \"%s\"' % msg</message>
+      </if>
+      
+      <if expr="msg.find('ERROR') != -1">
+        <!-- If errors found during parsing, exit -->
+        <sequence>
+           <script>ERR_NUM[0] += 1</script>
+           <message log="1">'EXIT as error(s) found : \"%s\"' % msg</message>
+           <return>msg</return>
+         </sequence>
+      </if>
+      <return>
+        parserResult
+      </return>
+    </sequence>
+  </function>
+
+
+  <!-- ******************************************************************* -->
+  <!-- Following function is used to parse an XML file and return the DOM  -->
+  <!-- document object                                                     -->
+  <!-- ******************************************************************* -->
+  <function name="parseXML" scope="local">
+  
+    <function-list-args>
+      <function-required-arg name="xmlFileName">
+        Name of file containing XML to be parsed
+      </function-required-arg>
+    </function-list-args>
+    
+    <sequence>
+      
+      <!-- Parse the XML -->
+      <script>
+        from java.io import File
+        from java.io import StringReader
+        from org.xml.sax import InputSource
+        from org.xml.sax import SAXParseException
+        from org.xml.sax.helpers import DefaultHandler
+        from javax.xml.parsers import DocumentBuilderFactory
+        from javax.xml.parsers import DocumentBuilder
+        from org.w3c.dom import Document
+        from org.w3c.dom import Element
+        from org.w3c.dom import Node
+        from org.w3c.dom import NodeList
+        
+        dtdFileName = '../../stax.dtd'  
+        
+        #********************************************** #
+        # private Python classes                        #
+        
+        # This class handles XML Parsing exceptions
+        class ParserException(Exception):
+            pass
+        
+        # This class handles the exception raised by XML parser
+        class ParserResolver(DefaultHandler):
+            def resolveEntity (self, publicId, systemId):
+                return InputSource(dtdFileName)
+            def error (self, e):
+                raise 'error', e
+            def warning (self, e):
+                raise 'warning', e
+            def fatalError (self, e):
+                raise 'fatal', e
+        
+        factory = DocumentBuilderFactory.newInstance()
+        factory.setValidating(1)
+        factory.setIgnoringElementContentWhitespace(0)
+        
+        try:
+          parseError    = 0
+          builder  = factory.newDocumentBuilder()
+          document = builder.parse(xmlFileName)
+        except SAXParseException, spe:
+          parseError = 1
+      </script>
+      
+      <!-- Quit if there is any parsing error -->
+      <if expr="parseError">
+        <sequence>
+          <script>
+            errmsg = 'Error occurred parsing file %s\n line: %s\n msg: %s' % \
+                      (xmlFileName, spe.getLineNumber(), spe.getMessage())
+          </script>
+          <log>errmsg</log>
+          <message log="1">errmsg</message>
+          <terminate/>
+        </sequence>
+      </if>
+      
+      <return>document</return>
+      
+    </sequence>
+  </function>
+</stax>

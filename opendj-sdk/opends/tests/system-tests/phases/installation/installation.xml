@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="installation"/>
+
+
+  <!-- ************************************************************ -->
+  <function name="installation">
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          list of instances
+        </function-arg-description>
+        <function-arg-property name="type" value="list of instance class"/>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix class
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--==========  Call preambule  =========-->
+      <call function="'phasePreamble'">
+      { 'phaseName' : 'installation' ,
+        'fileFd'    : LOG_MAIN_FD }
+      </call>
+      
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+      file="'%s/phases/installation/installation_opends.xml' % (TESTS_DIR)"/>
+      <script>
+        prefix = "phase_inst"
+        fileList = STAXGlobal([])
+      </script>
+      
+      <!--==== get the list of hosts to install opends ====-->
+      <script>
+        opendsInstances = []
+        for instance in instances:
+          product = instance.getProduct()
+          #host = instance.getHost()
+          if product == 'opends':
+            #if host not in opendsInstances:
+            opendsInstances.append(instance)
+      </script>
+      
+      <!--==== install opends ====-->
+      <call function="'installOpends'">
+        {
+          'instances'  : opendsInstances,
+          'filePrefix' : prefix,
+          'suffixDn'   : suffix.getSuffixDn()
+        }
+      </call>
+      
+      
+      <!--==========  Merge files    ==========-->
+      <call function="'mergeFiles'">
+        {
+          'fileList' : fileList,
+          'fileFd'   : LOG_MAIN_FD
+        }
+      </call>
+      
+      
+      <!--==========  Call postphase =========-->
+      <call function="'phasePostamble'">
+      {
+        'phaseName' : 'installation',
+        'fileFd'    : LOG_MAIN_FD
+      }
+      </call>
+      
+    </sequence>
+  </function>
+  
+  
+  
+</stax>
+
