@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="scheduler"/>
+
+
+  <!-- ************************************************************ -->
+  <function name="scheduler">
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          instance object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          scheduler object
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="scenario" type="required">
+        <function-arg-description>
+          scenario object
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--==========  Call preambule  =========-->
+      <script>
+        tagAttr = []
+        durationValue = '%s%s' % \
+                        (scenario.getDurationTime(),scenario.getDurationUnit())
+        tagAttr.append(['duration',durationValue])
+      </script>
+      <call function="'phasePreamble'">
+      { 'phaseName' : 'scheduler' ,
+        'tagAttr'   : tagAttr,
+        'fileFd'    : LOG_MAIN_FD }
+      </call>
+      
+      <!--==== Get the clients list from all modules ==============-->
+      <script>
+        clients = []
+        for m in scheduler:
+          if (m.getEnabled() == "true"):
+            clients.extend(m.getClients())
+      </script>
+      
+      
+      <!--==== Copy client data into client host ====-->
+      <call function="'copyClients'">
+      { 
+        'clients'    : clients
+      }
+      </call>
+      <script>
+        MachineList = STAXResult
+      </script>
+      <if expr="ERR_NUM[0] == 0">
+        <sequence>
+          <!--==== Start the system test and launch client's process ====-->
+          <call function="'runClients'">
+          { 
+            'clients'   : clients,
+            'instances' : instances,
+            'scenario'  : scenario
+          }
+          </call>
+          <!--==========  Merge files    ==========-->
+          <call function="'mergeClientsFiles'">
+          {
+            'scheduler' : scheduler,
+            'fileFd'    : LOG_MAIN_FD
+          }
+          </call>
+        </sequence>
+      </if>
+      <!--==========  Call postphase =========-->
+      <call function="'phasePostamble'">
+      {
+        'phaseName' : 'scheduler',
+        'fileFd'    : LOG_MAIN_FD
+      }
+      </call>
+    </sequence>
+  </function>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="copyClients">
+    <function-map-args>
+      <function-arg-def name="clients" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--==========  Define variables  =========-->
+      <script>
+        fileList = STAXGlobal([])
+      </script>
+      <!--==== Get the list of hosts for each client ====-->
+      <script>
+        list = NOT_DEFINED
+        
+        # for each clients get from conf.xml file
+        for client in clients:          
+          if list == NOT_DEFINED:
+            list = '%s' % client.getHost()
+          elif list.find(client.getHost()) == -1:
+            list = '%s,%s' % (list,client.getHost())
+        
+        list = list.split(",")
+      </script>
+      <!--==========  Copy directory in parallel   ==========-->
+      <paralleliterate in="list" var="host">
+        <sequence>
+          <if expr="host != NOT_DEFINED">
+            <sequence>
+              <!--==== open logfile ====-->
+               <call function="'getLogFileName'">
+                {
+                  'type'   : 'host',
+                  'object' : host,
+                  'prefix' : 'client_copy'
+                }
+              </call>
+              <script>
+                logFile = STAXResult
+                fileList.append(logFile)
+                fileFd = open(logFile,'w')
+              </script>
+              <!--==== copy directory ====-->
+              <script>
+                fullHostName = '%s%s' % (host,DOMAIN[0])
+              </script>
+              <call function="'copyFolder'">
+                {
+                  'remoteHost'    : fullHostName,
+                  'fromDirectory' : '%s/clients' % TESTS_DIR,
+                  'toDirectory'   : '%s/clients' % LOG_DIR,
+                  'fileFd'        : fileFd
+                }
+              </call>
+              <!--==== close logfile ====-->
+              <script>
+                fileFd.close()
+                fileFd = ''
+              </script>
+            </sequence>
+          </if>
+        </sequence>
+      </paralleliterate>
+      <!--==========  Merge files    ==========-->
+      <call function="'mergeFiles'">
+        {
+          'fileList' : fileList,
+          'fileFd'   : LOG_MAIN_FD
+        }
+      </call>
+      <return>list</return>
+    </sequence>
+  </function>
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="runClients">
+    <function-map-args>
+      <function-arg-def name="clients" type="required">
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+      </function-arg-def>
+      <function-arg-def name="scenario" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--==========  Define variables  =========-->
+      <script>
+        fileList = STAXGlobal([])
+        finishedClients = STAXGlobal([])
+      </script>
+      
+      
+      <!--==========  Run clients in parallel  =========-->
+      <paralleliterate in="clients" var="client">
+        <sequence>
+        
+        <!--==== calculate start/stop time, open dedicated logfile ====-->
+          <script>
+            start = client.getStart()
+            stop = client.getStop()
+            dependency = client.getDependency()
+            
+            if stop == NOT_DEFINED:
+              stop = 't100'
+            
+            # convert durationTime in second
+            if scenario.getDurationUnit() == 's':
+              durationTime = int(scenario.getDurationTime())
+            elif scenario.getDurationUnit() == 'm':
+              durationTime = int(scenario.getDurationTime()) * 60
+            elif scenario.getDurationUnit() == 'h':
+              durationTime = int(scenario.getDurationTime()) * 3600
+            elif scenario.getDurationUnit() == 'd':
+              durationTime = int(scenario.getDurationTime()) * 24 * 3600
+            
+            
+            if (start != NOT_DEFINED and stop != NOT_DEFINED):
+              # remove t for t10, t20...
+              start = start.split('t')[1]
+              stop = stop.split('t')[1]
+              
+              start = int(start) * int(durationTime) / 100
+              startms = int(start) * 1000
+              stop = int(stop) * int(durationTime) / 100
+              clientDuration = stop - start
+          </script>
+          <!--==== open logfile ====-->
+           <call function="'getLogFileName'">
+            {
+              'type'   : 'client',
+              'object' : client,
+              'prefix' : 'client'
+            }
+          </call>
+          <script>
+            logFile = STAXResult
+            fileList.append(logFile)
+            fileFd = open(logFile,'w')
+            
+            # Write start tag
+            str = '\n&lt;client name=\"%s\"' % client.getName()
+            str = '%s host=\"%s\"'           % (str,client.getHost())
+            str = '%s start=\"%s\"'          % (str,client.getStart())
+            str = '%s stop=\"%s\"'           % (str,client.getStop())
+            str = '%s dependency=\"%s\"&gt;\n' % (str,client.getDependency())
+            fileFd.write(str)
+          </script>
+          
+          
+          <!--== Start is NOT defined in client attribute ==-->
+          <if expr="start == NOT_DEFINED">
+            <sequence>
+              <if expr="dependency == NOT_DEFINED">
+                <sequence>
+                  <script>
+                    str = 'ERROR: client %s should have' % client.getName()
+                    str = '%s start or dependency attribute defined' % str
+                  </script>
+                  <message> str </message>
+                  <call function="'writeMessage'">
+                  { 'fileFd'  : fileFd,
+                    'content' : str
+                  }
+                  </call>
+                  <script>ERR_NUM[0] += 1</script>
+                </sequence>
+              <else>
+                <sequence>
+                  <!--== Start is NOT defined, dependency is defined ==-->
+                  <call function="'sleepForDependency'">
+                  {
+                    'client'       : client,
+                    'clients'      : clients,
+                    'durationTime' : durationTime,
+                    'fileFd'       : fileFd
+                  }
+                  </call>
+                </sequence>
+              </else>
+              </if>
+            </sequence>
+          
+          <!--== Start is defined in client attribute ==-->
+          <else>
+            <sequence>
+              <!--=== Sleep and wait to start the client when specified ===-->
+              <call function="'sleep'">
+              { 'location' : STAXServiceMachine,
+                'sleepForMilliSeconds' : startms,
+                'fileFd'   : fileFd
+              }
+              </call>
+              
+              
+              <!--=== Wait if client depends on other clients ===-->
+              <if expr="dependency != NOT_DEFINED">
+                <sequence>
+                  <call function="'sleepForDependency'">
+                  {
+                    'client'       : client,
+                    'clients'      : clients,
+                    'durationTime' : durationTime,
+                    'fileFd'       : fileFd
+                  }
+                  </call>
+                </sequence>
+              </if>
+            </sequence>
+          </else>
+          </if>
+          
+          
+          <!--== Run the client ==-->
+          <call function="'runClient'">
+          {
+            'client'    : client,
+            'duration'  : clientDuration,
+            'instances' : instances,
+            'fileFd'    : fileFd
+          }
+          </call>
+          
+          
+          <!--==== close logfile ====-->
+          <script>
+            fileFd.write('&lt;/client&gt;\n')
+            fileFd.close()
+            fileFd = ''
+          </script>
+        </sequence>
+      </paralleliterate>
+      
+    </sequence>
+  </function>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="runClient">
+    <function-map-args>
+      <function-arg-def name="client" type="required">
+      </function-arg-def>
+      <function-arg-def name="duration" type="required">
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      
+      <script>
+        startTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+      
+      <!--=== log info ===-->
+      <if expr="client.getHost() == NOT_DEFINED">
+        <sequence>
+          <script>
+            str = '++ Start client %s'         % (client.getName())
+            str = '%s (id=%s)'                 % (str, client.getId())
+            str = '%s at %s'                   % (str, startTime)
+            str = '%s, max duration is %s sec' % (str, duration)
+          </script>
+          <message> str </message>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : str
+          }
+          </call>
+        </sequence>
+      <else>
+        <sequence>
+          <script>
+            str = '++ Start client %s'         % (client.getName())
+            str = '%s (id=%s)'                 % (str, client.getId())
+            str = '%s running on %s'           % (str, client.getHost())
+            str = '%s at %s'                   % (str, startTime)
+            str = '%s, max duration is %s sec' % (str, duration)
+          </script>
+          <message> str </message>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : str
+          }
+          </call>
+        </sequence>
+      </else>
+      </if>
+      
+      <!--=== run the client, exit if time exceed duration time ===-->
+      <script>
+        timerKilled = TRUE
+        clientXmlFile = '%s/clients/%s/%s.xml' % \
+                        (TESTS_DIR,client.getName(),client.getName())
+      </script>
+      <timer duration="'%ss' % duration">
+        <sequence>
+          <!-- check if client exists before launching it-->
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : clientXmlFile
+          }
+          </call>
+          <script>
+            fileExist = STAXResult
+          </script>
+          <if expr="fileExist == TRUE">
+            <sequence>
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                      file="'%s' % clientXmlFile"/>
+              <call function="'%s' % client.getName()">
+              { 
+                'client'     : client,
+                'instances'  : instances,
+                'duration'   : duration,
+                'fileFd'     : fileFd
+              }
+              </call>
+              <script>
+                errNum = STAXResult
+                timerKilled = FALSE
+              </script>
+            </sequence>
+          <else>
+            <message>'ERROR : cant find file %s' % clientXmlFile </message>
+          </else>
+          </if>
+        </sequence>
+      
+      </timer>
+      <if expr="timerKilled == TRUE">
+        <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      </if>
+      
+      <script>
+        finishedClients.append(client.getId())
+      </script>
+      
+      <!--=== log info ===-->
+      <script>
+        stopTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+      </script>
+      <message>
+        '-- Stop %s client (id %s) running on %s at %s' %\
+        (client.getName(),client.getId(),client.getHost(),stopTime)
+      </message>
+      <call function="'writeMessage'">
+        {
+          'content' : 'Stop at %s' % stopTime,
+          'fileFd'  : fileFd
+        }
+      </call>
+      
+      <if expr="errNum == 0">
+        <script>
+          client.setResult('SUCCESS')
+          fileFd.write('\n&lt;clientResult status=\"SUCCESS\"/&gt;\n')
+        </script>
+      <else>
+        <script>
+          client.setResult('FAIL')
+          fileFd.write('\n&lt;clientResult status=\"FAIL\"/&gt;\n')
+        </script>
+      </else>
+      </if>
+      <!-- DO NOT record number of error(s) found by clients         -->
+      <!-- each should use checkRC and ERR_NUM[0] is already updated -->
+      <!-- <script>
+        ERR_NUM[0] += errNum
+      </script> -->
+      
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="sleepForDependency">
+    <function-map-args>
+      <function-arg-def name="location" type="optional" 
+                        default="'%s' % STAXServiceMachine">
+      </function-arg-def>
+      <function-arg-def name="client" type="required">
+      </function-arg-def>
+      <function-arg-def name="clients" type="required">
+      </function-arg-def>
+      <function-arg-def name="durationTime" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--== Convert dependencyId attribute value into a list ==-->
+      <script>
+        clientOfClientIds = []
+        clientOfClientIdsTmp = client.getDependency()
+        
+        # if id separated by coma, make the list
+        if clientOfClientIdsTmp.count(',') > 0:
+          clientOfClientIds = clientOfClientIdsTmp.split(',')
+        
+        # if id separated by whitespace, make the list
+        elif clientOfClientIdsTmp.count(' ') > 0:
+          clientOfClientIds = clientOfClientIdsTmp.split(' ')
+        
+        # if id separated by ';', make the list
+        elif clientOfClientIdsTmp.count(';') > 0:
+          clientOfClientIds = clientOfClientIdsTmp.split(';')
+        
+        # sounds like only one id
+        else:
+          clientOfClientIds.append(clientOfClientIdsTmp)
+        
+        # remove whitespace characters
+        i=0
+        while i &lt; len(clientOfClientIds):
+          clientOfClientIds[i] = clientOfClientIds[i].replace(' ','')
+          i += 1
+      </script>
+      
+      <!--== For each clientId, wait it has been completed ==-->
+      <iterate in="clientOfClientIds" var="clientOfClientId">
+        <sequence>
+          
+          <!--== Wait until clientOfClient is finished ==-->
+          <!--== TBD : should not be durationTime but  ==-->
+          <!--== "durationTime - time already runed"   ==-->
+          <timer duration="'%ss' % durationTime">
+            <loop until="clientOfClientId in finishedClients">
+              <sequence>
+                <call function="'sleep'">
+                {
+                  'location'             : location,
+                  'sleepForMilliSeconds' : '3000',
+                  'silentMode'           : FALSE ,
+                  'fileFd'               : fileFd
+                }
+                </call>
+              </sequence>
+            </loop>
+          </timer>
+        </sequence>
+        
+      </iterate>
+    </sequence>
+  </function>
+  
+  
+</stax>
+

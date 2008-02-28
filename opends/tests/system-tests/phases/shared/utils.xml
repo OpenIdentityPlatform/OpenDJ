@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <!-- ************************************************************ -->
+  <function name="checkRC">
+    <function-prolog>
+      This function checks a return code against an expected return code
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="returncode" type="required">
+        <function-arg-description>
+          return code received from command
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="result" type="required">
+        <function-arg-description>
+          the output of the result
+        </function-arg-description>
+      </function-arg-def>          
+      <function-arg-def name="expected" type="optional" default="[0]">
+        <function-arg-description>
+          the expected return code (list of value : [0] or [0,5])
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="optional" default="LOG_MAIN_FD">
+        <function-arg-description>
+          file descriptor, keywords : NO_FILE
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+<!-- TBD
+      <script>
+        result = result.replace('"','&quot;')
+#        result = result.replace('<','&lt;')
+#        result = result.replace('>','&gt;')
+      </script>
+      
+      see the call in scheduler.xml
+      clientSearchLoad() checkRC after process "running java program : searchLoad"
+-->
+      <script>
+        _errNum = 0
+        verdict = 'FAIL'
+        for expRC in expected:
+          if ( expRC == returncode ):
+            verdict = 'PASS'
+      </script>
+      <if expr="verdict == 'PASS'">
+        <sequence>
+          <call function="'writeOperationResult'">
+          {
+            'returncode' : returncode,
+            'expected'   : expected,
+            'result'     : '',
+            'status'     : 'SUCCESS',
+            'fileFd'     : fileFd
+          }
+          </call>
+        </sequence>
+      <else>
+        <sequence>
+          <call function="'writeOperationResult'">
+          {
+            'returncode' : returncode,
+            'expected'   : expected,
+            'result'     : result,
+            'status'     : 'ERROR',
+            'fileFd'     : fileFd
+          }
+          </call>
+          <script>
+            _errNum = 1
+          </script>
+        </sequence>
+      </else>
+      </if>
+      <script>
+        ERR_NUM[0] += _errNum
+      </script>
+      <return>
+        _errNum
+      </return>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="phasePreamble">
+    <function-prolog>
+      Performs all the preoperations for a phase
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="phaseName" type="required">
+      </function-arg-def>
+      <function-arg-def name="tagAttr" type="optional" default='[]'>
+        <function-arg-description>
+          attribute/value of the tag [[attr1,val1],[attr2,val2],...]
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- Start time of test suite -->      
+      <script>
+        phaseStartTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        ERR_NUM[0] = 0
+        if tagAttr == []:
+          tagAttr = [['date',phaseStartTime]]
+        else:
+          tagAttr.append(['date',phaseStartTime])
+      </script>
+      
+      <message log="1">''</message>
+      <message log="1">
+        '=================== START PHASE %s @ %s  ========================='\
+        % (phaseName,phaseStartTime)
+      </message>
+      
+      <call function="'writeStartTagPhase'">
+      {
+        'tagName' : phaseName ,
+        'tagAttr' : tagAttr,
+        'fileFd'  : fileFd
+      }
+      </call>
+      
+    </sequence>
+  </function>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="phasePostamble">
+    <function-prolog>
+      Performs all the post operations for a phase
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="phaseName" type="required">
+        <function-arg-description>
+          Name of the phase
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      
+      <if expr="phaseName == 'verdict'">
+        <message log="1">
+          '== Found a TOTAL of %s Error(s)' % (ERR_NUM[0])
+        </message>
+      <else>
+        <message log="1">
+          '== Found %s Error(s) during this phase' % (ERR_NUM[0])
+        </message>
+      </else>
+      </if>
+      <message log="1">
+        '===================  STOP PHASE %s  ============================' \
+        % (phaseName)
+      </message>
+      
+      <call function="'writeTag'">
+      {
+        'tagName' : 'phaseResult',
+        'tagAttr' : [['errNum',ERR_NUM[0]]] ,
+        'fileFd'  : LOG_MAIN_FD
+      }
+      </call>
+      
+      <call function="'writeEndTagPhase'">
+      {
+        'fileFd'  : LOG_MAIN_FD
+      }
+      </call>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="sleep">
+    <function-prolog>
+      Sleep for number of milliseconds
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+      </function-arg-description>
+      <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="sleepForMilliSeconds" type="required">
+        <function-arg-description>
+          Number of milliseconds to sleep
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+      <function-arg-def name="silentMode" type="optional" default="FALSE">
+        <function-arg-description>
+          do not write message in log file if set to TRUE
+        </function-arg-description>
+        <function-arg-property name="type" value="seconds"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <if expr="silentMode == 'FALSE'">
+        <sequence>
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'sleep',
+            'fileFd'  : fileFd }
+          </call>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : 'sleep for %s milliseconds on %s' % (sleepForMilliSeconds,location)
+          }
+          </call>
+        </sequence>
+      </if>
+      
+      <stafcmd name="'STAF Command: Delay'">
+        <location>'%s' % location</location>
+        <service>'delay'</service>
+        <request>
+          'delay %i' % sleepForMilliSeconds
+        </request>
+      </stafcmd>
+      
+      <if expr="silentMode == 'FALSE'">
+        <sequence>
+          <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : STAFResult,
+              'fileFd'     : fileFd }
+          </call>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+        </sequence>
+      </if>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="ldifDiff">
+    <function-prolog>
+      This function  compares two LDIF files and reports the differences in LDIF format
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the target data
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="outputLdif" type="required">
+        <function-arg-description>
+          File to which the diffs should be written
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="overwriteExisting" type="optional" default="TRUE">
+        <function-arg-description>
+          Overwrite existing output file rather than append to it
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="singleValueChanges" type="optional">
+        <function-arg-description>
+          Write each attribute-level change as a separate modification 
+          per attribute value rather than one modification per entry
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'ldifDiff',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : 'Compares two LDIF files and reports the differences in LDIF format'
+      }
+      </call>
+
+      
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/ldif-diff' % (dsBinPath)
+        
+        if version:
+          STAFCmdParamsList.append('-V')
+        
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+        
+        if outputLdif:
+          STAFCmdParamsList.append('-o %s' % outputLdif)
+        
+        if overwriteExisting:
+          STAFCmdParamsList.append('-O')
+        
+        if singleValueChanges:
+          STAFCmdParamsList.append('-S')
+        
+        if Help:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd,STAFCmdParams)
+      }
+      </call>
+      <process name="'LDIF Diff Script'">
+        <location>location</location>
+        <command>STAFCmd</command>
+        <parms>STAFCmdParams</parms>
+        <workdir>dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>          
+        <returnfile>outputLdif</returnfile>
+      </process>
+      
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      
+      <script>
+        diffsInfo = STAXReason[1]
+        diffs = diffsInfo[1]           
+        if (diffsInfo[0] == 0) and (diffs.startswith("# No differences were detected between the source and target LDIF files")) :
+          diffRC = 0
+        else:
+          diffRC = 1
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : diffRC,
+          'result'     : 'diff file : %s' % outputLdif,
+          'fileFd'     : fileFd }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+
+      <return> diffRC </return>
+    </sequence>
+  </function>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="grep">
+    <function-prolog>
+      This function compares grep a string in a file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="string2grep" type="required">
+        <function-arg-description>
+          string to grep
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="file" type="required">
+        <function-arg-description>
+          File where grep will be done
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expect2Find" type="optional" default="TRUE">
+        <function-arg-description>
+          if true, return SUCCESS if string2find is in the file
+          if false, return SUCCESS if string2find is NOT in the file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="caseSensitive" type="optional" default="TRUE">
+        <function-arg-description>
+          if true, grep with case sensitive mode
+          if false, grep with case insensitive mode
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- ========== -->
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'grep',
+        'fileFd'  : fileFd }
+      </call>
+      <if expr="expect2Find == TRUE">
+        <call function="'writeMessage'">
+        { 'fileFd'  : fileFd,
+          'content' : "Check '%s' is in %s" % (string2grep,file)
+        }
+        </call>
+      <else>
+        <call function="'writeMessage'">
+        { 'fileFd'  : fileFd,
+          'content' : "Check '%s' is NOT in %s" % (string2grep,file)
+        }
+        </call>
+      </else>
+      </if>
+      <!-- ========== -->
+      <script>
+        result = 'NOTHING'
+        
+        if (caseSensitive == TRUE):
+          options = ''
+        else:
+          options = '-i'
+      </script>
+      <process name="'Grep'">
+        <location>location</location>
+        <command mode="'shell'">
+          "grep %s '%s' %s" % (options,string2grep,file)
+        </command>
+        <envs>['PATH=/bin:/usr/bin']</envs>
+        <stderr mode="'stdout'"/>
+        <stdout/>
+        <returnstdout/>
+      </process>
+      <script>
+        grepRC=RC
+        grepRC2=STAXResult[0][0]
+        result=STAXResult[0][1]
+      </script>
+      
+      <if expr="expect2Find == TRUE">
+        <if expr="(result != 'NOTHING') and (grepRC == 0)">
+          <call function="'checkRC'">
+            { 'returncode' : 0,
+              'result'     : '',
+              'fileFd'     : fileFd }
+          </call>
+        <else>
+          <call function="'checkRC'">
+            { 'returncode' : grepRC,
+              'result'     : result,
+              'fileFd'     : fileFd }
+          </call>
+        </else>
+        </if>
+      
+      <!-- == expect2Find == FALSE == -->
+      <else>
+        <if expr="(result == '') and (grepRC != 0)">
+          <call function="'checkRC'">
+            { 'returncode' : 0,
+              'result'     : '',
+              'fileFd'     : fileFd }
+          </call>
+        <else>
+          <call function="'checkRC'">
+            { 'returncode' : grepRC,
+              'expected'   : [1],
+              'result'     : result,
+              'fileFd'     : fileFd }
+          </call>
+        </else>
+        </if>
+        
+      </else>
+      </if>
+      
+      <!-- ========== -->
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+    </sequence>
+  </function>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="getOSvariables">
+    <function-prolog>
+      Get OS related variables
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="hostname" type="required">
+        <function-arg-description>
+          Name of host on which to retrieve variables
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <stafcmd name="'STAF Command: Get OS Name'">
+        <location>'%s' % hostname</location>
+        <service>'var'</service>
+        <request>
+          'get system var STAF/Config/OS/Name'
+        </request>
+      </stafcmd>
+      <return>STAFResult</return>
+    </sequence>
+  </function>
+
+
+  <!-- ************************************************************ -->
+  <function name="getOSDate">
+    <function-prolog>
+        This function returns the date (MONTH/DAY/YEARS-HOURS/MIN) of the OS
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional"
+                        default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <call function="'getOSvariables'">
+        { 'hostname' : location }
+      </call>
+      <script>
+        import re
+        winPattern=re.compile('win', re.IGNORECASE)
+        isWindows=winPattern.search(STAXResult)
+      </script>
+      <!-- OS is windows -->
+      <if expr="isWindows">
+        <sequence>
+          <process name="'get date on %s' % location">
+            <location>location</location>
+            <command mode="'shell'">'date /T'</command>
+            <workdir>'/'</workdir>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+          <script>
+            date = STAFResult
+            date = date[date.find(' ')+1:len(date)].strip()
+          </script>
+          <process name="'get time on %s' % location">
+            <location>location</location>
+            <command mode="'shell'">'time /T'</command>
+            <workdir>'/'</workdir>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+          <script>
+            time = STAFResult
+            #time = time[0:time.find(' ')].strip()
+            date = '%s-%s' % (date,time)
+          </script>
+        </sequence>
+      
+      <!-- OS is UNIX based -->
+      <else>
+        <sequence>
+          <process name="'get date on %s' % location">
+            <location>location</location>
+            <command mode="'shell'">'date'</command>
+            <parms>"'+%m/%d/%Y-%H:%M:%S'"</parms>
+            <workdir>'/'</workdir>
+            <envs>['PATH=/bin:/usr/bin']</envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+          <script>
+            date = STAXResult[0][1].split('\n')
+          </script>
+        </sequence>
+      </else>
+      </if>
+      <return>date</return>
+    </sequence>
+  </function>
+
+</stax>

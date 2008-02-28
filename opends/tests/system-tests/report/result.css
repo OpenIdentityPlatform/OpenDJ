@@ -1,0 +1,142 @@
+/****
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *      Copyright 2008 Sun Microsystems, Inc.
+ ****/
+
+html,body {
+  background-color : black; 
+}
+
+p {
+  font-size : 100%; 
+  font-family :  Verdana, Arial, Helvetica, Geneva, sans-serif; 
+  color : black; 
+  background-color : white; 
+  margin-left:20px;
+}
+
+h1 {
+  font-size : 200%; 
+  font-family :  Verdana, Arial, Helvetica, Geneva, sans-serif;
+  border-top: 3px double;
+  border-bottom: 3px double;
+  color : white; 
+  text-align: center;
+}
+
+h2 {
+  font-size : 150%; 
+  font-family :  Verdana, Arial, Helvetica, Geneva, sans-serif; 
+  color : black; 
+  padding-left:15px;
+  text-align: center;
+}
+
+a:link {color: black; text-decoration:underline;}
+a:visited {color: black; text-decoration:underline;}
+a:hover {color:red; text-decoration:none;}
+
+
+/*******************/
+/* summary phase  */
+summary {
+  font-size : 120%; 
+  font-family :  Verdana, Arial, Helvetica, Geneva, sans-serif; 
+  padding-left:25px;
+  text-align: left;
+}
+
+table#summaryTable {
+  border-style:none;
+  text-align:left;
+}
+table#summaryTable td{
+  border-style:none;
+  border-width:none;
+}
+
+
+/*******************/
+/* table */
+table {
+  margin-left:35px;
+  padding-left:50px;
+  border-style:solid; 
+  border-width:1px; 
+  border-color:#CCCCFF;
+  border-collapse:collapse;
+  text-align:center;
+}
+
+td { 
+  border-style:solid; 
+  border-width:1px; 
+  border-color:#CCCCFF;
+  /*font-size: 10px;*/
+  /*height: 30px;*/
+}
+th {
+  background-color:#CCCCFF;
+  border-style:solid;
+  border-width:1px; 
+  text-align: center;
+  /*height: 40px;*/
+}
+
+.bgcol1 {
+  font-style: italic;
+  text-align: center;
+  background-color: #FFFFCC;
+}
+
+.bgcolth {
+  border-width:1px; 
+  border-style:solid; 
+  border-color:#CCCCFF;
+  font-style: bold;
+  height: 40px;
+  text-align: center;
+  background-color: #CCCCFF;
+}
+
+
+/*******************/
+/* pass fail color */
+.pass {
+  font-style: bold;
+  color: rgb(51, 204, 0);
+}
+.fail {
+  font-style: bold;
+  color: rgb(255, 0, 0);
+}
+.phaseResult {
+  font-style: bold;
+  font-size : 120%;
+}
+
+.showLink {
+  cursor: pointer;
+  text-decoration:underline;
+}

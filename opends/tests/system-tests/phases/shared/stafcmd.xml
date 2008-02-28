@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <function name="copyFile">
+    <function-prolog>
+      This function copies a source file to destination file to host
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="remoteHost" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          The name of remote host (default localhost)
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="srcFile" type="required">
+        <function-arg-description>
+          The name of the source fule
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="destFile" type="optional" default="NOT_DEFINED">
+        <function-arg-description>
+          The name of the destination fule
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="destDir" type="optional" default="NOT_DEFINED">
+        <function-arg-description>
+          The name of the destination fule
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor to write message in
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'copyFile',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <call function="'writeMessage'">
+       { 'content'  : 'Copy file(s) %s to %s from machine %s to %s' % (srcFile,destFile,location,remoteHost),
+         'fileFd'   : fileFd }
+      </call>
+      
+      <if expr="destFile != NOT_DEFINED">
+        <stafcmd name="'STAF Command: Copy File'">
+          <location>'%s' % location</location>
+          <service>'fs'</service>
+          <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcFile,destFile,remoteHost) </request>
+        </stafcmd>
+      <elseif expr="destDir != NOT_DEFINED">
+        <stafcmd name="'STAF Command: Copy File'">
+          <location>'%s' % location</location>
+          <service>'fs'</service>
+          <request>'COPY FILE %s TODIRECTORY %s TOMACHINE %s' % (srcFile,destDir,remoteHost) </request>
+        </stafcmd>
+      </elseif>
+      <else>
+        <sequence>
+          <message>'ERROR copyFile() destFile or destDir must be specified'</message>
+          <call function="'writeMessage'">
+           { 'content'  : 'ERROR copyFile() destFile or destDir must be specified',
+             'fileFd'   : fileFd }
+          </call>
+          <script>ERR_NUM[0] += 1</script>
+        </sequence>
+      </else>
+      </if>
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : cmdRC ,
+          'result'     : cmdResult,
+          'fileFd'     : fileFd }
+      </call>
+      
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>[cmdRC,cmdResult]</return>
+    </sequence>
+  </function>
+
+  <function name="copyFolder">
+    <function-prolog>
+      This function copy directory through the network
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="fromDirectory" type="required">
+        <function-arg-description>
+          directory to copy
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="remoteHost" type="required">
+        <function-arg-description>
+          host target where directory will be copied
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="toDirectory" type="required">
+        <function-arg-description>
+          Directory target
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor to write message in
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'copyFolder',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+        { 'content'  : 'Copy directory %s FROM machine %s TO machine %s into %s' % (fromDirectory,location,remoteHost,toDirectory),
+          'fileFd'   : fileFd }
+      </call>
+      
+      <if expr="remoteHost == STAXServiceMachine and fromDirectory == toDirectory">
+        <sequence>
+          <call function="'writeMessage'">
+          {
+            'content' : 'SKIP : same directory %s, same host %s' % \
+                        (remoteHost,fromDirectory),
+            'fileFd'  : fileFd 
+          }
+          </call>
+        </sequence>
+      <else>
+        <sequence>
+          <stafcmd name="'STAF Command: copy directory'">
+            <location>'%s' % location</location>
+            <service>'fs'</service>
+            <request>
+                'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s RECURSE CASEINSENSITIVE' % (fromDirectory,toDirectory,remoteHost)
+            </request>
+          </stafcmd>
+          <script>
+            cmdRC=RC
+            cmdResult=STAFResult
+          </script>
+          <call function="'checkRC'">
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult,
+              'fileFd'     : fileFd }
+          </call>
+        </sequence>
+      </else>
+      </if>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>cmdRC</return>
+    </sequence>
+  </function>
+
+
+  <function name="unZipFile">
+    <function-prolog>
+      This function unzips a compressed zip archive
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="zipfile" type="required">
+        <function-arg-description>
+          Name of the file to place zip file contents
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="unzipdir" type="required">
+        <function-arg-description>
+          Name of destination folder to place zip file contents
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor to write message in
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'Unzip',
+        'fileFd'  : fileFd }
+      </call>
+        <call function="'writeMessage'">
+          { 'content'  : 'Unzip %s under %s' % (zipfile,unzipdir),
+            'fileFd'   : fileFd }
+        </call>
+      
+        <stafcmd name="'STAF Command: Unzip File'">
+          <location>'%s' % location</location>
+          <service>'zip'</service>
+          <request>
+              'UNZIP ZIPFILE %s TODIRECTORY %s RESTOREPERMISSION REPLACE' % (zipfile,unzipdir)
+          </request>
+        </stafcmd>
+        <script>
+          cmdRC=RC
+          cmdResult=STAFResult
+        </script>
+        <call function="'checkRC'">
+          { 'returncode' : cmdRC ,
+            'result'     : cmdResult,
+            'fileFd'     : fileFd }
+        </call>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>cmdRC</return>
+    </sequence>
+  </function>
+
+
+
+  <function name="isFile">
+    <function-prolog>
+        This function returns TRUE if file exist, else FALSE
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileName" type="required">
+        <function-arg-description>
+          Name of file
+        </function-arg-description>
+        </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <process name="'do ls'">
+        <location>'%s' % location</location>
+        <command>'ls'</command>
+        <parms>'%s' % fileName</parms>
+        <workdir>'/'</workdir>
+        <envs>['PATH=/bin:/usr/bin']</envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <script>
+        lsResult = STAXResult[0][1]
+        lsResult = lsResult.lower()
+        indexResult = lsResult.find('no such file')
+        if indexResult == -1:
+          bExist = TRUE
+        else:
+          bExist = FALSE
+      </script>
+      <return>
+        bExist
+      </return>
+    </sequence>
+  </function>
+
+  <function name="isEmptyFile">
+    <function-prolog>
+        This function returns TRUE if file is empty, else FALSE
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileName" type="required">
+        <function-arg-description>
+          Name of the file
+        </function-arg-description>
+        </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <script>
+        cmdResult=''
+      </script>
+      <stafcmd name="'STAF Command: Get File'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>'GET FILE %s TEXT' % fileName</request>
+      </stafcmd>
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      <if expr="cmdRC != 0">
+        <return>TRUE</return>
+      <else>
+        <if expr="cmdResult == ''">
+          <return>TRUE</return>
+        <else>
+          <return>FALSE</return>
+        </else>
+        </if>
+      </else>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  <function name="deleteFolder">
+    <function-prolog>
+        This function recursively deletes a folder
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of folder to be deleted
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="[0]">
+        <function-arg-description>
+          expected return code
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <call function="'writeStartTagOperation'">
+        { 'tagName' : 'deleteFolder',
+          'fileFd'  : fileFd }
+        </call>
+      <else>
+        <message>'Delete folder on %s : %s' % (location,foldername)</message>
+      </else>
+      </if>
+      
+      <stafcmd name="'STAF Command: Get Folder Attributes'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>'GET ENTRY %s TYPE' % foldername</request>
+      </stafcmd>
+      
+      <if expr="RC == 48">
+        <sequence>
+          <if expr="fileFd != NO_FILE">
+            <call function="'writeMessage'">
+            { 'content' : 'Folder does not exist, do not delete it.',
+              'fileFd'  : fileFd }
+            </call>
+          </if>
+          <return>0</return>
+        </sequence>
+        <else>
+          <if expr="fileFd != NO_FILE">
+            <call function="'writeMessage'">
+            { 'content' : 'Folder exists, will delete it : %s' % foldername,
+              'fileFd'  : fileFd }
+            </call>
+          </if>
+        </else>
+      </if>
+      <stafcmd name="'STAF Command: Recursively Delete Folder'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>
+          'DELETE ENTRY %s RECURSE IGNOREERRORS CONFIRM' % (foldername)
+        </request>
+      </stafcmd>
+      
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      
+      <call function="'checkRC'">
+          { 'returncode' : cmdRC ,
+            'result'     : cmdResult,
+            'expected'   : expectedRC,
+            'fileFd'     : fileFd }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>cmdRC</return>
+        
+      </sequence>
+      
+    </function>
+    
+    <function name="createFolder">
+    
+    <function-prolog>
+        This function creates a folder
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="foldername" type="required">
+        <function-arg-description>
+          Name of file to be created
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor, wildcard : NO_FILE to not write information in a file
+        </function-arg-description>
+      </function-arg-def>
+      
+    </function-map-args>
+
+    <sequence>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'createFolder',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+        {
+          'content'  : 'Create directory %s on %s' % (foldername,location) ,
+          'fileFd'   : fileFd
+        }
+      </call>
+      
+      <stafcmd name="'STAF Command: Create Folder'">
+        <location>'%s' % location</location>
+        <service>'fs'</service>
+        <request>
+          'CREATE DIRECTORY %s FULLPATH' % foldername
+        </request>
+      </stafcmd>
+      
+      <script>
+        cmdRC=RC
+        cmdResult=STAFResult
+      </script>
+      
+       <call function="'checkRC'">
+          { 'returncode' : cmdRC ,
+            'result'     : cmdResult ,
+            'fileFd'     : fileFd
+          }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>cmdRC</return>
+      
+    </sequence>
+  </function>
+
+
+</stax>

@@ -1,0 +1,971 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <function name="SetUpDsWithScript">
+    <function-prolog>
+      This function sets up a Directory Server using a script
+    </function-prolog>    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsPort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsJmxPort" type="optional">
+        <function-arg-description>
+          Directory server JMX port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>    
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          Base DN (only single base DN supported).
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindDN" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsBindPwd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+      <function-arg-def name="dsBindPwdFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsEnableWindowsService" type="optional">
+        <function-arg-description>
+          Enable as a Windows Service
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="dsDoNotStart" type="optional">
+        <function-arg-description>
+          Do not start server after setup
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>                          
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>    
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          STAFCmd='%s/setup' % (dsPath)
+          STAFCmdParamsList.append('--cli')
+          STAFCmdParamsList.append('-n')    
+                  
+        if dsPort:
+          STAFCmdParamsList.append('-p %s' % dsPort)
+        
+        if dsJmxPort:
+          STAFCmdParamsList.append('-x %s' % dsJmxPort)
+              
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+
+        if dsBindDN:
+          STAFCmdParamsList.append('-D "%s"' % dsBindDN)
+        
+        if dsBindPwd:
+          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
+        
+        if dsBindPwdFile:
+          STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
+
+        if dsEnableWindowsService:
+          STAFCmdParamsList.append('-e')
+
+        if dsDoNotStart:
+          STAFCmdParamsList.append('-O')
+                  
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'SetUpDsWithScript',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+        { 'content'  : 'Setup product : %s %s' % (STAFCmd, STAFCmdParams) ,
+          'fileFd'   : fileFd }
+      </call>
+            
+      <process name="'%s : Setup DS' % location">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsPath]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult,
+          'fileFd'     : fileFd }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+    </sequence>
+  </function>
+
+  
+  <!-- This function starts DS using the start-ds script -->
+  <function name="StartDsWithScript">
+    <function-prolog>
+      This function starts a Directory Server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+     <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Directory server version
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsSystemInfo" type="optional">
+        <function-arg-description>
+          Directory server system info
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsNoDetach" type="optional">
+        <function-arg-description>
+          Do not detach directory server from process
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsBuildInfo" type="optional">
+        <function-arg-description>
+          Directory server build information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/start-ds' % (dsBinPath)
+                  
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+        
+        if dsSystemInfo:
+          STAFCmdParamsList.append('-s')
+          
+        if dsNoDetach:
+          STAFCmdParamsList.append('-N')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsBuildInfo:
+          STAFCmdParamsList.append('-F')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'StartDsWithScript',
+        'fileFd'  : fileFd }
+      </call>
+  
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      <process name="'%s: Start DS' % location">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+
+      <script>
+        startRC=RC
+        startResult=STAXResult
+      </script>
+      
+      <call function="'checkRC'">
+        { 'returncode' : startRC ,
+          'result'     : startResult,
+          'fileFd'     : fileFd
+        }
+      </call>
+     
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd }</call>
+
+      <return>[startRC,startResult]</return>
+          
+    </sequence>
+    
+  </function>
+
+  <!-- This function stops DS using the stop-ds script -->    
+  <function name="StopDsWithScript">
+    <function-prolog>
+      This function starts a Directory Server using the script
+    </function-prolog>    
+    <function-map-args>    
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+     <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindDN" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPwd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsBindPwdFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsProxyAuthZID" type="optional">
+        <function-arg-description>
+          Use the proxied authorization control with the given authorization ID
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>     
+      <function-arg-def name="dsStopReason" type="optional">
+        <function-arg-description>
+          Reason the server is being stopped or restarted
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsRestart" type="optional">
+        <function-arg-description>
+          Attempt to automatically restart the server once it has stopped
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="dsStopTime" type="optional">
+        <function-arg-description>
+          Time to begin the shutdown in YYYYMMDDhhmmss format (local time)
+        </function-arg-description>
+        <function-arg-property name="type" value="timestamp"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStoreFile" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePwd" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsKeyStorePwdFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStoreFile" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePwd" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsTrustStorePwdFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="optional" default="''">
+        <function-arg-description>
+          file descriptor to write message in if needed
+        </function-arg-description>
+      </function-arg-def>
+      
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/stop-ds' % (dsBinPath)
+                  
+        if dsHost:
+          STAFCmdParamsList.append('-h %s' % dsHost)
+        
+        if dsPort:
+          STAFCmdParamsList.append('-p %s' % dsPort)
+        
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsBindDN:
+          STAFCmdParamsList.append('-D "%s"' % dsBindDN)
+        
+        if dsBindPwd:
+          STAFCmdParamsList.append('-w "%s"' % dsBindPwd)
+        
+        if dsBindPwdFile:
+          STAFCmdParamsList.append('-j "%s"' % dsBindPwdFile)
+
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o "%s"' % dsSaslOption)
+           
+        if dsProxyAuthZID:
+          STAFCmdParamsList.append('-Y "%s"' % dsProxyAuthZID)
+              
+        if dsStopReason:
+          STAFCmdParamsList.append('-r "%s"' % dsStopReason)
+              
+        if dsRestart:
+          STAFCmdParamsList.append('-R')
+          
+        if dsStopTime:
+          STAFCmdParamsList.append('-t "%s"' % dsStopTime)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+
+        if dsKeyStoreFile:
+          STAFCmdParamsList.append('-K "%s"' % dsKeyStoreFile)
+
+        if dsKeyStorePwd:
+          STAFCmdParamsList.append('-W "%s"' % dsKeyStorePwd)
+          
+        if dsKeyStorePwdFile:
+          STAFCmdParamsList.append('-u "%s"' % dsKeyStorePwdFile)
+              
+        if dsTrustStoreFile:
+          STAFCmdParamsList.append('-P "%s"' % dsTrustStoreFile)
+
+        if dsTrustStorePwd:
+          STAFCmdParamsList.append('-T "%s"' % dsTrustStorePwd)
+          
+        if dsTrustStorePwdFile:
+          STAFCmdParamsList.append('-U "%s"' % dsTrustStorePwdFile)
+     
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      
+      <!-- TBD : check if bin file exists -->
+      <call function="'isFile'">
+      {
+        'location' : location,
+        'fileName' : '%s' % STAFCmd
+      }
+      </call>
+      <script>
+        STAFCmdExist = STAXResult
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'StopDsWithScript',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <!-- if jarfile does not exist, build it, may have problem if several builds are run at the same time... -->
+      <if expr="STAFCmdExist == TRUE">
+        <sequence>
+          <if expr="fileFd == ''">
+            <sequence>
+              <message>'%s : Stop instance if started' % dsHost</message>
+              <message>'%s %s' % (STAFCmd, STAFCmdParams)</message>
+            </sequence>
+          <else>
+            <sequence>
+              <call function="'writeMessage'">
+              { 'content' : 'Stop instance on %s' % dsHost,
+                'fileFd'  : fileFd }
+              </call>
+              <call function="'writeMessage'">
+              { 'content' : 'Run command : %s %s' % (STAFCmd,STAFCmdParams),
+                'fileFd'  : fileFd }
+              </call>
+            </sequence>
+          </else>
+          </if>
+          <process name="'%s: Stop DS' % location">
+            <location>'%s' % (location)</location>
+            <command>'%s' % (STAFCmd)</command>
+            <parms>'%s' % (STAFCmdParams)</parms>
+            <workdir>'%s' % dsBinPath</workdir>
+            <envs>
+              ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+            </envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+          <script>
+            stopRC=RC
+            stopResult=STAXResult
+          </script>
+          <call function="'checkRC'">
+            { 'returncode' : stopRC ,
+              'result'     : stopResult,
+              'fileFd'     : fileFd }
+          </call>
+        </sequence>
+      <else>
+          <if expr="fileFd == ''">
+            <message>'WARNING : file does not exist on %s : %s/%s' % (location,dsBinPath,STAFCmd)</message>
+          <else>
+            <call function="'writeMessage'">
+            { 'content' : 'WARNING : file does not exist on %s : %s/%s' % (location,dsBinPath,STAFCmd),
+              'fileFd'  : fileFd }
+            </call>
+          </else>
+          </if>
+      </else>
+      </if>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd }</call>
+      
+      <return> [stopRC,stopResult]</return>
+    </sequence>
+  </function>
+
+
+  
+  <function name="makeLdif">
+    <function-prolog>
+      This function uses make-ldif to generate ldif file
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="templateFile" type="required">
+        <function-arg-description>
+          template ldif file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="ldifFile" type="required">
+        <function-arg-description>
+          ldif file to generate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor to log information
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/make-ldif' % (dsBinPath)
+              
+          STAFCmdParamsList.append('-t %s' % templateFile)
+          STAFCmdParamsList.append('-o %s' % ldifFile)
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'makeLdif',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+            
+      <process name="'Generate ldif'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult,
+          'fileFd'     : fileFd }
+      </call>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+    
+    </sequence>
+  </function>
+  
+  
+  <!-- Import Function With Script-->
+  <function name="ImportLdifWithScript">
+    <function-prolog>
+      This function performs an offline import of an ldif file using the script
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="'%s' % STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsLdifFile" type="required">
+        <function-arg-description>
+          Path to the LDIF file to be imported
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsTemplateFile" type="optional">
+        <function-arg-description>
+          Path to a MakeLDIF template to use to generate the import data
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsAppend" type="optional">
+        <function-arg-description>
+          Append to an existing database rather than overwriting it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsReplaceExisting" type="optional">
+        <function-arg-description>
+          Replace existing entries when appending to the database
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBackEnd" type="optional" default="'%s' % DIRECTORY_INSTANCE_BE">
+        <function-arg-description>
+          Backend ID for the backend to import
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBranchDN" type="optional">
+        <function-arg-description>
+          Base DN of a branch to include in the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>           
+      <function-arg-def name="dsIncludeBranch" type="optional">
+        <function-arg-description>
+          Base DN of a branch to include in the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsExcludeBranch" type="optional">
+        <function-arg-description>
+          Base DN of a branch to exclude from the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>                              
+      <function-arg-def name="dsIncludeAttribute" type="optional">
+        <function-arg-description>
+          Attribute to include in the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="attribute"/>
+      </function-arg-def>
+      <function-arg-def name="dsExcludeAttribute" type="optional">
+        <function-arg-description>
+          Attribute to exclude in the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="attribute"/>
+      </function-arg-def>
+      <function-arg-def name="dsIncludeFilter" type="optional">
+        <function-arg-description>
+          Filter to identify entries to include in the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsExcludeFilter" type="optional">
+        <function-arg-description>
+          Filter to identify entries to exclude from the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsRejectFile" type="optional">
+        <function-arg-description>
+          Write rejected entries to the specified file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
+      <function-arg-def name="dsOverWriteRejects" type="optional">
+        <function-arg-description>
+          Overwrite an existing rejects file rather than appending to it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsRandomSeed" type="optional">
+        <function-arg-description>
+          Seed for the MakeLDIF random number generator
+        </function-arg-description>
+        <function-arg-property name="type" value="seed"/>
+      </function-arg-def>      
+      <function-arg-def name="dsSkipSchemaValidation" type="optional">
+        <function-arg-description>
+          Skip schema validation during the LDIF import
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsIsCompressed" type="optional">
+        <function-arg-description>
+          LDIF file is compressed
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsIsEncrypted" type="optional">
+        <function-arg-description>
+          LDIF file is encrypted
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsQuiet" type="optional">
+        <function-arg-description>
+          Use quiet mode (no output)
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>      
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/import-ldif' % (dsBinPath)
+
+        if dsLdifFile:
+          STAFCmdParamsList.append('-l %s' % dsLdifFile)
+
+        if dsTemplateFile:
+          STAFCmdParamsList.append('-t %s' % dsTemplateFile)                  
+
+        if dsAppend:
+          STAFCmdParamsList.append('-a')
+          
+        if dsReplaceExisting:
+          STAFCmdParamsList.append('-r')
+
+        if dsBackEnd:
+          STAFCmdParamsList.append('-n %s' % dsBackEnd)
+              
+        if dsIncludeBranch:
+          STAFCmdParamsList.append('-b %s' % dsIncludeBranch)
+          
+        if dsExcludeBranch:
+          STAFCmdParamsList.append('-B %s' % dsExcludeBranch)
+          
+        if dsIncludeAttribute:
+          STAFCmdParamsList.append('-i %s' % dsIncludeAttribute)
+          
+        if dsExcludeAttribute:
+          STAFCmdParamsList.append('-e %s' % dsExcludeAttribute)
+          
+        if dsIncludeFilter:
+          STAFCmdParamsList.append('-I %s' % dsIncludeFilter)
+
+        if dsExcludeFilter:
+          STAFCmdParamsList.append('-E %s' % dsExcludeFilter)
+          
+        if dsRejectFile:
+          STAFCmdParamsList.append('-R %s' % dsRejectFile)
+
+        if dsOverWriteRejects:
+          STAFCmdParamsList.append('-O')
+          
+        if dsRandomSeed:
+          STAFCmdParamsList.append('-S %s' % dsRandomSeed)
+
+        if dsSkipSchemaValidation:
+          STAFCmdParamsList.append('-s')
+          
+        if dsIsCompressed:
+          STAFCmdParamsList.append('-c')
+          
+        if dsIsEncrypted:
+          STAFCmdParamsList.append('-y')
+          
+        if dsQuiet:
+          STAFCmdParamsList.append('-q')
+
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'ImportLdifWithScript',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+            
+      <process name="'Offline Import Script'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>         
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      
+      <call function="'checkRC'">
+        { 'returncode' : RC ,
+          'result'     : STAXResult,
+          'fileFd'     : fileFd }
+      </call>
+      
+      <if expr="dsRejectFile">
+        <sequence>
+          <call function="'isEmptyFile'">
+          { 'location' : location,
+            'fileName' : dsRejectFile }
+          </call>
+          <script>
+            fileEmpty = STAXResult
+          </script>
+          <!-- if rejected file exists, log an error -->
+          <if expr="fileEmpty == FALSE">
+            <sequence>
+              <script>
+                msg = 'ImportLdifWithScript rejected some entries,'
+                msg = '%s check file on %s : %s' % (msg,location,dsRejectFile)
+              </script>
+              <message>'ERROR, %s' % msg</message>
+              <call function="'checkRC'">
+              {
+                'returncode' : 999,
+                'result'     : msg,
+                'fileFd'     : fileFd
+              }
+              </call>
+            </sequence>
+          </if>
+        </sequence>
+      </if>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      
+    </sequence>
+  </function>
+
+</stax>

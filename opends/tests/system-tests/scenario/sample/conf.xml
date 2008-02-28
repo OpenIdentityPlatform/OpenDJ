@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE systemTestConfiguration SYSTEM "../conf.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+ 
+<!-- This conf.xml file is an example, to run it, -->
+<!-- replace variable NEED_VALUE                  -->
+ 
+<systemTestConfiguration>
+  
+  <!-- ================= Global Parameters ===================== -->
+  <!-- =============  Should be the first node   =============== -->
+  <globalParameters>
+    <scenario>
+      <name>Sample</name>
+      <description>This is an example</description>
+    </scenario>
+    
+    <opendsName>OpenDS-1.0.0</opendsName>
+    <opendsZip>NEED_VALUE</opendsZip>
+    <domain>NEED_VALUE</domain>
+    
+  </globalParameters>
+  
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I1" product="opends">
+    <host>NEED_VALUE</host>
+    <installDir>NEED_VALUE</installDir>
+  </instance>
+  
+  <!-- ================= Instance ============================== -->
+  <instance name="I2" product="opends">
+    <host>NEED_VALUE</host>
+    <installDir>NEED_VALUE</installDir>
+  </instance>
+  
+  
+  <!-- ================= Suffix  ============================== -->
+  <suffix dn="dc=com">
+    
+    <topology>
+     	<element instanceName="I1" initRule="importLdif"/>
+      <element instanceName="I2" initRule="totalUpdate"
+               instanceSourceName="I1"/>
+    </topology>
+    
+    <tree nbOfEntries="50">
+      <branch name="ou=france,dc=com">
+        <branch name="ou=QA Engineers,ou=france,dc=com">
+          <subordinateTemplate type="inetOrgPerson" percentage="30"/>
+        </branch>
+        <branch name="ou=Accounting,ou=france,dc=com">
+          <subordinateTemplate type="organizationalPerson" percentage="30"/>
+        </branch>
+        <branch name="ou=Managers,ou=france,dc=com">
+          <subordinateTemplate type="person" nb="1"/>
+        </branch>
+        <branch name="ou=Engineers,ou=france,dc=com">
+          <subordinateTemplate type="person" percentage="40"/>
+        </branch>
+      </branch>
+    </tree>
+    
+  </suffix>
+  
+  
+  <!-- ================= Scheduler  =========================== -->
+  <!-- [1] duration must be more than 1 minute                  -->
+  <!-- [2] dependencyId is a list of client id ie : 1,2         -->
+  <!--     if using it, specify id attribute for each clients   -->
+  <scheduler>
+    <duration unit="m">4</duration>
+    
+    <!--== Module 1 ==-->
+    <module name="search" enabled="true">
+    
+      <client id="1" name="searchLoad" host="NEED_VALUE" start="t30"
+                                                         stop="t60">
+        <serverInstance>I1</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>5</nbCnx>
+        <nbMaxSearch>5</nbMaxSearch>
+        <attribute>sn</attribute>
+      </client>
+      
+      <client id="2" name="searchLoad" host="NEED_VALUE" start="t0"
+                                                         stop="t50">
+        <serverInstance>I2</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>5</nbCnx>
+        <nbMaxSearch>5</nbMaxSearch>
+        <attribute>sn</attribute>
+      </client>
+      
+    </module>
+    
+    <!--== Module 2 ==-->
+    <module name="restart_and_modify" enabled="true">
+      
+      <client id="3" name="restartDs" host="NEED_VALUE" start="t50"
+                                                        dependencyId="1">
+        <serverInstance>I2</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>5</nbCnx>
+        <nbMaxSearch>5</nbMaxSearch>
+        <attribute>sn</attribute>
+      </client>
+      
+      <client id="4" name="modifyLoad" host="NEED_VALUE" start="t60"
+                                                         stop="t100">
+        <serverInstance>I1</serverInstance>
+        <baseDn>dc=com</baseDn>
+        <nbCnx>5</nbCnx>
+        <nbMaxSearch>5</nbMaxSearch>
+        <attribute>sn</attribute>
+      </client>
+    </module>
+    
+    
+  </scheduler>
+  
+</systemTestConfiguration>
+

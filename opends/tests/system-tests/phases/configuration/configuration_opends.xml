@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+
+  <!--==============================================================-->
+  <!--=================  CONFIGURE OPENDS ==========================-->
+  <!--==============================================================-->
+  <function name="configureOpends">
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          list of opends in current suffix topology
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix class
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- ===== Start instances ===== -->
+      <paralleliterate in="topoInstances" var="instance">
+        <sequence>
+          <script>
+            logName = '%s_%s' % (instance.getHost(),instance.getName())
+            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            fileList.append(logFile)
+            
+            cFileFd = open(logFile,'w')
+            str = '\n&lt;instance name=\"%s\"' % instance.getName()
+            str = '%s host=\"%s\"' % (str, instance.getHost())
+            str = '%s port=\"%s\"' % (str, instance.getLDAPPort())
+            str = '%s product=\"opends\"&gt;\n' % str
+            cFileFd.write(str)
+          </script>
+          
+          <call function="'isAlive'">
+            { 'location'         : instance.getHost(),
+              'noOfLoops'        : 1,
+              'noOfMilliSeconds' : 2000,
+              'dsPath'           : instance.getInstallDir(),
+              'dsInstanceHost'   : instance.getHost(),
+              'dsInstancePort'   : instance.getLDAPPort(),
+              'fileFd'           : cFileFd
+            }
+          </call>
+          <script>isAliveResult = STAXResult</script>
+          
+          <if expr="isAliveResult == FALSE">
+            <call function="'StartDsWithScript'">
+              { 'location'  : instance.getHost(),
+                 'dsPath'   : instance.getInstallDir(),
+                 'fileFd'   : cFileFd
+              }
+            </call>
+          </if>
+          <script>
+            cFileFd.close()
+            cFileFd = ''
+          </script>
+        </sequence>
+      </paralleliterate>
+      
+      
+      <!-- ==== Configure sequentially replication on intances     ==== -->
+      <!--      configure replication with topoInstances[0] and each    -->
+      <!--      other instances in the topoInstances list               -->
+      <!--      do not use parrallel run                                -->
+      <iterate in="topoInstances" var="instance">
+        <sequence>
+          <script>
+            found = FALSE
+            i = 0
+            while found == FALSE:
+              if topoInstances[i].getREPLPort() != NOT_DEFINED:
+                found = TRUE
+              else:
+                i += 1
+            
+            instanceSource = topoInstances[i]
+            
+            logName = '%s_%s' % (instance.getHost(),instance.getName())
+            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            # reopen existing files, no need to add in fileList variable 
+            # as it has already been added
+            cFileFd = open(logFile,'a')
+          </script>
+          
+          <if expr="instanceSource.getName() == instance.getName()">
+            <sequence>
+              <!-- Wait ref server to start -->
+              <call function="'isAlive'">
+                { 'location'         : instanceSource.getHost(),
+                  'noOfLoops'        : 50,
+                  'noOfMilliSeconds' : 2000,
+                  'dsPath'           : instanceSource.getInstallDir(),
+                  'dsInstanceHost'   : instanceSource.getHost(),
+                  'dsInstancePort'   : instanceSource.getLDAPPort(),
+                  'fileFd'           : cFileFd
+                }
+              </call>
+            </sequence>
+            
+          <else>
+            <sequence>
+              <!-- ==  create Replication Provider == -->
+              <if expr="instance.getREPLPort() != NOT_DEFINED">
+                <sequence>
+                  <!-- Wait ref server to start -->
+                  <call function="'isAlive'">
+                    { 'location'         : instance.getHost(),
+                      'noOfLoops'        : 50,
+                      'noOfMilliSeconds' : 2000,
+                      'dsPath'           : instance.getInstallDir(),
+                      'dsInstanceHost'   : instance.getHost(),
+                      'dsInstancePort'   : instance.getLDAPPort(),
+                      'fileFd'           : cFileFd
+                    }
+                  </call>
+                  
+                  <message>
+                    ' ** Enable replication between %s and %s' % \
+                     (instance.getName(),instanceSource.getName())
+                  </message>
+                  <call function="'enableReplication'">
+                    {
+                      'location'          : instance.getHost(),
+                      'dsPath'            : instance.getInstallDir(),
+                      'dsInstanceHost'    : instance.getHost(),
+                      'dsInstancePort'    : instance.getLDAPPort(),
+                      'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
+                      'dsReplicationPort' : instance.getREPLPort(),
+                      'refInstanceHost'   : instanceSource.getHost(),
+                      'refInstancePort'   : instanceSource.getLDAPPort(),
+                      'refInstanceDn'     : DIRECTORY_INSTANCE_DN,
+                      'refInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
+                      'refReplicationPort': instanceSource.getREPLPort(),
+                      'replicationDnList' : [suffix.getSuffixDn()],
+                      'expectedRC'        : [0,5],
+                      'fileFd'            : cFileFd
+                    }
+                  </call>
+                </sequence>
+              </if>
+            </sequence>
+          </else>
+          </if>
+          <script>
+            cFileFd.close()
+            cFileFd = ''
+          </script>
+        </sequence>
+      </iterate>
+      
+      
+      <!--== Initialize replication (totalUpdate) ==-->
+      <iterate in="topoInstances" var="instance">
+        <sequence>
+          <script>
+            logName = '%s_%s' % (instance.getHost(),instance.getName())
+            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            # reopen existing files, no need to add in fileList variable
+            # as it has already been added
+            cFileFd = open(logFile,'a')
+          </script>
+          <script>
+            foundInstance = FALSE
+            foundTotalUpdate = FALSE
+            
+            # try to get the instance objectclass 
+            # of the current instance suffix topology
+            result = suffix.getElementFromTopology(instance.getName())
+            foundInstance = result[0]
+            topoElement = result[1]
+            
+            # if the current instance is in the suffix topology, 
+            # then check if need to do a totalupdate
+            if foundInstance == TRUE:
+              if topoElement.getInitRule().lower() == "totalupdate":
+                foundTotalUpdate = TRUE
+                sourceInstanceName = topoElement.getInstanceSourceName()
+                for tmpInstance in topoInstances:
+                  if sourceInstanceName == tmpInstance.getName():
+                    sourceInstance = tmpInstance
+                    break
+          </script>
+          
+          <!--== If sourceInstanceName is defined ==-->
+          <!--== then we have to run totalupdate  ==-->
+          <if expr="foundTotalUpdate == TRUE">
+            <sequence>
+              <message>
+                ' ** Initialize replication between %s and %s (source)' % \
+                (instance.getName(),sourceInstance.getName())
+              </message>
+              <call function="'initializeReplication'">
+              { 
+                'location'           : instance.getHost(),
+                'dsPath'             : instance.getInstallDir(),
+                'dsInstanceHost'     : instance.getHost(),
+                'dsInstancePort'     : instance.getLDAPPort(),
+                'sourceInstanceHost' : sourceInstance.getHost(),
+                'sourceInstancePort' : sourceInstance.getLDAPPort(),
+                'replicationDnList'  : [suffix.getSuffixDn()],
+                'fileFd'             : cFileFd
+              }
+              </call>
+            </sequence>
+          </if>
+          
+          <!-- == Post operations == -->
+          <message>
+            '%s on %s : configuration done' % \
+            (instance.getName(),instance.getHost())
+          </message>
+          
+          <script>
+            cFileFd.write('&lt;/instance&gt;\n')
+            cFileFd.close()
+            cFileFd = ''
+          </script>
+          
+          
+        </sequence>
+      </iterate>
+          
+          
+    </sequence>
+  </function>
+
+
+
+
+
+
+
+
+  <!-- Enable replication between servers using dsreplication -->
+  <function name="enableReplication">
+    <function-prolog>
+      This function enables replication between servers using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsReplicationPort" type="required">
+        <function-arg-description>
+          Replication port number
+        </function-arg-description>
+      </function-arg-def>
+        
+      <function-arg-def name="refInstanceHost" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Reference Directory server hostname or IP address
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="refInstancePort" type="required">
+        <function-arg-description>
+          Reference Directory server port number
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="refInstanceDn" type="required">
+        <function-arg-description>
+          Reference server Bind DN
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="refInstancePswd" type="required">
+        <function-arg-description>
+          Reference server Bind password
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="refReplicationPort" type="required">
+        <function-arg-description>
+          Reference server Replication port number
+        </function-arg-description>
+      </function-arg-def>
+                        
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+      </function-arg-def>        
+        
+      <function-arg-def name="adminUID" type="optional"
+                        default="DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" type="optional"
+                        default="DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+      </function-arg-def>        
+      
+      <function-arg-def name="expectedRC" type="optional" default="[0]">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+	      output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+      
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath)
+          STAFCmd='%s/dsreplication' % (dsBinPath)
+          
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('enable')
+        STAFCmdParamsList.append('-n')
+        STAFCmdParamsList.append('-Q')
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+          
+        if dsInstancePswd:
+          STAFCmdParamsList.append('--bindPassword1 "%s"' % dsInstancePswd)
+          
+        if dsReplicationPort:
+          STAFCmdParamsList.append('-r %s' % dsReplicationPort)
+          
+        if refInstanceHost:
+          STAFCmdParamsList.append('-O %s' % refInstanceHost)
+          
+        if refInstancePort:
+          STAFCmdParamsList.append('--port2 %s' % refInstancePort)
+          
+        if refInstanceDn:
+          STAFCmdParamsList.append('--bindDN2 "%s"' % refInstanceDn)
+          
+        if refInstancePswd:
+          STAFCmdParamsList.append('--bindPassword2 "%s"' % refInstancePswd)
+          
+        if refReplicationPort:
+          STAFCmdParamsList.append('-R %s' % refReplicationPort)
+          
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+          
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+          
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <!-- Log info for xml report -->
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'enableReplication',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : 'Enable replication between %s:%s and %s:%s' % \
+                    (dsInstanceHost,dsInstancePort,\
+                     refInstanceHost,refInstancePort)
+      }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      <!-- Run the command -->
+      <process name="'enable replication'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason ,
+          'expected'   : expectedRC,
+          'fileFd'     : fileFd
+        }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <return>
+        STAXReason
+      </return>
+    </sequence>
+  </function>
+
+
+
+
+
+
+
+  <!-- Initialize replicated suffix with the contents -->
+  <!-- of a source server using dsreplication -->
+  <function name="initializeReplication">
+    <function-prolog>
+      This function initializes replicated suffixes with the contents 
+      of a source server using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="sourceInstanceHost" type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Source Directory server hostname or IP address
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="sourceInstancePort" type="required">
+        <function-arg-description>
+          Source Directory server port number
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="replicationDnList" type="required">
+        <function-arg-description>
+          DN of the replicated suffix
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="adminUID"  type="optional"
+                        default="DIRECTORY_INSTANCE_DN">
+        <function-arg-description>
+          Global Administrator UID
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="adminPswd" type="optional"
+                        default="DIRECTORY_INSTANCE_PSWD">
+        <function-arg-description>
+          Global Administrator password
+        </function-arg-description>
+      </function-arg-def>
+      
+      <function-arg-def name="expectedRC" type="optional" default="[0]">
+        <function-arg-description>
+        Expected return code value. Default value is 0
+        </function-arg-description>
+      </function-arg-def>
+
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+	      output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+        STAFCmdParams=''
+        STAFCmd=''
+        
+        if dsPath:
+          dsBinPath='%s/bin' % dsPath
+          STAFCmd='%s/dsreplication' % dsBinPath
+        
+        STAFCmdParamsList=[]
+        STAFCmdParamsList.append('initialize')
+        STAFCmdParamsList.append('-n')
+        STAFCmdParamsList.append('-Q')
+        
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-O %s' % dsInstanceHost)
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('--portDestination %s' % dsInstancePort)
+          
+        if sourceInstanceHost:
+          STAFCmdParamsList.append('-h %s' % sourceInstanceHost)
+          
+        if sourceInstancePort:
+          STAFCmdParamsList.append('-p %s' % sourceInstancePort)
+          
+        if replicationDnList:
+          for dn in replicationDnList:
+            STAFCmdParamsList.append('-b "%s"' % dn)
+          
+        if adminUID:
+          STAFCmdParamsList.append('-I "%s"' % adminUID)
+          
+        if adminPswd:
+          STAFCmdParamsList.append('-w "%s"' % adminPswd)
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      
+      <!-- Log info for xml report -->
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'initializeReplication',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : 'Initialize replication between %s:%s and %s:%s (source)'%\
+                     (dsInstanceHost,dsInstancePort,\
+                      sourceInstanceHost,sourceInstancePort)
+      }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      <!-- Run the command -->
+      <process name="'initialize replication'">
+        <location>'%s' % location</location>
+        <command>'%s' % STAFCmd</command>
+        <parms>'%s' % STAFCmdParams</parms>
+        <workdir>'%s' % dsBinPath</workdir>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+        </envs>
+        <console use="'same'"/>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : STAXCode ,
+          'result'     : STAXReason ,
+          'expected'   : expectedRC,
+          'fileFd'     : fileFd
+        }
+      </call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <return>
+        STAXReason
+      </return>
+
+    </sequence>
+  </function>
+
+
+
+
+
+
+
+
+
+
+</stax>

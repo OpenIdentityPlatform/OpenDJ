@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../functional-tests/shared/stax.dtd">
+<stax>
+
+  <defaultcall function="searchLoad"/>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="searchLoad">
+    <function-map-args>
+      <function-arg-def name="client" type="required">
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+      </function-arg-def>
+      <function-arg-def name="duration" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- ===================   Comments   =================== -->
+      <!-- client is run under paralleliterate tag              -->
+      <!-- each variables defined are internal                  -->
+      <!-- client should have its own err_num variable in order -->
+      <!-- to inform scheduler if it has pass/fail status       -->
+      <script>
+        errNum = 0
+      </script>
+      
+      <!-- ==================    Preamble   =================== -->
+      <!-- parse the client parameters :                        -->
+      <!-- params is [[param1,val1],[param2,val2],...]          -->
+      <!-- get the ldap instance parameters                     -->
+      
+      <script>
+        outFile = '%s/client_searchLoad_%s.txt' % (LOG_DIR,client.getId())
+        cParams = client.getParams()
+        serverInstanceFromClient = cParams[0][1]
+        baseDn = cParams[1][1]
+        nbCnx = cParams[2][1]
+        nbMaxSearch = cParams[3][1]
+        attributeName = cParams[4][1]
+        
+        sys.path.append("%s/phases/scheduler" % TESTS_DIR )
+        from scheduler import getInstance
+        serverInstance = getInstance(serverInstanceFromClient,instances)
+        if (serverInstance == 'ERROR'):
+          msg = 'ERROR: cant find client instance named'
+          msg = '%s %s in server instance list' %(msg,serverInstanceFromClient)
+          
+        else:
+          # remove sec, try to finish before timer kill -9 the client
+          duration = duration - 10
+          
+          parms=[]
+          parms.append('-h %s -p %s' % \
+                      (serverInstance.getHost(),serverInstance.getLDAPPort()))
+          parms.append('-b "%s"' % baseDn)
+          parms.append('-D "%s" -w "%s"' % \
+                      (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD))
+          parms.append('-t %s -M %s -a %s -d %s' % \
+                      (nbCnx,nbMaxSearch,attributeName,duration))
+          parms = ' '.join(parms)
+      </script>
+      
+      <if expr="msg.find('ERROR') != -1">
+        <sequence>
+          <message>'%s' % msg</message>
+          <call function="'writeOperationResult'">
+            {
+              'returncode' : '1',
+              'expected'   : '0',
+              'result'     : msg,
+              'status'     : 'ERROR',
+              'fileFd'     : fileFd
+            }
+          </call>
+          <script>
+            errNum += 1
+          </script>
+        </sequence>
+      <else>
+        <sequence>
+          
+          <!-- ==== Add execute permission to build.ksh file ==== -->
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'chmod',
+            'fileFd'  : fileFd }
+          </call>
+          <call function="'writeMessage'">
+          {'content' : 'Add execute permission to build.ksh file',
+           'fileFd'  : fileFd}
+          </call>
+          
+          
+          <process name="'%s: chmod +x build.ksh' % client.getHost()">
+            <location>client.getHost()</location>
+            <command mode="'shell'">'chmod +x build.ksh'</command>
+            <parms/>
+            <workdir>'%s/clients/searchLoad' % LOG_DIR</workdir>
+            <envs>['PATH=/bin:/usr/bin']</envs>
+            <stderr mode="'stdout'"/>
+            <stdout/>
+            <returnstdout/>
+          </process>
+          <call function="'checkRC'">
+            { 'returncode' : RC,
+              'result'     : STAXResult[0][1],
+              'fileFd'     : fileFd }
+          </call>
+          <script>
+            errNum += STAXResult
+          </script>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+          
+          <!-- ==== build client : run build.ksh file ==== -->
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'build',
+            'fileFd'  : fileFd }
+          </call>
+          <call function="'writeMessage'">
+          {'content' : 'Build client',
+           'fileFd'  : fileFd}
+          </call>
+          
+          
+          <process name="'%s: build %s' % (client.getHost(),client.getName())">
+            <location>client.getHost()</location>
+            <command mode="'shell'">'./build.ksh'</command>
+            <parms/>
+            <workdir>'%s/clients/searchLoad' % LOG_DIR</workdir>
+            <envs>['PATH=/bin:/usr/bin']</envs>
+            <stderr mode="'stdout'"/>
+            <stdout/>
+            <returnstdout/>
+          </process>
+          <call function="'checkRC'">
+            { 'returncode' : RC,
+              'result'     : STAXResult[0][1],
+              'fileFd'     : fileFd }
+          </call>
+          <if expr="RC != 0">
+            <message>
+              'FAILED to build client %s on %s' % \
+              (client.getHost(),client.getName())
+            </message>
+          </if>
+          <script>
+            errNum += STAXResult
+          </script>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+          
+          
+          <!-- ========== Run the client ========== -->
+          <call function="'writeStartTagOperation'">
+          { 'tagName' : 'run',
+            'fileFd'  : fileFd }
+          </call>
+          <call function="'writeMessage'">
+          { 'fileFd'  : fileFd,
+            'content' : 'Do ldapsearchs on %s:%s' % \
+                        (serverInstance.getHost(),serverInstance.getLDAPPort())
+          }
+          </call>
+          
+          <script>
+            cParam = '-client -Xmx1G -Xms1G'
+            cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
+            cParam = '%s -cp %s/clients/LDAPjdk/ldapjdk.jar' % (cParam,LOG_DIR)
+            cParam = '%s:%s/clients/searchLoad/search.jar' % (cParam,LOG_DIR)
+            cParam = '%s Client %s' % (cParam,parms)
+            
+            titleName = '%s: run %s on %s' % \
+                        (client.getHost(),client.getName(),
+                         serverInstance.getName())
+          </script>
+          <process name="'%s' % titleName">
+            <location>client.getHost()</location>
+            <command>'java'</command>
+            <parms>cParam </parms>
+            <workdir>'%s/clients/searchLoad' % LOG_DIR</workdir>
+            <envs>['PATH=/bin:/usr/bin']</envs>
+            <stderr mode="'stdout'"/>
+            <stdout>outFile</stdout>
+            <returnstdout/>
+          </process>
+          <!-- TBD : result should be STAXResult[0][1] : problem when
+                     javaexception, with carac " and < >-->
+          <call function="'checkRC'">
+            { 'returncode' : RC ,
+              'result'     : '',
+              'fileFd'     : fileFd }
+          </call>
+          <script>
+            errNum += STAXResult
+          </script>
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+          
+          <!-- ========== Postamble ========== -->
+          <call function="'writeMessage'">
+          {'content' : 'Output file %s' % outFile,
+           'fileFd'  : fileFd}
+          </call>
+          
+          <process name="'%s:%s: Grep' % (client.getHost(),client.getName())">
+            <location>client.getHost()</location>
+            <command mode="'shell'">
+              "grep 'TOTAL' %s | cut -d ' ' -f3-" % outFile
+            </command>
+            <envs>['PATH=/bin:/usr/bin']</envs>
+            <stderr mode="'stdout'"/>
+            <stdout/>
+            <returnstdout/>
+          </process>
+          <script>
+            summary = STAXResult[0][1]
+          </script>
+          <call function="'writeMessage'">
+          {'content' : 'Summary %s' % (summary),
+           'fileFd'  : fileFd}
+          </call>
+          
+          <!-- ==== Copy output file in main log directory ==== -->
+          <script>
+            clientHostFullName = '%s%s' % (client.getHost(),DOMAIN[0])
+          </script>
+          <if expr="clientHostFullName != STAXServiceMachine">
+            <sequence>
+              <call function="'copyFile'">
+                {
+                  'location'   : client.getHost(),
+                  'remoteHost' : STAXServiceMachine,
+                  'srcFile'    : outFile,
+                  'destFile'   : outFile,
+                  'fileFd'     : fileFd
+                }
+              </call>
+              <script>
+                errNum += STAXResult[0]
+              </script>
+            </sequence>
+          </if>
+        </sequence>
+      </else>
+      </if>
+      
+      <return> errNum </return>
+      
+    </sequence>
+    
+  </function>
+  
+  
+  
+</stax>
+

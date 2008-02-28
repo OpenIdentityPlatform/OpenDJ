@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="main_run"/>
+
+  <function name="main_run">
+    <function-map-args>
+      <function-arg-def name="configurationFile" type="required">
+        <function-arg-description>
+          configuration file path
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="runInstallation" type="optional" 
+                                               default="'true'">
+        <function-arg-description>
+          run installation phase
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="runGenerateLdif" type="optional" 
+                                               default="'true'">
+        <function-arg-description>
+          run generateLdif phase
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="runConfiguration" type="optional"
+                                                default="'true'">
+        <function-arg-description>
+          run configuration phase
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="runScheduler" type="optional" default="'true'">
+        <function-arg-description>
+          run scheduler phase
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+       <!-- ============ GLOBAL VARIABLES ============================ -->
+       <!-- Warning : some of global variables are also defined in     -->
+       <!-- parser.py file, be sure to update both files               -->
+      <script>
+        STAXLogMessage  = 1
+        TRUE            = 0
+        FALSE           = 1
+        NO_FILE         = 'do_not_write_in_file'
+        NOT_DEFINED     = 'ERROR_not_defined'
+        MultimasterSync = 'Multimaster Synchronization'
+        MultimasterType = 'multimaster'
+        DSCONFIG        = 'dsconfig'
+        DIRECTORY_INSTANCE_BE = 'userRoot'
+        DOMAIN          = STAXGlobal([0])
+        DOMAIN[0]       = ''
+        
+        ERR_NUM = STAXGlobal([0])
+        ERR_NUM_PARSER        = ''
+        ERR_NUM_INSTALL       = ''
+        ERR_NUM_GEN_LDIF      = ''
+        ERR_NUM_CONFIGURATION = ''
+        ERR_NUM_SCHEDULER     = ''
+        ERR_NUM_VERDICT       = ''
+        ERR_NUM_TOTAL         = 0
+      </script>
+      
+      <!-- ============ LOAD LIB ===================================== -->
+      <!-- Load in any standard python libraries -->
+      <script>
+        import re
+        import posixpath
+        import sys
+        from time import localtime,strftime
+      </script> 
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/main_run_lib.xml' % (TESTS_DIR)"/>
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/shared/utils.xml' % (TESTS_DIR)"/>
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/shared/stafcmd.xml' % (TESTS_DIR)"/>
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/shared/dsadm.xml' % (TESTS_DIR)"/>
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/shared/ldap.xml' % (TESTS_DIR)"/>
+      
+      <!-- TDB : should not have dependency with functional test suite -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/../functional-run/staf/services/stax/libraries/STAXUtil.xml'
+               % (TESTS_DIR)"/>
+      
+      
+      <!-- ============ CREATE LOG STUFF ============================= -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/log/log.xml' % (TESTS_DIR)"/>
+      <script>
+        logsDate        = strftime("%Y%m%d-%H%M%S",localtime())
+        LOG_DIR         = '%s/%s' % (TMPDIR,logsDate)
+        LOG_TMP_DIR     = '%s/tmp' % LOG_DIR
+        LOG_XML_TMP_DIR = '%s/xmltmp' % LOG_DIR
+      </script>
+      <call function="'createLogDir'"/>
+      <!-- Write xml result header -->
+      <script>
+        LOG_FILE    = '%s/result.xml' % (LOG_DIR)
+        LOG_MAIN_FD = open(LOG_FILE,'w')
+        str = '&lt;?xml version=\"1.0\" encoding=\"UTF-8\"'
+        str = '%s standalone=\"no\"?&gt;\n' % str
+        str = '%s &lt;?xml-stylesheet type="text/xsl" href="result.xsl"?>\n' \
+               % str
+        str = '%s &lt;systemTestRoot&gt;\n' % str
+        LOG_MAIN_FD.write(str)
+      </script>
+      
+      
+      <!-- ============ PARSER ======================================= -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/parser/parser.xml' % (TESTS_DIR)"/>
+      <call function="'parser'">configurationFile</call>
+      <script>
+        result    = STAXResult
+        msg       = result[0]
+        instances = result[1]
+        suffix    = result[2]
+        scheduler = result[3]
+        scenario  = result[4]
+        ERR_NUM_PARSER = ERR_NUM[0]
+        ERR_NUM_TOTAL  = ERR_NUM_TOTAL + ERR_NUM[0]
+      </script>
+      <if expr="ERR_NUM_PARSER != 0">
+        <return/>
+      </if>
+      
+      
+      <!-- ============ PREAMBLE ===================================== -->
+      <call function="'mainPreamble'">
+        {
+          'instances' : instances,
+          'scheduler' : scheduler
+        }
+      </call>
+      
+      <!-- ============ INSTALLATION ================================= -->
+      <if expr="runInstallation == 'true'">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/installation/installation.xml' % (TESTS_DIR)"/>
+          <call function="'installation'">
+            {
+              'instances' : instances,
+              'suffix'    : suffix
+            }
+          </call>
+          <script>
+            ERR_NUM_INSTALL = ERR_NUM[0]
+            ERR_NUM_TOTAL   = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
+      </if>
+      
+      
+      <!-- ============ GENERATE LDIF & IMPORT LDIF  ================== -->
+      <if expr="runGenerateLdif == 'true'">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/generateLdif/generateLdif.xml' % (TESTS_DIR)"/>
+          <call function="'generateLdif'">
+            { 'suffix'       : suffix }
+          </call>
+          <script>
+            ERR_NUM_GEN_LDIF = ERR_NUM[0]
+            ERR_NUM_TOTAL    = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
+      </if>
+      
+      <!-- ============ PRE-CONFIGURATION ============================ -->
+      
+      
+      
+      <!-- ============ CONFIGURATION  =============================== -->
+      <if expr="runConfiguration == 'true'">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/configuration/configuration.xml' % (TESTS_DIR)"/>
+          <call function="'configuration'">
+            {
+              'instances' : instances ,
+              'suffix'    : suffix
+            }
+          </call>
+          <script>
+            ERR_NUM_CONFIGURATION = ERR_NUM[0]
+            ERR_NUM_TOTAL         = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
+      </if>
+      
+      
+      <!-- ============ POST-CONFIGURATION =========================== -->
+      
+      
+      <!-- ============ MONITORING =================================== -->
+      
+      
+      
+      <!-- ============ scheduler ==================================== -->
+      <if expr="runScheduler == 'true'">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/scheduler/scheduler.xml' % (TESTS_DIR)"/>
+          <call function="'scheduler'">
+            {
+              'instances' : instances,
+              'suffix'    : suffix,
+              'scheduler' : scheduler,
+              'scenario'  : scenario
+            }
+          </call>
+          <script>
+            ERR_NUM_SCHEDULER = ERR_NUM[0]
+            ERR_NUM_TOTAL     = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
+      </if>
+      
+      
+      <!-- ============ TOPOLOGY ===================================== -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/log/topology.xml' % (TESTS_DIR)"/>
+      <call function="'writeTopology'">
+      {
+        'instances' : instances,
+        'suffix'    : suffix,
+        'scheduler' : scheduler
+      }
+      </call>
+      
+      
+      <!-- ============ VERDICT ====================================== -->
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/verdict/verdict.xml' % (TESTS_DIR)"/>
+      <call function="'verdict'">
+        { 'instances'        : instances,
+          'suffix'           : suffix,
+          'runConfiguration' : runConfiguration,
+          'runScheduler'     : runScheduler
+        }
+      </call>
+      <script>
+        ERR_NUM_VERDICT = ERR_NUM[0]
+        ERR_NUM_TOTAL   = ERR_NUM_TOTAL + ERR_NUM[0]
+      </script>
+      
+      <!-- ====== Write information phases to xml report ============ -->
+      <!-- == Write phase summary == -->
+      <!-- (this function is in log phase and use ERR_NUM_* variables) -->
+      <call function="'writeSummary'">
+        {
+          'scenario' : scenario,
+          'fileFd'   : LOG_MAIN_FD 
+        }
+      </call>
+      
+      <!-- ============ POSTAMBLE ==================================== -->
+      <call function="'mainPostamble'">
+        {
+          'instances' : instances,
+          'scheduler' : scheduler
+        }
+      </call>
+      
+    </sequence>
+    
+    </function>
+
+
+</stax>
