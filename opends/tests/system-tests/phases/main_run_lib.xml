@@ -27,7 +27,44 @@
  ! -->
 <stax>
 
-
+  <!-- ************************************************************ -->
+  <function name="checkConfigurationFiles">
+  <function-no-args/>
+  <sequence>
+    <if expr="OPENDSDIR == 'NEED_VALUE'">
+      <sequence>
+        <message>'ERROR config.py : OPENDSDIR variable not defined'</message>
+        <script> ERR_NUM[0] += 1 </script>
+      </sequence>
+    <else>
+      <sequence>
+        <call function="'grep'">
+        {
+          'location'      : STAXServiceMachine,
+          'string2grep'   : 'NEED_VALUE',
+          'expect2Find'   : FALSE,
+          'caseSensitive' : FALSE,
+          'file'          : '%s/config.py' % TESTS_DIR,
+          'fileFd'        : NO_FILE
+        }
+        </call>
+        <call function="'grep'">
+        {
+          'location'      : STAXServiceMachine,
+          'string2grep'   : 'NEED_VALUE',
+          'expect2Find'   : FALSE,
+          'caseSensitive' : FALSE,
+          'file'          : CONF_FILE,
+          'fileFd'        : NO_FILE
+        }
+        </call>
+      </sequence>
+    </else>
+    </if>
+  </sequence>
+  </function>
+  
+  
   <!-- ************************************************************ -->
   <function name="mainPreamble">
    <function-prolog>
