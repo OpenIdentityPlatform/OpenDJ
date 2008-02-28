@@ -314,6 +314,9 @@ class Client:
   def getHost(self):
     return self.host
     
+  def setHost(self,host):
+    self.host = host
+    
   def getParams(self):
     return self.params
     
