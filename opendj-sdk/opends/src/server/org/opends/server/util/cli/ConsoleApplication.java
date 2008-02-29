@@ -102,7 +102,8 @@ public abstract class ConsoleApplication {
   // The output stream which this application should use.
   private final PrintStream out;
 
-
+  // The maximum number of times we try to confirm.
+  private final static int CONFIRMATION_MAX_TRIES = 5;
 
   /**
    * Creates a new console application instance.
@@ -221,12 +222,7 @@ public abstract class ConsoleApplication {
       }
     };
 
-    try {
-      return readValidatedInput(prompt, validator);
-    } catch (CLIException e) {
-      // Should never happen.
-      throw new RuntimeException(e);
-    }
+    return readValidatedInput(prompt, validator, CONFIRMATION_MAX_TRIES);
   }
 
 
@@ -658,6 +654,40 @@ public abstract class ConsoleApplication {
   }
 
   /**
+   * Interactively prompts for user input and continues until valid
+   * input is provided.
+   *
+   * @param <T>
+   *          The type of decoded user input.
+   * @param prompt
+   *          The interactive prompt which should be displayed on each
+   *          input attempt.
+   * @param validator
+   *          An input validator responsible for validating and
+   *          decoding the user's response.
+   * @param maxTries
+   *          The maximum number of tries that we can make.
+   * @return Returns the decoded user's response.
+   * @throws CLIException
+   *           If an unexpected error occurred which prevented
+   *           validation or if the maximum number of tries was reached.
+   */
+  public final <T> T readValidatedInput(Message prompt,
+      ValidationCallback<T> validator, int maxTries) throws CLIException {
+    int nTries = 0;
+    while (nTries < maxTries) {
+      String response = readLineOfInput(prompt);
+      T value = validator.validate(this, response);
+      if (value != null) {
+        return value;
+      }
+      nTries++;
+    }
+    throw new CLIException(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
+        CONFIRMATION_MAX_TRIES));
+  }
+
+  /**
    * Commodity method that interactively confirms whether a user wishes to
    * perform an action. If the application is non-interactive, then the provided
    * default is returned automatically.  If there is an error an error message
@@ -672,18 +702,45 @@ public abstract class ConsoleApplication {
    * @param logger the Logger to be used to log the error message.
    * @return Returns <code>true</code> if the user wishes the action
    *         to be performed, or <code>false</code> if they refused.
+   * @throws CLIException if the user did not provide valid answer after
+   *         a certain number of tries
+   *         (ConsoleApplication.CONFIRMATION_MAX_TRIES)
    */
   protected final boolean askConfirmation(Message prompt, boolean defaultValue,
-      Logger logger)
+      Logger logger) throws CLIException
   {
     boolean v = defaultValue;
-    try
+
+    boolean done = false;
+    int nTries = 0;
+
+    while (!done && (nTries < CONFIRMATION_MAX_TRIES))
     {
-      v = confirmAction(prompt, defaultValue);
+      nTries++;
+      try
+      {
+        v = confirmAction(prompt, defaultValue);
+        done = true;
+      }
+      catch (CLIException ce)
+      {
+        if (ce.getMessageObject().equals(
+            ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
+                  CONFIRMATION_MAX_TRIES)))
+        {
+          throw ce;
+        }
+        logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+//      Try again...
+        println();
+      }
     }
-    catch (CLIException ce)
+
+    if (!done)
     {
-      logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+      // This means we reached the maximum number of tries
+      throw new CLIException(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
+          CONFIRMATION_MAX_TRIES));
     }
     return v;
   }

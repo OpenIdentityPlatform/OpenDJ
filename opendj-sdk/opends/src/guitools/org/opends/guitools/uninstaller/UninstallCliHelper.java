@@ -342,7 +342,7 @@ class UninstallCliHelper extends ConsoleApplication {
     else
     {
       boolean somethingSelected = false;
-      while (!somethingSelected)
+      while (!somethingSelected && !cancelled)
       {
         println();
 //      Ask for confirmation for the different items
@@ -363,79 +363,91 @@ class UninstallCliHelper extends ConsoleApplication {
         };
 
         boolean[] answers = new boolean[msgs.length];
-        for (int i=0; i<msgs.length; i++)
+        try
         {
-          boolean ignore = ((i == 6) && (outsideDbs.size() == 0)) ||
-          ((i == 7) && (outsideLogs.size() == 0));
-          if (!ignore)
+          for (int i=0; i<msgs.length; i++)
           {
-            answers[i] = askConfirmation(msgs[i], true, LOG);
+            boolean ignore = ((i == 6) && (outsideDbs.size() == 0)) ||
+            ((i == 7) && (outsideLogs.size() == 0));
+            if (!ignore)
+            {
+              answers[i] = askConfirmation(msgs[i], true, LOG);
+            }
+            else
+            {
+              answers[i] = false;
+            }
+          }
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          println();
+          cancelled = true;
+        }
+
+        if (!cancelled)
+        {
+          for (int i=0; i<answers.length; i++)
+          {
+            switch (i)
+            {
+            case 0:
+              userData.setRemoveLibrariesAndTools(answers[i]);
+              break;
+
+            case 1:
+              userData.setRemoveDatabases(answers[i]);
+              break;
+
+            case 2:
+              userData.setRemoveLogs(answers[i]);
+              break;
+
+            case 3:
+              userData.setRemoveConfigurationAndSchema(answers[i]);
+              break;
+
+            case 4:
+              userData.setRemoveBackups(answers[i]);
+              break;
+
+            case 5:
+              userData.setRemoveLDIFs(answers[i]);
+              break;
+
+            case 6:
+              if (answers[i])
+              {
+                userData.setExternalDbsToRemove(outsideDbs);
+              }
+              break;
+
+            case 7:
+              if (answers[i])
+              {
+                userData.setExternalLogsToRemove(outsideLogs);
+              }
+              break;
+            }
+          }
+          if ((userData.getExternalDbsToRemove().size() == 0) &&
+              (userData.getExternalLogsToRemove().size() == 0) &&
+              !userData.getRemoveLibrariesAndTools() &&
+              !userData.getRemoveDatabases() &&
+              !userData.getRemoveConfigurationAndSchema() &&
+              !userData.getRemoveBackups() &&
+              !userData.getRemoveLDIFs() &&
+              !userData.getRemoveLogs())
+          {
+            somethingSelected = false;
+            println();
+            println(ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
           }
           else
           {
-            answers[i] = false;
+            somethingSelected = true;
           }
-        }
-
-        for (int i=0; i<answers.length; i++)
-        {
-          switch (i)
-          {
-          case 0:
-            userData.setRemoveLibrariesAndTools(answers[i]);
-            break;
-
-          case 1:
-            userData.setRemoveDatabases(answers[i]);
-            break;
-
-          case 2:
-            userData.setRemoveLogs(answers[i]);
-            break;
-
-          case 3:
-            userData.setRemoveConfigurationAndSchema(answers[i]);
-            break;
-
-          case 4:
-            userData.setRemoveBackups(answers[i]);
-            break;
-
-          case 5:
-            userData.setRemoveLDIFs(answers[i]);
-            break;
-
-          case 6:
-            if (answers[i])
-            {
-              userData.setExternalDbsToRemove(outsideDbs);
-            }
-            break;
-
-          case 7:
-            if (answers[i])
-            {
-              userData.setExternalLogsToRemove(outsideLogs);
-            }
-            break;
-          }
-        }
-        if ((userData.getExternalDbsToRemove().size() == 0) &&
-            (userData.getExternalLogsToRemove().size() == 0) &&
-            !userData.getRemoveLibrariesAndTools() &&
-            !userData.getRemoveDatabases() &&
-            !userData.getRemoveConfigurationAndSchema() &&
-            !userData.getRemoveBackups() &&
-            !userData.getRemoveLDIFs() &&
-            !userData.getRemoveLogs())
-        {
-          somethingSelected = false;
-          println();
-          println(ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED.get());
-        }
-        else
-        {
-          somethingSelected = true;
         }
       }
     }
@@ -477,56 +489,16 @@ class UninstallCliHelper extends ConsoleApplication {
       {
         if (interactive)
         {
-          if (confirmToUpdateRemote())
+          try
           {
-            println();
-            cancelled = !askForAuthenticationIfNeeded(userData);
-            if (cancelled)
+            if (confirmToUpdateRemote())
             {
-              /* Ask for confirmation to stop server */
               println();
-              cancelled = !confirmToStopServer();
-            }
-            else
-            {
-              cancelled = !updateUserUninstallDataWithRemoteServers(userData);
-              if (cancelled)
-              {
-                println();
-                /* Ask for confirmation to stop server */
-                cancelled = !confirmToStopServer();
-              }
-            }
-          }
-          else
-          {
-            println();
-            /* Ask for confirmation to stop server */
-            cancelled = !confirmToStopServer();
-          }
-        }
-        else
-        {
-          cancelled =
-            !updateUserUninstallDataWithRemoteServers(userData);
-        }
-      }
-      else
-      {
-        if (interactive)
-        {
-          println();
-          if (confirmToUpdateRemoteAndStart())
-          {
-            boolean startWorked = startServer(userData.isQuiet());
-            // Ask for authentication if needed, etc.
-            if (startWorked)
-            {
               cancelled = !askForAuthenticationIfNeeded(userData);
               if (cancelled)
               {
-                println();
                 /* Ask for confirmation to stop server */
+                println();
                 cancelled = !confirmToStopServer();
               }
               else
@@ -542,17 +514,76 @@ class UninstallCliHelper extends ConsoleApplication {
             }
             else
             {
-              userData.setStopServer(false);
+              println();
+              /* Ask for confirmation to stop server */
+              cancelled = !confirmToStopServer();
+            }
+          }
+          catch (CLIException ce)
+          {
+            println(ce.getMessageObject());
+            println();
+            cancelled = true;
+          }
+        }
+        else
+        {
+          cancelled =
+            !updateUserUninstallDataWithRemoteServers(userData);
+        }
+      }
+      else
+      {
+        if (interactive)
+        {
+          println();
+          try
+          {
+            if (confirmToUpdateRemoteAndStart())
+            {
+              boolean startWorked = startServer(userData.isQuiet());
+              // Ask for authentication if needed, etc.
+              if (startWorked)
+              {
+                cancelled = !askForAuthenticationIfNeeded(userData);
+                if (cancelled)
+                {
+                  println();
+                  /* Ask for confirmation to stop server */
+                  cancelled = !confirmToStopServer();
+                }
+                else
+                {
+                  cancelled =
+                    !updateUserUninstallDataWithRemoteServers(userData);
+                  if (cancelled)
+                  {
+                    println();
+                    /* Ask for confirmation to stop server */
+                    cancelled = !confirmToStopServer();
+                  }
+                }
+              }
+              else
+              {
+                userData.setStopServer(false);
+                println();
+                /* Ask for confirmation to delete files */
+                cancelled = !confirmDeleteFiles();
+              }
+            }
+            else
+            {
               println();
               /* Ask for confirmation to delete files */
               cancelled = !confirmDeleteFiles();
             }
           }
-          else
+          catch (CLIException ce)
           {
+            println(ce.getMessageObject());
             println();
-            /* Ask for confirmation to delete files */
-            cancelled = !confirmDeleteFiles();
+            cancelled = true;
           }
         }
         else
@@ -583,18 +614,27 @@ class UninstallCliHelper extends ConsoleApplication {
     {
       if (conf.isServerRunning())
       {
-        if (interactive)
+        try
         {
-          println();
-          /* Ask for confirmation to stop server */
-          cancelled = !confirmToStopServer();
-        }
+          if (interactive)
+          {
+            println();
+            /* Ask for confirmation to stop server */
+            cancelled = !confirmToStopServer();
+          }
 
-        if (!cancelled)
+          if (!cancelled)
+          {
+            /* During all the confirmations, the server might be stopped. */
+            userData.setStopServer(
+                Installation.getLocal().getStatus().isServerRunning());
+          }
+        }
+        catch (CLIException ce)
         {
-          /* During all the confirmations, the server might be stopped. */
-          userData.setStopServer(
-              Installation.getLocal().getStatus().isServerRunning());
+          println(ce.getMessageObject());
+          println();
+          cancelled = false;
         }
       }
       else
@@ -604,7 +644,16 @@ class UninstallCliHelper extends ConsoleApplication {
         {
           println();
           /* Ask for confirmation to delete files */
-          cancelled = !confirmDeleteFiles();
+          try
+          {
+            cancelled = !confirmDeleteFiles();
+          }
+          catch (CLIException ce)
+          {
+            println(ce.getMessageObject());
+            println();
+            cancelled = true;
+          }
         }
       }
     }
@@ -615,8 +664,9 @@ class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to stop server.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
    *  server.  <CODE>false</CODE> otherwise.
+   *  @throws CLIException if the user reached the confirmation limit.
    */
-  private boolean confirmToStopServer()
+  private boolean confirmToStopServer() throws CLIException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true, LOG);
   }
@@ -625,8 +675,9 @@ class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to delete files.
    *  @return <CODE>true</CODE> if the user wants to continue and delete the
    *  files.  <CODE>false</CODE> otherwise.
+   *  @throws CLIException if the user reached the confirmation limit.
    */
-  private boolean confirmDeleteFiles()
+  private boolean confirmDeleteFiles() throws CLIException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true,
         LOG);
@@ -636,8 +687,9 @@ class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to update configuration on remote servers.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
    *  server.  <CODE>false</CODE> otherwise.
+   *  @throws CLIException if the user reached the confirmation limit.
    */
-  private boolean confirmToUpdateRemote()
+  private boolean confirmToUpdateRemote() throws CLIException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true,
         LOG);
@@ -647,8 +699,9 @@ class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to update configuration on remote servers.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
    *  server.  <CODE>false</CODE> otherwise.
+   *  @throws CLIException if the user reached the confirmation limit.
    */
-  private boolean confirmToUpdateRemoteAndStart()
+  private boolean confirmToUpdateRemoteAndStart() throws CLIException
   {
     return askConfirmation(
         INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true, LOG);
@@ -657,9 +710,10 @@ class UninstallCliHelper extends ConsoleApplication {
   /**
    *  Ask for confirmation to provide again authentication.
    *  @return <CODE>true</CODE> if the user wants to provide authentication
-   *  againr.  <CODE>false</CODE> otherwise.
+   *  again.  <CODE>false</CODE> otherwise.
+   *  @throws CLIException if the user reached the confirmation limit.
    */
-  private boolean promptToProvideAuthenticationAgain()
+  private boolean promptToProvideAuthenticationAgain() throws CLIException
   {
     return askConfirmation(
         INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(), true, LOG);
@@ -830,11 +884,20 @@ class UninstallCliHelper extends ConsoleApplication {
 
       if (!couldConnect)
       {
-        accepted = promptToProvideAuthenticationAgain();
-        if (accepted)
+        try
         {
-          uid = null;
-          pwd = null;
+          accepted = promptToProvideAuthenticationAgain();
+          if (accepted)
+          {
+            uid = null;
+            pwd = null;
+          }
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          println();
+          accepted = false;
         }
       }
     }
@@ -1113,8 +1176,17 @@ class UninstallCliHelper extends ConsoleApplication {
       }
       else
       {
-        accepted = askConfirmation(ERR_UNINSTALL_NOT_UPDATE_REMOTE_PROMPT.get(),
-            false, LOG);
+        try
+        {
+          accepted = askConfirmation(
+              ERR_UNINSTALL_NOT_UPDATE_REMOTE_PROMPT.get(),
+              false, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          accepted = false;
+        }
       }
     }
     userData.setUpdateRemoteReplication(accepted);
@@ -1210,10 +1282,19 @@ class UninstallCliHelper extends ConsoleApplication {
       if (!stopProcessing && (exceptionMsgs.size() > 0))
       {
         println();
-        returnValue = askConfirmation(
+        try
+        {
+          returnValue = askConfirmation(
             ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
                 Utils.getMessageFromCollection(exceptionMsgs,
                   Constants.LINE_SEPARATOR).toString()), true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          println();
+          returnValue = false;
+        }
       }
       else if (reloadTopologyCache)
       {

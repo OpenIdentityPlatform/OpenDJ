@@ -781,9 +781,17 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         if (!secureReplication1)
         {
-          secureReplication1 =
-            askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(
+          try
+          {
+            secureReplication1 =
+              askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(
                 String.valueOf(replicationPort1)), false, LOG);
+          }
+          catch (CLIException ce)
+          {
+            println(ce.getMessageObject());
+            cancelled = true;
+          }
           println();
         }
       }
@@ -980,9 +988,17 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         if (!secureReplication2)
         {
-          secureReplication2 =
-            askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
-                String.valueOf(replicationPort2)), false, LOG);
+          try
+          {
+            secureReplication2 =
+              askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(
+                  String.valueOf(replicationPort2)), false, LOG);
+          }
+          catch (CLIException ce)
+          {
+            println(ce.getMessageObject());
+            cancelled = true;
+          }
           println();
         }
       }
@@ -1219,29 +1235,54 @@ public class ReplicationCliMain extends ConsoleApplication
       if (disableADS)
       {
         println();
-        cancelled = !askConfirmation(INFO_REPLICATION_CONFIRM_DISABLE_ADS.get(
-            ADSContext.getAdministrationSuffixDN()), true, LOG);
+        try
+        {
+          cancelled = !askConfirmation(INFO_REPLICATION_CONFIRM_DISABLE_ADS.get(
+              ADSContext.getAdministrationSuffixDN()), true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
         println();
       }
       if (disableSchema)
       {
         println();
-        cancelled = !askConfirmation(
-            INFO_REPLICATION_CONFIRM_DISABLE_SCHEMA.get(), true, LOG);
+        try
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_DISABLE_SCHEMA.get(), true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
         println();
       }
       if (!disableSchema && !disableADS)
       {
         println();
-        if (disableAllBaseDns(ctx, uData))
+        try
         {
-          cancelled = !askConfirmation(
-              INFO_REPLICATION_CONFIRM_DISABLE_LAST_SUFFIXES.get(), true, LOG);
+          if (disableAllBaseDns(ctx, uData))
+          {
+            cancelled = !askConfirmation(
+                INFO_REPLICATION_CONFIRM_DISABLE_LAST_SUFFIXES.get(), true,
+                LOG);
+          }
+          else
+          {
+            cancelled = !askConfirmation(
+                INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true, LOG);
+          }
         }
-        else
+        catch (CLIException ce)
         {
-          cancelled = !askConfirmation(
-              INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true, LOG);
+          println(ce.getMessageObject());
+          cancelled = true;
         }
         println();
       }
@@ -1359,17 +1400,34 @@ public class ReplicationCliMain extends ConsoleApplication
       if (initializeADS)
       {
         println();
-        cancelled = !askConfirmation(
-            INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(
-            ADSContext.getAdministrationSuffixDN(), hostPortSource), true, LOG);
+        try
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(
+                  ADSContext.getAdministrationSuffixDN(), hostPortSource), true,
+                  LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
         println();
       }
       else
       {
         println();
-        cancelled = !askConfirmation(
-            INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(
-                hostPortSource), true, LOG);
+        try
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(
+                  hostPortSource), true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
         println();
       }
     }
@@ -1456,9 +1514,17 @@ public class ReplicationCliMain extends ConsoleApplication
       if (!argParser.isExternalInitializationLocalOnly())
       {
         println();
-        localOnly = askConfirmation(
-            INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_LOCAL_PROMPT.get(
-                ConnectionUtils.getHostPort(ctx)), false, LOG);
+        try
+        {
+          localOnly = askConfirmation(
+              INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_LOCAL_PROMPT.get(
+                  ConnectionUtils.getHostPort(ctx)), false, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
       }
       else
       {
@@ -1856,21 +1922,38 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       String hostPortSource = ConnectionUtils.getHostPort(ctxSource);
       String hostPortDestination = ConnectionUtils.getHostPort(ctxDestination);
+
       if (initializeADS)
       {
         println();
-        cancelled = !askConfirmation(
-            INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(
-            ADSContext.getAdministrationSuffixDN(), hostPortDestination,
-            hostPortSource), true, LOG);
+        try
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(
+                  ADSContext.getAdministrationSuffixDN(), hostPortDestination,
+                  hostPortSource), true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
         println();
       }
       else
       {
         println();
-        cancelled = !askConfirmation(
-            INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(
-            hostPortDestination, hostPortSource), true, LOG);
+        try
+        {
+          cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(
+                  hostPortDestination, hostPortSource), true, LOG);
+        }
+        catch (CLIException ce)
+        {
+          println(ce.getMessageObject());
+          cancelled = true;
+        }
         println();
       }
     }
@@ -2478,10 +2561,18 @@ public class ReplicationCliMain extends ConsoleApplication
           }
           else
           {
-            cancelled = !askConfirmation(
-               ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
-                get(Utils.getMessageFromCollection(exceptionMsgs,
-                    Constants.LINE_SEPARATOR).toString()), true, LOG);
+            try
+            {
+              cancelled = !askConfirmation(
+              ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
+                  get(Utils.getMessageFromCollection(exceptionMsgs,
+                      Constants.LINE_SEPARATOR).toString()), true, LOG);
+            }
+            catch (CLIException ce)
+            {
+              println(ce.getMessageObject());
+              cancelled = true;
+            }
           }
         }
       }
@@ -3552,7 +3643,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
-
+        boolean confirmationLimitReached = false;
         while (suffixes.isEmpty())
         {
           boolean noSchemaOrAds = false;
@@ -3585,13 +3676,27 @@ public class ReplicationCliMain extends ConsoleApplication
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (askConfirmation(
-                    INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn), true, LOG))
+                try
                 {
-                  suffixes.add(dn);
+                  if (askConfirmation(
+                    INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn), true, LOG))
+                  {
+                    suffixes.add(dn);
+                  }
+                }
+                catch (CLIException ce)
+                {
+                  println(ce.getMessageObject());
+                  confirmationLimitReached = true;
+                  break;
                 }
               }
             }
+          }
+          if (confirmationLimitReached)
+          {
+            suffixes.clear();
+            break;
           }
         }
       }
@@ -3709,6 +3814,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
+        boolean confirmationLimitReached = false;
         while (suffixes.isEmpty())
         {
           boolean noSchemaOrAds = false;
@@ -3740,13 +3846,27 @@ public class ReplicationCliMain extends ConsoleApplication
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (askConfirmation(
-                    INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn), true, LOG))
+                try
                 {
-                  suffixes.add(dn);
+                  if (askConfirmation(
+                      INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn), true,LOG))
+                  {
+                    suffixes.add(dn);
+                  }
+                }
+                catch (CLIException ce)
+                {
+                  println(ce.getMessageObject());
+                  confirmationLimitReached = true;
+                  break;
                 }
               }
             }
+          }
+          if (confirmationLimitReached)
+          {
+            suffixes.clear();
+            break;
           }
         }
       }
@@ -3872,6 +3992,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
+        boolean confirmationLimitReached = false;
         while (suffixes.isEmpty())
         {
           boolean noSchemaOrAds = false;
@@ -3926,23 +4047,32 @@ public class ReplicationCliMain extends ConsoleApplication
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 boolean addSuffix;
-                if (argParser.isPreExternalInitializationSubcommand())
+                try
                 {
-                  addSuffix = askConfirmation(
+                  if (argParser.isPreExternalInitializationSubcommand())
+                  {
+                    addSuffix = askConfirmation(
                     INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_SUFFIX_PROMPT.
-                    get(dn), true, LOG);
-                }
-                else if (argParser.isPostExternalInitializationSubcommand())
-                {
-                  addSuffix = askConfirmation(
+                        get(dn), true, LOG);
+                  }
+                  else if (argParser.isPostExternalInitializationSubcommand())
+                  {
+                    addSuffix = askConfirmation(
                     INFO_REPLICATION_POST_EXTERNAL_INITIALIZATION_SUFFIX_PROMPT.
-                    get(dn), true, LOG);
+                        get(dn), true, LOG);
+                  }
+                  else
+                  {
+                    addSuffix = askConfirmation(
+                        INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(dn),
+                        true, LOG);
+                  }
                 }
-                else
+                catch (CLIException ce)
                 {
-                  addSuffix = askConfirmation(
-                      INFO_REPLICATION_INITIALIZE_ALL_SUFFIX_PROMPT.get(dn),
-                      true, LOG);
+                  println(ce.getMessageObject());
+                  confirmationLimitReached = true;
+                  break;
                 }
                 if (addSuffix)
                 {
@@ -3950,6 +4080,11 @@ public class ReplicationCliMain extends ConsoleApplication
                 }
               }
             }
+          }
+          if (confirmationLimitReached)
+          {
+            suffixes.clear();
+            break;
           }
         }
       }
@@ -4010,6 +4145,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
+        boolean confirmationLimitReached = false;
         while (suffixes.isEmpty())
         {
           boolean noSchemaOrAds = false;
@@ -4042,11 +4178,20 @@ public class ReplicationCliMain extends ConsoleApplication
                   !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
                   !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
-                if (askConfirmation(
-                    INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn), true,
-                    LOG))
+                try
                 {
-                  suffixes.add(dn);
+                  if (askConfirmation(
+                      INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn), true,
+                      LOG))
+                  {
+                    suffixes.add(dn);
+                  }
+                }
+                catch (CLIException ce)
+                {
+                  println(ce.getMessageObject());
+                  confirmationLimitReached = true;
+                  break;
                 }
               }
             }
