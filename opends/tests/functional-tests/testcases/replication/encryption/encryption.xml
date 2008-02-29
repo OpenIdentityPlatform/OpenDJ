@@ -61,80 +61,17 @@
             file="'%s/testcases/replication/replication_setup.xml'
                   % (TESTS_DIR)"/>
           <call function="'replication_setup'">
-            {  'topologyFile'    : '%s/config/replication/3server_topology.txt'\
-                                     % TESTS_DIR,
-              'secureReplication': True  }
+            { 'topologyFile'     : '%s/config/replication/3server_topology.txt'\
+                                   % TESTS_DIR,
+              'secureReplication': True,
+              'dataFile'         : 'Example.ldif'
+            }
           </call>
                                     
           <script>
-            consumer = consumerList[0]              
-            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
+            consumer = consumerList[0]
           </script>        
-            
-          <!-- Load entries into "master" server -->                                
-          <!-- Stop "master" Directory Server -->
-          <call function="'StopDsWithScript'">
-            { 'location'  : masterHost,
-              'dsPath'    : masterPath,
-              'dsHost'    : masterHost,
-              'dsPort'    : master.getPort(),
-              'dsBindDN'  : master.getRootDn(),
-              'dsBindPwd' : master.getRootPwd()
-            }
-          </call>
-              
-          <!-- Import data into "master" Directory Server -->
-          <call function="'ImportLdifWithScript'">
-            { 'location'     : masterHost,
-              'dsPath'       : masterPath,
-              'dsBackEnd'    : 'userRoot',          
-              'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir
-            }
-          </call>
-            
-          <!-- Start the Directory Server -->
-          <call function="'StartDsWithScript'">
-            { 'location'  : masterHost,
-              'dsPath'    : masterPath
-            }
-          </call>
-              
-          <!-- Wait for DS to start -->
-          <call function="'isAlive'">
-            { 'location'         : masterHost,
-              'dsPath'           : masterPath,
-              'dsInstanceHost'   : masterHost,
-              'dsInstancePort'   : master.getPort() ,
-              'dsInstanceDn'     : master.getRootDn() ,
-              'dsInstancePswd'   : master.getRootPwd() ,
-              'noOfLoops'        : 10 ,
-              'noOfMilliSeconds' : 2000
-            }
-          </call>                                                                                
-            
-          <!-- Initialise the servers in the topology -->
-<!--            
-          <call function="'initializeReplication'">
-            { 'location'  :  clientHost,
-              'dsPath'  :  clientPath,
-              'sourceInstanceHost'  :  masterHost,
-              'sourceInstancePort'  :  master.getPort(),
-              'replicationDnList'  :  [synchroSuffix]
-            }
-          </call>            
--->    
-          <iterate var="server" in="consumerList">     
-            <call function="'initializeReplication'">
-              { 'location'           : clientHost,
-                'dsPath'             : clientPath,
-                'dsInstanceHost'     : server.getHostname(),
-                'dsInstancePort'     : server.getPort(),
-                'sourceInstanceHost' : masterHost,
-                'sourceInstancePort' : master.getPort(),
-                'replicationDnList'  : [synchroSuffix]
-              }
-            </call>
-          </iterate>            
+
             
                         
           <!--- Test Case information
@@ -260,8 +197,8 @@
           <!--- Test Case information
           #@TestMarker          Replication Encryption Tests
           #@TestName            Replication: Encryption: Delete entry
-          #@TestID                  Delete entry
-          #@TestPurpose        Check entry delete over secured replication
+          #@TestID              Delete entry
+          #@TestPurpose         Check entry delete over secured replication
           #@TestPreamble
           #@TestSteps
           #@TestPostamble
@@ -313,9 +250,9 @@
           #@TestMarker          Replication Encryption Tests
           #@TestName            Replication: Encryption: Modify Entry - add 
                                 binary attribute
-          #@TestID                  Modify Entry - add binary attribute
+          #@TestID              Modify Entry - add binary attribute
           #@TestPurpose         Check that an entry modify is well propagated 
-              by secured replication.
+                                by secured replication.
           #@TestPreamble
           #@TestSteps
           #@TestPostamble
