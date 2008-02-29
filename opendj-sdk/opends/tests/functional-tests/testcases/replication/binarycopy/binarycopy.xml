@@ -39,7 +39,9 @@
           <call function="'testSuite_Preamble'"/>
           <!--- Test Suite information
           #@TestSuiteName       Replication Binary Copy Tests
-          #@TestSuitePurpose    Verify that the servers in a replicated topology can be initialised by the means of a binary copy (backup-restore).
+          #@TestSuitePurpose    Verify that the servers in a replicated topology
+                                can be initialised by the means of a binary copy
+                                (backup-restore).
           #@TestSuiteID         Binary Copy Tests
           #@TestSuiteGroup      Binary Copy
           #@TestGroup           Replication
@@ -48,7 +50,8 @@
           -->
           
           <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/replication/replication_setup.xml' 
+                        % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
           
           <script>
@@ -57,9 +60,11 @@
           
           <!--- Test Case information
           #@TestMarker          Replication Binary Copy Tests
-          #@TestName            Replication: Binary Copy: Off-line initialisation
-          #@TestID                  Off-line initialisation
-          #@TestPurpose         Initialise replicated servers using off-line backup/restore
+          #@TestName            Replication: Binary Copy: Off-line
+                                initialisation
+          #@TestID              Off-line initialisation
+          #@TestPurpose         Initialise replicated servers using off-line 
+                                backup/restore
           #@TestPreamble
           #@TestSteps
           #@TestPostamble
@@ -69,7 +74,8 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Binary Copy: Off-line initialisation. Initialise replicated servers using off-line backup/restore'
+                 'Replication: Binary Copy: Off-line initialisation. \
+                 Initialise replicated servers using off-line backup/restore'
               </message>
               <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
@@ -110,10 +116,14 @@
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
-                  <if expr="os.path.exists('%s/config/schematokens.dat' % dsPath)" >
+                  <if expr="os.path.exists('%s/config/schematokens.dat' 
+                                           % masterPath)" >
                     <call function="'copyFile'">
-                      { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
-                        'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
+                      { 'location'   : masterHost,
+                        'srcfile'    : '%s/config/schematokens.dat' \
+                                       % masterPath,
+                        'destfile'   : '%s/%s/config/schematokens.dat' \
+                                       % (consumer.getDir(),OPENDSNAME),
                         'remotehost' : consumer.getHostname()
                       }
                     </call>
@@ -121,15 +131,18 @@
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup' % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir),
+                      'srcfolder'  : '%s/replication/master_backup' \
+                                     % masterDataDir,
+                      'destfolder' : '%s/%s/replication/master_backup' \
+                                     % (consumer.getDir(),relativeDataDir),
                       'extension'  : '*'
                     }
                   </call>
                   <call function="'restore'">
                     { 'location'  : consumer.getHostname(),
                       'dsPath'    : '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' : '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir)
+                      'backupDir' : '%s/%s/replication/master_backup' \
+                                    % (consumer.getDir(),relativeDataDir)
                     }
                   </call>
                 </sequence>
@@ -149,11 +162,13 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                     % clientDataDir
                 }
               </call>
               
-              <!-- Verify the synchronization of the trees among the servers in the topology -->
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
@@ -164,8 +179,9 @@
           <!--- Test Case information
           #@TestMarker          Replication Binary Copy Tests
           #@TestName            Replication: Binary Copy: On-line initialisation
-          #@TestID                  On-line initialisation
-          #@TestPurpose         Initialise replicated servers using on-line backup/restore
+          #@TestID              On-line initialisation
+          #@TestPurpose         Initialise replicated servers using on-line
+                                backup/restore
           #@TestPreamble
           #@TestSteps
           #@TestPostamble
@@ -175,7 +191,8 @@
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Binary Copy: On-line initialisation. Initialise replicated servers using on-line backup/restore'
+                 'Replication: Binary Copy: On-line initialisation. Initialise \
+                 replicated servers using on-line backup/restore'
               </message>
               
               <!-- Clean the servers in the topology
@@ -183,15 +200,17 @@
                 [_topologyServerList, synchroSuffix, False]
               </call> -->
               
-              <!-- Delete manually added entry so that replication server won't add it automatically later on -->
+              <!-- Delete manually added entry so that replication server won't
+                add it automatically later on -->
               <call function="'ldapDeleteWithScript'">
                 { 'location'       :  clientHost,
                   'dsPath'         :  clientPath,
                   'dsInstanceHost' :  master.getHostname(),
                   'dsInstancePort' :  master.getPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstanceDn'   :  master.getRootDn(),
                   'dsInstancePswd' :  master.getRootPwd(),
-                  'dsDn'           :  ['uid=tfitter, ou=People,%s' % synchroSuffix]
+                  'dsDn'           :  ['uid=tfitter, ou=People,%s' \
+                                       % synchroSuffix]
                 }
               </call>
               
@@ -204,7 +223,8 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'import task',
-                  'ldifFile'       : '%s/replication/Example.ldif' % masterDataDir
+                  'ldifFile'       : '%s/replication/Example.ldif' \
+                                     % masterDataDir
                 }
               </call>
               
@@ -232,17 +252,22 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task',
-                  'backupDir'      : '%s/replication/master_backup_online' % masterDataDir 
+                  'backupDir'      : '%s/replication/master_backup_online' \
+                                     % masterDataDir 
                 }
               </call>
               
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
-                  <if expr="os.path.exists('%s/config/schematokens.dat' % dsPath)">
+                  <if expr="os.path.exists
+                            ('%s/config/schematokens.dat' % masterPath)">
                     <call function="'copyFile'">
-                      { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
-                        'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
+                      { 'location'   : masterHost,
+                        'srcfile'    : '%s/config/schematokens.dat' \
+                                       % masterPath,
+                        'destfile'   : '%s/%s/config/schematokens.dat' \
+                                       % (consumer.getDir(),OPENDSNAME),
                         'remotehost' : consumer.getHostname()
                       }
                     </call>
@@ -250,8 +275,10 @@
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup_online' % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir),
+                      'srcfolder'  : '%s/replication/master_backup_online' \
+                                     % masterDataDir,
+                      'destfolder' : '%s/%s/replication/master_backup_online' \
+                                     % (consumer.getDir(),relativeDataDir),
                       'extension'  : '*'
                     }
                   </call>
@@ -264,7 +291,8 @@
                       'dsInstanceDn'   : consumer.getRootDn(),
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task',
-                      'backupDir'      :  '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir)
+                      'backupDir'   : '%s/%s/replication/master_backup_online' \
+                                      % (consumer.getDir(),relativeDataDir)
                     }
                   </call>
                 </sequence>
@@ -278,11 +306,13 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                     % clientDataDir
                 }
               </call>
               
-              <!-- Verify the synchronization of the trees among the servers in the topology -->
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
@@ -291,7 +321,8 @@
           </testcase>
           
           <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/replication/replication_cleanup.xml' 
+                        % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
           <call function="'testSuite_Postamble'"/>
         </sequence>
