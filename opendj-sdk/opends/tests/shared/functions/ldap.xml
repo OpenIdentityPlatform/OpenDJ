@@ -900,13 +900,19 @@
           Only return these attributes
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>
-      <function-arg-def name="outputFile" type="optional">
+      </function-arg-def>  
+      <function-arg-def name="outputFile" type="optional" default="'None'">
         <function-arg-description>
-          Output file containing the search result in ldif format.
+          Output file containing the search result in ldif format
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="ouputPath" type="optional">
+        <function-arg-description>
+          Path containing the outputFile
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>
+      </function-arg-def>      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0
@@ -1069,38 +1075,24 @@
         if dsAttributes:
           STAFCmdParamsList.append('%s' % dsAttributes)
 
-         
+        if not outputPath:
+          outputPath = '%s/..' % (dsPath)
+            
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <message>
-        '%s %s' % (STAFCmd, STAFCmdParams)
-      </message>
-      
-      <process name="'LDAP Search Script to file'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath, 'JAVA_HOME=%s' % JAVA_HOME]
-        </envs>         
-        <stdout if="outputFile != None" mode="'replace'">'%s/../%s' % (dsPath,outputFile)</stdout>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-      <script>
-        STAXCode=RC
-        STAXReason=STAXResult
-      </script>
-      <call function="'checktestRC'">
-        { 'returncode' : STAXCode ,
-          'result'     : STAXReason,
-          'expected'   : expectedRC }
+      <call function="'runCommand'" >
+        { 'name'      : 'LDAP Search Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'location'  : location,
+          'outputFile': outputFile,
+          'outputPath': outputPath,
+          'expectedRC': expectedRC
+        }
       </call>
       <return>
-        STAXReason
+        STAXResult
       </return>
     </sequence>
   </function>

@@ -29,7 +29,8 @@ __version__ = "$Revision$"
 # $Source$
 
 # public symbols
-__all__ = [ "format_testcase", "directory_server_information", "test_time", "report_generation" ]
+__all__ = [ "format_testcase", "directory_server_information", "test_time", \
+            "report_generation" , "compare_file" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -163,3 +164,34 @@ class report_generation:
       self.xml.close()
       self.html.close()
 
+class compare_file:
+  'Compare two files'
+  
+  def __init__(self, file1, file2, diffFile):
+    self.file1    = file1
+    self.file2    = file2
+    self.diffFile = diffFile
+
+  def genDiff(self):
+    from org.tmatesoft.svn.core.wc import *
+    from java.io import File
+    from java.io import FileOutputStream
+
+    diff = DefaultSVNDiffGenerator()
+    diff.displayFileDiff("", 
+                         File("%s" % self.file1), 
+                         File("%s" % self.file2),
+                         self.file1, 
+                         self.file2, 
+                         "text/plain", 
+                         "text/plain",
+                         FileOutputStream(File("%s" % self.diffFile)))
+
+    try:
+      ret_str = ""
+      diff_file = open(self.diffFile, "r")
+      for line in diff_file.readlines():
+        ret_str = ret_str + line
+      return ret_str
+    finally:
+      diff_file.close()
