@@ -79,6 +79,10 @@ public class ArgumentParser
   // The argument that will be used to trigger the display of usage information.
   private Argument usageArgument;
 
+  // The argument that will be used to trigger the display of the OpenDS
+  // version.
+  private Argument versionArgument;
+
   // The set of unnamed trailing arguments that were provided for this parser.
   private ArrayList<String> trailingArguments;
 
@@ -608,6 +612,24 @@ public class ArgumentParser
       Message message = ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(
           argument.getName(), String.valueOf(shortID), conflictingName);
       throw new ArgumentException(message);
+    }
+
+    if (versionArgument != null)
+    {
+      if (shortID == versionArgument.getShortIdentifier())
+      {
+        // Update the version argument to not display its short identifier.
+        try {
+          versionArgument = new BooleanArgument(
+                  OPTION_LONG_PRODUCT_VERSION,
+                  null,
+                  OPTION_LONG_PRODUCT_VERSION,
+                  INFO_DESCRIPTION_PRODUCT_VERSION.get());
+          this.generalArgGroup.addArgument(versionArgument);
+        } catch (ArgumentException e) {
+          // ignore
+        }
+      }
     }
 
     String longID = argument.getLongIdentifier();
@@ -1700,12 +1722,12 @@ public class ArgumentParser
     this.argumentGroups.add(ioArgGroup);
 
     try {
-      Argument version = new BooleanArgument(
+      versionArgument = new BooleanArgument(
               OPTION_LONG_PRODUCT_VERSION,
-              null,
+              OPTION_SHORT_PRODUCT_VERSION,
               OPTION_LONG_PRODUCT_VERSION,
               INFO_DESCRIPTION_PRODUCT_VERSION.get());
-      this.generalArgGroup.addArgument(version);
+      this.generalArgGroup.addArgument(versionArgument);
     } catch (ArgumentException e) {
       // ignore
     }
