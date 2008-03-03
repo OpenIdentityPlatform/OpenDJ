@@ -918,11 +918,11 @@
           
         if dsIncludeFilter:
           for InFilter in dsIncludeFilter:
-            STAFCmdParamsList.append('-I %s ' % InFilter)
+            STAFCmdParamsList.append('-I "%s" ' % InFilter)
 
         if dsExcludeFilter:
           for ExFilter in dsExcludeFilter:
-            STAFCmdParamsList.append('-E %s ' % ExFilter)
+            STAFCmdParamsList.append('-E "%s" ' % ExFilter)
           
         if dsRejectFile:
           STAFCmdParamsList.append('-R %s' % dsRejectFile)
