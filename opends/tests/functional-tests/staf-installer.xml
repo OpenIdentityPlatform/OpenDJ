@@ -929,7 +929,7 @@ email.server.pwd=${email.server.pwd.input}
      <arg value="${staf.config}"/>
      <env key="${path.var}" path="${java.home}${file.separator}bin${path.separator}${staf.install.dir}${file.separator}bin${path.separator}${path.current}"/>
      <env key="LD_LIBRARY_PATH" path="${staf.install.dir}/lib"/>
-     <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}${e.CLASSPATH}"/>
+     <env key="CLASSPATH" path="${staf.lib.dir}/JSTAF.jar${path.separator}:${project.home}/ext/svnkit/svnkit.jar${path.separator}${e.CLASSPATH}"/>
      <env key="STAFCONVDIR" value="${staf.install.dir}/codepage"/>
      <env key="STAFCODEPAGE" value="LATIN_1"/>
      <env key="STAF_INSTANCE_NAME" value="STAF"/>

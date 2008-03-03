@@ -1445,7 +1445,21 @@
         <function-arg-description>
           The duration that the process is allowed to run
         </function-arg-description>
-      </function-arg-def>      
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="optional" default="'None'">
+        <function-arg-description>
+          Output file containing the command output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="outputPath" 
+                        type="optional" 
+                        default="'%s/../..' % dsBinPath">
+        <function-arg-description>
+          Path containing the outputFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
@@ -1479,6 +1493,7 @@
             <workdir>path</workdir>
             <envs>env</envs>
             <console use="'same'"/>
+            <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
             <stderr mode="'stdout'"/>
             <returnstdout/>
           </process>
@@ -1650,7 +1665,6 @@
     </sequence>
   </function>
 
-
   <function name="grep">
     <function-prolog>
       This function search for a given string in a given file.
@@ -1727,5 +1741,210 @@
     </sequence>
   </function>
 
-                                    
+  <function name="compareFile">
+    <function-prolog>
+      This function compares two files.
+      Print the differences if the comparison failed.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="remotehost"
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          The name of remote host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="required">
+        <function-arg-description>
+          file containing output from the command
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="outputPath" type="optional">
+        <function-arg-description>
+          path containing outputFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>         
+      <function-arg-def name="refFile" type="optional">
+        <function-arg-description>
+          reference file containing expected output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="refPath" type="optional">
+        <function-arg-description>
+          reference path containing refFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="diffFile" type="optional">
+        <function-arg-description>
+          file containing diff output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="diffPath" type="optional">
+        <function-arg-description>
+          file containing diffFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        if CurrentTestPath.has_key('group'):
+          ThisGroupName = CurrentTestPath['group']
+        else:
+          ThisGroupName = 'unknown-group'
+        
+        FormattedTestcase  = format_testcase()
+        FormattedTestgroup = FormattedTestcase.group(ThisGroupName)
+        
+        if not outputPath:
+          outputPath = '%s/..' % (dsPath) 
+        
+        if not refFile:
+          regexp    = re.compile('\..*$')
+          tmpName   = re.sub(regexp, '', outputFile)
+          refFile   = '%s.ref' % tmpName  
+        
+        if not refPath:
+          refPath = '%s/%s' % (logsLocalDataDir,FormattedTestgroup)
+        
+        if not diffFile:
+          regexp    = re.compile('\..*$')
+          tmpName   = re.sub(regexp, '', outputFile)
+          diffFile   = '%s.diff' % tmpName  
+        
+        if not diffPath:
+          diffPath = '%s/%s/diffs' % (logsTestsDir,FormattedTestgroup)
+        else:
+          diffPath = '%s/diffs' % (diffPath)
+          
+        cflocation=location
+        cfremotehost=remotehost
+      </script>
+      
+      <!-- Check if 'diffPath' is already created -->      
+      <call function="'GetEntry'">
+        { 
+        'location'  : cflocation,
+        'entry'     : diffPath,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <!-- If 'diffPath' is not already created then create it -->
+      <if expr="RC == 48">
+        <sequence>      
+          <message>
+            'Create folder %s' % diffPath
+          </message>
+          <call function="'createFolder'">
+            { 
+            'location'   : cflocation , 
+            'foldername' : diffPath 
+            }
+          </call>
+        </sequence>
+      </if>
+      
+      <message>
+        'Copy file %s/%s (on %s) to %s/%s (on %s)' % \
+        (outputPath, outputFile, cfremotehost, diffPath, outputFile, cflocation) 
+      </message>      
+      <call function="'copyFile'">
+        { 
+        'location'   : cfremotehost ,
+        'srcfile'    : '%s/%s' % (outputPath, outputFile) ,
+        'destfile'   : '%s/%s' % (diffPath, outputFile) ,
+        'remotehost' : cflocation
+        }
+      </call>
+      <script>
+        outputRC=RC
+      </script>
+      
+      <message>
+        'Copy file %s/%s (on %s) to %s/%s (on %s)' % \
+        (refPath, refFile, cflocation, diffPath, refFile, cflocation)
+      </message>      
+      <call function="'copyFile'">
+        { 
+        'location'   : cflocation ,
+        'srcfile'    : '%s/%s' % (refPath, refFile) ,
+        'destfile'   : '%s/%s' % (diffPath, refFile) ,
+        'remotehost' : cflocation
+        }
+      </call>      
+      <script>
+        refRC=RC
+      </script>
+      
+      <!-- If the copy of 'outputFile' and 'refFile' succeed 
+             then compare these files -->
+      <if expr="outputRC == 0 and refRC == 0">
+        <sequence>            
+          <message>
+            'Compare file %s/%s to %s/%s on %s' % \
+            (diffPath, outputFile, diffPath, refFile, cflocation)
+          </message>      
+          <script>
+            CompareFile = compare_file('%s/%s' % (diffPath, outputFile), 
+            '%s/%s' % (diffPath, refFile), 
+            '%s/%s' % (diffPath, diffFile))
+            diff = CompareFile.genDiff()
+          </script>
+          
+          <if expr="diff == ''">     
+            <sequence>
+              <tcstatus result="'pass'"/>      
+              <message log="1">
+                'SUCCESS : No differences were found between %s and %s' % \
+                (outputFile, refFile)
+              </message>
+            </sequence>
+            <else>
+              <sequence>
+                <tcstatus result="'fail'"/>      
+                <message log="1">
+                  'ERROR : Differences were found between %s and %s\n%s' % \
+                  (outputFile, refFile, diff)
+                </message>
+                <message log="1">            
+                  'ERROR : Diff file is here: %s/%s' % (diffPath, diffFile)
+                </message>
+              </sequence>
+            </else>
+          </if>
+        </sequence>
+        <else>
+          <sequence>
+            <tcstatus result="'fail'"/>      
+            <message log="1">
+              'ERROR : Error during file comparision'
+            </message>
+          </sequence>
+        </else>
+      </if>
+    </sequence>
+  </function>
 </stax>

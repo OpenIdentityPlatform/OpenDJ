@@ -218,6 +218,18 @@
             }
           </call>
 
+          <!-- Archive (.ref) files -->
+          <message>
+            'Copy ref data files locally to %s.' % localTestsGroupDir
+          </message>
+          <call function="'CopyFolderByExtension'">
+            { 'location'   : STAXServiceMachine,
+              'srcfolder'  : testsGroupDir,
+              'destfolder' : localTestsGroupDir,
+              'extension'  : 'ref' 
+            }
+          </call>          
+          
           <!-- Archive java (.class) files -->
           <script>
             javaSharedDir='%s' % (TESTS_JAVA_DIR)
