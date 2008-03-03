@@ -90,7 +90,7 @@
               <!-- ========== -->
               <script>
                 string1 = '# Bound with authorization ID dn:'
-                string2 = '%s,cn=Root DNs,cn=config' % DIRECTORY_INSTANCE_DN
+                string2 = 'cn=Directory Manager,cn=Root DNs,cn=config'
                 string2find = '%s%s' % (string1, string2)
               </script>
               <call function="'CheckMatches'">
