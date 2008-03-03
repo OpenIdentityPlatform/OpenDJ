@@ -206,9 +206,9 @@ get-sasl-mechanism-handler-prop:handler-name:PLAIN:enabled:
 get-trust-manager-provider-prop:provider-name:Blind Trust:enabled:
 get-trust-manager-provider-prop:provider-name:JKS:enabled:
 get-trust-manager-provider-prop:provider-name:PKCS12:enabled:
-get-virtual-attribute-prop:attribute-name:entryDN:enabled:
-get-virtual-attribute-prop:attribute-name:entryUUID:enabled:
-get-virtual-attribute-prop:attribute-name:isMemberOf:enabled:
-get-virtual-attribute-prop:attribute-name:subschemaSubentry:enabled:
-get-virtual-attribute-prop:attribute-name:Virtual Static member:enabled:
-get-virtual-attribute-prop:attribute-name:Virtual Static uniqueMember:enabled:
+get-virtual-attribute-prop:name:entryDN:enabled:
+get-virtual-attribute-prop:name:entryUUID:enabled:
+get-virtual-attribute-prop:name:isMemberOf:enabled:
+get-virtual-attribute-prop:name:subschemaSubentry:enabled:
+get-virtual-attribute-prop:name:Virtual Static member:enabled:
+get-virtual-attribute-prop:name:Virtual Static uniqueMember:enabled:
