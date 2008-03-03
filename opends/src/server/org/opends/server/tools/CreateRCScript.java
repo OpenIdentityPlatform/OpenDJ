@@ -218,14 +218,6 @@ public class CreateRCScript
     else
     {
       javaHomeDir = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
-      if (javaHomeDir == null)
-      {
-        javaHomeDir = System.getenv("JAVA_HOME");
-      }
-      if (javaHomeDir == null)
-      {
-        javaHomeDir = System.getProperty("java.home");
-      }
     }
 
 
@@ -258,16 +250,19 @@ public class CreateRCScript
       w.println("export INSTANCE_ROOT");
       w.println();
 
-      w.println("# Specify the path to the Java installation to use");
-      w.println("OPENDS_JAVA_HOME=\"" + javaHomeDir + "\"");
-      w.println("export OPENDS_JAVA_HOME");
-      w.println();
+      if (javaHomeDir != null)
+      {
+        w.println("# Specify the path to the Java installation to use");
+        w.println("OPENDS_JAVA_HOME=\"" + javaHomeDir + "\"");
+        w.println("export OPENDS_JAVA_HOME");
+        w.println();
+      }
 
       if (javaArgs.isPresent())
       {
         w.println("# Specify arguments that should be provided to the JVM");
-        w.println("JAVA_ARGS=\"" + javaArgs.getValue() + "\"");
-        w.println("export JAVA_ARGS");
+        w.println("OPENDS_JAVA_ARGS=\"" + javaArgs.getValue() + "\"");
+        w.println("export OPENDS_JAVA_ARGS");
         w.println();
       }
 
