@@ -28,6 +28,8 @@
 package org.opends.quicksetup.upgrader;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+
 import org.opends.messages.Message;
 
 import org.opends.quicksetup.UserDataException;
@@ -112,16 +114,32 @@ public class BuildExtractorCliHelper extends UpgraderCliHelper {
 
         if (choice == UPGRADE) {
           uud.setOperation(UpgradeUserData.Operation.UPGRADE);
+          int nTries = 0;
           while(true) {
             String fileName = readInput(
                     INFO_UPGRADE_FILE_PROMPT.get(), null, LOG);
-            try {
-              uud.setInstallPackage(validateInstallPackFile(fileName));
-              LOG.log(Level.INFO, "file specified interactively: " +
-                      fileName);
-              break;
-            } catch (UserDataException ude) {
-              System.out.println(ude.getMessage());
+            if (fileName != null)
+            {
+              try {
+                uud.setInstallPackage(validateInstallPackFile(fileName));
+                LOG.log(Level.INFO, "file specified interactively: " +
+                    fileName);
+                break;
+              } catch (UserDataException ude) {
+                System.out.println(ude.getMessage());
+              }
+            }
+            else
+            {
+              // There was an error reading the input: add a line return
+              System.out.println();
+            }
+            nTries++;
+            if (nTries >= CONFIRMATION_MAX_TRIES)
+            {
+              throw new UserDataException(null,
+                  ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
+                      CONFIRMATION_MAX_TRIES));
             }
           }
         } else {
