@@ -102,8 +102,10 @@ public abstract class ConsoleApplication {
   // The output stream which this application should use.
   private final PrintStream out;
 
-  // The maximum number of times we try to confirm.
-  private final static int CONFIRMATION_MAX_TRIES = 5;
+  /**
+   *  The maximum number of times we try to confirm.
+   */
+  protected final static int CONFIRMATION_MAX_TRIES = 5;
 
   /**
    * Creates a new console application instance.
