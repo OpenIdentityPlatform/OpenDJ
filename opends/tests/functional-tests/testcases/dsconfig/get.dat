@@ -212,3 +212,6 @@ get-virtual-attribute-prop:name:isMemberOf:enabled:
 get-virtual-attribute-prop:name:subschemaSubentry:enabled:
 get-virtual-attribute-prop:name:Virtual Static member:enabled:
 get-virtual-attribute-prop:name:Virtual Static uniqueMember:enabled:
+get-entry-cache-prop:cache-name:FIFO:exclude-filter:include-filter:
+get-entry-cache-prop:cache-name:File System:exclude-filter:include-filter:
+get-entry-cache-prop:cache-name:Soft Reference:exclude-filter:include-filter:
