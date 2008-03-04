@@ -29,8 +29,7 @@ __version__ = "$Revision$"
 # $Source$
 
 # public symbols
-__all__ = [ "format_testcase", "directory_server_information", "test_time", \
-            "report_generation" , "compare_file" ]
+__all__ = [ "format_testcase", "directory_server_information", "test_time", "report_generation", "compare_file", "exception_thrown" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -104,7 +103,7 @@ class basic_utils:
 class report_generation:
   'Test Report Generation'
 
-  def transformReport(self,stylesheet,xml,output):
+  def transformReport(self,stylesheet,xml,output,params):
     from java.io import FileInputStream
     from java.io import FileOutputStream
     from java.io import ByteArrayOutputStream
@@ -126,43 +125,20 @@ class report_generation:
       self.source = StreamSource(self.xml)
       self.result = StreamResult(self.html)
 
+      for self.key,self.value in params.items():
+        self.transformer.setParameter(self.key, self.value)
+
       self.transformer.transform(self.source, self.result)
     finally:
       self.xsl.close()
       self.xml.close()
       self.html.close()
 
-  def transformSuitesReport(self,stylesheet,xml,output,params):
-    from java.io import FileInputStream
-    from java.io import FileOutputStream
-    from java.io import ByteArrayOutputStream
-
-    from javax.xml.transform import TransformerFactory
-    from javax.xml.transform.stream import StreamSource
-    from javax.xml.transform.stream import StreamResult
-
-    self.xsl   = FileInputStream("%s" % stylesheet)
-    self.xml   = FileInputStream("%s" % xml)
-    self.html  = FileOutputStream("%s" % output)
-
-    try:
-      self.xslSource   = StreamSource(self.xsl)
-      self.tfactory    = TransformerFactory.newInstance()
-      self.xslTemplate = self.tfactory.newTemplates(self.xslSource)
-      self.transformer = self.xslTemplate.newTransformer()
-
-      self.source = StreamSource(self.xml)
-      self.result = StreamResult(self.html)
-
-      self.myAttr  = basic_utils().printKey(params)
-      self.myValue = basic_utils().printKeyValue(params)
-
-      self.transformer.setParameter(self.myAttr, self.myValue)
-      self.transformer.transform(self.source, self.result)
-    finally:
-      self.xsl.close()
-      self.xml.close()
-      self.html.close()
+class exception_thrown:
+  'User defined exceptions handlers'
+  def __init__(self):
+    self.message = ''
+    self.flag = ''
 
 class compare_file:
   'Compare two files'
