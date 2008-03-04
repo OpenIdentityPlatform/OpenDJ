@@ -66,6 +66,9 @@ public class DSMLAbandonOperation
    * @return  The result of the abandon operation.
    *
    * @throws  IOException  If an I/O problem occurs.
+   *
+   * @throws  LDAPException  If an error occurs while interacting with an LDAP
+   *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
         AbandonRequest abandonRequest)
