@@ -515,8 +515,10 @@
 
         standardReport=report_generation()      
 
+        stringParamsDict={}
+
         try:
-          standardReport.transformReport(xslfile,xmlfile,htmlfile)
+          standardReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
         except IOError,details:
           _message='Unable to generate standard test report %s.' % details
       </script>
@@ -527,18 +529,21 @@
         _message='Generated groups test report.'
         xslfile= '%s/xsl/gen-groups-report.xsl' % TESTS_SHARED_DIR
         htmlfile= '%s/groups.html' % logsReportDir
+        testslog= '%s/tests-log.xml' % logsTestsDir
         groupsReport=report_generation()      
-
+        stringParamsDict={ 'tests-log' : testslog }
+        
         try:
-          groupsReport.transformReport(xslfile,xmlfile,htmlfile)
+          groupsReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
         except IOError,details:
-          _message='Unable to generate groups test report %s.' % details
+          _message='Unable to generate groups test report %s.' % details          
       </script>
       <message>_message</message>
 
       <!-- Generate the test report by test suites -->      
       <script>
         _message='Generated suites test reports.'
+
         testGroupDirsList=os.listdir(logsTestsDir)
         for testGroupName in testGroupDirsList:
         
@@ -551,10 +556,10 @@
             xslfile= '%s/xsl/gen-suites-report.xsl' % TESTS_SHARED_DIR
         
             suitesReport=report_generation()
-            stringParamsDict={ 'group' : testGroupName }
+            stringParamsDict={ 'group' : testGroupName, 'tests-log' : testslog }
         
             try:
-              suitesReport.transformSuitesReport(xslfile,xmlfile,htmlfile,stringParamsDict)
+              suitesReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
             except IOError,details:
               _message='Unable to generate suites test report %s.' % details
       </script>
@@ -569,8 +574,10 @@
 
         drillDownReport=report_generation()      
 
+        stringParamsDict={}
+
         try:
-          drillDownReport.transformReport(myreportxsl,mytestslog,myreporthtml)
+          drillDownReport.transformReport(myreportxsl,mytestslog,myreporthtml,stringParamsDict)
         except IOError,details:
           _message='Unable to generate drill down test report %s.' % details
       </script>
@@ -585,8 +592,10 @@
 
         summaryReport=report_generation()      
 
+        stringParamsDict={}
+
         try:
-          summaryReport.transformReport(mysummaryxsl,mysummaryxml,mysummarytext)
+          summaryReport.transformReport(mysummaryxsl,mysummaryxml,mysummarytext,stringParamsDict)
         except IOError,details:
           _message='Unable to generate summary text file %s.' % details
       </script>

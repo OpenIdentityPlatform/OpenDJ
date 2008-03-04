@@ -30,10 +30,15 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
 
 <xsl:param name="group">''</xsl:param>
+<xsl:param name="tests-log">''</xsl:param>
+
 <xsl:variable name="groupdir" select="translate($group, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
 
 <xsl:template match="/">
 
+  <!-- Tests log XML document -->
+  <xsl:variable name="tests-log-doc"             select="document($tests-log)"/>
+    
   <!--- Test Report Header Variables -->
   <xsl:variable name="ft"             select="qa/functional-tests"/>
   <xsl:variable name="identification" select="$ft/identification"/>
@@ -51,6 +56,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="pass-tests"     select="count($testcase[@result='pass'])"/>
   <xsl:variable name="fail-tests"     select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests"   select="count($testcase[@result='unknown'])"/>
+  <xsl:variable name="kfail-tests"    select="count($tests-log-doc/qa/functional-tests/results/test[result='known'])"/>
   <xsl:variable name="tests-dir"      select="normalize-space($identification/tests-dir)"/>
   
   <xsl:element name="html">
@@ -209,12 +215,20 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'Fail'"/>
         </xsl:element>
       </xsl:element>
-            <xsl:element name="td">
+      <xsl:element name="td">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="'Inconclusive'"/>
+          <xsl:value-of select="'Inconc'"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
+          <xsl:value-of select="'Kfail'"/>
         </xsl:element>
       </xsl:element>
     </xsl:element>
@@ -283,12 +297,20 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="$fail-tests"/>
         </xsl:element>
       </xsl:element>
-            <xsl:element name="td">
+      <xsl:element name="td">
         <xsl:attribute name="align">
           <xsl:value-of select="'center'"/>
         </xsl:attribute>
         <xsl:element name="b">
           <xsl:value-of select="$inconc-tests"/>
+        </xsl:element>
+      </xsl:element>
+      <xsl:element name="td">
+        <xsl:attribute name="align">
+          <xsl:value-of select="'center'"/>
+        </xsl:attribute>
+        <xsl:element name="b">
+          <xsl:value-of select="$kfail-tests"/>
         </xsl:element>
       </xsl:element>
     </xsl:element>
@@ -348,6 +370,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'Inconc'"/>
         </xsl:element>
         <xsl:element name="th">
+          <xsl:value-of select="'Kfail'"/>
+        </xsl:element>
+        <xsl:element name="th">
           <xsl:value-of select="'Percent'"/>
         </xsl:element>
 
@@ -363,6 +388,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:variable name="test-pass" select="count($all-tests[@result = 'pass'])"/>
           <xsl:variable name="test-fail" select="count($all-tests[@result = 'fail'])"/>
           <xsl:variable name="test-inc"  select="count($all-tests[@result = 'unknown'])"/>
+          <xsl:variable name="test-kfail" select="count($tests-log-doc/qa/functional-tests/results/test[suite=$suite and result='known'])"/>
           <xsl:variable name="test-percent" select="round((($test-pass div $test-num) * 100) - 0.5)"/>
           <xsl:variable name="suitename" select="translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')"/>
           
@@ -383,11 +409,19 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:variable>
 
           <xsl:element name="tr">
-          <xsl:call-template name="setColour">
-            <xsl:with-param name="percent" select="$test-percent"/>
-            <xsl:with-param name="red" select="'100'"/>
-            <xsl:with-param name="yellow" select="'100'"/>
-          </xsl:call-template>
+            <xsl:attribute name="bgcolor">
+              <xsl:choose>
+                <xsl:when test="$test-percent = '100'">
+                  <xsl:value-of select="'lightgreen'" />
+                </xsl:when>
+                <xsl:when test="$test-fail = $test-kfail">
+                  <xsl:value-of select="'yellow'" />
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:value-of select="'red'" />
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:attribute>
   
             <!-- Group Name -->
             <xsl:element name="td">
@@ -456,6 +490,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <xsl:value-of select="'center'"/>
               </xsl:attribute>
               <xsl:value-of select="$test-inc"/>
+            </xsl:element>
+
+            <!-- Kfail -->
+            <xsl:element name="td">
+              <xsl:attribute name="align">
+                <xsl:value-of select="'center'"/>
+              </xsl:attribute>
+              <xsl:value-of select="$test-kfail"/>
             </xsl:element>
         
             <!-- Percent -->
