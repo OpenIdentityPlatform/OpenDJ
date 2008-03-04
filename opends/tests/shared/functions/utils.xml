@@ -1483,22 +1483,18 @@
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
       </message>
-
-      <block name="'%s:Wrapper for %s' % (_id,re.compile('\..*$').sub('',os.path.basename(command)))">
-      
-          <process name="name">
-            <location>location</location>
-            <command>command</command>
-            <parms>arguments</parms>
-            <workdir>path</workdir>
-            <envs>env</envs>
-            <console use="'same'"/>
-            <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-          </process>
-      
-      </block>
+   
+      <process name="name">
+        <location>location</location>
+        <command>command</command>
+        <parms>arguments</parms>
+        <workdir>path</workdir>
+        <envs>env</envs>
+        <console use="'same'"/>
+        <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>
       
       <script>
         cmdRC = RC
