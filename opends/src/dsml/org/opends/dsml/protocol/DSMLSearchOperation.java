@@ -75,11 +75,11 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new AND search filter with the provided filter components.
-   * 
+   *
    * @param filterSet The filter components for this filter
-   * 
+   *
    * @return a new AND search filter with the provided filter components.
-   * 
+   *
    * @throws LDAPException an LDAPException is thrown if the creation of a
    *                       filter component fails.
    */
@@ -96,9 +96,9 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new Approximate search filter with the provided information.
-   * 
+   *
    * @param ava the attribute value assertion for this approximate filter.
-   * 
+   *
    * @return a new Approximate search filter with the provided information.
    */
   private static LDAPFilter createApproximateFilter(AttributeValueAssertion ava)
@@ -109,9 +109,9 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new Equality search filter with the provided information.
-   * 
+   *
    * @param ava the attribute value assertion for this Equality filter.
-   * 
+   *
    * @return a new Equality search filter with the provided information.
    */
   private static LDAPFilter createEqualityFilter(AttributeValueAssertion ava) {
@@ -121,9 +121,9 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new Extensible search filter with the provided information.
-   * 
+   *
    * @param mra the matching rule assertion for this Extensible filter.
-   * 
+   *
    * @return a new Extensible search filter with the provided information.
    */
   private static LDAPFilter createExtensibleFilter(MatchingRuleAssertion mra) {
@@ -135,9 +135,9 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new GreaterOrEqual search filter with the provided information.
-   * 
+   *
    * @param ava the attribute value assertion for this GreaterOrEqual filter.
-   * 
+   *
    * @return a new GreaterOrEqual search filter with the provided information.
    */
   private static LDAPFilter createGreaterOrEqualFilter(
@@ -148,9 +148,9 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new LessOrEqual search filter with the provided information.
-   * 
+   *
    * @param ava the attribute value assertion for this LessOrEqual filter.
-   * 
+   *
    * @return a new LessOrEqual search filter with the provided information.
    */
   private static LDAPFilter createLessOrEqualFilter(
@@ -161,11 +161,11 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new NOT search filter with the provided information.
-   * 
+   *
    * @param filter the filter for this NOT filter.
-   * 
+   *
    * @return a new NOT search filter with the provided information.
-   * 
+   *
    * @throws LDAPException an LDAPException is thrown if the creation of the
    *                       provided filter fails.
    */
@@ -176,11 +176,11 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new OR search filter with the provided filter components.
-   * 
+   *
    * @param filterSet The filter components for this filter
-   * 
+   *
    * @return a new OR search filter with the provided filter components.
-   * 
+   *
    * @throws LDAPException an LDAPException is thrown if the creation of a
    *                       filter component fails.
    */
@@ -197,12 +197,12 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new Present search filter with the provided information.
-   * 
+   *
    * @param ad the attribute description for this Present filter.
-   * 
+   *
    * @returna new Present search filter with the provided information.
-   * 
-   * @throws LDAPException an LDAPException is thrown if the ASN.1 element 
+   *
+   * @throws LDAPException an LDAPException is thrown if the ASN.1 element
    *                       provided by the attribute description cannot be
    *                       decoded as a raw search filter.
    */
@@ -214,14 +214,14 @@ public class DSMLSearchOperation
 
   /**
    * Returns a new Substring search filter with the provided information.
-   * 
+   *
    * @param sf the substring filter for this Substring filter.
-   * 
+   *
    * @return a new Substring search filter with the provided information.
    */
   private static LDAPFilter createSubstringFilter(SubstringFilter sf) {
     List<String> anys = sf.getAny();
-    ArrayList<ByteString> subAnyElements = 
+    ArrayList<ByteString> subAnyElements =
                                          new ArrayList<ByteString>(anys.size());
 
     for(String s : anys) {
@@ -234,16 +234,16 @@ public class DSMLSearchOperation
   }
 
   /**
-   * Returns a new LDAPFilter according to the tag name of the provided element 
+   * Returns a new LDAPFilter according to the tag name of the provided element
    * that can be "and", "or", "not", "equalityMatch", "substrings",
    * "greaterOrEqual", "lessOrEqual", "present", "approxMatch",
    * "extensibleMatch".
-   * 
+   *
    * @param xmlElement a JAXBElement that contains the name of the filter to
    *                   create and the associated argument.
-   * 
+   *
    * @return a new LDAPFilter according to the tag name of the provided element.
-   * 
+   *
    * @throws LDAPException an LDAPException is thrown if the creation of the
    *                       targeted filter fails.
    */
@@ -304,12 +304,12 @@ public class DSMLSearchOperation
   /**
    * Returns a new LDAPFilter according to the filter assigned to the provided
    * filter.
-   * 
+   *
    * @param filter a filter that contains the object filter to create.
-   * 
+   *
    * @return a new LDAPFilter according to the filter assigned to the provided
    *         filter.
-   * 
+   *
    * @throws LDAPException an LDAPException is thrown if the creation of the
    *                       targeted filter fails.
    */
@@ -317,7 +317,7 @@ public class DSMLSearchOperation
           throws LDAPException {
 
     LDAPFilter result = null;
-    
+
     if ( filter.getAnd() != null ) {
       result = createANDFilter(filter.getAnd());
     }

@@ -90,13 +90,13 @@ public class DSMLServlet extends HttpServlet {
   private static final String AUTHENTICATION_FAILED = "authenticationFailed";
   private static final String COULD_NOT_CONNECT = "couldNotConnect";
   private static final String GATEWAY_INTERNAL_ERROR = "gatewayInternalError";
-  
+
   private static final String UNKNOWN_ERROR = "Unknown error";
 
   // definitions of onError values
   private static final String ON_ERROR_RESUME = "resume";
   private static final String ON_ERROR_EXIT = "exit";
-  
+
   private Unmarshaller unmarshaller;
   private Marshaller marshaller;
   private ObjectFactory objFactory;
@@ -107,10 +107,10 @@ public class DSMLServlet extends HttpServlet {
   // requestID value when the xml request is malformed and thus unparsable
   // using SOAP or JAXB.
   private DSMLContentHandler contentHandler;
-  
+
   private String hostName;
   private Integer port;
-  
+
   /**
    * This method will be called by the Servlet Container when
    * this servlet is being placed into service.
@@ -120,7 +120,7 @@ public class DSMLServlet extends HttpServlet {
    * @throws ServletException If an error occurs during processing.
    */
   public void init(ServletConfig config) throws ServletException {
-    
+
     try {
       hostName = config.getServletContext().getInitParameter(HOST);
 
@@ -151,7 +151,7 @@ public class DSMLServlet extends HttpServlet {
       throw new ServletException(je.getMessage());
     }
   }
-  
+
   /**
    * The HTTP POST operation. This servlet expects a SOAP message
    * with a DSML request payload.
@@ -166,7 +166,7 @@ public class DSMLServlet extends HttpServlet {
     LDAPConnectionOptions connOptions = new LDAPConnectionOptions();
     LDAPConnection connection = null;
     BatchRequest batchRequest = null;
-    
+
     // Keep the Servlet input stream buffered in case the SOAP unmarshalling
     // fails, the SAX parsing will be able to retrieve the requestID even if
     // the XML is malmformed by resetting the input stream.
@@ -181,9 +181,9 @@ public class DSMLServlet extends HttpServlet {
     BatchResponse batchResponse = objFactory.createBatchResponse();
     List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
     Document doc = db.newDocument();
-    
+
     SOAPBody soapBody = null;
-    
+
     MimeHeaders mimeHeaders = new MimeHeaders();
     Enumeration en = req.getHeaderNames();
     String bindDN = null;
@@ -242,7 +242,7 @@ public class DSMLServlet extends HttpServlet {
       } catch (SOAPException ex) {
         // SOAP was unable to parse XML successfully
         batchResponses.add(
-          createXMLParsingErrorResponse(is, 
+          createXMLParsingErrorResponse(is,
                                         batchResponse,
                                         String.valueOf(ex.getCause())));
       }
@@ -267,10 +267,10 @@ public class DSMLServlet extends HttpServlet {
         }
         if ( batchRequestElement != null ) {
           batchRequest = batchRequestElement.getValue();
-          
+
           // set requestID in response
           batchResponse.setRequestID(batchRequest.getRequestID());
-          
+
           boolean connected = false;
           if ( connection == null ) {
             connection = new LDAPConnection(hostName, port, connOptions);
@@ -284,7 +284,7 @@ public class DSMLServlet extends HttpServlet {
           }
           if ( connected ) {
             List<DsmlMessage> list = batchRequest.getBatchRequests();
-            
+
             for (DsmlMessage request : list) {
               JAXBElement<?> result = performLDAPRequest(connection, request);
               if ( result != null ) {
@@ -341,7 +341,7 @@ public class DSMLServlet extends HttpServlet {
                                                     BatchResponse batchResponse,
                                                     String parserErrorMessage) {
     ErrorResponse errorResponse = objFactory.createErrorResponse();
-    
+
     try {
       // try alternative XML parsing using SAX to retrieve requestID value
       XMLReader xmlReader = XMLReaderFactory.createXMLReader();
@@ -349,7 +349,7 @@ public class DSMLServlet extends HttpServlet {
       this.contentHandler.requestID = null;
       xmlReader.setContentHandler(this.contentHandler);
       is.reset();
-      
+
       xmlReader.parse(new InputSource(is));
     } catch (Throwable e) {
       // document is unparsable so will jump here
@@ -358,9 +358,9 @@ public class DSMLServlet extends HttpServlet {
       errorResponse.setMessage(parserErrorMessage);
     }
     batchResponse.setRequestID(this.contentHandler.requestID);
-    
+
     errorResponse.setType(MALFORMED_REQUEST);
-    
+
     return objFactory.createBatchResponseErrorResponse(errorResponse);
   }
 
@@ -374,10 +374,10 @@ public class DSMLServlet extends HttpServlet {
    */
   private JAXBElement<ErrorResponse> createErrorResponse(Throwable t) {
     // potential exceptions are IOException, LDAPException, ASN1Exception
-    
+
     ErrorResponse errorResponse = objFactory.createErrorResponse();
     errorResponse.setMessage(String.valueOf(t));
-    
+
     if ( t instanceof LDAPException ) {
       switch(((LDAPException)t).getResultCode()) {
         case LDAPResultCode.AUTHORIZATION_DENIED:
@@ -386,15 +386,15 @@ public class DSMLServlet extends HttpServlet {
         case LDAPResultCode.STRONG_AUTH_REQUIRED:
           errorResponse.setType(AUTHENTICATION_FAILED);
           break;
-          
+
         case LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR:
           errorResponse.setType(COULD_NOT_CONNECT);
           break;
-          
+
         case LDAPResultCode.UNWILLING_TO_PERFORM:
           errorResponse.setType(NOT_ATTEMPTED);
           break;
-          
+
         default:
           errorResponse.setType(UNKNOWN_ERROR);
           break;
@@ -404,7 +404,7 @@ public class DSMLServlet extends HttpServlet {
     } else {
       errorResponse.setType(GATEWAY_INTERNAL_ERROR);
     }
-    
+
     return objFactory.createBatchResponseErrorResponse(errorResponse);
   }
 
@@ -426,7 +426,7 @@ public class DSMLServlet extends HttpServlet {
         SearchRequest sr = (SearchRequest) request;
         DSMLSearchOperation ds = new DSMLSearchOperation(connection);
         SearchResponse searchResponse = ds.doSearch(objFactory, sr);
-        
+
         return objFactory.createBatchResponseSearchResponse(searchResponse);
       } else if (request instanceof AddRequest) {
         // Process the add request.
@@ -446,7 +446,7 @@ public class DSMLServlet extends HttpServlet {
         DSMLExtendedOperation eo = new DSMLExtendedOperation(connection);
         ExtendedResponse extendedResponse = eo.doOperation(objFactory, er);
         return objFactory.createBatchResponseExtendedResponse(extendedResponse);
-        
+
       } else if (request instanceof DelRequest) {
         // Process the delete request.
         DelRequest dr = (DelRequest) request;
@@ -479,12 +479,12 @@ public class DSMLServlet extends HttpServlet {
         // LDAP result code AUTH_METHOD_NOT_SUPPORTED
         ResultCode resultCode = objFactory.createResultCode();
         resultCode.setCode(LDAPResultCode.AUTH_METHOD_NOT_SUPPORTED);
-        
+
         LDAPResult ldapResult = objFactory.createLDAPResult();
         ldapResult.setResultCode(resultCode);
-        
+
         return objFactory.createBatchResponseAuthResponse(ldapResult);
-      } 
+      }
     } catch (Throwable t) {
       return createErrorResponse(t);
     }
@@ -492,7 +492,7 @@ public class DSMLServlet extends HttpServlet {
     return null;
   }
 
-  
+
   /**
    * Send a response back to the client. This could be either a SOAP fault
    * or a correct DSML response.
@@ -505,24 +505,24 @@ public class DSMLServlet extends HttpServlet {
    */
   private void sendResponse(Document doc, HttpServletResponse res)
     throws IOException, SOAPException {
-    
+
     SOAPMessage reply = messageFactory.createMessage();
     SOAPHeader header = reply.getSOAPHeader();
     header.detachNode();
     SOAPBody replyBody = reply.getSOAPBody();
-    
+
     res.setHeader("Content-Type", "text/xml");
-    
+
     SOAPElement bodyElement = replyBody.addDocument(doc);
-    
+
     reply.saveChanges();
-    
+
     OutputStream os = res.getOutputStream();
     reply.writeTo(os);
     os.flush();
   }
-  
-  
+
+
   /**
    * Retrieves a message ID that may be used for the next LDAP message sent to
    * the Directory Server.
@@ -535,7 +535,7 @@ public class DSMLServlet extends HttpServlet {
     if (nextID == Integer.MAX_VALUE) {
       nextMessageID.set(1);
     }
-    
+
     return nextID;
   }
 
