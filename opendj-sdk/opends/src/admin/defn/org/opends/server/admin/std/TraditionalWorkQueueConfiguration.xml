@@ -62,13 +62,13 @@
     </ldap:object-class>
   </adm:profile>
   <adm:property-override name="java-class" advanced="true">
-  	<adm:default-behavior>
-  		<adm:defined>
-  			<adm:value>
-  				org.opends.server.extensions.TraditionalWorkQueue
-  			</adm:value>
-  		</adm:defined>
-  	</adm:default-behavior>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>
+          org.opends.server.extensions.TraditionalWorkQueue
+        </adm:value>
+      </adm:defined>
+    </adm:default-behavior>
   </adm:property-override>
   <adm:property name="num-worker-threads" mandatory="true">
     <adm:synopsis>
