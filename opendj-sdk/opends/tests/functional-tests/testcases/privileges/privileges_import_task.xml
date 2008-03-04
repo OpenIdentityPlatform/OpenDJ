@@ -95,13 +95,11 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
-                  'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                        % logsRemoteDataDir,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, Admin adding privilege'
@@ -128,13 +126,11 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
-                  'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
+                  'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                        % logsRemoteDataDir,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, Admin adding ACI'
@@ -168,10 +164,6 @@
                   'ldifFile'         : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, Admin deleting global ACI'
@@ -262,18 +254,16 @@
                 </message>
     
                 <call function="'importLdifTask'">
-                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort'          : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'            : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'          : DIRECTORY_INSTANCE_PSWD ,
-                  'taskID'                  : STAXCurrentTestcase,
-                  'ldifFile'                : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'         : STAXCurrentTestcase,
+                  'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                     % logsRemoteDataDir,
+                  'expectedRC'     : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, Directory Manager, alternative root user putting back privilege'
@@ -295,18 +285,15 @@
                 </message>
     
                 <call function="'importLdifTask'">
-                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort'          : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'            : DIRECTORY_INSTANCE_DN ,
-                  'dsInstancePswd'          : DIRECTORY_INSTANCE_PSWD ,
-                  'taskID'                  : STAXCurrentTestcase,
-                  'ldifFile'                : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'taskID'         : STAXCurrentTestcase,
+                  'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                      % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, Directory Manager, alternative root user searching entry'
@@ -394,18 +381,16 @@
                 </message>
     
                 <call function="'importLdifTask'">
-                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort'          : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'            : 'cn=Zroot' ,
-                    'dsInstancePswd'        : 'PrivsRule' ,
-                  'taskID'                  : STAXCurrentTestcase,
-                  'ldifFile'                : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
-                }
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : 'cn=Zroot' ,
+                  'dsInstancePswd' : 'PrivsRule' ,
+                  'taskID'         : STAXCurrentTestcase,
+                  'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                      % logsRemoteDataDir,
+                  'expectedRC'     : 50
+                  }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, New Root User, alternative root user putting back privilege'
@@ -427,18 +412,15 @@
                 </message>
     
                 <call function="'importLdifTask'">
-                { 'dsInstanceHost'          : DIRECTORY_INSTANCE_HOST,
-                  'dsInstancePort'          : DIRECTORY_INSTANCE_PORT,
-                  'dsInstanceDn'            : 'cn=Zroot' ,
-                    'dsInstancePswd'        : 'PrivsRule' ,
-                  'taskID'                  : STAXCurrentTestcase,
-                  'ldifFile'                : '%s/privileges/privileges_import_task/import_task.ldif' % logsRemoteDataDir
+                { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                  'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                  'dsInstanceDn'   : 'cn=Zroot' ,
+                  'dsInstancePswd' : 'PrivsRule' ,
+                  'taskID'         : STAXCurrentTestcase,
+                  'ldifFile'       : '%s/privileges/privileges_import_task/import_task.ldif' \
+                                      % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Import Tasks: import-ldif, New Root User, alternative root user searching entry'

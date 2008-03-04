@@ -1123,6 +1123,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def> 
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>    
       
     </function-map-args>
     <sequence>
@@ -1208,7 +1215,9 @@
           'dsPort'     : dsInstancePort,
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
+          'dsTaskLdif' : taskLdif,
+          'expectedRC' : expectedRC
+        }
       </call>
 
       <script>
@@ -1228,6 +1237,11 @@
               'dsBindPswd'        : dsInstancePswd,
               'noOfLoops'         : numLdapCheckTries,
               'sleepMilliSeconds' : sleepBetweenLdapCheckTries }
+          </call>
+          <message>'Check CheckLdapTask returns RC=0'</message>
+          <call function="'checktestRC'">
+             { 'returncode' : RC ,
+               'result'     : STAXResult }
           </call>
         </sequence>
       </if>
@@ -3084,6 +3098,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def> 
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -3142,9 +3162,11 @@
         STAFCmdResult=STAXResult
       </script>
       
-      <call function="'checkRC'">
-        { 'returncode' : STAFCmdRC ,
-          'result'     : STAFCmdResult }
+      <call function="'checktestRC'">
+        { 'returncode' : STAFCmdRC,
+          'result'     : STAFCmdResult,
+          'expected'   : expectedRC
+        }
       </call>
  
       <return>[STAFCmdRC, STAFCmdResult[0][1]]</return>
@@ -3278,10 +3300,11 @@
           <!-- Search for task status -->
           
           <call function="'runCommand'">
-            { 'name'      : 'Search On line Import Task',
-              'command'   : STAFCmd,
-              'arguments' : STAFCmdParams,
-              'location'  : myLocation
+            { 'name'       : 'Search On line Import Task',
+              'command'    : STAFCmd,
+              'arguments'  : STAFCmdParams,
+              'location'   : myLocation,
+              'expectedRC' : 'noCheck'
             }
           </call>
           
@@ -3313,11 +3336,6 @@
             </message>
           </else>
           </if>
-          
-          <call function="'checkRC'">
-              { 'returncode' : STAFCmdRC ,
-                'result'     : STAFCmdResult }
-          </call>
         
           <message>
             'Sleeping for %s ms' % sleepMilliSeconds
