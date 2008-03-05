@@ -12,6 +12,7 @@
   <property file="build.properties"                  />
   <property file="opends.properties" prefix="opends" />
   <property file="proxy.properties"  prefix="proxy"  />
+  <property file="${basedir}/../../../PRODUCT"/>
   
   <!-- platform specific properties -->
   <condition property="script.ext" value=".bat" else="">
@@ -133,7 +134,7 @@
     </if>
   </target>
   
-  <target name="configure-opends">
+  <target name="setup-opends">
     <if>
       <available file="${product.path}" />
       <then>
@@ -146,23 +147,38 @@
           <arg value="--cli"                         />
           <arg value="--rootUserDN"                  />
           <arg value="${opends.admin.dn}"            />
-          <arg line="--rootUserPassword"             />
+          <arg value="--rootUserPassword"            />
           <arg value="${opends.admin.pwd}"           />
-          <arg line="--ldapPort ${opends.port.ldap}" />
+          <arg value="--ldapPort"                    />
+          <arg value="${opends.port.ldap}"           />
           <arg value="--baseDN"                      />
           <arg value="${opends.suffix}"              />
           <arg value="--addBaseEntry"                />
+          <arg value="--doNotStart"                  />
+          <arg value="--no-prompt"                   />
         </exec>
+      </then>
+      <else>
+        <echo message="OpenDS is not installed." />
+      </else>
+    </if>
+  </target>
+
+  <target name="import-ldif">
+    <if>
+      <available file="${product.path}" />
+      <then>
+        <input message="JVM arguments" addproperty="JAVA_ARGS.input" defaultvalue="-Xms256M -Xmx1G"/>
         <echo message="Importing data" />
         <exec
           executable="${opends.bin.path}${file.separator}import-ldif${script.ext}">
           <arg value="--ldifFile"      />
           <arg value="${tmp.path}${file.separator}${opends.makeldif.ldif}" />
-          <arg line="--backendID"      />
+          <arg value="--backendID"      />
           <arg value="userRoot"        />
-          <env key="JAVA_ARGS" value="-Xms256M -Xmx1G" />
+          <arg value="--clearBackend"   />
+          <env key="JAVA_ARGS" value="${JAVA_ARGS.input}" />
         </exec>
-        <echo message="Tuning server settings" />
       </then>
       <else>
         <echo message="OpenDS is not installed." />
@@ -183,13 +199,14 @@
       </then>
       <else>
         <if>
-          <isset property="opends.makeldif.entries"/>
+          <isset property="entries"/>
           <then>
-            <property name="entries.total.input" value="${opends.makeldif.entries}" />
+            <property name="entries.total.input" value="${entries}" />
           </then>
           <else>
             <input message="How many entries should the resulting template generate?"
-                 addproperty="entries.total.input" />
+                 addproperty="entries.total.input"
+                 defaultvalue="${opends.makeldif.entries}" />
           </else>
         </if>
         
@@ -372,5 +389,26 @@
   </target>
   
   <target name="generate-slamd-config" >
+  </target>
+  
+  <target name="opends-build-check" >
+    <available file="${basedir}/../../../build/package/${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.zip" property="opends.built.already" />
+  </target>
+  
+  <target name="build-opends" depends="opends-build-check" unless="opends.built.already">
+    <ant dir="${basedir}/../../.." antfile="build.xml" target="package" />
+  </target>
+  <target name="all" depends="build-opends">
+    <delete file="${tmp.path}${file.separator}${opends.package.name}" />
+    <copy todir="${tmp.path}">
+       <fileset dir="${basedir}/../../../build/package">
+         <include name="OpenDS*.zip"/>
+       </fileset>
+     </copy>
+     <antcall target="unpack-opends"     />
+     <antcall target="generate-template" />
+     <antcall target="generate-ldif"     />
+     <antcall target="setup-opends"      />
+     <antcall target="import-ldif"       />
   </target>
 </project>
