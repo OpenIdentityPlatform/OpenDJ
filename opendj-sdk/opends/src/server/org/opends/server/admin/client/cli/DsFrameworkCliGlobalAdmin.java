@@ -668,15 +668,15 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
    *
    * @param propertySetArgument
    *          The input set argument.
-   * @param checkMandatoryProps
+   * @param createCall
    *          Indicates if we should check the presence of mandatory
-   *          properties.
+   *          properties and add root privileges.
    * @return The created map.
    * @throws ArgumentException
    *           If error error occurs during set parsing.
    */
   private Map<AdministratorProperty, Object> mapSetOptionsToMap(
-      StringArgument propertySetArgument, boolean checkMandatoryProps)
+      StringArgument propertySetArgument, boolean createCall)
       throws ArgumentException
   {
     HashMap<AdministratorProperty, Object> map =
@@ -768,6 +768,14 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
       }
     }
 
+    // If we are not in the create admin user, just return the
+    // provided atributes.
+    if (! createCall)
+    {
+      return map ;
+    }
+
+    // Here, we are in the create case.
     // If privileges was not provided by the user, set the default value
     if (! map.containsKey(AdministratorProperty.PRIVILEGE))
     {
@@ -784,12 +792,6 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
         privilegesList.add(p.getName());
       }
       map.put(AdministratorProperty.PRIVILEGE,privilegesList);
-    }
-
-    // Check that all mandatory props are set.
-    if (! checkMandatoryProps)
-    {
-      return map ;
     }
 
     for (AdministratorProperty s : AdministratorProperty.values())
