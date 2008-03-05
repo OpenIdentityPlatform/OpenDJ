@@ -1839,7 +1839,7 @@ public class ADSContext
         }
         else if (attrID.equalsIgnoreCase("userpassword"))
         {
-          value = attr.get(0);
+          value = new String((byte[]) attr.get());
           result.put(AdministratorProperty.PASSWORD, value);
         }
         else if (attrID.equalsIgnoreCase("description"))
