@@ -57,6 +57,7 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionVisitor;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
+import org.opends.server.admin.RelationOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.SizePropertyDefinition;
 import org.opends.server.admin.StringPropertyDefinition;
@@ -152,11 +153,11 @@ public class ConfigGuideGeneration {
   private void generate() {
     init();
 
-    // Generate the inheritance tree of all the managed objects
-    genManagedObjectInheritanceTree(catTopMoList);
-
     // Generate the relation tree of all the managed objects
     genManagedObjectRelationTree(catTopRelList);
+
+    // Generate the inheritance tree of all the managed objects
+    genManagedObjectInheritanceTree(catTopMoList);
 
     // Generate all the managed objects and their children
     genAllManagedObject(topMoList);
@@ -264,6 +265,10 @@ public class ConfigGuideGeneration {
       TreeMap<String, AbstractManagedObjectDefinition> catList =
         list.get(catName);
       for (AbstractManagedObjectDefinition mo : catList.values()) {
+        if ((relList.get(mo.getName()) != null) &&
+          (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
+          continue;
+        }
         paragraph(
           getLink(mo.getUserFriendlyName().toString(),
           mo.getName() + ".html", MAIN_FRAME));
@@ -339,6 +344,9 @@ public class ConfigGuideGeneration {
       AbstractManagedObjectDefinition childMo = rel.getChildDefinition();
       AbstractManagedObjectDefinition parentMo = rel.getParentDefinition();
       relList.put(childMo.getName(), rel);
+      if (rel.hasOption(RelationOption.HIDDEN)) {
+        continue;
+      }
       String linkStr = getLink(childMo.getUserFriendlyName().toString(),
         childMo.getName() + ".html", MAIN_FRAME);
       String fromStr = "";
@@ -382,6 +390,10 @@ public class ConfigGuideGeneration {
     TreeMap<String, AbstractManagedObjectDefinition> list) {
 
     for (AbstractManagedObjectDefinition mo : list.values()) {
+      if ((relList.get(mo.getName()) != null) &&
+        (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
+        continue;
+      }
       moList.put(mo.getName(), mo);
       genManagedObject(mo);
       if (mo.hasChildren()) {
