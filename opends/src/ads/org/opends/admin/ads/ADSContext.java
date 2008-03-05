@@ -1271,6 +1271,8 @@ public class ADSContext
     LdapName dnCentralAdmin =
       makeDNFromAdministratorProperties(adminProperties);
 
+    boolean updatePassword = adminProperties
+        .containsKey(AdministratorProperty.PASSWORD);
     try
     {
       // Entry renaming
@@ -1307,7 +1309,7 @@ public class ADSContext
       {
         BasicAttributes attrs =
           makeAttrsFromAdministratorProperties(
-              adminProperties, false, currentPrivileges);
+              adminProperties, updatePassword, currentPrivileges);
         dirContext.modifyAttributes(dnCentralAdmin,
             DirContext.REPLACE_ATTRIBUTE, attrs);
       }
