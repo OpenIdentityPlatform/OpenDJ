@@ -2348,10 +2348,15 @@ public final class StaticUtils
    *
    * @throws  SecurityException  If the security policy will not allow the
    *                             command to be executed.
+   *
+   * @throws InterruptedException If the current thread is interrupted by
+   *                              another thread while it is waiting, then
+   *                              the wait is ended and an InterruptedException
+   *                              is thrown.
    */
   public static int exec(String command, String[] args, File workingDirectory,
                          Map<String,String> environment, List<String> output)
-         throws IOException, SecurityException
+         throws IOException, SecurityException, InterruptedException
   {
     // See whether we'll allow the use of exec on this system.  If not, then
     // throw an exception.
@@ -2387,101 +2392,57 @@ public final class StaticUtils
 
     Process process = processBuilder.start();
 
-    if (output == null)
+    // We must exhaust stdout and stderr before calling waitfor. Since we
+    // redirected the error stream, we just have to read from stdout.
+    InputStream processStream =  process.getInputStream();
+    BufferedReader reader =
+        new BufferedReader(new InputStreamReader(processStream));
+    String line = null;
+
+    try
     {
+      while((line = reader.readLine()) != null)
+      {
+        if(output != null)
+        {
+          output.add(line);
+        }
+      }
+    }
+    catch(IOException ioe)
+    {
+      // If this happens, then we have no choice but to forcefully terminate
+      // the process.
       try
       {
-        return process.waitFor();
+        process.destroy();
       }
-      catch (InterruptedException ie)
+      catch (Exception e)
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        // If this happens, then we have no choice but to forcefully terminate
-        // the process.
-        try
-        {
-          process.destroy();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-
-        return process.exitValue();
       }
+
+      throw ioe;
     }
-    else
+    finally
     {
-      InputStream processStream =  process.getInputStream();
-      BufferedReader reader =
-           new BufferedReader(new InputStreamReader(
-                                       process.getInputStream()));
-
       try
       {
-        while (processStream.available() > 0)
-        {
-          String line = reader.readLine();
-          if (line == null)
-          {
-            break;
-          }
-          else
-          {
-            output.add(line);
-          }
-        }
+        reader.close();
       }
-      finally
-      {
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-
-      try
-      {
-        return process.waitFor();
-      }
-      catch (InterruptedException ie)
+      catch(IOException e)
       {
         if (debugEnabled())
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ie);
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        // If this happens, then we have no choice but to forcefully terminate
-        // the process.
-        try
-        {
-          process.destroy();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-
-        return process.exitValue();
       }
     }
+
+    return process.waitFor();
   }
 
 
