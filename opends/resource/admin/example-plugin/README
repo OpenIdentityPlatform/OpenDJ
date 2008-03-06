@@ -5,7 +5,7 @@ when an OpenDS instance is started.
 
 In order to build and use this example plugin, perform the following
 steps (presumably you are already at step 4):
- 
+
   1. In the top-level source folder for OpenDS, first build and
      package OpenDS:
 
@@ -23,7 +23,7 @@ steps (presumably you are already at step 4):
 
      cd example-plugin
 
-  5. And build the plugin (this requires Ant in your path):
+  5. And build the plugin (this requires Ant version 7 or higher in your path):
 
      ant install
 
@@ -43,6 +43,6 @@ steps (presumably you are already at step 4):
 
   8. Start the server and look for the "hello world" notice in the start
      up log:
-     
+
      cd ..
      ./bin/start-ds
