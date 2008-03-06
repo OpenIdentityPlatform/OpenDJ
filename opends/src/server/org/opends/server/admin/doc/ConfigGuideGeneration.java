@@ -670,6 +670,9 @@ public class ConfigGuideGeneration {
           + basicPropName + "</a></td>\n";
       } else if ((basicPropsArray.length == 0) && (ii == 0)) {
         basicHtmlCell = "  <td>&nbsp;None</td>\n";
+      } else if (ii >= basicPropsArray.length) {
+        // Case of nb of basic props < nb of advanced props
+        basicHtmlCell = "  <td></td>\n";
       }
 
       String advancedHtmlCell = "";
