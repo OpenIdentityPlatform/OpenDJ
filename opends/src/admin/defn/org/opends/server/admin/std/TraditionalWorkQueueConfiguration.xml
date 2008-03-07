@@ -38,22 +38,13 @@
     becomes available.
   </adm:synopsis>
   <adm:description>
-    The traditional work queue is named that because its implementation 
-    is similar to that used by the Sun Java System Directory Server. 
     The traditional work queue is a FIFO queue serviced by a fixed 
-    number of worker threads. However, there are a couple of notable 
-    differences in its design: 1) The number of worker threads is fixed, 
-    but it can be changed on the fly and those changes take effect 
-    immediately. In the Sun Java System Directory Server, changes to the 
-    number of worker threads require a server restart to take effect. 
-    2) The work queue in the Sun Java System Directory Server is 
-    unbounded. If all threads are busy processing existing operations 
-    and new requests arrive, they continue to accumulate in the work 
-    queue and the server appears to be frozen. In the OpenDS Directory 
-    Server, it is possible to place a size limit on the work queue. 
-    When this number of operations are in the queue, waiting to be 
-    picked up by threads, any new requests received are rejected with 
-    an error message. 
+    number of worker threads. This fixed number of threads can be 
+    changed on the fly, with the change taking effect as soon as 
+    it is made. You can limit the size of the work queue to a specified 
+    number of operations. When this many operations are in the 
+    queue, waiting to be picked up by threads, any new requests are 
+    rejected with an error message. 
   </adm:description>
   <adm:profile name="ldap">
     <ldap:object-class>
