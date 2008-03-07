@@ -25,6 +25,7 @@
 #
 list-account-status-notification-handlers:Account Status Notification Handler:Error Log Handler:
 list-alert-handlers:Alert Handler:JMX Alert Handler:
+list-entry-caches:File System:soft-reference:
 list-attribute-syntaxes:Attribute Syntax:Object Class Description:
 list-backends:adminRoot:userRoot:
 list-certificate-mappers:Fingerprint Mapper:Subject Attribute to User Attribute:

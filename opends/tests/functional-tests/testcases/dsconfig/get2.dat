@@ -29,3 +29,4 @@ get-global-configuration-prop:default-password-policy:time-limit:
 get-plugin-root-prop:plugin-order-ldif-import:plugin-order-post-operation-modify:
 get-root-dn-prop:Property:default-root-privilege-name:
 get-work-queue-prop:max-work-queue-capacity:num-worker-threads:
+get-crypto-manager-prop:ssl-cert-nickname:ssl-encryption:
