@@ -288,6 +288,7 @@
 #@TestMarker            Monitoring Provider Tests
 #@TestName              System Info monitoring Provider
 #@TestPurpose           Test the System Info monitoring Provider
+#@TestIssue             2873
 #@TestPreamble          none
 #@TestStep              Check the entry on cn=System Info,cn=monitor is available
 #@TestStep              Disable the System Info monitoring Provider
@@ -339,6 +340,9 @@
               'expectedRC'	    :  32 }
             </call> 
             
+            <script>
+		knownIssue(2873)
+            </script>            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
