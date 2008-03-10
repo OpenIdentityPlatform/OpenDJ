@@ -27,7 +27,9 @@
 package org.opends.server.core;
 
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
@@ -36,21 +38,34 @@ import java.util.ArrayList;
 public class NetworkGroupNamingContexts
 {
   // List of naming contexts.
-  private ArrayList<WorkflowTopologyNode> namingContexts = null;
+  private List<WorkflowTopologyNode> namingContexts;
+  // If list of naming contexts is returned, ensure it is immutable
+  private List<WorkflowTopologyNode> _namingContexts;
 
   // List of public naming contexts.
-  private ArrayList<WorkflowTopologyNode> publicNamingContexts = null;
+  private List<WorkflowTopologyNode> publicNamingContexts;
+  // If list of public naming contexts is returned, ensure it is immutable
+  private List<WorkflowTopologyNode> _publicNamingContexts;
 
   // List of private naming contexts.
-  private ArrayList<WorkflowTopologyNode> privateNamingContexts = null;
+  private List<WorkflowTopologyNode> privateNamingContexts;
+  // If list of private naming contexts is returned, ensure it is immutable
+  private List<WorkflowTopologyNode> _privateNamingContexts;
 
   /**
    * Create a list of naming contexts for a network group.
    */
   public NetworkGroupNamingContexts()
   {
-    // create the lists of naming contexts
-    resetLists();
+    namingContexts  = new CopyOnWriteArrayList<WorkflowTopologyNode>();
+    _namingContexts = Collections.unmodifiableList(namingContexts);
+
+    privateNamingContexts  = new CopyOnWriteArrayList<WorkflowTopologyNode>();
+    _privateNamingContexts =
+                            Collections.unmodifiableList(privateNamingContexts);
+
+    publicNamingContexts  = new CopyOnWriteArrayList<WorkflowTopologyNode>();
+    _publicNamingContexts = Collections.unmodifiableList(publicNamingContexts);
   }
 
 
@@ -59,9 +74,9 @@ public class NetworkGroupNamingContexts
    */
   public void resetLists()
   {
-    namingContexts        = new ArrayList<WorkflowTopologyNode>();
-    privateNamingContexts = new ArrayList<WorkflowTopologyNode>();
-    publicNamingContexts  = new ArrayList<WorkflowTopologyNode>();
+    namingContexts.clear();
+    privateNamingContexts.clear();
+    publicNamingContexts.clear();
   }
 
 
@@ -92,33 +107,42 @@ public class NetworkGroupNamingContexts
   /**
    * Get the list of naming contexts.
    *
+   * <br>Note: the returned iterable instance is immutable and attempts to
+   * remove elements will throw an UnsupportedOperationException exception.
+   *
    * @return the list of all the naming contexts
    */
-  public ArrayList<WorkflowTopologyNode> getNamingContexts()
+  public Iterable<WorkflowTopologyNode> getNamingContexts()
   {
-    return namingContexts;
+    return _namingContexts;
   }
 
 
   /**
    * Get the list of private naming contexts.
    *
+   * <br>Note: the returned iterable instance is immutable and attempts to
+   * remove elements will throw an UnsupportedOperationException exception.
+   *
    * @return the list of private naming contexts
    */
-  public ArrayList<WorkflowTopologyNode> getPrivateNamingContexts()
+  public Iterable<WorkflowTopologyNode> getPrivateNamingContexts()
   {
-    return privateNamingContexts;
+    return _privateNamingContexts;
   }
 
 
   /**
    * Get the list of public naming contexts.
    *
+   * <br>Note: the returned iterable instance is immutable and attempts to
+   * remove elements will throw an UnsupportedOperationException exception.
+   *
    * @return the list of public naming contexts
    */
-  public ArrayList<WorkflowTopologyNode> getPublicNamingContexts()
+  public Iterable<WorkflowTopologyNode> getPublicNamingContexts()
   {
-    return publicNamingContexts;
+    return _publicNamingContexts;
   }
 
 
