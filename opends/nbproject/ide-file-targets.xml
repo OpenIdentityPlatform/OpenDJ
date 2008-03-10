@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir=".." name="Directory Server-IDE">
+ 
+    <!-- Import build.xml properties and targets -->
+    <import file="../build.xml"/>
+    
+    <path id="opends.path">
+        <pathelement path="build/classes:build/build-tools/classes:lib/activation.jar:lib/aspectjrt.jar:lib/je.jar:lib/mail.jar:build/quicksetup/classes:build/build-tools/build-tools.jar:build/unit-tests/classes:ext/testng/lib/testng-5.7b-jdk15.jar:ext/ant/lib/ant.jar:ext/svnkit/svnkit.jar:ext/emma/lib/emma.jar:build/dsml/classes:resource/dsml/lib/jaxb-api.jar:resource/dsml/lib/jaxb-impl.jar:resource/dsml/lib/jsr173_1.0_api.jar:resource/dsml/lib/saaj-1.3.jar:resource/dsml/lib/saaj-impl-1.3.jar:resource/dsml/lib/j2ee.jar"/>
+        <pathelement location="build/build-tools/classes"/>
+        <pathelement location="build/classes"/>
+        <pathelement location="build/quicksetup/classes"/>
+        <pathelement location="build/unit-tests/classes"/>
+        <pathelement location="build/dsml/classes"/>
+    </path>
+ 
+    <!-- Prepare testng unit tests environment -->
+    <taskdef resource="testngtasks">
+        <classpath>
+            <fileset dir="${testng.lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </classpath>
+    </taskdef>
+    
+    <target name="prepare-test">
+        <delete failonerror="false">
+            <fileset dir="${unittest.report.dir}" includes="*"/>
+        </delete>
+        <mkdir dir="${unittest.report.dir}"/>
+    </target>
+    
+    <!-- -->
+    <!-- Run a selected testng file -->
+    <!-- -->
+    <target depends="prepare-test" name="run-selected-testng-file">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <echo message="Running test (normal): ${run.class}"/>
+        <testng dumpCommand="true" enableAssert="false" haltonfailure="false" listeners="org.opends.server.TestListener org.testng.reporters.FailedReporter" outputdir="${unittest.report.dir}" suiteRunnerClass="org.opends.server.SuiteRunner" useDefaultListeners="false" verbose="0">
+            <classpath refid="opends.path"/>
+            <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}"/>
+            <jvmarg value="-Dorg.opends.server.RunningUnitTests=true"/>
+            <jvmarg value="-Dorg.opends.test.suppressOutput=false"/>
+            <jvmarg value="-Dorg.opends.test.pauseOnFailure=false"/>
+            <jvmarg value="-Dorg.opends.test.debug.target=false"/>
+            <jvmarg value="-Dorg.opends.test.copyClassesToTestPackage=true"/>
+            <jvmarg value="-Dtest.progress=all"/>
+            <jvmarg value="-Xms192M"/>
+            <jvmarg value="-Xmx192M"/>
+            <classfileset file="${unittest.classes.dir}/${run.class}.class"/>
+        </testng>
+    </target>
+    
+    <!-- -->
+    <!-- Debug a selected file in testng unit tests sources -->
+    <!-- -->
+    <target name="debug-selected-testng-file">
+        <fail unless="debug.class">Must set property 'debug.class'</fail>
+        <echo message="Debugging test (normal): ${debug.class}"/>
+        <ant antfile="build.xml" inheritall="false" target="dynamicconstants"/>
+        <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
+            <classpath refid="opends.path"/>
+        </nbjpdastart>
+        <testng enableAssert="false" haltonfailure="false" listeners="org.opends.server.TestListener org.testng.reporters.FailedReporter" outputdir="${unittest.report.dir}" suiteRunnerClass="org.opends.server.SuiteRunner" useDefaultListeners="false" verbose="5">
+            <classpath refid="opends.path"/>
+            <jvmarg value="-Dorg.opends.server.LdapPort=1389"/>
+            <jvmarg value="-Dorg.opends.server.BuildRoot=${basedir}"/>
+            <jvmarg value="-Dorg.opends.server.RunningUnitTests=true"/>
+            <jvmarg value="-Dorg.opends.test.suppressOutput=false"/>
+            <jvmarg value="-Dorg.opends.test.pauseOnFailure=false"/>
+            <jvmarg value="-Dorg.opends.test.debug.target=false"/>
+            <jvmarg value="-Dorg.opends.test.copyClassesToTestPackage=true"/>
+            <jvmarg value="-Dtest.progress=all"/>
+            <jvmarg value="-Xms192M"/>
+            <jvmarg value="-Xmx192M"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+            <classfileset file="${unittest.classes.dir}/${debug.class}.class"/>
+        </testng>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/server folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-server">
+        <fail unless="files">Must set property 'files'</fail>
+        <echo message="Compiling source (normal): ${files}"/>
+        <!-- TODO decide on and define some value for ${build.classes.dir} -->
+        <mkdir dir="{classes.dir}"/>
+        <javac destdir="${classes.dir}" includes="${files}" source="1.5" srcdir="src/server">
+            <classpath refid="opends.path"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in testng unit tests source folder -->
+    <!-- -->
+    <target name="compile-selected-testng-file">
+        <!-- Compile the test cases -->
+        <echo message="Compiling test (normal): ${files}"/>
+        <mkdir dir="${unittest.classes.dir}"/>
+        <javac debug="on" debuglevel="${build.debuglevel}" deprecation="true" destdir="${unittest.classes.dir}" fork="true" includes="${files}" memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}" source="1.5" srcdir="${unittest.testng.src.dir}" target="1.5">
+            <compilerarg value="-Xlint:all"/>
+            <classpath refid="opends.path"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Run a selected class in src/server folder -->
+    <!-- -->
+    <target depends="dynamicconstants" name="run-selected-file-in-server">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
+        <ant antfile="build.xml" inheritall="false" target="dynamicconstants"/>
+        <java classname="${run.class}" failonerror="true" fork="true">
+            <classpath refid="opends.path"/>
+            <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+            <jvmarg value="-Dorg.opends.server.scriptName=start-ds"/>
+            <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
+            <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
+            <arg value="--configFile=${pdir}/config/config.ldif"/>
+            <arg value="--nodetach"/>
+        </java>
+    </target>
+    
+    <!-- -->
+    <!-- Debug a selected file in src/server folder -->
+    <!-- -->
+    <target depends="dynamicconstants" name="debug-selected-file-in-server">
+        <fail unless="debug.class">Must set property 'debug.class'</fail>
+        <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
+        <ant antfile="build.xml" inheritall="false" target="dynamicconstants"/>
+        <nbjpdastart addressproperty="jpda.address" name="Directory Server" transport="dt_socket">
+            <classpath refid="opends.path"/>
+        </nbjpdastart>
+        <java classname="${debug.class}" fork="true">
+            <classpath refid="cp"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+            <jvmarg value="-Dorg.opends.server.BuildRoot=${pdir}"/>
+            <jvmarg value="-Dorg.opends.server.scriptName=start-ds"/>
+            <jvmarg value="-Dorg.opends.server.ServerRoot=${pdir}"/>
+            <jvmarg value="-Dorg.opends.server.debug.enabled=true"/>
+            <arg value="--configClass=org.opends.server.extensions.ConfigFileHandler"/>
+            <arg value="--configFile=${pdir}/config/config.ldif"/>
+            <arg value="--nodetach"/>
+        </java>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/ads folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-ads">
+        <fail unless="files">Must set property 'files'</fail>
+        <echo message="Compiling source (normal): ${files}"/>
+        <mkdir dir="build/build-tools/classes"/>
+        <javac destdir="build/build-tools/classes" includes="${files}" source="1.5" srcdir="src/ads">
+            <classpath refid="opends.path"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/build-tools folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-build-tools">
+        <fail unless="files">Must set property 'files'</fail>
+        <echo message="Compiling source (normal): ${files}"/>
+        <mkdir dir="build/build-tools/classes"/>
+        <javac destdir="build/build-tools/classes" includes="${files}" source="1.5" srcdir="src/build-tools">
+            <classpath refid="opends.path"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/guitools folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-guitools">
+        <fail unless="files">Must set property 'files'</fail>
+        <echo message="Compiling source (normal): ${files}"/>
+        <mkdir dir="build/build-tools/classes"/>
+        <javac destdir="build/build-tools/classes" includes="${files}" source="1.5" srcdir="src/guitools">
+            <classpath refid="opends.path"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/messages/src folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-messages-src">
+        <fail unless="files">Must set property 'files'</fail>
+        <echo message="Compiling source (normal): ${files}"/>
+        <mkdir dir="build/build-tools/classes"/>
+        <javac destdir="build/build-tools/classes" includes="${files}" source="1.5" srcdir="src/messages/src">
+            <classpath path="build/classes:build/build-tools/classes:lib/activation.jar:lib/aspectjrt.jar:lib/je.jar:lib/mail.jar:build/quicksetup/classes:build/build-tools/build-tools.jar:build/unit-tests/classes:ext/testng/lib/testng-5.7b-jdk15.jar:ext/ant/lib/ant.jar:ext/svnkit/svnkit.jar:ext/emma/lib/emma.jar:build/dsml/classes:resource/dsml/lib/jaxb-api.jar:resource/dsml/lib/jaxb-impl.jar:resource/dsml/lib/jsr173_1.0_api.jar:resource/dsml/lib/saaj-1.3.jar:resource/dsml/lib/saaj-impl-1.3.jar:resource/dsml/lib/j2ee.jar"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/quicksetup folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-quicksetup">
+        <fail unless="files">Must set property 'files'</fail>
+        <mkdir dir="build/build-tools/classes"/>
+        <javac destdir="build/build-tools/classes" includes="${files}" source="1.5" srcdir="src/quicksetup">
+            <classpath path="build/classes:build/build-tools/classes:lib/activation.jar:lib/aspectjrt.jar:lib/je.jar:lib/mail.jar:build/quicksetup/classes:build/build-tools/build-tools.jar:build/unit-tests/classes:ext/testng/lib/testng-5.7b-jdk15.jar:ext/ant/lib/ant.jar:ext/svnkit/svnkit.jar:ext/emma/lib/emma.jar:build/dsml/classes:resource/dsml/lib/jaxb-api.jar:resource/dsml/lib/jaxb-impl.jar:resource/dsml/lib/jsr173_1.0_api.jar:resource/dsml/lib/saaj-1.3.jar:resource/dsml/lib/saaj-impl-1.3.jar:resource/dsml/lib/j2ee.jar"/>
+        </javac>
+    </target>
+    
+    <!-- -->
+    <!-- Compile a selected file in src/dsml folder -->
+    <!-- -->
+    <target name="compile-selected-files-in-dsml">
+        <fail unless="files">Must set property 'files'</fail>
+        <echo message="Compiling source (normal): ${files}"/>
+        <mkdir dir="build/build-tools/classes"/>
+        <javac destdir="build/build-tools/classes" includes="${files}" source="1.5" srcdir="src/dsml">
+            <classpath path="build/classes:build/build-tools/classes:lib/activation.jar:lib/aspectjrt.jar:lib/je.jar:lib/mail.jar:build/quicksetup/classes:build/build-tools/build-tools.jar:build/unit-tests/classes:ext/testng/lib/testng-5.7b-jdk15.jar:ext/ant/lib/ant.jar:ext/svnkit/svnkit.jar:ext/emma/lib/emma.jar:build/dsml/classes:resource/dsml/lib/jaxb-api.jar:resource/dsml/lib/jaxb-impl.jar:resource/dsml/lib/jsr173_1.0_api.jar:resource/dsml/lib/saaj-1.3.jar:resource/dsml/lib/saaj-impl-1.3.jar:resource/dsml/lib/j2ee.jar"/>
+        </javac>
+    </target>
+    
+</project>
