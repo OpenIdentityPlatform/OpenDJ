@@ -399,34 +399,4 @@ public class RemoteBuildManager {
       return new Build(displayName, downloadUrl, category);
     }
   }
-
-  /**
-   * For testing only.
-   * @param args command line arguments
-   */
-//  public static void main(String[] args) {
-//    try {
-//      Properties systemSettings = System.getProperties();
-//      systemSettings.put("http.proxyHost", "webcache.central.sun.com");
-//      systemSettings.put("http.proxyPort", "8080");
-//      systemSettings.put("https.proxyHost", "webcache.central.sun.com");
-//      systemSettings.put("https.proxyPort", "8080");
-//
-//      System.setProperties(systemSettings);
-//
-//      URL buildListUrl = new URL("http://builds.opends.org");
-//      RemoteBuildManager rbm = new RemoteBuildManager(null, buildListUrl);
-//      //List<Build> builds = rbm.listBuilds();
-//      //for (Build build : builds) {
-//      //  System.out.println("build " + build);
-//      //}
-//      rbm.download(new URL("https://opends.dev.java.net/" +
-//              "files/documents/4926/55351/OpenDS-0.1-build035.zip"),
-//              new File("/tmp/OpenDS-xxx.zip"));
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//
-//  }
-
 }

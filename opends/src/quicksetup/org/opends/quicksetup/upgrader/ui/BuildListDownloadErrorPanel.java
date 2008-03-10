@@ -174,29 +174,4 @@ class BuildListDownloadErrorPanel extends JPanel {
       }
     }
   }
-
-//  public static void main(String[] args) {
-//    String[] options = {"Retry", "Close"};
-//    try {
-//      JOptionPane op = new JOptionPane(
-//      //JOptionPane.showOptionDialog(null,
-//              new BuildListDownloadErrorPanel(
-//                      new RemoteBuildManager(null,
-//                              new URL("http://builds.opends.org")),
-//                      new IllegalArgumentException("abc")),
-//              JOptionPane.ERROR_MESSAGE,
-//              JOptionPane.YES_NO_OPTION,
-//              null,
-//              options,
-//              null);
-//      op.setBackground(Color.WHITE);
-//      //op.getRootPane().setBackground(Color.WHITE);
-//      JDialog dlg = op.createDialog(null, "Network Error");
-//      dlg.getContentPane().setBackground(Color.WHITE);
-//      dlg.setVisible(true);
-//    } catch (MalformedURLException e) {
-//      e.printStackTrace();
-//    }
-//  }
-
 }
