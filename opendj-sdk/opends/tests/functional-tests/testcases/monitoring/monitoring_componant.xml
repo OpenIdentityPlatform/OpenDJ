@@ -119,7 +119,8 @@
         <!---
 #@TestMarker            monitoring componants
 #@TestName              monitoring componants
-#@TestIssue             Check the monitoring of a NEW componant LDIF connection handler
+#@TestPurpose           Check the monitoring of a NEW componant LDIF connection handler
+#@TestIssue             2884
 #@TestPreamble          none
 #@TestStep              Create a new LDIF connection handler
 #@TestStep              Check the entry on cn=myLDIF,cn=monitor is available
@@ -167,6 +168,11 @@
               'objectName'           : 'myLDIF',
               'expectedRC'           : 0 } 
             </call>     
+             
+            <script>
+		knownIssue(2884)
+            </script>
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
