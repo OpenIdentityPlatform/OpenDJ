@@ -651,7 +651,7 @@
           #@TestSteps           Backup every changelog
           #@TestSteps           Add entry BB to server
           #@TestSteps           Restore every changelog              
-          #@TestSteps           Restore server suffix (without entries AA & BB)
+          #@TestSteps           Restore server suffix (without entries AA and BB)
           #@TestSteps           Check for added entry AA in changelog and server
           #@TestSteps           Check for added entry BB in changelog and server
           #@TestPostamble       
