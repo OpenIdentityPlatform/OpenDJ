@@ -1048,9 +1048,11 @@ class UninstallCliHelper extends ConsoleApplication {
    * @return <CODE>true</CODE> if we could connect
    * to the remote servers and all the presented certificates were accepted and
    * <CODE>false</CODE> otherwise.
+   * @throws UserDataException if were are not in interactive mode and not in
+   * force on error mode and the operation must be stopped.
    */
   private boolean updateUserUninstallDataWithRemoteServers(
-      UninstallUserData userData)
+      UninstallUserData userData) throws UserDataException
   {
     boolean accepted = false;
     boolean interactive = parser.isInteractive();
@@ -1166,7 +1168,7 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         else
         {
-          println(
+          throw new UserDataException(null,
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
                   parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
                   ToolConstants.OPTION_LONG_BINDPWD,
@@ -1200,9 +1202,11 @@ class UninstallCliHelper extends ConsoleApplication {
    * Returns <CODE>true</CODE> if the user accepts all the problems encountered
    * and <CODE>false</CODE> otherwise.
    * @param userData the user data.
+   * @throws UserDataException if there is an error with the information
+   * provided by the user when we are in non-interactive mode.
    */
   private boolean handleTopologyCache(TopologyCache cache,
-      UninstallUserData userData)
+      UninstallUserData userData) throws UserDataException
   {
     boolean returnValue;
     boolean stopProcessing = false;
