@@ -1293,60 +1293,63 @@ modifyProcessing:
       // skipped for synchronization operations.
       boolean isPassword =
               t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
-      if (isPassword && (!(isSynchronizationOperation())))
+      if (isPassword)
       {
-        // If the attribute contains any options, then reject it.  Passwords
-        // will not be allowed to have options. Skipped for internal operations.
-        if(! isInternalOperation())
+        if (!isSynchronizationOperation())
         {
-          if (a.hasOptions())
+          // If the attribute contains any options, then reject it.  Passwords
+          // will not be allowed to have options.
+          // Skipped for internal operations.
+          if (!isInternalOperation())
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+            if (a.hasOptions())
+            {
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
+            }
+
+
+            // If it's a self change, then see if that's allowed.
+            if (selfChange &&
+                (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
+            {
+              pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  ERR_MODIFY_NO_USER_PW_CHANGES.get());
+            }
+
+
+            // If we require secure password changes, then makes sure it's a
+            // secure communication channel.
+            if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
+                (! clientConnection.isSecure()))
+            {
+              pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
+            }
+
+
+            // If it's a self change and it's not been long enough since the
+            // previous change, then reject it.
+            if (selfChange && pwPolicyState.isWithinMinimumAge())
+            {
+              pwpErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
+              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
+            }
           }
 
-
-          // If it's a self change, then see if that's allowed.
-          if (selfChange &&
-                  (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
+          // Check to see whether this will adding, deleting, or replacing
+          // password values (increment doesn't make any sense for passwords).
+          // Then perform the appropriate type of processing for that kind of
+          // modification.
+          boolean isAdd = (m.getModificationType() == ModificationType.ADD);
+          LinkedHashSet<AttributeValue> pwValues = a.getValues();
+          LinkedHashSet<AttributeValue> encodedValues =
+            new LinkedHashSet<AttributeValue>();
+          switch (m.getModificationType())
           {
-            pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_MODIFY_NO_USER_PW_CHANGES.get());
-          }
-
-
-          // If we require secure password changes, then makes sure it's a
-          // secure communication channel.
-          if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
-                  (! clientConnection.isSecure()))
-          {
-            pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
-          }
-
-
-          // If it's a self change and it's not been long enough since the
-          // previous change, then reject it.
-          if (selfChange && pwPolicyState.isWithinMinimumAge())
-          {
-            pwpErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_MODIFY_WITHIN_MINIMUM_AGE.get());
-          }
-        }
-
-        // Check to see whether this will adding, deleting, or replacing
-        // password values (increment doesn't make any sense for passwords).
-        // Then perform the appropriate type of processing for that kind of
-        // modification.
-        boolean isAdd = (m.getModificationType() == ModificationType.ADD);
-        LinkedHashSet<AttributeValue> pwValues = a.getValues();
-        LinkedHashSet<AttributeValue> encodedValues =
-                new LinkedHashSet<AttributeValue>();
-        switch (m.getModificationType())
-        {
           case ADD:
           case REPLACE:
             processInitialAddOrReplacePW(isAdd, pwValues, encodedValues, a);
@@ -1358,13 +1361,14 @@ modifyProcessing:
 
           default:
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
-                            String.valueOf(m.getModificationType()),
-                            a.getName()));
+                ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(
+                    String.valueOf(m.getModificationType()),
+                    a.getName()));
+          }
         }
 
-      switch (m.getModificationType())
-      {
+        switch (m.getModificationType())
+        {
         case ADD:
           processInitialAddSchema(a);
           break;
@@ -1380,8 +1384,8 @@ modifyProcessing:
         case INCREMENT:
           processInitialIncrementSchema(a);
           break;
+        }
       }
-     }
     }
   }
 
