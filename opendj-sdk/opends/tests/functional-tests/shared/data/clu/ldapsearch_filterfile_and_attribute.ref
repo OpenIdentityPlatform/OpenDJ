@@ -1,0 +1,16 @@
+dn: uid=user.336,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.337,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.347,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.359,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.361,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.396,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.398,ou=ldapsearch,o=clu tests,dc=example,dc=com
+
+dn: uid=user.399,ou=ldapsearch,o=clu tests,dc=example,dc=com
+

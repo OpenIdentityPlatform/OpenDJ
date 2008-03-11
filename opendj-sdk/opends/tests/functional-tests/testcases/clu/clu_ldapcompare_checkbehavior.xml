@@ -40,7 +40,7 @@
           <!--- Test Suite information
             #@TestSuiteName       ldapcompare check behavior tests
             #@TestSuitePurpose    Test the results of the ldapcompare command.
-            #@TestSuiteGroup      ldapcompare behavior options tests
+            #@TestSuiteGroup      ldapcompare check behavior tests
             #@TestScript          clu_ldapcompare_checkresults.xml
           -->
           

@@ -1459,12 +1459,24 @@
           Path containing the outputFile
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>
+      </function-arg-def>  
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="logStderr" type="optional" default="True">
+        <function-arg-description>
+          If true, stderr for the command is redirect to stdout.
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="True"/>
+          <function-arg-property-data type="choice" value="False"/>
+        </function-arg-property>
       </function-arg-def>
     </function-map-args>
     <sequence>
@@ -1483,18 +1495,33 @@
       <message>
         '%s: Running command:\n %s %s\nlocation: %s\nenv: %s\nworkdir: %s' % (_id,command,arguments,location,env,path)
       </message>
-   
-      <process name="name">
-        <location>location</location>
-        <command>command</command>
-        <parms>arguments</parms>
-        <workdir>path</workdir>
-        <envs>env</envs>
-        <console use="'same'"/>
-        <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
+      
+      <!-- If 'logStderr' is True then redirect sdterr to sdtout -->
+      <if expr="logStderr == True">
+        <process name="name">
+          <location>location</location>
+          <command>command</command>
+          <parms>arguments</parms>
+          <workdir>path</workdir>
+          <envs>env</envs>
+          <console use="'same'"/>
+          <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
+          <stderr mode="'stdout'"/>
+          <returnstdout/>
+        </process>
+        <else>
+          <process name="name">
+            <location>location</location>
+            <command>command</command>
+            <parms>arguments</parms>
+            <workdir>path</workdir>
+            <envs>env</envs>
+            <console use="'same'"/>
+            <stdout if="outputFile != 'None'" mode="'replace'">'%s/%s' % (outputPath, outputFile)</stdout>
+            <returnstdout/>
+          </process>
+        </else>
+      </if>
       
       <script>
         cmdRC = RC

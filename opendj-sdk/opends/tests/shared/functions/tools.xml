@@ -295,7 +295,7 @@
           Help option
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
-      </function-arg-def>
+      </function-arg-def> 
     </function-map-args>
     <sequence>
       <!-- Build the Command -->
@@ -330,6 +330,12 @@
         
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
+      
+      <message>
+        'Running command:\n %s %s\nlocation: %s\nworkdir: %s' \
+        % (STAFCmd,STAFCmdParams,location,dsBinPath)
+      </message>
+      
       <process name="'LDIF Diff Script'">
         <location>location</location>
         <command>STAFCmd</command>
@@ -355,7 +361,7 @@
           diffRC = 0
         else:
           diffRC = 1
-      </script>
+      </script>      
       <return> diffRC </return>
     </sequence>
   </function>
@@ -967,6 +973,180 @@
           'expectedRC': expectedRC
         }
       </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function perform a search operation in a LDIF file -->
+  <function name="ldifSearchWithScript">
+    <function-prolog>
+      This function perform a search operation in a LDIF file
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>      
+      <function-arg-def name="dsFilterFile" type="optional">
+        <function-arg-description>
+          File containing a list of search filter strings
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsLdifFile" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsOutputFile" type="optional">
+        <function-arg-description>
+          File to which the search results should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsOverwriteExisting" type="optional">
+        <function-arg-description>
+          Overwrite the output file specified
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsSearchScope" type="optional">
+        <function-arg-description>
+          The scope of the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="dsTimeLimit" type="optional">
+        <function-arg-description>
+          Maximum length of time in seconds to allow for the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsSizeLimit" type="optional">
+        <function-arg-description>
+          Maximum number of entries to return from the search
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
+      <function-arg-def name="dsDontWrap" type="optional">
+        <function-arg-description>
+          Do not wrap long lines
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsFilter" type="optional">
+        <function-arg-description>
+          The filter for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="filter"/>
+      </function-arg-def>
+      <function-arg-def name="dsAttributes" type="optional">
+        <function-arg-description>
+          Only return these attributes
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>    
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldifsearch%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsFilterFile:
+          STAFCmdParamsList.append('-f %s' % dsFilterFile)
+          
+        if dsLdifFile:
+          STAFCmdParamsList.append('-l %s' % dsLdifFile)
+          
+        if dsOutputFile:
+          STAFCmdParamsList.append('-o %s' % dsOutputFile)
+        
+        if dsOverwriteExisting:
+          STAFCmdParamsList.append('-O')
+          
+        if dsSearchScope:
+          STAFCmdParamsList.append('-s %s' % dsSearchScope)    
+          
+        if dsTimeLimit:
+          STAFCmdParamsList.append('-t %s' % dsTimeLimit)
+          
+        if dsSizeLimit:
+          STAFCmdParamsList.append('-z %s' % dsSizeLimit)
+          
+        if dsDontWrap:
+          STAFCmdParamsList.append('-T')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+          
+        if dsFilter:
+          STAFCmdParamsList.append('"%s"' % dsFilter)
+  
+        if dsAttributes:
+          STAFCmdParamsList.append('%s' % dsAttributes)          
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'" >
+        { 
+        'name'       : 'LDIF Search Script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
       <return>STAXResult</return>
     </sequence>
   </function>
