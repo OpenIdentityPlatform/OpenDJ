@@ -193,7 +193,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     ServerState state;
     if (emptyOldChanges)
-       state = new PersistentServerState(baseDn);
+       state = new PersistentServerState(baseDn, serverId);
     else
        state = new ServerState();
 
@@ -297,7 +297,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     ServerState state;
     if (emptyOldChanges)
-       state = new PersistentServerState(baseDn);
+       state = new PersistentServerState(baseDn, serverId);
     else
        state = new ServerState();
 

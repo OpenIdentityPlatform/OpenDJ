@@ -100,7 +100,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
      * 2 ChangeNumbers have been saved in this new PersistentServerState.
      */
     DN baseDn = DN.decode(dn);
-    PersistentServerState state = new PersistentServerState(baseDn);
+    PersistentServerState state = new PersistentServerState(baseDn, (short) 1);
     ChangeNumberGenerator gen1 = new ChangeNumberGenerator((short) 1, state);
     ChangeNumberGenerator gen2 = new ChangeNumberGenerator((short) 2, state);
 
@@ -112,7 +112,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
 
     state.save();
 
-    PersistentServerState stateSaved = new PersistentServerState(baseDn);
+    PersistentServerState stateSaved = new PersistentServerState(baseDn, (short) 1);
     ChangeNumber cn1Saved = stateSaved.getMaxChangeNumber((short) 1);
     ChangeNumber cn2Saved = stateSaved.getMaxChangeNumber((short) 2);
 
@@ -122,7 +122,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
         "cn2 has not been saved or loaded correctly for " + dn);
     
     state.clear();
-    stateSaved = new PersistentServerState(baseDn);
+    stateSaved = new PersistentServerState(baseDn, (short) 1);
     cn1Saved = stateSaved.getMaxChangeNumber((short) 1);
     assertEquals(cn1Saved, null,
         "cn1 has not been saved after clear for " + dn);

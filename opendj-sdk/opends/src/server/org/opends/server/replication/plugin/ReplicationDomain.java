@@ -439,7 +439,7 @@ public class ReplicationDomain extends DirectoryThread
      * Create a new Persistent Server State that will be used to store
      * the last ChangeNmber seen from all LDAP servers in the topology.
      */
-    state = new PersistentServerState(baseDN);
+    state = new PersistentServerState(baseDN, serverId);
 
     /*
      * Create a replication monitor object responsible for publishing

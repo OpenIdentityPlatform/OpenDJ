@@ -276,7 +276,7 @@ public class ReplicationBroker implements InternalSearchListener
                * replication server and populate the replayOperations
                * list.
                */
-              InternalSearchOperation op = seachForChangedEntries(
+              InternalSearchOperation op = searchForChangedEntries(
                 baseDn, replServerMaxChangeNumber, this);
               if (op.getResultCode() != ResultCode.SUCCESS)
               {
@@ -709,7 +709,7 @@ public class ReplicationBroker implements InternalSearchListener
    * @return the internal search operation
    * @throws Exception when raised.
    */
-  public static InternalSearchOperation seachForChangedEntries(
+  public static InternalSearchOperation searchForChangedEntries(
     DN baseDn,
     ChangeNumber fromChangeNumber,
     InternalSearchListener resultListener)
