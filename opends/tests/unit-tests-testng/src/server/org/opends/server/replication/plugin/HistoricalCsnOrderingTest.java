@@ -275,7 +275,7 @@ extends ReplicationTestCase
 
     // Retrieves the entries that have changed since the first modification
     InternalSearchOperation op =
-      ReplicationBroker.seachForChangedEntries(baseDn, fromChangeNumber, null);
+      ReplicationBroker.searchForChangedEntries(baseDn, fromChangeNumber, null);
 
     // The expected result is one entry .. the one previously modified
     assertTrue(op.getResultCode() == ResultCode.SUCCESS);

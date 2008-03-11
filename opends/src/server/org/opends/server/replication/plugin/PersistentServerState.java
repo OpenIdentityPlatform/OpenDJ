@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Iterator;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
@@ -72,6 +73,7 @@ public class PersistentServerState extends ServerState
    private InternalClientConnection conn =
        InternalClientConnection.getRootConnection();
    private ASN1OctetString asn1BaseDn;
+   private short serverId;
 
    /**
     * The attribute name used to store the state in the backend.
@@ -81,10 +83,12 @@ public class PersistentServerState extends ServerState
   /**
    * create a new ServerState.
    * @param baseDn The baseDN for which the ServerState is created
+   *  @param serverId The serverId
    */
-  public PersistentServerState(DN baseDn)
+  public PersistentServerState(DN baseDn, short serverId)
   {
     this.baseDn = baseDn;
+    this.serverId = serverId;
     asn1BaseDn = new ASN1OctetString(baseDn.toString());
     loadState();
   }
@@ -139,16 +143,12 @@ public class PersistentServerState extends ServerState
     }
 
     /*
-     * TODO : The ServerState is saved to the database periodically,
-     * therefore in case of crash it is possible that is does not contain
-     * the latest changes that have been processed and saved to the
-     * database.
-     * In order to make sure that we don't loose them, search all the entries
-     * that have been updated after this entry.
-     * This is done by using the HistoricalCsnOrderingMatchingRule
-     * and an ordering index for historical attribute
+     * In order to make sure that the replication never looses changes,
+     * the server needs to search all the entries that have been
+     * updated after the last write of the ServerState.
+     * Inconsistencies may append after a crash.
      */
-
+    checkAndUpdateServerState();
   }
 
   /**
@@ -361,5 +361,92 @@ public class PersistentServerState extends ServerState
   {
     clearInMemory();
     save();
+  }
+
+  /**
+   * The ServerState is saved to the database periodically,
+   * therefore in case of crash it is possible that is does not contain
+   * the latest changes that have been processed and saved to the
+   * database.
+   * In order to make sure that we don't loose them, search all the entries
+   * that have been updated after this entry.
+   * This is done by using the HistoricalCsnOrderingMatchingRule
+   * and an ordering index for historical attribute
+   */
+  public final void checkAndUpdateServerState() {
+    Message message;
+    InternalSearchOperation op;
+    ChangeNumber serverStateMaxCn;
+    ChangeNumber dbMaxCn;
+    final AttributeType histType =
+      DirectoryServer.getAttributeType(Historical.HISTORICALATTRIBUTENAME);
+
+    // Retrieves the entries that have changed since the
+    // maxCn stored in the serverState
+    synchronized (this)
+    {
+      serverStateMaxCn = this.getMaxChangeNumber(serverId);
+
+      if (serverStateMaxCn == null)
+        return;
+
+      try {
+        op = ReplicationBroker.searchForChangedEntries(baseDn,
+            serverStateMaxCn, null);
+      }
+      catch (Exception  e)
+      {
+        return;
+      }
+      if (op.getResultCode() != ResultCode.SUCCESS)
+      {
+        // An error happened trying to search for the updates
+        // Log an error
+        message = ERR_CANNOT_RECOVER_CHANGES.get(
+            baseDn.toNormalizedString());
+        logError(message);
+      }
+      else
+      {
+        dbMaxCn = serverStateMaxCn;
+        for (SearchResultEntry resEntry : op.getSearchEntries())
+        {
+          List<Attribute> attrs = resEntry.getAttribute(histType);
+          Iterator<AttributeValue> iav = attrs.get(0).getValues().iterator();
+          try
+          {
+            while (true)
+            {
+              AttributeValue attrVal = iav.next();
+              HistVal histVal = new HistVal(attrVal.getStringValue());
+              ChangeNumber cn = histVal.getCn();
+
+              if ((cn != null) && (cn.getServerId() == serverId))
+              {
+                // compare the csn regarding the maxCn we know and
+                // store the biggest
+                if (ChangeNumber.compare(dbMaxCn, cn) < 0)
+                {
+                  dbMaxCn = cn;
+                }
+              }
+            }
+          }
+          catch(Exception e)
+          {
+          }
+        }
+
+        if (ChangeNumber.compare(dbMaxCn, serverStateMaxCn) > 0)
+        {
+          // Update the serverState with the new maxCn
+          // present in the database
+          this.update(dbMaxCn);
+          message = NOTE_SERVER_STATE_RECOVERY.get(
+              baseDn.toNormalizedString(), dbMaxCn.toString());
+          logError(message);
+        }
+      }
+    }
   }
 }
