@@ -1,4 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
 <!--
  ! CDDL HEADER START
  !
@@ -24,11 +26,9 @@
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
-<html>
-<head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
-  <title>quicksetup_ssl</title>
+  <title>setup_gui_ssl</title>
 </head>
 <body>
 <br>
@@ -37,35 +37,57 @@
   <tbody>
     <tr>
       <td style="vertical-align: top;">Test ID</td>
-      <td style="vertical-align: top;">quicksetup_ssl<br>
-      </td>
+      <td style="vertical-align: top;">setup_gui_ssl</td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
-QuickSetup Installer, SSL panel<br>
+      <td style="vertical-align: top;">OpenDS GUI setup command: test
+install , ssl panel, status -panel and uninstall<br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
-      <td style="vertical-align: top;"> - Click on the
-install/QuickSetup.jnlp link on the Build page <br>
-      <a href="http://www.opends.org/install/QuickSetup.jnlp">http://www.opends.org/install/QuickSetup.jnlp</a><br>
-- install OpenDS using the same procedure than in the <a
- href="setup_ssl.html">setup_ssl</a> testcase<br>
+      <td style="vertical-align: top;"> - run setup command to install
+in GUI<br>
+- In the Server Settings Panel , enter expected data for hostname, LDAP
+PORT<br>
+- Then for LDAP Secure Access click on Configure<br>
+- In the Configure Secure Access Panel, tick the Box Enable SSL and
+enter
+a valid Port SSLPORT , then click OK<br>
+- Then continue to enter data in the Server Settings Panel for
+cn=Directory Manager and its password.<br>
+- Click Next<br>
+- Leave default value in Topology Options Panel and click Next<br>
+- In the Directory Data Panel Choose option 4 To Import
+automatically-generated sample data, with 200 entries<br>
+Click Finish<br>
+      <br>
+- open status-panel in GUI <br>
+      <br>
+- stop and start the server in the status-panel<br>
       <br>
       <small><big>- verify SSL
 connection</big><br>
 ./ldapsearch -Z -p SSLPORT -D "cn=directory manager" -w password -b
-"cn=config" -v "(objectclass=*)"</small></td>
+"cn=config" -v "(objectclass=*)"</small> <br>
+      <br>
+- run setup command to uninstall in GUI<br>
+      </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Specific checks</td>
-      <td style="vertical-align: top;">- verify that LDAPS is enabled
-in
-the status-panel </td>
+      <td style="vertical-align: top;">- Check the install is
+successfull<br>
+Check the server is running<br>
+Check the Base DN has been created<br>
+      <br>
+- Check status-panel data are valid<br>
+      <br>
+- Check uninstall is successfull<br>
+      </td>
     </tr>
   </tbody>
 </table>

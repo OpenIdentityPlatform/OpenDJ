@@ -1,4 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
 <!--
  ! CDDL HEADER START
  !
@@ -24,8 +26,6 @@
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
  ! -->
-<html>
-<head>
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
   <title>upgrage_cli</title>
@@ -42,20 +42,21 @@
     <tr>
       <td style="vertical-align: top;">Panel<br>
       </td>
-      <td style="vertical-align: top;"><big><big><small> </small></big></big>
-OpenDS CLI upgrade command : upgrade and revert<br>
+      <td style="vertical-align: top;"><big><big><small> </small></big></big>OpenDS
+CLI upgrade command : upgrade and revert<br>
       </td>
     </tr>
     <tr>
       <td style="vertical-align: top;">Items<br>
       </td>
       <td style="vertical-align: top;">- Install&nbsp; OpenDS previous
-build in {opends-path}, using&nbsp; setup CLI command <br>
+build in {opends-path}, using&nbsp; setup CLI command
+(http://www.opends.org/promoted-builds/)<br>
 - Verify the server is running <br>
 - In the {opends-path}, run the command upgrade<br>
 $ ./upgrade -f {path to latest build zip file}<br>
 - After the upgrade, verify that the server is running and that it's
-the correct build&nbsp; (for example run start-ds --version)<br>
+the correct build number (for example run start-ds --version)<br>
       <br>
 Then revert the upgrade using upgrade CLI command<br>
 - In the {opends-path}, run the command upgrade<br>
@@ -69,8 +70,9 @@ it's the correct build&nbsp; (for example run start-ds --version)<br>
       <td style="vertical-align: top;">Specific checks</td>
       <td style="vertical-align: top;">You can also use the interactive
 mode<br>
-Note: Today 29/11/2007 , for revert feature, interactive mode is OK but
-the non interactive mode FAIL (see issues 2506 and 2508) </td>
+Note: as of January 2008 , for revert feature, interactive mode is OK
+and
+the non interactive mode as well (issues 2506 and 2508 FIXED) </td>
     </tr>
   </tbody>
 </table>
