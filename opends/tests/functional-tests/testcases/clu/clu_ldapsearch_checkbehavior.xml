@@ -40,7 +40,7 @@
           <!--- Test Suite information
             #@TestSuiteName       ldapsearch check behavior tests
             #@TestSuitePurpose    Test the results of ldapsearch command.
-            #@TestSuiteGroup      ldapsearch results options tests
+            #@TestSuiteGroup      ldapsearch check behavior tests
             #@TestScript          clu_ldapsearch_checkbehavior.xml
           -->
           
@@ -54,9 +54,11 @@
           
           <!--- Define default value for dsdn -->
           <script>
-            basedn     = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
-            ldifFile   = '%s/clu/ldapsearch_checkbehavior.ldif' \
+            basedn      = 'ou=ldapsearch,o=clu tests,dc=example,dc=com'
+            ldifFile    = '%s/clu/ldapsearch_checkbehavior.ldif' \
             % logsRemoteDataDir
+            filterfile  = '%s/clu/filters.ldif' % logsRemoteDataDir
+            mfilterfile = '%s/clu/multiple_filters.ldif' % logsRemoteDataDir            
           </script>
           
           <!--- Test Case information
@@ -117,7 +119,7 @@
           
           <!--- Test Case information
             #@TestMarker          ldapsearch check behavior tests
-            #@TestName            ldapsearch: check behavior with a basedn of ""
+            #@TestName            ldapsearch: check behavior with default basedn
             #@TestIssue           2934
             #@TestPurpose         Verify that the number of returned entries is
                                   correct with a base DN of "".
@@ -147,7 +149,7 @@
                                   is correct with a basedn of "". 
           -->
           <testcase name="getTestCaseName
-          ('ldapsearch: check default base-dn')">
+          ('ldapsearch: check default basedn')">
             
             <sequence>
               
@@ -402,7 +404,277 @@
               
             </sequence>
             
-          </testcase> 
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          ldapsearch check behavior tests
+            #@TestName            ldapsearch: check behavior with a scope of
+                                  "base" and a basedn of ""
+            #@TestIssue           none
+            #@TestPurpose         Verify that the Root DSE entry is returned.
+            #@TestPreamble        none
+            #@TestStep            Do an ldapsearch with a scope of "base" and 
+                                  a basedn of "" and check that the number of
+                                  entries is correct
+            #@TestPostamble       none
+            #@TestResult          Success if only one entry is returned and if
+                                  this entry is the Root DSE entry.
+          -->
+          <testcase name="getTestCaseName
+          ('ldapsearch: check with scope of base and empty basedn')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldapsearch: check number of entries with scope \
+                of base and basedn of ""'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsScope'          : 'base' ,                
+                'dsBaseDN'         : ' ' ,
+                'dsFilter'         : 'objectclass=*' ,
+                'expectedRC'       : 'noCheck'
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 1' 
+                }
+              </call>
+
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'objectClass: ds-root-dse' 
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          ldapsearch check behavior tests
+            #@TestName            ldapsearch: check behavior with a simple
+                                  page size of 30 and 1
+            #@TestIssue           none
+            #@TestPurpose         Verify the output of ldapsearch with
+                                  simplePageSize option.
+            #@TestPreamble        none
+            #@TestStep            Do an ldapsearch with a simple page size of 30
+            #@TestStep            Compare the output of the previous command to
+                                  a reference file
+            #@TestStep            Do an ldapsearch with a simple page size of 1
+            #@TestStep            Compare the output of the previous command to
+                                  a reference file            
+            #@TestPostamble       none
+            #@TestResult          Success if the outputs for ldapsearch matche
+                                  the refenrence outputs.
+          -->
+          <testcase name="getTestCaseName
+          ('ldapsearch: check output with simplePageSize of 30 and 1')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldapsearch: check output with simplePageSize of 30'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsSimplePageSize' : '30' ,
+                'dsBaseDN'         : basedn ,
+                'dsFilter'         : 'uid=user.1*' ,
+                'expectedRC'       : 'noCheck' ,
+                'outputFile'       : 'ldapsearch_simplepagesize_30.out'
+                }                
+              </call>
+
+              <call function="'compareFile'">
+                { 
+                'outputFile'     : 'ldapsearch_simplepagesize_30.out'
+                }
+              </call>
+
+              <message>
+                'ldapsearch: check output with simplePageSize of 1'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsSimplePageSize' : '1' ,
+                'dsBaseDN'         : basedn ,
+                'dsFilter'         : 'uid=user.1*' ,
+                'expectedRC'       : 'noCheck' ,
+                'outputFile'       : 'ldapsearch_simplepagesize_1.out'
+                }                
+              </call>
+
+              <call function="'compareFile'">
+                { 
+                'outputFile'     : 'ldapsearch_simplepagesize_1.out'
+                }
+              </call>              
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          ldapsearch check behavior tests
+            #@TestName            ldapsearch: check behavior with a filter file
+                                  (containing one filter) and search attribute
+            #@TestIssue           3041
+            #@TestPurpose         Verify the output of ldapsearch with
+                                  filter option.
+            #@TestPreamble        none
+            #@TestStep            Do an ldapsearch with filter file option and 
+                                  a search attribute, and check that the number
+                                  of entries is correct
+            #@TestStep            Compare the output of the previous command to
+                                  a reference file   
+            #@TestPostamble       none
+            #@TestResult          Success if the outputs for ldapsearch matche
+                                  the refenrence outputs.
+          -->
+          <testcase name="getTestCaseName
+          ('ldapsearch: check output using --filename and a search attribute')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldapsearch: check output using --filename and a \
+                search attribute'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'         : basedn ,
+                'dsFilename'       : filterfile ,
+                'dsAttributes'     : 'dn' ,
+                'outputFile'       : 'ldapsearch_filterfile_and_attribute.out'
+                }                
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'CheckMatches'">
+                { 
+                'string2find' : 'dn: ' ,
+                'mainString'  : returnString ,
+                'nbExpected'  : 8
+                }
+              </call> 
+              
+              <call function="'compareFile'">
+                { 
+                'outputFile'     : 'ldapsearch_filterfile_and_attribute.out'
+                }
+              </call>
+              
+              <script>
+                knownIssue(3041)
+              </script>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          ldapsearch check behavior tests
+            #@TestName            ldapsearch: check behavior with a filter file 
+                                  containing multiple filters
+            #@TestIssue           none
+            #@TestPurpose         Verify the output of ldapsearch with
+                                  filter option.
+            #@TestPreamble        none
+            #@TestStep            Do an ldapsearch with filter file option and 
+                                  check that the number of entries is correct
+            #@TestPostamble       none
+            #@TestResult          Success if the number of entries is 222.
+          -->
+          <testcase name="getTestCaseName
+          ('ldapsearch: check with a filter file containing multiple filters')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldapsearch: check with a filter file containing multiple \
+                filters'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries'   : 'True' ,
+                'dsBaseDN'         : basedn ,
+                'dsFilename'       : mfilterfile ,             
+                'expectedRC'       : 'noCheck'               
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 222' 
+                }
+              </call>      
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
           
           <call function="'testSuite_Postamble'"/>
           

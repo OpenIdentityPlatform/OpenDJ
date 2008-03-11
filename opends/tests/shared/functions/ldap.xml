@@ -907,7 +907,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="file"/>
       </function-arg-def>
-      <function-arg-def name="ouputPath" type="optional">
+      <function-arg-def name="outputPath" type="optional">
         <function-arg-description>
           Path containing the outputFile
         </function-arg-description>
@@ -919,7 +919,19 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+      </function-arg-def>
+      <function-arg-def name="logStderr" type="optional" default="True">
+        <function-arg-description>
+          If true, stderr for the command is redirect to stdout.
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="True"/>
+          <function-arg-property-data type="choice" value="False"/>
+        </function-arg-property>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -1088,7 +1100,8 @@
           'location'  : location,
           'outputFile': outputFile,
           'outputPath': outputPath,
-          'expectedRC': expectedRC
+          'expectedRC': expectedRC ,
+          'logStderr' : logStderr
         }
       </call>
       <return>

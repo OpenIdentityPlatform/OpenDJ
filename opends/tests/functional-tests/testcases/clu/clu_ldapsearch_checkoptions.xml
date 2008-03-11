@@ -1147,7 +1147,52 @@
             </sequence>
 
           </testcase>
-         
+
+          <!--- Test Case information
+            #@TestMarker          ldapsearch check options tests
+            #@TestName            ldapsearch: simple page size of 0
+            #@TestIssue           2619
+            #@TestPurpose         Verify a parameter doing an ldapsearch.
+            #@TestPreamble        none
+            #@TestStep            Do an ldapsearch with the a simple page size
+                                  of 0
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns 89.
+          -->
+          <testcase name="getTestCaseName
+          ('ldapsearch: simple page size of 0')">
+
+            <sequence>
+
+              <call function="'testCase_Preamble'"/>
+
+              <message>
+                'ldapsearch: simple page size of 0'
+              </message>
+
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'      : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD ,
+                'dsSimplePageSize'    : '0' ,             
+                'dsBaseDN'            : basedn ,
+                'dsFilter'            : 'objectclass=*' ,
+                'expectedRC'          : 89
+                }
+              </call>
+              
+              <script>
+                knownIssue(2619)
+              </script>
+              
+              <call function="'testCase_Postamble'"/>
+
+            </sequence>
+
+          </testcase>          
+          
           <call function="'testSuite_Postamble'"/>
 
         </sequence>
