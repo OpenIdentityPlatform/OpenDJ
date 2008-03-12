@@ -93,7 +93,7 @@
                 'dsBaseDN'       : basedn ,
                 'dsFilter'       : 'uid=user.1*' ,
                 'outputFile'     : 'ldapsearch.out' ,
-                'outputPath'     : '%s' % DIRECTORY_INSTANCE_DIR
+                'outputPath'     : DIRECTORY_INSTANCE_DIR
                 }                
               </call>
 
@@ -161,7 +161,7 @@
                 'dsBaseDN'       : 'dc=com' ,
                 'dsFilter'       : 'objectclass=*' ,
                 'outputFile'     : 'scope_ldapsearch.out' ,
-                'outputPath'     : '%s' % DIRECTORY_INSTANCE_DIR
+                'outputPath'     : DIRECTORY_INSTANCE_DIR
                 }                
               </call>
 
@@ -234,7 +234,7 @@
                 'dsBaseDN'       : basedn ,
                 'dsFilter'       : 'uid=user.1*' ,
                 'outputFile'     : 'size_ldapsearch.out' ,
-                'outputPath'     : '%s' % DIRECTORY_INSTANCE_DIR ,
+                'outputPath'     : DIRECTORY_INSTANCE_DIR ,
                 'expectedRC'     : 4 ,
                 'logStderr'      : False
                 }                
@@ -381,6 +381,134 @@
               <script>
                 knownIssue(3042)
               </script>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          ldifsearch check behavior tests
+            #@TestName            ldifsearch: check behavior with @ocname as 
+                                  attribute
+            #@TestIssue           none
+            #@TestPurpose         Verify the output of ldifsearch with @ocname 
+                                  in the list of requested attributes.
+            #@TestPurpose         Verify that the output returned by ldifseach
+                                  are the same than the entries returned by
+                                  ldapsearch
+            #@TestPreamble        none
+            #@TestStep            Do an ldapsearch using @person as attribute
+            #@TestStep            Do an ldifsearch with the same option.
+            #@TestStep            Do an ldif-dif to check the differences.
+            #@TestStep            Do an ldapsearch using @inetorgperson as 
+                                  attribute
+            #@TestStep            Do an ldifsearch with the same option.
+            #@TestStep            Do an ldif-dif to check the differences.            
+            #@TestPostamble       none
+            #@TestResult          Success if ldifdiff returns no differences.
+          -->
+          <testcase name="getTestCaseName
+          ('ldifsearch: check with @ocname as attribute')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldifsearch: @person as attribute'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'       : basedn ,
+                'dsFilter'       : 'uid=user.1*' ,
+                'dsAttributes'   : '@person' ,                
+                'outputFile'     : 'ocname1_ldapsearch.out' ,
+                'outputPath'     : DIRECTORY_INSTANCE_DIR
+                }                
+              </call>
+
+              <call function="'ldifSearchWithScript'">
+                {
+                'dsLdifFile'   : dsfilename ,
+                'dsBaseDN'     : basedn ,
+                'dsFilter'     : 'uid=user.1*' ,
+                'dsAttributes' : '@person' ,
+                'dsOutputFile' : '%s/ocname1_ldifsearch.out' \
+                                 % DIRECTORY_INSTANCE_DIR
+                }                
+              </call>              
+              
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/ocname1_ldifsearch.out' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/ocname1_ldapsearch.out' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'outputLdif' : '%s/ocname1_ldifsearch.diff' \
+                % DIRECTORY_INSTANCE_DIR
+                }
+              </call>
+              
+              <call function="'checktestRC'">
+                {
+                'returncode' : STAXResult ,
+                'result'     : STAXResult
+                }
+              </call>
+              
+              <message>
+                'ldifsearch: @inetorgperson as attribute'
+              </message>
+              
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'dsBaseDN'       : basedn ,
+                'dsFilter'       : 'uid=user.1*' ,
+                'dsAttributes'   : '@inetorgperson' ,                
+                'outputFile'     : 'ocname2_ldapsearch.out' ,
+                'outputPath'     : DIRECTORY_INSTANCE_DIR
+                }                
+              </call>
+
+              <call function="'ldifSearchWithScript'">
+                {
+                'dsLdifFile'   : dsfilename ,
+                'dsBaseDN'     : basedn ,
+                'dsFilter'     : 'uid=user.1*' ,
+                'dsAttributes' : '@inetorgperson' ,
+                'dsOutputFile' : '%s/ocname2_ldifsearch.out' \
+                                 % DIRECTORY_INSTANCE_DIR
+                }                
+              </call>              
+              
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/ocname2_ldifsearch.out' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/ocname2_ldapsearch.out' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'outputLdif' : '%s/ocname2_ldifsearch.diff' \
+                % DIRECTORY_INSTANCE_DIR
+                }
+              </call>
+              
+              <call function="'checktestRC'">
+                {
+                'returncode' : STAXResult ,
+                'result'     : STAXResult
+                }
+              </call>
               
               <call function="'testCase_Postamble'"/>
               
