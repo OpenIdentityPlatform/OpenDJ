@@ -450,7 +450,8 @@ implements HyperlinkListener
    * @return a localized String representation of the provided SecurityOptions
    * object.
    */
-  protected String getSecurityOptionsString(SecurityOptions ops, boolean html)
+  public static String getSecurityOptionsString(SecurityOptions ops,
+      boolean html)
   {
     StringBuilder buf = new StringBuilder();
 

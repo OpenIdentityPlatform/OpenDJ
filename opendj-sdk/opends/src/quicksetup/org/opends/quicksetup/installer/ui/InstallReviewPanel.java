@@ -33,6 +33,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -266,13 +267,12 @@ public class InstallReviewPanel extends ReviewPanel {
     getField(fieldName).setText(value);
   }
 
-
   /**
    * Returns the localized string describing the DataOptions chosen by the user.
    * @param userInstallData the DataOptions of the user.
    * @return the localized string describing the DataOptions chosen by the user.
    */
-  private String getDataDisplayString(UserData userInstallData)
+  public static String getDataDisplayString(UserData userInstallData)
   {
     Message msg;
 
@@ -320,8 +320,17 @@ public class InstallReviewPanel extends ReviewPanel {
         throw new IllegalArgumentException("Unknown type: "+options.getType());
       }
 
-      msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(),
+      if (options.getBaseDns().size() > 1)
+      {
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(
+            Utils.listToString(options.getBaseDns(), Constants.LINE_SEPARATOR),
+            arg2);
+      }
+      else
+      {
+        msg = INFO_REVIEW_CREATE_SUFFIX.get(options.getBaseDns().getFirst(),
           arg2);
+      }
     }
     else
     {
