@@ -3766,6 +3766,101 @@
     </sequence>
     
   </function>
-     
+
+  
+  <!-- manage-tasks Function -->
+  <function name="manage-tasks">
+    <function-prolog>
+      This function performs a manage-tasks command line
+    </function-prolog>  
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>            
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>   
+      <function-arg-def name="dsQuiet" type="optional">
+      <function-arg-description>
+        Use quiet mode (no output)
+      </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+          
+      <!-- Build the Command -->
+
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />                     
+        
+       <script>
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/manage-tasks%s' % (dsBinPath,fileExt)
+      
+        if dsQuiet:
+          STAFCmdParamsList.append('-n')
+                  
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+      </script>
+      <message>
+        '%s %s' % (STAFCmd, STAFCmdParams)
+      </message>
+            
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'name'      : 'manage-tasks Script',
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'expectedRC': expectedRC
+        }
+      </call>
+      <return>
+        STAXResult
+      </return>      
+    </sequence>
+  </function>  
                                                    
 </stax>
