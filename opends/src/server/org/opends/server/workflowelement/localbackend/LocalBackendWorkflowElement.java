@@ -46,9 +46,13 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
 
@@ -348,8 +352,15 @@ public class LocalBackendWorkflowElement extends
         break;
 
       case SEARCH:
+        // First of all store the original operation basis so that returned
+        // entries can be sent to it later on
+        setOriginalOperationBasis(operation);
+
         LocalBackendSearchOperation searchOperation =
              new LocalBackendSearchOperation((SearchOperation) operation);
+        // Set the calling workflow element so that returnEntry and
+        // returnReference callbacks can be invoked later on.
+        searchOperation.setCallingWorkflowElement(this);
         searchOperation.processLocalSearch(backend);
         break;
 
@@ -427,5 +438,45 @@ public class LocalBackendWorkflowElement extends
     globalOperation.setAttachment(Operation.LOCALBACKENDOPERATIONS,
                                   newAttachment);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean returnEntry(
+      Entry entry,
+      List<Control> controls)
+  {
+    boolean result;
+
+    // There is no specific processing to perform on the returned entry.
+    // Just let the superclass execute the generic processing on the
+    // returned entry.
+    result = super.returnEntry(entry, controls);
+
+    return result;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean returnReference(
+      DN dn,
+      SearchResultReference reference)
+  {
+    boolean result;
+
+    // There is no specific processing to perform on the returned reference.
+    // Just let the superclass execute the generic processing on the
+    // returned reference.
+    result = super.returnReference(dn, reference);
+
+    return result;
+  }
+
+
 }
 
