@@ -55,6 +55,8 @@ import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
+import org.opends.quicksetup.installer.ui.InstallReviewPanel;
+import org.opends.quicksetup.ui.QuickSetupStepPanel;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
@@ -71,6 +73,8 @@ import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 /**
  * This class provides a very simple mechanism for installing the OpenDS
  * Directory Service.  It performs the following tasks:
@@ -130,7 +134,11 @@ public class InstallDS extends ConsoleApplication
     /**
      * The user failed providing password (for the keystore for instance).
      */
-    ERROR_PASSWORD_LIMIT(5);
+    ERROR_PASSWORD_LIMIT(5),
+    /**
+     * The user cancelled the setup.
+     */
+    ERROR_USER_CANCELLED(6);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -149,7 +157,62 @@ public class InstallDS extends ConsoleApplication
     }
   };
 
+  /**
+   * Enumeration describing the different answer that the user can provide
+   * when we ask to finalize the setup.  Note that the code associated
+   * correspond to the order in the confirmation menu that is displayed at the
+   * end of the setup in interactive mode.
+   */
+  private enum ConfirmCode
+  {
+    // Continue with the install
+    CONTINUE(1),
+    // Provide information again
+    PROVIDE_INFORMATION_AGAIN(2),
+    // Cancel the install
+    CANCEL(3);
+
+    private int returnCode;
+    private ConfirmCode(int returnCode)
+    {
+      this.returnCode = returnCode;
+    }
+
+    /**
+     * Get the corresponding return code value.
+     *
+     * @return The corresponding return code value.
+     */
+    public int getReturnCode()
+    {
+      return returnCode;
+    }
+  }
+
   private static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
+
+  // Different variables we use when the user decides to provide data again.
+  private NewSuffixOptions.Type lastResetPopulateOption = null;
+
+  private String lastResetImportFile = null;
+
+  private String lastResetRejectedFile = null;
+
+  private String lastResetSkippedFile = null;
+
+  private Integer lastResetNumEntries = null;
+
+  private Boolean lastResetEnableSSL = null;
+
+  private Boolean lastResetEnableStartTLS = null;
+
+  private SecurityOptions.CertificateType lastResetCertType = null;
+
+  private String lastResetKeyStorePath = null;
+
+  private Boolean lastResetEnableWindowsService = null;
+
+  private Boolean lastResetStartServer = null;
 
   /**
    * The Logger.
@@ -343,29 +406,60 @@ public class InstallDS extends ConsoleApplication
       }
     }
 
-    UserData uData = new UserData();
+    boolean userApproved = false;
 
-    try
+    UserData uData = new UserData();
+    while (!userApproved)
     {
+      try
+      {
+        if (isInteractive())
+        {
+          promptIfRequired(uData);
+        }
+        else
+        {
+          initializeUserDataWithParser(uData);
+        }
+      }
+      catch (UserDataException ude)
+      {
+        println(ude.getMessageObject());
+        if (isPasswordTriesError(ude.getMessageObject()))
+        {
+          return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
+        }
+        else
+        {
+          return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
+        }
+      }
       if (isInteractive())
       {
-        promptIfRequired(uData);
+        ConfirmCode confirm = askForConfirmation(uData);
+        switch (confirm)
+        {
+        case CONTINUE:
+          userApproved = true;
+          break;
+        case CANCEL:
+          return ErrorReturnCode.ERROR_USER_CANCELLED.getReturnCode();
+        default:
+          // Reset the arguments
+          try
+          {
+            resetArguments(uData);
+          }
+          catch (Throwable t)
+          {
+            LOG.log(Level.WARNING, "Error resetting arg parser: "+t, t);
+          }
+          userApproved = false;
+        }
       }
       else
       {
-        initializeUserDataWithParser(uData);
-      }
-    }
-    catch (UserDataException ude)
-    {
-      println(ude.getMessageObject());
-      if (isPasswordTriesError(ude.getMessageObject()))
-      {
-        return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
-      }
-      else
-      {
-        return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
+        userApproved = true;
       }
     }
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
@@ -1124,7 +1218,7 @@ public class InstallDS extends ConsoleApplication
         try
         {
           String path = readInput(INFO_INSTALLDS_PROMPT_IMPORT_FILE.get(),
-              null);
+              lastResetImportFile);
           if (!Utils.fileExists(path))
           {
             println();
@@ -1151,7 +1245,8 @@ public class InstallDS extends ConsoleApplication
           try
           {
             rejectedFile =
-              readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
+              readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(),
+                  lastResetRejectedFile);
           }
           catch (CLIException ce)
           {
@@ -1170,7 +1265,8 @@ public class InstallDS extends ConsoleApplication
           try
           {
             skippedFile =
-              readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
+              readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(),
+                  lastResetSkippedFile);
           }
           catch (CLIException ce)
           {
@@ -1209,6 +1305,7 @@ public class InstallDS extends ConsoleApplication
       final int POPULATE_TYPE_LEAVE_EMPTY = 2;
       final int POPULATE_TYPE_IMPORT_FROM_LDIF = 3;
       final int POPULATE_TYPE_GENERATE_SAMPLE_DATA = 4;
+
       int[] indexes = {POPULATE_TYPE_BASE_ONLY, POPULATE_TYPE_LEAVE_EMPTY,
           POPULATE_TYPE_IMPORT_FROM_LDIF, POPULATE_TYPE_GENERATE_SAMPLE_DATA};
       Message[] msgs = new Message[] {
@@ -1226,9 +1323,37 @@ public class InstallDS extends ConsoleApplication
         builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
       }
 
-      builder.setDefault(Message.raw(
+      if (lastResetPopulateOption == null)
+      {
+        builder.setDefault(Message.raw(
               String.valueOf(POPULATE_TYPE_BASE_ONLY)),
               MenuResult.success(POPULATE_TYPE_BASE_ONLY));
+      }
+      else
+      {
+        switch (lastResetPopulateOption)
+        {
+          case LEAVE_DATABASE_EMPTY:
+            builder.setDefault(Message.raw(
+              String.valueOf(POPULATE_TYPE_LEAVE_EMPTY)),
+              MenuResult.success(POPULATE_TYPE_LEAVE_EMPTY));
+            break;
+          case IMPORT_FROM_LDIF_FILE:
+            builder.setDefault(Message.raw(
+                String.valueOf(POPULATE_TYPE_IMPORT_FROM_LDIF)),
+                MenuResult.success(POPULATE_TYPE_IMPORT_FROM_LDIF));
+            break;
+          case IMPORT_AUTOMATICALLY_GENERATED_DATA:
+            builder.setDefault(Message.raw(
+                String.valueOf(POPULATE_TYPE_GENERATE_SAMPLE_DATA)),
+                MenuResult.success(POPULATE_TYPE_GENERATE_SAMPLE_DATA));
+            break;
+          default:
+            builder.setDefault(Message.raw(
+                String.valueOf(POPULATE_TYPE_BASE_ONLY)),
+                MenuResult.success(POPULATE_TYPE_BASE_ONLY));
+        }
+      }
 
       Menu<Integer> menu = builder.toMenu();
       int populateType;
@@ -1322,7 +1447,17 @@ public class InstallDS extends ConsoleApplication
       else if (populateType == POPULATE_TYPE_GENERATE_SAMPLE_DATA)
       {
         Message message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
-        int numUsers = promptForInteger(message, 2000, 0, Integer.MAX_VALUE);
+        int defaultValue;
+        if (lastResetNumEntries == null)
+        {
+          defaultValue = 2000;
+        }
+        else
+        {
+          defaultValue = lastResetNumEntries;
+        }
+        int numUsers = promptForInteger(message, defaultValue, 0,
+            Integer.MAX_VALUE);
 
         dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
             numUsers);
@@ -1376,8 +1511,10 @@ public class InstallDS extends ConsoleApplication
       println();
       try
       {
+        boolean defaultValue = lastResetEnableSSL != null ? lastResetEnableSSL :
+          false;
         enableSSL = confirmAction(INFO_INSTALLDS_PROMPT_ENABLE_SSL.get(),
-            false);
+            defaultValue);
         if (enableSSL)
         {
           ldapsPort = promptIfRequiredForPortData(argParser.ldapsPortArg,
@@ -1402,8 +1539,10 @@ public class InstallDS extends ConsoleApplication
       println();
       try
       {
+        boolean defaultValue = lastResetEnableStartTLS != null ?
+            lastResetEnableStartTLS : false;
         enableStartTLS = confirmAction(INFO_INSTALLDS_ENABLE_STARTTLS.get(),
-            argParser.enableStartTLSArg.isPresent());
+            defaultValue);
       }
       catch (CLIException ce)
       {
@@ -1470,8 +1609,32 @@ public class InstallDS extends ConsoleApplication
           builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
         }
 
-        builder.setDefault(Message.raw(String.valueOf(SELF_SIGNED)),
+        if (lastResetCertType == null)
+        {
+          builder.setDefault(Message.raw(String.valueOf(SELF_SIGNED)),
             MenuResult.success(SELF_SIGNED));
+        }
+        else
+        {
+          switch (lastResetCertType)
+          {
+          case JKS:
+            builder.setDefault(Message.raw(String.valueOf(JKS)),
+                MenuResult.success(JKS));
+            break;
+          case PKCS11:
+            builder.setDefault(Message.raw(String.valueOf(PKCS11)),
+                MenuResult.success(PKCS11));
+            break;
+          case PKCS12:
+            builder.setDefault(Message.raw(String.valueOf(PKCS12)),
+                MenuResult.success(PKCS12));
+            break;
+          default:
+            builder.setDefault(Message.raw(String.valueOf(SELF_SIGNED)),
+                MenuResult.success(SELF_SIGNED));
+          }
+        }
 
         Menu<Integer> menu = builder.toMenu();
         int certType;
@@ -1550,7 +1713,9 @@ public class InstallDS extends ConsoleApplication
         Message message = INFO_INSTALLDS_PROMPT_ENABLE_SERVICE.get();
         try
         {
-          enableService = confirmAction(message, false);
+          boolean defaultValue = (lastResetEnableWindowsService == null) ?
+              false : lastResetEnableWindowsService;
+          enableService = confirmAction(message, defaultValue);
         }
         catch (CLIException ce)
         {
@@ -1577,7 +1742,9 @@ public class InstallDS extends ConsoleApplication
       Message message = INFO_INSTALLDS_PROMPT_START_SERVER.get();
       try
       {
-        startServer = confirmAction(message, true);
+        boolean defaultValue = (lastResetStartServer == null) ?
+            false : lastResetStartServer;
+        startServer = confirmAction(message, defaultValue);
       }
       catch (CLIException ce)
       {
@@ -1773,6 +1940,10 @@ public class InstallDS extends ConsoleApplication
       path = argParser.useJavaKeyStoreArg.getValue();
       pathPrompt = INFO_INSTALLDS_PROMPT_JKS_PATH.get();
       defaultPathValue = argParser.useJavaKeyStoreArg.getValue();
+      if (defaultPathValue == null)
+      {
+        defaultPathValue = lastResetKeyStorePath;
+      }
       break;
     case PKCS11:
       path = null;
@@ -1782,6 +1953,10 @@ public class InstallDS extends ConsoleApplication
     case PKCS12:
       path = argParser.usePkcs12Arg.getValue();
       defaultPathValue = argParser.usePkcs12Arg.getValue();
+      if (defaultPathValue == null)
+      {
+        defaultPathValue = lastResetKeyStorePath;
+      }
       pathPrompt = INFO_INSTALLDS_PROMPT_PKCS12_PATH.get();
       break;
     default:
@@ -2095,5 +2270,174 @@ public class InstallDS extends ConsoleApplication
       }
     }
     return nickname;
+  }
+
+  /**
+   * This method asks the user to confirm to continue the setup.  It basically
+   * displays the information provided by the user and at the end proposes a
+   * menu with the different options to choose from.
+   * @param uData the UserData that the user provided.
+   * @return the answer provided by the user: cancel setup, continue setup or
+   * provide information again.
+   */
+  private ConfirmCode askForConfirmation(UserData uData)
+  {
+    ConfirmCode returnValue;
+
+    println();
+    println();
+    println(INFO_INSTALLDS_SUMMARY.get());
+    Message[] labels =
+    {
+        INFO_SERVER_PORT_LABEL.get(),
+        INFO_INSTALLDS_SERVER_JMXPORT_LABEL.get(),
+        INFO_SERVER_SECURITY_LABEL.get(),
+        INFO_SERVER_DIRECTORY_MANAGER_DN_LABEL.get(),
+        INFO_DIRECTORY_DATA_LABEL.get()
+    };
+
+    int jmxPort = uData.getServerJMXPort();
+
+    Message[] values =
+    {
+        Message.raw(String.valueOf(uData.getServerPort())),
+        Message.raw(jmxPort != -1 ? String.valueOf(jmxPort) : null),
+        Message.raw(
+            QuickSetupStepPanel.getSecurityOptionsString(
+                uData.getSecurityOptions(), false)),
+        Message.raw(uData.getDirectoryManagerDn()),
+        Message.raw(InstallReviewPanel.getDataDisplayString(uData)),
+    };
+    TableBuilder table = new TableBuilder();
+    for (int i=0; i<labels.length; i++)
+    {
+      if (values[i] != null)
+      {
+        table.startRow();
+        table.appendCell(labels[i]);
+        table.appendCell(values[i]);
+      }
+    }
+    TextTablePrinter printer = new TextTablePrinter(getOutputStream());
+    printer.setDisplayHeadings(false);
+    printer.setColumnSeparator("");
+    table.print(printer);
+
+    println();
+    if (uData.getStartServer())
+    {
+      println(INFO_INSTALLDS_START_SERVER.get());
+    }
+    else
+    {
+      println(INFO_INSTALLDS_DO_NOT_START_SERVER.get());
+    }
+
+    println();
+    println();
+
+    Message[] msgs = new Message[] {
+        INFO_INSTALLDS_CONFIRM_INSTALL.get(),
+        INFO_INSTALLDS_PROVIDE_DATA_AGAIN.get(),
+        INFO_INSTALLDS_CANCEL.get()
+      };
+
+    MenuBuilder<ConfirmCode> builder = new MenuBuilder<ConfirmCode>(this);
+    builder.setPrompt(INFO_INSTALLDS_CONFIRM_INSTALL_PROMPT.get());
+
+    int i=0;
+    for (ConfirmCode code : ConfirmCode.values())
+    {
+      builder.addNumberedOption(msgs[i], MenuResult.success(code));
+      i++;
+    }
+
+    builder.setDefault(Message.raw(
+            String.valueOf(ConfirmCode.CONTINUE.getReturnCode())),
+            MenuResult.success(ConfirmCode.CONTINUE));
+
+    Menu<ConfirmCode> menu = builder.toMenu();
+
+    try
+    {
+      MenuResult<ConfirmCode> m = menu.run();
+      if (m.isSuccess())
+      {
+        returnValue = m.getValue();
+      }
+      else
+      {
+        // Should never happen.
+        throw new RuntimeException();
+      }
+    }
+    catch (CLIException ce)
+    {
+      returnValue = ConfirmCode.CANCEL;
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return returnValue;
+  }
+
+  private void resetArguments(UserData uData)
+  {
+    argParser = new InstallDSArgumentParser(InstallDS.class.getName());
+    try
+    {
+      argParser.initializeArguments();
+      argParser.directoryManagerDNArg.setDefaultValue(
+          uData.getDirectoryManagerDn());
+      argParser.ldapPortArg.setDefaultValue(
+          String.valueOf(uData.getServerPort()));
+      int jmxPort = uData.getServerJMXPort();
+      if (jmxPort != -1)
+      {
+        argParser.jmxPortArg.setDefaultValue(String.valueOf(jmxPort));
+      }
+      LinkedList<String> baseDNs = uData.getNewSuffixOptions().getBaseDns();
+      if (!baseDNs.isEmpty())
+      {
+        argParser.baseDNArg.setDefaultValue(baseDNs.getFirst());
+      }
+      NewSuffixOptions suffixOptions = uData.getNewSuffixOptions();
+      lastResetPopulateOption = suffixOptions.getType();
+      if (lastResetPopulateOption ==
+        NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA)
+      {
+        lastResetNumEntries = suffixOptions.getNumberEntries();
+      }
+      else if (lastResetPopulateOption ==
+        NewSuffixOptions.Type.IMPORT_FROM_LDIF_FILE)
+      {
+        lastResetImportFile = suffixOptions.getLDIFPaths().getFirst();
+        lastResetRejectedFile = suffixOptions.getRejectedFile();
+        lastResetSkippedFile = suffixOptions.getSkippedFile();
+      }
+      SecurityOptions sec = uData.getSecurityOptions();
+      if (sec.getEnableSSL())
+      {
+        argParser.ldapsPortArg.setDefaultValue(
+            String.valueOf(sec.getSslPort()));
+      }
+      lastResetEnableSSL = sec.getEnableSSL();
+      lastResetEnableStartTLS = sec.getEnableStartTLS();
+      lastResetCertType = sec.getCertificateType();
+      if (lastResetCertType == SecurityOptions.CertificateType.JKS ||
+          lastResetCertType == SecurityOptions.CertificateType.PKCS11)
+      {
+        lastResetKeyStorePath = sec.getKeystorePath();
+      }
+      else
+      {
+        lastResetKeyStorePath = null;
+      }
+
+      lastResetEnableWindowsService = uData.getEnableWindowsService();
+      lastResetStartServer = uData.getStartServer();
+    }
+    catch (Throwable t)
+    {
+      LOG.log(Level.WARNING, "Error resetting arguments: "+t, t);
+    }
   }
 }
