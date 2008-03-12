@@ -1523,14 +1523,23 @@
         </else>
       </if>
       
+      <!-- The problem here is that STAXResult can either be a
+           string, list or a map object -->
       <script>
-        cmdRC = RC
-        cmdOutput = STAXResult
+        try:
+          cmdOutput=STAXResult[0][1]
+          cmdRC = RC
+        except:
+          cmdOutput=STAXResult
+          cmdRC = RC
+
+        cmdResult=STAXResult
       </script>
+
       <if expr="expectedRC != 'noCheck'">
         <call function="'checktestRC'">
           { 'returncode' : cmdRC,
-            'result'     : cmdOutput[0][1],
+            'result'     : cmdOutput,
             'expected'   : expectedRC
           }
         </call>
@@ -1551,10 +1560,10 @@
             return 'could not evaluate the following component: %s' % var
         
         if stripOutput == True:
-          cmdOutput=dig(cmdOutput)
+          cmdResult=dig(cmdResult)
       </script>
       <return>
-        cmdOutput
+        cmdResult
       </return>
     </sequence>
   </function>
