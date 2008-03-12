@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="clu_verify-index_checkbehavior"/>
+  
+  <function name="clu_verify-index_checkbehavior">
+    
+    <sequence>
+      
+      <block name="'clu_verify-index_checkbehavior'">
+        
+        <sequence>
+          
+          <!--- Test Suite information
+            #@TestSuiteName       verify-index check behavior tests
+            #@TestSuitePurpose    Test the results of verify-index command.
+            #@TestSuiteGroup      verify-index check behavior tests
+            #@TestScript          clu_verify-index_checkbehavior.xml
+          -->
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'              
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Test Case information
+            #@TestMarker          verify-index check behavior tests
+            #@TestName            verify-index: check on a single index
+            #@TestIssue           none
+            #@TestPurpose         Verify that verify-index command is successful
+                                  and the output is correct.
+            #@TestPreamble        none
+            #@TestStep            Do a verify-index on a single index.
+            #@TestStep            Check the output of the command.
+            #@TestPostamble       none
+            #@TestResult          Success if verify-index returns 0 and the 
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('verify-index: single index')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'verify-index: single index'
+              </message>
+              
+              <call function="'verifyIndexWithScript'">
+                {
+                'dsBaseDN'       : 'dc=com' ,
+                'dsIndexList'    : [ 'uid' ]
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Checked 1048 entries and found 0 error' 
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          verify-index check behavior tests
+            #@TestName            verify-index: check without index option
+            #@TestIssue           none
+            #@TestPurpose         Verify that verify-index command is successful
+                                  and the output is correct.
+            #@TestPreamble        none
+            #@TestStep            Do a verify-index without index option.
+            #@TestStep            Check the output of the command.
+            #@TestPostamble       none
+            #@TestResult          Success if verify-index returns 0 and the 
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('verify-index: without index')">
+ 
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'verify-index: without index'
+              </message>
+              
+              <call function="'verifyIndexWithScript'">
+                {
+                'dsBaseDN'       : 'dc=com'
+                }                
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Checked 1048 entries and found 0 error' 
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>          
+
+          <!--- Test Case information
+            #@TestMarker          verify-index check behavior tests
+            #@TestName            verify-index: check on multiple indexes
+            #@TestIssue           none
+            #@TestPurpose         Verify that verify-index command is successful
+                                  and the output is correct.
+            #@TestPreamble        none
+            #@TestStep            Do a verify-index on multiple indexes.
+            #@TestStep            Check the output of the command.
+            #@TestPostamble       none
+            #@TestResult          Success if verify-index returns 0 and the 
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('verify-index: multiple indexes')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'verify-index: multiple indexes'
+              </message>
+              
+              <call function="'verifyIndexWithScript'">
+                {
+                'dsBaseDN'       : 'dc=com' ,
+                'dsIndexList'    : [ 'uid', 'cn' ] 
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Checked 1048 entries and found 0 error' 
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>              
+
+          <!--- Test Case information
+            #@TestMarker          verify-index check behavior tests
+            #@TestName            verify-index: check with clean option
+            #@TestIssue           none
+            #@TestPurpose         Verify that verify-index command is successful
+                                  and the output is correct.
+            #@TestPreamble        none
+            #@TestStep            Do a verify-index with clean option..
+            #@TestStep            Check the output of the command.
+            #@TestPostamble       none
+            #@TestResult          Success if verify-index returns 0 and the 
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('verify-index: clean option')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'verify-index: clean option'
+              </message>
+              
+              <call function="'verifyIndexWithScript'">
+                {
+                'dsBaseDN'      : 'dc=com' ,
+                'dsIndexList'   : [ 'uid' ] ,
+                'dsClean'       : 'True'            
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+ 
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Checked 1000 records and found 0 error' 
+                }
+              </call>
+
+              <script>
+                msg = 'Number of records referencing more than one entry: 10' 
+              </script>
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <script>
+                msg = 'Number of records that exceed the entry limit: 0' 
+              </script>              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <script>
+                msg = 'Average number of entries referenced is 1.04/record' 
+              </script>              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+
+              <script>
+                msg = 'Maximum number of entries referenced by any record is 5' 
+              </script>              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>                   
+
+          <!--- Test Case information
+            #@TestMarker          verify-index check behavior tests
+            #@TestName            verify-index: multiple indexes, clean option
+            #@TestIssue           none
+            #@TestPurpose         Verify that verify-index command failed and
+                                  the output is correct.
+            #@TestPreamble        none
+            #@TestStep            Do a verify-index on multiple indexes with 
+                                  clean option.
+            #@TestStep            Check the output of the command.
+            #@TestPostamble       none
+            #@TestResult          Success if verify-index returns 1 and the 
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('verify-index: clean option and multiple indexes')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'verify-index: clean option and multiple indexes'
+              </message>
+              
+              <call function="'verifyIndexWithScript'">
+                {
+                'dsBaseDN'      : 'dc=com' ,
+                'dsIndexList'   : [ 'uid', 'cn' ] ,
+                'dsClean'       : 'True' ,
+                'expectedRC'    : 1         
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <script>
+                msg = 'Only one index at a time may be verified for cleanliness' 
+              </script>                 
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>     
+
+          <!--- Test Case information
+            #@TestMarker          verify-index check behavior tests
+            #@TestName            verify-index: check with a non existing index
+            #@TestIssue           none
+            #@TestPurpose         Verify that verify-index command failed and
+                                  the output is correct.
+            #@TestPreamble        none
+            #@TestStep            Do a verify-index on a non existing index.
+            #@TestStep            Check the output of the command.
+            #@TestPostamble       none
+            #@TestResult          Success if verify-index returns 1 and the 
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('verify-index: non existing index')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'verify-index: non existing index'
+              </message>
+              
+              <call function="'verifyIndexWithScript'">
+                {
+                'dsBaseDN'      : 'dc=com' ,
+                'dsIndexList'   : [ 'myindex' ] ,
+                'expectedRC'    : 1        
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <script>
+                msg1 = 'There is no index configured for'
+                msg2 = 'attribute type \'myindex\''
+              </script>                 
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s %s' % (msg1, msg2)
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>          
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>
