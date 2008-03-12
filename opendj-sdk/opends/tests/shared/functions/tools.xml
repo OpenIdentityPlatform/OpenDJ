@@ -978,7 +978,7 @@
   </function>
   
   <!-- This function perform a search operation in a LDIF file -->
-  <function name="ldifSearchWithScript">
+  <function name="ldifSearchWithScript" scope="local">
     <function-prolog>
       This function perform a search operation in a LDIF file
     </function-prolog>
@@ -1150,4 +1150,214 @@
       <return>STAXResult</return>
     </sequence>
   </function>
+  
+  <!-- This function execute the rebuild-index tool -->
+  <function name="rebuildIndexWithScript" scope="local">
+    <function-prolog>
+      This function execute the rebuild-index tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBaseDN" type="required">
+        <function-arg-description>
+          Specify a back-end supporting indexing and triggers a verification 
+          of all indexes in the scope of the provided baseDN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsIndexList" type="optional">
+        <function-arg-description>
+          Specify a list of indexes
+          This should be passed as a python array like
+          [ 'uid','telephonenumber' ]
+        </function-arg-description>
+        <function-arg-property name="type" value="array"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsIndexList:
+          STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Rebuild index script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+
+  <!-- This function execute the verify-index tool -->  
+  <function name="verifyIndexWithScript" scope="local">
+    <function-prolog>
+      This function execute the verify-index tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBaseDN" type="required">
+        <function-arg-description>
+          Specify a back-end supporting indexing and triggers a verification 
+          of all indexes in the scope of the provided baseDN
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsIndexList" type="optional">
+        <function-arg-description>
+          Specify a list of indexes
+          This should be passed as a python array like
+          [ 'uid','telephonenumber' ]
+        </function-arg-description>
+        <function-arg-property name="type" value="array"/>
+      </function-arg-def>
+      <function-arg-def name="dsClean" type="optional">
+        <function-arg-description>
+          Verify that an index is clean
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCountErrors" type="optional">
+        <function-arg-description>
+          Count the number of errors found during the verification 
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/verify-index%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsIndexList:
+          STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
+          
+        if dsClean:
+          STAFCmdParamsList.append('-c')
+          
+        if dsCountErrors:
+          STAFCmdParamsList.append('--countErrors ')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'      : 'Verify index script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>  
 </stax>
