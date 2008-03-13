@@ -111,20 +111,6 @@
                 }
               </call>
               
-              <!-- Check some data was imported into Directory Server -->
-              <call function="'checkImport'">
-                { 'location'        : masterHost,
-                  'dsPath'          : masterPath,
-                  'dsHost'          : masterHost,
-                  'dsPort'          : master.getPort(),
-                  'dsDn'            : master.getRootDn(),
-                  'dsPswd'          : master.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example']
-                }
-              </call>
-              
               <!-- Start the Directory Server -->
               <call function="'StartDsWithScript'">
                 { 'location'  : masterHost,
@@ -142,6 +128,21 @@
                   'dsInstancePswd'   : master.getRootPwd() ,
                   'noOfLoops'        : 10 ,
                   'noOfMilliSeconds' : 2000
+                }
+              </call>
+              
+              <!-- Check some data was imported into Directory Server -->
+              <call function="'checkImport'">
+                { 'location'        : masterHost,
+                  'dsPath'          : masterPath,
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
+                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                       'uid=dmiller, ou=People, o=example',
+                                       'uid=rhunt, ou=People, o=example'],
+                  'startDS'         : 'no'
                 }
               </call>
 
@@ -199,8 +200,7 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'DNToAdd'        : 'uid=pmoriarty, ou=People, o=example',
-                  'listAttributes' : listAttr,
-                  'expectedRC'     :  0
+                  'listAttributes' : listAttr
                 }
               </call>
                                                
@@ -413,20 +413,6 @@
                                  % masterDataDir
                 }
               </call>
-              
-              <!-- Check some data was imported into Directory Server -->
-              <call function="'checkImport'">
-                { 'location'        : masterHost,
-                  'dsPath'          : masterPath,
-                  'dsHost'          : masterHost,
-                  'dsPort'          : master.getPort(),
-                  'dsDn'            : master.getRootDn(),
-                  'dsPswd'          : master.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=sholmes, ou=People, o=example']
-                }
-              </call>
 
               <!-- Start the Directory Server -->
               <call function="'StartDsWithScript'">
@@ -445,6 +431,21 @@
                   'dsInstancePswd'   : master.getRootPwd() ,
                   'noOfLoops'        : 10 ,
                   'noOfMilliSeconds' : 2000
+                }
+              </call>
+              
+              <!-- Check some data was imported into Directory Server -->
+              <call function="'checkImport'">
+                { 'location'        : masterHost,
+                  'dsPath'          : masterPath,
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
+                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                       'uid=dmiller, ou=People, o=example',
+                                       'uid=sholmes, ou=People, o=example'],
+                  'startDS'         : 'no'
                 }
               </call>
 
@@ -501,8 +502,7 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'DNToAdd'        : 'uid=pmoriarty, ou=People, o=example',
-                  'listAttributes' : listAttr,
-                  'expectedRC'     : 0
+                  'listAttributes' : listAttr
                 }
               </call>
                            
