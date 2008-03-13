@@ -79,7 +79,8 @@ public class DbHandler implements Runnable
   // Changes are not read back by replicationServer threads that are responsible
   // for pushing the changes to other replication server or to LDAP server
   //
-  private LinkedList<UpdateMessage> msgQueue = new LinkedList<UpdateMessage>();
+  private final LinkedList<UpdateMessage> msgQueue =
+    new LinkedList<UpdateMessage>();
   private ReplicationDB db;
   private ChangeNumber firstChange = null;
   private ChangeNumber lastChange = null;
@@ -89,7 +90,7 @@ public class DbHandler implements Runnable
   private boolean shutdown = false;
   private boolean done = false;
   private DirectoryThread thread = null;
-  private Object flushLock = new Object();
+  private final Object flushLock = new Object();
   private ReplicationServer replicationServer;
 
 

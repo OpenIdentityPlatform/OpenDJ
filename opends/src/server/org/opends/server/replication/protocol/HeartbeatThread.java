@@ -68,6 +68,7 @@ public class HeartbeatThread extends DirectoryThread
    * Set this to stop the thread.
    */
   private Boolean shutdown = false;
+  private final Object shutdown_lock = new Object();
 
 
   /**
@@ -135,11 +136,11 @@ public class HeartbeatThread extends DirectoryThread
             TRACER.debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
           }
 
-          synchronized (shutdown)
+          synchronized (shutdown_lock)
           {
             if (!shutdown)
             {
-              shutdown.wait(sleepTime);
+              shutdown_lock.wait(sleepTime);
             }
           }
         }
@@ -173,10 +174,10 @@ public class HeartbeatThread extends DirectoryThread
    */
   public void shutdown()
   {
-    synchronized (shutdown)
+    synchronized (shutdown_lock)
     {
-      shutdown.notifyAll();
       shutdown = true;
+      shutdown_lock.notifyAll();
       if (debugEnabled())
       {
         TRACER.debugInfo("Going to notify Heartbeat thread.");
