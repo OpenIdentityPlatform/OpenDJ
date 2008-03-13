@@ -80,8 +80,8 @@ import com.sleepycat.je.DatabaseException;
  */
 public class ReplicationServerDomain
 {
-  private Object flowControlLock = new Object();
-  private DN baseDn = null;
+  private final Object flowControlLock = new Object();
+  private final DN baseDn;
 
   /*
    * The following map contains one balanced tree for each replica ID
@@ -93,7 +93,7 @@ public class ReplicationServerDomain
    * to this replication server.
    *
    */
-  private Map<Short, ServerHandler> connectedServers =
+  private final Map<Short, ServerHandler> connectedServers =
     new ConcurrentHashMap<Short, ServerHandler>();
 
   /*
@@ -106,14 +106,14 @@ public class ReplicationServerDomain
    * to this replication server.
    */
 
-  private Map<Short, ServerHandler> replicationServers =
+  private final Map<Short, ServerHandler> replicationServers =
     new ConcurrentHashMap<Short, ServerHandler>();
 
   /*
    * This map contains the List of updates received from each
    * LDAP server
    */
-  private Map<Short, DbHandler> sourceDbHandlers =
+  private final Map<Short, DbHandler> sourceDbHandlers =
     new ConcurrentHashMap<Short, DbHandler>();
   private ReplicationServer replicationServer;
 

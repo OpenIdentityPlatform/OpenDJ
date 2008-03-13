@@ -129,7 +129,7 @@ public class ServerHandler extends MonitorProvider<MonitorProviderCfg>
    * this collection will contain as many elements as there are
    * LDAP servers connected to the remote replication server.
    */
-  private Map<Short, LightweightServerHandler> connectedServers =
+  private final Map<Short, LightweightServerHandler> connectedServers =
     new ConcurrentHashMap<Short, LightweightServerHandler>();
 
   /**
