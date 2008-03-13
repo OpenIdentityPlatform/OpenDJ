@@ -27,7 +27,7 @@
  ! -->
 <stax>
   <!-- This function uses make ldif to generate LDIF data files -->
-  <function name="MakeLdif">
+  <function name="MakeLdifWithScript">
     <function-prolog>
       This function uses make ldif to generate LDIF data files
     </function-prolog>
@@ -366,8 +366,6 @@
     </sequence>
   </function>
   
-
-
   <!-- This function modifies an LDIF file using ldifmodify script -->
   <function name="LdifModifyWithScript">
     <function-prolog>
@@ -871,112 +869,6 @@
     </sequence>
   </function>
   
-  
-  <function name="CLI_rebuild-index">
-    <function-prolog>
-      This wraps the rebuild-index tool to make it easy to use from STAX
-    </function-prolog>
-    <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
-        <function-arg-description>
-          Location of target host
-        </function-arg-description>
-        <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
-        <function-arg-description>
-          Pathname to installation root
-        </function-arg-description>
-        <function-arg-property name="type" value="filepath"/>
-      </function-arg-def>          
-      <function-arg-def name="baseDN" type="required">
-        <function-arg-description>
-          Specify a back-end supporting indexing and triggers a rebuild of all 
-          indexes in the scope of the provided baseDN
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="attributes" type="required">
-        <function-arg-description>
-          Specify a list of attributes to trigger index rebuild on
-          This should be passed on as a python array like
-          [ 'uid', 'telephonenumber' ]
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="expectedRC" type="optional" default="0">
-        <function-arg-description>
-          Expected return code value. Default value is 0.
-          Wildcard 'noCheck' to not check the RC
-        </function-arg-description>
-      </function-arg-def>
-    </function-map-args>
-    
-    <sequence>
-      <script>
-        dsBinPath='%s/%s' % (dsPath,fileFolder)        
-        _cmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
-        _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
-      </script>
-      <call function="'runCommand'">
-        { 'name'      : 'rebuild index',
-          'location'  : location,
-          'command'   : _cmd,
-          'arguments' : _args,
-          'expectedRC': expectedRC
-        }
-      </call>
-      <return>STAXResult</return>
-    </sequence>
-  </function>
-  
-  <function name="CLI_verify-index">
-    <function-prolog>
-      This wraps the verify-index tool to make it easy to use from STAX
-    </function-prolog>
-    <function-map-args>
-      <function-arg-def name="baseDN" type="required">
-        <function-arg-description>
-          Specify a back-end supporting indexing and triggers a verification of all 
-          indexes in the scope of the provided baseDN
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="attributes" type="required">
-        <function-arg-description>
-          Specify a list of attributes to trigger index verification on
-          This should be passed as a python array like
-          [ 'uid','telephonenumber' ]
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="clean" type="optional">
-        <function-arg-description>
-          Specify a list of attributes to trigger index verification on
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="expectedRC" type="optional" default="0">
-        <function-arg-description>
-          Expected return code value. Default value is 0.
-          Wildcard 'noCheck' to not check the RC
-        </function-arg-description>
-      </function-arg-def>
-    </function-map-args>
-
-    <sequence>
-      <script>
-        dsBinPath='%s/%s' % (dsPath,fileFolder)                  
-        _cmd='%s/verify-index%s' % (dsBinPath,fileExt)
-        _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
-      </script>
-      <call function="'runCommand'">
-        { 'name'      : 'verify index',
-          'location'  : location,
-          'command'   : _cmd,
-          'arguments' : _args,
-          'expectedRC': expectedRC
-        }
-      </call>
-      <return>STAXResult</return>
-    </sequence>
-  </function>
-  
   <!-- This function perform a search operation in a LDIF file -->
   <function name="ldifSearchWithScript" scope="local">
     <function-prolog>
@@ -992,8 +884,8 @@
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
       <function-arg-def name="dsPath"
-                       type="optional"
-                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+                        type="optional"
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -1023,7 +915,9 @@
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
-      <function-arg-def name="dsOverwriteExisting" type="optional">
+      <function-arg-def name="dsOverwriteExisting" 
+                        type="optional" 
+                        default="True">
         <function-arg-description>
           Overwrite the output file specified
         </function-arg-description>
@@ -1150,11 +1044,11 @@
       <return>STAXResult</return>
     </sequence>
   </function>
-  
-  <!-- This function execute the rebuild-index tool -->
-  <function name="rebuildIndexWithScript" scope="local">
+
+  <!-- This function execute the encode-password tool -->  
+  <function name="encodePasswordWithScript" scope="local">
     <function-prolog>
-      This function execute the rebuild-index tool
+      This function execute the encode-password tool
     </function-prolog>
     <function-map-args>
       <function-arg-def name="location"
@@ -1173,21 +1067,59 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>      
-      <function-arg-def name="dsBaseDN" type="required">
+      <function-arg-def name="authPwdSyntax" type="optional">
         <function-arg-description>
-          Specify a back-end supporting indexing and triggers a verification 
-          of all indexes in the scope of the provided baseDN
+          Use the authentication password syntax.
         </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
+        <function-arg-property name="type" value="option"/>
       </function-arg-def>
-      <function-arg-def name="dsIndexList" type="optional">
+      <function-arg-def name="clearPwd" type="optional">
         <function-arg-description>
-          Specify a list of indexes
-          This should be passed as a python array like
-          [ 'uid','telephonenumber' ]
+          Specify the clear-text password.
         </function-arg-description>
-        <function-arg-property name="type" value="array"/>
+        <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="encodedPwd" type="optional">
+        <function-arg-description>
+          Specify the encoded password.
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="encodedPwdFile" type="optional">
+        <function-arg-description>
+          Use the encoded password from the specified file.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="clearPwdFile" type="optional">
+        <function-arg-description>
+          Use the clear-text password from the specified file.
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="listSchemes" type="optional">
+        <function-arg-description>
+          Display a list of the password storage schemes that are available
+          for use in the OpenDS server. 
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="useCmpRC" type="optional">
+        <function-arg-description>
+          Use an exit code that indicates whether a given clear-text password
+          matched a provided encoded password.
+          Results are an exit code of 6 (COMPARE_TRUE) or
+          an exit code of 5 (COMPARE_FALSE).
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="storageScheme" type="optional">
+        <function-arg-description>
+          Specify the name of the password storage scheme to use when
+          encoding a clear-text password.
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
       <function-arg-def name="dsHelp" type="optional">
         <function-arg-description>
           Display this usage information
@@ -1216,17 +1148,35 @@
         
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
-          STAFCmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
+          STAFCmd='%s/encode-password%s' % (dsBinPath,fileExt)
           
-        if dsBaseDN:
-          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+        if authPwdSyntax:
+          STAFCmdParamsList.append('-a')
           
-        if dsIndexList:
-          STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
+        if clearPwd:
+          STAFCmdParamsList.append('-c %s' % clearPwd)
+          
+        if encodedPwd:
+          STAFCmdParamsList.append('-e %s' % encodedPwd)
+          
+        if encodedPwdFile:
+          STAFCmdParamsList.append('-E %s' % encodedPwdFile)
+          
+        if clearPwdFile:
+          STAFCmdParamsList.append('-f %s' % clearPwdFile)
+          
+        if listSchemes:
+          STAFCmdParamsList.append('-l')
         
+        if useCmpRC:
+          STAFCmdParamsList.append('-r')
+
+        if storageScheme:
+          STAFCmdParamsList.append('-s %s' % storageScheme)
+          
         if dsHelp:
           STAFCmdParamsList.append('-H')
-          
+        
         if dsVersion:
           STAFCmdParamsList.append('-V')      
           
@@ -1235,7 +1185,7 @@
       
       <call function="'runCommand'">
         { 
-        'name'       : 'Rebuild index script',
+        'name'       : 'Encode password script',
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
@@ -1246,11 +1196,12 @@
       <return>STAXResult</return>
     </sequence>
   </function>
-
-  <!-- This function execute the verify-index tool -->  
-  <function name="verifyIndexWithScript" scope="local">
+  
+  <!-- This function compares two LDIF files using the ldif-diff script -->
+  <function name="LdifDiffWithScript-new" scope="local">
     <function-prolog>
-      This function execute the verify-index tool
+      This function  compares two LDIF files and reports the differences
+      in LDIF format
     </function-prolog>
     <function-map-args>
       <function-arg-def name="location"
@@ -1260,7 +1211,7 @@
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
-      </function-arg-def>
+      </function-arg-def>     
       <function-arg-def name="dsPath"
                        type="optional"
                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
@@ -1269,44 +1220,145 @@
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>      
-      <function-arg-def name="dsBaseDN" type="required">
-        <function-arg-description>
-          Specify a back-end supporting indexing and triggers a verification 
-          of all indexes in the scope of the provided baseDN
-        </function-arg-description>
-        <function-arg-property name="type" value="dn"/>
-      </function-arg-def>
-      <function-arg-def name="dsIndexList" type="optional">
-        <function-arg-description>
-          Specify a list of indexes
-          This should be passed as a python array like
-          [ 'uid','telephonenumber' ]
-        </function-arg-description>
-        <function-arg-property name="type" value="array"/>
-      </function-arg-def>
-      <function-arg-def name="dsClean" type="optional">
-        <function-arg-description>
-          Verify that an index is clean
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsCountErrors" type="optional">
-        <function-arg-description>
-          Count the number of errors found during the verification 
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
-      <function-arg-def name="dsHelp" type="optional">
-        <function-arg-description>
-          Display this usage information
-        </function-arg-description>
-        <function-arg-property name="type" value="option"/>
-      </function-arg-def>
       <function-arg-def name="dsVersion" type="optional">
         <function-arg-description>
           Display Directory Server version information
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
+      </function-arg-def>     
+      <function-arg-def name="sourceLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the source data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>     
+      <function-arg-def name="targetLdif" type="required">
+        <function-arg-description>
+          LDIF file to use as the target data
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>  
+      <function-arg-def name="outputLdif" type="required">
+        <function-arg-description>
+          File to which the diffs should be written
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>  
+      <function-arg-def name="overwriteExisting" type="optional" default="True">
+        <function-arg-description>
+          Overwrite existing output file rather than append to it
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>   
+      <function-arg-def name="singleValueChanges" type="optional">
+        <function-arg-description>
+          Write each attribute-level change as a separate modification 
+          per attribute value rather than one modification per entry
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def> 
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/ldif-diff%s' % (dsBinPath,fileExt)
+        
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+        
+        if sourceLdif:
+          STAFCmdParamsList.append('-s %s' % sourceLdif)
+        
+        if targetLdif:
+          STAFCmdParamsList.append('-t %s' % targetLdif)
+        
+        if outputLdif:
+          STAFCmdParamsList.append('-o %s' % outputLdif)
+        
+        if overwriteExisting:
+          STAFCmdParamsList.append('-O')
+        
+        if singleValueChanges:
+          STAFCmdParamsList.append('-S')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Ldif diff script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function execute the dsjavaproperties tool -->  
+  <function name="dsJavaPropertiesWithScript" scope="local">
+    <function-prolog>
+      This function execute the dsjavaproperties tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def> 
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="Version" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="Quiet" type="optional">
+        <function-arg-description>
+          Run dsjavaproperties in quiet mode
+          Quiet mode does not output progress information to standard output
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="Help" type="optional">
+        <function-arg-description>
+          Help option
+        </function-arg-description>
+        <function-arg-property name="help" value="option"/>
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
@@ -1324,32 +1376,23 @@
         
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
-          STAFCmd='%s/verify-index%s' % (dsBinPath,fileExt)
-          
-        if dsBaseDN:
-          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
-          
-        if dsIndexList:
-          STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
-          
-        if dsClean:
-          STAFCmdParamsList.append('-c')
-          
-        if dsCountErrors:
-          STAFCmdParamsList.append('--countErrors ')
+          STAFCmd='%s/dsjavaproperties%s' % (dsBinPath,fileExt)
         
-        if dsHelp:
+        if Version:
+          STAFCmdParamsList.append('-V')
+                
+        if Quiet:
+          STAFCmdParamsList.append('-Q')
+        
+        if Help:
           STAFCmdParamsList.append('-H')
-          
-        if dsVersion:
-          STAFCmdParamsList.append('-V')      
-          
+        
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
       <call function="'runCommand'">
         { 
-        'name'      : 'Verify index script',
+        'name'       : 'dsjavaproperties script',
         'command'    : STAFCmd,
         'arguments'  : STAFCmdParams,
         'location'   : location,
@@ -1359,5 +1402,5 @@
       
       <return>STAXResult</return>
     </sequence>
-  </function>  
+  </function>
 </stax>

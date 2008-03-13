@@ -3766,7 +3766,6 @@
     </sequence>
     
   </function>
-
   
   <!-- manage-tasks Function -->
   <function name="manage-tasks">
@@ -3774,13 +3773,17 @@
       This function performs a manage-tasks command line
     </function-prolog>  
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
+      <function-arg-def name="dsPath" 
+                        type="optional" 
+                        default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">             
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -3808,11 +3811,114 @@
           Bind password
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
-      </function-arg-def>   
+      </function-arg-def>
+      <function-arg-def name="dsBindPasswordFile" type="optional">
+        <function-arg-description>
+          Bind password file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
+      <function-arg-def name="dsKeyStorePath" type="optional">
+        <function-arg-description>
+          Certificate keystore path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
+      <function-arg-def name="dsCertNickname" type="optional">
+        <function-arg-description>
+          Nickname of certificate for SSL client authentication
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsSaslOption" type="optional">
+        <function-arg-description>
+          SASL bind options
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>       
+      <function-arg-def name="dsTrustStorePath" type="optional">
+        <function-arg-description>
+          Certificate trust store path
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseStartTLS" type="optional">
+        <function-arg-description>
+          Use StartTLS to secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsTrustStorePassword" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsKeyStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>      
+      <function-arg-def name="dsTrustStorePasswordFile" type="optional">
+        <function-arg-description>
+          Certificate trust store PIN file
+        </function-arg-description>
+        <function-arg-property name="type" value="filename"/>
+      </function-arg-def>
+      <function-arg-def name="dsKeyStorePassword" type="optional">
+        <function-arg-description>
+          Certificate keystore PIN
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsTrustAll" type="optional">
+        <function-arg-description>
+          Trust all server SSL certificates
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsUseSSL" type="optional">
+        <function-arg-description>
+          Use SSL for secure communication with the server
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCancel" type="optional">
+        <function-arg-description>
+          Specify the task ID to cancel
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInfo" type="optional">
+        <function-arg-description>
+          Display information for a particular task
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsSummary" type="optional">
+        <function-arg-description>
+          Display information for a particular task
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
       <function-arg-def name="dsQuiet" type="optional">
-      <function-arg-description>
-        Use quiet mode (no output)
-      </function-arg-description>
+        <function-arg-description>
+          Use quiet mode (no output)
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
       </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
@@ -3838,10 +3944,61 @@
         if dsPath:
           dsBinPath='%s/%s' % (dsPath,fileFolder) 
           STAFCmd='%s/manage-tasks%s' % (dsBinPath,fileExt)
-      
+
+        if dsBindPasswordFile:
+          STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
+          
+        if dsKeyStorePath:
+          STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
+
+        if dsCertNickname:
+          STAFCmdParamsList.append('-N %s' % dsCertNickname)
+                  
+        if dsSaslOption:
+          STAFCmdParamsList.append('-o %s' % dsSaslOption)
+                  
+        if dsTrustStorePath:
+          STAFCmdParamsList.append('-P %s' % dsTrustStorePath)
+          
+        if dsUseStartTLS:
+          STAFCmdParamsList.append('-q')
+          
+        if dsTrustStorePassword:
+          STAFCmdParamsList.append('-T %s' % dsTrustStorePassword)
+          
+        if dsKeyStorePasswordFile:
+          STAFCmdParamsList.append('-u %s' % dsKeyStorePasswordFile)
+          
+        if dsTrustStorePasswordFile:
+          STAFCmdParamsList.append('-U %s' % dsTrustStorePasswordFile)
+          
+        if dsKeyStorePassword:
+          STAFCmdParamsList.append('-W %s' % dsKeyStorePassword)
+          
+        if dsTrustAll:
+          STAFCmdParamsList.append('-X')
+          
+        if dsUseSSL:
+          STAFCmdParamsList.append('-Z')
+
+        if dsCancel:
+          STAFCmdParamsList.append('-c %s' % dsCancel)
+          
+        if dsInfo:
+          STAFCmdParamsList.append('-i %s' % dsInfo)
+          
+        if dsSummary:
+          STAFCmdParamsList.append('-s')
+          
         if dsQuiet:
           STAFCmdParamsList.append('-n')
-                  
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')
+          
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+        
         STAFCmdParams=' '.join(STAFCmdParamsList)
         
       </script>
@@ -3861,6 +4018,571 @@
         STAXResult
       </return>      
     </sequence>
-  </function>  
-                                                   
+  </function>
+
+  <function name="CLI_rebuild-index">
+    <function-prolog>
+      This wraps the rebuild-index tool to make it easy to use from STAX
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>          
+      <function-arg-def name="baseDN" type="required">
+        <function-arg-description>
+          Specify a back-end supporting indexing and triggers a rebuild of all 
+          indexes in the scope of the provided baseDN
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="attributes" type="required">
+        <function-arg-description>
+          Specify a list of attributes to trigger index rebuild on
+          This should be passed on as a python array like
+          [ 'uid', 'telephonenumber' ]
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <script>
+        dsBinPath='%s/%s' % (dsPath,fileFolder)        
+        _cmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
+        _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'rebuild index',
+          'location'  : location,
+          'command'   : _cmd,
+          'arguments' : _args,
+          'expectedRC': expectedRC
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <function name="CLI_verify-index">
+    <function-prolog>
+      This wraps the verify-index tool to make it easy to use from STAX
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="baseDN" type="required">
+        <function-arg-description>
+          Specify a back-end supporting indexing and triggers a verification of all 
+          indexes in the scope of the provided baseDN
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="attributes" type="required">
+        <function-arg-description>
+          Specify a list of attributes to trigger index verification on
+          This should be passed as a python array like
+          [ 'uid','telephonenumber' ]
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="clean" type="optional">
+        <function-arg-description>
+          Specify a list of attributes to trigger index verification on
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+
+    <sequence>
+      <script>
+        dsBinPath='%s/%s' % (dsPath,fileFolder)                  
+        _cmd='%s/verify-index%s' % (dsBinPath,fileExt)
+        _args=' -b %s -i %s' % ( baseDN, ' -i '.join(attributes) )
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'verify index',
+          'location'  : location,
+          'command'   : _cmd,
+          'arguments' : _args,
+          'expectedRC': expectedRC
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function execute the rebuild-index tool -->
+  <function name="rebuildIndexWithScript" scope="local">
+    <function-prolog>
+      This function execute the rebuild-index tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBaseDN" type="required">
+        <function-arg-description>
+          Specify the base DN for which to perform the verification
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsIndexList" type="optional">
+        <function-arg-description>
+          Specify the name of indexes for which to perform the verification
+          This should be passed as a python array like
+          [ 'uid','telephonenumber' ]
+        </function-arg-description>
+        <function-arg-property name="type" value="array"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/rebuild-index%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsIndexList:
+          STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Rebuild index script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+
+  <!-- This function execute the verify-index tool -->  
+  <function name="verifyIndexWithScript" scope="local">
+    <function-prolog>
+      This function execute the verify-index tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBaseDN" type="required">
+        <function-arg-description>
+          Specify the base DN for which to perform the verification
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsIndexList" type="optional">
+        <function-arg-description>
+          Specify the name of indexes for which to perform the verification
+          This should be passed as a python array like
+          [ 'uid','telephonenumber' ]
+        </function-arg-description>
+        <function-arg-property name="type" value="array"/>
+      </function-arg-def>
+      <function-arg-def name="dsClean" type="optional">
+        <function-arg-description>
+          Verify that an index is clean
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsCountErrors" type="optional">
+        <function-arg-description>
+          Count the number of errors found during the verification 
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/verify-index%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsIndexList:
+          STAFCmdParamsList.append('-i %s' % (' -i '.join(dsIndexList)))
+          
+        if dsClean:
+          STAFCmdParamsList.append('-c')
+          
+        if dsCountErrors:
+          STAFCmdParamsList.append('--countErrors ')
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Verify index script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function execute the list-backends tool -->  
+  <function name="listBackendsWithScript" scope="local">
+    <function-prolog>
+      This function execute the list-backends tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>      
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          Specify the baseDN from which the list-backends utility 
+          should list the backend ID
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsBackendID" type="optional">
+        <function-arg-description>
+          Specify the backend ID from which the tool should display 
+          the associated base DN
+        </function-arg-description>
+        <function-arg-property name="type" value="array"/>
+      </function-arg-def>
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/list-backends%s' % (dsBinPath,fileExt)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsBackendID:
+          STAFCmdParamsList.append('-n %s' % dsBackendID)
+        
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'List backends script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  <!-- This function execute the dbtest tool -->  
+  <function name="dbtestWithScript" scope="local">
+    <function-prolog>
+      This function execute the dbtest tool
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath"
+                       type="optional"
+                       default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="subcommand" type="required">
+        <function-arg-description>
+          The subcommand for dbtest
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def> 
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          Base DN of the entry container to debug
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="dsBackendID" type="optional">
+        <function-arg-description>
+          Backend ID of the local DB backend to debug
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsDatabaseName" type="optional">
+        <function-arg-description>
+          Name of the database container to debug
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsMinKeyValue" type="optional">
+        <function-arg-description>
+          Only show records with keys that should be ordered after the 
+          provided value using the comparator for the database container
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>           
+      <function-arg-def name="dsMaxKeyValue" type="optional">
+        <function-arg-description>
+          Only show records with keys that should be ordered before the
+          provided value using the comparator for the database container
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="dsSkipDecode" type="optional">
+        <function-arg-description>
+          Skip decoding the local database to their appropriate types.
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>      
+      <function-arg-def name="dsMinDataSize" type="optional">
+        <function-arg-description>
+          Only show records whose data is no smaller than the provided value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>           
+      <function-arg-def name="dsMaxDataSize" type="optional">
+        <function-arg-description>
+          Only show records whose data is no larger than the provided value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>      
+      <function-arg-def name="dsHelp" type="optional">
+        <function-arg-description>
+          Display this usage information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="dsVersion" type="optional">
+        <function-arg-description>
+          Display Directory Server version information
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>     
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder) 
+          STAFCmd='%s/dbtest%s' % (dsBinPath,fileExt)
+          
+        if subcommand:
+          STAFCmdParamsList.append(subcommand)
+          
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+          
+        if dsBackendID:
+          STAFCmdParamsList.append('-n %s' % dsBackendID)
+          
+        if dsDatabaseName:
+          STAFCmdParamsList.append('-d %s' % dsDatabaseName)
+          
+        if dsMinKeyValue:
+          STAFCmdParamsList.append('-k %s' % dsMinKeyValue)
+          
+        if dsMaxKeyValue:
+          STAFCmdParamsList.append('-K %s' % dsMinKeyValue)
+          
+        if dsSkipDecode:
+          STAFCmdParamsList.append('-p')
+          
+        if dsMinDataSize:
+          STAFCmdParamsList.append('-s %s' % dsMinDataSize)
+          
+        if dsMaxDataSize:
+          STAFCmdParamsList.append('-S %s' % dsMaxDataSize)
+          
+        if dsHelp:
+          STAFCmdParamsList.append('-H')
+          
+        if dsVersion:
+          STAFCmdParamsList.append('-V')      
+          
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <call function="'runCommand'">
+        { 
+        'name'       : 'Dbtest script',
+        'command'    : STAFCmd,
+        'arguments'  : STAFCmdParams,
+        'location'   : location,
+        'expectedRC' : expectedRC
+        }
+      </call>
+      
+      <return>STAXResult</return>
+    </sequence>
+  </function>
 </stax>

@@ -147,7 +147,7 @@
               </script>
               
               <script>
-                msg1 = 'Rebuild of index\(es\) uid started with 1048'
+                msg1 = 'Rebuild of index\(es\) uid started with 1047'
                 msg2 = 'total records to process' 
               </script>                  
               <call function="'checktestString'">
@@ -160,7 +160,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'Rebuild complete. Processed 1048 records'
+                'expectedString' : 'Rebuild complete. Processed 1047 records'
                 }
               </call>           
               
@@ -257,7 +257,7 @@
               
               <script>
                 msg1 = 'Rebuild of index\(es\) uid, cn started'
-                msg2 = 'with 2096 total records to process' 
+                msg2 = 'with 2094 total records to process' 
               </script>                  
               <call function="'checktestString'">
                 { 
@@ -269,7 +269,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'Rebuild complete. Processed 2096 records'
+                'expectedString' : 'Rebuild complete. Processed 2094 records'
                 }
               </call>
               
@@ -438,7 +438,7 @@
               </call>
               
               <script>
-                msg1 = 'Rebuild of index\(es\) st started with 1048'
+                msg1 = 'Rebuild of index\(es\) st started with 1047'
                 msg2 = 'total records to process' 
               </script>                 
               <call function="'checktestString'">
@@ -449,7 +449,7 @@
               </call>
               
               <script>
-                msg = 'Rebuild complete. Processed 1048 records' 
+                msg = 'Rebuild complete. Processed 1047 records' 
               </script>                 
               <call function="'checktestString'">
                 { 
@@ -486,7 +486,7 @@
               </call>
               
               <script>
-                msg = 'Checked 1048 entries and found 0 error' 
+                msg = 'Checked 1047 entries and found 0 error' 
               </script>                 
               <call function="'checktestString'">
                 { 
@@ -523,7 +523,7 @@
               </call>
               
               <script>
-                msg1 = 'Rebuild of index\(es\) st started with 1048'
+                msg1 = 'Rebuild of index\(es\) st started with 1047'
                 msg2 = 'total records to process' 
               </script>                 
               <call function="'checktestString'">
@@ -534,7 +534,7 @@
               </call>
               
               <script>
-                msg = 'Rebuild complete. Processed 1048 records' 
+                msg = 'Rebuild complete. Processed 1047 records' 
               </script>                 
               <call function="'checktestString'">
                 { 
