@@ -28,12 +28,15 @@
 package org.opends.server.replication;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.opends.messages.Category;
@@ -54,6 +57,7 @@ import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.Operation;
@@ -62,6 +66,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.opends.server.types.Attribute;
 
 /**
  * Test the contructors, encoders and decoders of the Replication AckMsg,
@@ -147,7 +152,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       Thread.sleep(500);
 
       // check that the replicationServer only sent WINDOW_SIZE messages
-      assertTrue(searchUpdateSent());
+      searchUpdateSent();
 
       int rcvCount=0;
       try
@@ -209,15 +214,16 @@ public class ProtocolWindowTest extends ReplicationTestCase
    * And that the number of waiting changes is accurate.
    * Do this by checking the monitoring information.
    */
-  private boolean searchUpdateSent() throws Exception
+  private void searchUpdateSent() throws Exception
   {
     InternalSearchOperation op = connection.processSearch(
         new ASN1OctetString("cn=monitor"),
         SearchScope.WHOLE_SUBTREE,
         LDAPFilter.decode("(update-sent=" + WINDOW_SIZE + ")"));
+
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-    if (op.getEntriesSent() != 1)
-      return false;
+    assertEquals(op.getEntriesSent(), 1, 
+        "Entries#=" + op.getEntriesSent());
 
     op = connection.processSearch(
         new ASN1OctetString("cn=monitor"),
@@ -225,8 +231,21 @@ public class ProtocolWindowTest extends ReplicationTestCase
         LDAPFilter.decode("(missing-changes=" +
             (REPLICATION_QUEUE_SIZE + WINDOW_SIZE) + ")"));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-
-    return (op.getEntriesSent() == 1);
+    
+    Iterator<SearchResultEntry> entriesit = op.getSearchEntries().iterator();
+    while(entriesit.hasNext())
+    {
+      SearchResultEntry e = entriesit.next();
+      Iterator<Attribute> attit = e.getAttributes().iterator();
+      while (attit.hasNext())
+      {
+        Attribute attr = attit.next();
+        logError(Message.raw(Category.SYNC, Severity.INFORMATION, 
+        e.getDN() + "= " + attr.getName() + " " + attr.getValues().iterator()
+        .next().getStringValue()));
+      }
+    }
+    assertEquals(op.getEntriesSent(), 1, "Entries#=" + op.getEntriesSent());
   }
 
   /**

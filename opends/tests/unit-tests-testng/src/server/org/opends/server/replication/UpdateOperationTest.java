@@ -98,6 +98,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
   private Entry personWithUUIDEntry;
   private Entry personWithSecondUniqueID;
 
+  private Entry  user3Entry;
+  private String user3dn;
+  private String user3lLDIFEntry;
+  private String user3UUID;
+
   private String baseUUID;
 
   private String user1dn;
@@ -120,6 +125,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
   private Entry domain1;
   private Entry domain2;
   private Entry domain3;
+  
+  Short domainSid = 55;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -177,7 +184,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
         + "cn: example\n"
         + "ds-cfg-base-dn: ou=People,dc=example,dc=com\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
-        + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
+        + "ds-cfg-server-id: "+ domainSid +"\n" 
+        + "ds-cfg-receive-status: true\n";
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     String personLdif = "dn: uid=user.1,ou=People,dc=example,dc=com\n"
@@ -239,7 +247,25 @@ public class  UpdateOperationTest extends ReplicationTestCase
     personWithSecondUniqueID =
       TestCaseUtils.entryFromLdifString(entryWithSecondUUID);
     
-    
+    user3UUID = "44444444-4444-4444-4444-444444444444";
+    user3dn = "uid=user3,ou=People,dc=example,dc=com";
+    String user3LDIFEntry = "dn: "+ user3dn + "\n"
+      + "objectClass: top\n" + "objectClass: person\n"
+      + "objectClass: organizationalPerson\n"
+      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
+      + "homePhone: 951-245-7634\n"
+      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+      + "mobile: 027-085-0537\n"
+      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+      + "$Rockford, NC  85762\n" + "mail: user.3@example.com\n"
+      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
+      + "street: 17984 Thirteenth Street\n"
+      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
+      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+      + "userPassword: password\n" + "initials: AA\n"
+      + "entryUUID: " + user3UUID + "\n";
+    user3Entry = TestCaseUtils.entryFromLdifString(user3LDIFEntry);
+
     domain1dn = "dc=domain1,ou=People,dc=example,dc=com";
     domain2dn = "dc=domain2,dc=domain1,ou=People,dc=example,dc=com";
     domain3dn = "dc=domain3,dc=domain1,ou=People,dc=example,dc=com";
@@ -1666,5 +1692,92 @@ public class  UpdateOperationTest extends ReplicationTestCase
     {
       throw new RuntimeException("Cannot set receive status");
     }
+  }
+  /**
+   * Test that the ReplicationDomain (plugin inside LDAP server) adjust
+   * its internal change number generator to the last change number
+   * received. Steps:
+   * - create a domain with the current date in the CN generator
+   * - make it receive an update with a CN in the future
+   * - do a local operation replicated on that domain
+   * - check that the update generated for that operation has a CN in the
+   *   future. 
+   * @throws Exception
+   */
+  @Test(enabled=true)
+  public void CNGeneratorAdjust() throws Exception
+  {
+    short serverId = 88;
+    logError(Message.raw(Category.SYNC, Severity.INFORMATION,
+        "Starting synchronization test : CNGeneratorAdjust"));
+
+    final DN baseDn = DN.decode("ou=People,dc=example,dc=com");
+
+    /*
+     * Open a session to the replicationServer using the broker API.
+     * This must use a different serverId to that of the directory server.
+     */
+    ReplicationBroker broker =
+      openReplicationSession(baseDn, serverId, 100, replServerPort, 1000, true);
+
+    /*
+     * Create a Change number generator to generate new changenumbers
+     * when we need to send operation messages to the replicationServer.
+     */
+    long inTheFutur = System.currentTimeMillis() + (3600*1000);
+    ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId, inTheFutur);
+
+    // Create and publish an update message to add an entry.
+    AddMsg addMsg = new AddMsg(
+        gen.newChangeNumber(),
+        user3dn.toString(),
+        user3UUID,
+        baseUUID,
+        user3Entry.getObjectClassAttribute(),
+        user3Entry.getAttributes(), 
+        new ArrayList<Attribute>());
+    broker.publish(addMsg);
+
+    entryList.add(personWithUUIDEntry.getDN());
+    Entry resultEntry;
+
+    // Check that the entry has not been created in the directory server.
+    resultEntry = getEntry(user3Entry.getDN(), 1000, true);
+    assertNotNull(resultEntry, "The entry has not been created");
+
+    // Modify the entry
+    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+    ModifyOperationBasis modOp = new ModifyOperationBasis(
+        connection,
+        InternalClientConnection.nextOperationID(), 
+        InternalClientConnection.nextMessageID(), 
+        null,
+        user3Entry.getDN(),
+        mods);
+    modOp.setInternalOperation(true);
+    modOp.run();
+
+    // See if the client has received the msg
+    ReplicationMessage msg = broker.receive();
+    assertTrue(msg instanceof ModifyMsg,
+      "The received replication message is not a MODIFY msg");
+    ModifyMsg modMsg = (ModifyMsg) msg;
+    assertEquals(addMsg.getChangeNumber().getTimeSec(), 
+                 modMsg.getChangeNumber().getTimeSec(),
+                "The MOD timestamp should have been adjusted to the ADD one");
+    
+    // Delete the entries to clean the database.
+    DeleteMsg delMsg =
+      new DeleteMsg(
+          user3Entry.getDN().toString(),
+          gen.newChangeNumber(),
+          user3UUID);
+    broker.publish(delMsg);
+
+    // Check that the delete operation has been applied.
+    resultEntry = getEntry(user3Entry.getDN(), 10000, false);
+    assertNull(resultEntry,
+        "The DELETE replication message was not replayed");
+    broker.stop();
   }
 }

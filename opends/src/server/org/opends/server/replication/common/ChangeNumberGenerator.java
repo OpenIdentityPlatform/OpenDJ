@@ -100,7 +100,7 @@ public class ChangeNumberGenerator
   }
 
   /**
-   * Adjust the lastTime and seqnum of this Changenumber generator with
+   * Adjust the lastTime of this Changenumber generator with
    * a ChangeNumber that we have received from another server.
    * This is necessary because we need that the changenumber generated
    * after processing an update received from other hosts to be larger
@@ -110,10 +110,17 @@ public class ChangeNumberGenerator
    */
   public void adjust(ChangeNumber number)
   {
+    if (number==null)
+    {
+      lastTime = TimeThread.getTime();
+      seqnum = 0;
+      return;
+    }
+
     long rcvdTime = number.getTime();
 
     /* need to synchronize with NewChangeNumber method so that we
-     * protect writing of seqnum and lastTime fields
+     * protect writing lastTime fields
      */
     synchronized(this)
     {

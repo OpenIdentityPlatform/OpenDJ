@@ -477,13 +477,16 @@ public class ReplicationDomain extends DirectoryThread
 
     /*
      * ChangeNumberGenerator is used to create new unique ChangeNumbers
-     * for each operation done on the replication domain.
+     * for each operation done on this replication domain.
+     *
+     * The generator time is adjusted to the time of the last CN received from
+     * remote other servers.
      */
     ChangeNumberGenerator generator =
       new ChangeNumberGenerator(serverId, state);
 
     pendingChanges =
-      new PendingChanges(new ChangeNumberGenerator(serverId, state),
+      new PendingChanges(generator,
                          broker, state);
 
     remotePendingChanges = new RemotePendingChanges(generator, state);
