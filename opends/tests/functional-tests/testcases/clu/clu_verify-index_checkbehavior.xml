@@ -89,7 +89,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'Checked 1048 entries and found 0 error' 
+                'expectedString' : 'Checked 1047 entries and found 0 error' 
                 }
               </call>
               
@@ -135,7 +135,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'Checked 1048 entries and found 0 error' 
+                'expectedString' : 'Checked 1047 entries and found 0 error' 
                 }
               </call>
               
@@ -182,7 +182,7 @@
               <call function="'checktestString'">
                 { 
                 'returnString'   : returnString ,
-                'expectedString' : 'Checked 1048 entries and found 0 error' 
+                'expectedString' : 'Checked 1047 entries and found 0 error' 
                 }
               </call>
               
