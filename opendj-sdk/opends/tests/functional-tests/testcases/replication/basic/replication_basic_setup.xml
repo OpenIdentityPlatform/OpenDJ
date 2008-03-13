@@ -41,7 +41,8 @@
       <script>
         synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
         entryDn = 'uid=scarter,%s' % synchroSuffix
-        grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' % synchroSuffix
+        grandchildEntryDn = 'uid=scarter,ou=People,o=replication tests,%s' \
+                            % synchroSuffix
         mod_type = 'replace'
         attr_type = 'roomnumber'
         attr_value = '1111'        
@@ -98,7 +99,8 @@
       <script>
         filename = 'replication_mod.ldif'
         filePath = '%s/%s' % (logsTestDataDir,filename)
-        write_replication_mod_ldif_file(filePath, entryDn, mod_type, attr_type, attr_value)
+        write_replication_mod_ldif_file(filePath, entryDn, mod_type, attr_type,
+                                        attr_value)
       </script>
 
       <!-- Copy the replication_mod ldif to client host -->
@@ -108,17 +110,19 @@
       <call function="'copyFile'">
         { 'srcfile'    : filePath,
           'destfile'   : '%s/%s' % (clientDataDir,filename),
-          'remotehost' : client.getHostname() }
+          'remotehost' : client.getHostname()
+        }
       </call>          
           
                     
       <call function="'checkRC'">
         { 'returncode' : RC ,
-          'result'     : STAXResult }
+          'result'     : STAXResult
+        }
       </call>
                                   
     </sequence>
-
+      
   </function>
 
 </stax>
