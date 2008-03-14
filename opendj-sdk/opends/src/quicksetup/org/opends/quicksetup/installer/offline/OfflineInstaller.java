@@ -243,12 +243,13 @@ public class OfflineInstaller extends Installer
           }
         }
         notifyListeners(getLineBreak());
-        notifyListenersOfLog();
         updateSummaryWithServerState(hmSummary);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         Message html = getFormattedError(ex, true);
         notifyListeners(html);
         LOG.log(Level.SEVERE, "Error installing.", ex);
+        notifyListeners(getLineBreak());
+        notifyListenersOfLog();
       }
       runError = ex;
     }
@@ -273,7 +274,6 @@ public class OfflineInstaller extends Installer
         }
       }
       notifyListeners(getLineBreak());
-      notifyListenersOfLog();
       updateSummaryWithServerState(hmSummary);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
@@ -282,6 +282,8 @@ public class OfflineInstaller extends Installer
       Message msg = getFormattedError(ex, true);
       notifyListeners(msg);
       LOG.log(Level.SEVERE, "Error installing.", t);
+      notifyListeners(getLineBreak());
+      notifyListenersOfLog();
       runError = ex;
     }
     finally
