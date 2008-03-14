@@ -34,10 +34,10 @@
 
 STAF_LOCAL_HOSTNAME         = 'localhost'
 STAF_REMOTE_HOSTNAME        = 'localhost'
-TMPDIR                      = '/local/qa/realtmp'
-OPENDSDIR                   = '/local/qa/workspace/ws4/opends'
+TMPDIR                      = 'NEED_VALUE'
+OPENDSDIR                   = 'NEED_VALUE'
 TESTS_ROOT                  = '%s/tests' % OPENDSDIR
 TESTS_DIR                   = '%s/system-tests' % TESTS_ROOT
 DIRECTORY_INSTANCE_DN       = 'cn=directory manager'
 DIRECTORY_INSTANCE_PSWD     = 'secret12'
-JAVA_HOME                   = '/usr/lib/jvm/java-6-sun/jre'
+JAVA_HOME                   = 'NEED_VALUE'
