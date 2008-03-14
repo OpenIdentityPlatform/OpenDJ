@@ -69,9 +69,6 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.WorkQueue;
-import org.opends.server.api.AccessLogPublisher;
-import org.opends.server.api.ErrorLogPublisher;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.StartupPluginResult;
@@ -87,13 +84,10 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import org.opends.server.loggers.RetentionPolicy;
-import org.opends.server.loggers.RotationPolicy;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.debug.DebugLogger;
 
 import org.opends.messages.MessageDescriptor;
 import org.opends.messages.Message;
@@ -1001,27 +995,6 @@ public class DirectoryServer
     Thread.setDefaultUncaughtExceptionHandler(this);
 
 
-    // Install default debug and error loggers for use until enough of the
-    // configuration has been read to allow the real loggers to be installed.
-    removeAllAccessLogPublishers();
-    for (AccessLogPublisher p : environmentConfig.getAccessLoggers())
-    {
-      addAccessLogPublisher(p);
-    }
-
-    removeAllErrorLogPublishers();
-    for (ErrorLogPublisher p : environmentConfig.getErrorLoggers())
-    {
-      addErrorLogPublisher(p);
-    }
-
-    removeAllDebugLogPublishers();
-    for (DebugLogPublisher p : environmentConfig.getDebugLoggers())
-    {
-      addDebugLogPublisher(p);
-    }
-
-
     // Create the MBean server that we will use for JMX interaction.
     initializeJMX();
 
@@ -1322,10 +1295,10 @@ public class DirectoryServer
       retentionPolicyConfigManager = new LogRetentionPolicyConfigManager();
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
 
+
       // Initialize the server loggers.
       loggerConfigManager = new LoggerConfigManager();
       loggerConfigManager.initializeLoggerConfig();
-
 
 
       // Initialize the server alert handlers.
@@ -1481,17 +1454,9 @@ public class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
 
-      for(DebugLogPublisher startupDebugLogPublisher :
-          environmentConfig.getDebugLoggers())
-      {
-        removeDebugLogPublisher(startupDebugLogPublisher);
-      }
-
-      for(ErrorLogPublisher startupErrorLogPublisher :
-          environmentConfig.getErrorLoggers())
-      {
-        removeErrorLogPublisher(startupErrorLogPublisher);
-      }
+      // Remove default loggers
+      ErrorLogger.removeFirstErrorLogPublisher();
+      DebugLogger.removeFirstDebugLogPublisher();
 
       // Force the root connection to be initialized.
       InternalClientConnection.getRootConnection();
@@ -9525,8 +9490,6 @@ public class DirectoryServer
 
     // Create an environment configuration for the server and populate a number
     // of appropriate properties.
-    TextErrorLogPublisher startupErrorLogPublisher = null;
-    TextDebugLogPublisher startupDebugLogPublisher = null;
     DirectoryEnvironmentConfig environmentConfig =
          new DirectoryEnvironmentConfig();
     try
@@ -9537,17 +9500,6 @@ public class DirectoryServer
                                     configFile.getValue());
       environmentConfig.setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
            String.valueOf(useLastKnownGoodConfig.isPresent()));
-
-
-      startupErrorLogPublisher =
-          TextErrorLogPublisher.getStartupTextErrorPublisher(
-              new TextWriter.STDOUT());
-      environmentConfig.addErrorLogger(startupErrorLogPublisher);
-
-      startupDebugLogPublisher =
-          TextDebugLogPublisher.getStartupTextDebugPublisher(
-              new TextWriter.STDOUT());
-      environmentConfig.addDebugLogger(startupDebugLogPublisher);
     }
     catch (Exception e)
     {

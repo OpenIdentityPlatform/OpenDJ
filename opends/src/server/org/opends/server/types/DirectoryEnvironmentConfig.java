@@ -29,17 +29,12 @@ package org.opends.server.types;
 
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.DebugLogPublisher;
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 
@@ -63,18 +58,6 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=true)
 public final class DirectoryEnvironmentConfig
 {
-  // The set of access loggers that should be put in place before the
-  // server is started.
-  private final ArrayList<AccessLogPublisher> accessLoggers;
-
-  // The set of debug loggers that should be put in place before the
-  // server is started.
-  private final ArrayList<DebugLogPublisher> debugLoggers;
-
-  // The set of error loggers that should be put in place before the
-  // server is started.
-  private final ArrayList<ErrorLogPublisher> errorLoggers;
-
   // The set of properties for the environment config.
   private final HashMap<String,String> configProperties;
 
@@ -112,10 +95,6 @@ public final class DirectoryEnvironmentConfig
                              String.valueOf(properties.get(o)));
       }
     }
-
-    accessLoggers = new ArrayList<AccessLogPublisher>();
-    debugLoggers  = new ArrayList<DebugLogPublisher>();
-    errorLoggers  = new ArrayList<ErrorLogPublisher>();
   }
 
 
@@ -138,10 +117,6 @@ public final class DirectoryEnvironmentConfig
     {
       configProperties = new HashMap<String,String>(properties);
     }
-
-    accessLoggers = new ArrayList<AccessLogPublisher>();
-    debugLoggers  = new ArrayList<DebugLogPublisher>();
-    errorLoggers  = new ArrayList<ErrorLogPublisher>();
   }
 
 
@@ -1328,135 +1303,6 @@ public final class DirectoryEnvironmentConfig
         return LockManager.DEFAULT_INITIAL_TABLE_SIZE;
       }
     }
-  }
-
-
-
-  /**
-   * Retrieves the list of access loggers that should be enabled in
-   * the server during the startup process.  Note that these loggers
-   * will not be automatically disabled when startup is complete, so
-   * if they are no longer needed then they should be manually removed
-   * from the server using the
-   * {@code AccessLogger.removeAccessLogPublisher} method.
-   *
-   * @return  The list of access loggers that should be enabled in the
-   *          server during the startup process.
-   */
-  public List<AccessLogPublisher> getAccessLoggers()
-  {
-    return accessLoggers;
-  }
-
-
-
-  /**
-   * Adds the provided access logger to the set of loggers that should
-   * be enabled in the server during the startup process.
-   *
-   * @param  accessLogger  The access logger that should be added to
-   *                       the set of loggers enabled in the server
-   *                       during the startup process.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running.
-   */
-  public void addAccessLogger(AccessLogPublisher accessLogger)
-         throws InitializationException
-  {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
-
-    accessLoggers.add(accessLogger);
-  }
-
-
-
-  /**
-   * Retrieves the list of error loggers that should be enabled in
-   * the server during the startup process.  Note that these loggers
-   * will not be automatically disabled when startup is complete, so
-   * if they are no longer needed then they should be manually removed
-   * from the server using the
-   * {@code ErrorLogger.removeErrorLogPublisher} method.
-   *
-   * @return  The list of error loggers that should be enabled in the
-   *          server during the startup process.
-   */
-  public List<ErrorLogPublisher> getErrorLoggers()
-  {
-    return errorLoggers;
-  }
-
-
-
-  /**
-   * Adds the provided error logger to the set of loggers that should
-   * be enabled in the server during the startup process.
-   *
-   * @param  errorLogger  The error logger that should be added to the
-   *                      set of loggers enabled in the server during
-   *                      the startup process.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running.
-   */
-  public void addErrorLogger(ErrorLogPublisher errorLogger)
-         throws InitializationException
-  {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
-
-    errorLoggers.add(errorLogger);
-  }
-
-
-
-  /**
-   * Retrieves the list of debug loggers that should be enabled in
-   * the server during the startup process.  Note that these loggers
-   * will not be automatically disabled when startup is complete, so
-   * if they are no longer needed then they should be manually removed
-   * from the server using the
-   * {@code DebugLogger.removeDebugLogPublisher} method.
-   *
-   * @return  The list of debug loggers that should be enabled in the
-   *          server during the startup process.
-   */
-  public List<DebugLogPublisher> getDebugLoggers()
-  {
-    return debugLoggers;
-  }
-
-
-
-  /**
-   * Adds the provided debug logger to the set of loggers that should
-   * be enabled in the server during the startup process.
-   *
-   * @param  debugLogger  The debug logger that should be added to
-   *                      the set of loggers enabled in the server
-   *                      during the startup process.
-   *
-   * @throws  InitializationException  If the Directory Server is
-   *                                   already running.
-   */
-  public void addDebugLogger(DebugLogPublisher debugLogger)
-         throws InitializationException
-  {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
-
-    debugLoggers.add(debugLogger);
   }
 }
 

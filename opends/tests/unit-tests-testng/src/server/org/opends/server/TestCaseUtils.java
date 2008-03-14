@@ -81,7 +81,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.TextAccessLogPublisher;
 import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.asn1.ASN1Reader;
@@ -366,15 +369,18 @@ public final class TestCaseUtils {
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-      config.addAccessLogger(
+      AccessLogger.removeAllAccessLogPublishers();
+      AccessLogger.addAccessLogPublisher(
           TextAccessLogPublisher.getStartupTextAccessPublisher(
               ACCESS_TEXT_WRITER, false));
 
-      config.addErrorLogger(
+      ErrorLogger.removeAllErrorLogPublishers();
+      ErrorLogger.addErrorLogPublisher(
          TextErrorLogPublisher.getStartupTextErrorPublisher(
               ERROR_TEXT_WRITER));
 
-      config.addDebugLogger(
+      DebugLogger.removeAllDebugLogPublishers();
+      DebugLogger.addDebugLogPublisher(
          TextDebugLogPublisher.getStartupTextDebugPublisher(
               DEBUG_TEXT_WRITER));
 
@@ -1624,4 +1630,3 @@ public final class TestCaseUtils {
     return buffer.toString();
   }
 }
-
