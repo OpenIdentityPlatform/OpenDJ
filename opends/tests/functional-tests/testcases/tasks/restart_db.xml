@@ -34,8 +34,8 @@
           CurrentTestPath['suite']=STAXCurrentFunction
         </script>
         <call function="'testSuite_Preamble'" />
-
-   
+        
+        
         <!--- Test Suite information
           #@TestSuiteName      Restart tasks
           #@TestSuitePurpose   Validate the stop and restart functionality in mode task
@@ -61,8 +61,8 @@
         <testcase name="getTestCaseName('schedule restart task for scheduled execution in asynchronous mode')">
           <sequence>
             <call function="'testCase_Preamble'"/>
-
-
+            
+            
             <call function="'StopDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME,
               'dsHost'    : DIRECTORY_INSTANCE_HOST,
@@ -72,12 +72,12 @@
               'dsRestart' : ' ',
               'dsStopTime' : '20061212000000' }
             </call>
-
+            
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
               'sleepForMilliSeconds'  :  10000 }
-            </call>
-
+            </call>             
+            
             <call function="'SearchObject'">
               { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
               'dsInstancePort'  : DIRECTORY_INSTANCE_PORT ,
@@ -88,12 +88,12 @@
               'dsScope'	        : 'base',
               'expectedRC'      :  0 }
             </call>
-
+            
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-
+        
+        
         <!--- Test Case information
           #@TestMarker          Restart tasks
           #@TestName            Stop task in asynchronous mode
@@ -108,8 +108,8 @@
         <testcase name="getTestCaseName('schedule stop server task for scheduled execution in asynchronous mode')">
           <sequence>
             <call function="'testCase_Preamble'"/>
-
-
+            
+            
             <call function="'StopDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME,
               'dsHost'    : DIRECTORY_INSTANCE_HOST,
@@ -118,18 +118,18 @@
               'dsBindPwd' : DIRECTORY_INSTANCE_PSWD,
               'dsStopTime' : '20061212000000' }
             </call>
-
+            
             <call function="'SearchObject'">
-              { 'dsInstanceHost'	    : DIRECTORY_INSTANCE_HOST ,
-              'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
-              'dsInstanceDn'	: DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-              'dsBaseDN'	    : DIRECTORY_INSTANCE_SFX,
-              'dsFilter'		: 'objectclass=*'	,
-              'dsScope'		: 'base',
-              'expectedRC'	    :  91 }
+              { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST ,
+              'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+              'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+              'dsBaseDN'          : DIRECTORY_INSTANCE_SFX,
+              'dsFilter'          : 'objectclass=*'	,
+              'dsScope'           : 'base',
+              'expectedRC'        :  91 }
             </call>
-
+            
             <!--- Start DS -->
             <call function="'StartDsWithScript'">
               { 'location'  : STAF_REMOTE_HOSTNAME }
@@ -137,8 +137,8 @@
             <call function="'testCase_Postamble'"/>
           </sequence>
         </testcase>
-
-
+        
+        
         <call function="'testSuite_Postamble'" />
       </sequence>
     </block>
