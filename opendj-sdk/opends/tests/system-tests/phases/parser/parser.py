@@ -385,14 +385,17 @@ def getRefObjectByName(myName,myList):
 
 def _getPropValue(myNode):
   "This function get the first node text value of a node"
-  propValueNode = myNode.getFirstChild()
-  if (propValueNode.getNodeType() == Node.TEXT_NODE or
-      propValueNode.getNodeType() == Node.COMMENT_NODE):
-    #out = '%s' % (myNode.getNodeName())
-    out = '%s' % (propValueNode.getNodeValue())
-  else:
-    out = 'ERROR %s has not a text children node type, should be' % \
+  try:
+    propValueNode = myNode.getFirstChild()
+    if (propValueNode.getNodeType() == Node.TEXT_NODE or
+        propValueNode.getNodeType() == Node.COMMENT_NODE):
+      #out = '%s' % (myNode.getNodeName())
+      out = '%s' % (propValueNode.getNodeValue())
+    else:
+     out = 'ERROR node has not a text children node type or is empty, should be' % \
           (myNode.getNodeName())
+  except AttributeError:
+    out = NOT_DEFINED
   return out
 
 def _getAttributeNode(myNode,myAttributeName):
