@@ -53,6 +53,7 @@
           #@TestPurpose          Schedule a import in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
           #@TestStep             Execute a import-ldif in a task
+          #@TestStep             Execute manage-tasks output and check the Import task is returned
           #@TestStep             Don't specify the -t option
           #@TestStep             The task is scheduled for immediate execution and the script must wait the end of the import
           #@TestPostamble
@@ -73,6 +74,28 @@
               'dsAppend'       : ' ',
               'dsBackEnd'      : 'userRoot'}
             </call>
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+  
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+        
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Import',
+              'expectedResult'	   : '1' }
+            </call>            
+     
             
             <!-- Check data are imported -->
             <call function="'checkImport'">
@@ -133,7 +156,7 @@
             </call>
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
-              'sleepForMilliSeconds'  :  90000 }
+              'sleepForMilliSeconds'  :  40000 }
             </call>
             
             <!--  Check data are imported -->
@@ -194,7 +217,7 @@
             </call>
             <call function="'Sleep'">
               { 'location'  :	 STAF_REMOTE_HOSTNAME,
-              'sleepForMilliSeconds'  :  90000 }
+              'sleepForMilliSeconds'  :  40000 }
             </call>
             
             <!--  Check data are imported -->

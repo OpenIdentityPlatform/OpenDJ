@@ -83,6 +83,7 @@
           #@TestPurpose          Schedule a restore in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
           #@TestStep             Execute a restore in a task
+          #@TestStep             Execute manage-tasks tools and check an Restore tasks is managed
           #@TestStep             Don't specify the -t option
           #@TestStep             The task is scheduled for immediate execution and the script must wait the end of the restore            
           #@TestPostamble
@@ -102,7 +103,27 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'backupDir'  :  '%s/tasks/backup_synchronous' % logsRemoteDataDir}
             </call>
-            
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+  
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+        
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Restore',
+              'expectedResult'	   : '1' }
+            </call>                          
             
             <call function="'testCase_Postamble'"/>
           </sequence>
