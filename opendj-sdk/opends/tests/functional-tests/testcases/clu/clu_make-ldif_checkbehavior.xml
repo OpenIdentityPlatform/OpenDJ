@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="clu_make-ldif_checkbehavior"/>
+  
+  <function name="clu_make-ldif_checkbehavior">
+    
+    <sequence>
+      
+      <block name="'clu_make-ldif_checkbehavior'">
+        
+        <sequence>
+          
+          <!--- Test Suite information
+            #@TestSuiteName     make-ldif check behavior tests
+            #@TestSuitePurpose  Test the results of the make-ldif command.
+            #@TestSuiteGroup    make-ldif check behavior tests
+            #@TestScript        clu_make-ldif_checkbehavior.xml
+          -->
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'              
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Define default value for template -->
+          <script>
+            template = '%s/clu/make-ldif_template.ref' % logsRemoteDataDir
+          </script>
+          
+          <!--- Test Case information
+            #@TestMarker          make-ldif check behavior tests
+            #@TestName            make-ldif: generate ldif file with seed 0
+            #@TestIssue           none
+            #@TestPurpose         Test make-ldif with to generate ldif file
+                                  with seed 0
+            #@TestPreamble        none
+            #@TestStep            Do an make-ldif with seed of 0.
+            #@TestPostamble       none
+            #@TestResult          Success if make-ldif returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('make-ldif: generate ldif file with seed 0')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'make-ldif: generate ldif file with seed 0'
+              </message>
+              
+              <call function="'MakeLdifWithScript'">
+                {
+                'templateFile'   : template ,
+                'ldifFile'       : '%s/make-ldif_seed0_1.ldif' \
+                                   % DIRECTORY_INSTANCE_DIR ,
+                'randomSeed'     : 0
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+                msg = 'LDIF processing complete.  161 entries written'
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase> 
+          
+          <!--- Test Case information
+            #@TestMarker          make-ldif check behavior tests
+            #@TestName            make-ldif: import generated data
+            #@TestIssue           none
+            #@TestPurpose         Check that data genereted witch make-ldif
+                                  are correct
+            #@TestPreamble        none
+            #@TestStep            Do an make-ldif with seed of 0.
+            #@TestStep            Stop the server.
+            #@TestStep            Import the data generated with make-ldif.
+            #@TestStep            Start the server.
+            #@TestStep            Search some entries using ldapsearch.            
+            #@TestPostamble       none
+            #@TestResult          Success if ldapsearch returns the expected
+                                  number of entries.
+          -->
+          <testcase name="getTestCaseName
+          ('make-ldif: import generated data')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'make-ldif: generate a second ldif file with seed of 0'
+              </message>
+              
+              <call function="'MakeLdifWithScript'">
+                {
+                'templateFile'   : template ,
+                'ldifFile'       : '%s/make-ldif_seed0_2.ldif' \
+                                   % DIRECTORY_INSTANCE_DIR ,
+                'randomSeed'     : 0
+                }
+              </call>
+              
+              <message>
+                'make-ldif: stop the server'
+              </message>    
+              
+              <call function="'StopDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+
+              <message>
+                'make-ldif: import the data'
+              </message>
+              
+              <call function="'ImportLdifWithScript'">
+                { 
+                'dsLdifFile'  : '%s/make-ldif_seed0_2.ldif' \
+                                %  DIRECTORY_INSTANCE_DIR ,
+                'dsBackEnd'   : 'userRoot' ,
+                'dsAppend'    : 'True'
+                }
+              </call>
+
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAXResult
+                }
+              </call>
+              
+              <message>
+                'make-ldif: start the server'
+              </message>
+              
+              <call function="'StartDsWithScript'">
+                { 'location' : STAF_REMOTE_HOSTNAME }
+              </call>
+       
+              <!--- Check that DS started -->
+              <call function="'isAlive'">
+                {
+                'noOfLoops'        : 5 ,
+                'noOfMilliSeconds' : 2000
+                }
+              </call>
+              
+              <message>
+                'make-ldif: search some entries to check that data are imported'
+              </message>
+              <call function="'ldapSearchWithScript'">
+                {
+                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort' : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                'dsCountEntries' : 'True' ,
+                'dsBaseDN'       : 'ou=make-ldif,o=clu tests,dc=example,dc=com',
+                'dsFilter'       : 'objectclass=*' ,
+                'expectedRC'     : 'noCheck'
+                }                
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'     : returnString ,
+                'expectedString'   : 'Total number of matching entries: 161' 
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          make-ldif check behavior tests
+            #@TestName            make-ldif: compare generated data
+            #@TestIssue           none
+            #@TestPurpose         Check that data genereted witch make-ldif
+                                  are correct
+            #@TestPreamble        none
+            #@TestStep            Do an make-ldif to generate a first file
+                                  without seed.
+            #@TestStep            Do an make-ldif to generate a second file
+                                  without seed.          
+            #@TestStep            Do an make-ldif to generate a file
+                                  with seed of 5.
+            #@TestStep            Compare files generated with seed of 0.
+            #@TestStep            Compare one file generated with seed of 0 and
+                                  one generated without seed.
+            #@TestStep            Compare files generated without seed.
+            #@TestStep            Compare one file generated with seed of 0 and
+                                  one generated with seed of 5.
+            #@TestPostamble       none
+            #@TestResult          Success if ldif-diff returns 0 in each cases.
+          -->
+          <testcase name="getTestCaseName
+          ('make-ldif: compare generated data')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'make-ldif: generate a first ldif file without seed'
+              </message>
+              
+              <call function="'MakeLdifWithScript'">
+                {
+                'templateFile'   : template ,
+                'ldifFile'       : '%s/make-ldif_noseed_1.ldif' \
+                                   % DIRECTORY_INSTANCE_DIR
+                }
+              </call>
+              
+              <message>
+                'make-ldif: generate a second ldif file without seed'
+              </message>
+              
+              <call function="'MakeLdifWithScript'">
+                {
+                'templateFile'   : template ,
+                'ldifFile'       : '%s/make-ldif_noseed_2.ldif' \
+                                   % DIRECTORY_INSTANCE_DIR
+                }
+              </call>
+
+              <message>
+                'make-ldif: generate a ldif file with seed of 5'
+              </message>
+              
+              <call function="'MakeLdifWithScript'">
+                {
+                'templateFile'   : template ,
+                'ldifFile'       : '%s/make-ldif_seed5.ldif' \
+                                   % DIRECTORY_INSTANCE_DIR ,
+                'randomSeed'     : 5
+                }
+              </call>              
+
+              <message>
+                'make-ldif: ldifs with seed of 0 must be the same'
+              </message>
+              
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/make-ldif_seed0_2.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'outputLdif' : '%s/make-ldif_seed0.diff' \
+                % DIRECTORY_INSTANCE_DIR
+                }
+              </call>              
+
+              <message>
+                'make-ldif: ldifs with seed of 0 and no seed must \
+                be different'
+              </message>
+              
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/make-ldif_noseed_1.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'outputLdif' : '%s/make-ldif_noseed_1.diff' \
+                % DIRECTORY_INSTANCE_DIR
+                }
+              </call>           
+              
+              <message>
+                'make-ldif: ldifs with no seed must be different'
+              </message>
+              
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/make-ldif_noseed_1.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/make-ldif_noseed_2.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'outputLdif' : '%s/make-ldif_noseed_2.diff' \
+                % DIRECTORY_INSTANCE_DIR
+                }
+              </call>
+              
+              <message>
+                'make-ldif: ldifs with seed of 0 and seed of 5 \
+                must be different'
+              </message>
+              
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/make-ldif_seed0_1.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/make-ldif_seed5.ldif' \
+                % DIRECTORY_INSTANCE_DIR ,
+                'outputLdif' : '%s/make-ldif_seed5.diff' \
+                % DIRECTORY_INSTANCE_DIR
+                }
+              </call>   
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>

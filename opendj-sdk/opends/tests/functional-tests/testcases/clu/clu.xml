@@ -61,7 +61,10 @@
             testList.append(['.','clu_ldappasswordmodify_checkbehavior'])
             testList.append(['.','clu_ldifsearch_checkbehavior'])
             testList.append(['.','clu_verify-index_checkbehavior'])
-            testList.append(['.','clu_rebuild-index_checkbehavior'])            
+            testList.append(['.','clu_rebuild-index_checkbehavior'])
+            testList.append(['.','clu_encode-password_checkbehavior'])
+            testList.append(['.','clu_make-ldif_checkbehavior'])
+            testList.append(['.','clu_list-backends_checkbehavior'])
             testList.append(['.','clu_cleanup'])
           </script>
           

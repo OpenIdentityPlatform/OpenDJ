@@ -72,7 +72,7 @@
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
       
-      <function-arg-def name="randomSeed " type="optional">
+      <function-arg-def name="randomSeed" type="optional">
         <function-arg-description>
           The seed to use to initialize the random number generator
         </function-arg-description>
@@ -128,7 +128,7 @@
           'expectedRC': expectedRC
         }
       </call>
-      <return>[RC, STAXResult]</return>
+      <return>STAXResult</return>
     </sequence>
   </function> 
   
