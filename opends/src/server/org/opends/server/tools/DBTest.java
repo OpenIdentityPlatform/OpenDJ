@@ -673,7 +673,7 @@ public class DBTest
       }
       catch(DirectoryException de)
       {
-        printMessage(ERR_DBTEST_DECODE_BASE_DN.get(backendID.getValue(),
+        printMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
                                                    getExceptionMessage(de)));
         return 1;
       }
@@ -848,7 +848,7 @@ public class DBTest
       }
       catch(DirectoryException de)
       {
-        printMessage(ERR_DBTEST_DECODE_BASE_DN.get(backendID.getValue(),
+        printMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
                                                    getExceptionMessage(de)));
         return 1;
       }
@@ -1010,7 +1010,7 @@ public class DBTest
     }
     catch(DirectoryException de)
     {
-      printMessage(ERR_DBTEST_DECODE_BASE_DN.get(backendID.getValue(),
+      printMessage(ERR_DBTEST_DECODE_BASE_DN.get(baseDN.getValue(),
                                                  getExceptionMessage(de)));
       return 1;
     }
