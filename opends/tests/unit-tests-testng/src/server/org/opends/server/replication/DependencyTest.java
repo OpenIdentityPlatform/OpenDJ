@@ -422,7 +422,7 @@ public class DependencyTest extends ReplicationTestCase
    * To increase the risks of failures a loop of add/del/add is done.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=false, groups="slow")
   public void addDelAddDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
@@ -555,7 +555,7 @@ public class DependencyTest extends ReplicationTestCase
    * issuing a set of Add operation followed by a modrdn of the added entry.
    */
   @SuppressWarnings("unchecked")
-  @Test(enabled=true, groups="slow")
+  @Test(enabled=false, groups="slow")
   public void addModdnDependencyTest() throws Exception
   {
     ReplicationServer replServer = null;
