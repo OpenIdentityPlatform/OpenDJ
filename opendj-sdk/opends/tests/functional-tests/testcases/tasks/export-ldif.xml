@@ -101,6 +101,7 @@
           #@TestPurpose         Schedule a Export in task mode to be executed immedialy in synchronous mode
           #@TestPreamble
           #@TestStep            Execute a export-ldif in a task
+          #@TestStep            Execute manage-tasks output and check the Export task is returned
           #@TestStep            Don't specify the -t option
           #@TestStep            The task is scheduled for immediate execution and the script must wait the end of the export
           #@TestPostamble
@@ -120,6 +121,27 @@
               'ldifFile'  :  '%s/tasks/export_synchronous' % logsRemoteDataDir,
               'backEnd'   : 'userRoot'}
             </call>
+            
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+  
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+        
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Export',
+              'expectedResult'	   : '1' }
+            </call>                
             
             
             <message>'--- Check log files ---'</message>
@@ -184,16 +206,6 @@
                 <call function="'testPassed'"/>          
               </else>
             </if>
-            
-            
-            <call function="'RestartDs'">
-              { 'dsHost'	  : DIRECTORY_INSTANCE_HOST,
-              'dsPort'	  : DIRECTORY_INSTANCE_PORT,
-              'dsBindDN'  : DIRECTORY_INSTANCE_DN,
-              'dsBindPwd' : DIRECTORY_INSTANCE_PSWD
-              }
-            </call>           
-            
             
             <call function="'testCase_Postamble'"/>
           </sequence>

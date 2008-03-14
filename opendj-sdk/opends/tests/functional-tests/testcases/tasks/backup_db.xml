@@ -53,6 +53,7 @@
           #@TestPurpose       Schedule a backup in task mode to be executed immedialy in asynchronous mode
           #@TestPreamble
           #@TestStep         Execute a backup in mode task
+          #@TestStep         Execute manage-tasks tools and check a backup task is managed
           #@TestStep         Specify the -t 0 
           #@TestStep         The task is scheduled for immediate execution
           #@TestSteps        The script returns immedialy after scheduling the task       
@@ -75,6 +76,28 @@
               'startTask'  : '0',
               'backEnd'   : 'userRoot'}
             </call>
+
+            <!-- manage-tasks -->
+            <call function="'manage-tasks'">
+              { 'location'     : STAF_REMOTE_HOSTNAME ,
+              'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+              'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+              'dsQuiet'        : ' '
+              }
+            </call>
+  
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+        
+            <call function="'searchStringForSubstring'">
+              { 'returnString'	   : returnString,
+              'testString'	   : 'Backup',
+              'expectedResult'	   : '1' }
+            </call>              
+            
             
             <message>'--- Check log files backup_asynchronous ---'</message>
             <call function="'listFolder'">
