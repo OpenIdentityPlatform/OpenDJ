@@ -36,6 +36,18 @@
         <message>'ERROR config.py : OPENDSDIR variable not defined'</message>
         <script> ERR_NUM[0] += 1 </script>
       </sequence>
+    <elseif expr="TMPDIR == 'NEED_VALUE'">
+      <sequence>
+        <message>'ERROR config.py : TMPDIR variable not defined'</message>
+        <script> ERR_NUM[0] += 1 </script>
+      </sequence>
+    </elseif>
+    <elseif expr="JAVA_HOME == 'NEED_VALUE'">
+      <sequence>
+        <message>'ERROR config.py : JAVA_HOME variable not defined'</message>
+        <script> ERR_NUM[0] += 1 </script>
+      </sequence>
+    </elseif>
     <else>
       <sequence>
         <call function="'grep'">
