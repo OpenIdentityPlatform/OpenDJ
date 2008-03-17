@@ -75,6 +75,8 @@
             testList.append(['.','clu_list-backends_checkbehavior'])
             testList.append(['.','clu_manage-tasks_checkbehavior'])
             testList.append(['.','clu_dbtest_checkbehavior'])
+            testList.append(['.','clu_ldifmodify_checkbehavior'])
+            testList.append(['.','clu_ldif-diff_checkbehavior'])            
             testList.append(['.','clu_cleanup'])
           </script>
           
