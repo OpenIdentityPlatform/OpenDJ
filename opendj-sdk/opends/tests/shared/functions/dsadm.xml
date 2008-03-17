@@ -4552,7 +4552,7 @@
           STAFCmdParamsList.append('-k %s' % dsMinKeyValue)
           
         if dsMaxKeyValue:
-          STAFCmdParamsList.append('-K %s' % dsMinKeyValue)
+          STAFCmdParamsList.append('-K %s' % dsMaxKeyValue)
           
         if dsSkipDecode:
           STAFCmdParamsList.append('-p')

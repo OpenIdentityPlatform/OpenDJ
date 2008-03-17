@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="clu_manage-tasks_checkbehavior"/>
+  
+  <function name="clu_manage-tasks_checkbehavior">
+    
+    <sequence>
+      
+      <block name="'clu_manage-tasks_checkbehavior'">
+        
+        <sequence>
+          
+          <!--- Test Suite information
+            #@TestSuiteName     manage-tasks check behavior tests
+            #@TestSuitePurpose  Test the results of the manage-tasks command.
+            #@TestSuiteGroup    manage-tasks check behavior tests
+            #@TestScript        clu_manage-tasks_checkbehavior.xml
+          -->
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'              
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Define default value for template -->
+          <script>
+            task = '%s/clu/disconnect.ldif' % logsRemoteDataDir
+          </script>
+          
+          <!--- Test Case information
+            #@TestMarker          manage-tasks check behavior tests
+            #@TestName            manage-tasks: summary of tasks
+            #@TestIssue           none
+            #@TestPurpose         Test manage-tasks with summary option
+            #@TestPreamble        none
+            #@TestStep            Do an manage-tasks with -s option.
+            #@TestStep            Check that task 125 and 126 are displayed.            
+            #@TestPostamble       none
+            #@TestResult          Success if manage-tasks returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('manage-tasks: get summary of tasks')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'manage-tasks: create two tasks with taskID 125 and 126'
+              </message>
+              
+              <call function="'ldapModifyWithScript'">
+                {
+                'dsInstanceHost'    : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'    : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'      : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD ,
+                'dsAdd'             : 'True' ,
+                'dsFilename'        : task
+                }
+              </call>
+              
+              <message>
+                'manage-tasks: check that these tasks appear in the summary'
+              </message>
+              
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsSummary'        : 'True' ,
+                'dsQuiet'          : 'True'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+                msg1 = '125  Disconnect Client  Completed with errors'
+                msg2 = '126  Disconnect Client  Waiting on start time'
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg1
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg2
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          manage-tasks check behavior tests
+            #@TestName            manage-tasks: info option
+            #@TestIssue           none
+            #@TestPurpose         Test manage-tasks with info option
+            #@TestPreamble        none
+            #@TestStep            Do an manage-tasks with -i option on task 125.
+            #@TestStep            Check some information for task 125.
+            #@TestStep            Do an manage-tasks with -i option on task 126.
+            #@TestStep            Check some information for task 126.            
+            #@TestPostamble       none
+            #@TestResult          Success if manage-tasks returns 0 and if the
+                                  outputs are correct.
+          -->
+          <testcase name="getTestCaseName
+          ('manage-tasks: get task information')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'manage-tasks: get information for task 125'
+              </message>
+              
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsInfo'           : 125 ,
+                'dsQuiet'          : 'True'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+                msg1 = 'ID                        125'
+                msg2 = 'Type                      Disconnect Client'
+                msg3 = 'Status                    Completed with errors'
+                msg4 = 'Scheduled Start Time      Immediate execution'              
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg1
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg2
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg3
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg4
+                }
+              </call>    
+              
+              <message>
+                'manage-tasks: get information for task 126'
+              </message>
+              
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsInfo'           : 126 ,
+                'dsQuiet'          : 'True'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+                msg1 = 'ID                        126'
+                msg2 = 'Type                      Disconnect Client'
+                msg3 = 'Status                    Waiting on start time'
+                msg4 = 'Scheduled Start Time      Dec 12, 2048 12:00:00 AM MET'
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg1
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg2
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg3
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg4
+                }
+              </call>   
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          manage-tasks check behavior tests
+            #@TestName            manage-tasks: cancel option
+            #@TestIssue           none
+            #@TestPurpose         Test manage-tasks with cancel option
+                                  with seed 0
+            #@TestPreamble        none
+            #@TestStep            Do an manage-tasks with -c option on task 125.
+            #@TestStep            Check the output of the previous command.
+            #@TestStep            Do an manage-tasks with -c option on task 126.
+            #@TestStep            Check the output of the previous command.           
+            #@TestPostamble       none
+            #@TestResult          Success if manage-tasks return 1 for task 125,
+                                  0 for task 126 and if the outputs are correct.
+          -->
+          <testcase name="getTestCaseName('manage-tasks: cancel task')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'manage-tasks: cancel the task 125'
+              </message>
+          
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCancel'         : 125 ,
+                'dsQuiet'          : 'True' ,
+                'expectedRC'       : 1
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'task 125 is not in a cancelable state'
+                }
+              </call>
+              
+              <message>
+                'manage-tasks: cancel the task 126'
+              </message>
+              
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCancel'         : 126 ,
+                'dsQuiet'          : 'True'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Task 126 canceled'
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          manage-tasks check behavior tests
+            #@TestName            manage-tasks: invalid task
+            #@TestIssue           none
+            #@TestPurpose         Test manage-tasks with an invalid task
+            #@TestPreamble        none
+            #@TestStep            Do an manage-tasks with -c option and an
+                                  invalid task.
+            #@TestStep            Check the output of the previous command.
+            #@TestStep            Do an manage-tasks with -i option and an
+                                  invalid task.
+            #@TestStep            Check the output of the previous command.
+            #@TestPostamble       none
+            #@TestResult          Success if manage-tasks return 1 and if
+                                  the outputs are correct.
+          -->
+          <testcase name="getTestCaseName('manage-tasks: invalid task')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'manage-tasks: information for an invalid task'
+              </message>
+          
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCancel'         : 124 ,
+                'dsQuiet'          : 'True' ,
+                'expectedRC'       : 1
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+                msg1 = 'Error canceling task \'124\': There are no tasks'
+                msg2 = 'defined with ID \'124\''
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s %s' % (msg1, msg2)
+                }
+              </call>
+              
+              <message>
+                'manage-tasks: information on an invalid task'
+              </message>
+              
+              <call function="'manage-tasks'">
+                {
+                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                'dsInstancePort'   : DIRECTORY_INSTANCE_PORT ,
+                'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                'dsCancel'         : 124 ,
+                'dsQuiet'          : 'True' ,
+                'expectedRC'       : 1
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s %s' % (msg1, msg2)
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>
