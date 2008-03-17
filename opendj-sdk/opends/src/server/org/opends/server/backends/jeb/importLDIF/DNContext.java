@@ -24,24 +24,27 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
-package org.opends.server.backends.jeb;
+package org.opends.server.backends.jeb.importLDIF;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.AttributeType;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.backends.jeb.*;
+
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Transaction;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class represents the import context for a destination base DN.
  */
-public class ImportContext
-{
+public class DNContext {
 
   /**
    * The destination base DN.
@@ -84,15 +87,35 @@ public class ImportContext
   private EntryContainer srcEntryContainer;
 
   /**
-   * The amount of buffer memory available in bytes.
-   */
-  private long bufferSize;
-
-  /**
-   * A queue of entries that have been read from the LDIF and are ready
+   * A queue of elements that have been read from the LDIF and are ready
    * to be imported.
    */
-  private BlockingQueue<Entry> queue;
+
+  private BlockingQueue<WorkElement> workQueue;
+
+
+  //This currently isn't used.
+  private ArrayList<VLVIndex> vlvIndexes = new ArrayList<VLVIndex>();
+
+  /**
+   * The maximum number of parent ID values that we will remember.
+   */
+  private static final int PARENT_ID_MAP_SIZE = 100;
+
+  /**
+   * Map of likely parent entry DNs to their entry IDs.
+   */
+  private HashMap<DN,EntryID> parentIDMap =
+       new HashMap<DN,EntryID>(PARENT_ID_MAP_SIZE);
+
+  //Map of pending DNs added to the work queue. Used to check if a parent
+  //entry has been added, but isn't in the dn2id DB.
+  private ConcurrentHashMap<DN,DN> pendingMap =
+                                              new ConcurrentHashMap<DN, DN>() ;
+
+  //Used to synchronize the parent ID map, since multiple worker threads
+  //can be accessing it.
+  private Object synchObject = new Object();
 
   /**
    * The number of LDAP entries added to the database, used to update the
@@ -114,22 +137,28 @@ public class ImportContext
    */
   private ArrayList<EntryID> IDs;
 
-  /**
-   * Get the import entry queue.
-   * @return The import entry queue.
-   */
-  public BlockingQueue<Entry> getQueue()
-  {
-    return queue;
-  }
+  //The buffer manager used to hold the substring cache.
+  private BufferManager bufferManager;
+
 
   /**
-   * Set the import entry queue.
-   * @param queue The import entry queue.
+   * Get the work queue.
+   *
+   * @return  The work queue.
    */
-  public void setQueue(BlockingQueue<Entry> queue)
-  {
-    this.queue = queue;
+  public BlockingQueue<WorkElement> getWorkQueue() {
+      return workQueue;
+    }
+
+
+  /**
+   * Set the work queue to the specified work queue.
+   *
+   * @param workQueue The work queue.
+   */
+  public void
+   setWorkQueue(BlockingQueue<WorkElement> workQueue) {
+    this.workQueue = workQueue;
   }
 
   /**
@@ -239,24 +268,6 @@ public class ImportContext
   public EntryContainer getSrcEntryContainer()
   {
     return srcEntryContainer;
-  }
-
-  /**
-   * Get the available buffer size in bytes.
-   * @return The available buffer size.
-   */
-  public long getBufferSize()
-  {
-    return bufferSize;
-  }
-
-  /**
-   * Set the available buffer size in bytes.
-   * @param bufferSize The available buffer size in bytes.
-   */
-  public void setBufferSize(long bufferSize)
-  {
-    this.bufferSize = bufferSize;
   }
 
   /**
@@ -384,4 +395,141 @@ public class ImportContext
       }
     }
 
-}
+
+    /**
+     * Return the attribute type attribute index map.
+     *
+     * @return The attribute type attribute index map.
+     */
+    public Map<AttributeType, AttributeIndex> getAttrIndexMap() {
+      return entryContainer.getAttributeIndexMap();
+    }
+
+    /**
+     * Set all the indexes to trusted.
+     *
+     * @throws DatabaseException If the trusted value cannot be updated in the
+     * index DB.
+     */
+    public void setIndexesTrusted() throws DatabaseException {
+      entryContainer.getID2Children().setTrusted(null,true);
+      entryContainer.getID2Subtree().setTrusted(null, true);
+      for(AttributeIndex attributeIndex :
+          entryContainer.getAttributeIndexes()) {
+        Index index;
+        if((index = attributeIndex.getEqualityIndex()) != null) {
+          index.setTrusted(null, true);
+        }
+        if((index=attributeIndex.getPresenceIndex()) != null) {
+          index.setTrusted(null, true);
+        }
+        if((index=attributeIndex.getSubstringIndex()) != null) {
+          index.setTrusted(null, true);
+        }
+        if((index=attributeIndex.getOrderingIndex()) != null) {
+          index.setTrusted(null, true);
+        }
+        if((index=attributeIndex.getApproximateIndex()) != null) {
+          index.setTrusted(null, true);
+        }
+      }
+    }
+
+
+    /**
+     * Get the Entry ID of the parent entry.
+     * @param parentDN  The parent DN.
+     * @param dn2id The DN2ID DB.
+     * @param txn A database transaction,
+     * @return The entry ID of the parent entry.
+     * @throws DatabaseException If a DB error occurs.
+     */
+    public
+    EntryID getParentID(DN parentDN, DN2ID dn2id, Transaction txn)
+            throws DatabaseException {
+      EntryID parentID;
+      synchronized(synchObject) {
+        parentID = parentIDMap.get(parentDN);
+        if (parentID != null) {
+          return parentID;
+        }
+      }
+      int i=0;
+      //If the parent is in the pending map, another thread is working on the
+      //parent entry; wait until that thread is done with the parent.
+      while(isPending(parentDN)) {
+        try {
+          Thread.sleep(50);
+          if(i == 3) {
+            return null;
+          }
+          i++;
+        } catch (Exception e) {
+          return null;
+        }
+      }
+      parentID = dn2id.get(txn, parentDN);
+      //If the parent is in dn2id, add it to the cache.
+      if (parentID != null) {
+        synchronized(synchObject) {
+          if (parentIDMap.size() >= PARENT_ID_MAP_SIZE) {
+            Iterator<DN> iterator = parentIDMap.keySet().iterator();
+            iterator.next();
+            iterator.remove();
+          }
+          parentIDMap.put(parentDN, parentID);
+        }
+      }
+      return parentID;
+    }
+
+    /**
+     * Check if the parent DN is in the pending map.
+     *
+     * @param parentDN The DN of the parent.
+     * @return <CODE>True</CODE> if the parent is in the pending map.
+     */
+    private boolean isPending(DN parentDN) {
+      boolean ret = false;
+      if(pendingMap.containsKey(parentDN)) {
+        ret = true;
+      }
+      return ret;
+    }
+
+    /**
+     * Add specified DN to the pending map.
+     *
+     * @param dn The DN to add to the map.
+     */
+    public void addPending(DN dn) {
+      pendingMap.putIfAbsent(dn, dn);
+    }
+
+    /**
+     * Remove the specified DN from the pending map.
+     *
+     * @param dn The DN to remove from the map.
+     */
+    public void removePending(DN dn) {
+      pendingMap.remove(dn);
+    }
+
+    /**
+     * Set the substring buffer manager to the specified buffer manager.
+     *
+     * @param bufferManager The buffer manager.
+     */
+    public void setBufferManager(BufferManager bufferManager) {
+      this.bufferManager = bufferManager;
+    }
+
+    /**
+     * Return the buffer manager.
+     *
+     * @return The buffer manager.
+     */
+    public BufferManager getBufferManager() {
+      return bufferManager;
+    }
+  }

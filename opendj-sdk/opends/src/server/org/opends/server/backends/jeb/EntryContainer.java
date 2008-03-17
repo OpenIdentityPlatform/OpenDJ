@@ -667,6 +667,16 @@ public class EntryContainer
     return attrIndexMap.get(attrType);
   }
 
+
+  /**
+   * Return attribute index map.
+   *
+   * @return The attribute index map.
+   */
+  public Map<AttributeType, AttributeIndex> getAttributeIndexMap() {
+    return attrIndexMap;
+  }
+
   /**
    * Look for an VLV index for the given index name.
    *
@@ -4657,4 +4667,20 @@ public class EntryContainer
     }
     return matchedDN;
   }
+
+  /**
+   * Get the exclusive lock.
+   *
+   */
+  public void lock() {
+    exclusiveLock.lock();
+  }
+
+  /**
+   * Unlock the exclusive lock.
+   */
+  public void unlock() {
+    exclusiveLock.unlock();
+  }
+
 }
