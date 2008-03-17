@@ -4464,7 +4464,9 @@ public class EntryContainer
       Transaction txn = null;
       try
       {
-        txn = beginTransaction();
+        if(env.getConfig().getTransactional()) {
+          txn = beginTransaction();
+        }
         for(DatabaseContainer db : databases)
         {
           if (db instanceof Index)
@@ -4473,7 +4475,9 @@ public class EntryContainer
             index.setTrusted(txn, true);
           }
         }
-        transactionCommit(txn);
+        if(env.getConfig().getTransactional()) {
+          transactionCommit(txn);
+        }
       }
       catch(Exception de)
       {
