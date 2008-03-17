@@ -1085,16 +1085,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.219
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.220
-  NAME 'ds-cfg-import-temp-directory'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.221
-  NAME 'ds-cfg-import-buffer-size'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.222
   NAME 'ds-cfg-import-queue-size'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
@@ -1152,11 +1142,6 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.232
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.233
   NAME 'ds-cfg-db-num-lock-tables'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.234
-  NAME 'ds-cfg-import-pass-size'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
@@ -2241,13 +2226,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
   MAY ( ds-cfg-index-entry-limit $
         ds-cfg-subtree-delete-size-limit $
         ds-cfg-preload-time-limit $
-        ds-cfg-import-temp-directory $
-        ds-cfg-import-buffer-size $
         ds-cfg-import-queue-size $
         ds-cfg-import-thread-count $
         ds-cfg-entries-compressed $
         ds-cfg-deadlock-retry-limit $
-        ds-cfg-import-pass-size $
         ds-cfg-db-directory-permissions $
         ds-cfg-db-cache-percent $
         ds-cfg-subtree-delete-batch-size $

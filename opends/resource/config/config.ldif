@@ -181,10 +181,7 @@ ds-cfg-index-entry-limit: 4000
 ds-cfg-subtree-delete-size-limit: 100000
 ds-cfg-subtree-delete-batch-size: 5000
 ds-cfg-preload-time-limit: 0 seconds
-ds-cfg-import-temp-directory: import-tmp
-ds-cfg-import-buffer-size: 256 megabytes
 ds-cfg-import-queue-size: 100
-ds-cfg-import-pass-size: 0
 ds-cfg-import-thread-count: 8
 ds-cfg-entries-compressed: false
 ds-cfg-deadlock-retry-limit: 10

@@ -74,6 +74,7 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.DN;
+import org.opends.server.backends.jeb.importLDIF.Importer;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -1166,50 +1167,31 @@ public class BackendImpl
     try
     {
       EnvironmentConfig envConfig =
-          ConfigurableEnvironment.parseConfigEntry(cfg);
-      /**
-       envConfig.setConfigParam("je.env.runCleaner", "false");
-       envConfig.setConfigParam("je.log.numBuffers", "2");
-       envConfig.setConfigParam("je.log.bufferSize", "15000000");
-       envConfig.setConfigParam("je.log.totalBufferBytes", "30000000");
-       envConfig.setConfigParam("je.log.fileMax", "100000000");
-       **/
-
-      if (importConfig.appendToExistingData())
-      {
-        envConfig.setReadOnly(false);
-        envConfig.setAllowCreate(true);
-        envConfig.setTransactional(true);
-        envConfig.setTxnNoSync(true);
-        envConfig.setConfigParam("je.env.isLocking", "true");
-        envConfig.setConfigParam("je.env.runCheckpointer", "false");
-      }
-      else if(importConfig.clearBackend() || cfg.getBaseDN().size() <= 1)
-      {
-        // We have the writer lock on the environment, now delete the
-        // environment and re-open it. Only do this when we are
-        // importing to all the base DNs in the backend or if the backend only
-        // have one base DN.
-        File parentDirectory = getFileForPath(cfg.getDBDirectory());
-        File backendDirectory = new File(parentDirectory, cfg.getBackendId());
-        // If the backend does not exist the import will create it.
-        if (backendDirectory.exists())
-        {
-          EnvManager.removeFiles(backendDirectory.getPath());
+              ConfigurableEnvironment.parseConfigEntry(cfg);
+      if(!importConfig.appendToExistingData()) {
+        if(importConfig.clearBackend() || cfg.getBaseDN().size() <= 1) {
+          // We have the writer lock on the environment, now delete the
+          // environment and re-open it. Only do this when we are
+          // importing to all the base DNs in the backend or if the backend only
+          // have one base DN.
+          File parentDirectory = getFileForPath(cfg.getDBDirectory());
+          File backendDirectory = new File(parentDirectory, cfg.getBackendId());
+          // If the backend does not exist the import will create it.
+          if (backendDirectory.exists()) {
+            EnvManager.removeFiles(backendDirectory.getPath());
+          }
         }
-
-        envConfig.setReadOnly(false);
-        envConfig.setAllowCreate(true);
-        envConfig.setTransactional(false);
-        envConfig.setTxnNoSync(false);
-        envConfig.setConfigParam("je.env.isLocking", "false");
-        envConfig.setConfigParam("je.env.runCheckpointer", "false");
       }
-
+      envConfig.setReadOnly(false);
+      envConfig.setAllowCreate(true);
+      envConfig.setTransactional(false);
+      envConfig.setTxnNoSync(false);
+      envConfig.setConfigParam("je.env.isLocking", "false");
+      envConfig.setConfigParam("je.env.runCheckpointer", "false");
+      Importer importer = new Importer(importConfig);
+      envConfig.setConfigParam("je.maxMemory", importer.getDBCacheSize());
       rootContainer = initializeRootContainer(envConfig);
-
-      ImportJob importJob = new ImportJob(importConfig);
-      return importJob.importLDIF(rootContainer);
+      return importer.processImport(rootContainer);
     }
     catch (IOException ioe)
     {
@@ -1263,7 +1245,13 @@ public class BackendImpl
       {
         if (rootContainer != null)
         {
+          long startTime = System.currentTimeMillis();
           rootContainer.close();
+          long finishTime = System.currentTimeMillis();
+          long closeTime = (finishTime - startTime) / 1000;
+          Message msg =
+                       INFO_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
+          logError(msg);
           rootContainer = null;
         }
 

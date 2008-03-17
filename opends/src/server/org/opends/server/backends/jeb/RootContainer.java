@@ -26,17 +26,14 @@
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
-
 import com.sleepycat.je.config.EnvironmentParams;
 import com.sleepycat.je.config.ConfigParam;
 import com.sleepycat.je.*;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 import java.io.File;
 import java.io.FilenameFilter;
-
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
@@ -48,7 +45,6 @@ import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.config.ConfigException;
-
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -78,6 +74,9 @@ public class RootContainer
    * The JE database environment.
    */
   private Environment env;
+
+  //Used to force a checkpoint during import.
+  private CheckpointConfig importForceCheckPoint = new CheckpointConfig();
 
   /**
    * The backend configuration.
@@ -129,6 +128,7 @@ public class RootContainer
     this.compressedSchema = null;
 
     config.addLocalDBChangeListener(this);
+    importForceCheckPoint.setForce(true);
   }
 
   /**
@@ -1028,5 +1028,28 @@ public class RootContainer
     ccr = new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
                                  messages);
     return ccr;
+  }
+
+  /**
+   * Force a checkpoint.
+   *
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void importForceCheckPoint() throws DatabaseException {
+    env.checkpoint(importForceCheckPoint);
+  }
+
+  /**
+   * Run the cleaner and return the number of files cleaned.
+   *
+   * @return The number of logs cleaned.
+   * @throws DatabaseException If a database error occurs.
+   */
+  public int cleanedLogFiles() throws DatabaseException {
+    int cleaned, totalCleaned = 0;
+    while((cleaned = env.cleanLog()) > 0) {
+      totalCleaned += cleaned;
+    }
+    return totalCleaned;
   }
 }

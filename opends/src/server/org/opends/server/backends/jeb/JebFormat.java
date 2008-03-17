@@ -365,6 +365,30 @@ public class JebFormat
   }
 
   /**
+   * Decode a integer array using the specified byte array read from DB.
+   *
+   * @param bytes The byte array.
+   * @return An integer array.
+   */
+  public static int[] intArrayFromDatabaseBytes(byte[] bytes) {
+    byte[] decodedBytes = bytes;
+
+    int count = decodedBytes.length / 8;
+    int[] entryIDList = new int[count];
+    for (int pos = 0, i = 0; i < count; i++) {
+      int v = 0;
+      pos +=4;
+      v |= (decodedBytes[pos++] & 0xFFL) << 24;
+      v |= (decodedBytes[pos++] & 0xFFL) << 16;
+      v |= (decodedBytes[pos++] & 0xFFL) << 8;
+      v |= (decodedBytes[pos++] & 0xFFL);
+      entryIDList[i] = v;
+    }
+
+    return entryIDList;
+  }
+
+  /**
    * Encode an entry ID value to its database representation.
    * @param id The entry ID value to be encoded.
    * @return The encoded database value of the entry ID.

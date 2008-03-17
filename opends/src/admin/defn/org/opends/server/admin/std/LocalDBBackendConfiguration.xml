@@ -31,7 +31,7 @@
   xmlns:ldap="http://www.opends.org/admin-ldap"
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
-    The 
+    The
     <adm:user-friendly-name />
     uses the Berkeley DB Java Edition to store user-provided data in a local
     repository.
@@ -246,73 +246,9 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="import-buffer-size" advanced="true">
-    <adm:synopsis>
-      Specifies the amount of memory that should be used as an internal
-      buffer for index information when processing an LDIF import.
-    </adm:synopsis>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes do not take effect for any import that may already
-          be in progress.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>256mb</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:size lower-limit="10mb" />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-import-buffer-size</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="import-pass-size" advanced="true">
-    <adm:synopsis>
-      Specifies the maximum number of entries that should be imported in
-      each import pass.
-    </adm:synopsis>
-    <adm:description>
-      An import pass consists of the processing required to import a set
-      of entries as well as the index post-processing required to index
-      those entries. A value of zero for this property indicates that
-      all entries should be processed in a single pass, which is the
-      recommended configuration for most deployments, although a
-      non-zero value may be required when importing a very large number
-      of entries if the amount of memory required for index
-      post-processing exceeds the total amount available to the server.
-    </adm:description>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes do not take effect for any import that may already
-          be in progress.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>0</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:integer lower-limit="0" upper-limit="2147483647" />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-import-pass-size</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="import-queue-size" advanced="true">
     <adm:synopsis>
-      Specifies the size (in number of entries) of the queue that is 
+      Specifies the size (in number of entries) of the queue that is
       used to hold the entries read during an LDIF import.
     </adm:synopsis>
     <adm:requires-admin-action>
@@ -334,39 +270,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-import-queue-size</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="import-temp-directory" mandatory="true">
-    <adm:synopsis>
-      Specifies the location of the directory that is used to hold 
-      temporary information during the index post-processing phase of an LDIF import.
-    </adm:synopsis>
-    <adm:description>
-      The specified directory is only used while an import is in
-      progress and the files created in this directory are deleted
-      as they are processed. It may be an absolute path or one that is
-      relative to the instance root directory.
-    </adm:description>
-    <adm:requires-admin-action>
-      <adm:none>
-        <adm:synopsis>
-          Changes do not take effect for any import that may already
-          be in progress.
-        </adm:synopsis>
-      </adm:none>
-    </adm:requires-admin-action>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>import-tmp</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-import-temp-directory</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

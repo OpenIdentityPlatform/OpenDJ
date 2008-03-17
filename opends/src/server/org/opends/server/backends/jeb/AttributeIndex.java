@@ -1631,4 +1631,49 @@ public class AttributeIndex
     builder.append(indexConfig.getAttribute().getNameOrOID());
     return builder.toString();
   }
+
+  /**
+   * Return the equality index.
+   *
+   * @return The equality index.
+   */
+  public Index getEqualityIndex() {
+    return  equalityIndex;
+  }
+
+  /**
+   * Return the approximate index.
+   *
+   * @return The approximate index.
+   */
+  public Index getApproximateIndex() {
+    return approximateIndex;
+  }
+
+  /**
+   * Return the ordering index.
+   *
+   * @return  The ordering index.
+   */
+  public Index getOrderingIndex() {
+    return orderingIndex;
+  }
+
+  /**
+   * Return the substring index.
+   *
+   * @return The substring index.
+   */
+  public Index getSubstringIndex() {
+    return substringIndex;
+  }
+
+  /**
+   * Return the presence index.
+   *
+   * @return The presence index.
+   */
+  public Index getPresenceIndex() {
+    return presenceIndex;
+  }
 }

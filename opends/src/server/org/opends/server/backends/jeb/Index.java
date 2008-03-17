@@ -34,6 +34,8 @@ import com.sleepycat.je.*;
 
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.backends.jeb.importLDIF.IntegerImportIDSet;
+import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import static org.opends.messages.JebMessages.*;
 
 import java.util.*;
@@ -111,6 +113,7 @@ public class Index extends DatabaseContainer
    * flag overrides all behaviours of the trusted flag.
    */
   private boolean rebuildRunning = false;
+
 
   /**
    * Create a new index object.
@@ -258,6 +261,65 @@ public class Index extends DatabaseContainer
     return success;
   }
 
+
+  /**
+   * Add the specified import ID set to the provided key. Used during
+   * substring buffer flushing.
+   *
+   * @param txn A transaction.
+   * @param key The key to add the set to.
+   * @param importIdSet The set of import IDs.
+   * @throws DatabaseException If an database error occurs.
+   */
+  public void insert(Transaction txn, DatabaseEntry key,
+                     ImportIDSet importIdSet)
+  throws DatabaseException {
+
+    OperationStatus status;
+    DatabaseEntry data = new DatabaseEntry();
+      status = read(txn, key, data, LockMode.RMW);
+      if(status == OperationStatus.SUCCESS) {
+        ImportIDSet newImportIDSet = new IntegerImportIDSet();
+        if (newImportIDSet.merge(data.getData(), importIdSet, indexEntryLimit))
+        {
+          entryLimitExceededCount++;
+        }
+        data.setData(newImportIDSet.toDatabase());
+      } else if(status == OperationStatus.NOTFOUND) {
+        if(!importIdSet.isDefined()) {
+          entryLimitExceededCount++;
+        }
+        data.setData(importIdSet.toDatabase());
+      } else {
+        //Should never happen during import.
+        throw new DatabaseException();
+      }
+      put(txn,key, data);
+  }
+
+
+  /**
+   * Add the specified entry ID to the provided keys in the keyset.
+   *
+   * @param txn  A transaction.
+   * @param keySet  The set containing the keys.
+   * @param entryID The entry ID.
+   * @return <CODE>True</CODE> if the insert was successful.
+   * @throws DatabaseException If a database error occurs.
+   */
+  public synchronized
+  boolean insert(Transaction txn, Set<byte[]> keySet, EntryID entryID)
+  throws DatabaseException {
+    for(byte[] key : keySet) {
+      if(insertIDWithRMW(txn, new DatabaseEntry(key), new DatabaseEntry(),
+              entryID.getDatabaseEntry(), entryID) !=
+              OperationStatus.SUCCESS)  {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private OperationStatus insertIDWithRMW(Transaction txn, DatabaseEntry key,
                                           DatabaseEntry data,
                                           DatabaseEntry entryIDData,
@@ -364,6 +426,25 @@ public class Index extends DatabaseContainer
         }
       }
     }
+  }
+
+  /**
+   * Delete specified entry ID from all keys in the provided key set.
+   *
+   * @param txn  A Transaction.
+   * @param keySet A set of keys.
+   * @param entryID The entry ID to delete.
+   * @throws DatabaseException If a database error occurs.
+   */
+  public synchronized
+  void delete(Transaction txn, Set<byte[]> keySet, EntryID entryID)
+  throws DatabaseException {
+    setTrusted(txn, false);
+    for(byte[] key : keySet) {
+       removeIDWithRMW(txn, new DatabaseEntry(key),
+                       new DatabaseEntry(), entryID);
+    }
+    setTrusted(txn, true);
   }
 
   private void removeIDWithRMW(Transaction txn, DatabaseEntry key,
@@ -830,6 +911,15 @@ public class Index extends DatabaseContainer
   public void setIndexer(Indexer indexer)
   {
     this.indexer = indexer;
+  }
+
+  /**
+   * Return entry limit.
+   *
+   * @return The entry limit.
+   */
+  public int getIndexEntryLimit() {
+    return this.indexEntryLimit;
   }
 
   /**

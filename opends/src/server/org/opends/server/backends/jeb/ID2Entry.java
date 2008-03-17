@@ -103,7 +103,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  private DatabaseEntry entryData(Entry entry)
+  public DatabaseEntry entryData(Entry entry)
           throws DirectoryException
   {
     byte[] entryBytes;
