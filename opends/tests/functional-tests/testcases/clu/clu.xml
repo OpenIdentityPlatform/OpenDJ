@@ -47,6 +47,14 @@
           
           <call function="'testGroup_Preamble'"/>
           
+          <!--- 
+            Links between tests:
+            - clu_ldapdelete_checkbehavior remove one entry under dc=com
+            - clu_rebuild-index_checkbehavior add a new index
+            - clu_make-ldif_checkbehavior import new data
+            => this has an impact on clu_rebuild-index_checkbehavior,
+               clu_verify-index_checkbehavior and clu_dbtest_checkbehavior            
+          -->         
           <script>
             testList = []
             testList.append(['.','clu_setup'])
@@ -65,6 +73,8 @@
             testList.append(['.','clu_encode-password_checkbehavior'])
             testList.append(['.','clu_make-ldif_checkbehavior'])
             testList.append(['.','clu_list-backends_checkbehavior'])
+            testList.append(['.','clu_manage-tasks_checkbehavior'])
+            testList.append(['.','clu_dbtest_checkbehavior'])
             testList.append(['.','clu_cleanup'])
           </script>
           

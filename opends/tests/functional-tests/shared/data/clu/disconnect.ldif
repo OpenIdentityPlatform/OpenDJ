@@ -1,0 +1,14 @@
+dn: ds-task-id=125,cn=Scheduled Tasks,cn=Tasks
+objectclass: ds-task-disconnect
+ds-task-class-name: org.opends.server.tasks.DisconnectClientTask
+ds-task-disconnect-connection-id: 99
+ds-task-disconnect-message: This task is explicitly disconnected.
+ds-task-disconnect-notify-client: true
+
+dn: ds-task-id=126,cn=Scheduled Tasks,cn=Tasks
+objectclass: ds-task-disconnect
+ds-task-class-name: org.opends.server.tasks.DisconnectClientTask
+ds-task-disconnect-connection-id: 99
+ds-task-disconnect-message: This task is explicitly disconnected.
+ds-task-disconnect-notify-client: true
+ds-task-scheduled-start-time: 20481212000000

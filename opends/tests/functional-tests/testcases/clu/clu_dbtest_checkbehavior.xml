@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="clu_dbtest_checkbehavior"/>
+  
+  <function name="clu_dbtest_checkbehavior">
+    
+    <sequence>
+      
+      <block name="'clu_dbtest_checkbehavior'">
+        
+        <sequence>
+          
+          <!--- Test Suite information
+            #@TestSuiteName     dbtest check behavior tests
+            #@TestSuitePurpose  Test the results of the dbtest command.
+            #@TestSuiteGroup    dbtest check behavior tests
+            #@TestScript        clu_dbtest_checkbehavior.xml
+          -->
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'              
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Test Case information
+            #@TestMarker          dbtest check behavior tests
+            #@TestName            dbtest: list root containers
+            #@TestIssue           none
+            #@TestPurpose         Test dbtest with list-root-containers option
+            #@TestPreamble        none
+            #@TestStep            Do an dbtest with list-root-containers option.
+            #@TestStep            Check the output of the command.            
+            #@TestPostamble       none
+            #@TestResult          Success if dbtest returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('dbtest: list root containers')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'dbtest: list root containers'
+              </message>
+              
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'    : 'list-root-containers'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]              
+              </script>
+                             
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'userRoot    db'
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total: 1'
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          dbtest check behavior tests
+            #@TestName            dbtest: list entry containers
+            #@TestIssue           none
+            #@TestPurpose         Test dbtest with list-entry-containers option
+                                  for backend userRoot
+            #@TestPreamble        none
+            #@TestStep            Do an dbtest with list-entry-containers option
+                                  for backend userRoot.
+            #@TestStep            Check the output of the command.            
+            #@TestPostamble       none
+            #@TestResult          Success if dbtest returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('dbtest: list entry containers')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'dbtest: list entry containers for backend userRoot'
+              </message>
+          
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'    : 'list-entry-containers' ,
+                'dsBackendID'   : 'userRoot'
+                }
+              </call>
+
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'dc=com    dc_com              1208'
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'dc=mycom  dc_mycom            11'
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total: 2'
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          dbtest check behavior tests
+            #@TestName            dbtest: list index status
+            #@TestIssue           none
+            #@TestPurpose         Test dbtest with list-index-status option
+                                  for backend userRoot and baseDN dc=com
+            #@TestPreamble        none
+            #@TestStep            Do an dbtest with list-index-status option
+                                  for backend userRoot and baseDN dc=com.
+            #@TestStep            Check the output of the command.            
+            #@TestPostamble       none
+            #@TestResult          Success if dbtest returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('dbtest: list index status')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'dbtest: list index status for backend userRoot and \
+                baseDN dc=com'
+              </message>
+              
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'    : 'list-index-status' ,
+                'dsBaseDN'      : 'dc=com' ,
+                'dsBackendID'   : 'userRoot'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <script>
+                msg1 = 'uid.equality               Index'
+                msg2 = 'dc_com_uid.equality               true'
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s       %s' % (msg1, msg2)
+                }
+              </call>
+              
+              <script>
+                msg1 = 'st.equality                Index'
+                msg2 = 'dc_com_st.equality                true'
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s       %s' % (msg1, msg2)
+                }
+              </call>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total: 20'
+                }
+              </call>             
+           
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+          
+          <!--- Test Case information
+            #@TestMarker          dbtest check behavior tests
+            #@TestName            dbtest: list database containers
+            #@TestIssue           none
+            #@TestPurpose         Test dbtest with list-database-containers
+                                  option for backend userRoot and baseDN dc=com
+            #@TestPreamble        none
+            #@TestStep            Do an dbtest with list-root-containers option.
+            #@TestStep            Check the output of the command.            
+            #@TestPostamble       none
+            #@TestResult          Success if dbtest returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('dbtest: list database containers')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'dbtest: list database containers for backend userRoot \
+                and baseDN dc=com'
+              </message>
+          
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'    : 'list-database-containers' ,
+                'dsBaseDN'      : 'dc=com' ,
+                'dsBackendID'   : 'userRoot'
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <script>
+                msg1 = 'dn2id                      DN2ID'
+                msg2 = 'dc_com_dn2id                      1208'
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s          %s' % (msg1, msg2)
+                }
+              </call>
+              
+              <script>
+                msg1 = 'id2entry                   ID2Entry'
+                msg2 = 'dc_com_id2entry                   1208'
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : '%s       %s' % (msg1, msg2)
+                }
+              </call>              
+
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total: 24'
+                }
+              </call>
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>
+
+          <!--- Test Case information
+            #@TestMarker          dbtest check behavior tests
+            #@TestName            dbtest: dump database container
+            #@TestIssue           none
+            #@TestPurpose         Test dbtest with dump database container
+                                  option for backend userRoot, baseDN dc=com
+                                  and database st.equality
+            #@TestPreamble        none
+            #@TestStep            Do an dbtest with dump database container
+                                  option for backend userRoot, baseDN dc=com
+                                  and database dn2entry.
+            #@TestStep            Check the output of the command.
+            #@TestStep            Do an dbtest with dump database container
+                                  option for backend userRoot, baseDN dc=com,
+                                  database st.equality, minSize 176
+                                  and maxSize 184.
+            #@TestStep            Check the output of the command.
+            #@TestStep            Do an dbtest with dump database container
+                                  option for backend userRoot, baseDN dc=com,
+                                  database st.equality, minKey wv 
+                                  and maxKey wy.
+            #@TestStep            Check the output of the command.            
+            #@TestPostamble       none
+            #@TestResult          Success if dbtest returns 0 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('dbtest: dump database container')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'dbtest: dump database container for backend userRoot, \
+                baseDN dc=com and database dn2entry'
+              </message>
+          
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'     : 'dump-database-container' ,
+                'dsBaseDN'       : 'dc=com' ,
+                'dsBackendID'    : 'userRoot' ,
+                'dsDatabaseName' : 'dn2id'
+                }
+              </call>
+              
+               <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total Records: 1208'
+                }
+              </call>
+
+              <message>
+                'dbtest: dump database container for backend userRoot, \
+                baseDN dc=com, database st.equality, minSize 176, maxSize 184'
+              </message>
+          
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'     : 'dump-database-container' ,
+                'dsBaseDN'       : 'dc=com' ,
+                'dsBackendID'    : 'userRoot' ,
+                'dsDatabaseName' : 'st.equality' ,
+                'dsMinDataSize'  : 176 ,
+                'dsMaxDataSize'  : 184
+                }
+              </call>
+              
+               <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total Records: 6'
+                }
+              </call> 
+              
+              <message>
+                'dbtest: dump database container for backend userRoot, \
+                baseDN dc=com, database st.equality, minKey wv, maxKey wy'
+              </message>
+          
+              <call function="'dbtestWithScript'">
+                {
+                'subcommand'     : 'dump-database-container' ,
+                'dsBaseDN'       : 'dc=com' ,
+                'dsBackendID'    : 'userRoot' ,
+                'dsDatabaseName' : 'st.equality' ,
+                'dsMinKeyValue'  : 'wv' ,
+                'dsMaxKeyValue'  : 'wy'
+                }
+              </call>
+              
+               <script>
+                returnString = STAXResult[0][1]
+              </script>
+
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : 'Total Records: 2'
+                }
+              </call>         
+              
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>          
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>
