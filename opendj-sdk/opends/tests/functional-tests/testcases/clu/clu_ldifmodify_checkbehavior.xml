@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, exclude this CDDL HEADER in each
+ ! file and exclude the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <defaultcall function="clu_ldifmodify_checkbehavior"/>
+  
+  <function name="clu_ldifmodify_checkbehavior">
+    
+    <sequence>
+      
+      <block name="'clu_ldifmodify_checkbehavior'">
+        
+        <sequence>
+          
+          <!--- Test Suite information
+            #@TestSuiteName     ldifmodify check behavior tests
+            #@TestSuitePurpose  Test the results of the ldifmodify command.
+            #@TestSuiteGroup    ldifmodify check behavior tests
+            #@TestScript        clu_ldifmodify_checkbehavior.xml
+          -->
+          
+          <script>
+            if not CurrentTestPath.has_key('group'):
+              CurrentTestPath['group'] = 'clu'              
+            CurrentTestPath['suite'] = STAXCurrentBlock
+          </script>
+          
+          <call function="'testSuite_Preamble'"/>
+          
+          <!--- Define default value for sourceldif -->
+          <script>
+            sourceldif = '%s/clu/clu_start.ldif' % logsRemoteDataDir
+          </script>
+          
+          <!--- Test Case information
+            #@TestMarker          ldifmodify check behavior tests
+            #@TestName            ldifmodify: add, delete and modify operations
+            #@TestIssue           none
+            #@TestPurpose         Test ldifmodify with add, delete and modify 
+                                  operations
+            #@TestPreamble        none
+            #@TestStep            Do an ldifmodify with add, delete and modify 
+                                  operations.
+            #@TestStep            Do an ldif-diff to check that generated ldif
+                                  is correct.                                  
+            #@TestPostamble       none
+            #@TestResult          Success if ldifmodify and ldif-diff return 0.
+          -->
+          <testcase name="getTestCaseName
+          ('ldifmodify: add, delete and modify operations')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldifmodify: add, delete and modify operations'
+              </message>
+              
+              <call function="'LdifModifyWithScript'">
+                {
+                'sourceLdif'  : sourceldif ,
+                'changesLdif' : '%s/clu/ldifmodify_checkbehavior.ldif' \
+                                % logsRemoteDataDir ,
+                'targetLdif'  : '%s/ldifmodify.out' % DIRECTORY_INSTANCE_DIR
+                }
+              </call>              
+
+              <call function="'LdifDiffWithScript'">
+                { 
+                'sourceLdif' : '%s/ldifmodify.out' % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/clu/ldifmodify.ref' % logsRemoteDataDir ,
+                'outputLdif' : '%s/ldifmodify.diff' % DIRECTORY_INSTANCE_DIR
+                }
+              </call>
+
+              <call function="'checktestRC'">
+                {
+                'returncode' : STAXResult ,
+                'result'     : STAXResult
+                }
+              </call>
+           
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase> 
+
+          <!--- Test Case information
+            #@TestMarker          ldifmodify check behavior tests
+            #@TestName            ldifmodify: moddn operation
+            #@TestIssue           none
+            #@TestPurpose         Test ldifmodify with moddn operation
+            #@TestPreamble        none
+            #@TestStep            Do an ldifmodify with moddn operation.
+            #@TestPostamble       none
+            #@TestResult          Success if ldifmodify returns 1 and if the
+                                  output is correct.
+          -->
+          <testcase name="getTestCaseName('ldifmodify: moddn operation')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldifmodify: moddn operation'
+              </message>
+              
+              <call function="'LdifModifyWithScript'">
+                {
+                'sourceLdif'  : sourceldif ,
+                'changesLdif' : '%s/clu/ldifmodify_moddn.ldif' \
+                                % logsRemoteDataDir ,
+                'targetLdif'  : '%s/ldifmodify_moddn.out' \
+                                % DIRECTORY_INSTANCE_DIR ,
+                'expectedRC'  : 1
+                }
+              </call>
+              <script>
+                returnString = STAXResult[0][1]
+                msg1 = 'The modify DN operation targeted at entry uid=user.0,'
+                msg2 = 'ou=ldapsearch,o=clu tests,dc=example,dc=com cannot be'
+                msg3 = 'processed because modify DN operations are not'
+                msg4 = 'supported by the LDIF modify tool'
+                msg = '%s%s %s %s' % (msg1, msg2, msg3, msg4)
+              </script>
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+         
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase> 
+
+          <!--- Test Case information
+           #@TestMarker        ldifmodify check behavior tests
+           #@TestName          ldifmodify: concurrente modify/delete operations
+           #@TestIssue         none
+           #@TestPurpose       Test ldifmodify with concurrente modify/delete
+                               operations
+           #@TestPreamble      none
+           #@TestStep          Do an ldifmodify with  concurrente modify/delete
+                               operations.
+           #@TestPostamble     none
+           #@TestResult        Success if ldifmodify returns 1 and if the
+                               output is correct.
+          -->
+          <testcase name="getTestCaseName
+          ('ldifmodify: concurrente modify/delete operations')">
+            
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+              
+              <message>
+                'ldifmodify: concurrente modify/delete operations'
+              </message>
+              
+              <call function="'LdifModifyWithScript'">
+                {
+                'sourceLdif'  : sourceldif ,
+                'changesLdif' : '%s/clu/ldifmodify_concurrente.ldif' \
+                                % logsRemoteDataDir ,
+                'targetLdif'  : '%s/ldifmodify_concurrente.out' \
+                                % DIRECTORY_INSTANCE_DIR ,
+                'expectedRC'  : 1
+                }
+              </call>
+              
+              <script>
+                returnString = STAXResult[0][1]
+              </script>
+              
+              <script>
+                msg1 = 'Entry uid=user.2000,ou=ldapsearch,o=clu tests,'
+                msg2 = 'dc=example,dc=com cannot be deleted because it'
+                msg3 = 'was previously added in the set of changes.'
+                msg4 = 'This is not supported by the LDIF modify tool'
+                msg = '%s%s %s  %s' % (msg1, msg2, msg3, msg4)
+              </script>    
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+              
+              <script>
+                msg1 = 'Cannot modify entry uid=user.2000,ou=ldapsearch,'
+                msg2 = 'o=clu tests,dc=example,dc=com because it was'
+                msg3 = 'previously added or deleted in the set of changes.'
+                msg4 = 'This is not supported by the LDIF modify tool'
+                msg = '%s%s %s  %s' % (msg1, msg2, msg3, msg4)
+              </script>    
+              
+              <call function="'checktestString'">
+                { 
+                'returnString'   : returnString ,
+                'expectedString' : msg
+                }
+              </call>
+           
+              <call function="'testCase_Postamble'"/>
+              
+            </sequence>
+            
+          </testcase>           
+          
+          <call function="'testSuite_Postamble'"/>
+          
+        </sequence>
+        
+      </block>
+      
+    </sequence>
+    
+  </function>
+  
+</stax>
