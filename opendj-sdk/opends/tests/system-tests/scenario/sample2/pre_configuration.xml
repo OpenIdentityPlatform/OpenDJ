@@ -44,18 +44,44 @@
     </function-map-args>
     
     <sequence>
-      <!-- == Call preambule == -->
+      <!-- ================= Call preambule ======================== -->
       <call function="'phasePreamble'">
-      { 'phaseName' : 'preconfiguration' ,
+      { 'phaseName' : 'preconfiguration',
         'fileFd'    : LOG_MAIN_FD }
       </call>
       
       
       
+      <!-- ================= Display instance names ================ -->
+      <iterate in="instances" var="instance">
+        <sequence>
+          <!-- == Write tag for xml report -->
+          <call function="'writeStartTagInstance'">
+          {
+            'instance' : instance,
+            'fileFd'   : LOG_MAIN_FD 
+          }
+          </call>
+          
+          <call function="'writeMessage'">
+          { 
+            'fileFd'  : LOG_MAIN_FD,
+            'content' : 'my instance is : %s' % instance.getName()
+          }
+          </call>
+          
+          <!-- == Write tag for xml report -->
+          <call function="'writeEndTagInstance'">
+          { 'fileFd'    : LOG_MAIN_FD }
+          </call>
+          
+        </sequence>
+      </iterate>
       
       
       
-      <!-- ==  Call postphase == -->
+      
+      <!-- ================= Call postambule ======================= -->
       <call function="'phasePostamble'">
       {
         'phaseName' : 'preconfiguration',
