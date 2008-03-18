@@ -1,0 +1,11 @@
+
+dn: cn=SNMP Connection Handler,cn=Connection Handlers,cn=config
+objectClass: top
+objectClass: ds-cfg-connection-handler
+objectClass: ds-cfg-snmp-connection-handler
+cn: SNMP Connection Handler
+ds-cfg-java-class: org.opends.server.snmp.SNMPConnectionHandler
+ds-cfg-enabled: false
+ds-cfg-trap-port: 162
+ds-cfg-listen-port: 161
+

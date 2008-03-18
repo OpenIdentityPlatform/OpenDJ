@@ -80,8 +80,9 @@ public class OpendsRMIJRMPServerImpl
     {
       Set<Credential> privateCreds = subject
           .getPrivateCredentials(Credential.class);
-      JmxClientConnection jmxClientConnection = privateCreds.iterator()
-          .next().getClientConnection();
+      JmxClientConnection jmxClientConnection =
+       (JmxClientConnection)
+       privateCreds.iterator().next().getClientConnection();
       jmxClientConnection.jmxConnectionID = connectionId;
     }
 

@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !
+  !      Portions Copyright 2008 Sun Microsystems, Inc.
+! -->
+<adm:managed-object name="snmp-connection-handler"
+                    plural-name="snmp-connection-handlers"
+                    package="org.opends.server.admin.std" 
+                    extends="connection-handler"
+                    xmlns:adm="http://www.opends.org/admin"
+                    xmlns:ldap="http://www.opends.org/admin-ldap" >
+    <adm:synopsis>
+        The
+        <adm:user-friendly-name />
+        can be used to process SNMP requests to retrieve monitoring information
+        described by the MIB 2605.
+    </adm:synopsis>
+    <adm:description>
+        The SNMP connection handler will process SNMP requests sent by SNMP 
+        Managers to retrieve information described the MIB 2605. To enable
+        the SNMP Connection Handler, the ds-cfg-opendmk-jarfile parameter
+        has to be set to the OpenDMK jar files location.
+    </adm:description>
+    
+    <!-- Connection Handler ldap profile -->
+    <adm:profile name="ldap">
+        <ldap:object-class>
+            <ldap:name>ds-cfg-snmp-connection-handler</ldap:name>
+            <ldap:superior>ds-cfg-connection-handler</ldap:superior>
+        </ldap:object-class>
+    </adm:profile>
+    <!-- Class to instanciate -->
+    <adm:property-override name="java-class" advanced="true">
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>
+                    org.opends.server.snmp.SNMPConnectionHandler
+                </adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+    </adm:property-override>
+    <!-- SNMP Port -->
+    <adm:property-reference name="listen-port" />
+    <adm:property name="trap-port" mandatory="true">
+        <adm:synopsis>
+            Specifies the port to use to send SNMP Traps.
+        </adm:synopsis>
+        <adm:syntax>
+            <adm:integer />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-trap-port</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- SNMP Version  -->
+    <adm:property name="version">
+        <adm:synopsis>
+            Specifies Supported SNMP Version : v1, v2, v3.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>v2</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-version</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- SNMP Community or Context Name  -->
+    <adm:property name="community" multi-valued="true">
+        <adm:synopsis>
+            Specifies the v1,v2 community or the v3 context name allowed to 
+            access the MIB 2605 monitoring information or the USM MIB.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>OpenDS</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-community</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- SNMP V1/V2 Allowed managers  -->
+    <adm:property name="allowed-manager" multi-valued="true">
+        <adm:synopsis>
+            Specifies the hosts of the managers to be granted the access rights. 
+            This property is required for SNMP v1 and v2 security configuration.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:alias>
+                <adm:synopsis>
+                    If the list is empty, no access control is done.
+                </adm:synopsis>
+            </adm:alias>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-allowed-manager</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- SNMP V3 Allowed users  -->
+    <adm:property name="allowed-user" multi-valued="true">
+        <adm:synopsis>
+            Specifies the users to be granted the access rights. This property
+            is required for SNMP v3 security configuration.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:alias>
+                <adm:synopsis>
+                    An asterik (*) opens access to all users.  
+                </adm:synopsis>
+            </adm:alias>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-allowed-user</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- SNMP V3 Security level  -->
+    <adm:property name="security-level">
+        <adm:synopsis>
+            Specifies the type of security level : NoAuthNoPriv : No security 
+            mechanisms activated, AuthNoPriv : Authentication activated with no 
+            privacy, AuthPriv : Authentication with privacy activated. 
+            This property id required for SNMP V3 security configuration.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>authnopriv</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:enumeration>
+                <adm:value name="noauthnopriv">
+                    <adm:synopsis>
+                        No security mechanisms activated.
+                    </adm:synopsis>
+                </adm:value>
+                <adm:value name="authnopriv">
+                    <adm:synopsis>
+                        Authentication activated with no privacy.
+                    </adm:synopsis>
+                </adm:value>
+                <adm:value name="authpriv">
+                    <adm:synopsis>
+                        Authentication with privacy activated.
+                    </adm:synopsis>
+                </adm:value>
+            </adm:enumeration>
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-security-level</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Trap Community  -->
+    <adm:property name="traps-community" >
+        <adm:synopsis>
+            Specifies the community string that must be include in the traps 
+            sent to define managers (trap-destinations). 
+            This property is used in the context of SNMP v1, v2 and v3.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>OpenDS</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-traps-community</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Traps destinations -->
+    <adm:property name="traps-destination" multi-valued="true">
+        <adm:synopsis>
+            Specifies the hosts to which V1 traps will be sent. V1 Traps are 
+            sent to every host listed.
+        </adm:synopsis>
+        <adm:description>
+            If this list is empty, V1 traps are sent to "localhost". 
+            Each host in the list must be identifed by its name or complete IP Addess.
+        </adm:description>
+        <adm:default-behavior>
+            <adm:alias>
+                <adm:synopsis>
+                    If the list is empty, V1 traps are sent to "localhost".
+                </adm:synopsis>
+            </adm:alias>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-traps-destination</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Agent Engine Security USM Configuration -->
+    <adm:property name="security-agent-file">
+        <adm:synopsis>
+            Specifies the USM security configuration to receive authenticated
+            only SNMP requests.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>
+                    config/snmp/security/opends-snmp.security
+                </adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-security-agent-file</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- SNMP Registration or not -->
+    <adm:property name="registered-mbean">
+        <adm:synopsis>
+            Indicates whether the SNMP objects have to be registered in the 
+            Directory Server MBeanServer or not allowing to access SNMP Objects
+            with RMI connector if enabled.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>false</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:boolean />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-registered-mbean</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!--User Template definitions -->
+    <!--User Name -->
+    <adm:property name="template-username">
+        <adm:synopsis>
+            Indicates the user name for the template definitions.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>defaultUser</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-template-username</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Authentication Algoritm -->
+    <adm:property name="template-auth-algorithm">
+        <adm:synopsis>
+            Specifies the type of Authentication algorithm that must be used for
+            SNMP V3 request for the specified user.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>usmhmacmd5authprotocol</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:enumeration>
+                <adm:value name="usmhmacmd5authprotocol">
+                    <adm:synopsis>
+                        usmHMACMD5AuthProtocol Authentication algorithm.
+                    </adm:synopsis>
+                </adm:value>
+                <adm:value name="usmhmacshaauthprotocol">
+                    <adm:synopsis>
+                        usmHMACSHAAuthProtocol Authentication algorithm.
+                    </adm:synopsis>
+                </adm:value>
+                <adm:value name="usmnoauthprotocol">
+                    <adm:synopsis>
+                        usmNoAuthProtocol Authentication algorithm.
+                    </adm:synopsis>
+                </adm:value>
+            </adm:enumeration>
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-template-auth-algorithm</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Authentication key -->
+    <adm:property name="template-authkey">
+        <adm:synopsis>
+            Any text password or any hexadecimal key starting with 0x; for 
+            example, 0x0098768905AB67EFAA855A453B665B12, of size: 0 to 32 
+            inclusive for HMACMD5 or 0 to 40 inclusive for HMACSHA.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>password</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-template-authkey</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Privacy Algorithm -->
+    <adm:property name="template-priv-algorithm">
+        <adm:synopsis>
+            Specifies the type of Privacy algorithm that must be used for
+            SNMP V3 request for the specified user.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>usmdesprivprotocol</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:enumeration>
+                <adm:value name="usmdesprivprotocol">
+                    <adm:synopsis>
+                        usmDESPrivProtocol Privacy algorithm.
+                    </adm:synopsis>
+                </adm:value>
+                <adm:value name="usmnoprivprotocol">
+                    <adm:synopsis>
+                        usmNoPrivProtocol Privacy algorithm.
+                    </adm:synopsis>
+                </adm:value>
+            </adm:enumeration>
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-template-priv-algorithm</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+    <!-- Privacy key -->
+    <adm:property name="template-privkey">
+        <adm:synopsis>
+            Any text password or any hexadecimal key starting with 0x; 
+            for example, 0x0098768905AB67EFAA855A453B665B12, of size: 0 to 32 
+            inclusive for HMACMD5 or 0 to 40 inclusive for HMACSHA.
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:defined>
+                <adm:value>password</adm:value>
+            </adm:defined>
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-template-privkey</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+      <adm:property name="opendmk-jarfile">
+        <adm:synopsis>
+            Indicates the OpenDMK runtime jar file location
+        </adm:synopsis>
+        <adm:default-behavior>
+            <adm:undefined />
+        </adm:default-behavior>
+        <adm:syntax>
+            <adm:string />
+        </adm:syntax>
+        <adm:profile name="ldap">
+            <ldap:attribute>
+                <ldap:name>ds-cfg-opendmk-jarfile</ldap:name>
+            </ldap:attribute>
+        </adm:profile>
+    </adm:property>
+</adm:managed-object>
