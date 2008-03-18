@@ -41,16 +41,24 @@
              files allow you to configure the products as you want !-->
         <!-- ********************************************************* -->
         <script>
-          dirName   = 'sample'
+          dirName   = 'sample2'
           fConf     = '%s/scenario/%s/conf.xml' % (TESTS_DIR,dirName)
+          fPreConf  = '%s/scenario/%s/pre_configuration.xml' % \
+                      (TESTS_DIR,dirName)
+          fPostConf = '%s/scenario/%s/post_configuration.xml' % \
+                      (TESTS_DIR,dirName)
         </script>
         <call function="'main_run'">
         {
-         'configurationFile': fConf,
-         'runInstallation'  : 'true',
-         'runGenerateLdif'  : 'true',
-         'runConfiguration' : 'true',
-         'runScheduler'     : 'true'
+         'configurationFile'     : fConf,
+         'preConfigurationFile'  : fPreConf,
+         'postConfigurationFile' : fPostConf,
+         'runInstallation'       : 'true',
+         'runGenerateLdif'       : 'true',
+         'runPreConfiguration'   : 'true',
+         'runConfiguration'      : 'true',
+         'runPostConfiguration'  : 'true',
+         'runScheduler'          : 'false'
         }
         </call>
     </sequence>

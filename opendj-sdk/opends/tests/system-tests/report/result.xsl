@@ -92,10 +92,22 @@
           <xsl:with-param name="phaseName" select="'GenerateLdif'" />
         </xsl:call-template>
       </xsl:when>
+      <xsl:when test="$phaseName = 'preconfiguration'">
+        <a name="preconfiguration"/>
+        <xsl:call-template name="parsePhase">
+          <xsl:with-param name="phaseName" select="'PreConfiguration'" />
+        </xsl:call-template>
+      </xsl:when>
       <xsl:when test="$phaseName = 'configuration'">
         <a name="configuration"/>
         <xsl:call-template name="parsePhase">
           <xsl:with-param name="phaseName" select="'Configuration'" />
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:when test="$phaseName = 'postconfiguration'">
+        <a name="postconfiguration"/>
+        <xsl:call-template name="parsePhase">
+          <xsl:with-param name="phaseName" select="'PostConfiguration'" />
         </xsl:call-template>
       </xsl:when>
       <xsl:when test="$phaseName = 'scheduler'">

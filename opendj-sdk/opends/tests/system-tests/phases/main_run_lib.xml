@@ -29,7 +29,13 @@
 
   <!-- ************************************************************ -->
   <function name="checkConfigurationFiles" scope="local">
-  <function-no-args/>
+    <function-map-args>
+      <function-arg-def name="configurationFile" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
   <sequence>
     <if expr="OPENDSDIR == 'NEED_VALUE'">
       <sequence>
@@ -66,7 +72,7 @@
           'string2grep'   : 'NEED_VALUE',
           'expect2Find'   : FALSE,
           'caseSensitive' : FALSE,
-          'file'          : CONF_FILE,
+          'file'          : configurationFile,
           'fileFd'        : NO_FILE
         }
         </call>
