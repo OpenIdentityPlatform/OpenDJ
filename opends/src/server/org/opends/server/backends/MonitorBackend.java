@@ -29,7 +29,6 @@ package org.opends.server.backends;
 
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1283,10 +1282,7 @@ public class MonitorBackend
   /**
    * {@inheritDoc}
    */
-  public boolean collectStoredDNs(Collection<DN> storedDNs)
-    throws UnsupportedOperationException
-  {
+  public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }
-

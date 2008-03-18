@@ -32,8 +32,11 @@ import org.opends.messages.Message;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -54,15 +57,16 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.EntryCacheMonitorProviderCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.extensions.DefaultEntryCache;
-import org.opends.server.extensions.EntryCachePreloader;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.DN;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -228,10 +232,27 @@ public class EntryCacheConfigManager
     }
 
     // If requested preload the entry cache.
-    if (rootConfiguration.getGlobalConfiguration().isEntryCachePreload()) {
-      // Kick off preload arbiter main thread.
-      EntryCachePreloader preloadThread = new EntryCachePreloader();
-      preloadThread.start();
+    if (rootConfiguration.getGlobalConfiguration().isEntryCachePreload() &&
+        !cacheOrderMap.isEmpty()) {
+      // Preload from every active public backend.
+      Map<DN, Backend> baseDNMap =
+        DirectoryServer.getPublicNamingContexts();
+      Set<Backend> proccessedBackends = new HashSet<Backend>();
+      for (Backend backend : baseDNMap.values()) {
+        if (!proccessedBackends.contains(backend)) {
+          proccessedBackends.add(backend);
+          try {
+            backend.preloadEntryCache();
+          } catch (UnsupportedOperationException ex) {
+            // Some backend implementations might not support entry
+            // cache preload. Log a warning and continue.
+            Message message = WARN_CACHE_PRELOAD_BACKEND_FAILED.get(
+              backend.getBackendID());
+            logError(message);
+            continue;
+          }
+        }
+      }
     }
   }
 

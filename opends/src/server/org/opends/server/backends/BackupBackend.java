@@ -1303,9 +1303,7 @@ public class BackupBackend
   /**
    * {@inheritDoc}
    */
-  public boolean collectStoredDNs(Collection<DN> storedDNs)
-    throws UnsupportedOperationException
-  {
+  public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }

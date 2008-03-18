@@ -38,6 +38,7 @@ import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
@@ -194,10 +195,9 @@ public class PreloadEntryCacheTestCase
       "Expected empty cache.  " + "Cache contents:" + ServerConstants.EOL +
       toVerboseString());
 
-    // Start pre-load and wait for it to complete.
-    EntryCachePreloader preloadThread = new EntryCachePreloader();
-    preloadThread.start();
-    preloadThread.join();
+    // Preload.
+    Backend backend = DirectoryServer.getBackend("cacheTest");
+    backend.preloadEntryCache();
 
     // Check that all test entries are preloaded.
     for(int i = 0; i < NUMTESTENTRIES; i++ ) {

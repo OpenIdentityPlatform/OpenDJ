@@ -25,32 +25,32 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-package org.opends.server.extensions;
+package org.opends.server.backends.jeb;
+import com.sleepycat.je.Cursor;
+import com.sleepycat.je.CursorConfig;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
+import java.util.Collection;
 import org.opends.messages.Message;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.loggers.debug.DebugTracer;
 
-import org.opends.server.types.LockManager;
+import org.opends.server.types.Entry;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -64,31 +64,27 @@ import static org.opends.messages.ExtensionMessages.*;
  * - The Arbiter thread which monitors overall pre-load progress and manages
  *   pre-load worker threads by adding or removing them as deemed necessary.
  *
- * - The Collector thread which collects all entry DNs stored within every
- *   configured and active backend to a shared object workers consume from.
+ * - The Collector thread which collects all entries stored within the
+ *   backend and places them to a blocking queue workers consume from.
  *
  * - Worker threads which are responsible for monitoring the collector feed
- *   and requesting the actual entries for retrieval and in cache storage.
- *
- * This implementation is entry cache and backend independent and can be
- * used to pre-load from any backend to any entry cache as long as both
- * are capable of initiating and sustaining such pre-load activity.
- *
- * This implementation is fully synchronized and safe to use with the server
- * online and pre-load activities going in parallel with server operations.
+ *   and processing the actual entries for cache storage.
  *
  * This implementation is self-adjusting to any system workload and does not
  * require any configuration parameters to optimize for initial system
  * resources availability and/or any subsequent fluctuations.
  */
-public class EntryCachePreloader
-  extends DirectoryThread
-  implements ServerShutdownListener
+class EntryCachePreloader
 {
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
+
+  /**
+   * BackendImpl object.
+   */
+  private BackendImpl jeb;
 
   /**
    * Interrupt flag for the arbiter to terminate worker threads.
@@ -106,25 +102,26 @@ public class EntryCachePreloader
   private static final long progressInterval = 5000;
 
   /**
-   * Default arbiter resolution time.
+   * Default resolution time.
    */
   public static final long
-    PRELOAD_ARBITER_DEFAULT_SLEEP_TIME = 1000;
+    PRELOAD_DEFAULT_SLEEP_TIME = 10000;
 
   /**
-   * Effective arbiter resolution time.
+   * Effective synchronization time.
    */
-  private static long arbiterSleepTime;
+  private static long syncSleepTime;
 
   /**
-   * Pre-load arbiter thread name.
+   * Default queue capacity.
    */
-  private String preloadArbiterThreadName;
+  public static final int
+    PRELOAD_DEFAULT_QUEUE_CAPACITY = 128;
 
   /**
-   * Pre-load arbiter thread.
+   * Effective queue capacity.
    */
-  private Thread preloadArbiterThread;
+  private static int queueCapacity;
 
   /**
    * Worker threads.
@@ -134,16 +131,15 @@ public class EntryCachePreloader
     new LinkedList<Thread>());
 
   /**
-   * DN Collector thread.
+   * Collector thread.
    */
-  private EntryCacheDNCollector dnCollector =
-    new EntryCacheDNCollector();
+  private EntryCacheCollector collector =
+    new EntryCacheCollector();
 
   /**
    * This queue is for workers to take from.
    */
-  private LinkedBlockingQueue<DN> dnQueue =
-      new LinkedBlockingQueue<DN>();
+  private LinkedBlockingQueue<PreloadEntry> entryQueue;
 
   /**
    * The number of bytes in a megabyte.
@@ -151,28 +147,34 @@ public class EntryCachePreloader
   private static final int bytesPerMegabyte = 1024*1024;
 
   /**
-   * Default constructor.
+   * Constructs the Entry Cache Pre-loader for
+   * a given JEB implementation instance.
+   *
+   * @param  jeb  The JEB instance to pre-load.
    */
-  public EntryCachePreloader() {
-    super("Entry Cache Preload Arbiter");
-    preloadArbiterThreadName = getName();
-    DirectoryServer.registerShutdownListener(this);
-    // This should not be exposed as configuration
-    // parameter and is only useful for testing.
-    arbiterSleepTime = Long.getLong(
+  public EntryCachePreloader(BackendImpl jeb) {
+    // These should not be exposed as configuration
+    // parameters and are only useful for testing.
+    syncSleepTime = Long.getLong(
       "org.opends.server.entrycache.preload.sleep",
-      PRELOAD_ARBITER_DEFAULT_SLEEP_TIME);
+      PRELOAD_DEFAULT_SLEEP_TIME);
+    queueCapacity = Integer.getInteger(
+      "org.opends.server.entrycache.preload.queue",
+      PRELOAD_DEFAULT_QUEUE_CAPACITY);
+    entryQueue =
+      new LinkedBlockingQueue<PreloadEntry>(
+      queueCapacity);
+    this.jeb = jeb;
   }
 
   /**
    * The Arbiter thread.
    */
-  @Override
-  public void run() {
-    preloadArbiterThread = Thread.currentThread();
-    logError(NOTE_CACHE_PRELOAD_PROGRESS_START.get());
-    // Start DN collector thread first.
-    dnCollector.start();
+  protected void preload()
+  {
+    logError(NOTE_CACHE_PRELOAD_PROGRESS_START.get(jeb.getBackendID()));
+    // Start collector thread first.
+    collector.start();
     // Kick off a single worker.
     EntryCachePreloadWorker singleWorkerThread =
       new EntryCachePreloadWorker();
@@ -187,7 +189,7 @@ public class EntryCachePreloader
           long freeMemory =
             Runtime.getRuntime().freeMemory() / bytesPerMegabyte;
           Message message = NOTE_CACHE_PRELOAD_PROGRESS_REPORT.get(
-            processedEntries.get(), freeMemory);
+            jeb.getBackendID(), processedEntries.get(), freeMemory);
           logError(message);
         }
       }
@@ -195,13 +197,18 @@ public class EntryCachePreloader
     timer.scheduleAtFixedRate(progressTask, progressInterval,
       progressInterval);
     // Cycle to monitor progress and adjust workers.
-    long processedEntriesDeltaLow  = 0;
+    long processedEntriesCycle = 0;
+    long processedEntriesDelta = 0;
+    long processedEntriesDeltaLow = 0;
     long processedEntriesDeltaHigh = 0;
     long lastKnownProcessedEntries = 0;
     try {
-      while (!dnQueue.isEmpty() || dnCollector.isAlive()) {
-        long processedEntriesCycle = processedEntries.get();
-        long processedEntriesDelta =
+      while (!entryQueue.isEmpty() || collector.isAlive()) {
+
+        Thread.sleep(syncSleepTime);
+
+        processedEntriesCycle = processedEntries.get();
+        processedEntriesDelta =
           processedEntriesCycle - lastKnownProcessedEntries;
         lastKnownProcessedEntries = processedEntriesCycle;
         // Spawn another worker if scaling up.
@@ -222,32 +229,36 @@ public class EntryCachePreloader
             interruptFlag.set(true);
           }
         }
-        Thread.sleep(arbiterSleepTime);
       }
       // Join the collector.
-      dnCollector.join();
+      if (collector.isAlive()) {
+        collector.join();
+      }
       // Join all spawned workers.
       for (Thread workerThread : preloadThreads) {
-        workerThread.join();
+        if (workerThread.isAlive()) {
+          workerThread.join();
+        }
       }
       // Cancel progress report task and report done.
       timer.cancel();
       Message message = NOTE_CACHE_PRELOAD_PROGRESS_DONE.get(
-        processedEntries.get());
+        jeb.getBackendID(), processedEntries.get());
       logError(message);
     } catch (InterruptedException ex) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, ex);
       }
       // Interrupt the collector.
-      dnCollector.interrupt();
+      collector.interrupt();
       // Interrupt all preload threads.
       for (Thread thread : preloadThreads) {
         thread.interrupt();
       }
-      logError(WARN_CACHE_PRELOAD_INTERRUPTED.get());
+      logError(WARN_CACHE_PRELOAD_INTERRUPTED.get(
+        jeb.getBackendID()));
     } finally {
-      // Kill the task in case of exception.
+      // Kill the timer task.
       timer.cancel();
     }
   }
@@ -261,94 +272,124 @@ public class EntryCachePreloader
     }
     @Override
     public void run() {
-      while (!dnQueue.isEmpty() || dnCollector.isAlive()) {
+      while (!entryQueue.isEmpty() || collector.isAlive()) {
         // Check if interrupted.
         if (Thread.interrupted()) {
-          break;
+          return;
         }
+        // Check for scaling down interruption.
         if (interruptFlag.compareAndSet(true, false)) {
+          preloadThreads.remove(Thread.currentThread());
           break;
         }
-        // Dequeue the next entry DN.
+        // Dequeue the next entry.
         try {
-          DN entryDN = dnQueue.take();
-          Lock readLock = null;
+          PreloadEntry preloadEntry = entryQueue.poll();
+          if (preloadEntry == null) {
+            continue;
+          }
+          long entryID =
+            JebFormat.entryIDFromDatabase(preloadEntry.entryIDBytes);
+          Entry entry =
+            JebFormat.entryFromDatabase(preloadEntry.entryBytes,
+            jeb.getRootContainer().getCompressedSchema());
           try {
-            // Acquire a read lock on the entry.
-            readLock = LockManager.lockRead(entryDN);
-            if (readLock == null) {
-              // It is cheaper to put this DN back on the
-              // queue then pick it up and process later.
-              dnQueue.add(entryDN);
-              continue;
-            }
-            // Even if getEntry() below fails the entry is
-            // still treated as a processed entry anyways.
+            // Even if the entry does not end up in the cache its still
+            // treated as a processed entry anyways.
+            DirectoryServer.getEntryCache().putEntry(entry, jeb, entryID);
             processedEntries.getAndIncrement();
-            // getEntry() will trigger putEntryIfAbsent() to the
-            // cache if given entry is not in the cache already.
-            DirectoryServer.getEntry(entryDN);
-          } catch (DirectoryException ex) {
+          } catch (Exception ex) {
             if (debugEnabled()) {
               TRACER.debugCaught(DebugLogLevel.ERROR, ex);
             }
             Message message = ERR_CACHE_PRELOAD_ENTRY_FAILED.get(
-              entryDN.toNormalizedString(),
+              entry.getDN().toNormalizedString(),
               (ex.getCause() != null ? ex.getCause().getMessage() :
                 stackTraceToSingleLineString(ex)));
             logError(message);
-          } finally {
-            LockManager.unlock(entryDN, readLock);
           }
-        } catch (InterruptedException ex) {
+        } catch (Exception ex) {
           break;
         }
       }
-      preloadThreads.remove(Thread.currentThread());
     }
   }
 
   /**
    * The Collector thread.
    */
-  private class EntryCacheDNCollector extends DirectoryThread {
-    public EntryCacheDNCollector() {
+  private class EntryCacheCollector extends DirectoryThread {
+    public EntryCacheCollector() {
       super("Entry Cache Preload Collector");
     }
     @Override
     public void run() {
-      Map<DN, Backend> baseDNMap =
-        DirectoryServer.getPublicNamingContexts();
-      Set<Backend> proccessedBackends = new HashSet<Backend>();
-      // Collect all DNs from every active public backend.
-      for (Backend backend : baseDNMap.values()) {
-        // Check if interrupted.
-        if (Thread.interrupted()) {
-          return;
-        }
-        if (!proccessedBackends.contains(backend)) {
-          proccessedBackends.add(backend);
+      Cursor cursor = null;
+      ID2Entry id2entry = null;
+      DatabaseEntry key = new DatabaseEntry();
+      DatabaseEntry data = new DatabaseEntry();
+      Collection<EntryContainer> entryContainers =
+        jeb.getRootContainer().getEntryContainers();
+      Iterator<EntryContainer> ecIterator =
+        entryContainers.iterator();
+      OperationStatus status = OperationStatus.SUCCESS;
+
+      try {
+        while (status == OperationStatus.SUCCESS) {
+          // Check if interrupted.
+          if (Thread.interrupted()) {
+            return;
+          }
           try {
-            if (!backend.collectStoredDNs(dnQueue)) {
-              // DN collection is incomplete, likely
-              // due to some backend problem occured.
-              // Log an error message and carry on.
-              Message message =
-                ERR_CACHE_PRELOAD_COLLECTOR_FAILED.get(
-                backend.getBackendID());
-              logError(message);
+            if (cursor == null) {
+              if (ecIterator.hasNext()) {
+                id2entry = ecIterator.next().getID2Entry();
+              } else {
+                break;
+              }
+              if (id2entry != null) {
+                cursor = id2entry.openCursor(null, new CursorConfig());
+              } else {
+                continue;
+              }
             }
-          } catch (UnsupportedOperationException ex) {
-            // Some backends dont have collectStoredDNs()
-            // method implemented, log a warning, skip
-            // such backend and continue.
+            status = cursor.getNext(key, data, LockMode.DEFAULT);
+            if (status != OperationStatus.SUCCESS) {
+              // Reset cursor and continue.
+              if (cursor != null) {
+                try {
+                  cursor.close();
+                } catch (DatabaseException de) {
+                  if (debugEnabled()) {
+                    TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                  }
+                }
+                status = OperationStatus.SUCCESS;
+                cursor = null;
+                continue;
+              }
+            } else {
+              entryQueue.put(new PreloadEntry(data.getData(),
+                key.getData()));
+              continue;
+            }
+          } catch (InterruptedException e) {
+            return;
+          } catch (Exception e) {
             if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
             }
-            Message message =
-              WARN_CACHE_PRELOAD_BACKEND_FAILED.get(
-              backend.getBackendID());
-            logError(message);
+          }
+        }
+      } finally {
+        // Always close cursor.
+        if (cursor != null) {
+          try {
+            cursor.close();
+          } catch (DatabaseException de) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
           }
         }
       }
@@ -356,31 +397,22 @@ public class EntryCachePreloader
   }
 
   /**
-   * {@inheritDoc}
+   * This inner class represents pre-load entry object.
    */
-  public String getShutdownListenerName() {
-    return preloadArbiterThreadName;
-  }
+  private class PreloadEntry {
 
-  /**
-   * {@inheritDoc}
-   */
-  public void processServerShutdown(Message reason) {
-    if ((preloadArbiterThread != null) &&
-         preloadArbiterThread.isAlive()) {
-      // Interrupt the arbiter so it can interrupt
-      // the collector and all spawned workers.
-      preloadArbiterThread.interrupt();
-      try {
-        // This should be quick although if it
-        // gets interrupted it is no big deal.
-        preloadArbiterThread.join();
-      } catch (InterruptedException ex) {
-        if (debugEnabled()) {
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        }
-      }
+    // Encoded Entry.
+    public byte[] entryBytes;
+
+    // Encoded EntryID.
+    public byte[] entryIDBytes;
+
+    /**
+     * Default constructor.
+     */
+    public PreloadEntry(byte[] entryBytes, byte[] entryIDBytes) {
+      this.entryBytes = entryBytes;
+      this.entryIDBytes = entryIDBytes;
     }
-    DirectoryServer.deregisterShutdownListener(this);
   }
 }

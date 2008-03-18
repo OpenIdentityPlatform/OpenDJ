@@ -28,7 +28,6 @@ package org.opends.server.backends;
 
 
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -994,11 +993,8 @@ public class MemoryBackend
   /**
    * {@inheritDoc}
    */
-  public synchronized boolean collectStoredDNs(Collection<DN> storedDNs)
-    throws UnsupportedOperationException
-  {
-    storedDNs.addAll(entryMap.keySet());
-    return true;
+  public void preloadEntryCache() throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("Operation not supported.");
   }
 }
 

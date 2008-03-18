@@ -30,7 +30,6 @@ import org.opends.messages.Message;
 
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -211,21 +210,18 @@ public abstract class Backend
 
 
   /**
-   * Retrieves the set of all DNs that are stored within this backend.
-   * Note that this can be a slow operation depending on a particular
-   * backend implementation and might be unsupported by some backends.
+   * Attempts to pre-load all the entries stored within this backend
+   * into the entry cache. Note that the caller must ensure that the
+   * backend stays in read-only state until this method returns as
+   * no entry locking is performed during this operation. Also note
+   * that any backend implementing this method should implement pre-
+   * load progress reporting and error handling specific to its own
+   * implementation.
    *
-   * @param   storedDNs  Collection to retrieve all stored DNs into.
-   *          Note that for async operation a thread-safe collection
-   *          should be used.
-   *
-   * @return  {@code true} if all DNs stored within this backend were
-   *          successfully retrieved, or {@code false} otherwise.
-   *
-   * @throws  UnsupportedOperationException if backend implementation
-   *          does not support this operation.
+   * @throws  UnsupportedOperationException if backend does not
+   *          support this operation.
    */
-  public abstract boolean collectStoredDNs(Collection<DN> storedDNs)
+  public abstract void preloadEntryCache()
     throws UnsupportedOperationException;
 
 
@@ -1309,4 +1305,3 @@ public abstract class Backend
     return false;
   }
 }
-
