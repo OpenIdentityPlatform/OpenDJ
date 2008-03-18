@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,35 +40,88 @@ import java.util.concurrent.ConcurrentHashMap;
  * however due to serialization constraints it has been separated.
  */
 class FileSystemEntryCacheIndex implements Serializable {
-    static final long serialVersionUID = 4537634108673038611L;
+
+  static final long serialVersionUID = 4537634108673038611L;
+
+  /**
+   * The file system entry cache instance this index belongs to.
+   */
+  transient private FileSystemEntryCache fsEntryCacheInstance;
+
+  /**
+   * Backend to checksum/id map for offline state.
+   */
+  public Map<String, Long> offlineState;
+  /**
+   * The mapping between backends and ID to DN maps.
+   */
+  public Map<String, Map<Long, String>> backendMap;
+  /**
+   * The mapping between DNs and IDs.
+   */
+  public Map<String, Long> dnMap;
+
+  /**
+   * Index constructor.
+   * @param fsEntryCacheInstance The File System Entry Cache instance
+   *                             this index is associated with.
+   * @param accessOrder          The ordering mode for the index map
+   *                             {@code true} for access-order,
+   *                             {@code false} for insertion-order.
+   */
+  protected FileSystemEntryCacheIndex(
+    FileSystemEntryCache fsEntryCacheInstance, boolean accessOrder) {
+
+    this.fsEntryCacheInstance = fsEntryCacheInstance;
+
+    offlineState =
+      new ConcurrentHashMap<String, Long>();
+    backendMap =
+      new HashMap<String, Map<Long, String>>();
+    dnMap =
+      new LinkedHashMapRotator<String,Long>(
+      16, (float) 0.75, accessOrder);
+  }
+
+  /**
+   * This inner class exist solely to override <CODE>removeEldestEntry()</CODE>
+   * method of the LinkedHashMap.
+   *
+   * @see  java.util.LinkedHashMap
+   */
+  private class LinkedHashMapRotator<K,V> extends LinkedHashMap<K,V> {
+
+    static final long serialVersionUID = 5271482121415968435L;
 
     /**
-     * Backend to Checksum/id map for offline state.
+     * Linked Hash Map Rotator constructor.
+     * @param initialCapacity The initial capacity.
+     * @param loadFactor      The load factor.
+     * @param accessOrder     The ordering mode - {@code true} for
+     *                        access-order, {@code false} for
+     *                        insertion-order.
      */
-    public Map<String,Long> offlineState;
+    public LinkedHashMapRotator(int initialCapacity,
+                                float loadFactor,
+                                boolean accessOrder) {
+      super(initialCapacity, loadFactor, accessOrder);
+    }
 
     /**
-     * The mapping between entry backends/IDs and DNs.
+     * This method will get called each time we add a new key/value
+     * pair to the map. The eldest entry will be selected by the
+     * underlying LinkedHashMap implementation based on the access
+     * order configured and will follow either FIFO implementation
+     * by default or LRU implementation if configured so explicitly.
+     * @param  eldest  The least recently inserted entry in the map,
+     *                 or if this is an access-ordered map, the least
+     *                 recently accessed entry.
+     * @return boolean {@code true} if the eldest entry should be
+     *                 removed from the map; {@code false} if it
+     *                 should be retained.
      */
-    public Map<String,Map<Long,String>> backendMap;
-
-    /**
-     * The mapping between DNs and IDs.
-     */
-    public Map<String,Long> dnMap;
-
-    /**
-     * Default constructor.
-     */
-    public FileSystemEntryCacheIndex() {
-      offlineState =
-          //               <Backend,Long>
-          new ConcurrentHashMap<String,Long>();
-      backendMap =
-          //               <Backend,Map<Long,DN>>
-          new LinkedHashMap<String,Map<Long,String>>();
-      dnMap      =
-          //               <DN,Long>
-          new LinkedHashMap<String,Long>();
+    @Override protected boolean removeEldestEntry(Map.Entry eldest) {
+      return fsEntryCacheInstance.removeEldestEntry(eldest);
     }
   }
+}
