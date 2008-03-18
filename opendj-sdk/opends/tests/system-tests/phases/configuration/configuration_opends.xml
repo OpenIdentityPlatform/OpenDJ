@@ -31,7 +31,7 @@
   <!--==============================================================-->
   <!--=================  CONFIGURE OPENDS ==========================-->
   <!--==============================================================-->
-  <function name="configureOpends">
+  <function name="configureOpends" scope="local">
     <function-map-args>
       <function-arg-def name="topoInstances" type="required">
         <function-arg-description>
@@ -270,7 +270,7 @@
 
 
   <!-- Enable replication between servers using dsreplication -->
-  <function name="enableReplication">
+  <function name="enableReplication" scope="local">
     <function-prolog>
       This function enables replication between servers using dsreplication.
     </function-prolog>
@@ -499,7 +499,7 @@
 
   <!-- Initialize replicated suffix with the contents -->
   <!-- of a source server using dsreplication -->
-  <function name="initializeReplication">
+  <function name="initializeReplication" scope="local">
     <function-prolog>
       This function initializes replicated suffixes with the contents 
       of a source server using dsreplication.

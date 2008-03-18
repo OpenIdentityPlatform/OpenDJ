@@ -29,7 +29,7 @@
 
   <defaultcall function="signals" />
 
-  <function name="signals">
+  <function name="signals" scope="local">
     <function-prolog>
       This function contains all signal related functions
     </function-prolog>
@@ -48,7 +48,7 @@
   
   </function>
 
-  <function name="OverideDefaultSignals">
+  <function name="OverideDefaultSignals" scope="local">
     <function-prolog>
       This function overides the default STAX signal handlers
     </function-prolog>

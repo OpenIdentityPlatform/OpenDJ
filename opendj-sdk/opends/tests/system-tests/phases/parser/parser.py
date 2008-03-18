@@ -267,6 +267,7 @@ class OpendsInstance(Instance):
     self.portJMX     = portJMX
     self.portREPL    = portREPL
     self.javaVersion = NOT_DEFINED
+    self.buildId     = NOT_DEFINED
     
   def getProduct(self):
     return self.product

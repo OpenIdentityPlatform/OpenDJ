@@ -31,7 +31,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="verdict">
+  <function name="verdict" scope="local">
     <function-map-args>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
@@ -137,17 +137,16 @@
               
             </sequence>
           </paralleliterate>
+          
+          <!--==========  Merge files    ==========-->
+          <call function="'mergeFiles'">
+            {
+              'fileList' : fileList,
+              'fileFd'   : LOG_MAIN_FD
+            }
+          </call>
         </sequence>
       </if>
-      
-      
-      <!--==========  Merge files    ==========-->
-      <call function="'mergeFiles'">
-        {
-          'fileList' : fileList,
-          'fileFd'   : LOG_MAIN_FD
-        }
-      </call>
       
       <!--==========  Call postphase =========-->
       <call function="'phasePostamble'">

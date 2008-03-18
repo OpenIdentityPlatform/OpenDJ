@@ -27,7 +27,7 @@
  ! -->
 <stax>
 
-  <function name="queryTestcase">
+  <function name="queryTestcase" scope="local">
 
     <function-prolog>Queries the current testcase</function-prolog>
 

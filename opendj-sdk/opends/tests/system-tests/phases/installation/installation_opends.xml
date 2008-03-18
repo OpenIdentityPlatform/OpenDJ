@@ -31,7 +31,7 @@
   <!--==============================================================-->
   <!--=================  INSTALL OPENDS   ==========================-->
   <!--==============================================================-->
-  <function name="installOpends">
+  <function name="installOpends" scope="local">
     <function-map-args>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
@@ -116,7 +116,7 @@
 
   
   <!-- ************************************************************ -->
-  <function name="cleanPreviousOpendsInstall">
+  <function name="cleanPreviousOpendsInstall" scope="local">
     <function-map-args>
       <function-arg-def name="host" type="required">
         <function-arg-description>
@@ -198,7 +198,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="installSetupOpends">
+  <function name="installSetupOpends" scope="local">
     <function-map-args>
       <function-arg-def name="instance" type="required">
         <function-arg-description>
@@ -279,7 +279,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="removeProcessIfNeeded">
+  <function name="removeProcessIfNeeded" scope="local">
     <function-map-args>
       <function-arg-def name="location" type="required">
       </function-arg-def>
@@ -373,7 +373,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="updateMissingParameters">
+  <function name="updateMissingParameters" scope="local">
     <function-map-args>
       <function-arg-def name="instances" type="required">
       </function-arg-def>

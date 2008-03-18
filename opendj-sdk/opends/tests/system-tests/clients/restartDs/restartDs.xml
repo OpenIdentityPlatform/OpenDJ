@@ -32,7 +32,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="restartDs">
+  <function name="restartDs" scope="local">
     <function-map-args>
       <function-arg-def name="client" type="required">
       </function-arg-def>

@@ -31,7 +31,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="installation">
+  <function name="installation" scope="local">
     <function-map-args>
       <function-arg-def name="instances" type="required">
         <function-arg-description>

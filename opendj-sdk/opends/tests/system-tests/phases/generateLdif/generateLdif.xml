@@ -31,7 +31,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="generateLdif">
+  <function name="generateLdif" scope="local">
     <function-map-args>
       <function-arg-def name="suffix" type="required">
         <function-arg-description>
@@ -228,7 +228,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="generateTemplate">
+  <function name="generateTemplate" scope="local">
     <function-map-args>
       <function-arg-def name="templateFile" type="required">
         <function-arg-description>
@@ -285,11 +285,11 @@
         { 'fileName' : templateFile }
       </call>
       <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult,
+        { 'returncode' : STAXResult,
+          'result'     : 'template file does not exist',
           'fileFd'     : LOG_MAIN_FD }
       </call>
-      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <call function="'writeEndTagOperation'">{'fileFd'  : LOG_MAIN_FD}</call>
       
     </sequence>
   </function>

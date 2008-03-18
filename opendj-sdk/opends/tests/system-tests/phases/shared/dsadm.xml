@@ -27,7 +27,7 @@
  ! -->
 <stax>
   
-  <function name="SetUpDsWithScript">
+  <function name="SetUpDsWithScript" scope="local">
     <function-prolog>
       This function sets up a Directory Server using a script
     </function-prolog>    
@@ -179,7 +179,7 @@
 
   
   <!-- This function starts DS using the start-ds script -->
-  <function name="StartDsWithScript">
+  <function name="StartDsWithScript" scope="local">
     <function-prolog>
       This function starts a Directory Server
     </function-prolog>
@@ -308,7 +308,7 @@
   </function>
 
   <!-- This function stops DS using the stop-ds script -->    
-  <function name="StopDsWithScript">
+  <function name="StopDsWithScript" scope="local">
     <function-prolog>
       This function starts a Directory Server using the script
     </function-prolog>    
@@ -607,7 +607,7 @@
 
 
   
-  <function name="makeLdif">
+  <function name="makeLdif" scope="local">
     <function-prolog>
       This function uses make-ldif to generate ldif file
     </function-prolog>  
@@ -691,7 +691,7 @@
   
   
   <!-- Import Function With Script-->
-  <function name="ImportLdifWithScript">
+  <function name="ImportLdifWithScript" scope="local">
     <function-prolog>
       This function performs an offline import of an ldif file using the script
     </function-prolog>  
