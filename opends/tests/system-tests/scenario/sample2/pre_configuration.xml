@@ -27,32 +27,42 @@
  ! -->
 <stax>
   
-  <defaultcall function="mainSample"/>
+  <defaultcall function="preConfiguration"/>
   
-  <function name="mainSample" scope="local">
-      <sequence>
-        <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-          file="'%s/phases/main_run.xml' % (TESTS_DIR)"/>
-        
-        <!-- ********************************************************* -->
-        <!-- ****************     README               *************** -->
-        <!-- directoryName must have the name of the current directory -->
-        <!-- pre and post configuration files are stax code based, these
-             files allow you to configure the products as you want !-->
-        <!-- ********************************************************* -->
-        <script>
-          dirName   = 'sample'
-          fConf     = '%s/scenario/%s/conf.xml' % (TESTS_DIR,dirName)
-        </script>
-        <call function="'main_run'">
-        {
-         'configurationFile': fConf,
-         'runInstallation'  : 'true',
-         'runGenerateLdif'  : 'true',
-         'runConfiguration' : 'true',
-         'runScheduler'     : 'true'
-        }
-        </call>
+  <function name="preConfiguration" scope="local">
+    <function-map-args>
+      <function-arg-def name="instances" type="required">
+        <function-arg-description>
+          list of instances classes
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix class
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- == Call preambule == -->
+      <call function="'phasePreamble'">
+      { 'phaseName' : 'preconfiguration' ,
+        'fileFd'    : LOG_MAIN_FD }
+      </call>
+      
+      
+      
+      
+      
+      
+      <!-- ==  Call postphase == -->
+      <call function="'phasePostamble'">
+      {
+        'phaseName' : 'preconfiguration',
+        'fileFd'    : LOG_MAIN_FD
+      }
+      </call>
+      
     </sequence>
   </function>
   

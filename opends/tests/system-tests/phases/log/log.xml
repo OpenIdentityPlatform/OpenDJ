@@ -143,9 +143,17 @@
           str = '&lt;phaseSummmary name=\"generateLdif\" result=\"%s\"/&gt;\n'%\
                 ERR_NUM_GEN_LDIF
           fileFd.write(str)
+        if ERR_NUM_PRE_CONFIGURATION != '':
+          str = '&lt;phaseSummmary name=\"preconfiguration\" result=\"%s\"/&gt;\n'%\
+                ERR_NUM_PRE_CONFIGURATION
+          fileFd.write(str)
         if ERR_NUM_CONFIGURATION != '':
           str = '&lt;phaseSummmary name=\"configuration\" result=\"%s\"/&gt;\n'%\
                 ERR_NUM_CONFIGURATION
+          fileFd.write(str)
+        if ERR_NUM_POST_CONFIGURATION != '':
+          str = '&lt;phaseSummmary name=\"postconfiguration\" result=\"%s\"/&gt;\n'%\
+                ERR_NUM_POST_CONFIGURATION
           fileFd.write(str)
         if ERR_NUM_SCHEDULER != '':
           str = '&lt;phaseSummmary name=\"scheduler\" result=\"%s\"/&gt;\n' % \
