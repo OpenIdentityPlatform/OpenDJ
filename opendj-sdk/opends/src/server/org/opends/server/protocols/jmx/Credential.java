@@ -26,6 +26,8 @@
  */
 package org.opends.server.protocols.jmx;
 
+import org.opends.server.api.ClientConnection;
+
 
 /**
  * Represents a Ldap credential used for JMX connection authentication.
@@ -41,28 +43,28 @@ public class Credential
   /**
    * The Client connection to be used.
    */
-  private JmxClientConnection jmxClientConnection;
+  private ClientConnection clientConnection;
 
 
   /**
    * Default Constructor.
    *
-   * @param jmxClientConnection
+   * @param clientConnection
    *           The  representation of this credential is a Jmx Client connection
    * that will handle incoming requests.
    */
-  public Credential(JmxClientConnection jmxClientConnection)
+  public Credential(ClientConnection clientConnection)
   {
-    this.jmxClientConnection = jmxClientConnection;
+    this.clientConnection = clientConnection;
   }
 
   /**
    * Returns the associated Client connection.
    *
-   * @return the associated JmxClientConnection object. Can be null
+   * @return the associated ClientConnection object. Can be null
    */
-  public JmxClientConnection getClientConnection()
+  public ClientConnection getClientConnection()
   {
-    return jmxClientConnection;
+    return clientConnection;
   }
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.config;
 import org.opends.messages.Message;
@@ -51,6 +51,7 @@ import javax.management.ObjectName;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MonitorProvider;
@@ -73,6 +74,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.protocols.asn1.ASN1OctetString;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.types.LDAPException;
@@ -488,8 +490,8 @@ public final class JMXMBean
   {
     //
     // Get the jmx Client connection
-    JmxClientConnection jmxClientConnection = getClientConnection();
-    if (jmxClientConnection == null)
+    ClientConnection clientConnection = getClientConnection();
+    if (clientConnection == null)
     {
       return null;
     }
@@ -519,19 +521,25 @@ public final class JMXMBean
     // Perform the Ldap operation for
     //  - ACI Check
     //  - Loggin purpose
-    InternalSearchOperation op = jmxClientConnection.processSearch(
-        new ASN1OctetString(configEntryDN.toString()),
-        SearchScope.BASE_OBJECT, filter);
-
+    InternalSearchOperation op=null;
+    if (clientConnection instanceof JmxClientConnection) {
+        op = ((JmxClientConnection)clientConnection).processSearch(
+             new ASN1OctetString(configEntryDN.toString()),
+             SearchScope.BASE_OBJECT, filter);
+    }
+    else if (clientConnection instanceof InternalClientConnection) {
+        op = ((InternalClientConnection)clientConnection).processSearch(
+             new ASN1OctetString(configEntryDN.toString()),
+             SearchScope.BASE_OBJECT, filter);
+    }
     ResultCode rc = op.getResultCode();
-    if (rc != ResultCode.SUCCESS)
-    {
-      jmxClientConnection = null ;
+    if (rc != ResultCode.SUCCESS) {
+       clientConnection = null ;
 
-      Message message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
-          get(String.valueOf(attributeName), String.valueOf(configEntryDN),
-              String.valueOf(op.getErrorMessage()));
-      throw new AttributeNotFoundException(message.toString());
+       Message message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
+         get(String.valueOf(attributeName), String.valueOf(configEntryDN),
+             String.valueOf(op.getErrorMessage()));
+       throw new AttributeNotFoundException(message.toString());
     }
 
     try
@@ -584,8 +592,8 @@ public final class JMXMBean
 
     //
     // Get the jmx Client connection
-    JmxClientConnection jmxClientConnection = getClientConnection();
-    if (jmxClientConnection == null)
+    ClientConnection clientConnection = getClientConnection();
+    if (clientConnection == null)
     {
       return null;
     }
@@ -606,14 +614,21 @@ public final class JMXMBean
     // Perform the Ldap operation for
     //  - ACI Check
     //  - Loggin purpose
-    InternalSearchOperation op = jmxClientConnection.processSearch(
+    InternalSearchOperation op=null;
+    if (clientConnection instanceof JmxClientConnection) {
+      op = ((JmxClientConnection)clientConnection).processSearch(
         new ASN1OctetString(configEntryDN.toString()),
         SearchScope.BASE_OBJECT, filter);
-
+    }
+    else if (clientConnection instanceof InternalClientConnection) {
+      op = ((InternalClientConnection)clientConnection).processSearch(
+        new ASN1OctetString(configEntryDN.toString()),
+        SearchScope.BASE_OBJECT, filter);
+    }
     ResultCode rc = op.getResultCode();
     if (rc != ResultCode.SUCCESS)
     {
-      jmxClientConnection = null ;
+      clientConnection = null ;
       return null;
     }
 
@@ -801,8 +816,8 @@ monitorLoop:
    */
   public MBeanInfo getMBeanInfo()
   {
-    JmxClientConnection jmxClientConnection = getClientConnection();
-    if (jmxClientConnection == null)
+    ClientConnection clientConnection = getClientConnection();
+    if (clientConnection == null)
     {
       return new MBeanInfo(CLASS_NAME, null, null, null, null, null);
     }
@@ -871,9 +886,9 @@ monitorLoop:
    *
    * @return The JmxClientConnection.
    */
-  private JmxClientConnection getClientConnection()
+  private ClientConnection getClientConnection()
   {
-      JmxClientConnection jmxClientConnection=null;
+      ClientConnection clientConnection=null;
       java.security.AccessControlContext acc = java.security.AccessController
       .getContext();
       try
@@ -882,12 +897,12 @@ monitorLoop:
           .getSubject(acc);
           if(subject != null) {
             Set privateCreds = subject.getPrivateCredentials(Credential.class);
-            jmxClientConnection = ((Credential) privateCreds
+            clientConnection = ((Credential) privateCreds
                     .iterator().next()).getClientConnection();
           }
       }
       catch (Exception e) {}
-      return jmxClientConnection;
+      return clientConnection;
   }
 }
 

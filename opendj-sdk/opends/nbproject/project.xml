@@ -127,7 +127,7 @@
                     <target>package</target>
                 </action>
                 <action name="debug">
-                    <script>nbproject/ide-file-targets.xml</script>
+                    <script>nbproject/ide-targets.xml</script>
                     <target>debug-nb</target>
                 </action>
                 <action name="run.single">
@@ -286,35 +286,48 @@
                         </arity>
                     </context>
                 </action>
+                <action name="compile.single">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>compile-selected-files-in-snmp</target>
+                    <context>
+                        <property>files</property>
+                        <folder>src/snmp/src</folder>
+                        <pattern>\.java$</pattern>
+                        <format>relative-path</format>
+                        <arity>
+                            <separated-files>,</separated-files>
+                        </arity>
+                    </context>
+                </action>
             </ide-actions>
             <export>
                 <type>folder</type>
                 <location>build/build-tools/classes</location>
-                <script>nbproject/nbjdk.xml</script>
+                <script>build.xml</script>
                 <build-target>package</build-target>
             </export>
             <export>
                 <type>folder</type>
                 <location>build/classes</location>
-                <script>nbproject/nbjdk.xml</script>
+                <script>build.xml</script>
                 <build-target>package</build-target>
             </export>
             <export>
                 <type>folder</type>
                 <location>build/quicksetup/classes</location>
-                <script>nbproject/nbjdk.xml</script>
+                <script>build.xml</script>
                 <build-target>package</build-target>
             </export>
             <export>
                 <type>folder</type>
                 <location>build/unit-tests/classes</location>
-                <script>nbproject/nbjdk.xml</script>
+                <script>build.xml</script>
                 <build-target>package</build-target>
             </export>
             <export>
                 <type>folder</type>
                 <location>build/dsml/classes</location>
-                <script>nbproject/nbjdk.xml</script>
+                <script>build.xml</script>
                 <build-target>package</build-target>
             </export>
             <view>
@@ -389,7 +402,9 @@
                     <ide-action name="debug"/>
                 </context-menu>
             </view>
-            <subprojects/>
+            <subprojects>
+                <project>.</project>
+            </subprojects>
         </general-data>
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>

@@ -1,0 +1,6 @@
+localEngineID=0x8000002a017f000001000000a1
+localEngineBoots=0
+
+userEntry=localEngineID,defaultUser,,usmHMACMD5AuthProtocol,password,,,3,true
+
+

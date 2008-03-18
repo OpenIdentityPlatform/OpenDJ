@@ -258,6 +258,14 @@ public final class TestCaseUtils {
       File testClassesDir   = new File(testRoot, "classes");
       File testLibDir       = new File(testRoot, "lib");
       File testBinDir       = new File(testRoot, "bin");
+      
+      // Snmp resource
+      File   snmpResourceDir = new File(buildRoot + File.separator + "src" +
+                                    File.separator + "snmp" + File.separator +
+                                    "resource");
+      
+      File testSnmpResourceDir = new File (testConfigDir + File.separator +
+                                    "snmp");
 
       if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG)) {
         copyDirectory(serverClassesDir, testClassesDir);
@@ -271,6 +279,8 @@ public final class TestCaseUtils {
                     new File(testConfigDir, "schema"));
       copyDirectory(new File(resourceDir, "MakeLDIF"),
                     new File(testConfigDir, "MakeLDIF"));
+      copyDirectory(new File(snmpResourceDir, "security"),
+                    new File(testSnmpResourceDir, "security"));
       copyFile(new File(testResourceDir, "server.keystore"),
                new File(testConfigDir, "server.keystore"));
       copyFile(new File(testResourceDir, "server.truststore"),
