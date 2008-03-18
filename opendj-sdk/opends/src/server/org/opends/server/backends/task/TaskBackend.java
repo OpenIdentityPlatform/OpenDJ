@@ -31,7 +31,6 @@ package org.opends.server.backends.task;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1551,9 +1550,7 @@ public class TaskBackend
   /**
    * {@inheritDoc}
    */
-  public boolean collectStoredDNs(Collection<DN> storedDNs)
-    throws UnsupportedOperationException
-  {
+  public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }

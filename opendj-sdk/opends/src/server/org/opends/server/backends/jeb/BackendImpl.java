@@ -25,9 +25,6 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.DatabaseEntry;
 import org.opends.messages.Message;
 
 import java.io.IOException;
@@ -42,8 +39,6 @@ import java.util.zip.CheckedInputStream;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.RunRecoveryException;
 
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
@@ -72,7 +67,6 @@ import static org.opends.server.util.ServerConstants.*;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.types.DN;
 import org.opends.server.backends.jeb.importLDIF.Importer;
 
@@ -1752,41 +1746,11 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public boolean collectStoredDNs(Collection<DN> storedDNs)
-    throws UnsupportedOperationException
+  public void preloadEntryCache() throws
+    UnsupportedOperationException
   {
-    for (EntryContainer entryContainer : rootContainer.getEntryContainers()) {
-      DN2ID dn2id = entryContainer.getDN2ID();
-      Cursor cursor = null;
-      try {
-        cursor = dn2id.openCursor(null, new CursorConfig());
-        DatabaseEntry key = new DatabaseEntry();
-        DatabaseEntry data = new DatabaseEntry();
-        OperationStatus status;
-        for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-             status == OperationStatus.SUCCESS;
-             status = cursor.getNext(key, data, LockMode.DEFAULT)) {
-          DN entryDN = DN.decode(new ASN1OctetString(key.getData()));
-          storedDNs.add(entryDN);
-        }
-      } catch (Exception e) {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-        return false;
-      } finally {
-        if (cursor != null) {
-          try {
-            cursor.close();
-          } catch (DatabaseException de) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-          }
-        }
-      }
-    }
-    return true;
+    EntryCachePreloader preloader =
+      new EntryCachePreloader(this);
+    preloader.preload();
   }
 }

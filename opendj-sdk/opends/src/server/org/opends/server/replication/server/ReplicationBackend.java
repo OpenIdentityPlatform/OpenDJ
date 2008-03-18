@@ -41,7 +41,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1365,9 +1364,7 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
-  public boolean collectStoredDNs(Collection<DN> storedDNs)
-    throws UnsupportedOperationException
-  {
+  public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }
