@@ -41,8 +41,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.io.File;
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.bind.serial.SerialBinding;
@@ -65,6 +63,8 @@ import org.opends.server.api.EntryCache;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.backends.jeb.ConfigurableEnvironment;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -157,14 +157,8 @@ public class FileSystemEntryCache
   private Lock cacheReadLock;
   private Lock cacheWriteLock;
 
-  // The mapping between DNs and IDs. This is the main index map for this
-  // cache, keyed to the underlying JE database where entries are stored.
-  private Map<DN,Long> dnMap;
-
-  // The mapping between entry backends/IDs and DNs to identify all
-  // entries that belong to given backend since entry ID is only
-  // per backend unique.
-  private Map<Backend,Map<Long,DN>> backendMap;
+  // Entry Cache Index.
+  FileSystemEntryCacheIndex entryCacheIndex;
 
   // Access order for this cache. FIFO by default.
   boolean accessOrder = false;
@@ -190,14 +184,6 @@ public class FileSystemEntryCache
   private static final String ENTRYCACHEDBNAME = "EntryCacheDB";
   private static final String INDEXCLASSDBNAME = "IndexClassDB";
   private static final String INDEXKEY = "EntryCacheIndex";
-
-  // The number of milliseconds between persistent state save/restore
-  // progress reports.
-  private long progressInterval = 5000;
-
-  // Persistent state save/restore progress report counters.
-  private long persistentEntriesSaved    = 0;
-  private long persistentEntriesRestored = 0;
 
   // The configuration to use when encoding entries in the database.
   private EntryEncodeConfig encodeConfig =
@@ -266,11 +252,10 @@ public class FileSystemEntryCache
       accessOrder = false;
     }
 
-    // Initialize the cache maps and locks.
-    backendMap = new LinkedHashMap<Backend,Map<Long,DN>>();
-    dnMap = new LinkedHashMapRotator<DN,Long>(16, (float) 0.75,
-        accessOrder);
+    // Initialize the index.
+    entryCacheIndex = new FileSystemEntryCacheIndex(this, accessOrder);
 
+    // Initialize locks.
     cacheLock = new ReentrantReadWriteLock(true);
     if (accessOrder) {
       // In access-ordered linked hash maps, merely querying the map
@@ -325,7 +310,14 @@ public class FileSystemEntryCache
       // Instantiate the class catalog
       classCatalog = new StoredClassCatalog(entryCacheClassDB);
       entryCacheDataBinding =
-          new SerialBinding(classCatalog, FileSystemEntryCacheIndex.class);
+          new SerialBinding(classCatalog,
+          FileSystemEntryCacheIndex.class);
+
+      // Get the root configuration object.
+      ServerManagementContext managementContext =
+        ServerManagementContext.getInstance();
+      RootCfg rootConfiguration =
+        managementContext.getRootConfiguration();
 
       // Restoration is static and not subject to the current configuration
       // constraints so that the persistent state is truly preserved and
@@ -333,13 +325,19 @@ public class FileSystemEntryCache
       // has been made persistent. The only exception to this is the backend
       // offline state matching where entries that belong to backend which
       // we cannot match offline state for are discarded from the cache.
-      if ( persistentCache ) {
+      if ( persistentCache &&
+          // If preload is requested there is no point restoring the cache.
+          !rootConfiguration.getGlobalConfiguration(
+          ).isEntryCachePreload()) {
         // Retrieve cache index.
         try {
-          FileSystemEntryCacheIndex entryCacheIndex;
           DatabaseEntry indexData = new DatabaseEntry();
           DatabaseEntry indexKey = new DatabaseEntry(
               INDEXKEY.getBytes("UTF-8"));
+
+          // Persistent state report.
+          Message message = NOTE_FSCACHE_RESTORE.get();
+          logError(message);
 
           if (OperationStatus.SUCCESS ==
               entryCacheDB.get(null, indexKey, indexData, LockMode.DEFAULT)) {
@@ -360,54 +358,6 @@ public class FileSystemEntryCache
             // Push maxEntries and make it unlimited til restoration complete.
             AtomicLong currentMaxEntries = maxEntries;
             maxEntries.set(DEFAULT_FSCACHE_MAX_ENTRIES);
-
-            // Convert cache index maps to entry cache maps.
-            Set<String> backendSet = entryCacheIndex.backendMap.keySet();
-            Iterator<String> backendIterator = backendSet.iterator();
-
-            // Start a timer for the progress report.
-            final long persistentEntriesTotal = entryCacheIndex.dnMap.size();
-            Timer timer = new Timer();
-            TimerTask progressTask = new TimerTask() {
-              // Persistent state restore progress report.
-              public void run() {
-                if ((persistentEntriesRestored > 0) &&
-                    (persistentEntriesRestored < persistentEntriesTotal)) {
-                  Message message = NOTE_FSCACHE_RESTORE_PROGRESS_REPORT.get(
-                      persistentEntriesRestored, persistentEntriesTotal);
-                  logError(message);
-                }
-              }
-            };
-            timer.scheduleAtFixedRate(progressTask, progressInterval,
-                                      progressInterval);
-            try {
-              while (backendIterator.hasNext()) {
-                String backend = backendIterator.next();
-                Map<Long,String> entriesMap =
-                    entryCacheIndex.backendMap.get(backend);
-                Set<Long> entriesSet = entriesMap.keySet();
-                Iterator<Long> entriesIterator = entriesSet.iterator();
-                LinkedHashMap<Long,DN> entryMap = new LinkedHashMap<Long,DN>();
-                while (entriesIterator.hasNext()) {
-                  Long entryID = entriesIterator.next();
-                  String entryStringDN = entriesMap.get(entryID);
-                  DN entryDN = DN.decode(entryStringDN);
-                  dnMap.put(entryDN, entryID);
-                  entryMap.put(entryID, entryDN);
-                  persistentEntriesRestored++;
-                }
-                backendMap.put(DirectoryServer.getBackend(backend), entryMap);
-              }
-            } finally {
-              // Stop persistent state restore progress report timer.
-              timer.cancel();
-
-              // Final persistent state restore progress report.
-              Message message = NOTE_FSCACHE_RESTORE_PROGRESS_REPORT.get(
-                  persistentEntriesRestored, persistentEntriesTotal);
-              logError(message);
-            }
 
             // Compare last known offline states to offline states on startup.
             Map<String,Long> currentBackendsState =
@@ -430,6 +380,12 @@ public class FileSystemEntryCache
             // Pop max entries limit.
             maxEntries = currentMaxEntries;
           }
+
+          // Persistent state report.
+          message = NOTE_FSCACHE_RESTORE_REPORT.get(
+            entryCacheIndex.dnMap.size());
+          logError(message);
+
         } catch (CacheIndexNotFoundException e) {
           if (debugEnabled()) {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -494,60 +450,19 @@ public class FileSystemEntryCache
       // index maps @see FileSystemEntryCacheIndex and put them under indexkey
       // allowing for the index to be restored and cache contents reused upon
       // the next initialization. If this cache is empty skip persisting phase.
-      if (persistentCache && !dnMap.isEmpty()) {
-        FileSystemEntryCacheIndex entryCacheIndex =
-          new FileSystemEntryCacheIndex();
+      if (persistentCache && !entryCacheIndex.dnMap.isEmpty()) {
         // There must be at least one backend at this stage.
         entryCacheIndex.offlineState =
           DirectoryServer.getOfflineBackendsStateIDs();
 
-        // Convert entry cache maps to serializable maps for the cache index.
-        Set<Backend> backendSet = backendMap.keySet();
-        Iterator<Backend> backendIterator = backendSet.iterator();
-
-        // Start a timer for the progress report.
-        final long persistentEntriesTotal = dnMap.size();
-        Timer timer = new Timer();
-        TimerTask progressTask = new TimerTask() {
-          // Persistent state save progress report.
-          public void run() {
-            if ((persistentEntriesSaved > 0) &&
-                (persistentEntriesSaved < persistentEntriesTotal)) {
-              Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
-                persistentEntriesSaved, persistentEntriesTotal);
-              logError(message);
-            }
-          }
-        };
-        timer.scheduleAtFixedRate(progressTask, progressInterval,
-          progressInterval);
-
-        try {
-          while (backendIterator.hasNext()) {
-            Backend backend = backendIterator.next();
-            Map<Long, DN> entriesMap = backendMap.get(backend);
-            Map<Long, String> entryMap = new LinkedHashMap<Long, String>();
-            for (Long entryID : entriesMap.keySet()) {
-              DN entryDN = entriesMap.get(entryID);
-              entryCacheIndex.dnMap.put(entryDN.toNormalizedString(), entryID);
-              entryMap.put(entryID, entryDN.toNormalizedString());
-              persistentEntriesSaved++;
-            }
-            entryCacheIndex.backendMap.put(backend.getBackendID(), entryMap);
-          }
-        } finally {
-          // Stop persistent state save progress report timer.
-          timer.cancel();
-
-          // Final persistent state save progress report.
-          Message message = NOTE_FSCACHE_SAVE_PROGRESS_REPORT.get(
-            persistentEntriesSaved, persistentEntriesTotal);
-          logError(message);
-        }
-
         // Store the index.
         try {
           DatabaseEntry indexData = new DatabaseEntry();
+
+          // Persistent state save report.
+          Message message = NOTE_FSCACHE_SAVE.get();
+          logError(message);
+
           entryCacheDataBinding.objectToEntry(entryCacheIndex, indexData);
           DatabaseEntry indexKey =
             new DatabaseEntry(INDEXKEY.getBytes("UTF-8"));
@@ -563,12 +478,17 @@ public class FileSystemEntryCache
           // Log an error message.
           logError(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
         }
+
+        // Persistent state save report.
+        Message message = NOTE_FSCACHE_SAVE_REPORT.get(
+          entryCacheIndex.dnMap.size());
+        logError(message);
       }
 
       // Close JE databases and environment and clear all the maps.
       try {
-        backendMap.clear();
-        dnMap.clear();
+        entryCacheIndex.backendMap.clear();
+        entryCacheIndex.dnMap.clear();
         if (entryCacheDB != null) {
           entryCacheDB.close();
         }
@@ -615,7 +535,8 @@ public class FileSystemEntryCache
     boolean containsEntry = false;
     cacheReadLock.lock();
     try {
-      containsEntry = dnMap.containsKey(entryDN);
+      containsEntry = entryCacheIndex.dnMap.containsKey(
+        entryDN.toNormalizedString());
     } finally {
       cacheReadLock.unlock();
     }
@@ -632,7 +553,7 @@ public class FileSystemEntryCache
     cacheReadLock.lock();
     try {
       // Use get to generate entry access.
-      if (dnMap.get(entryDN) != null) {
+      if (entryCacheIndex.dnMap.get(entryDN.toNormalizedString()) != null) {
         entry = getEntryFromDB(entryDN);
         // Indicate cache hit.
         cacheHits.getAndIncrement();
@@ -653,7 +574,7 @@ public class FileSystemEntryCache
     long entryID = -1;
     cacheReadLock.lock();
     try {
-      Long eid = dnMap.get(entryDN);
+      Long eid = entryCacheIndex.dnMap.get(entryDN.toNormalizedString());
       if (eid != null) {
         entryID = eid.longValue();
       }
@@ -673,12 +594,14 @@ public class FileSystemEntryCache
     try {
       // Get the map for the provided backend.  If it isn't present, then
       // return null.
-      Map map = backendMap.get(backend);
+      Map map = entryCacheIndex.backendMap.get(backend.getBackendID());
       if ( !(map == null) ) {
         // Get the entry DN from the map by its ID.  If it isn't present,
         // then return null.
-        entryDN = (DN) map.get(entryID);
+        entryDN = DN.decode((String) map.get(entryID));
       }
+    } catch (Exception e) {
+      // Ignore.
     } finally {
       cacheReadLock.unlock();
     }
@@ -690,20 +613,13 @@ public class FileSystemEntryCache
    */
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
-    // Obtain a lock on the cache.  If this fails, then don't do anything.
     try {
-      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
-        return;
-      }
-      putEntryToDB(entry, backend, entryID);
+      byte[] entryBytes = entry.encode(encodeConfig);
+      putEntryToDB(entry.getDN().toNormalizedString(),
+        backend, entryID, entryBytes);
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      return;
-    } finally {
-      if (cacheLock.isWriteLockedByCurrentThread()) {
-        cacheWriteLock.unlock();
       }
     }
   }
@@ -713,28 +629,27 @@ public class FileSystemEntryCache
    */
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
+    cacheReadLock.lock();
     try {
-      // Obtain a lock on the cache.  If this fails, then don't do anything.
-      if (! cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
-        // We can't rule out the possibility of a conflict, so return false.
+      // See if the entry already exists in the cache. If it does, then we
+      // will fail and not actually store the entry.
+      if (entryCacheIndex.dnMap.containsKey(
+        entry.getDN().toNormalizedString())) {
         return false;
       }
-      // See if the entry already exists in the cache.  If it does, then we will
-      // fail and not actually store the entry.
-      if (dnMap.containsKey(entry.getDN())) {
-        return false;
-      }
-      return putEntryToDB(entry, backend, entryID);
+    } finally {
+      cacheReadLock.unlock();
+    }
+    try {
+      byte[] entryBytes = entry.encode(encodeConfig);
+      return putEntryToDB(entry.getDN().toNormalizedString(),
+        backend, entryID, entryBytes);
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       // We can't rule out the possibility of a conflict, so return false.
       return false;
-    } finally {
-      if (cacheLock.isWriteLockedByCurrentThread()) {
-        cacheWriteLock.unlock();
-      }
     }
   }
 
@@ -746,16 +661,17 @@ public class FileSystemEntryCache
     cacheWriteLock.lock();
 
     try {
-      Long entryID = dnMap.get(entryDN);
+      Long entryID = entryCacheIndex.dnMap.get(entryDN.toNormalizedString());
       if (entryID == null) {
         return;
       }
-      Set<Backend> backendSet = backendMap.keySet();
-      Iterator<Backend> backendIterator = backendSet.iterator();
+      Set<String> backendSet = entryCacheIndex.backendMap.keySet();
+      Iterator<String> backendIterator = backendSet.iterator();
       while (backendIterator.hasNext()) {
-        Map<Long,DN> map = backendMap.get(backendIterator.next());
+        Map<Long,String> map = entryCacheIndex.backendMap.get(
+          backendIterator.next());
         if ((map.get(entryID) != null) &&
-            (map.get(entryID).equals(entryDN))) {
+            (map.get(entryID).equals(entryDN.toNormalizedString()))) {
           map.remove(entryID);
           // If this backend becomes empty now
           // remove it from the backend map.
@@ -765,7 +681,7 @@ public class FileSystemEntryCache
           break;
         }
       }
-      dnMap.remove(entryDN);
+      entryCacheIndex.dnMap.remove(entryDN.toNormalizedString());
       entryCacheDB.delete(null,
         new DatabaseEntry(entryDN.toNormalizedString().getBytes("UTF-8")));
     } catch (Exception e) {
@@ -785,8 +701,8 @@ public class FileSystemEntryCache
     cacheWriteLock.lock();
 
     try {
-      dnMap.clear();
-      backendMap.clear();
+      entryCacheIndex.dnMap.clear();
+      entryCacheIndex.backendMap.clear();
 
       try {
         if ((entryCacheDB != null) && (entryCacheEnv != null) &&
@@ -824,7 +740,8 @@ public class FileSystemEntryCache
     cacheWriteLock.lock();
 
     try {
-      Map<Long, DN> backendEntriesMap = backendMap.get(backend);
+      Map<Long, String> backendEntriesMap =
+        entryCacheIndex.backendMap.get(backend.getBackendID());
 
       try {
         if (backendEntriesMap == null) {
@@ -837,11 +754,11 @@ public class FileSystemEntryCache
           backendEntriesMap.keySet().iterator();
         while (backendEntriesIterator.hasNext()) {
           Long entryID = backendEntriesIterator.next();
-          DN entryDN = backendEntriesMap.get(entryID);
+          DN entryDN = DN.decode(backendEntriesMap.get(entryID));
           entryCacheDB.delete(null, new DatabaseEntry(
             entryDN.toNormalizedString().getBytes("UTF-8")));
           backendEntriesIterator.remove();
-          dnMap.remove(entryDN);
+          entryCacheIndex.dnMap.remove(entryDN.toNormalizedString());
 
           // This can take a while, so we'll periodically release and
           // re-acquire the lock in case anyone else is waiting on it
@@ -856,7 +773,7 @@ public class FileSystemEntryCache
         }
 
         // This backend is empty now, remove it from the backend map.
-        backendMap.remove(backend);
+        entryCacheIndex.backendMap.remove(backend.getBackendID());
       } catch (Exception e) {
         if (debugEnabled()) {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -913,7 +830,8 @@ public class FileSystemEntryCache
   private void clearSubtree(DN baseDN, Backend backend) {
     // See if there are any entries for the provided backend in the cache.  If
     // not, then return.
-    Map<Long,DN> map = backendMap.get(backend);
+    Map<Long,String> map =
+      entryCacheIndex.backendMap.get(backend.getBackendID());
     if (map == null)
     {
       // No entries were in the cache for this backend, so we can return without
@@ -928,38 +846,40 @@ public class FileSystemEntryCache
     // waiting on it so this doesn't become a stop-the-world event as far as the
     // cache is concerned.
     int entriesExamined = 0;
-    Iterator<DN> iterator = map.values().iterator();
+    Iterator<String> iterator = map.values().iterator();
     while (iterator.hasNext())
     {
-      DN entryDN = iterator.next();
-      if (entryDN.isDescendantOf(baseDN))
-      {
-        iterator.remove();
-        dnMap.remove(entryDN);
-        try {
-          entryCacheDB.delete(null,
+      try {
+        DN entryDN = DN.decode(iterator.next());
+        if (entryDN.isDescendantOf(baseDN)) {
+          iterator.remove();
+          entryCacheIndex.dnMap.remove(entryDN);
+          try {
+            entryCacheDB.delete(null,
               new DatabaseEntry(
               entryDN.toNormalizedString().getBytes("UTF-8")));
-        } catch (Exception e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          } catch (Exception e) {
+            if (debugEnabled()) {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
           }
         }
-      }
 
-      entriesExamined++;
-      if ((entriesExamined % 1000) == 0)
-      {
-        cacheWriteLock.unlock();
-        Thread.currentThread().yield();
-        cacheWriteLock.lock();
+        entriesExamined++;
+        if ((entriesExamined % 1000) == 0) {
+          cacheWriteLock.unlock();
+          Thread.currentThread().yield();
+          cacheWriteLock.lock();
+        }
+      } catch (Exception e) {
+        // Ignore.
       }
     }
 
     // If this backend becomes empty now
     // remove it from the backend map.
     if (map.isEmpty()) {
-      backendMap.remove(backend);
+      entryCacheIndex.backendMap.remove(backend.getBackendID());
     }
 
     // See if the backend has any subordinate backends.  If so, then process
@@ -1350,7 +1270,7 @@ public class FileSystemEntryCache
         new Long(entryCacheEnv.getStats(
           entryCacheEnvStatsConfig).getTotalLogSize()),
         new Long(maxAllowedMemory),
-        new Long(dnMap.size()),
+        new Long(entryCacheIndex.dnMap.size()),
         (((maxEntries.longValue() != Integer.MAX_VALUE) &&
           (maxEntries.longValue() != Long.MAX_VALUE)) ?
            new Long(maxEntries.longValue()) : new Long(0))
@@ -1369,7 +1289,7 @@ public class FileSystemEntryCache
    */
   public Long getCacheCount()
   {
-    return new Long(dnMap.size());
+    return new Long(entryCacheIndex.dnMap.size());
   }
 
   /**
@@ -1422,8 +1342,15 @@ public class FileSystemEntryCache
    *          was either stored or the cache determined that this entry
    *          should never be cached for some reason.
    */
-  private boolean putEntryToDB(Entry entry, Backend backend, long entryID) {
+  private boolean putEntryToDB(String dnString,
+                               Backend backend,
+                               long entryID,
+                               byte[] entryBytes) {
     try {
+      // Obtain a lock on the cache.  If this fails, then don't do anything.
+      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS)) {
+        return false;
+      }
       // See if the current fs space usage is within acceptable constraints. If
       // so, then add the entry to the cache (or replace it if it is already
       // present).  If not, then remove an existing entry and don't add the new
@@ -1443,12 +1370,13 @@ public class FileSystemEntryCache
           long savedMaxEntries = maxEntries.longValue();
           // Cap maxEntries artificially but dont let it go negative under
           // any circumstances.
-          maxEntries.set((dnMap.isEmpty() ? 0 : dnMap.size() - 1));
+          maxEntries.set((entryCacheIndex.dnMap.isEmpty() ? 0 :
+            entryCacheIndex.dnMap.size() - 1));
           // Add the entry to the map to trigger remove of the eldest entry.
           // @see LinkedHashMapRotator.removeEldestEntry() for more details.
-          dnMap.put(entry.getDN(), entryID);
+          entryCacheIndex.dnMap.put(dnString, entryID);
           // Restore the map and maxEntries.
-          dnMap.remove(entry.getDN());
+          entryCacheIndex.dnMap.remove(dnString);
           maxEntries.set(savedMaxEntries);
           // We'll always return true in this case, even tho we didn't actually
           // add the entry due to memory constraints.
@@ -1458,28 +1386,22 @@ public class FileSystemEntryCache
 
       // Create key.
       DatabaseEntry cacheEntryKey = new DatabaseEntry();
-      cacheEntryKey.setData(
-          entry.getDN().toNormalizedString().getBytes("UTF-8"));
+      cacheEntryKey.setData(dnString.getBytes("UTF-8"));
 
       // Create data and put this cache entry into the database.
       if (entryCacheDB.put(null, cacheEntryKey,
-          new DatabaseEntry(
-          entry.encode(encodeConfig))) == OperationStatus.SUCCESS) {
-
-        // Add the entry to the cache maps. The order in which maps
-        // are populated is important since invoking put on rotator
-        // map can cause the eldest map entry to be removed @see
-        // LinkedHashMapRotator.removeEldestEntry() therefore every
-        // cache map has to be up to date if / when that happens.
-        Map<Long,DN> map = backendMap.get(backend);
+          new DatabaseEntry(entryBytes)) == OperationStatus.SUCCESS) {
+        // Add the entry to the cache index maps.
+        Map<Long,String> map =
+          entryCacheIndex.backendMap.get(backend.getBackendID());
         if (map == null) {
-          map = new LinkedHashMap<Long,DN>();
-          map.put(entryID, entry.getDN());
-          backendMap.put(backend, map);
+          map = new HashMap<Long,String>();
+          map.put(entryID, dnString);
+          entryCacheIndex.backendMap.put(backend.getBackendID(), map);
         } else {
-          map.put(entryID, entry.getDN());
+          map.put(entryID, dnString);
         }
-        dnMap.put(entry.getDN(), entryID);
+        entryCacheIndex.dnMap.put(dnString, entryID);
       }
 
       // We'll always return true in this case, even if we didn't actually add
@@ -1495,6 +1417,10 @@ public class FileSystemEntryCache
           ERR_FSCACHE_CANNOT_STORE_ENTRY.get());
 
       return false;
+    } finally {
+      if (cacheLock.isWriteLockedByCurrentThread()) {
+        cacheWriteLock.unlock();
+      }
     }
   }
 
@@ -1556,8 +1482,8 @@ public class FileSystemEntryCache
     String verboseString = new String();
     StringBuilder sb = new StringBuilder();
 
-    Map<DN,Long> dnMapCopy;
-    Map<Backend,Map<Long,DN>> backendMapCopy;
+    Map<String,Long> dnMapCopy;
+    Map<String,Map<Long,String>> backendMapCopy;
 
     // Grab write lock to prevent any modifications
     // to the cache maps until a snapshot is taken.
@@ -1566,31 +1492,29 @@ public class FileSystemEntryCache
       // Examining the real maps will hold the lock
       // and can cause map modifications in case of
       // any access order maps, make copies instead.
-      dnMapCopy = new LinkedHashMap<DN,Long>(dnMap);
+      dnMapCopy = new LinkedHashMap<String,Long>(entryCacheIndex.dnMap);
       backendMapCopy =
-        new LinkedHashMap<Backend,Map<Long,DN>>
-          (backendMap);
+        new HashMap<String,Map<Long,String>>
+          (entryCacheIndex.backendMap);
     } finally {
       cacheWriteLock.unlock();
     }
 
     // Check dnMap first.
-    for (DN dn : dnMapCopy.keySet()) {
+    for (String dn : dnMapCopy.keySet()) {
       sb.append(dn.toString());
       sb.append(":");
       sb.append((dnMapCopy.get(dn) != null ?
           dnMapCopy.get(dn).toString() : null));
       sb.append(":");
-      Backend backend = null;
       String backendID = null;
-      Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
+      Iterator<String> backendIterator = backendMapCopy.keySet().iterator();
       while (backendIterator.hasNext()) {
-        backend = backendIterator.next();
-        Map<Long, DN> map = backendMapCopy.get(backend);
+        backendID = backendIterator.next();
+        Map<Long, String> map = backendMapCopy.get(backendID);
         if ((map != null) &&
             (map.get(dnMapCopy.get(dn)) != null) &&
             (map.get(dnMapCopy.get(dn)).equals(dn))) {
-          backendID = backend.getBackendID();
           break;
         }
       }
@@ -1600,18 +1524,18 @@ public class FileSystemEntryCache
 
     // See if there is anything on backendMap that isnt reflected on dnMap
     // in case maps went out of sync.
-    Backend backend = null;
-    Iterator<Backend> backendIterator = backendMapCopy.keySet().iterator();
+    String backendID = null;
+    Iterator<String> backendIterator = backendMapCopy.keySet().iterator();
     while (backendIterator.hasNext()) {
-      backend = backendIterator.next();
-      Map<Long, DN> map = backendMapCopy.get(backend);
+      backendID = backendIterator.next();
+      Map<Long, String> map = backendMapCopy.get(backendID);
       for (Long id : map.keySet()) {
         if (!dnMapCopy.containsKey(map.get(id)) || map.get(id) == null) {
           sb.append((map.get(id) != null ? map.get(id) : null));
           sb.append(":");
           sb.append(id.toString());
           sb.append(":");
-          sb.append(backend.getBackendID());
+          sb.append(backendID);
           sb.append(ServerConstants.EOL);
         }
       }
@@ -1623,66 +1547,61 @@ public class FileSystemEntryCache
   }
 
   /**
-   * This inner class exist solely to override <CODE>removeEldestEntry()</CODE>
-   * method of the LinkedHashMap.
+   * This method is called each time we add a new key/value pair to the map.
+   * The eldest entry is selected by the LinkedHashMap implementation based
+   * on the access order configured.
    *
-   * @see  java.util.LinkedHashMap
+   * @param  eldest  The least recently inserted entry in the map, or if
+   *                 this is an access-ordered map, the least recently
+   *                 accessed entry. This is the entry that will be
+   *                 removed it this method returns true. If the map was
+   *                 empty prior to the put or putAll invocation resulting
+   *                 in this invocation, this will be the entry that was
+   *                 just inserted; in other words, if the map contains a
+   *                 single entry, the eldest entry is also the newest.
+   *
+   * @return boolean {@code true} if the eldest entry should be removed
+   *                 from the map; {@code false} if it should be retained.
    */
-  private class LinkedHashMapRotator<K,V> extends LinkedHashMap<K,V> {
-
-    static final long serialVersionUID = 5271482121415968435L;
-
-    public LinkedHashMapRotator(int initialCapacity,
-                                float loadFactor,
-                                boolean accessOrder) {
-      super(initialCapacity, loadFactor, accessOrder);
-    }
-
-    // This method will get called each time we add a new key/value
-    // pair to the map. The eldest entry will be selected by the
-    // underlying LinkedHashMap implementation based on the access
-    // order configured and will follow either FIFO implementation
-    // by default or LRU implementation if configured so explicitly.
-    @Override protected boolean removeEldestEntry(Map.Entry eldest) {
-      // Check if we hit the limit on max entries and if so remove
-      // the eldest entry otherwise do nothing.
-      if (size() > maxEntries.longValue()) {
-        DatabaseEntry cacheEntryKey = new DatabaseEntry();
-        cacheWriteLock.lock();
-        try {
-          // Remove the the eldest entry from supporting maps.
-          DN entryDN = (DN) eldest.getKey();
-          long entryID = ((Long) eldest.getValue()).longValue();
-          cacheEntryKey.setData(
-              entryDN.toNormalizedString().getBytes("UTF-8"));
-          Set<Backend> backendSet = backendMap.keySet();
-          Iterator<Backend> backendIterator = backendSet.iterator();
-          while (backendIterator.hasNext()) {
-            Map<Long,DN> map = backendMap.get(backendIterator.next());
-            if ((map.get(entryID) != null) &&
-                (map.get(entryID).equals(entryDN))) {
-              map.remove(entryID);
-              // If this backend becomes empty now
-              // remove it from the backend map.
-              if (map.isEmpty()) {
-                backendIterator.remove();
-              }
-              break;
+  protected boolean removeEldestEntry(Map.Entry eldest) {
+    // Check if we hit the limit on max entries and if so remove
+    // the eldest entry otherwise do nothing.
+    if (entryCacheIndex.dnMap.size() > maxEntries.longValue()) {
+      DatabaseEntry cacheEntryKey = new DatabaseEntry();
+      cacheWriteLock.lock();
+      try {
+        // Remove the the eldest entry from supporting maps.
+        String entryStringDN = (String) eldest.getKey();
+        long entryID = ((Long) eldest.getValue()).longValue();
+        cacheEntryKey.setData(entryStringDN.getBytes("UTF-8"));
+        Set<String> backendSet = entryCacheIndex.backendMap.keySet();
+        Iterator<String> backendIterator = backendSet.iterator();
+        while (backendIterator.hasNext()) {
+          Map<Long, String> map = entryCacheIndex.backendMap.get(
+            backendIterator.next());
+          if ((map.get(entryID) != null) &&
+            (map.get(entryID).equals(entryStringDN))) {
+            map.remove(entryID);
+            // If this backend becomes empty now
+            // remove it from the backend map.
+            if (map.isEmpty()) {
+              backendIterator.remove();
             }
+            break;
           }
-          // Remove the the eldest entry from the database.
-          entryCacheDB.delete(null, cacheEntryKey);
-        } catch (Exception e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        } finally {
-          cacheWriteLock.unlock();
         }
-        return true;
-      } else {
-        return false;
+        // Remove the the eldest entry from the database.
+        entryCacheDB.delete(null, cacheEntryKey);
+      } catch (Exception e) {
+        if (debugEnabled()) {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      } finally {
+        cacheWriteLock.unlock();
       }
+      return true;
+    } else {
+      return false;
     }
   }
 

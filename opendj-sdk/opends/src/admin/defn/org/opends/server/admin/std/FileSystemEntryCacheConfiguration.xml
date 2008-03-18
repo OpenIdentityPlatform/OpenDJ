@@ -231,7 +231,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>0</adm:value>
+        <adm:value>1</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -277,12 +277,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>je.log.fileMax=10485760</adm:value>
-        <adm:value>je.cleaner.minUtilization=90</adm:value>
-        <adm:value>je.cleaner.maxBatchFiles=1</adm:value>
-        <adm:value>je.cleaner.minAge=1</adm:value>
-        <adm:value>je.cleaner.minFileUtilization=50</adm:value>
-        <adm:value>je.checkpointer.bytesInterval=10485760</adm:value>
+        <adm:value>je.env.isLocking=false</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
