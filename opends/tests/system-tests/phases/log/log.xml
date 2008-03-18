@@ -487,7 +487,55 @@
       </if>
     </sequence>
   </function>
-
+  
+  
+  <!-- ************************************************************ -->
+  <function name="writeStartTagInstance" scope="local">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="instance" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          str = '\n&lt;instance name=\"%s\"' % instance.getName()
+          str = '%s host=\"%s\"' % (str, instance.getHost())
+          str = '%s port=\"%s\"' % (str, instance.getLDAPPort())
+          str = '%s product=\"%s\"&gt;\n' % (str, instance.getProduct())
+          fileFd.write(str)
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+  <function name="writeEndTagInstance" scope="local">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;/instance&gt;\n\n')
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
 
   <!-- ************************************************************ -->
   <function name="writeStartTagOperation" scope="local">
