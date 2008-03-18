@@ -28,7 +28,7 @@
 <stax>
   
   <!-- ************************************************************ -->
-  <function name="checkRC">
+  <function name="checkRC" scope="local">
     <function-prolog>
       This function checks a return code against an expected return code
     </function-prolog>
@@ -114,7 +114,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="phasePreamble">
+  <function name="phasePreamble" scope="local">
     <function-prolog>
       Performs all the preoperations for a phase
     </function-prolog>
@@ -162,7 +162,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="phasePostamble">
+  <function name="phasePostamble" scope="local">
     <function-prolog>
       Performs all the post operations for a phase
     </function-prolog>
@@ -214,7 +214,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="sleep">
+  <function name="sleep" scope="local">
     <function-prolog>
       Sleep for number of milliseconds
     </function-prolog>
@@ -282,7 +282,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="ldifDiff">
+  <function name="ldifDiff" scope="local">
     <function-prolog>
       This function  compares two LDIF files and reports the differences in LDIF format
     </function-prolog>
@@ -429,7 +429,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="grep">
+  <function name="grep" scope="local">
     <function-prolog>
       This function compares grep a string in a file
     </function-prolog>
@@ -557,7 +557,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="getOSvariables">
+  <function name="getOSvariables" scope="local">
     <function-prolog>
       Get OS related variables
     </function-prolog>
@@ -583,7 +583,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="getOSDate">
+  <function name="getOSDate" scope="local">
     <function-prolog>
         This function returns the date (MONTH/DAY/YEARS-HOURS/MIN) of the OS
     </function-prolog>

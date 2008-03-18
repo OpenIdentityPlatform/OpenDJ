@@ -31,7 +31,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="verdictOpends">
+  <function name="verdictOpends" scope="local">
     <function-map-args>
       <function-arg-def name="instance" type="required">
         <function-arg-description>
@@ -126,7 +126,7 @@
   </function>
 
   <!-- ************************************************************ -->
-  <function name="checkReplicationSynchro">
+  <function name="checkReplicationSynchro" scope="local">
     <function-map-args>
       <function-arg-def name="instance" type="required">
         <function-arg-description>
@@ -153,7 +153,7 @@
   </function>
 
   <!-- ************************************************************ -->
-  <function name="checkLogs">
+  <function name="checkLogs" scope="local">
     <function-map-args>
       <function-arg-def name="location" type="optional"
                         default="STAF_REMOTE_HOSTNAME">

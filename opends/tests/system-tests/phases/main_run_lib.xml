@@ -28,7 +28,7 @@
 <stax>
 
   <!-- ************************************************************ -->
-  <function name="checkConfigurationFiles">
+  <function name="checkConfigurationFiles" scope="local">
   <function-no-args/>
   <sequence>
     <if expr="OPENDSDIR == 'NEED_VALUE'">
@@ -78,7 +78,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="mainPreamble">
+  <function name="mainPreamble" scope="local">
    <function-prolog>
       'preamble before running the system test'
     </function-prolog>
@@ -176,7 +176,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="mainPostamble">
+  <function name="mainPostamble" scope="local">
    <function-prolog>
       'postamble after running the system test'
     </function-prolog>
@@ -329,7 +329,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="moveFolder">
+  <function name="moveFolder" scope="local">
    <function-prolog>
       'copy remote directory to STAXServiceMachine and delete it'
     </function-prolog>

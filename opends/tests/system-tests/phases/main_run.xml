@@ -29,7 +29,7 @@
 
   <defaultcall function="main_run"/>
 
-  <function name="main_run">
+  <function name="main_run" scope="local">
     <function-map-args>
       <function-arg-def name="configurationFile" type="required">
         <function-arg-description>
@@ -108,7 +108,7 @@
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/phases/shared/ldap.xml' % (TESTS_DIR)"/>
       
-      <!-- TDB : should not have dependency with functional test suite -->
+      <!-- TBD : should not have dependency with functional test suite -->
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/../functional-run/staf/services/stax/libraries/STAXUtil.xml'
                % (TESTS_DIR)"/>

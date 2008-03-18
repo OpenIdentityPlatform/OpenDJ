@@ -129,10 +129,9 @@
               'fileFd'         : fileFd
             }
           </call>
-          
           <script>
-            ldapRC=RC
-            ldapReason=STAXResult
+            ldapRC=STAXResult[0]
+            ldapReason=STAXResult[1]
           </script>
           
           <call function="'sleep'">
@@ -174,7 +173,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="verifyTrees">
+  <function name="verifyTrees" scope="local">
     <function-prolog>
       This function verifies that the tree of an instance belonging to an instances list 
       (ie instance[n]) is synchronized with instance[n+1]
@@ -284,7 +283,7 @@
               'fileFd'         : fileFd
             }
           </call>
-          <if expr="RC != 0">
+          <if expr="STAXResult[0] != 0">
             <!-- == If the reference tree could not be retrieved, return an error == -->
             <sequence>
               <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
@@ -383,7 +382,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="ldapSearch">
+  <function name="ldapSearch" scope="local">
     <function-prolog>
       This function performs an ldapsearch
     </function-prolog>  

@@ -52,7 +52,7 @@
       
       <!--==========  Write node  =========-->
       <script>
-        fileFd.write('&lt;topology&gt;\n')
+        LOG_MAIN_FD.write('&lt;topology&gt;\n')
       </script>
       
       <!-- Write instances informations -->
@@ -81,7 +81,7 @@
       
       <!--==========  close node =========-->
       <script>
-        fileFd.write('&lt;/topology&gt;\n')
+        LOG_MAIN_FD.write('&lt;/topology&gt;\n')
       </script>
       
       
@@ -243,6 +243,9 @@
     <sequence>
       <!-- Write Suffix informations -->
       <script>
+        sys.path.append("%s/phases/parser" % TESTS_DIR )
+        from parser import *
+        
         # SUFFIX TOPOLOGY
         topoMsg = ''
         topology = suffix.getTopology()

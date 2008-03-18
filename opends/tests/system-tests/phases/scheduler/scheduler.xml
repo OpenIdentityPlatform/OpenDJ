@@ -31,7 +31,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="scheduler">
+  <function name="scheduler" scope="local">
     <function-map-args>
       <function-arg-def name="instances" type="required">
         <function-arg-description>
@@ -119,7 +119,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="copyClients">
+  <function name="copyClients" scope="local">
     <function-map-args>
       <function-arg-def name="clients" type="required">
       </function-arg-def>
@@ -196,7 +196,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="runClients">
+  <function name="runClients" scope="local">
     <function-map-args>
       <function-arg-def name="clients" type="required">
       </function-arg-def>
@@ -360,7 +360,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="runClient">
+  <function name="runClient" scope="local">
     <function-map-args>
       <function-arg-def name="client" type="required">
       </function-arg-def>
@@ -501,7 +501,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="sleepForDependency">
+  <function name="sleepForDependency" scope="local">
     <function-map-args>
       <function-arg-def name="location" type="optional" 
                         default="'%s' % STAXServiceMachine">

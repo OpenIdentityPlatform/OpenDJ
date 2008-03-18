@@ -29,7 +29,7 @@
   
   <defaultcall function="mainSample"/>
   
-  <function name="mainSample">
+  <function name="mainSample" scope="local">
       <sequence>
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/phases/main_run.xml' % (TESTS_DIR)"/>

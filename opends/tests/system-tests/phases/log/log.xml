@@ -30,14 +30,14 @@
   <defaultcall function="main_log"/>
 
   <!-- ************************************************************ -->
-  <function name="main_log">
+  <function name="main_log" scope="local">
     <sequence>
       <message log="1">'main_log() do nothing'</message>
     </sequence>
   </function>
 
   <!-- ************************************************************ -->
-  <function name="createLogDir">
+  <function name="createLogDir" scope="local">
    <function-prolog>
       'Create log directories for system test, using LOG_DIR variable'
     </function-prolog>
@@ -72,7 +72,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="getLogFileName">
+  <function name="getLogFileName" scope="local">
     <function-prolog>
       'return a log file name'
     </function-prolog>
@@ -109,7 +109,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="writeSummary">
+  <function name="writeSummary" scope="local">
     <function-prolog>
       ''
     </function-prolog>
@@ -163,7 +163,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="mergeClientsFiles">
+  <function name="mergeClientsFiles" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -236,7 +236,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="mergeFiles">
+  <function name="mergeFiles" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -313,7 +313,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="writeTag">
+  <function name="writeTag" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -363,7 +363,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="writeMessage">
+  <function name="writeMessage" scope="local">
     <function-prolog>
       write content in file
     </function-prolog>
@@ -397,7 +397,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="writeOperationResult">
+  <function name="writeOperationResult" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -438,7 +438,7 @@
   </function>
   
   <!-- ************************************************************ -->
-  <function name="writeStartTagStep">
+  <function name="writeStartTagStep" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -460,7 +460,7 @@
     </sequence>
   </function>
   
-  <function name="writeEndTagStep">
+  <function name="writeEndTagStep" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -482,7 +482,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="writeStartTagOperation">
+  <function name="writeStartTagOperation" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -504,7 +504,7 @@
     </sequence>
   </function>
   
-  <function name="writeEndTagOperation">
+  <function name="writeEndTagOperation" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -527,7 +527,7 @@
 
   
   <!-- ************************************************************ -->
-  <function name="writeStartTagPhase">
+  <function name="writeStartTagPhase" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -568,7 +568,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="writeEndTagPhase">
+  <function name="writeEndTagPhase" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -588,7 +588,7 @@
 
 
   <!-- ************************************************************ -->
-  <function name="writeStartTag">
+  <function name="writeStartTag" scope="local">
    <function-prolog>
       ''
     </function-prolog>
@@ -609,7 +609,7 @@
   
   
   <!-- ************************************************************ -->
-  <function name="writeEndTag">
+  <function name="writeEndTag" scope="local">
    <function-prolog>
       ''
     </function-prolog>
