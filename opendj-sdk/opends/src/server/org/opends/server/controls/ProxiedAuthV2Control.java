@@ -305,7 +305,7 @@ public class ProxiedAuthV2Control
           // FIXME -- We should provide some mechanism for enabling debug
           // processing.
           PasswordPolicyState pwpState =
-               new PasswordPolicyState(userEntry, false, false);
+               new PasswordPolicyState(userEntry, false);
           if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
               pwpState.lockedDueToFailures() ||
               pwpState.lockedDueToIdleInterval() ||
@@ -358,7 +358,7 @@ public class ProxiedAuthV2Control
         // FIXME -- We should provide some mechanism for enabling debug
         // processing.
         PasswordPolicyState pwpState =
-             new PasswordPolicyState(userEntry, false, false);
+             new PasswordPolicyState(userEntry, false);
         if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
             pwpState.lockedDueToFailures() ||
             pwpState.lockedDueToIdleInterval() ||

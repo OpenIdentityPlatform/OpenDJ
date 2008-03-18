@@ -47,23 +47,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
 import org.opends.server.workflowelement.localbackend.*;
@@ -87,9 +75,6 @@ public class DeleteOperationBasis
 
   // The raw, unprocessed entry DN as included in the client request.
   private ByteString rawEntryDN;
-
-  // The cancel request that has been issued for this delete operation.
-  private CancelRequest cancelRequest;
 
   // The DN of the entry for the delete operation.
   private DN entryDN;
@@ -235,18 +220,6 @@ public class DeleteOperationBasis
     return OperationType.DELETE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
-  }
-
 
   /**
    * {@inheritDoc}
@@ -369,66 +342,6 @@ public class DeleteOperationBasis
    * {@inheritDoc}
    */
   @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-
-    CancelResult cancelResult = getCancelResult();
-    long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while ((cancelResult == null) &&
-           (System.currentTimeMillis() < stopWaitingTime))
-    {
-      try
-      {
-        Thread.sleep(50);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      cancelResult = getCancelResult();
-    }
-
-    if (cancelResult == null)
-    {
-      // This can happen in some rare cases (e.g., if a client disconnects and
-      // there is still a lot of data to send to that client), and in this case
-      // we'll prevent the cancel thread from blocking for a long period of
-      // time.
-      cancelResult = CancelResult.CANNOT_CANCEL;
-    }
-
-    return cancelResult;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return cancelRequest;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public
-  boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
   public final void toString(StringBuilder buffer)
   {
     buffer.append("DeleteOperation(connID=");
@@ -454,74 +367,43 @@ public class DeleteOperationBasis
   {
     setResultCode(ResultCode.UNDEFINED);
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
-    {
-      indicateCancelled(cancelRequest);
-      setProcessingStopTime();
-      return;
-    }
+    // Log the delete request message.
+    logDeleteRequest(this);
 
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+        DirectoryServer.getPluginConfigManager();
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-deleteProcessing:
+    try
     {
       // Invoke the pre-parse delete plugins.
-      PreParsePluginResult preParseResult =
-           pluginConfigManager.invokePreParseDeletePlugins(this);
-      if (preParseResult.connectionTerminated())
+      PluginResult.PreParse preParseResult =
+          pluginConfigManager.invokePreParseDeletePlugins(this);
+      if(!preParseResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logDeleteRequest(this);
-        logDeleteResponse(this);
-        pluginConfigManager.invokePostResponseDeletePlugins(this);
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        logDeleteRequest(this);
-        break deleteProcessing;
-      }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        break deleteProcessing;
-      }
-
-
-      // Log the delete request message.
-      logDeleteRequest(this);
 
 
       // Check for a request to cancel this operation.
-      if (cancelRequest != null)
-      {
-        break deleteProcessing;
-      }
+      checkIfCanceled(false);
 
 
       // Process the entry DN to convert it from its raw form as provided by the
       // client to the form required for the rest of the delete processing.
       DN entryDN = getEntryDN();
       if (entryDN == null){
-        break deleteProcessing;
+        return;
       }
 
 
@@ -534,61 +416,54 @@ deleteProcessing:
         // We have found no workflow for the requested base DN, just return
         // a no such entry result code and stop the processing.
         updateOperationErrMsgAndResCode();
-        break deleteProcessing;
+        return;
       }
       workflow.execute(this);
       workflowExecuted = true;
 
-    } // end of processing block
-
-
-    // Check for a terminated connection.
-    if (getCancelResult() == CancelResult.CANCELED)
-    {
-      // Stop the processing timer.
-      setProcessingStopTime();
-
-      // Log the add response message.
-      logDeleteResponse(this);
-
-      return;
     }
-
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
+    catch(CanceledOperationException coe)
     {
-      indicateCancelled(cancelRequest);
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+      }
 
+      setResultCode(ResultCode.CANCELED);
+      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+
+      appendErrorMessage(coe.getCancelRequest().getCancelReason());
+    }
+    finally
+    {
       // Stop the processing timer.
       setProcessingStopTime();
 
-      // Log the delete response message.
+      if(cancelRequest == null || cancelResult == null ||
+          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelRequest.notifyOriginalRequestor() ||
+          DirectoryServer.notifyAbandonedOperations())
+      {
+        clientConnection.sendResponse(this);
+      }
+
+
+      // Log the delete response.
       logDeleteResponse(this);
+
+      // Notifies any persistent searches that might be registered with the
+      // server.
+      notifyPersistentSearches(workflowExecuted);
 
       // Invoke the post-response delete plugins.
       invokePostResponsePlugins(workflowExecuted);
 
-      return;
+      // If no cancel result, set it
+      if(cancelResult == null)
+      {
+        cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
+      }
     }
-
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-
-    // Send the delete response to the client.
-    getClientConnection().sendResponse(this);
-
-    // Log the delete response.
-    logDeleteResponse(this);
-
-    // Notifies any persistent searches that might be registered with the
-    // server.
-    notifyPersistentSearches(workflowExecuted);
-
-    // Invoke the post-response delete plugins.
-    invokePostResponsePlugins(workflowExecuted);
   }
 
 

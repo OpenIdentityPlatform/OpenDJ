@@ -40,7 +40,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.ProfilerPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
@@ -223,7 +223,7 @@ public final class ProfilerPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final StartupPluginResult doStartup()
+  public final PluginResult.Startup doStartup()
   {
     ProfilerPluginCfg config = currentConfig;
 
@@ -234,7 +234,7 @@ public final class ProfilerPlugin
       profilerThread.start();
     }
 
-    return StartupPluginResult.SUCCESS;
+    return PluginResult.Startup.continueStartup();
   }
 
 

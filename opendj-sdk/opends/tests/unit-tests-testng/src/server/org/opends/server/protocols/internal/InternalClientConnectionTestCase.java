@@ -1118,7 +1118,7 @@ public class InternalClientConnectionTestCase
     CancelResult cancelResult =
          conn.cancelOperation(1,
               new CancelRequest(true, Message.raw("testCancelOperation")));
-    assertEquals(cancelResult, CancelResult.CANNOT_CANCEL);
+    assertEquals(cancelResult.getResultCode(), ResultCode.CANNOT_CANCEL);
   }
 
 

@@ -32,28 +32,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
 import static org.opends.server.core.CoreConstants.*;
 import static org.opends.server.loggers.AccessLogger.*;
 
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -93,9 +79,6 @@ public class ModifyDNOperationBasis
   // The raw, unprocessed newSuperior as included in the request from the
   // client.
   private ByteString rawNewSuperior;
-
-  // The cancel request issued for this modify DN operation.
-  private CancelRequest cancelRequest;
 
   // The current DN of the entry.
   private DN entryDN;
@@ -451,19 +434,6 @@ public class ModifyDNOperationBasis
    * {@inheritDoc}
    */
   @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
   public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -608,68 +578,40 @@ public class ModifyDNOperationBasis
   {
     setResultCode(ResultCode.UNDEFINED);
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
-    {
-      indicateCancelled(cancelRequest);
-      setProcessingStopTime();
-      return;
-    }
+    // Log the modify DN request message.
+    logModifyDNRequest(this);
 
+    // Get the plugin config manager that will be used for invoking plugins.
+    PluginConfigManager pluginConfigManager =
+        DirectoryServer.getPluginConfigManager();
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
 
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-modifyDNProcessing:
+    try
     {
+      // Check for and handle a request to cancel this operation.
+      checkIfCanceled(false);
+
       // Invoke the pre-parse modify DN plugins.
-      PreParsePluginResult preParseResult =
-        pluginConfigManager.invokePreParseModifyDNPlugins(this);
-      if (preParseResult.connectionTerminated())
+      PluginResult.PreParse preParseResult =
+          pluginConfigManager.invokePreParseModifyDNPlugins(this);
+
+      if(!preParseResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logModifyDNRequest(this);
-        logModifyDNResponse(this);
-        pluginConfigManager.invokePostResponseModifyDNPlugins(this);
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        logModifyDNRequest(this);
-        break modifyDNProcessing;
-      }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        break modifyDNProcessing;
-      }
 
-
-      // Log the modify DN request message.
-      logModifyDNRequest(this);
-
-
-      // Check for a request to cancel this operation.
-      if (cancelRequest != null)
-      {
-        break modifyDNProcessing;
-      }
+      // Check for and handle a request to cancel this operation.
+      checkIfCanceled(false);
 
       // Process the entry DN, newRDN, and newSuperior elements from their raw
       // forms as provided by the client to the forms required for the rest of
@@ -677,7 +619,7 @@ modifyDNProcessing:
       DN entryDN = getEntryDN();
       if (entryDN == null)
       {
-        break modifyDNProcessing;
+        return;
       }
 
       // Retrieve the network group attached to the client connection
@@ -689,59 +631,52 @@ modifyDNProcessing:
         // We have found no workflow for the requested base DN, just return
         // a no such entry result code and stop the processing.
         updateOperationErrMsgAndResCode();
-        break modifyDNProcessing;
+        return;
       }
       workflow.execute(this);
       workflowExecuted = true;
     }
-
-    // Check for a terminated connection.
-    if (getCancelResult() == CancelResult.CANCELED)
+    catch(CanceledOperationException coe)
     {
-      // Stop the processing timer.
-      setProcessingStopTime();
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+      }
 
-      // Log the add response message.
-      logModifyDNResponse(this);
+      setResultCode(ResultCode.CANCELED);
+      cancelResult = new CancelResult(ResultCode.CANCELED, null);
 
-      return;
+      appendErrorMessage(coe.getCancelRequest().getCancelReason());
     }
-
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
+    finally
     {
-      indicateCancelled(cancelRequest);
-
       // Stop the processing timer.
       setProcessingStopTime();
 
-      // Log the modify DN response message.
+      if(cancelRequest == null || cancelResult == null ||
+          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelRequest.notifyOriginalRequestor() ||
+          DirectoryServer.notifyAbandonedOperations())
+      {
+        clientConnection.sendResponse(this);
+      }
+
+      // Log the modify DN response.
       logModifyDNResponse(this);
+
+      // Notifies any persistent searches that might be registered with the
+      // server.
+      notifyPersistentSearches(workflowExecuted);
 
       // Invoke the post-response modify DN plugins.
       invokePostResponsePlugins(workflowExecuted);
 
-      return;
+      // If no cancel result, set it
+      if(cancelResult == null)
+      {
+        cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
+      }
     }
-
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-
-    // Send the modify DN response to the client.
-    clientConnection.sendResponse(this);
-
-    // Log the modify DN response.
-    logModifyDNResponse(this);
-
-    // Notifies any persistent searches that might be registered with the
-    // server.
-    notifyPersistentSearches(workflowExecuted);
-
-    // Invoke the post-response modify DN plugins.
-    invokePostResponsePlugins(workflowExecuted);
   }
 
 
@@ -855,68 +790,6 @@ modifyDNProcessing:
     setResultCode(ResultCode.NO_SUCH_OBJECT);
     appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(
             String.valueOf(entryDN)));
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-
-    CancelResult cancelResult = getCancelResult();
-    long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while ((cancelResult == null) &&
-        (System.currentTimeMillis() < stopWaitingTime))
-    {
-      try
-      {
-        Thread.sleep(50);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      cancelResult = getCancelResult();
-    }
-
-    if (cancelResult == null)
-    {
-      // This can happen in some rare cases (e.g., if a client disconnects and
-      // there is still a lot of data to send to that client), and in this case
-      // we'll prevent the cancel thread from blocking for a long period of
-      // time.
-      cancelResult = CancelResult.CANNOT_CANCEL;
-    }
-
-    return cancelResult;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return cancelRequest;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-    return true;
   }
 
 

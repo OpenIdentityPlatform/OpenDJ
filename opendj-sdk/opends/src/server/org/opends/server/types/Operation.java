@@ -543,21 +543,14 @@ public interface Operation
   public abstract CancelResult cancel(CancelRequest cancelRequest);
 
   /**
-   * Sets the cancel request for this operation, if applicable.  This
-   * should only be used for testing purposes (e.g., for ensuring a
-   * cancel request is submitted before processing begins on an
-   * operation, or to allow for cancelling an internal operation).  It
-   * must not be used for any other purpose.
+   * Attempts to abort this operation before processing has
+   * completed.
    *
-   * @param  cancelRequest  The cancel request to set for this
-   *                        operation.
-   *
-   * @return  {@code true} if the cancel request was set, or
-   *          {@code false} if it was not for some reason (e.g., the
-   *          specified operation cannot be cancelled).
+   * @param  cancelRequest  Information about the way in which the
+   *                        operation should be canceled.
    */
-  public abstract boolean setCancelRequest(CancelRequest
-      cancelRequest);
+  public abstract void abort(CancelRequest cancelRequest);
+
 
   /**
    * Retrieves the cancel request that has been issued for this
@@ -578,24 +571,6 @@ public interface Operation
    *          to a cancel request.
    */
   public abstract CancelResult getCancelResult();
-
-  /**
-   * Specifies the cancel result for this operation.
-   *
-   * @param  cancelResult  The cancel result for this operation.
-   */
-  public abstract void setCancelResult(CancelResult cancelResult);
-
-  /**
-   * Indicates that this operation has been cancelled.  If
-   * appropriate, it will send a response to the client to indicate
-   * that.  This method must not be called by abandon, bind, or unbind
-   * operations under any circumstances, nor by extended operations if
-   * the request OID is that of the cancel or the StartTLS operation.
-   *
-   * @param  cancelRequest  The request to cancel this operation.
-   */
-  public abstract void indicateCancelled(CancelRequest cancelRequest);
 
   /**
    * Retrieves a string representation of this operation.
@@ -624,18 +599,6 @@ public interface Operation
   public abstract boolean dontSynchronize();
 
   /**
-   * Set the time at which the processing stopped for this operation.
-   * This will actually hold a time immediately before the response
-   * was sent to the client.
-   */
-  public abstract void setProcessingStopTime();
-
-  /**
-   * Set the time at which the processing started for this operation.
-   */
-  public abstract void setProcessingStartTime();
-
-  /**
    * Set the attachments to the operation.
    *
    * @param attachments - Attachments to register within the
@@ -643,6 +606,21 @@ public interface Operation
    */
   public abstract void setAttachments(Map<String,
       Object> attachments);
+
+  /**
+   * Checks to see if this operation requested to cancel in which case
+   * CanceledOperationException will be thrown.
+   *
+   * @param signalTooLate <code>true</code> to signal that any further
+   *                      cancel requests will be too late after
+   *                      return from this call or <code>false</code>
+   *                      otherwise.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
+   */
+  public void checkIfCanceled(boolean signalTooLate)
+      throws CanceledOperationException;
 
 }
 

@@ -486,7 +486,7 @@ public class PasswordModifyExtendedOperation
       PasswordPolicyState pwPolicyState;
       try
       {
-        pwPolicyState = new PasswordPolicyState(userEntry, false, false);
+        pwPolicyState = new PasswordPolicyState(userEntry, false);
       }
       catch (DirectoryException de)
       {

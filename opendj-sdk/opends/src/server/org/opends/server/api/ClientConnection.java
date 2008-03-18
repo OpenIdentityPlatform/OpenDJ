@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
-import org.opends.server.api.plugin.IntermediateResponsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
@@ -537,18 +537,18 @@ public abstract class ClientConnection
     // message.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    IntermediateResponsePluginResult pluginResult =
+    PluginResult.IntermediateResponse pluginResult =
          pluginConfigManager.invokeIntermediateResponsePlugins(
                                   intermediateResponse);
 
     boolean continueProcessing = true;
-    if (pluginResult.sendIntermediateResponse())
+    if (pluginResult.sendResponse())
     {
       continueProcessing =
            sendIntermediateResponseMessage(intermediateResponse);
     }
 
-    return (continueProcessing && pluginResult.continueOperation());
+    return (continueProcessing && pluginResult.continueProcessing());
   }
 
 

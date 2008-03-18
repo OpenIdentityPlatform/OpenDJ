@@ -257,7 +257,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
                DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
 
     PasswordPolicyState pwPolicyState =
-         new PasswordPolicyState(userEntry, false, false);
+         new PasswordPolicyState(userEntry, false);
     PasswordPolicy policy = pwPolicyState.getPolicy();
 
     HashMap<AccountStatusNotificationProperty,List<String>>

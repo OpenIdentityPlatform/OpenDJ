@@ -47,25 +47,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.*;
 
@@ -184,6 +170,9 @@ public class BindOperationBasis
     responseControls         = new ArrayList<Control>(0);
     authFailureReason        = null;
     saslAuthUserEntry        = null;
+
+    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+        ERR_CANNOT_CANCEL_BIND.get());
   }
 
 
@@ -233,6 +222,9 @@ public class BindOperationBasis
     responseControls       = new ArrayList<Control>(0);
     authFailureReason      = null;
     saslAuthUserEntry      = null;
+
+    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+        ERR_CANNOT_CANCEL_BIND.get());
   }
 
 
@@ -288,6 +280,9 @@ public class BindOperationBasis
     authFailureReason        = null;
     saslAuthUserEntry        = null;
     userEntryDN              = null;
+
+    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+        ERR_CANNOT_CANCEL_BIND.get());
   }
 
 
@@ -336,6 +331,9 @@ public class BindOperationBasis
     authFailureReason      = null;
     saslAuthUserEntry      = null;
     userEntryDN            = null;
+
+    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+        ERR_CANNOT_CANCEL_BIND.get());
   }
 
 
@@ -551,18 +549,6 @@ public class BindOperationBasis
    * {@inheritDoc}
    */
   @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
   public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -681,35 +667,6 @@ public class BindOperationBasis
     responseControls.remove(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    cancelRequest.addResponseMessage(ERR_CANNOT_CANCEL_BIND.get());
-    return CancelResult.CANNOT_CANCEL;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public
-  boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    // Bind operations cannot be canceled.
-    return false;
-  }
 
   /**
    * {@inheritDoc}
@@ -761,12 +718,16 @@ public class BindOperationBasis
    */
   public final void run()
   {
+    setResultCode(ResultCode.UNDEFINED);
+
     // Start the processing timer and initially set the result to indicate that
     // the result is unknown.
     setProcessingStartTime();
-    ClientConnection clientConnection = getClientConnection();
 
-    setResultCode(ResultCode.UNDEFINED);
+    // Log the bind request message.
+    logBindRequest(this);
+
+    ClientConnection clientConnection = getClientConnection();
 
     // Set a flag to indicate that a bind operation is in progress.  This should
     // ensure that no new operations will be accepted for this client until the
@@ -785,53 +746,33 @@ public class BindOperationBasis
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
+        DirectoryServer.getPluginConfigManager();
 
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
 
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-bindProcessing:
+    try
     {
       // Invoke the pre-parse bind plugins.
-      PreParsePluginResult preParseResult =
-        pluginConfigManager.invokePreParseBindPlugins(this);
-      if (preParseResult.connectionTerminated())
+      PluginResult.PreParse preParseResult =
+          pluginConfigManager.invokePreParseBindPlugins(this);
+      if (!preParseResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logBindRequest(this);
-        logBindResponse(this);
-        clientConnection.setBindInProgress(false);
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        logBindRequest(this);
-        break bindProcessing;
-      }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        break bindProcessing;
-      }
 
-      // Log the bind request message.
-      logBindRequest(this);
 
       // Process the bind DN to convert it from the raw form as provided by the
       // client into the form required for the rest of the bind processing.
       DN bindDN = getBindDN();
       if (bindDN == null){
-        break bindProcessing;
+        return;
       }
 
       // If this is a simple bind
@@ -840,12 +781,12 @@ bindProcessing:
       // for that user.
       switch (getAuthenticationType())
       {
-      case SIMPLE:
-        DN actualRootDN = DirectoryServer.getActualRootBindDN(bindDN);
-        if (actualRootDN != null)
-        {
-          bindDN = actualRootDN;
-        }
+        case SIMPLE:
+          DN actualRootDN = DirectoryServer.getActualRootBindDN(bindDN);
+          if (actualRootDN != null)
+          {
+            bindDN = actualRootDN;
+          }
       }
 
 
@@ -858,43 +799,45 @@ bindProcessing:
         // We have found no workflow for the requested base DN, just return
         // a no such entry result code and stop the processing.
         updateOperationErrMsgAndResCode();
-        break bindProcessing;
+        return;
       }
       workflow.execute(this);
       workflowExecuted = true;
 
-    } // end of processing block
-
-    // Check for a terminated connection.
-    if (getCancelResult() == CancelResult.CANCELED)
+    }
+    catch(CanceledOperationException coe)
     {
+      // This shouldn't happen for bind operations. Just cancel anyways
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+      }
+
+      setResultCode(ResultCode.CANCELED);
+
+      appendErrorMessage(cancelRequest.getCancelReason());
+    }
+    finally
+    {
+      // If the bind processing is finished, then unset the "bind in progress"
+      // flag to allow other operations to be processed on the connection.
+      if (getResultCode() != ResultCode.SASL_BIND_IN_PROGRESS)
+      {
+        clientConnection.setBindInProgress(false);
+      }
+
       // Stop the processing timer.
       setProcessingStopTime();
 
-      // Log the bind response message.
+      // Send the bind response to the client.
+      clientConnection.sendResponse(this);
+
+      // Log the bind response.
       logBindResponse(this);
 
-      return;
+      // Invoke the post-response bind plugins.
+      invokePostResponsePlugins(workflowExecuted);
     }
-
-    // If the bind processing is finished, then unset the "bind in progress"
-    // flag to allow other operations to be processed on the connection.
-    if (getResultCode() != ResultCode.SASL_BIND_IN_PROGRESS)
-    {
-      clientConnection.setBindInProgress(false);
-    }
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-
-    // Send the bind response to the client.
-    clientConnection.sendResponse(this);
-
-    // Log the bind response.
-    logBindResponse(this);
-
-    // Invoke the post-response bind plugins.
-    invokePostResponsePlugins(workflowExecuted);
   }
 
 

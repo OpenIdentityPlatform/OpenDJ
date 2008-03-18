@@ -61,7 +61,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ConnectionSecurityProvider;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.plugin.PostConnectPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -1000,9 +1000,14 @@ public final class LDAPConnectionHandler extends
                   try {
                     PluginConfigManager pluginManager = DirectoryServer
                         .getPluginConfigManager();
-                    PostConnectPluginResult pluginResult = pluginManager
+                    PluginResult.PostConnect pluginResult = pluginManager
                         .invokePostConnectPlugins(clientConnection);
-                    if (pluginResult.connectionTerminated()) {
+                    if (!pluginResult.continueProcessing()) {
+                      clientConnection.disconnect(
+                          pluginResult.getDisconnectReason(),
+                          pluginResult.sendDisconnectNotification(),
+                          pluginResult.getErrorMessage());
+
                       iterator.remove();
                       continue;
                     }

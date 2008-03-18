@@ -47,7 +47,7 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CancelledOperationException;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -531,14 +531,14 @@ public abstract class Backend
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              add the entry.
    *
-   * @throws  CancelledOperationException  If this backend noticed and
+   * @throws CanceledOperationException  If this backend noticed and
    *                                       reacted to a request to
    *                                       cancel or abandon the add
    *                                       operation.
    */
   public abstract void addEntry(Entry entry,
                                 AddOperation addOperation)
-         throws DirectoryException, CancelledOperationException;
+         throws DirectoryException, CanceledOperationException;
 
 
 
@@ -560,14 +560,14 @@ public abstract class Backend
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              remove the entry.
    *
-   * @throws  CancelledOperationException  If this backend noticed and
+   * @throws CanceledOperationException  If this backend noticed and
    *                                       reacted to a request to
    *                                       cancel or abandon the
    *                                       delete operation.
    */
   public abstract void deleteEntry(DN entryDN,
                                    DeleteOperation deleteOperation)
-         throws DirectoryException, CancelledOperationException;
+         throws DirectoryException, CanceledOperationException;
 
 
 
@@ -587,14 +587,14 @@ public abstract class Backend
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              replace the entry.
    *
-   * @throws  CancelledOperationException  If this backend noticed and
+   * @throws CanceledOperationException  If this backend noticed and
    *                                       reacted to a request to
    *                                       cancel or abandon the
    *                                       modify operation.
    */
   public abstract void replaceEntry(Entry entry,
                                     ModifyOperation modifyOperation)
-         throws DirectoryException, CancelledOperationException;
+         throws DirectoryException, CanceledOperationException;
 
 
 
@@ -617,14 +617,14 @@ public abstract class Backend
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              perform the rename.
    *
-   * @throws  CancelledOperationException  If this backend noticed and
+   * @throws CanceledOperationException  If this backend noticed and
    *                                       reacted to a request to
    *                                       cancel or abandon the
    *                                       modify DN operation.
    */
   public abstract void renameEntry(DN currentDN, Entry entry,
                             ModifyDNOperation modifyDNOperation)
-         throws DirectoryException, CancelledOperationException;
+         throws DirectoryException, CanceledOperationException;
 
 
 
@@ -639,13 +639,13 @@ public abstract class Backend
    * @throws  DirectoryException  If a problem occurs while processing
    *                              the search.
    *
-   * @throws  CancelledOperationException  If this backend noticed and
+   * @throws CanceledOperationException  If this backend noticed and
    *                                       reacted to a request to
    *                                       cancel or abandon the
    *                                       search operation.
    */
   public abstract void search(SearchOperation searchOperation)
-         throws DirectoryException, CancelledOperationException;
+         throws DirectoryException, CanceledOperationException;
 
 
 

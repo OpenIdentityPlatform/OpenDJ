@@ -33,10 +33,7 @@ import static org.opends.server.util.Validator.ensureNotNull;
 import java.util.Collection;
 import java.util.TreeMap;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.WorkflowElement;
 
 
@@ -159,11 +156,11 @@ public class WorkflowImpl implements Workflow
    * operation.
    *
    * @param operation  the operation to execute
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public void execute(
-      Operation operation
-      )
-  {
+  public void execute(Operation operation) throws CanceledOperationException {
     rootWorkflowElement.execute(operation);
   }
 

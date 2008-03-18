@@ -34,8 +34,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
@@ -45,19 +44,7 @@ import org.opends.server.core.CompareOperationWrapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;
@@ -88,9 +75,6 @@ public class LocalBackendCompareOperation
 
   // The backend in which the comparison is to be performed.
   private Backend backend;
-
-  // Indicates whether to skip post-operation processing.
-  private boolean skipPostOperation;
 
   // The client connection for this operation.
   private ClientConnection clientConnection;
@@ -134,13 +118,16 @@ public class LocalBackendCompareOperation
    *
    * @param  backend  The backend in which the compare operation should be
    *                  processed.
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
-  void processLocalCompare(Backend backend)
-  {
+  void processLocalCompare(Backend backend) throws CanceledOperationException {
+    boolean executePostOpPlugins = false;
+
     this.backend = backend;
 
     clientConnection  = getClientConnection();
-    skipPostOperation = false;
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
@@ -152,10 +139,7 @@ public class LocalBackendCompareOperation
 
 
     // Check for a request to cancel this operation.
-    if (cancelIfRequested())
-    {
-      return;
-    }
+    checkIfCanceled(false);
 
 
     // Create a labeled block of code that we can break out of if a problem is
@@ -167,7 +151,6 @@ compareProcessing:
       entryDN = getEntryDN();
       if (entryDN == null)
       {
-        skipPostOperation = true;
         break compareProcessing;
       }
 
@@ -179,16 +162,12 @@ compareProcessing:
       {
         appendErrorMessage(ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());
         setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-        skipPostOperation = true;
         break compareProcessing;
       }
 
 
       // Check for a request to cancel this operation.
-      if (cancelIfRequested())
-      {
-        return;
-      }
+      checkIfCanceled(false);
 
 
       // Grab a read lock on the entry.
@@ -208,7 +187,6 @@ compareProcessing:
         appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(
                                 String.valueOf(entryDN)));
 
-        skipPostOperation = true;
         break compareProcessing;
       }
 
@@ -297,39 +275,25 @@ compareProcessing:
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           appendErrorMessage(ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                                   String.valueOf(entryDN)));
-          skipPostOperation = true;
           break compareProcessing;
         }
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
+        checkIfCanceled(false);
 
 
         // Invoke the pre-operation compare plugins.
-        PreOperationPluginResult preOpResult =
+        executePostOpPlugins = true;
+        PluginResult.PreOperation preOpResult =
              pluginConfigManager.invokePreOperationComparePlugins(this);
-        if (preOpResult.connectionTerminated())
-        {
-          // There's no point in continuing with anything.  Log the request and
-          // result and return.
-          setResultCode(ResultCode.CANCELED);
-          appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-          setProcessingStopTime();
-          return;
-        }
-        else if (preOpResult.sendResponseImmediately())
-        {
-          skipPostOperation = true;
-          break compareProcessing;
-        }
-        else if (preOpResult.skipCoreProcessing())
-        {
-          skipPostOperation = false;
-          break compareProcessing;
-        }
+          if (!preOpResult.continueProcessing())
+          {
+            setResultCode(preOpResult.getResultCode());
+            appendErrorMessage(preOpResult.getErrorMessage());
+            setMatchedDN(preOpResult.getMatchedDN());
+            setReferralURLs(preOpResult.getReferralURLs());
+            break compareProcessing;
+          }
 
 
         // Get the base attribute type and set of options.
@@ -415,45 +379,22 @@ compareProcessing:
 
 
     // Check for a request to cancel this operation.
-    if (cancelIfRequested())
-    {
-      return;
-    }
+    checkIfCanceled(false);
 
 
     // Invoke the post-operation compare plugins.
-    if (! skipPostOperation)
+    if (executePostOpPlugins)
     {
-      PostOperationPluginResult postOperationResult =
+      PluginResult.PostOperation postOpResult =
            pluginConfigManager.invokePostOperationComparePlugins(this);
-      if (postOperationResult.connectionTerminated())
+      if (!postOpResult.continueProcessing())
       {
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
-        return;
+        setResultCode(postOpResult.getResultCode());
+        appendErrorMessage(postOpResult.getErrorMessage());
+        setMatchedDN(postOpResult.getMatchedDN());
+        setReferralURLs(postOpResult.getReferralURLs());
       }
     }
-  }
-
-
-
-  /**
-   * Checks to determine whether there has been a request to cancel this
-   * operation.  If so, then set the cancel result and processing stop time.
-   *
-   * @return  {@code true} if there was a cancel request, or {@code false} if
-   *          not.
-   */
-  private boolean cancelIfRequested()
-  {
-    if (getCancelRequest() == null)
-    {
-      return false;
-    }
-
-    indicateCancelled(getCancelRequest());
-    setProcessingStopTime();
-    return true;
   }
 
 
@@ -478,7 +419,6 @@ compareProcessing:
         if (! AccessControlConfigManager.getInstance().
                    getAccessControlHandler().isAllowed(entryDN, this, c))
         {
-          skipPostOperation = true;
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                          ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }

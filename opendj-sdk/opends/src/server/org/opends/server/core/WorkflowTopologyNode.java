@@ -29,10 +29,7 @@ package org.opends.server.core;
 
 import java.util.ArrayList;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.WorkflowElement;
 
 
@@ -93,11 +90,12 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * workflow node base DN.
    *
    * @param operation the operation to execute
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public void execute(
-      Operation operation
-      )
-  {
+  public void execute(Operation operation)
+      throws CanceledOperationException {
     // Execute the operation
     getWorkflowImpl().execute(operation);
 
@@ -114,11 +112,12 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * Executes a search operation on the subordinate workflows.
    *
    * @param searchOp the search operation to execute
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  private void executeSearchOnSubordinates(
-      SearchOperation searchOp
-      )
-  {
+  private void executeSearchOnSubordinates(SearchOperation searchOp)
+      throws CanceledOperationException {
     // If the scope of the search is 'base' then it's useless to search
     // in the subordinate workflows.
     SearchScope originalScope = searchOp.getScope();

@@ -522,7 +522,9 @@ public class ReplicationDomain extends DirectoryThread
     if ((!deleteOperation.isSynchronizationOperation())
         && (!brokerIsConnected(deleteOperation)))
     {
-      return new SynchronizationProviderResult(false);
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDN.toString());
+      return new SynchronizationProviderResult.StopProcessing(
+          ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
     DeleteContext ctx =
@@ -551,8 +553,8 @@ public class ReplicationDomain extends DirectoryThread
          * operation will try to find the correct entry and restart a new
          * operation.
          */
-        deleteOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-        return new SynchronizationProviderResult(false);
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.NO_SUCH_OBJECT, null);
       }
     }
     else
@@ -564,7 +566,7 @@ public class ReplicationDomain extends DirectoryThread
       ctx = new DeleteContext(changeNumber, modifiedEntryUUID);
       deleteOperation.setAttachment(SYNCHROCONTEXT, ctx);
     }
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**
@@ -580,7 +582,9 @@ public class ReplicationDomain extends DirectoryThread
     if ((!addOperation.isSynchronizationOperation())
         && (!brokerIsConnected(addOperation)))
     {
-      return new SynchronizationProviderResult(false);
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDN.toString());
+      return new SynchronizationProviderResult.StopProcessing(
+          ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
     if (addOperation.isSynchronizationOperation())
@@ -593,8 +597,8 @@ public class ReplicationDomain extends DirectoryThread
       String uuid = ctx.getEntryUid();
       if (findEntryDN(uuid) != null)
       {
-        addOperation.setResultCode(ResultCode.CANCELED);
-        return new SynchronizationProviderResult(false);
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.CANCELED, null);
       }
 
       /* The parent entry may have been renamed here since the change was done
@@ -616,8 +620,8 @@ public class ReplicationDomain extends DirectoryThread
           // The parent does not exist with the specified unique id
           // stop the operation with NO_SUCH_OBJECT and let the
           // conflict resolution or the dependency resolution solve this.
-          addOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          return new SynchronizationProviderResult(false);
+          return new SynchronizationProviderResult.StopProcessing(
+              ResultCode.NO_SUCH_OBJECT, null);
         }
         else
         {
@@ -629,13 +633,13 @@ public class ReplicationDomain extends DirectoryThread
             // parentEntry has been renamed
             // replication name conflict resolution is expected to fix that
             // later in the flow
-            addOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-            return new SynchronizationProviderResult(false);
+            return new SynchronizationProviderResult.StopProcessing(
+                ResultCode.NO_SUCH_OBJECT, null);
           }
         }
       }
     }
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**
@@ -645,7 +649,7 @@ public class ReplicationDomain extends DirectoryThread
    * If not set the ResultCode and the response message,
    * interrupt the operation, and return false
    *
-   * @param   Operation  The Operation that needs to be checked.
+   * @param   op  The Operation that needs to be checked.
    *
    * @return  true when it OK to process the Operation, false otherwise.
    *          When false is returned the resultCode and the reponse message
@@ -662,21 +666,7 @@ public class ReplicationDomain extends DirectoryThread
     {
       // this isolation policy specifies that the updates are denied
       // when the broker is not connected.
-      if (broker.isConnected())
-      {
-        return true;
-      }
-      else
-      {
-        Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDN.toString());
-        DirectoryException result =
-          new DirectoryException(
-              ResultCode.UNWILLING_TO_PERFORM, msg);
-
-        op.setResponseData(result);
-
-        return false;
-      }
+      return broker.isConnected();
     }
     // we should never get there as the only possible policies are
     // ACCEPT_ALL_UPDATES and REJECT_ALL_UPDATES
@@ -697,7 +687,9 @@ public class ReplicationDomain extends DirectoryThread
     if ((!modifyDNOperation.isSynchronizationOperation())
         && (!brokerIsConnected(modifyDNOperation)))
     {
-      return new SynchronizationProviderResult(false);
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDN.toString());
+      return new SynchronizationProviderResult.StopProcessing(
+          ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
     ModifyDnContext ctx =
@@ -724,8 +716,8 @@ public class ReplicationDomain extends DirectoryThread
          * operation will try to find the correct entry and restart a new
          * operation.
          */
-        modifyDNOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-        return new SynchronizationProviderResult(false);
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.NO_SUCH_OBJECT, null);
       }
       if (modifyDNOperation.getNewSuperior() != null)
       {
@@ -737,8 +729,8 @@ public class ReplicationDomain extends DirectoryThread
         if ((newParentId != null) &&
             (!newParentId.equals(ctx.getNewParentId())))
         {
-          modifyDNOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-          return new SynchronizationProviderResult(false);
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.NO_SUCH_OBJECT, null);
         }
       }
     }
@@ -758,7 +750,7 @@ public class ReplicationDomain extends DirectoryThread
       ctx = new ModifyDnContext(changeNumber, modifiedEntryUUID, newParentId);
       modifyDNOperation.setAttachment(SYNCHROCONTEXT, ctx);
     }
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**
@@ -774,7 +766,9 @@ public class ReplicationDomain extends DirectoryThread
     if ((!modifyOperation.isSynchronizationOperation())
         && (!brokerIsConnected(modifyOperation)))
     {
-      return new SynchronizationProviderResult(false);
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDN.toString());
+      return new SynchronizationProviderResult.StopProcessing(
+          ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
     ModifyContext ctx =
@@ -813,8 +807,8 @@ public class ReplicationDomain extends DirectoryThread
          * operation will try to find the correct entry and restart a new
          * operation.
          */
-        modifyOperation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-        return new SynchronizationProviderResult(false);
+         return new SynchronizationProviderResult.StopProcessing(
+              ResultCode.NO_SUCH_OBJECT, null);
       }
 
       /*
@@ -835,11 +829,11 @@ public class ReplicationDomain extends DirectoryThread
          * This operation becomes a no-op due to conflict resolution
          * stop the processing and send an OK result
          */
-        modifyOperation.setResultCode(ResultCode.SUCCESS);
-        return new SynchronizationProviderResult(false);
+        return new SynchronizationProviderResult.StopProcessing(
+            ResultCode.SUCCESS, null);
       }
     }
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**

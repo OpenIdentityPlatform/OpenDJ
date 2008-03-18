@@ -916,8 +916,7 @@ public class BackendImpl
   @Override()
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
-      throws DirectoryException, CancelledOperationException
-  {
+      throws DirectoryException, CanceledOperationException {
     writerBegin();
 
     EntryContainer currentContainer;

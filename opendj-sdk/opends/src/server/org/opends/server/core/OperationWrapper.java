@@ -33,16 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 
 /**
@@ -103,6 +94,14 @@ public class OperationWrapper implements Operation
   public CancelResult cancel(CancelRequest cancelRequest)
   {
     return operation.cancel(cancelRequest);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void abort(CancelRequest cancelRequest)
+  {
+    operation.abort(cancelRequest);
   }
 
   /**
@@ -329,14 +328,6 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void indicateCancelled(CancelRequest cancelRequest)
-  {
-    operation.indicateCancelled(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public boolean isInternalOperation()
   {
     return operation.isInternalOperation();
@@ -417,22 +408,6 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    return operation.setCancelRequest(cancelRequest);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setCancelResult(CancelResult cancelResult)
-  {
-    operation.setCancelResult(cancelResult);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public void setDontSynchronize(boolean dontSynchronize)
   {
     operation.setDontSynchronize(dontSynchronize);
@@ -460,22 +435,6 @@ public class OperationWrapper implements Operation
   public void setMatchedDN(DN matchedDN)
   {
     operation.setMatchedDN(matchedDN);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setProcessingStartTime()
-  {
-    operation.setProcessingStartTime();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setProcessingStopTime()
-  {
-    operation.setProcessingStopTime();
   }
 
   /**
@@ -518,5 +477,12 @@ public class OperationWrapper implements Operation
     operation.toString(buffer);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized final void checkIfCanceled(boolean signalTooLate)
+      throws CanceledOperationException {
+    operation.checkIfCanceled(signalTooLate);
+  }
 }
 

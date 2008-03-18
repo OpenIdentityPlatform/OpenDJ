@@ -55,7 +55,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.CancelledOperationException;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
@@ -838,8 +838,7 @@ public class TaskBackend
    */
   @Override()
   public void search(SearchOperation searchOperation)
-         throws DirectoryException, CancelledOperationException
-  {
+         throws DirectoryException, CanceledOperationException {
     // Look at the base DN and scope for the search operation to decide which
     // entries we need to look at.
     boolean searchRoot            = false;

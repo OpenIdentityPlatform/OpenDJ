@@ -41,10 +41,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.LDIFPluginResult;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -172,15 +169,15 @@ public final class EntryUUIDPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                             Entry entry)
+  public final PluginResult.ImportLDIF
+               doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
     // See if the entry being imported already contains an entryUUID attribute.
     // If so, then leave it alone.
     List<Attribute> uuidList = entry.getAttribute(entryUUIDType);
     if (uuidList != null)
     {
-      return LDIFPluginResult.SUCCESS;
+      return PluginResult.ImportLDIF.continueEntryProcessing();
     }
 
 
@@ -201,7 +198,7 @@ public final class EntryUUIDPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return LDIFPluginResult.SUCCESS;
+    return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
 
@@ -210,8 +207,8 @@ public final class EntryUUIDPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult
-       doPreOperation(PreOperationAddOperation addOperation)
+  public final PluginResult.PreOperation
+               doPreOperation(PreOperationAddOperation addOperation)
   {
     // See if the entry being added already contains an entryUUID attribute.
     // It shouldn't, since it's NO-USER-MODIFICATION, but if it does then leave
@@ -221,7 +218,7 @@ public final class EntryUUIDPlugin
     List<Attribute> uuidList = operationalAttributes.get(entryUUIDType);
     if (uuidList != null)
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
 
 
@@ -239,7 +236,7 @@ public final class EntryUUIDPlugin
 
     // Add the attribute to the entry and return.
     addOperation.setAttribute(entryUUIDType, uuidList);
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 

@@ -46,7 +46,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.monitors.TraditionalWorkQueueMonitor;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -231,8 +230,7 @@ public class TraditionalWorkQueue
         // The operation has no chance of responding to the cancel
         // request so avoid waiting for a cancel response.
         if (o.getCancelResult() == null) {
-          o.setCancelResult(CancelResult.CANCELED);
-          o.cancel(cancelRequest);
+          o.abort(cancelRequest);
         }
       }
       catch (Exception e)

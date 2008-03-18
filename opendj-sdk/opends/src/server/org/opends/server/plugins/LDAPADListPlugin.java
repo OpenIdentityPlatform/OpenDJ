@@ -38,7 +38,7 @@ import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
@@ -145,8 +145,8 @@ public final class LDAPADListPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreParsePluginResult
-       doPreParse(PreParseSearchOperation searchOperation)
+  public final PluginResult.PreParse
+               doPreParse(PreParseSearchOperation searchOperation)
   {
     // Iterate through the requested attributes to see if any of them start with
     // an "@" symbol.  If not, then we don't need to do anything.  If so, then
@@ -207,7 +207,7 @@ public final class LDAPADListPlugin
     }
 
 
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 

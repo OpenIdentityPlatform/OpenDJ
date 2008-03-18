@@ -39,8 +39,8 @@ import org.opends.messages.Message;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class CancelledOperationException
-       extends IdentifiedException
+public final class CanceledOperationException
+    extends IdentifiedException
 {
   /**
    * The serial version identifier required to satisfy the compiler
@@ -55,7 +55,7 @@ public final class CancelledOperationException
 
   // The cancel result that provides information about the status of
   // the cancellation.
-  private final CancelResult cancelResult;
+  private final CancelRequest cancelRequest;
 
 
 
@@ -63,14 +63,14 @@ public final class CancelledOperationException
    * Creates a new cancelled operation exception with the provided
    * result and no additional message.
    *
-   * @param  cancelResult  The result of the cancel processing.
+   * @param  cancelRequest  The result of the cancel processing.
    */
-  public CancelledOperationException(CancelResult cancelResult)
+  public CanceledOperationException(CancelRequest cancelRequest)
   {
     super();
 
 
-    this.cancelResult = cancelResult;
+    this.cancelRequest = cancelRequest;
   }
 
 
@@ -79,32 +79,32 @@ public final class CancelledOperationException
    * Creates a new cancelled operation exception with the provided
    * information.
    *
-   * @param  cancelResult  The result of the cancel processing.
+   * @param  cancelRequest The request of the cancel processing.
    * @param  message       The message providing additional
    *                       information about the cancel processing, or
    *                       <CODE>null</CODE> if there is no message.
    */
-  public CancelledOperationException(CancelResult cancelResult,
+  public CanceledOperationException(CancelRequest cancelRequest,
                                      Message message)
   {
     super(message);
 
 
-    this.cancelResult = cancelResult;
+    this.cancelRequest = cancelRequest;
   }
 
 
 
   /**
-   * Retrieves the cancel result for this cancelled operation
+   * Retrieves the cancel request for this cancelled operation
    * exception.
    *
-   * @return  The cancel result for this cancelled operation
+   * @return  The cancel request for this cancelled operation
    *          exception.
    */
-  public CancelResult getCancelResult()
+  public CancelRequest getCancelRequest()
   {
-    return cancelResult;
+    return cancelRequest;
   }
 }
 

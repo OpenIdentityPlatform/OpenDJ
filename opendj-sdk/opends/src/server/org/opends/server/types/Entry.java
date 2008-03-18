@@ -47,7 +47,7 @@ import java.util.concurrent.locks.Lock;
 import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ProtocolElement;
-import org.opends.server.api.plugin.LDIFPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1Element;
@@ -5646,10 +5646,10 @@ public class Entry
     {
       PluginConfigManager pluginConfigManager =
            DirectoryServer.getPluginConfigManager();
-      LDIFPluginResult pluginResult =
+      PluginResult.ImportLDIF pluginResult =
            pluginConfigManager.invokeLDIFExportPlugins(exportConfig,
                                                     this);
-      if (! pluginResult.continueEntryProcessing())
+      if (! pluginResult.continueProcessing())
       {
         return false;
       }

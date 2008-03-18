@@ -29,6 +29,7 @@ package org.opends.server.core;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
+import org.opends.server.types.CanceledOperationException;
 
 
 /**
@@ -68,6 +69,10 @@ public interface Workflow
    * operation.
    *
    * @param operation  the operation to execute
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public void execute(Operation operation);
+  public void execute(Operation operation)
+      throws CanceledOperationException;
 }

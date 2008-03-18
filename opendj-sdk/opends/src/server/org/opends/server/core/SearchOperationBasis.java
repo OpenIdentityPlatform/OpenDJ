@@ -36,37 +36,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PreParsePluginResult;
-import org.opends.server.api.plugin.SearchEntryPluginResult;
-import org.opends.server.api.plugin.SearchReferencePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.FilterType;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RawFilter;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseSearchOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -121,9 +98,6 @@ public class SearchOperationBasis
 
   // The raw, unprocessed base DN as included in the request from the client.
   private ByteString rawBaseDN;
-
-  // The cancel request that has been issued for this search operation.
-  private CancelRequest cancelRequest;
 
   // The dereferencing policy for the search operation.
   private DereferencePolicy derefPolicy;
@@ -694,8 +668,7 @@ public class SearchOperationBasis
       try
       {
         // FIXME -- Need a way to enable PWP debugging.
-        PasswordPolicyState pwpState = new PasswordPolicyState(entry, false,
-                                                               false);
+        PasswordPolicyState pwpState = new PasswordPolicyState(entry, false);
 
         boolean isInactive           = pwpState.isDisabled() ||
                                        pwpState.isAccountExpired();
@@ -997,23 +970,12 @@ public class SearchOperationBasis
         .getAccessControlHandler().filterEntry(this, searchEntry);
 
     // Invoke any search entry plugins that may be registered with the server.
-    SearchEntryPluginResult pluginResult =
+    PluginResult.IntermediateResponse pluginResult =
          DirectoryServer.getPluginConfigManager().
               invokeSearchResultEntryPlugins(this, searchEntry);
-    if (pluginResult.connectionTerminated())
-    {
-      // We won't attempt to send this entry, and we won't continue with
-      // any processing.  Just update the operation to indicate that it was
-      // cancelled and return false.
-      setResultCode(ResultCode.CANCELED);
-      appendErrorMessage(ERR_CANCELED_BY_SEARCH_ENTRY_DISCONNECT.get(
-              String.valueOf(entry.getDN())));
-      return false;
-    }
-
 
     // Send the entry to the client.
-    if (pluginResult.sendEntry())
+    if (pluginResult.sendResponse())
     {
       try
       {
@@ -1035,7 +997,7 @@ public class SearchOperationBasis
       }
     }
 
-    return pluginResult.continueSearch();
+    return pluginResult.continueProcessing();
   }
 
   /**
@@ -1080,26 +1042,15 @@ public class SearchOperationBasis
 
     // Invoke any search reference plugins that may be registered with the
     // server.
-    SearchReferencePluginResult pluginResult =
+    PluginResult.IntermediateResponse pluginResult =
          DirectoryServer.getPluginConfigManager().
               invokeSearchResultReferencePlugins(this, reference);
-    if (pluginResult.connectionTerminated())
-    {
-      // We won't attempt to send this entry, and we won't continue with
-      // any processing.  Just update the operation to indicate that it was
-      // cancelled and return false.
-      setResultCode(ResultCode.CANCELED);
-      appendErrorMessage(ERR_CANCELED_BY_SEARCH_REF_DISCONNECT.get(
-              String.valueOf(reference.getReferralURLString())));
-      return false;
-    }
-
 
     // Send the reference to the client.  Note that this could throw an
     // exception, which would indicate that the associated client can't handle
     // referrals.  If that't the case, then set a flag so we'll know not to try
     // to send any more.
-    if (pluginResult.sendReference())
+    if (pluginResult.sendResponse())
     {
       try
       {
@@ -1130,7 +1081,7 @@ public class SearchOperationBasis
       }
     }
 
-    return pluginResult.continueSearch();
+    return pluginResult.continueProcessing();
   }
 
   /**
@@ -1165,17 +1116,6 @@ public class SearchOperationBasis
     // candidate for being called by the logging subsystem.
 
     return OperationType.SEARCH;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification, message);
   }
 
   /**
@@ -1323,71 +1263,27 @@ public class SearchOperationBasis
     responseControls.remove(control);
   }
 
+
+
   /**
    * {@inheritDoc}
    */
   @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
+  public void abort(CancelRequest cancelRequest)
   {
-    this.cancelRequest = cancelRequest;
-
-    if (persistentSearch != null)
+    if(cancelResult == null && this.cancelRequest == null)
     {
-      DirectoryServer.deregisterPersistentSearch(persistentSearch);
-      persistentSearch = null;
-    }
+      this.cancelRequest = cancelRequest;
 
-    CancelResult cancelResult = getCancelResult();
-    long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while ((cancelResult == null) &&
-           (System.currentTimeMillis() < stopWaitingTime))
-    {
-      try
+      if (persistentSearch != null)
       {
-        Thread.sleep(50);
+        DirectoryServer.deregisterPersistentSearch(persistentSearch);
+        persistentSearch = null;
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      cancelResult = getCancelResult();
     }
-
-    if (cancelResult == null)
-    {
-      // This can happen in some rare cases (e.g., if a client disconnects and
-      // there is still a lot of data to send to that client), and in this case
-      // we'll prevent the cancel thread from blocking for a long period of
-      // time.
-      cancelResult = CancelResult.CANNOT_CANCEL;
-    }
-
-    return cancelResult;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return cancelRequest;
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public
-  boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-    return true;
-  }
 
   /**
    * {@inheritDoc}
@@ -1600,15 +1496,19 @@ public class SearchOperationBasis
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
+
+    // Start the processing timer.
+    setProcessingStartTime();
+
+    // Log the search request message.
+    logSearchRequest(this);
+
     setSendResponse(true);
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
+        DirectoryServer.getPluginConfigManager();
 
-
-    // Start the processing timer.
-    setProcessingStartTime();
     int timeLimit = getTimeLimit();
     Long timeLimitExpiration;
     if (timeLimit <= 0)
@@ -1619,69 +1519,36 @@ public class SearchOperationBasis
     {
       // FIXME -- Factor in the user's effective time limit.
       timeLimitExpiration =
-        getProcessingStartTime() + (1000L * timeLimit);
+          getProcessingStartTime() + (1000L * timeLimit);
     }
     setTimeLimitExpiration(timeLimitExpiration);
 
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
+    try
     {
-      indicateCancelled(cancelRequest);
-      setProcessingStopTime();
-      logSearchResultDone(this);
-      return;
-    }
+      // Check for and handle a request to cancel this operation.
+      checkIfCanceled(false);
 
+      PluginResult.PreParse preParseResult =
+          pluginConfigManager.invokePreParseSearchPlugins(this);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-searchProcessing:
-    {
-      PreParsePluginResult preParseResult =
-        pluginConfigManager.invokePreParseSearchPlugins(this);
-      if (preParseResult.connectionTerminated())
+      if(!preParseResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logSearchRequest(this);
-        logSearchResultDone(this);
-        pluginConfigManager.invokePostResponseSearchPlugins(this);
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        logSearchRequest(this);
-        break searchProcessing;
-      }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        break searchProcessing;
-      }
-
-
-      // Log the search request message.
-      logSearchRequest(this);
-
 
       // Check for and handle a request to cancel this operation.
-      if (cancelRequest != null)
-      {
-        break searchProcessing;
-      }
-
+      checkIfCanceled(false);
 
       // Process the search base and filter to convert them from their raw forms
       // as provided by the client to the forms required for the rest of the
       // search processing.
       DN baseDN = getBaseDN();
       if (baseDN == null){
-        break searchProcessing;
+        return;
       }
 
 
@@ -1694,61 +1561,56 @@ searchProcessing:
         // We have found no workflow for the requested base DN, just return
         // a no such entry result code and stop the processing.
         updateOperationErrMsgAndResCode();
-        break searchProcessing;
+        return;
       }
       workflow.execute(this);
     }
+    catch(CanceledOperationException coe)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+      }
 
+      setResultCode(ResultCode.CANCELED);
+      cancelResult = new CancelResult(ResultCode.CANCELED, null);
 
-    // Check for a terminated connection.
-    if (getCancelResult() == CancelResult.CANCELED)
+      appendErrorMessage(coe.getCancelRequest().getCancelReason());
+    }
+    finally
     {
       // Stop the processing timer.
       setProcessingStopTime();
 
-      // Log the add response message.
-      logSearchResultDone(this);
+      if(cancelRequest == null || cancelResult == null ||
+          cancelResult.getResultCode() != ResultCode.CANCELED)
+      {
+        // If everything is successful to this point and it is not a persistent
+        // search, then send the search result done message to the client.
+        // Otherwise, we'll want to make the size and time limit values
+        // unlimited to ensure that the remainder of the persistent search
+        // isn't subject to those restrictions.
+        if (isSendResponse())
+        {
+          sendSearchResultDone();
+        }
+        else
+        {
+          setSizeLimit(0);
+          setTimeLimit(0);
+        }
+      }
+      else if(cancelRequest.notifyOriginalRequestor() ||
+          DirectoryServer.notifyAbandonedOperations())
+      {
+        sendSearchResultDone();
+      }
 
-      return;
-    }
-
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
-    {
-      indicateCancelled(cancelRequest);
-
-      // Stop the processing timer.
-      setProcessingStopTime();
-
-      // Log the search response message.
-      logSearchResultDone(this);
-
-      // Invoke the post-response search plugins.
-      invokePostResponsePlugins();
-
-      return;
-    }
-
-
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-
-    // If everything is successful to this point and it is not a persistent
-    // search, then send the search result done message to the client.
-    // Otherwise, we'll want to make the size and time limit values unlimited
-    // to ensure that the remainder of the persistent search isn't subject to
-    // those restrictions.
-    if (isSendResponse())
-    {
-      sendSearchResultDone();
-    }
-    else
-    {
-      setSizeLimit(0);
-      setTimeLimit(0);
+      // If no cancel result, set it
+      if(cancelResult == null)
+      {
+        cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
+      }
     }
   }
 

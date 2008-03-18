@@ -37,8 +37,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
@@ -51,8 +50,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -101,9 +99,6 @@ public class LocalBackendDeleteOperation
   // Indicates whether the LDAP no-op control has been requested.
   private boolean noOp;
 
-  // Indicates whether to skip post-operation processing.
-  private boolean skipPostOperation;
-
   // The client connection on which this operation was requested.
   private ClientConnection clientConnection;
 
@@ -150,9 +145,13 @@ public class LocalBackendDeleteOperation
    *
    * @param  backend  The backend in which the delete operation should be
    *                  processed.
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
-  void processLocalDelete(Backend backend)
-  {
+  void processLocalDelete(Backend backend) throws CanceledOperationException {
+    boolean executePostOpPlugins = false;
+
     this.backend = backend;
 
     clientConnection = getClientConnection();
@@ -160,13 +159,9 @@ public class LocalBackendDeleteOperation
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    skipPostOperation = false;
 
     // Check for a request to cancel this operation.
-    if (cancelIfRequested())
-    {
-      return;
-    }
+    checkIfCanceled(false);
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
@@ -256,8 +251,12 @@ deleteProcessing:
           {
             SynchronizationProviderResult result =
                  provider.handleConflictResolution(this);
-            if (! result.continueOperationProcessing())
+            if (! result.continueProcessing())
             {
+              setResultCode(result.getResultCode());
+              appendErrorMessage(result.getErrorMessage());
+              setMatchedDN(result.getMatchedDN());
+              setReferralURLs(result.getReferralURLs());
               break deleteProcessing;
             }
           }
@@ -309,46 +308,33 @@ deleteProcessing:
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           appendErrorMessage(ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                                   String.valueOf(entryDN)));
-          skipPostOperation = true;
           break deleteProcessing;
         }
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
+        checkIfCanceled(false);
 
 
         // If the operation is not a synchronization operation,
         // invoke the pre-delete plugins.
         if (! isSynchronizationOperation())
         {
-          PreOperationPluginResult preOpResult =
+          executePostOpPlugins = true;
+          PluginResult.PreOperation preOpResult =
                pluginConfigManager.invokePreOperationDeletePlugins(this);
-          if (preOpResult.connectionTerminated())
+          if (!preOpResult.continueProcessing())
           {
-            // There's no point in continuing with anything.  Log the request
-            // and result and return.
-            setResultCode(ResultCode.CANCELED);
-            appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-            setProcessingStopTime();
-            return;
-          }
-          else if (preOpResult.sendResponseImmediately() ||
-                   preOpResult.skipCoreProcessing())
-          {
-            skipPostOperation = true;
+            setResultCode(preOpResult.getResultCode());
+            appendErrorMessage(preOpResult.getErrorMessage());
+            setMatchedDN(preOpResult.getMatchedDN());
+            setReferralURLs(preOpResult.getReferralURLs());
             break deleteProcessing;
           }
         }
 
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
+        checkIfCanceled(true);
 
 
         // Get the backend to use for the delete.  If there is none, then fail.
@@ -442,9 +428,13 @@ deleteProcessing:
               try
               {
                 SynchronizationProviderResult result =
-                     provider.doPreOperation(this);
-                if (! result.continueOperationProcessing())
+                    provider.doPreOperation(this);
+                if (! result.continueProcessing())
                 {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
                   break deleteProcessing;
                 }
               }
@@ -484,57 +474,34 @@ deleteProcessing:
           setResponseData(de);
           break deleteProcessing;
         }
-        catch (CancelledOperationException coe)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-          }
-
-          CancelResult cancelResult = coe.getCancelResult();
-
-          setCancelResult(cancelResult);
-          setResultCode(cancelResult.getResultCode());
-
-          Message message = coe.getMessageObject();
-          if ((message != null) && (message.length() > 0))
-          {
-            appendErrorMessage(message);
-          }
-          break deleteProcessing;
-        }
       }
       finally
       {
         LockManager.unlock(entryDN, entryLock);
-
-        for (SynchronizationProvider provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                          getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
       }
     }
 
 
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
+    for (SynchronizationProvider provider :
+        DirectoryServer.getSynchronizationProviders())
+    {
+      try
+      {
+        provider.doPostOperation(this);
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
 
+        logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+            getOperationID(), getExceptionMessage(de)));
+        setResponseData(de);
+        break;
+      }
+    }
 
     // Invoke the post-operation or post-synchronization delete plugins.
     if (isSynchronizationOperation())
@@ -544,15 +511,16 @@ deleteProcessing:
         pluginConfigManager.invokePostSynchronizationDeletePlugins(this);
       }
     }
-    else if (! skipPostOperation)
+    else if (executePostOpPlugins)
     {
-      PostOperationPluginResult postOperationResult =
-           pluginConfigManager.invokePostOperationDeletePlugins(this);
-      if (postOperationResult.connectionTerminated())
+      PluginResult.PostOperation postOpResult =
+          pluginConfigManager.invokePostOperationDeletePlugins(this);
+      if (!postOpResult.continueProcessing())
       {
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
-        setProcessingStopTime();
+        setResultCode(postOpResult.getResultCode());
+        appendErrorMessage(postOpResult.getErrorMessage());
+        setMatchedDN(postOpResult.getMatchedDN());
+        setReferralURLs(postOpResult.getReferralURLs());
         return;
       }
     }
@@ -582,30 +550,6 @@ deleteProcessing:
         }
       }
     }
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-  }
-
-
-
-  /**
-   * Checks to determine whether there has been a request to cancel this
-   * operation.  If so, then set the cancel result and processing stop time.
-   *
-   * @return  {@code true} if there was a cancel request, or {@code false} if
-   *          not.
-   */
-  private boolean cancelIfRequested()
-  {
-    if (getCancelRequest() == null)
-    {
-      return false;
-    }
-
-    indicateCancelled(getCancelRequest());
-    setProcessingStopTime();
-    return true;
   }
 
 
@@ -630,7 +574,6 @@ deleteProcessing:
         if (!AccessControlConfigManager.getInstance().
                  getAccessControlHandler().isAllowed(entryDN, this, c))
         {
-          skipPostOperation = true;
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                          ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }

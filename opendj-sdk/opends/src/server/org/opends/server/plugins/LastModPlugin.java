@@ -40,7 +40,7 @@ import org.opends.server.admin.std.server.LastModPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
@@ -172,8 +172,8 @@ public final class LastModPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult
-       doPreOperation(PreOperationAddOperation addOperation)
+  public final PluginResult.PreOperation
+               doPreOperation(PreOperationAddOperation addOperation)
   {
     // Create the attribute list for the creatorsName attribute, if appropriate.
     DN creatorDN = addOperation.getAuthorizationDN();
@@ -212,7 +212,7 @@ public final class LastModPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -221,7 +221,7 @@ public final class LastModPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult
+  public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     // Create the modifiersName attribute.
@@ -255,9 +255,8 @@ public final class LastModPlugin
       }
 
       // This should never happen.
-      modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
-      modifyOperation.appendErrorMessage(de.getMessageObject());
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          DirectoryConfig.getServerErrorResultCode(), de.getMessageObject());
     }
 
 
@@ -282,14 +281,13 @@ public final class LastModPlugin
       }
 
       // This should never happen.
-      modifyOperation.setResultCode(DirectoryConfig.getServerErrorResultCode());
-      modifyOperation.appendErrorMessage(de.getMessageObject());
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          DirectoryConfig.getServerErrorResultCode(), de.getMessageObject());
     }
 
 
     // We shouldn't ever need to return a non-success result.
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -298,7 +296,7 @@ public final class LastModPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult
+  public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     // Create the modifiersName attribute.
@@ -336,7 +334,7 @@ public final class LastModPlugin
 
 
     // We shouldn't ever need to return a non-success result.
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 

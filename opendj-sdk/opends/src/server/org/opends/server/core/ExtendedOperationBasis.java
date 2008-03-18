@@ -25,7 +25,6 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 
@@ -35,18 +34,8 @@ import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PreOperationExtendedOperation;
@@ -58,7 +47,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
@@ -89,9 +78,6 @@ public class ExtendedOperationBasis
 
   // Indicates whether a response has yet been sent for this operation.
   private boolean responseSent;
-
-  // The cancel request that has been issued for this extended operation.
-  private CancelRequest cancelRequest;
 
   // The set of response controls for this extended operation.
   private List<Control> responseControls;
@@ -134,6 +120,17 @@ public class ExtendedOperationBasis
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     responseSent     = false;
+
+    if (requestOID.equals(OID_CANCEL_REQUEST))
+    {
+      cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+          ERR_CANNOT_CANCEL_CANCEL.get());
+    }
+    if(requestOID.equals(OID_START_TLS_REQUEST))
+    {
+      cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+          ERR_CANNOT_CANCEL_START_TLS.get());
+    }
   }
 
 
@@ -235,20 +232,6 @@ public class ExtendedOperationBasis
     // candidate for being called by the logging subsystem.
 
     return OperationType.EXTENDED;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
   }
 
 
@@ -384,81 +367,35 @@ public class ExtendedOperationBasis
   {
     setResultCode(ResultCode.UNDEFINED);
 
+    // Start the processing timer.
+    setProcessingStartTime();
+
+    // Log the extended request message.
+    logExtendedRequest(this);
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    boolean skipPostOperation = false;
 
-
-    // Start the processing timer.
-    setProcessingStartTime();
-
-
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
+    try
     {
-      if (! (requestOID.equals(OID_CANCEL_REQUEST) ||
-             requestOID.equals(OID_START_TLS_REQUEST)))
-      {
-        indicateCancelled(cancelRequest);
-        setProcessingStopTime();
-        return;
-      }
-    }
-
-
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-extendedProcessing:
-    {
-      // Invoke the pre-parse extended plugins.
-      PreParsePluginResult preParseResult =
-           pluginConfigManager.invokePreParseExtendedPlugins(this);
-      if (preParseResult.connectionTerminated())
-      {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logExtendedRequest(this);
-        logExtendedResponse(this);
-        pluginConfigManager.invokePostResponseExtendedPlugins(this);
-        return;
-      }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        skipPostOperation = true;
-        logExtendedRequest(this);
-        break extendedProcessing;
-      }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        skipPostOperation = false;
-        break extendedProcessing;
-      }
-
-
-      // Log the extended request message.
-      logExtendedRequest(this);
-
-
       // Check for and handle a request to cancel this operation.
-      if (cancelRequest != null)
+      checkIfCanceled(false);
+
+      // Invoke the pre-parse extended plugins.
+      PluginResult.PreParse preParseResult =
+           pluginConfigManager.invokePreParseExtendedPlugins(this);
+
+      if(!preParseResult.continueProcessing())
       {
-        if (! (requestOID.equals(OID_CANCEL_REQUEST) ||
-               requestOID.equals(OID_START_TLS_REQUEST)))
-        {
-          indicateCancelled(cancelRequest);
-          setProcessingStopTime();
-          pluginConfigManager.invokePostResponseExtendedPlugins(this);
-          return;
-        }
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
+        return;
       }
+
+      checkIfCanceled(false);
 
 
       // Get the extended operation handler for the request OID.  If there is
@@ -470,7 +407,7 @@ extendedProcessing:
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_EXTENDED_NO_HANDLER.get(
                 String.valueOf(requestOID)));
-        break extendedProcessing;
+        return;
       }
 
 
@@ -488,8 +425,7 @@ extendedProcessing:
 
             appendErrorMessage(ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(
                     c.getOID()));
-            skipPostOperation=true;
-            break extendedProcessing;
+            return;
           }
           if (! c.isCritical())
           {
@@ -504,7 +440,7 @@ extendedProcessing:
                     String.valueOf(requestOID),
                     c.getOID()));
 
-            break extendedProcessing;
+            return;
           }
         }
       }
@@ -523,102 +459,77 @@ extendedProcessing:
         appendErrorMessage(ERR_EXTENDED_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                 String.valueOf(requestOID)));
 
-        skipPostOperation = true;
-        break extendedProcessing;
-      }
-
-      // Invoke the pre-operation extended plugins.
-      PreOperationPluginResult preOpResult =
-           pluginConfigManager.invokePreOperationExtendedPlugins(this);
-      if (preOpResult.connectionTerminated())
-      {
-        // There's no point in continuing with anything.  Log the result
-        // and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-        setProcessingStopTime();
-
-        logExtendedResponse(this);
-        pluginConfigManager.invokePostResponseExtendedPlugins(this);
         return;
       }
-      else if (preOpResult.sendResponseImmediately())
-      {
-        skipPostOperation = true;
-        break extendedProcessing;
-      }
-      else if (preOpResult.skipCoreProcessing())
-      {
-        skipPostOperation = false;
-        break extendedProcessing;
-      }
 
-
-      // Check for and handle a request to cancel this operation.
-      if (cancelRequest != null)
+      try
       {
-        if (! (requestOID.equals(OID_CANCEL_REQUEST) ||
-               requestOID.equals(OID_START_TLS_REQUEST)))
+        // Invoke the pre-operation extended plugins.
+        PluginResult.PreOperation preOpResult =
+            pluginConfigManager.invokePreOperationExtendedPlugins(this);
+        if(!preOpResult.continueProcessing())
         {
-          indicateCancelled(cancelRequest);
-          setProcessingStopTime();
-          pluginConfigManager.invokePostResponseExtendedPlugins(this);
+          setResultCode(preParseResult.getResultCode());
+          appendErrorMessage(preParseResult.getErrorMessage());
+          setMatchedDN(preParseResult.getMatchedDN());
+          setReferralURLs(preParseResult.getReferralURLs());
           return;
+        }
+
+        checkIfCanceled(false);
+
+        // Actually perform the processing for this operation.
+        handler.processExtendedOperation(this);
+
+      }
+      finally
+      {
+        pluginConfigManager.invokePostOperationExtendedPlugins(this);
+      }
+
+    }
+    catch(CanceledOperationException coe)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+      }
+
+      setResultCode(ResultCode.CANCELED);
+      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+
+      appendErrorMessage(coe.getCancelRequest().getCancelReason());
+    }
+    finally
+    {
+      // Stop the processing timer.
+      setProcessingStopTime();
+
+      // Send the response to the client, if it has not already been sent.
+      if (! responseSent)
+      {
+        responseSent = true;
+        if(cancelRequest == null || cancelResult == null ||
+            cancelResult.getResultCode() != ResultCode.CANCELED ||
+            cancelRequest.notifyOriginalRequestor() ||
+            DirectoryServer.notifyAbandonedOperations())
+        {
+          clientConnection.sendResponse(this);
         }
       }
 
+      // Log the extended response.
+      logExtendedResponse(this);
 
-      // Actually perform the processing for this operation.
-      handler.processExtendedOperation(this);
-    }
+      // Invoke the post-response extended plugins.
+      pluginConfigManager.invokePostResponseExtendedPlugins(this);
 
-
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
-
-    // Invoke the post-operation extended plugins.
-    if (! skipPostOperation)
-    {
-      PostOperationPluginResult postOpResult =
-           pluginConfigManager.invokePostOperationExtendedPlugins(this);
-      if (postOpResult.connectionTerminated())
+      // If no cancel result, set it
+      if(cancelResult == null)
       {
-        // There's no point in continuing with anything.  Log the result and
-        // return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logExtendedResponse(this);
-        pluginConfigManager.invokePostResponseExtendedPlugins(this);
-        return;
+        cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
       }
     }
-
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-
-
-    // Send the response to the client, if it has not already been sent.
-    if (! responseSent)
-    {
-      responseSent = true;
-      clientConnection.sendResponse(this);
-    }
-
-
-    // Log the extended response.
-    logExtendedResponse(this);
-
-
-
-    // Invoke the post-response extended plugins.
-    pluginConfigManager.invokePostResponseExtendedPlugins(this);
   }
 
 
@@ -651,73 +562,6 @@ extendedProcessing:
   {
     this.responseSent = true;
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-
-    CancelResult cancelResult = getCancelResult();
-    long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while ((cancelResult == null) &&
-           (System.currentTimeMillis() < stopWaitingTime))
-    {
-      try
-      {
-        Thread.sleep(50);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      cancelResult = getCancelResult();
-    }
-
-    if (cancelResult == null)
-    {
-      // This can happen in some rare cases (e.g., if a client disconnects and
-      // there is still a lot of data to send to that client), and in this case
-      // we'll prevent the cancel thread from blocking for a long period of
-      // time.
-      cancelResult = CancelResult.CANNOT_CANCEL;
-    }
-
-    return cancelResult;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return cancelRequest;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-    return true;
-  }
-
-
 
   /**
    * {@inheritDoc}

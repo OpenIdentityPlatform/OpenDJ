@@ -27,10 +27,7 @@
 package org.opends.server.core;
 
 
-import org.opends.server.types.DN;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 
 /**
@@ -70,11 +67,12 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    * Executes an operation on the root DSE entry.
    *
    * @param operation the operation to execute
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public void execute(
-      Operation operation
-      )
-  {
+  public void execute(Operation operation)
+      throws CanceledOperationException {
     // Execute the operation.
     OperationType operationType = operation.getOperationType();
     if (operationType != OperationType.SEARCH)
@@ -94,11 +92,12 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    * Executes a search operation on the the root DSE entry.
    *
    * @param searchOp the operation to execute
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  private void executeSearch(
-      SearchOperation searchOp
-      )
-  {
+  private void executeSearch(SearchOperation searchOp)
+      throws CanceledOperationException {
     // Keep a the original search scope because we will alter it in the
     // operation.
     SearchScope originalScope = searchOp.getScope();

@@ -35,7 +35,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 
@@ -159,19 +158,9 @@ public class TraditionalWorkerThread
         else
         {
           // The operation is not null, so process it.  Make sure that when
-          // processing is complete the cancel status is properly set.
-          try
-          {
-            operation.run();
-            operation.operationCompleted();
-          }
-          finally
-          {
-            if (operation.getCancelResult() == null)
-            {
-              operation.setCancelResult(CancelResult.TOO_LATE);
-            }
-          }
+          // processing is complete.
+          operation.run();
+          operation.operationCompleted();
         }
       }
       catch (Throwable t)

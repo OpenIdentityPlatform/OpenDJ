@@ -630,7 +630,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -661,7 +661,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -1135,7 +1135,7 @@ public class ModifyOperationTestCase
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("Foo"));
     values.add(new ASN1OctetString("Foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -1954,7 +1954,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("bar"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -2224,7 +2224,7 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    LDAPAttribute attr = new LDAPAttribute("mail");
+    LDAPAttribute attr = new LDAPAttribute("description");
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
@@ -2272,7 +2272,7 @@ public class ModifyOperationTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    LDAPAttribute attr = new LDAPAttribute("mail");
+    LDAPAttribute attr = new LDAPAttribute("description");
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
@@ -2322,7 +2322,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -3083,7 +3083,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("notnumeric"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
@@ -4079,7 +4079,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -4090,9 +4090,45 @@ public class ModifyOperationTestCase
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
-    modifyOperation.setCancelRequest(cancelRequest);
+    modifyOperation.abort(cancelRequest);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.CANCELED);
+  }
+
+
+
+  /**
+   * Tests a modify operation that gets canceled before startup.
+   *
+   * @throws  Exception  If an unexpected probem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testCancelAfterOperation(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
+    values.add(new ASN1OctetString("foo"));
+    LDAPAttribute attr = new LDAPAttribute("description", values);
+
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
+
+    ModifyOperationBasis modifyOperation =
+         new ModifyOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             null, new ASN1OctetString(baseDN), mods);
+
+    modifyOperation.run();
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    Message.raw("testCancelBeforeStartup"));
+    CancelResult cancelResponse = modifyOperation.cancel(cancelRequest);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(cancelResponse.getResultCode(), ResultCode.TOO_LATE);
   }
 
 
@@ -4118,7 +4154,7 @@ public class ModifyOperationTestCase
 
       ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
       values.add(new ASN1OctetString("foo"));
-      LDAPAttribute attr = new LDAPAttribute("mail", values);
+      LDAPAttribute attr = new LDAPAttribute("description", values);
 
       ArrayList<RawModification> mods = new ArrayList<RawModification>();
       mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -4165,7 +4201,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -4284,7 +4320,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
@@ -4296,13 +4332,41 @@ public class ModifyOperationTestCase
               "PostOperation"));
     w.writeElement(message.encode());
 
-    ASN1Element element = r.readElement();
-    if (element != null)
+    // The operation should NOT be aborted at the post operation stage. While
+    // the plugin can disconnect the client, the modify should have already
+    // been committed to the backend and a SUCCESS COULD get back to the
+    // client.
+responseLoop:
+    while (true)
     {
-      // If we got an element back, then it must be a notice of disconnect
-      // unsolicited notification.
+      ASN1Element element = r.readElement();
+      if (element == null)
+      {
+        // The connection has been closed.
+        break responseLoop;
+      }
+
       message = LDAPMessage.decode(element.decodeAsSequence());
-      assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
+      switch (message.getProtocolOpType())
+      {
+        case OP_TYPE_MODIFY_RESPONSE:
+          // This was expected.  The disconnect didn't happen until after the
+          // response was sent.
+          break;
+        case OP_TYPE_EXTENDED_RESPONSE:
+          // The server is notifying us that it will be closing the connection.
+          break responseLoop;
+        default:
+          // This is a problem.  It's an unexpected response.
+          try
+          {
+            s.close();
+          } catch (Exception e) {}
+
+          throw new Exception("Unexpected response message " + message +
+                              " encountered in " +
+                              "testDisconnectInPostOperationModify");
+      }
     }
 
     try
@@ -4344,7 +4408,7 @@ public class ModifyOperationTestCase
 
     ArrayList<ASN1OctetString> values = new ArrayList<ASN1OctetString>();
     values.add(new ASN1OctetString("foo"));
-    LDAPAttribute attr = new LDAPAttribute("mail", values);
+    LDAPAttribute attr = new LDAPAttribute("description", values);
 
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));

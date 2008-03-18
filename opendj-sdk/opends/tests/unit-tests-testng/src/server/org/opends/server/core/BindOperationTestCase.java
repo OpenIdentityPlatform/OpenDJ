@@ -53,23 +53,12 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.dsconfig.DSConfig;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -2296,6 +2285,38 @@ public class BindOperationTestCase
         "ds-cfg-state-update-failure-policy: reactive"
       );
     }
+  }
+
+  /**
+   * Tests the <CODE>cancel</CODE> method to ensure that it indicates that the
+   * operation cannot be cancelled.
+   */
+  @Test(dataProvider = "simpleBinds")
+  public void testCancel(BindOperation bindOperation)
+  {
+    CancelRequest cancelRequest =
+         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
+
+    assertEquals(bindOperation.cancel(cancelRequest).getResultCode(),
+                 ResultCode.CANNOT_CANCEL);
+  }
+
+  /**
+   * Tests the <CODE>getCancelRequest</CODE> method to ensure that it always
+   * returns <CODE>null</CODE>.
+   */
+  @Test(dataProvider = "simpleBinds")
+  public void testGetCancelRequest(BindOperation bindOperation)
+  {
+    CancelRequest cancelRequest =
+         new CancelRequest(false, Message.raw("Test Unbind Cancel"));
+
+    assertNull(bindOperation.getCancelRequest());
+
+    assertEquals(bindOperation.cancel(cancelRequest).getResultCode(),
+                 ResultCode.CANNOT_CANCEL);
+
+    assertNull(bindOperation.getCancelRequest());
   }
 }
 

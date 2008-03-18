@@ -33,7 +33,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -2994,7 +2994,7 @@ public class EntryContainer
    * @throws org.opends.server.types.DirectoryException
    *          If a problem occurs while trying to perform
    *          the rename.
-   * @throws org.opends.server.types.CancelledOperationException
+   * @throws org.opends.server.types.CanceledOperationException
    *          If this backend noticed and reacted
    *          to a request to cancel or abandon the
    *          modify DN operation.
@@ -3004,8 +3004,7 @@ public class EntryContainer
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
       throws DatabaseException, JebException, DirectoryException,
-      CancelledOperationException
-  {
+      CanceledOperationException {
     TransactedOperation operation =
         new RenameEntryTransaction(currentDN, entry, modifyDNOperation);
 
@@ -3503,12 +3502,11 @@ public class EntryContainer
              DirectoryServer.getPluginConfigManager();
         List<Modification> modifications =
              Collections.unmodifiableList(new ArrayList<Modification>(0));
-        SubordinateModifyDNPluginResult pluginResult =
+        PluginResult.SubordinateModifyDN pluginResult =
              pluginManager.invokeSubordinateModifyDNPlugins(
                   modifyDNOperation, oldEntry, newEntry, modifications);
 
-        if (pluginResult.connectionTerminated() ||
-            pluginResult.abortModifyDNOperation())
+        if (!pluginResult.continueProcessing())
         {
           Message message = ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(
                   oldDN.toString(), newDN.toString());
@@ -3634,12 +3632,11 @@ public class EntryContainer
              DirectoryServer.getPluginConfigManager();
         List<Modification> modifications =
              Collections.unmodifiableList(new ArrayList<Modification>(0));
-        SubordinateModifyDNPluginResult pluginResult =
+        PluginResult.SubordinateModifyDN pluginResult =
              pluginManager.invokeSubordinateModifyDNPlugins(
                   modifyDNOperation, oldEntry, newEntry, modifications);
 
-        if (pluginResult.connectionTerminated() ||
-            pluginResult.abortModifyDNOperation())
+        if (!pluginResult.continueProcessing())
         {
           Message message = ERR_JEB_MODIFYDN_ABORTED_BY_SUBORDINATE_PLUGIN.get(
                   oldDN.toString(), newDN.toString());

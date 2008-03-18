@@ -44,34 +44,12 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.asn1.ASN1Element;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Sequence;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.plugins.DelayPreOpPlugin;
+import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.AddRequestProtocolOp;
-import org.opends.server.protocols.ldap.AddResponseProtocolOp;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.WritabilityMode;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -1992,9 +1970,45 @@ public class AddOperationTestCase
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
-    addOperation.setCancelRequest(cancelRequest);
+    addOperation.abort(cancelRequest);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.CANCELED);
+  }
+
+  /**
+   * Tests an add operation that gets canceled before startup.
+   *
+   * @throws  Exception  If an unexpected probem occurs.
+   */
+  @Test()
+  public void testCancelAfterOperation()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: ou=People,o=test",
+         "objectClass: top",
+         "objectClass: organizationalUnit",
+         "ou: People");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperationBasis addOperation =
+         new AddOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+                          null, entry.getDN(), entry.getObjectClasses(),
+                          entry.getUserAttributes(),
+                          entry.getOperationalAttributes());
+
+    addOperation.run();
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    Message.raw("testCancelAfterOperation"));
+    CancelResult cancelResult = addOperation.cancel(cancelRequest);
+
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
   }
 
 
