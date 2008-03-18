@@ -44,6 +44,7 @@ import java.util.StringTokenizer;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -513,7 +514,7 @@ public final class Base64
     }
 
     SubCommand subCommand = argParser.getSubCommand();
-    if (showUsage.isPresent())
+    if (argParser.isUsageArgumentPresent())
     {
       if (subCommand == null)
       {
@@ -527,6 +528,23 @@ public final class Base64
       }
 
       return;
+    }
+
+    if (argParser.isVersionArgumentPresent())
+    {
+      // We have to print the version since we have set a NullOutputStream on
+      // the parser
+      try
+      {
+        DirectoryServer.printVersion(System.out);
+        System.exit(0);
+      }
+      catch (Throwable t)
+      {
+        // Bug
+        System.err.println(ERR_UNEXPECTED.get(t.toString()).toString());
+        System.exit(1);
+      }
     }
 
     if (subCommand == null)
