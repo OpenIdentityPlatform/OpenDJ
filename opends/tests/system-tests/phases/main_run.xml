@@ -118,7 +118,7 @@
       
       
       <!-- ============ CONF FILES CHECK ============================= -->
-      <!-- Check that configuration files have no NEED_VALUE strin     -->
+      <!-- Check that configuration files have no NEED_VALUE string    -->
       <script>ERR_NUM[0] = 0</script>
       <call function="'checkConfigurationFiles'"/>
       <if expr="ERR_NUM[0] != 0">
