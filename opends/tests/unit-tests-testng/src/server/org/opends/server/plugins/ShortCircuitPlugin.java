@@ -35,11 +35,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.api.plugin.PreParsePluginResult;
-import org.opends.server.config.ConfigEntry;
+import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Enumerated;
@@ -132,20 +128,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
-       doPreParse(PreParseAbandonOperation abandonOperation)
+  public PluginResult.PreParse
+         doPreParse(PreParseAbandonOperation abandonOperation)
   {
     int resultCode = shortCircuitInternal(abandonOperation, "PreParse");
     if (resultCode >= 0)
     {
-      abandonOperation.setResultCode(ResultCode.valueOf(resultCode));
-      abandonOperation.appendErrorMessage(
-              Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -155,18 +150,18 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
+  public PluginResult.PreParse doPreParse(PreParseAddOperation addOperation)
   {
     int resultCode = shortCircuitInternal(addOperation, "PreParse");
     if (resultCode >= 0)
     {
-      addOperation.setResultCode(ResultCode.valueOf(resultCode));
-      addOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -176,18 +171,18 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
+  public PluginResult.PreParse doPreParse(PreParseBindOperation bindOperation)
   {
     int resultCode = shortCircuitInternal(bindOperation, "PreParse");
     if (resultCode >= 0)
     {
-      bindOperation.setResultCode(ResultCode.valueOf(resultCode));
-      bindOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -197,19 +192,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
   {
     int resultCode = shortCircuitInternal(compareOperation, "PreParse");
     if (resultCode >= 0)
     {
-      compareOperation.setResultCode(ResultCode.valueOf(resultCode));
-      compareOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -219,19 +214,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
     int resultCode = shortCircuitInternal(deleteOperation, "PreParse");
     if (resultCode >= 0)
     {
-      deleteOperation.setResultCode(ResultCode.valueOf(resultCode));
-      deleteOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -241,19 +236,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
     int resultCode = shortCircuitInternal(extendedOperation, "PreParse");
     if (resultCode >= 0)
     {
-      extendedOperation.setResultCode(ResultCode.valueOf(resultCode));
-      extendedOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -263,19 +258,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
   {
     int resultCode = shortCircuitInternal(modifyOperation, "PreParse");
     if (resultCode >= 0)
     {
-      modifyOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -285,19 +280,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     int resultCode = shortCircuitInternal(modifyDNOperation, "PreParse");
     if (resultCode >= 0)
     {
-      modifyDNOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyDNOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -307,19 +302,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
   {
     int resultCode = shortCircuitInternal(searchOperation, "PreParse");
     if (resultCode >= 0)
     {
-      searchOperation.setResultCode(ResultCode.valueOf(resultCode));
-      searchOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -329,19 +324,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
     int resultCode = shortCircuitInternal(unbindOperation, "PreParse");
     if (resultCode >= 0)
     {
-      unbindOperation.setResultCode(ResultCode.valueOf(resultCode));
-      unbindOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreParsePluginResult(false, false, true);
+      return PluginResult.PreParse.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-parse"));
     }
     else
     {
-      return PreParsePluginResult.SUCCESS;
+      return PluginResult.PreParse.continueOperationProcessing();
     }
   }
 
@@ -351,19 +346,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
   {
     int resultCode = shortCircuitInternal(addOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      addOperation.setResultCode(ResultCode.valueOf(resultCode));
-      addOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -373,19 +368,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
   {
     int resultCode = shortCircuitInternal(bindOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      bindOperation.setResultCode(ResultCode.valueOf(resultCode));
-      bindOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -395,19 +390,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
     int resultCode = shortCircuitInternal(compareOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      compareOperation.setResultCode(ResultCode.valueOf(resultCode));
-      compareOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -417,19 +412,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     int resultCode = shortCircuitInternal(deleteOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      deleteOperation.setResultCode(ResultCode.valueOf(resultCode));
-      deleteOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -439,19 +434,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
     int resultCode = shortCircuitInternal(extendedOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      extendedOperation.setResultCode(ResultCode.valueOf(resultCode));
-      extendedOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -461,19 +456,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     int resultCode = shortCircuitInternal(modifyOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      modifyOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -483,19 +478,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     int resultCode = shortCircuitInternal(modifyDNOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      modifyDNOperation.setResultCode(ResultCode.valueOf(resultCode));
-      modifyDNOperation.appendErrorMessage(Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 
@@ -505,20 +500,19 @@ public class ShortCircuitPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
     int resultCode = shortCircuitInternal(searchOperation, "PreOperation");
     if (resultCode >= 0)
     {
-      searchOperation.setResultCode(ResultCode.valueOf(resultCode));
-      searchOperation.appendErrorMessage(
-              Message.raw("Short-circuit in pre-parse"));
-      return new PreOperationPluginResult(false, false, true);
+      return PluginResult.PreOperation.stopProcessing(
+          ResultCode.valueOf(resultCode),
+          Message.raw("Short-circuit in pre-operation"));
     }
     else
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
   }
 

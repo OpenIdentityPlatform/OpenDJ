@@ -39,6 +39,10 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.core.DirectoryServer;
+import static org.opends.server.loggers.debug.
+    DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.server.loggers.debug.DebugTracer;
 
 
 /**
@@ -60,6 +64,11 @@ public abstract class AbstractOperation
        implements Operation, PreParseOperation, PostResponseOperation,
                   Runnable
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   /**
    * The set of response controls that will always be returned for
    * an abandon operation.
@@ -93,6 +102,16 @@ public abstract class AbstractOperation
   protected final boolean useNanoTime;
 
 
+  /**
+   * The cancel request for this operation.
+   */
+  protected CancelRequest cancelRequest;
+
+
+  /**
+   * The cancel result for this operation.
+   */
+  protected CancelResult cancelResult;
 
   // Indicates whether this is an internal operation triggered within
   // the server itself rather than requested by an external client.
@@ -101,9 +120,6 @@ public abstract class AbstractOperation
   // Indicates whether this operation is involved in data
   // synchronization processing.
   private boolean isSynchronizationOperation;
-
-  // The cancel result for this operation.
-  private CancelResult cancelResult;
 
   // The matched DN for this operation.
   private DN matchedDN;
@@ -223,10 +239,13 @@ public abstract class AbstractOperation
    *                           may be {@code null} if no notification
    *                           is to be sent.
    */
-  public abstract void disconnectClient(
-          DisconnectReason disconnectReason,
-          boolean sendNotification,
-          Message message);
+  public void disconnectClient(DisconnectReason disconnectReason,
+                               boolean sendNotification,
+                               Message message)
+  {
+    clientConnection.disconnect(disconnectReason, sendNotification,
+            message);
+  }
 
 
 
@@ -911,94 +930,91 @@ public abstract class AbstractOperation
    * @return  A code providing information on the result of the
    *          cancellation.
    */
-  public abstract CancelResult cancel(CancelRequest cancelRequest);
-
-
-
-  /**
-   * Sets the cancel request for this operation, if applicable.  This
-   * should only be used for testing purposes (e.g., for ensuring a
-   * cancel request is submitted before processing begins on an
-   * operation, or to allow for cancelling an internal operation).  It
-   * must not be used for any other purpose.
-   *
-   * @param  cancelRequest  The cancel request to set for this
-   *                        operation.
-   *
-   * @return  {@code true} if the cancel request was set, or
-   *          {@code false} if it was not for some reason (e.g., the
-   *          specified operation cannot be cancelled).
-   */
-  public abstract boolean setCancelRequest(CancelRequest
-      cancelRequest);
-
-
-
-  /**
-   * Retrieves the cancel request that has been issued for this
-   * operation, if there is one.  This method should not be called by
-   * post-operation or post-response plugins.
-   *
-   * @return  The cancel request that has been issued for this
-   *          operation, or {@code null} if there has not been any
-   *          request to cancel.
-   */
-  public abstract CancelRequest getCancelRequest();
-
-
-
-  /**
-   * Retrieves the cancel result for this operation.
-   *
-   * @return  The cancel result for this operation.  It will be
-   *          {@code null} if the operation has not seen and reacted
-   *          to a cancel request.
-   */
-  public final CancelResult getCancelResult()
+  public CancelResult cancel(CancelRequest cancelRequest)
   {
+    abort(cancelRequest);
+
+    long stopWaitingTime = System.currentTimeMillis() + 5000;
+    while ((cancelResult == null) &&
+        (System.currentTimeMillis() < stopWaitingTime))
+    {
+      try
+      {
+        Thread.sleep(50);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+    if (cancelResult == null)
+    {
+      // This can happen in some rare cases (e.g., if a client
+      // disconnects and there is still a lot of data to send to
+      // that client), and in this case we'll prevent the cancel
+      // thread from blocking for a long period of time.
+      cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL, null);
+    }
+
     return cancelResult;
   }
 
 
 
   /**
-   * Specifies the cancel result for this operation.
+   * Attempts to cancel this operation before processing has
+   * completed without waiting for a cancel result.
    *
-   * @param  cancelResult  The cancel result for this operation.
+   * @param  cancelRequest  Information about the way in which the
+   *                        operation should be canceled.
    */
-  public final void setCancelResult(CancelResult cancelResult)
+  public synchronized void abort(CancelRequest cancelRequest)
   {
-    this.cancelResult = cancelResult;
+    if(cancelResult == null && this.cancelRequest == null)
+    {
+      this.cancelRequest = cancelRequest;
+    }
   }
 
 
 
   /**
-   * Indicates that this operation has been cancelled.  If
-   * appropriate, it will send a response to the client to indicate
-   * that.  This method must not be called by abandon, bind, or unbind
-   * operations under any circumstances, nor by extended operations if
-   * the request OID is that of the cancel or the StartTLS operation.
-   *
-   * @param  cancelRequest  The request to cancel this operation.
+   * {@inheritDoc}
    */
-  public final void indicateCancelled(CancelRequest cancelRequest)
-  {
-    setCancelResult(CancelResult.CANCELED);
-
-    if (cancelRequest.notifyOriginalRequestor() ||
-        DirectoryServer.notifyAbandonedOperations())
+  public synchronized final void
+    checkIfCanceled(boolean signalTooLate)
+      throws CanceledOperationException {
+    if(cancelRequest != null)
     {
-      setResultCode(ResultCode.CANCELED);
-
-      Message cancelReason = cancelRequest.getCancelReason();
-      if (cancelReason != null)
-      {
-        appendErrorMessage(cancelReason);
-      }
-
-      clientConnection.sendResponse(this);
+      throw new CanceledOperationException(cancelRequest);
     }
+
+    if(signalTooLate && cancelResult != null)
+    {
+      cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final CancelRequest getCancelRequest()
+  {
+    return cancelRequest;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public final CancelResult getCancelResult()
+  {
+    return cancelResult;
   }
 
 

@@ -48,7 +48,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.server.api.plugin.LDIFPluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.asn1.ASN1OctetString;
@@ -69,6 +68,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.RDN;
+import org.opends.server.api.plugin.PluginResult;
 
 
 /**
@@ -299,12 +299,12 @@ public final class LDIFReader
       // If we should invoke import plugins, then do so.
       if (importConfig.invokeImportPlugins())
       {
-        LDIFPluginResult pluginResult =
+        PluginResult.ImportLDIF pluginResult =
              pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
-        if (! pluginResult.continueEntryProcessing())
+        if (! pluginResult.continueProcessing())
         {
           Message m;
-          Message rejectMessage = pluginResult.getRejectMessage();
+          Message rejectMessage = pluginResult.getErrorMessage();
           if (rejectMessage == null)
           {
             m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(

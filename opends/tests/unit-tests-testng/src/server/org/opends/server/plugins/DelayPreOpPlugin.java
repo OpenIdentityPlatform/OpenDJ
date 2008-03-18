@@ -35,13 +35,14 @@ import java.util.Set;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Long;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.operation.*;
 import org.opends.messages.Message;
 
@@ -115,9 +116,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
-  {
+      throws CanceledOperationException {
     return doPreOperationInternal(addOperation);
   }
 
@@ -127,10 +128,18 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
-       doPreOperation(PreOperationBindOperation bindOperation)
+  public PluginResult.PreOperation
+         doPreOperation(PreOperationBindOperation bindOperation)
   {
-    return doPreOperationInternal(bindOperation);
+    try
+    {
+      return doPreOperationInternal(bindOperation);
+    }
+    catch(CanceledOperationException coe)
+    {
+      // Bind ops can't be canceled. Just ignore.
+      return PluginResult.PreOperation.continueOperationProcessing();
+    }
   }
 
 
@@ -139,9 +148,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
-       doPreOperation(PreOperationCompareOperation compareOperation)
-  {
+  public PluginResult.PreOperation
+         doPreOperation(PreOperationCompareOperation compareOperation)
+      throws CanceledOperationException {
     return doPreOperationInternal(compareOperation);
   }
 
@@ -151,9 +160,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
-  {
+      throws CanceledOperationException {
     return doPreOperationInternal(deleteOperation);
   }
 
@@ -163,9 +172,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
-  {
+      throws CanceledOperationException {
     return doPreOperationInternal(extendedOperation);
   }
 
@@ -175,9 +184,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
-  {
+      throws CanceledOperationException {
     return doPreOperationInternal(modifyOperation);
   }
 
@@ -187,9 +196,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
-  {
+      throws CanceledOperationException {
     return doPreOperationInternal(modifyDNOperation);
   }
 
@@ -199,9 +208,9 @@ public class DelayPreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
-  {
+      throws CanceledOperationException {
     return doPreOperationInternal(searchOperation);
   }
 
@@ -217,9 +226,9 @@ public class DelayPreOpPlugin
    *
    * @return  The result of the plugin processing.
    */
-  private PreOperationPluginResult
+  private PluginResult.PreOperation
        doPreOperationInternal(PreOperationOperation operation)
-  {
+      throws CanceledOperationException {
     long delayDuration = 0L;
     List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null)
@@ -235,10 +244,10 @@ public class DelayPreOpPlugin
           }
           catch (Exception e)
           {
-            operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-            operation.appendErrorMessage(Message.raw("Unable to decode the delay request " +
-                                         "control:  " + e));
-            return new PreOperationPluginResult(false, false, true);
+            return PluginResult.PreOperation.stopProcessing(
+                ResultCode.PROTOCOL_ERROR,
+                Message.raw("Unable to decode the delay request control:  " +
+                    e));
           }
         }
       }
@@ -246,16 +255,13 @@ public class DelayPreOpPlugin
 
     if (delayDuration <= 0)
     {
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
 
     long stopSleepTime = System.currentTimeMillis() + delayDuration;
     while (System.currentTimeMillis() < stopSleepTime)
     {
-      if (operation.getCancelRequest() != null)
-      {
-        break;
-      }
+      operation.checkIfCanceled(false);
 
       try
       {
@@ -263,7 +269,7 @@ public class DelayPreOpPlugin
       } catch (Exception e) {}
     }
 
-    return new PreOperationPluginResult(false, false, false);
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 

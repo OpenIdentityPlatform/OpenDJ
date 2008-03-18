@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.types.ResultCode;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
@@ -248,8 +249,8 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                  ResultCode.CONSTRAINT_VIOLATION.getIntValue());
     }
     finally
     {
@@ -413,8 +414,8 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                  ResultCode.CONSTRAINT_VIOLATION.getIntValue());
     }
     finally
     {
@@ -641,8 +642,8 @@ public class SevenBitCleanPluginTestCase
         "-f", path
       };
 
-      assertFalse(LDAPModify.mainModify(args, false, System.out, System.err) ==
-                  0);
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+                  ResultCode.CONSTRAINT_VIOLATION.getIntValue());
     }
     finally
     {

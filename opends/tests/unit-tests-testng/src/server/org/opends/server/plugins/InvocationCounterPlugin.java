@@ -34,20 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.IntermediateResponsePluginResult;
-import org.opends.server.api.plugin.LDIFPluginResult;
-import org.opends.server.api.plugin.PostConnectPluginResult;
-import org.opends.server.api.plugin.PostDisconnectPluginResult;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PostResponsePluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.api.plugin.PreParsePluginResult;
-import org.opends.server.api.plugin.SearchEntryPluginResult;
-import org.opends.server.api.plugin.SearchReferencePluginResult;
-import org.opends.server.api.plugin.StartupPluginResult;
-import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
@@ -136,11 +123,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -149,10 +136,10 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
+  public PluginResult.PreParse doPreParse(PreParseAddOperation addOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -161,10 +148,10 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
+  public PluginResult.PreParse doPreParse(PreParseBindOperation bindOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -173,11 +160,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -186,11 +173,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -199,11 +186,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -212,11 +199,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -225,11 +212,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -238,11 +225,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -251,11 +238,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
     preParseCounter.incrementAndGet();
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -290,11 +277,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -303,11 +290,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -316,11 +303,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -329,11 +316,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -342,11 +329,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -355,11 +342,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -368,11 +355,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -381,11 +368,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
     preOperationCounter.incrementAndGet();
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -420,11 +407,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -433,11 +420,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -446,11 +433,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationBindOperation bindOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -459,11 +446,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -472,11 +459,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -485,11 +472,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationExtendedOperation extendedOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -498,11 +485,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -511,11 +498,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -524,11 +511,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -537,11 +524,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
     postOperationCounter.incrementAndGet();
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -576,11 +563,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseAddOperation addOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -589,11 +576,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseBindOperation bindOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -602,11 +589,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -615,11 +602,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -628,11 +615,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -641,11 +628,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -654,11 +641,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -667,11 +654,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
     postResponseCounter.incrementAndGet();
-    return PostResponsePluginResult.SUCCESS;
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -769,12 +756,12 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public SearchEntryPluginResult
+  public PluginResult.IntermediateResponse
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
   {
     searchEntryCounter.incrementAndGet();
-    return SearchEntryPluginResult.SUCCESS;
+    return PluginResult.IntermediateResponse.continueOperationProcessing(true);
   }
 
 
@@ -810,12 +797,12 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public SearchReferencePluginResult
+  public PluginResult.IntermediateResponse
        processSearchReference(SearchReferenceSearchOperation searchOperation,
                               SearchResultReference searchReference)
   {
     searchReferenceCounter.incrementAndGet();
-    return SearchReferencePluginResult.SUCCESS;
+    return PluginResult.IntermediateResponse.continueOperationProcessing(true);
   }
 
 
@@ -851,12 +838,12 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public SubordinateModifyDNPluginResult processSubordinateModifyDN(
+  public PluginResult.SubordinateModifyDN processSubordinateModifyDN(
               SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
               Entry newEntry, List<Modification> modifications)
   {
     subordinateModifyDNCounter.incrementAndGet();
-    return SubordinateModifyDNPluginResult.SUCCESS;
+    return PluginResult.SubordinateModifyDN.continueOperationProcessing();
   }
 
 
@@ -893,11 +880,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public IntermediateResponsePluginResult processIntermediateResponse(
+  public PluginResult.IntermediateResponse processIntermediateResponse(
               IntermediateResponse intermediateResponse)
   {
     intermediateResponseCounter.incrementAndGet();
-    return IntermediateResponsePluginResult.SUCCESS;
+    return PluginResult.IntermediateResponse.continueOperationProcessing(true);
   }
 
 
@@ -933,11 +920,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostConnectPluginResult doPostConnect(ClientConnection
+  public PluginResult.PostConnect doPostConnect(ClientConnection
                                                     clientConnection)
   {
     postConnectCounter.incrementAndGet();
-    return PostConnectPluginResult.SUCCESS;
+    return PluginResult.PostConnect.continueConnectProcessing();
   }
 
 
@@ -972,12 +959,12 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostDisconnectPluginResult doPostDisconnect(
+  public PluginResult.PostDisconnect doPostDisconnect(
           ClientConnection clientConnection, DisconnectReason disconnectReason,
           Message message)
   {
     postDisconnectCounter.incrementAndGet();
-    return PostDisconnectPluginResult.SUCCESS;
+    return PluginResult.PostDisconnect.continueDisconnectProcessing();
   }
 
 
@@ -1012,11 +999,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                       Entry entry)
+  public PluginResult.ImportLDIF doLDIFImport(LDIFImportConfig importConfig,
+                                        Entry entry)
   {
     ldifImportCounter.incrementAndGet();
-    return LDIFPluginResult.SUCCESS;
+    return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
 
@@ -1051,11 +1038,11 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public LDIFPluginResult doLDIFExport(LDIFExportConfig exportConfig,
+  public PluginResult.ImportLDIF doLDIFExport(LDIFExportConfig exportConfig,
                                        Entry entry)
   {
     ldifExportCounter.incrementAndGet();
-    return LDIFPluginResult.SUCCESS;
+    return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
 
@@ -1113,10 +1100,10 @@ public class InvocationCounterPlugin
    * {@inheritDoc}
    */
   @Override()
-  public StartupPluginResult doStartup()
+  public PluginResult.Startup doStartup()
   {
     startupCalled = true;
-    return StartupPluginResult.SUCCESS;
+    return PluginResult.Startup.continueStartup();
   }
 
 

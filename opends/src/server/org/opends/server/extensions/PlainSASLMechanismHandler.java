@@ -510,7 +510,7 @@ public class PlainSASLMechanismHandler
     try
     {
       PasswordPolicyState pwPolicyState =
-           new PasswordPolicyState(userEntry, false, false);
+           new PasswordPolicyState(userEntry, false);
       if (! pwPolicyState.passwordMatches(new ASN1OctetString(password)))
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);

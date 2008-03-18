@@ -45,14 +45,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
 
@@ -341,8 +334,7 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
-  public void execute(Operation operation)
-  {
+  public void execute(Operation operation) throws CanceledOperationException {
     switch (operation.getOperationType())
     {
       case BIND:

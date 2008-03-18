@@ -43,7 +43,7 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -97,15 +97,6 @@ public class UniqueAttributePlugin
    * The debug log tracer that will be used for this plugin.
    */
   private static final DebugTracer TRACER = getTracer();
-
-
-
-  /**
-   * The pre-operation plugin result that should be returned if an operation
-   * would have resulted in a unique attribute conflict.
-   */
-  private static final PreOperationPluginResult FAILED_PREOP_RESULT =
-       new PreOperationPluginResult(false, false, false, true);
 
 
 
@@ -200,7 +191,7 @@ public class UniqueAttributePlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult
+  public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
   {
     UniqueAttributePluginCfg config = currentConfiguration;
@@ -210,7 +201,7 @@ public class UniqueAttributePlugin
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
 
     for (AttributeType t : config.getType())
@@ -228,11 +219,11 @@ public class UniqueAttributePlugin
                                                     config, v);
               if (conflictDN != null)
               {
-                addOperation.appendErrorMessage(
-                     ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(t.getNameOrOID(),
-                          v.getStringValue(), conflictDN.toString()));
-                addOperation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return FAILED_PREOP_RESULT;
+                Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+                    t.getNameOrOID(), v.getStringValue(),
+                    conflictDN.toString());
+                return PluginResult.PreOperation.stopProcessing(
+                    ResultCode.CONSTRAINT_VIOLATION, msg);
               }
             }
             catch (DirectoryException de)
@@ -246,17 +237,15 @@ public class UniqueAttributePlugin
                                de.getResultCode().toString(),
                                de.getMessageObject());
 
-              addOperation.setResultCode(
-                   DirectoryServer.getServerErrorResultCode());
-              addOperation.appendErrorMessage(m);
-              return FAILED_PREOP_RESULT;
+              return PluginResult.PreOperation.stopProcessing(
+                    DirectoryServer.getServerErrorResultCode(), m);
             }
           }
         }
       }
     }
 
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -265,7 +254,7 @@ public class UniqueAttributePlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult
+  public final PluginResult.PreOperation
                doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     UniqueAttributePluginCfg config = currentConfiguration;
@@ -275,7 +264,7 @@ public class UniqueAttributePlugin
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
 
     for (Modification m : modifyOperation.getModifications())
@@ -300,11 +289,11 @@ public class UniqueAttributePlugin
                                                     v);
               if (conflictDN != null)
               {
-                modifyOperation.appendErrorMessage(
-                     ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(t.getNameOrOID(),
-                          v.getStringValue(), conflictDN.toString()));
-                modifyOperation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                return FAILED_PREOP_RESULT;
+                Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+                    t.getNameOrOID(), v.getStringValue(),
+                    conflictDN.toString());
+                return PluginResult.PreOperation.stopProcessing(
+                    ResultCode.CONSTRAINT_VIOLATION, msg);
               }
             }
             catch (DirectoryException de)
@@ -318,10 +307,8 @@ public class UniqueAttributePlugin
                                      de.getResultCode().toString(),
                                      de.getMessageObject());
 
-              modifyOperation.setResultCode(
-                   DirectoryServer.getServerErrorResultCode());
-              modifyOperation.appendErrorMessage(message);
-              return FAILED_PREOP_RESULT;
+              return PluginResult.PreOperation.stopProcessing(
+                    DirectoryServer.getServerErrorResultCode(), message);
             }
           }
           break;
@@ -349,13 +336,11 @@ public class UniqueAttributePlugin
                                                         config, v);
                   if (conflictDN != null)
                   {
-                    modifyOperation.appendErrorMessage(
-                         ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                              t.getNameOrOID(), v.getStringValue(),
-                              conflictDN.toString()));
-                    modifyOperation.setResultCode(
-                         ResultCode.CONSTRAINT_VIOLATION);
-                    return FAILED_PREOP_RESULT;
+                    Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+                        t.getNameOrOID(), v.getStringValue(),
+                        conflictDN.toString());
+                    return PluginResult.PreOperation.stopProcessing(
+                        ResultCode.CONSTRAINT_VIOLATION, msg);
                   }
                 }
                 catch (DirectoryException de)
@@ -369,10 +354,8 @@ public class UniqueAttributePlugin
                                          de.getResultCode().toString(),
                                          de.getMessageObject());
 
-                  modifyOperation.setResultCode(
-                       DirectoryServer.getServerErrorResultCode());
-                  modifyOperation.appendErrorMessage(message);
-                  return FAILED_PREOP_RESULT;
+                  return PluginResult.PreOperation.stopProcessing(
+                      DirectoryServer.getServerErrorResultCode(), message);
                 }
               }
             }
@@ -386,7 +369,7 @@ public class UniqueAttributePlugin
       }
     }
 
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -395,7 +378,7 @@ public class UniqueAttributePlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreOperationPluginResult doPreOperation(
+  public final PluginResult.PreOperation doPreOperation(
                     PreOperationModifyDNOperation modifyDNOperation)
   {
     UniqueAttributePluginCfg config = currentConfiguration;
@@ -405,7 +388,7 @@ public class UniqueAttributePlugin
     if (baseDNs == null)
     {
       // The entry is outside the scope of this plugin.
-      return PreOperationPluginResult.SUCCESS;
+      return PluginResult.PreOperation.continueOperationProcessing();
     }
 
     RDN newRDN = modifyDNOperation.getNewRDN();
@@ -422,14 +405,14 @@ public class UniqueAttributePlugin
       {
         AttributeValue v = newRDN.getAttributeValue(i);
         DN conflictDN = getConflictingEntryDN(baseDNs,
-                             modifyDNOperation.getEntryDN(), config, v);
+            modifyDNOperation.getEntryDN(), config, v);
         if (conflictDN != null)
         {
-          modifyDNOperation.appendErrorMessage(
-               ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(t.getNameOrOID(),
-                    v.getStringValue(), conflictDN.toString()));
-          modifyDNOperation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-          return FAILED_PREOP_RESULT;
+          Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+              t.getNameOrOID(), v.getStringValue(),
+              conflictDN.toString());
+          return PluginResult.PreOperation.stopProcessing(
+              ResultCode.CONSTRAINT_VIOLATION, msg);
         }
       }
       catch (DirectoryException de)
@@ -443,14 +426,12 @@ public class UniqueAttributePlugin
                          de.getResultCode().toString(),
                          de.getMessageObject());
 
-        modifyDNOperation.setResultCode(
-             DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(m);
-        return FAILED_PREOP_RESULT;
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), m);
       }
     }
 
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 

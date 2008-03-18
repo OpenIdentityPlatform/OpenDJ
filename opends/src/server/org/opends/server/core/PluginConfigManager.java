@@ -52,79 +52,11 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.PluginRootCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.IntermediateResponsePluginResult;
-import org.opends.server.api.plugin.LDIFPluginResult;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PostConnectPluginResult;
-import org.opends.server.api.plugin.PostDisconnectPluginResult;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PostResponsePluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.api.plugin.PreParsePluginResult;
-import org.opends.server.api.plugin.SearchEntryPluginResult;
-import org.opends.server.api.plugin.SearchReferencePluginResult;
-import org.opends.server.api.plugin.StartupPluginResult;
-import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.Modification;
-import org.opends.server.types.operation.PostOperationAbandonOperation;
-import org.opends.server.types.operation.PostOperationAddOperation;
-import org.opends.server.types.operation.PostOperationBindOperation;
-import org.opends.server.types.operation.PostOperationCompareOperation;
-import org.opends.server.types.operation.PostOperationDeleteOperation;
-import org.opends.server.types.operation.PostOperationExtendedOperation;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
-import org.opends.server.types.operation.PostOperationModifyOperation;
-import org.opends.server.types.operation.PostOperationSearchOperation;
-import org.opends.server.types.operation.PostOperationUnbindOperation;
-import org.opends.server.types.operation.PostResponseAddOperation;
-import org.opends.server.types.operation.PostResponseBindOperation;
-import org.opends.server.types.operation.PostResponseCompareOperation;
-import org.opends.server.types.operation.PostResponseDeleteOperation;
-import org.opends.server.types.operation.PostResponseExtendedOperation;
-import org.opends.server.types.operation.PostResponseModifyDNOperation;
-import org.opends.server.types.operation.PostResponseModifyOperation;
-import org.opends.server.types.operation.PostResponseSearchOperation;
-import org.opends.server.types.operation.PostSynchronizationAddOperation;
-import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
-import org.opends.server.types.operation.PreOperationAddOperation;
-import org.opends.server.types.operation.PreOperationBindOperation;
-import org.opends.server.types.operation.PreOperationCompareOperation;
-import org.opends.server.types.operation.PreOperationDeleteOperation;
-import org.opends.server.types.operation.PreOperationExtendedOperation;
-import org.opends.server.types.operation.PreOperationModifyDNOperation;
-import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.server.types.operation.PreOperationSearchOperation;
-import org.opends.server.types.operation.PreParseAbandonOperation;
-import org.opends.server.types.operation.PreParseAddOperation;
-import org.opends.server.types.operation.PreParseBindOperation;
-import org.opends.server.types.operation.PreParseCompareOperation;
-import org.opends.server.types.operation.PreParseDeleteOperation;
-import org.opends.server.types.operation.PreParseModifyDNOperation;
-import org.opends.server.types.operation.PreParseExtendedOperation;
-import org.opends.server.types.operation.PreParseModifyOperation;
-import org.opends.server.types.operation.PreParseSearchOperation;
-import org.opends.server.types.operation.PreParseUnbindOperation;
-import org.opends.server.types.operation.SearchEntrySearchOperation;
-import org.opends.server.types.operation.SearchReferenceSearchOperation;
-import org.opends.server.types.operation.SubordinateModifyDNOperation;
+import org.opends.server.types.*;
+import org.opends.server.types.operation.*;
 import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -211,6 +143,16 @@ public class PluginConfigManager
                DirectoryServerPlugin<? extends PluginCfg>>
                     registeredPlugins;
 
+  // The mapping between an operation and a set of post operation plugins
+  // it should skip. This pairs up pre and post operation plugin processing
+  // such that only plugins that successfully execute its pre op plugin will
+  // have its post op plugin executed on a per operation basis. If an
+  // operation is not registered on this list then all all pre op plugins
+  // executed successfully for this operation so all post op plugins should
+  // execute.
+  private ConcurrentHashMap<PluginOperation, ArrayList<DirectoryServerPlugin>>
+      skippedPreOperationPlugins;
+
   // The plugin root configuration read at server startup.
   private PluginRootCfg pluginRootConfig;
 
@@ -280,6 +222,9 @@ public class PluginConfigManager
     registeredPlugins                  =
          new ConcurrentHashMap<DN,
                   DirectoryServerPlugin<? extends PluginCfg>>();
+    skippedPreOperationPlugins =
+        new ConcurrentHashMap<PluginOperation,
+                  ArrayList<DirectoryServerPlugin>>();
   }
 
 
@@ -1393,9 +1338,9 @@ public class PluginConfigManager
    *
    * @return  The result of processing the startup plugins.
    */
-  public StartupPluginResult invokeStartupPlugins()
+  public PluginResult.Startup invokeStartupPlugins()
   {
-    StartupPluginResult result = null;
+    PluginResult.Startup result = null;
 
     for (DirectoryServerPlugin p : startupPlugins)
     {
@@ -1414,8 +1359,7 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 stackTraceToSingleLineString(e));
 
-        result = new StartupPluginResult(false, false, message);
-        break;
+        return PluginResult.Startup.stopStartup(message);
       }
 
       if (result == null)
@@ -1423,27 +1367,16 @@ public class PluginConfigManager
         Message message = ERR_PLUGIN_STARTUP_PLUGIN_RETURNED_NULL.get(
             String.valueOf(p.getPluginEntryDN()));
         logError(message);
-        return new StartupPluginResult(false, false, message);
+        return PluginResult.Startup.stopStartup(message);
       }
-      else if (! result.completedSuccessfully())
+      else if (! result.continueProcessing())
       {
-        if (result.continueStartup())
-        {
-          Message message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_CONTINUE.
-              get(String.valueOf(p.getPluginEntryDN()),
-                  result.getErrorMessage(),
-                  result.getErrorMessage().getDescriptor().getId());
-          logError(message);
-        }
-        else
-        {
-          Message message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT.
-              get(String.valueOf(p.getPluginEntryDN()),
-                  result.getErrorMessage(),
-                  result.getErrorMessage().getDescriptor().getId());
-          logError(message);
-          return result;
-        }
+        Message message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT.
+            get(String.valueOf(p.getPluginEntryDN()),
+                result.getErrorMessage(),
+                result.getErrorMessage().getDescriptor().getId());
+        logError(message);
+        return result;
       }
     }
 
@@ -1451,7 +1384,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no startup plugins registered,
       // which is fine.
-      result = StartupPluginResult.SUCCESS;
+      result = PluginResult.Startup.continueStartup();
     }
 
     return result;
@@ -1498,10 +1431,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-connect plugins.
    */
-  public PostConnectPluginResult invokePostConnectPlugins(ClientConnection
-                                                               clientConnection)
+  public PluginResult.PostConnect invokePostConnectPlugins(ClientConnection
+                                                           clientConnection)
   {
-    PostConnectPluginResult result = null;
+    PluginResult.PostConnect result = null;
 
     for (DirectoryServerPlugin p : postConnectPlugins)
     {
@@ -1523,20 +1456,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        try
-        {
-          clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                  message);
-        }
-        catch (Exception e2)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
-        }
-
-        return new PostConnectPluginResult(true, false);
+        return PluginResult.PostConnect.disconnectClient(
+            DisconnectReason.SERVER_ERROR, true, message);
       }
 
 
@@ -1548,23 +1469,10 @@ public class PluginConfigManager
                 clientConnection.getClientAddress());
         logError(message);
 
-        try
-        {
-          clientConnection.disconnect(DisconnectReason.SERVER_ERROR, true,
-                  message);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-
-        return new PostConnectPluginResult(true, false);
+        return PluginResult.PostConnect.disconnectClient(
+            DisconnectReason.SERVER_ERROR, true, message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -1574,7 +1482,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no post-connect plugins
       // registered, which is fine.
-      result = PostConnectPluginResult.SUCCESS;
+      result = PluginResult.PostConnect.continueConnectProcessing();
     }
 
     return result;
@@ -1594,12 +1502,12 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-connect plugins.
    */
-  public PostDisconnectPluginResult invokePostDisconnectPlugins(
+  public PluginResult.PostDisconnect invokePostDisconnectPlugins(
                                         ClientConnection clientConnection,
                                         DisconnectReason disconnectReason,
                                         Message message)
   {
-    PostDisconnectPluginResult result = null;
+    PluginResult.PostDisconnect result = null;
 
     for (DirectoryServerPlugin p : postDisconnectPlugins)
     {
@@ -1621,8 +1529,6 @@ public class PluginConfigManager
                 clientConnection.getClientAddress(),
                 stackTraceToSingleLineString(e));
         logError(msg);
-
-        return new PostDisconnectPluginResult(false);
       }
 
 
@@ -1633,8 +1539,6 @@ public class PluginConfigManager
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress());
         logError(msg);
-
-        return new PostDisconnectPluginResult(false);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -1646,7 +1550,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no post-disconnect plugins
       // registered, which is fine.
-      result = PostDisconnectPluginResult.SUCCESS;
+      result = PluginResult.PostDisconnect.continueDisconnectProcessing();
     }
 
     return result;
@@ -1664,10 +1568,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the LDIF import plugins.
    */
-  public LDIFPluginResult invokeLDIFImportPlugins(LDIFImportConfig importConfig,
-                                                  Entry entry)
+  public PluginResult.ImportLDIF invokeLDIFImportPlugins(
+      LDIFImportConfig importConfig, Entry entry)
   {
-    LDIFPluginResult result = null;
+    PluginResult.ImportLDIF result = null;
 
     for (DirectoryServerPlugin p : ldifImportPlugins)
     {
@@ -1687,7 +1591,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
         logError(message);
 
-        return new LDIFPluginResult(false, false, message);
+        return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
 
       if (result == null)
@@ -1697,7 +1601,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()));
         logError(message);
 
-        return new LDIFPluginResult(false, false, message);
+        return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -1709,7 +1613,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no LDIF import plugins
       // registered, which is fine.
-      result = LDIFPluginResult.SUCCESS;
+      result = PluginResult.ImportLDIF.continueEntryProcessing();
     }
 
     return result;
@@ -1727,10 +1631,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the LDIF export plugins.
    */
-  public LDIFPluginResult invokeLDIFExportPlugins(LDIFExportConfig exportConfig,
-                                                  Entry entry)
+  public PluginResult.ImportLDIF invokeLDIFExportPlugins(
+      LDIFExportConfig exportConfig, Entry entry)
   {
-    LDIFPluginResult result = null;
+    PluginResult.ImportLDIF result = null;
 
     for (DirectoryServerPlugin p : ldifExportPlugins)
     {
@@ -1750,7 +1654,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()), stackTraceToSingleLineString(e));
         logError(message);
 
-        return new LDIFPluginResult(false, false, message);
+        return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
 
       if (result == null)
@@ -1760,7 +1664,7 @@ public class PluginConfigManager
                 String.valueOf(entry.getDN()));
         logError(message);
 
-        return new LDIFPluginResult(false, false, message);
+        return PluginResult.ImportLDIF.stopEntryProcessing(message);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -1772,7 +1676,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no LDIF export plugins
       // registered, which is fine.
-      result = LDIFPluginResult.SUCCESS;
+      result = PluginResult.ImportLDIF.continueEntryProcessing();
     }
 
     return result;
@@ -1789,10 +1693,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the pre-parse abandon plugins.
    */
-  public PreParsePluginResult invokePreParseAbandonPlugins(
+  public PluginResult.PreParse invokePreParseAbandonPlugins(
                                    PreParseAbandonOperation abandonOperation)
   {
-    PreParsePluginResult result = null;
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseAbandonPlugins)
     {
@@ -1821,11 +1725,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        abandonOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        abandonOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -1837,14 +1738,10 @@ public class PluginConfigManager
                 String.valueOf(abandonOperation.getOperationID()));
         logError(message);
 
-        abandonOperation.setResultCode(
-             DirectoryServer.getServerErrorResultCode());
-        abandonOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -1854,7 +1751,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse abandon plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -1870,11 +1767,13 @@ public class PluginConfigManager
    *                       plugins.
    *
    * @return  The result of processing the pre-parse add plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseAddPlugins(
+  public PluginResult.PreParse invokePreParseAddPlugins(
       PreParseAddOperation addOperation)
-  {
-    PreParsePluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseAddPlugins)
     {
@@ -1887,6 +1786,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(addOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -1902,10 +1805,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        addOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -1917,13 +1818,10 @@ public class PluginConfigManager
                 String.valueOf(addOperation.getOperationID()));
         logError(message);
 
-        addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        addOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -1933,7 +1831,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse add plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -1950,10 +1848,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the pre-parse bind plugins.
    */
-  public PreParsePluginResult invokePreParseBindPlugins(
+  public PluginResult.PreParse invokePreParseBindPlugins(
                                    PreParseBindOperation bindOperation)
   {
-    PreParsePluginResult result = null;
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseBindPlugins)
     {
@@ -1981,10 +1879,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        bindOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -1996,13 +1892,10 @@ public class PluginConfigManager
                 String.valueOf(bindOperation.getOperationID()));
         logError(message);
 
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        bindOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2012,7 +1905,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse bind plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2028,11 +1921,13 @@ public class PluginConfigManager
    *                           pre-parse plugins.
    *
    * @return  The result of processing the pre-parse compare plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseComparePlugins(
-    PreParseCompareOperation compareOperation)
-  {
-    PreParsePluginResult result = null;
+  public PluginResult.PreParse invokePreParseComparePlugins(
+      PreParseCompareOperation compareOperation)
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseComparePlugins)
     {
@@ -2045,6 +1940,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(compareOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2061,11 +1960,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        compareOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        compareOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2077,14 +1973,10 @@ public class PluginConfigManager
                 String.valueOf(compareOperation.getOperationID()));
         logError(message);
 
-        compareOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        compareOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2094,7 +1986,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse compare plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2110,11 +2002,13 @@ public class PluginConfigManager
    *                          pre-parse plugins.
    *
    * @return  The result of processing the pre-parse delete plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseDeletePlugins(
+  public PluginResult.PreParse invokePreParseDeletePlugins(
                               PreParseDeleteOperation deleteOperation)
-  {
-    PreParsePluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseDeletePlugins)
     {
@@ -2127,6 +2021,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(deleteOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2143,11 +2041,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        deleteOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        deleteOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2159,14 +2054,10 @@ public class PluginConfigManager
                 String.valueOf(deleteOperation.getOperationID()));
         logError(message);
 
-        deleteOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        deleteOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2176,7 +2067,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse delete plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2192,11 +2083,13 @@ public class PluginConfigManager
    *                            pre-parse plugins.
    *
    * @return  The result of processing the pre-parse extended plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseExtendedPlugins(
+  public PluginResult.PreParse invokePreParseExtendedPlugins(
                                    PreParseExtendedOperation extendedOperation)
-  {
-    PreParsePluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseExtendedPlugins)
     {
@@ -2209,6 +2102,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(extendedOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2225,11 +2122,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        extendedOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        extendedOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2241,14 +2135,10 @@ public class PluginConfigManager
                 String.valueOf(extendedOperation.getOperationID()));
         logError(message);
 
-        extendedOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        extendedOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2258,7 +2148,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse extended plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2274,11 +2164,13 @@ public class PluginConfigManager
    *                          pre-parse plugins.
    *
    * @return  The result of processing the pre-parse modify plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseModifyPlugins(
+  public PluginResult.PreParse invokePreParseModifyPlugins(
                                    PreParseModifyOperation modifyOperation)
-  {
-    PreParsePluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseModifyPlugins)
     {
@@ -2291,6 +2183,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(modifyOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2307,11 +2203,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        modifyOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2323,14 +2216,10 @@ public class PluginConfigManager
                 String.valueOf(modifyOperation.getOperationID()));
         logError(message);
 
-        modifyOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2340,7 +2229,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse modify plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2356,11 +2245,13 @@ public class PluginConfigManager
    *                            pre-parse plugins.
    *
    * @return  The result of processing the pre-parse modify DN plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseModifyDNPlugins(
+  public PluginResult.PreParse invokePreParseModifyDNPlugins(
                                    PreParseModifyDNOperation modifyDNOperation)
-  {
-    PreParsePluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseModifyDNPlugins)
     {
@@ -2373,6 +2264,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(modifyDNOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2389,11 +2284,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        modifyDNOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2405,14 +2297,10 @@ public class PluginConfigManager
                 String.valueOf(modifyDNOperation.getOperationID()));
         logError(message);
 
-        modifyDNOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2422,7 +2310,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse modify DN plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2438,11 +2326,13 @@ public class PluginConfigManager
    *                          pre-parse plugins.
    *
    * @return  The result of processing the pre-parse search plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreParsePluginResult invokePreParseSearchPlugins(
+  public PluginResult.PreParse invokePreParseSearchPlugins(
                                    PreParseSearchOperation searchOperation)
-  {
-    PreParsePluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseSearchPlugins)
     {
@@ -2455,6 +2345,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreParse(searchOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2471,11 +2365,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        searchOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        searchOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2487,14 +2378,10 @@ public class PluginConfigManager
                 String.valueOf(searchOperation.getOperationID()));
         logError(message);
 
-        searchOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        searchOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2504,7 +2391,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse search plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2521,10 +2408,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the pre-parse unbind plugins.
    */
-  public PreParsePluginResult invokePreParseUnbindPlugins(
+  public PluginResult.PreParse invokePreParseUnbindPlugins(
                                    PreParseUnbindOperation unbindOperation)
   {
-    PreParsePluginResult result = null;
+    PluginResult.PreParse result = null;
 
     for (DirectoryServerPlugin p : preParseUnbindPlugins)
     {
@@ -2553,11 +2440,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        unbindOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        unbindOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2569,14 +2453,10 @@ public class PluginConfigManager
                 String.valueOf(unbindOperation.getOperationID()));
         logError(message);
 
-        unbindOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        unbindOperation.appendErrorMessage(message);
-
-        return new PreParsePluginResult(false, false, true);
+        return PluginResult.PreParse.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2586,7 +2466,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-parse unbind plugins
       // registered, which is fine.
-      result = PreParsePluginResult.SUCCESS;
+      result = PluginResult.PreParse.continueOperationProcessing();
     }
 
     return result;
@@ -2602,14 +2482,17 @@ public class PluginConfigManager
    *                       pre-operation plugins.
    *
    * @return  The result of processing the pre-operation add plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationAddPlugins(
+  public PluginResult.PreOperation invokePreOperationAddPlugins(
                                        PreOperationAddOperation addOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationAddPlugins)
+    for (int i = 0; i < preOperationAddPlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationAddPlugins[i];
       if (addOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -2619,6 +2502,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreOperation(addOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2634,10 +2521,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        addOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationAddPlugins,
+            addOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2648,14 +2536,16 @@ public class PluginConfigManager
                 addOperation.getConnectionID(), addOperation.getOperationID());
         logError(message);
 
-        addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        addOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationAddPlugins,
+            addOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationAddPlugins,
+            addOperation);
         return result;
       }
     }
@@ -2664,7 +2554,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -2681,13 +2571,14 @@ public class PluginConfigManager
    *
    * @return  The result of processing the pre-operation bind plugins.
    */
-  public PreOperationPluginResult invokePreOperationBindPlugins(
+  public PluginResult.PreOperation invokePreOperationBindPlugins(
                                        PreOperationBindOperation bindOperation)
   {
-    PreOperationPluginResult result = null;
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationBindPlugins)
+    for (int i = 0; i < preOperationBindPlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationBindPlugins[i];
       if (bindOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -2712,10 +2603,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        bindOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationBindPlugins,
+            bindOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2727,23 +2619,26 @@ public class PluginConfigManager
                 bindOperation.getOperationID());
         logError(message);
 
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        bindOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationBindPlugins,
+            bindOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationBindPlugins,
+            bindOperation);
+
         return result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation bind plugins
+      // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -2759,14 +2654,17 @@ public class PluginConfigManager
    *                           pre-operation plugins.
    *
    * @return  The result of processing the pre-operation compare plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationComparePlugins(
+  public PluginResult.PreOperation invokePreOperationComparePlugins(
      PreOperationCompareOperation compareOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationComparePlugins)
+    for (int i = 0; i < preOperationComparePlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationComparePlugins[i];
       if (compareOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -2776,6 +2674,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreOperation(compareOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2792,11 +2694,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        compareOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        compareOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationComparePlugins,
+            compareOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2808,14 +2710,13 @@ public class PluginConfigManager
                 compareOperation.getOperationID());
         logError(message);
 
-        compareOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        compareOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationComparePlugins,
+            compareOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -2823,9 +2724,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation compare plugins
+      // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -2841,14 +2742,17 @@ public class PluginConfigManager
    *                          pre-operation plugins.
    *
    * @return  The result of processing the pre-operation delete plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationDeletePlugins(
+  public PluginResult.PreOperation invokePreOperationDeletePlugins(
                                   PreOperationDeleteOperation deleteOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationDeletePlugins)
+    for (int i = 0; i < preOperationDeletePlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationDeletePlugins[i];
       if (deleteOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -2858,6 +2762,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreOperation(deleteOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2874,11 +2782,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        deleteOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        deleteOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationDeletePlugins,
+            deleteOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2890,24 +2798,26 @@ public class PluginConfigManager
                 deleteOperation.getOperationID());
         logError(message);
 
-        deleteOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        deleteOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationDeletePlugins,
+            deleteOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationDeletePlugins,
+            deleteOperation);
+
         return result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation delete plugins
+      // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -2923,23 +2833,31 @@ public class PluginConfigManager
    *                            pre-operation plugins.
    *
    * @return  The result of processing the pre-operation extended plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationExtendedPlugins(
+  public PluginResult.PreOperation invokePreOperationExtendedPlugins(
                                PreOperationExtendedOperation extendedOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationExtendedPlugins)
+    for (int i = 0; i < preOperationExtendedPlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationExtendedPlugins[i];
       if (extendedOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
+        registerSkippedPreOperationPlugin(p, extendedOperation);
         continue;
       }
 
       try
       {
         result = p.doPreOperation(extendedOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -2956,11 +2874,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        extendedOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        extendedOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationExtendedPlugins,
+            extendedOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -2972,24 +2890,26 @@ public class PluginConfigManager
                 extendedOperation.getOperationID());
         logError(message);
 
-        extendedOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        extendedOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationExtendedPlugins,
+            extendedOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationExtendedPlugins,
+            extendedOperation);
+
         return result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation extended plugins
+      // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -3005,14 +2925,17 @@ public class PluginConfigManager
    *                          pre-operation plugins.
    *
    * @return  The result of processing the pre-operation modify plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationModifyPlugins(
+  public PluginResult.PreOperation invokePreOperationModifyPlugins(
                                   PreOperationModifyOperation modifyOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationModifyPlugins)
+    for (int i = 0; i < preOperationModifyPlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationModifyPlugins[i];
       if (modifyOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -3022,6 +2945,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreOperation(modifyOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -3038,11 +2965,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        modifyOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationModifyPlugins,
+            modifyOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -3054,24 +2981,26 @@ public class PluginConfigManager
                 modifyOperation.getOperationID());
         logError(message);
 
-        modifyOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationModifyPlugins,
+            modifyOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationModifyPlugins,
+            modifyOperation);
+
         return result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation modify plugins
+      // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -3087,14 +3016,17 @@ public class PluginConfigManager
    *                            pre-operation plugins.
    *
    * @return  The result of processing the pre-operation modify DN plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationModifyDNPlugins(
+  public PluginResult.PreOperation invokePreOperationModifyDNPlugins(
                               PreOperationModifyDNOperation modifyDNOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationModifyDNPlugins)
+    for (int i = 0; i < preOperationModifyDNPlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationModifyDNPlugins[i];
       if (modifyDNOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -3104,6 +3036,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreOperation(modifyDNOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -3120,11 +3056,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        modifyDNOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationModifyDNPlugins,
+            modifyDNOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -3136,24 +3072,26 @@ public class PluginConfigManager
                 modifyDNOperation.getOperationID());
         logError(message);
 
-        modifyDNOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationModifyDNPlugins,
+            modifyDNOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationModifyDNPlugins,
+            modifyDNOperation);
+
         return result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation modify DN
-      // plugins registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      // This should only happen if there were no pre-operation add plugins
+      // registered, which is fine.
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -3169,14 +3107,17 @@ public class PluginConfigManager
    *                          pre-operation plugins.
    *
    * @return  The result of processing the pre-operation search plugins.
+   *
+   * @throws CanceledOperationException if the operation should be canceled.
    */
-  public PreOperationPluginResult invokePreOperationSearchPlugins(
+  public PluginResult.PreOperation invokePreOperationSearchPlugins(
                                   PreOperationSearchOperation searchOperation)
-  {
-    PreOperationPluginResult result = null;
+      throws CanceledOperationException {
+    PluginResult.PreOperation result = null;
 
-    for (DirectoryServerPlugin p : preOperationSearchPlugins)
+    for (int i = 0; i < preOperationSearchPlugins.length; i++)
     {
+      DirectoryServerPlugin p = preOperationSearchPlugins[i];
       if (searchOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
       {
@@ -3186,6 +3127,10 @@ public class PluginConfigManager
       try
       {
         result = p.doPreOperation(searchOperation);
+      }
+      catch (CanceledOperationException coe)
+      {
+        throw coe;
       }
       catch (Exception e)
       {
@@ -3202,11 +3147,11 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        searchOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        searchOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationSearchPlugins,
+             searchOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -3218,24 +3163,26 @@ public class PluginConfigManager
                 searchOperation.getOperationID());
         logError(message);
 
-        searchOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        searchOperation.appendErrorMessage(message);
+        registerSkippedPreOperationPlugins(i, preOperationSearchPlugins,
+             searchOperation);
 
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
+        registerSkippedPreOperationPlugins(i, preOperationSearchPlugins,
+             searchOperation);
+
         return result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no pre-operation search plugins
+      // This should only happen if there were no pre-operation add plugins
       // registered, which is fine.
-      result = PreOperationPluginResult.SUCCESS;
+      result = PluginResult.PreOperation.continueOperationProcessing();
     }
 
     return result;
@@ -3252,10 +3199,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation abandon plugins.
    */
-  public PostOperationPluginResult invokePostOperationAbandonPlugins(
+  public PluginResult.PostOperation invokePostOperationAbandonPlugins(
                               PostOperationAbandonOperation abandonOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationAbandonPlugins)
     {
@@ -3283,12 +3231,6 @@ public class PluginConfigManager
                 abandonOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        abandonOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        abandonOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3299,28 +3241,31 @@ public class PluginConfigManager
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID());
         logError(message);
-
-        abandonOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        abandonOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation abandon plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3334,15 +3279,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation add plugins.
    */
-  public PostOperationPluginResult invokePostOperationAddPlugins(
+  public PluginResult.PostOperation invokePostOperationAddPlugins(
                                         PostOperationAddOperation addOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationAddPlugins)
     {
       if (addOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(addOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3364,11 +3317,6 @@ public class PluginConfigManager
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        addOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3378,16 +3326,14 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID());
         logError(message);
-
-        addOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        addOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
@@ -3395,10 +3341,16 @@ public class PluginConfigManager
     {
       // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3412,15 +3364,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation bind plugins.
    */
-  public PostOperationPluginResult invokePostOperationBindPlugins(
+  public PluginResult.PostOperation invokePostOperationBindPlugins(
                                    PostOperationBindOperation bindOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationBindPlugins)
     {
       if (bindOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(bindOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3442,11 +3402,6 @@ public class PluginConfigManager
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        bindOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3457,27 +3412,31 @@ public class PluginConfigManager
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
         logError(message);
-
-        bindOperation.setResultCode(DirectoryServer.getServerErrorResultCode());
-        bindOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation bind plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3491,15 +3450,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation compare plugins.
    */
-  public PostOperationPluginResult invokePostOperationComparePlugins(
+  public PluginResult.PostOperation invokePostOperationComparePlugins(
       PostOperationCompareOperation compareOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationComparePlugins)
     {
       if (compareOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(compareOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3522,12 +3489,6 @@ public class PluginConfigManager
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        compareOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        compareOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3538,28 +3499,31 @@ public class PluginConfigManager
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
         logError(message);
-
-        compareOperation.setResultCode(
-                              DirectoryServer.getServerErrorResultCode());
-        compareOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation compare plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3573,15 +3537,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation delete plugins.
    */
-  public PostOperationPluginResult invokePostOperationDeletePlugins(
+  public PluginResult.PostOperation invokePostOperationDeletePlugins(
                                    PostOperationDeleteOperation deleteOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationDeletePlugins)
     {
       if (deleteOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(deleteOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3604,12 +3576,6 @@ public class PluginConfigManager
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        deleteOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        deleteOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3620,28 +3586,31 @@ public class PluginConfigManager
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
         logError(message);
-
-        deleteOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        deleteOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation delete plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3655,15 +3624,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation extended plugins.
    */
-  public PostOperationPluginResult invokePostOperationExtendedPlugins(
+  public PluginResult.PostOperation invokePostOperationExtendedPlugins(
                              PostOperationExtendedOperation extendedOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationExtendedPlugins)
     {
       if (extendedOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(extendedOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3686,12 +3663,6 @@ public class PluginConfigManager
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        extendedOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        extendedOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3702,28 +3673,31 @@ public class PluginConfigManager
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
         logError(message);
-
-        extendedOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        extendedOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation extended
-      // plugins registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      // This should only happen if there were no post-operation add plugins
+      // registered, which is fine.
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3737,15 +3711,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation modify plugins.
    */
-  public PostOperationPluginResult invokePostOperationModifyPlugins(
+  public PluginResult.PostOperation invokePostOperationModifyPlugins(
                                    PostOperationModifyOperation modifyOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationModifyPlugins)
     {
       if (modifyOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(modifyOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3768,12 +3750,6 @@ public class PluginConfigManager
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        modifyOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3784,28 +3760,30 @@ public class PluginConfigManager
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
         logError(message);
-
-        modifyOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        modifyOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation modify plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
     }
-
-    return result;
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
+    }
+    return finalResult;
   }
 
 
@@ -3819,15 +3797,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation modify DN plugins.
    */
-  public PostOperationPluginResult invokePostOperationModifyDNPlugins(
+  public PluginResult.PostOperation invokePostOperationModifyDNPlugins(
                              PostOperationModifyDNOperation modifyDNOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationModifyDNPlugins)
     {
       if (modifyDNOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(modifyDNOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3850,12 +3836,6 @@ public class PluginConfigManager
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        modifyDNOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3866,28 +3846,31 @@ public class PluginConfigManager
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
         logError(message);
-
-        modifyDNOperation.setResultCode(
-                               DirectoryServer.getServerErrorResultCode());
-        modifyDNOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation modify DN
-      // plugins registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      // This should only happen if there were no post-operation add plugins
+      // registered, which is fine.
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3901,15 +3884,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation search plugins.
    */
-  public PostOperationPluginResult invokePostOperationSearchPlugins(
+  public PluginResult.PostOperation invokePostOperationSearchPlugins(
                                    PostOperationSearchOperation searchOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationSearchPlugins)
     {
       if (searchOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(searchOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -3932,12 +3923,6 @@ public class PluginConfigManager
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        searchOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        searchOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -3948,28 +3933,31 @@ public class PluginConfigManager
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
         logError(message);
-
-        searchOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        searchOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation search plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -3983,15 +3971,23 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-operation unbind plugins.
    */
-  public PostOperationPluginResult invokePostOperationUnbindPlugins(
+  public PluginResult.PostOperation invokePostOperationUnbindPlugins(
                                  PostOperationUnbindOperation unbindOperation)
   {
-    PostOperationPluginResult result = null;
+    PluginResult.PostOperation result = null;
+    PluginResult.PostOperation finalResult = null;
 
     for (DirectoryServerPlugin p : postOperationUnbindPlugins)
     {
       if (unbindOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      ArrayList<DirectoryServerPlugin> skippedPlugins =
+          skippedPreOperationPlugins.remove(unbindOperation);
+      if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
       }
@@ -4014,12 +4010,6 @@ public class PluginConfigManager
                 unbindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        unbindOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        unbindOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
 
       if (result == null)
@@ -4030,28 +4020,31 @@ public class PluginConfigManager
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID());
         logError(message);
-
-        unbindOperation.setResultCode(
-                             DirectoryServer.getServerErrorResultCode());
-        unbindOperation.appendErrorMessage(message);
-
-        return new PostOperationPluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continueProcessing())
       {
-        return result;
+        // This plugin requested operation processing to stop. However, we
+        // still have to invoke all the post op plugins that successfully
+        // invoked its pre op plugins. We will just take this plugin's
+        // results as the final result.
+        finalResult = result;
       }
     }
 
     if (result == null)
     {
-      // This should only happen if there were no post-operation unbind plugins
+      // This should only happen if there were no post-operation add plugins
       // registered, which is fine.
-      result = PostOperationPluginResult.SUCCESS;
+      finalResult = PluginResult.PostOperation.continueOperationProcessing();
+    }
+    else if(finalResult == null)
+    {
+      // None of the plugins requested processing to stop so all results
+      // have equal priority. Just return the last one.
+      finalResult = result;
     }
 
-    return result;
+    return finalResult;
   }
 
 
@@ -4065,10 +4058,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response add plugins.
    */
-  public PostResponsePluginResult invokePostResponseAddPlugins(
+  public PluginResult.PostResponse invokePostResponseAddPlugins(
                                        PostResponseAddOperation addOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseAddPlugins)
     {
@@ -4095,8 +4088,6 @@ public class PluginConfigManager
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4106,11 +4097,8 @@ public class PluginConfigManager
                 String.valueOf(p.getPluginEntryDN()),
                 addOperation.getConnectionID(), addOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4120,7 +4108,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4137,10 +4125,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response bind plugins.
    */
-  public PostResponsePluginResult invokePostResponseBindPlugins(
+  public PluginResult.PostResponse invokePostResponseBindPlugins(
                                        PostResponseBindOperation bindOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseBindPlugins)
     {
@@ -4167,8 +4155,6 @@ public class PluginConfigManager
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4179,11 +4165,8 @@ public class PluginConfigManager
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4191,9 +4174,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response bind plugins
+      // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4210,10 +4193,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response compare plugins.
    */
-  public PostResponsePluginResult invokePostResponseComparePlugins(
+  public PluginResult.PostResponse invokePostResponseComparePlugins(
       PostResponseCompareOperation compareOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseComparePlugins)
     {
@@ -4241,8 +4224,6 @@ public class PluginConfigManager
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4253,11 +4234,8 @@ public class PluginConfigManager
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4265,9 +4243,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response compare plugins
+      // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4284,10 +4262,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response delete plugins.
    */
-  public PostResponsePluginResult invokePostResponseDeletePlugins(
+  public PluginResult.PostResponse invokePostResponseDeletePlugins(
                           PostResponseDeleteOperation deleteOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseDeletePlugins)
     {
@@ -4315,8 +4293,6 @@ public class PluginConfigManager
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4327,11 +4303,8 @@ public class PluginConfigManager
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4339,11 +4312,10 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response delete plugins
+      // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
-
     return result;
   }
 
@@ -4358,10 +4330,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response extended plugins.
    */
-  public PostResponsePluginResult invokePostResponseExtendedPlugins(
+  public PluginResult.PostResponse invokePostResponseExtendedPlugins(
                               PostResponseExtendedOperation extendedOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseExtendedPlugins)
     {
@@ -4389,8 +4361,6 @@ public class PluginConfigManager
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4401,11 +4371,8 @@ public class PluginConfigManager
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4413,9 +4380,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response extended plugins
+      // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4432,10 +4399,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response modify plugins.
    */
-  public PostResponsePluginResult invokePostResponseModifyPlugins(
+  public PluginResult.PostResponse invokePostResponseModifyPlugins(
                                   PostResponseModifyOperation modifyOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseModifyPlugins)
     {
@@ -4463,8 +4430,6 @@ public class PluginConfigManager
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4475,11 +4440,8 @@ public class PluginConfigManager
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4487,9 +4449,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response modify plugins
+      // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4506,10 +4468,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response modify DN plugins.
    */
-  public PostResponsePluginResult invokePostResponseModifyDNPlugins(
+  public PluginResult.PostResponse invokePostResponseModifyDNPlugins(
                                PostResponseModifyDNOperation modifyDNOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseModifyDNPlugins)
     {
@@ -4537,8 +4499,6 @@ public class PluginConfigManager
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4549,11 +4509,8 @@ public class PluginConfigManager
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4561,9 +4518,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response modify DN
-      // plugins registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      // This should only happen if there were no post-response add plugins
+      // registered, which is fine.
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4580,10 +4537,10 @@ public class PluginConfigManager
    *
    * @return  The result of processing the post-response search plugins.
    */
-  public PostResponsePluginResult invokePostResponseSearchPlugins(
+  public PluginResult.PostResponse invokePostResponseSearchPlugins(
                                   PostResponseSearchOperation searchOperation)
   {
-    PostResponsePluginResult result = null;
+    PluginResult.PostResponse result = null;
 
     for (DirectoryServerPlugin p : postResponseSearchPlugins)
     {
@@ -4611,8 +4568,6 @@ public class PluginConfigManager
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
 
       if (result == null)
@@ -4623,11 +4578,8 @@ public class PluginConfigManager
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
         logError(message);
-
-        return new PostResponsePluginResult(false, false);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (!result.continuePluginProcessing())
       {
         return result;
       }
@@ -4635,9 +4587,9 @@ public class PluginConfigManager
 
     if (result == null)
     {
-      // This should only happen if there were no post-response search plugins
+      // This should only happen if there were no post-response add plugins
       // registered, which is fine.
-      result = PostResponsePluginResult.SUCCESS;
+      result = PluginResult.PostResponse.continueOperationProcessing();
     }
 
     return result;
@@ -4798,11 +4750,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the search result entry plugins.
    */
-  public SearchEntryPluginResult invokeSearchResultEntryPlugins(
+  public PluginResult.IntermediateResponse invokeSearchResultEntryPlugins(
                                  LocalBackendSearchOperation searchOperation,
                                  SearchResultEntry searchEntry)
   {
-    SearchEntryPluginResult result = null;
+    PluginResult.IntermediateResponse result = null;
 
     for (DirectoryServerPlugin p : searchResultEntryPlugins)
     {
@@ -4831,7 +4783,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        return new SearchEntryPluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4843,10 +4796,10 @@ public class PluginConfigManager
                 String.valueOf(searchEntry.getDN()));
         logError(message);
 
-        return new SearchEntryPluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (! result.continuePluginProcessing())
       {
         return result;
       }
@@ -4856,7 +4809,8 @@ public class PluginConfigManager
     {
       // This should only happen if there were no search result entry plugins
       // registered, which is fine.
-      result = SearchEntryPluginResult.SUCCESS;
+      result = PluginResult.IntermediateResponse.
+          continueOperationProcessing(true);
     }
 
     return result;
@@ -4874,11 +4828,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the search result entry plugins.
    */
-  public SearchEntryPluginResult invokeSearchResultEntryPlugins(
+  public PluginResult.IntermediateResponse invokeSearchResultEntryPlugins(
       SearchEntrySearchOperation searchOperation,
       SearchResultEntry searchEntry)
   {
-    SearchEntryPluginResult result = null;
+    PluginResult.IntermediateResponse result = null;
 
     for (DirectoryServerPlugin p : searchResultEntryPlugins)
     {
@@ -4913,7 +4867,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        return new SearchEntryPluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -4925,10 +4880,10 @@ public class PluginConfigManager
                 String.valueOf(searchEntry.getDN()));
         logError(message);
 
-        return new SearchEntryPluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (! result.continuePluginProcessing())
       {
         return result;
       }
@@ -4938,7 +4893,8 @@ public class PluginConfigManager
     {
       // This should only happen if there were no search result entry plugins
       // registered, which is fine.
-      result = SearchEntryPluginResult.SUCCESS;
+      result =
+          PluginResult.IntermediateResponse.continueOperationProcessing(true);
     }
 
     return result;
@@ -4956,11 +4912,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the search result reference plugins.
    */
-  public SearchReferencePluginResult invokeSearchResultReferencePlugins(
+  public PluginResult.IntermediateResponse invokeSearchResultReferencePlugins(
                                    LocalBackendSearchOperation searchOperation,
                                    SearchResultReference searchReference)
   {
-    SearchReferencePluginResult result = null;
+    PluginResult.IntermediateResponse result = null;
 
     for (DirectoryServerPlugin p : searchResultReferencePlugins)
     {
@@ -4989,7 +4945,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        return new SearchReferencePluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -5001,10 +4958,10 @@ public class PluginConfigManager
                 searchReference.getReferralURLString());
         logError(message);
 
-        return new SearchReferencePluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (! result.continuePluginProcessing())
       {
         return result;
       }
@@ -5014,7 +4971,8 @@ public class PluginConfigManager
     {
       // This should only happen if there were no search result reference
       // plugins registered, which is fine.
-      result = SearchReferencePluginResult.SUCCESS;
+      result =
+          PluginResult.IntermediateResponse.continueOperationProcessing(true);
     }
 
     return result;
@@ -5032,11 +4990,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the search result reference plugins.
    */
-  public SearchReferencePluginResult invokeSearchResultReferencePlugins(
+  public PluginResult.IntermediateResponse invokeSearchResultReferencePlugins(
       SearchReferenceSearchOperation searchOperation,
       SearchResultReference searchReference)
   {
-    SearchReferencePluginResult result = null;
+    PluginResult.IntermediateResponse result = null;
 
     for (DirectoryServerPlugin p : searchResultReferencePlugins)
     {
@@ -5065,7 +5023,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        return new SearchReferencePluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -5077,10 +5036,10 @@ public class PluginConfigManager
                 searchReference.getReferralURLString());
         logError(message);
 
-        return new SearchReferencePluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing(false,
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (! result.continuePluginProcessing())
       {
         return result;
       }
@@ -5090,7 +5049,8 @@ public class PluginConfigManager
     {
       // This should only happen if there were no search result reference
       // plugins registered, which is fine.
-      result = SearchReferencePluginResult.SUCCESS;
+      result =
+          PluginResult.IntermediateResponse.continueOperationProcessing(true);
     }
 
     return result;
@@ -5113,11 +5073,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the subordinate modify DN plugins.
    */
-  public SubordinateModifyDNPluginResult invokeSubordinateModifyDNPlugins(
+  public PluginResult.SubordinateModifyDN invokeSubordinateModifyDNPlugins(
               SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
               Entry newEntry, List<Modification> modifications)
   {
-    SubordinateModifyDNPluginResult result = null;
+    PluginResult.SubordinateModifyDN result = null;
 
     for (DirectoryServerPlugin p : subordinateModifyDNPlugins)
     {
@@ -5140,26 +5100,32 @@ public class PluginConfigManager
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        logError(ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION.get(
+
+        Message message =
+            ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_EXCEPTION.get(
                 String.valueOf(p.getPluginEntryDN()),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
-                stackTraceToSingleLineString(e)));
+                stackTraceToSingleLineString(e));
+        logError(message);
 
-        return new SubordinateModifyDNPluginResult(false, false, true);
+        return PluginResult.SubordinateModifyDN.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
       {
-        logError(ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL.get(
+        Message message =
+            ERR_PLUGIN_SUBORDINATE_MODIFY_DN_PLUGIN_RETURNED_NULL.get(
                         String.valueOf(p.getPluginEntryDN()),
                         modifyDNOperation.getConnectionID(),
-                        String.valueOf(modifyDNOperation.getOperationID())));
+                        String.valueOf(modifyDNOperation.getOperationID()));
+        logError(message);
 
-        return new SubordinateModifyDNPluginResult(false, false, true);
+        return PluginResult.SubordinateModifyDN.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (! result.continuePluginProcessing())
       {
         return result;
       }
@@ -5169,7 +5135,7 @@ public class PluginConfigManager
     {
       // This should only happen if there were no subordinate modify DN plugins
       // registered, which is fine.
-      result = SubordinateModifyDNPluginResult.SUCCESS;
+      result = PluginResult.SubordinateModifyDN.continueOperationProcessing();
     }
 
     return result;
@@ -5186,11 +5152,11 @@ public class PluginConfigManager
    *
    * @return  The result of processing the intermediate response plugins.
    */
-  public IntermediateResponsePluginResult
+  public PluginResult.IntermediateResponse
               invokeIntermediateResponsePlugins(
                    IntermediateResponse intermediateResponse)
   {
-    IntermediateResponsePluginResult result = null;
+    PluginResult.IntermediateResponse result = null;
     Operation operation = intermediateResponse.getOperation();
 
     for (DirectoryServerPlugin p : intermediateResponsePlugins)
@@ -5212,7 +5178,8 @@ public class PluginConfigManager
                 stackTraceToSingleLineString(e));
         logError(message);
 
-        return new IntermediateResponsePluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing
+            (false, DirectoryServer.getServerErrorResultCode(), message);
       }
 
       if (result == null)
@@ -5222,10 +5189,10 @@ public class PluginConfigManager
                 operation.getConnectionID(), operation.getOperationID());
         logError(message);
 
-        return new IntermediateResponsePluginResult(false, false, false, false);
+        return PluginResult.IntermediateResponse.stopProcessing
+            (false, DirectoryServer.getServerErrorResultCode(), message);
       }
-      else if (result.connectionTerminated() ||
-               (! result.continuePluginProcessing()))
+      else if (! result.continuePluginProcessing())
       {
         return result;
       }
@@ -5235,7 +5202,8 @@ public class PluginConfigManager
     {
       // This should only happen if there were no intermediate response plugins
       // registered, which is fine.
-      result = IntermediateResponsePluginResult.SUCCESS;
+      result =
+          PluginResult.IntermediateResponse.continueOperationProcessing(true);
     }
 
     return result;
@@ -5477,6 +5445,32 @@ public class PluginConfigManager
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+
+  private void registerSkippedPreOperationPlugins(int i,
+                                                DirectoryServerPlugin[] plugins,
+                                                 PluginOperation operation)
+  {
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        new ArrayList<DirectoryServerPlugin>(plugins.length - i);
+    for(int j = i; j < plugins.length; j++)
+    {
+      skippedPlugins.add(plugins[j]);
+    }
+    skippedPreOperationPlugins.put(operation, skippedPlugins);
+  }
+
+  private void registerSkippedPreOperationPlugin(DirectoryServerPlugin plugin,
+                                                 PluginOperation operation)
+  {
+    ArrayList<DirectoryServerPlugin> existingList =
+        skippedPreOperationPlugins.get(operation);
+    if(existingList == null)
+    {
+      existingList = new ArrayList<DirectoryServerPlugin>();
+    }
+    existingList.add(plugin);
+    skippedPreOperationPlugins.put(operation, existingList);
   }
 }
 

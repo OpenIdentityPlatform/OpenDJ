@@ -46,8 +46,8 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.LDIFPluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
@@ -335,8 +335,8 @@ public final class PasswordPolicyImportPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                             Entry entry)
+  public final PluginResult.ImportLDIF
+               doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
     // Create a list that we will use to hold new encoded values.
     ArrayList<ByteString> encodedValueList = new ArrayList<ByteString>();
@@ -384,7 +384,7 @@ policyLoop:
           attrList = entry.getAttribute(policy.getPasswordAttribute());
           if (attrList == null)
           {
-            return LDIFPluginResult.SUCCESS;
+            return PluginResult.ImportLDIF.continueEntryProcessing();
           }
 
           for (Attribute a : attrList)
@@ -470,7 +470,7 @@ policyLoop:
             }
           }
 
-          return LDIFPluginResult.SUCCESS;
+          return PluginResult.ImportLDIF.continueEntryProcessing();
         }
       }
     }
@@ -592,7 +592,7 @@ policyLoop:
     }
 
 
-    return LDIFPluginResult.SUCCESS;
+    return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
 

@@ -965,8 +965,7 @@ public class RootDSEBackend
    */
   @Override()
   public void search(SearchOperation searchOperation)
-         throws DirectoryException, CancelledOperationException
-  {
+         throws DirectoryException, CanceledOperationException {
     DN baseDN = searchOperation.getBaseDN();
     if (! baseDN.isNullDN())
     {
@@ -1002,11 +1001,7 @@ public class RootDSEBackend
 
         for (DN subBase : baseMap.keySet())
         {
-          CancelRequest cancelRequest = searchOperation.getCancelRequest();
-          if (cancelRequest != null)
-          {
-            throw new CancelledOperationException(CancelResult.CANCELED);
-          }
+          searchOperation.checkIfCanceled(false);
 
           Backend b = baseMap.get(subBase);
           Entry subBaseEntry = b.getEntry(subBase);
@@ -1033,11 +1028,7 @@ public class RootDSEBackend
         {
           for (DN subBase : baseMap.keySet())
           {
-            CancelRequest cancelRequest = searchOperation.getCancelRequest();
-            if (cancelRequest != null)
-            {
-              throw new CancelledOperationException(CancelResult.CANCELED);
-            }
+            searchOperation.checkIfCanceled(false);
 
             Backend b = baseMap.get(subBase);
             searchOperation.setBaseDN(subBase);

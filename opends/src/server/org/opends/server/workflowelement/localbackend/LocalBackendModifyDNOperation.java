@@ -41,8 +41,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -61,8 +60,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -114,9 +112,6 @@ public class LocalBackendModifyDNOperation
 
   // Indicates whether the no-op control was included in the request.
   private boolean noOp;
-
-  // Indicates whether to skip post-operation plugin processing.
-  private boolean skipPostOperation;
 
   // The client connection on which this operation was requested.
   private ClientConnection clientConnection;
@@ -190,9 +185,13 @@ public class LocalBackendModifyDNOperation
    *
    * @param  backend  The backend in which the modify DN operation should be
    *                  processed.
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
-  void processLocalModifyDN(Backend backend)
-  {
+  void processLocalModifyDN(Backend backend) throws CanceledOperationException {
+    boolean executePostOpPlugins = false;
+
     this.backend = backend;
 
     clientConnection = getClientConnection();
@@ -200,13 +199,9 @@ public class LocalBackendModifyDNOperation
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    skipPostOperation = false;
 
     // Check for a request to cancel this operation.
-    if (cancelIfRequested())
-    {
-      return;
-    }
+    checkIfCanceled(false);
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
@@ -220,7 +215,6 @@ modifyDNProcessing:
       newRDN = getNewRDN();
       if (newRDN == null)
       {
-        skipPostOperation = true;
         break modifyDNProcessing;
       }
 
@@ -228,7 +222,6 @@ modifyDNProcessing:
       if ((newSuperior == null) &&
           (getRawNewSuperior() != null))
       {
-        skipPostOperation = true;
         break modifyDNProcessing;
       }
 
@@ -283,10 +276,7 @@ modifyDNProcessing:
 
 
       // Check for a request to cancel this operation.
-      if (cancelIfRequested())
-      {
-        return;
-      }
+      checkIfCanceled(false);
 
 
       // Acquire write locks for the current and new DN.
@@ -305,7 +295,6 @@ modifyDNProcessing:
         setResultCode(DirectoryServer.getServerErrorResultCode());
         appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(
                                 String.valueOf(entryDN)));
-        skipPostOperation = true;
         break modifyDNProcessing;
       }
 
@@ -339,8 +328,6 @@ modifyDNProcessing:
         appendErrorMessage(ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(
                                 String.valueOf(entryDN), String.valueOf(newDN),
                                 getExceptionMessage(e)));
-
-        skipPostOperation = true;
         break modifyDNProcessing;
       }
 
@@ -352,17 +339,13 @@ modifyDNProcessing:
         appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(
                                 String.valueOf(entryDN),
                                 String.valueOf(newDN)));
-        skipPostOperation = true;
         break modifyDNProcessing;
       }
 
       try
       {
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
+        checkIfCanceled(false);
 
 
         // Get the current entry from the appropriate backend.  If it doesn't
@@ -424,8 +407,12 @@ modifyDNProcessing:
           {
             SynchronizationProviderResult result =
                  provider.handleConflictResolution(this);
-            if (! result.continueOperationProcessing())
+            if (! result.continueProcessing())
             {
+              setResultCode(result.getResultCode());
+              appendErrorMessage(result.getErrorMessage());
+              setMatchedDN(result.getMatchedDN());
+              setReferralURLs(result.getReferralURLs());
               break modifyDNProcessing;
             }
           }
@@ -480,7 +467,6 @@ modifyDNProcessing:
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                                   String.valueOf(entryDN)));
-          skipPostOperation = true;
           break modifyDNProcessing;
         }
 
@@ -514,11 +500,7 @@ modifyDNProcessing:
 
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
-
+        checkIfCanceled(false);
 
         // Get a count of the current number of modifications.  The
         // pre-operation plugins may alter this list, and we need to be able to
@@ -530,24 +512,15 @@ modifyDNProcessing:
         // Invoke the pre-operation modify DN plugins.
         if (! isSynchronizationOperation())
         {
-          PreOperationPluginResult preOpResult =
-            pluginConfigManager.invokePreOperationModifyDNPlugins(this);
-          if (preOpResult.connectionTerminated())
+          executePostOpPlugins = true;
+          PluginResult.PreOperation preOpResult =
+              pluginConfigManager.invokePreOperationModifyDNPlugins(this);
+          if (!preOpResult.continueProcessing())
           {
-            // There's no point in continuing with anything.  Log the request
-            // and result and return.
-            setResultCode(ResultCode.CANCELED);
-            appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-            return;
-          }
-          else if (preOpResult.sendResponseImmediately())
-          {
-            skipPostOperation = true;
-            break modifyDNProcessing;
-          }
-          else if (preOpResult.skipCoreProcessing())
-          {
-            skipPostOperation = false;
+            setResultCode(preOpResult.getResultCode());
+            appendErrorMessage(preOpResult.getErrorMessage());
+            setMatchedDN(preOpResult.getMatchedDN());
+            setReferralURLs(preOpResult.getReferralURLs());
             break modifyDNProcessing;
           }
         }
@@ -575,11 +548,7 @@ modifyDNProcessing:
 
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
-
+        checkIfCanceled(true);
 
         // Actually perform the modify DN operation.
         // This should include taking
@@ -641,9 +610,13 @@ modifyDNProcessing:
               try
               {
                 SynchronizationProviderResult result =
-                     provider.doPreOperation(this);
-                if (! result.continueOperationProcessing())
+                    provider.doPreOperation(this);
+                if (! result.continueProcessing())
                 {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
                   break modifyDNProcessing;
                 }
               }
@@ -685,59 +658,34 @@ modifyDNProcessing:
           setResponseData(de);
           break modifyDNProcessing;
         }
-        catch (CancelledOperationException coe)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-          }
-
-          CancelResult cancelResult = coe.getCancelResult();
-
-          setCancelResult(cancelResult);
-          setResultCode(cancelResult.getResultCode());
-
-          Message message = coe.getMessageObject();
-          if ((message != null) && (message.length() > 0))
-          {
-            appendErrorMessage(message);
-          }
-
-          break modifyDNProcessing;
-        }
       }
       finally
       {
         LockManager.unlock(entryDN, currentLock);
         LockManager.unlock(newDN, newLock);
-
-        for (SynchronizationProvider provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                          getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
       }
     }
 
+    for (SynchronizationProvider provider :
+        DirectoryServer.getSynchronizationProviders())
+    {
+      try
+      {
+        provider.doPostOperation(this);
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
 
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
+        logError(ERR_MODDN_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+            getOperationID(), getExceptionMessage(de)));
+        setResponseData(de);
+        break;
+      }
+    }
 
     // Invoke the post-operation or post-synchronization modify DN plugins.
     if (isSynchronizationOperation())
@@ -747,14 +695,16 @@ modifyDNProcessing:
         pluginConfigManager.invokePostSynchronizationModifyDNPlugins(this);
       }
     }
-    else if (! skipPostOperation)
+    else if (executePostOpPlugins)
     {
-      PostOperationPluginResult postOperationResult =
+      PluginResult.PostOperation postOpResult =
            pluginConfigManager.invokePostOperationModifyDNPlugins(this);
-      if (postOperationResult.connectionTerminated())
+      if (!postOpResult.continueProcessing())
       {
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
+        setResultCode(postOpResult.getResultCode());
+        appendErrorMessage(postOpResult.getErrorMessage());
+        setMatchedDN(postOpResult.getMatchedDN());
+        setReferralURLs(postOpResult.getReferralURLs());
         return;
       }
     }
@@ -789,27 +739,6 @@ modifyDNProcessing:
 
 
   /**
-   * Checks to determine whether there has been a request to cancel this
-   * operation.  If so, then set the cancel result and processing stop time.
-   *
-   * @return  {@code true} if there was a cancel request, or {@code false} if
-   *          not.
-   */
-  private boolean cancelIfRequested()
-  {
-    if (getCancelRequest() == null)
-    {
-      return false;
-    }
-
-    indicateCancelled(getCancelRequest());
-    setProcessingStopTime();
-    return true;
-  }
-
-
-
-  /**
    * Processes the set of controls included in the request.
    *
    * @throws  DirectoryException  If a problem occurs that should cause the
@@ -829,7 +758,6 @@ modifyDNProcessing:
         if (! AccessControlConfigManager.getInstance().
                    getAccessControlHandler().isAllowed(entryDN,  this, c))
         {
-          skipPostOperation = true;
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                          ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }

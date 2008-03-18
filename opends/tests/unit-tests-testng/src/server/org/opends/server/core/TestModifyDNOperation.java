@@ -47,6 +47,7 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.tools.LDAPModify;
+import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -466,6 +467,12 @@ public class TestModifyDNOperation extends OperationTestCase
                                null);
 
     modifyDNOperation.run();
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    Message.raw("testCancelBeforeStartup"));
+    CancelResult cancelResult = modifyDNOperation.cancel(cancelRequest);
+
+    assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
     assertEquals(modifyDNOperation.getResultCode(),
                  ResultCode.SUCCESS);
     assertEquals(modifyDNOperation.getErrorMessage().length(), 0);
@@ -1482,6 +1489,29 @@ public class TestModifyDNOperation extends OperationTestCase
       setUp();
       InvocationCounterPlugin.resetAllCounters();
     }
+  }
+
+  @Test
+  public void testCancelBeforeStartup() throws Exception
+  {
+    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    ModifyDNOperationBasis modifyDNOperation =
+         new ModifyDNOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+                               noControls,
+                               DN.decode("uid=user.invalid,ou=People,dc=example,dc=com"),
+                               RDN.decode("uid=user.test0"), true,
+                               DN.decode("dc=example,dc=com"));
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    Message.raw("testCancelBeforeStartup"));
+    modifyDNOperation.abort(cancelRequest);
+    modifyDNOperation.run();
+    assertEquals(modifyDNOperation.getResultCode(), ResultCode.CANCELED);
   }
 }
 

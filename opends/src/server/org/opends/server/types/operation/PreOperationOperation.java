@@ -28,13 +28,8 @@ package org.opends.server.types.operation;
 import org.opends.messages.Message;
 
 
-
-import java.util.List;
-
 import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
 
 import org.opends.messages.MessageBuilder;
 
@@ -72,26 +67,6 @@ public interface PreOperationOperation
    *                  to include in the response to the client.
    */
   public void removeResponseControl(Control control);
-
-
-
-  /**
-   * Retrieves the result code for this operation.
-   *
-   * @return  The result code associated for this operation, or
-   *          <CODE>UNDEFINED</CODE> if the operation has not yet
-   *          completed.
-   */
-  public ResultCode getResultCode();
-
-
-
-  /**
-   * Specifies the result code for this operation.
-   *
-   * @param  resultCode  The result code for this operation.
-   */
-  public void setResultCode(ResultCode resultCode);
 
 
 
@@ -158,61 +133,6 @@ public interface PreOperationOperation
    *                  additional log information for this operation.
    */
   public void appendAdditionalLogMessage(Message message);
-
-
-
-  /**
-   * Retrieves the matched DN for this operation.
-   *
-   * @return  The matched DN for this operation, or <CODE>null</CODE>
-   *          if the operation has not yet completed or does not have
-   *          a matched DN.
-   */
-  public DN getMatchedDN();
-
-
-
-  /**
-   * Specifies the matched DN for this operation.
-   *
-   * @param  matchedDN  The matched DN for this operation.
-   */
-  public void setMatchedDN(DN matchedDN);
-
-
-
-  /**
-   * Retrieves the set of referral URLs for this operation.  Its
-   * contents must not be altered by the caller.
-   *
-   * @return  The set of referral URLs for this operation, or
-   *          <CODE>null</CODE> if the operation is not yet complete
-   *          or does not have a set of referral URLs.
-   */
-  public List<String> getReferralURLs();
-
-
-
-  /**
-   * Specifies the set of referral URLs for this operation.
-   *
-   * @param  referralURLs  The set of referral URLs for this
-   *                       operation.
-   */
-  public void setReferralURLs(List<String> referralURLs);
-
-
-
-  /**
-   * Sets the response elements for this operation based on the
-   * information contained in the provided
-   * <CODE>DirectoryException</CODE> object.
-   *
-   * @param  directoryException  The exception containing the
-   *                             information to use for the response
-   *                             elements.
-   */
-  public void setResponseData(DirectoryException directoryException);
 
 
 

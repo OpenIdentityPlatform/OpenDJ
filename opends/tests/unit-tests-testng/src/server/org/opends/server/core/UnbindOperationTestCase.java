@@ -36,10 +36,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.Operation;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
 
@@ -131,8 +128,8 @@ public class UnbindOperationTestCase
     UnbindOperationBasis unbindOperation =
          new UnbindOperationBasis(conn, conn.nextOperationID(),
                              conn.nextMessageID(), new ArrayList<Control>());
-    assertEquals(unbindOperation.cancel(cancelRequest),
-                 CancelResult.CANNOT_CANCEL);
+    assertEquals(unbindOperation.cancel(cancelRequest).getResultCode(),
+                 ResultCode.CANNOT_CANCEL);
   }
 
 
@@ -155,8 +152,8 @@ public class UnbindOperationTestCase
                              conn.nextMessageID(), new ArrayList<Control>());
     assertNull(unbindOperation.getCancelRequest());
 
-    assertEquals(unbindOperation.cancel(cancelRequest),
-                 CancelResult.CANNOT_CANCEL);
+    assertEquals(unbindOperation.cancel(cancelRequest).getResultCode(),
+                 ResultCode.CANNOT_CANCEL);
 
     assertNull(unbindOperation.getCancelRequest());
   }

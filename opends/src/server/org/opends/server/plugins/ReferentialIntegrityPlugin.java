@@ -51,10 +51,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.SubordinateModifyDNPluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -377,7 +374,7 @@ public class ReferentialIntegrityPlugin
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
          doPostOperation(PostOperationModifyDNOperation
           modifyDNOperation)
   {
@@ -385,7 +382,7 @@ public class ReferentialIntegrityPlugin
     // nothing changed.
     if (modifyDNOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      return PostOperationPluginResult.SUCCESS;
+      return PluginResult.PostOperation.continueOperationProcessing();
     }
 
     if (modifyDNOperation.getNewSuperior() == null)
@@ -406,7 +403,7 @@ public class ReferentialIntegrityPlugin
       processModifyDN(modDNmap, (interval != 0));
     }
 
-    return PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -414,25 +411,25 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
-  public PostOperationPluginResult doPostOperation(
+  public PluginResult.PostOperation doPostOperation(
               PostOperationDeleteOperation deleteOperation)
   {
     // If the operation itself failed, then we don't need to do anything because
     // nothing changed.
     if (deleteOperation.getResultCode() != ResultCode.SUCCESS)
     {
-      return PostOperationPluginResult.SUCCESS;
+      return PluginResult.PostOperation.continueOperationProcessing();
     }
 
     processDelete(deleteOperation.getEntryDN(), (interval != 0));
-    return  PostOperationPluginResult.SUCCESS;
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
   /**
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
-  public SubordinateModifyDNPluginResult processSubordinateModifyDN(
+  public PluginResult.SubordinateModifyDN processSubordinateModifyDN(
           SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
           Entry newEntry, List<Modification> modifications)
   {
@@ -448,7 +445,7 @@ public class ReferentialIntegrityPlugin
       modifyDNOperation.setAttachment(MODIFYDN_DNS, modDNmap);
     }
     modDNmap.put(oldEntry.getDN(), newEntry.getDN());
-    return SubordinateModifyDNPluginResult.SUCCESS;
+    return PluginResult.SubordinateModifyDN.continueOperationProcessing();
   }
 
 

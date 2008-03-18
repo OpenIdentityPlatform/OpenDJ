@@ -51,19 +51,11 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.WritabilityMode;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
@@ -181,7 +173,7 @@ public class DeleteOperationTestCase
    * non-null, then was changed to null; because of the call to the
    * <CODE>setRawEntry<CODE> method, and becomes non-null again because
    * of the call to the <CODE>getEntryDN</CODE> again.
-   * 
+   *
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -814,9 +806,37 @@ public class DeleteOperationTestCase
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
-    deleteOperation.setCancelRequest(cancelRequest);
+    deleteOperation.abort(cancelRequest);
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.CANCELED);
+  }
+
+  /**
+   * Tests a delete operation that gets canceled before startup.
+   *
+   * @throws  Exception  If an unexpected probem occurs.
+   */
+  @Test()
+  public void testCancelAfterOperation()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    DeleteOperationBasis deleteOperation =
+         new DeleteOperationBasis(conn, conn.nextOperationID(), conn.nextMessageID(),
+                             null, new ASN1OctetString("o=test"));
+
+    deleteOperation.run();
+
+    CancelRequest cancelRequest = new CancelRequest(false,
+                                                    Message.raw("testCancelAfterOperation"));
+    CancelResult cancelResult = deleteOperation.cancel(cancelRequest);
+
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(cancelResult.getResultCode(), ResultCode.TOO_LATE);
   }
 
 

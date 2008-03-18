@@ -387,7 +387,7 @@ public class MultimasterReplication
     ReplicationDomain domain =
       findDomain(modifyOperation.getEntryDN(), modifyOperation);
     if (domain == null)
-      return new SynchronizationProviderResult(true);
+      return new SynchronizationProviderResult.ContinueProcessing();
 
     return domain.handleConflictResolution(modifyOperation);
   }
@@ -402,7 +402,7 @@ public class MultimasterReplication
     ReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
-      return new SynchronizationProviderResult(true);
+      return new SynchronizationProviderResult.ContinueProcessing();
 
     return domain.handleConflictResolution(addOperation);
   }
@@ -417,7 +417,7 @@ public class MultimasterReplication
     ReplicationDomain domain =
       findDomain(deleteOperation.getEntryDN(), deleteOperation);
     if (domain == null)
-      return new SynchronizationProviderResult(true);
+      return new SynchronizationProviderResult.ContinueProcessing();
 
     return domain.handleConflictResolution(deleteOperation);
   }
@@ -432,7 +432,7 @@ public class MultimasterReplication
     ReplicationDomain domain =
       findDomain(modifyDNOperation.getEntryDN(), modifyDNOperation);
     if (domain == null)
-      return new SynchronizationProviderResult(true);
+      return new SynchronizationProviderResult.ContinueProcessing();
 
     return domain.handleConflictResolution(modifyDNOperation);
   }
@@ -448,7 +448,7 @@ public class MultimasterReplication
     ReplicationDomain domain = findDomain(operationDN, modifyOperation);
 
     if ((domain == null) || (!domain.solveConflict()))
-      return new SynchronizationProviderResult(true);
+      return new SynchronizationProviderResult.ContinueProcessing();
 
     Historical historicalInformation = (Historical)
                             modifyOperation.getAttachment(
@@ -463,7 +463,7 @@ public class MultimasterReplication
 
     historicalInformation.generateState(modifyOperation);
 
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**
@@ -473,7 +473,7 @@ public class MultimasterReplication
   public SynchronizationProviderResult doPreOperation(
          PreOperationDeleteOperation deleteOperation) throws DirectoryException
   {
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**
@@ -484,7 +484,7 @@ public class MultimasterReplication
          PreOperationModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
   /**
@@ -497,12 +497,12 @@ public class MultimasterReplication
     ReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
-      return new SynchronizationProviderResult(true);
+      return new SynchronizationProviderResult.ContinueProcessing();
 
     if (!addOperation.isSynchronizationOperation())
       domain.doPreOperation(addOperation);
 
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
 

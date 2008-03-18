@@ -26,39 +26,22 @@
  */
 package org.opends.server.types;
 
+import org.opends.messages.Message;
+
+import java.util.List;
+
 
 /**
  * This class defines a data structure that holds information about
  * the result of processing by a synchronization provider.
  */
 @org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
-     mayExtend=false,
-     mayInvoke=true)
-public final class SynchronizationProviderResult
+    stability=org.opends.server.types.StabilityLevel.VOLATILE,
+    mayInstantiate=false,
+    mayExtend=false,
+    mayInvoke=true)
+public interface SynchronizationProviderResult
 {
-  // Indicates whether processing should continue on the operation.
-  private boolean continueOperationProcessing;
-
-
-
-  /**
-   * Creates a new synchronization provider result with the provided
-   * information.
-   *
-   * @param  continueOperationProcessing  Indicates whether processing
-   *                                      should continue on the
-   *                                      associated operation.
-   */
-  public SynchronizationProviderResult(
-              boolean continueOperationProcessing)
-  {
-    this.continueOperationProcessing = continueOperationProcessing;
-  }
-
-
-
   /**
    * Indicates whether processing on the associated operation should
    * continue.
@@ -67,58 +50,182 @@ public final class SynchronizationProviderResult
    *          operation should continue, or <CODE>false</CODE> if it
    *          should stop.
    */
-  public boolean continueOperationProcessing()
-  {
-    return continueOperationProcessing;
-  }
-
-
+  public boolean continueProcessing();
 
   /**
-   * Specifies whether processing on the associated operation should
-   * continue.
+   * Retrieves the error message if <code>continueProcessing</code>
+   * returned <code>false</code>.
    *
-   * @param  continueOperationProcessing  Indicates whether processing
-   *                                      should continue on the
-   *                                      associated operation.
+   * @return An error message explaining why processing should
+   * stop or <code>null</code> if none is provided.
    */
-  public void setContinueOperationProcessing(
-                   boolean continueOperationProcessing)
-  {
-    this.continueOperationProcessing = continueOperationProcessing;
-  }
-
-
+  public Message getErrorMessage();
 
   /**
-   * Retrieves a string representation of this post-response plugin
-   * result.
+   * Retrieves the result code for the operation
+   * if <code>continueProcessing</code> returned <code>false</code>.
    *
-   * @return  A string representation of this post-response plugin
-   *          result.
+   * @return the result code for the operation or <code>null</code>
+   * if none is provided.
    */
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
-
-
+  public ResultCode getResultCode();
 
   /**
-   * Appends a string representation of this post-response plugin
-   * result to the provided buffer.
+   * Retrieves the matched DN for the operation
+   * if <code>continueProcessing</code> returned <code>false</code>.
    *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
+   * @return the matched DN for the operation or <code>null</code>
+   * if none is provided.
    */
-  public void toString(StringBuilder buffer)
+  public DN getMatchedDN();
+
+  /**
+   * Retrieves the referral URLs for the operation
+   * if <code>continueProcessing</code> returned <code>false</code>.
+   *
+   * @return the refferal URLs for the operation or
+   * <code>null</code> if none is provided.
+   */
+  public List<String> getReferralURLs();
+
+  /**
+   * Defines a continue processing synchronization provider result.
+   */
+  public class ContinueProcessing
+      implements SynchronizationProviderResult
   {
-    buffer.append("SynchronizationProviderResult(" +
-                  "continueOperationProcessing=");
-    buffer.append(continueOperationProcessing);
-    buffer.append(")");
+    /**
+     * {@inheritDoc}
+     */
+    public ResultCode getResultCode()
+    {
+      return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public DN getMatchedDN()
+    {
+      return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<String> getReferralURLs()
+    {
+      return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean continueProcessing()
+    {
+      return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Message getErrorMessage()
+    {
+      return null;
+    }
+  }
+
+  /**
+   * Defines a stop processing synchronization provider result.
+   */
+  public class StopProcessing
+      implements SynchronizationProviderResult
+  {
+    // The matched DN for this result.
+    private final DN matchedDN;
+
+    // The set of referral URLs for this result.
+    private final List<String> referralURLs;
+
+    // The result code for this result.
+    private final ResultCode resultCode;
+
+    private final Message errorMessage;
+
+    /**
+     * Contrust a new stop processing synchronization provider
+     *  result.
+     *
+     * @param resultCode The result code for this result.
+     * @param errorMessage An message explaining why processing
+     * should stop.
+     * @param matchedDN The matched DN for this result.
+     * @param referralURLs The set of referral URLs for this result.
+     */
+    public StopProcessing(ResultCode resultCode, Message errorMessage,
+                          DN matchedDN, List<String> referralURLs)
+    {
+      this.errorMessage = errorMessage;
+      this.matchedDN = matchedDN;
+      this.resultCode = resultCode;
+      this.referralURLs = referralURLs;
+    }
+
+    /**
+     * Contrust a new stop processing synchronization provider
+     *  result.
+     *
+     * @param resultCode The result code for this result.
+     * @param errorMessage An message explaining why processing
+     * should stop.
+     */
+    public StopProcessing(ResultCode resultCode, Message errorMessage)
+    {
+      this.errorMessage = errorMessage;
+      this.resultCode = resultCode;
+      this.matchedDN = null;
+      this.referralURLs = null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ResultCode getResultCode()
+    {
+      return resultCode;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public DN getMatchedDN()
+    {
+      return matchedDN;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public List<String> getReferralURLs()
+    {
+      return referralURLs;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean continueProcessing()
+    {
+      return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Message getErrorMessage()
+    {
+      return errorMessage;
+    }
   }
 }
 

@@ -645,7 +645,7 @@ public class PasswordPolicyStateExtendedOperation
     PasswordPolicy      policy;
     try
     {
-      pwpState = new PasswordPolicyState(userEntry, false, false);
+      pwpState = new PasswordPolicyState(userEntry, false);
       policy   = pwpState.getPolicy();
     }
     catch (DirectoryException de)

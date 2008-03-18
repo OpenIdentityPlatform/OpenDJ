@@ -30,11 +30,9 @@ package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
 
-import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.PersistentSearchControl;
@@ -47,8 +45,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperationWrapper;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.CancelledOperationException;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -93,9 +90,6 @@ public class LocalBackendSearchOperation
   // only be false if it's a persistent search with changesOnly=true.
   private boolean processSearch;
 
-  // Indicates whether to skip post-operation plugin processing.
-  private boolean skipPostOperation;
-
   // The client connection for the search operation.
   private ClientConnection clientConnection;
 
@@ -129,9 +123,13 @@ public class LocalBackendSearchOperation
    *
    * @param  backend  The backend in which the search operation should be
    *                  performed.
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
-  void processLocalSearch(Backend backend)
-  {
+  void processLocalSearch(Backend backend) throws CanceledOperationException {
+    boolean executePostOpPlugins = false;
+
     this.backend = backend;
 
     clientConnection = getClientConnection();
@@ -139,8 +137,10 @@ public class LocalBackendSearchOperation
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
       DirectoryServer.getPluginConfigManager();
-    skipPostOperation = false;
     processSearch = true;
+
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
@@ -186,46 +186,29 @@ searchProcessing:
         setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
         appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                                 String.valueOf(baseDN)));
-        skipPostOperation = true;
         break searchProcessing;
       }
 
       // Check for a request to cancel this operation.
-      if (cancelIfRequested())
-      {
-        return;
-      }
+      checkIfCanceled(false);
 
 
       // Invoke the pre-operation search plugins.
-      PreOperationPluginResult preOpResult =
-           pluginConfigManager.invokePreOperationSearchPlugins(this);
-      if (preOpResult.connectionTerminated())
+      executePostOpPlugins = true;
+      PluginResult.PreOperation preOpResult =
+          pluginConfigManager.invokePreOperationSearchPlugins(this);
+      if (!preOpResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-        setProcessingStopTime();
-        return;
-      }
-      else if (preOpResult.sendResponseImmediately())
-      {
-        skipPostOperation = true;
-        break searchProcessing;
-      }
-      else if (preOpResult.skipCoreProcessing())
-      {
-        skipPostOperation = false;
+        setResultCode(preOpResult.getResultCode());
+        appendErrorMessage(preOpResult.getErrorMessage());
+        setMatchedDN(preOpResult.getMatchedDN());
+        setReferralURLs(preOpResult.getReferralURLs());
         break searchProcessing;
       }
 
 
       // Check for a request to cancel this operation.
-      if (cancelIfRequested())
-      {
-        return;
-      }
+      checkIfCanceled(false);
 
 
       // Get the backend that should hold the search base.  If there is none,
@@ -277,33 +260,6 @@ searchProcessing:
 
         break searchProcessing;
       }
-      catch (CancelledOperationException coe)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-        }
-
-        CancelResult cancelResult = coe.getCancelResult();
-
-        setCancelResult(cancelResult);
-        setResultCode(cancelResult.getResultCode());
-
-        Message message = coe.getMessageObject();
-        if ((message != null) && (message.length() > 0))
-        {
-          appendErrorMessage(message);
-        }
-
-        if (persistentSearch != null)
-        {
-          DirectoryServer.deregisterPersistentSearch(persistentSearch);
-          setSendResponse(true);
-        }
-
-        skipPostOperation = true;
-        break searchProcessing;
-      }
       catch (Exception e)
       {
         if (debugEnabled())
@@ -321,55 +277,28 @@ searchProcessing:
           setSendResponse(true);
         }
 
-        skipPostOperation = true;
         break searchProcessing;
       }
     }
 
 
     // Check for a request to cancel this operation.
-    if (cancelIfRequested())
-    {
-      return;
-    }
-
+    checkIfCanceled(false);
 
     // Invoke the post-operation search plugins.
-    if (! skipPostOperation)
+    if (executePostOpPlugins)
     {
-      PostOperationPluginResult postOperationResult =
+      PluginResult.PostOperation postOpResult =
            pluginConfigManager.invokePostOperationSearchPlugins(this);
-      if (postOperationResult.connectionTerminated())
+      if (!postOpResult.continueProcessing())
       {
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
-        setProcessingStopTime();
-        return;
+        setResultCode(postOpResult.getResultCode());
+        appendErrorMessage(postOpResult.getErrorMessage());
+        setMatchedDN(postOpResult.getMatchedDN());
+        setReferralURLs(postOpResult.getReferralURLs());
       }
     }
   }
-
-
-
-  /**
-   * Checks to determine whether there has been a request to cancel this
-   * operation.  If so, then set the cancel result and processing stop time.
-   *
-   * @return  {@code true} if there was a cancel request, or {@code false} if
-   *          not.
-   */
-  private boolean cancelIfRequested()
-  {
-    if (getCancelRequest() == null)
-    {
-      return false;
-    }
-
-    indicateCancelled(getCancelRequest());
-    setProcessingStopTime();
-    return true;
-  }
-
 
 
   /**
@@ -391,7 +320,6 @@ searchProcessing:
         if (! AccessControlConfigManager.getInstance().
                    getAccessControlHandler().isAllowed(baseDN, this, c))
         {
-          skipPostOperation = true;
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                          ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }

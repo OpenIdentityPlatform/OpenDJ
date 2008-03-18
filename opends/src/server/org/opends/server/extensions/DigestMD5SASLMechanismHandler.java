@@ -1020,7 +1020,7 @@ public class DigestMD5SASLMechanismHandler
     try
     {
       PasswordPolicyState pwPolicyState =
-           new PasswordPolicyState(userEntry, false, false);
+           new PasswordPolicyState(userEntry, false);
       clearPasswords = pwPolicyState.getClearPasswords();
       if ((clearPasswords == null) || clearPasswords.isEmpty())
       {

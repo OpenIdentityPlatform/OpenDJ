@@ -30,6 +30,7 @@ package org.opends.server.tools;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.VerifyConfig;
 import org.opends.server.config.ConfigException;
@@ -40,6 +41,8 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
@@ -73,6 +76,7 @@ import org.opends.server.admin.std.server.BackendCfg;
 public class VerifyIndex
 {
   private static ErrorLogPublisher errorLogPublisher = null;
+  private static DebugLogPublisher debugLogPublisher = null;
   /**
    * Processes the command-line arguments and invokes the verify process.
    *
@@ -85,6 +89,10 @@ public class VerifyIndex
     if(errorLogPublisher != null)
     {
       ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
+    }
+    if(debugLogPublisher != null)
+    {
+      DebugLogger.removeDebugLogPublisher(debugLogPublisher);
     }
 
     if(retCode != 0)
@@ -387,6 +395,11 @@ public class VerifyIndex
             new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
                                                   new TextWriter.STREAM(out));
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+
+        debugLogPublisher =
+          TextDebugLogPublisher.getStartupTextDebugPublisher(
+              new TextWriter.STDOUT());
+        DebugLogger.addDebugLogPublisher(debugLogPublisher);
 
       }
       catch(Exception e)

@@ -36,10 +36,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.SevenBitCleanPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.LDIFPluginResult;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -78,15 +75,6 @@ public final class SevenBitCleanPlugin
    * The bitmask that will be used to make the comparisons.
    */
   private static final byte MASK = (byte) 0x7F;
-
-
-
-  /**
-   * The result that should be returned if a pre-parse operation fails the 7-bit
-   * clean check.
-   */
-  private static final PreParsePluginResult PRE_PARSE_FAILURE_RESULT =
-       new PreParsePluginResult(false, false, false, true);
 
 
 
@@ -157,8 +145,8 @@ public final class SevenBitCleanPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                             Entry entry)
+  public final PluginResult.ImportLDIF
+               doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
     // Get the current configuration for this plugin.
     SevenBitCleanPluginCfg config = currentConfig;
@@ -184,7 +172,7 @@ public final class SevenBitCleanPlugin
       if (! found)
       {
         // The entry is out of scope, so we won't process it.
-        return LDIFPluginResult.SUCCESS;
+        return PluginResult.ImportLDIF.continueEntryProcessing();
       }
     }
 
@@ -204,7 +192,7 @@ public final class SevenBitCleanPlugin
               Message rejectMessage =
                    ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(
                         a.getNameWithOptions());
-              return new LDIFPluginResult(false, false, rejectMessage);
+              return PluginResult.ImportLDIF.stopEntryProcessing(rejectMessage);
             }
           }
         }
@@ -213,7 +201,7 @@ public final class SevenBitCleanPlugin
 
 
     // If we've gotten here, then everything is acceptable.
-    return LDIFPluginResult.SUCCESS;
+    return PluginResult.ImportLDIF.continueEntryProcessing();
   }
 
 
@@ -222,8 +210,8 @@ public final class SevenBitCleanPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreParsePluginResult
-                    doPreParse(PreParseAddOperation addOperation)
+  public final PluginResult.PreParse
+               doPreParse(PreParseAddOperation addOperation)
   {
     // Get the current configuration for this plugin.
     SevenBitCleanPluginCfg config = currentConfig;
@@ -238,9 +226,8 @@ public final class SevenBitCleanPlugin
     }
     catch (DirectoryException de)
     {
-      addOperation.appendErrorMessage(
-           ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
-      return PRE_PARSE_FAILURE_RESULT;
+      return PluginResult.PreParse.stopProcessing(de.getResultCode(),
+          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
     }
 
     if (isInScope(config, entryDN))
@@ -254,9 +241,10 @@ public final class SevenBitCleanPlugin
         }
         catch (LDAPException le)
         {
-          addOperation.appendErrorMessage(
-               ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(le.getMessageObject()));
-          return PRE_PARSE_FAILURE_RESULT;
+          return PluginResult.PreParse.stopProcessing(
+              ResultCode.valueOf(le.getResultCode()),
+              ERR_PLUGIN_7BIT_CANNOT_DECODE_ATTR.get(
+                  rawAttr.getAttributeType(), le.getErrorMessage()));
         }
 
         if (! config.getAttributeType().contains(a.getAttributeType()))
@@ -268,10 +256,10 @@ public final class SevenBitCleanPlugin
         {
           if (! is7BitClean(v.getValue()))
           {
-            addOperation.appendErrorMessage(
-                 ERR_PLUGIN_7BIT_ADD_ATTR_NOT_CLEAN.get(
-                      rawAttr.getAttributeType()));
-            return PRE_PARSE_FAILURE_RESULT;
+            return PluginResult.PreParse.stopProcessing(
+                ResultCode.CONSTRAINT_VIOLATION,
+                ERR_PLUGIN_7BIT_MODIFYDN_ATTR_NOT_CLEAN.get(
+                    rawAttr.getAttributeType()));
           }
         }
       }
@@ -279,7 +267,7 @@ public final class SevenBitCleanPlugin
 
 
     // If we've gotten here, then everything is acceptable.
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -288,7 +276,7 @@ public final class SevenBitCleanPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreParsePluginResult
+  public final PluginResult.PreParse
                     doPreParse(PreParseModifyOperation modifyOperation)
   {
     // Get the current configuration for this plugin.
@@ -304,9 +292,8 @@ public final class SevenBitCleanPlugin
     }
     catch (DirectoryException de)
     {
-      modifyOperation.appendErrorMessage(
-           ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
-      return PRE_PARSE_FAILURE_RESULT;
+      return PluginResult.PreParse.stopProcessing(de.getResultCode(),
+          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
     }
 
     if (isInScope(config, entryDN))
@@ -332,9 +319,10 @@ public final class SevenBitCleanPlugin
         }
         catch (LDAPException le)
         {
-          modifyOperation.appendErrorMessage(
-               ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(le.getMessageObject()));
-          return PRE_PARSE_FAILURE_RESULT;
+          return PluginResult.PreParse.stopProcessing(
+              ResultCode.valueOf(le.getResultCode()),
+              ERR_PLUGIN_7BIT_CANNOT_DECODE_ATTR.get(
+                  rawAttr.getAttributeType(), le.getErrorMessage()));
         }
 
         if (! config.getAttributeType().contains(a.getAttributeType()))
@@ -346,10 +334,10 @@ public final class SevenBitCleanPlugin
         {
           if (! is7BitClean(v.getValue()))
           {
-            modifyOperation.appendErrorMessage(
-                 ERR_PLUGIN_7BIT_MODIFY_ATTR_NOT_CLEAN.get(
-                      rawAttr.getAttributeType()));
-            return PRE_PARSE_FAILURE_RESULT;
+            return PluginResult.PreParse.stopProcessing(
+                ResultCode.CONSTRAINT_VIOLATION,
+                ERR_PLUGIN_7BIT_MODIFYDN_ATTR_NOT_CLEAN.get(
+                    rawAttr.getAttributeType()));
           }
         }
       }
@@ -357,7 +345,7 @@ public final class SevenBitCleanPlugin
 
 
     // If we've gotten here, then everything is acceptable.
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -366,7 +354,7 @@ public final class SevenBitCleanPlugin
    * {@inheritDoc}
    */
   @Override()
-  public final PreParsePluginResult
+  public final PluginResult.PreParse
                     doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
     // Get the current configuration for this plugin.
@@ -382,9 +370,8 @@ public final class SevenBitCleanPlugin
     }
     catch (DirectoryException de)
     {
-      modifyDNOperation.appendErrorMessage(
-           ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
-      return PRE_PARSE_FAILURE_RESULT;
+      return PluginResult.PreParse.stopProcessing(de.getResultCode(),
+          ERR_PLUGIN_7BIT_CANNOT_DECODE_DN.get(de.getMessageObject()));
     }
 
     if (isInScope(config, entryDN))
@@ -398,9 +385,8 @@ public final class SevenBitCleanPlugin
       }
       catch (DirectoryException de)
       {
-        modifyDNOperation.appendErrorMessage(
-             ERR_PLUGIN_7BIT_CANNOT_DECODE_NEW_RDN.get(de.getMessageObject()));
-        return PRE_PARSE_FAILURE_RESULT;
+        return PluginResult.PreParse.stopProcessing(de.getResultCode(),
+            ERR_PLUGIN_7BIT_CANNOT_DECODE_NEW_RDN.get(de.getMessageObject()));
       }
 
       int numValues = newRDN.getNumValues();
@@ -413,17 +399,17 @@ public final class SevenBitCleanPlugin
 
         if (! is7BitClean(newRDN.getAttributeValue(i).getValue()))
         {
-          modifyDNOperation.appendErrorMessage(
-               ERR_PLUGIN_7BIT_MODIFYDN_ATTR_NOT_CLEAN.get(
-                    newRDN.getAttributeName(i)));
-          return PRE_PARSE_FAILURE_RESULT;
+          return PluginResult.PreParse.stopProcessing(
+              ResultCode.CONSTRAINT_VIOLATION,
+              ERR_PLUGIN_7BIT_MODIFYDN_ATTR_NOT_CLEAN.get(
+                  newRDN.getAttributeName(i)));
         }
       }
     }
 
 
     // If we've gotten here, then everything is acceptable.
-    return PreParsePluginResult.SUCCESS;
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 

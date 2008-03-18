@@ -26,6 +26,7 @@
  */
 package org.opends.server.types;
 
+import org.opends.messages.Message;
 
 
 /**
@@ -38,59 +39,29 @@ package org.opends.server.types;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public enum CancelResult
+public class CancelResult
 {
-  /**
-   * The cancel result that indicates that the target operation was
-   * canceled successfully and in a manner that should have no
-   * permanent effects on the server or the data it contains.
-   */
-  CANCELED(ResultCode.CANCELED),
-
-
-
-  /**
-   * The cancel result that indicates that the target operation could
-   * not be found, which may mean that it either does not exist or has
-   * already completed.
-   */
-  NO_SUCH_OPERATION(ResultCode.NO_SUCH_OPERATION),
-
-
-
-  /**
-   * The cancel result that indicates that processing on the target
-   * operation had already progressed to a point in which it was too
-   * late to be able to cancel.
-   */
-  TOO_LATE(ResultCode.TOO_LATE),
-
-
-
-  /**
-   * The cancel result that indicates that the operation exists but
-   * cannot be canceled for some reason (e.g., it is an abandon, bind,
-   * cancel, or unbind operation, or if it is one that would impact
-   * the security of the underlying connection).
-   */
-  CANNOT_CANCEL(ResultCode.CANNOT_CANCEL);
-
-
-
   // The result code associated with this cancel result.
   private final ResultCode resultCode;
 
-
+  // A human-readable response that the server
+  // provided for the result of the cancellation.
+  private final Message responseMessage;
 
   /**
    * Creates a new cancel result with the provided result code.
    *
    * @param  resultCode  The result code associated with this cancel
    *                     result.
+   *
+   * @param  responseMessage A human-readable response that the
+   *                         server provided for the result
+   *                         of the cancellation.
    */
-  private CancelResult(ResultCode resultCode)
+  public CancelResult(ResultCode resultCode, Message responseMessage)
   {
     this.resultCode = resultCode;
+    this.responseMessage = responseMessage;
   }
 
 
@@ -105,7 +76,19 @@ public enum CancelResult
     return resultCode;
   }
 
-
+  /**
+   * Retrieves the human-readable response that the server provided
+   * for the result of the cancellation.  The caller may alter the
+   * contents of this buffer.
+   *
+   * @return  The buffer that is used to hold a human-readable
+   *          response that the server provided for the result of this
+   *          cancellation.
+   */
+  public Message getResponseMessage()
+  {
+    return responseMessage;
+  }
 
   /**
    * Retrieves a string representation of this cancel result.

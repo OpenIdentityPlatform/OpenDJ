@@ -29,13 +29,12 @@ package org.opends.server.plugins;
 
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -135,7 +134,7 @@ public class UpdatePreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
   {
     for (AttributeType t : removeAttributes)
@@ -160,7 +159,7 @@ public class UpdatePreOpPlugin
       addOperation.addObjectClass(oc, oc.getPrimaryName());
     }
 
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -169,7 +168,7 @@ public class UpdatePreOpPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
     for (Modification m : modifications)
@@ -180,12 +179,12 @@ public class UpdatePreOpPlugin
       }
       catch (DirectoryException de)
       {
-        modifyOperation.setResponseData(de);
-        return new PreOperationPluginResult(false, false, true);
+        return PluginResult.PreOperation.stopProcessing(de.getResultCode(),
+            de.getMessageObject(), de.getMatchedDN(), de.getReferralURLs());
       }
     }
 
-    return PreOperationPluginResult.SUCCESS;
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 

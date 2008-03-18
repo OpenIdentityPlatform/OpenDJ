@@ -32,7 +32,7 @@ import java.util.*;
 import javax.management.remote.JMXAuthenticator;
 import javax.security.auth.Subject;
 
-import org.opends.server.api.plugin.PostConnectPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.BindOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
@@ -199,11 +199,22 @@ public class RmiAuthenticator implements JMXAuthenticator
     // invoke the post-connect plugins.
     PluginConfigManager pluginManager = DirectoryServer
         .getPluginConfigManager();
-    PostConnectPluginResult pluginResult = pluginManager
+    PluginResult.PostConnect pluginResult = pluginManager
         .invokePostConnectPlugins(jmxClientConnection);
-    if (pluginResult.connectionTerminated())
+    if (!pluginResult.continueProcessing())
     {
-      SecurityException se = new SecurityException(pluginResult.toString());
+      jmxClientConnection.disconnect(pluginResult.getDisconnectReason(),
+          pluginResult.sendDisconnectNotification(),
+          pluginResult.getErrorMessage());
+
+      if (debugEnabled())
+      {
+        TRACER.debugVerbose("Disconnect result from post connect plugins: " +
+            "%s: %s ", pluginResult.getDisconnectReason(),
+            pluginResult.getErrorMessage());
+      }
+
+      SecurityException se = new SecurityException();
       throw se;
     }
 

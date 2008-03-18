@@ -29,7 +29,6 @@ package org.opends.server.extensions;
 
 
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.CancelExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -171,9 +170,7 @@ public class CancelExtendedOperation
     // Create the cancel request for the target operation.
     Message cancelReason =
         INFO_EXTOP_CANCEL_REASON.get(operation.getMessageID());
-    MessageBuilder cancelResultMessage = new MessageBuilder();
-    CancelRequest cancelRequest = new CancelRequest(true, cancelReason,
-                                                    cancelResultMessage);
+    CancelRequest cancelRequest = new CancelRequest(true, cancelReason);
 
 
     // Get the client connection and attempt the cancel.
@@ -184,7 +181,7 @@ public class CancelExtendedOperation
 
     // Update the result of the extended operation and return.
     operation.setResultCode(cancelResult.getResultCode());
-    operation.setErrorMessage(cancelResultMessage);
+    operation.appendErrorMessage(cancelResult.getResponseMessage());
   }
 }
 

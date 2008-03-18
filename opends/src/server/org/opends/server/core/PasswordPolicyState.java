@@ -104,10 +104,6 @@ public class PasswordPolicyState
   // should be stored as modifications.
   private final boolean updateEntry;
 
-  // Indicates whether to debug password policy processing performed wth this
-  // state object.
-  private final boolean debug;
-
   // The string representation of the user's DN.
   private final String userDNString;
 
@@ -187,18 +183,15 @@ public class PasswordPolicyState
    * @param  updateEntry  Indicates whether changes should update the provided
    *                      user entry directly or whether they should be
    *                      collected as a set of modifications.
-   * @param  debug        Indicates whether to enable debugging for the
-   *                      operations performed.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              determine the password policy for the user or
    *                              perform any other state initialization.
    */
-  public PasswordPolicyState(Entry userEntry, boolean updateEntry,
-                             boolean debug)
+  public PasswordPolicyState(Entry userEntry, boolean updateEntry)
        throws DirectoryException
   {
-    this(userEntry, updateEntry, TimeThread.getTime(), false, debug);
+    this(userEntry, updateEntry, TimeThread.getTime(), false);
   }
 
 
@@ -219,26 +212,22 @@ public class PasswordPolicyState
    * @param  useDefaultOnError  Indicates whether the server should fall back to
    *                            using the default password policy if there is a
    *                            problem with the configured policy for the user.
-   * @param  debug              Indicates whether to enable debugging for the
-   *                            operations performed.
    *
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              determine the password policy for the user or
    *                              perform any other state initialization.
    */
   public PasswordPolicyState(Entry userEntry, boolean updateEntry,
-                             long currentTime, boolean useDefaultOnError,
-                             boolean debug)
+                             long currentTime, boolean useDefaultOnError)
        throws DirectoryException
   {
     this.userEntry   = userEntry;
     this.updateEntry = updateEntry;
-    this.debug       = debug;
     this.currentTime = currentTime;
 
     userDNString     = userEntry.getDN().toString();
     passwordPolicy   = getPasswordPolicyInternal(this.userEntry,
-                                                 useDefaultOnError, this.debug);
+                                                 useDefaultOnError);
 
     // Get the password changed time for the user.
     AttributeType type
@@ -266,7 +255,7 @@ public class PasswordPolicyState
       {
         passwordChangedTime = 0;
 
-        if (debug)
+        if (debugEnabled())
         {
           TRACER.debugWarning("Could not determine password changed time for " +
               "user %s.", userDNString);
@@ -287,8 +276,6 @@ public class PasswordPolicyState
    * @param  useDefaultOnError  Indicates whether the server should fall back to
    *                            using the default password policy if there is a
    *                            problem with the configured policy for the user.
-   * @param  debug              Indicates whether to enable debugging for the
-   *                            operations performed.
    *
    * @return  The password policy for the user.
    *
@@ -296,7 +283,7 @@ public class PasswordPolicyState
    *                              determine the password policy for the user.
    */
   private static PasswordPolicy getPasswordPolicyInternal(Entry userEntry,
-                                     boolean useDefaultOnError, boolean debug)
+                                     boolean useDefaultOnError)
        throws DirectoryException
   {
     String userDNString = userEntry.getDN().toString();
@@ -323,7 +310,7 @@ public class PasswordPolicyState
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          if (debug)
+          if (debugEnabled())
           {
             TRACER.debugError("Could not parse password policy subentry " +
                 "DN %s for user %s: %s",
@@ -348,7 +335,7 @@ public class PasswordPolicyState
         PasswordPolicy policy = DirectoryServer.getPasswordPolicy(subentryDN);
         if (policy == null)
         {
-          if (debug)
+          if (debugEnabled())
           {
             TRACER.debugError("Password policy subentry %s for user %s " +
                  "is not defined in the Directory Server.",
@@ -369,27 +356,21 @@ public class PasswordPolicyState
           }
         }
 
-        if (debug)
+        if (debugEnabled())
         {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Using password policy subentry %s for user %s.",
-                        String.valueOf(subentryDN), userDNString);
-            }
-          }
+          TRACER.debugInfo("Using password policy subentry %s for user %s.",
+              String.valueOf(subentryDN), userDNString);
+        }
 
         return policy;
       }
     }
 
     // There is no policy subentry defined: use the default.
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Using the default password policy for user %s",
-                  userDNString);
-      }
+      TRACER.debugInfo("Using the default password policy for user %s",
+          userDNString);
     }
 
     return DirectoryServer.getDefaultPasswordPolicy();
@@ -421,24 +402,21 @@ public class PasswordPolicyState
       }
     }
 
-    if (debug)
+    if (stringValue == null)
     {
-      if (stringValue == null)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning null because attribute %s does not " +
-              "exist in user entry %s",
-                    attributeType.getNameOrOID(), userDNString);
-        }
+        TRACER.debugInfo("Returning null because attribute %s does not " +
+            "exist in user entry %s",
+            attributeType.getNameOrOID(), userDNString);
       }
-      else
+    }
+    else
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning value %s for user %s",
-                    stringValue, userDNString);
-        }
+        TRACER.debugInfo("Returning value %s for user %s",
+            stringValue, userDNString);
       }
     }
 
@@ -482,14 +460,11 @@ public class PasswordPolicyState
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
 
-          if (debug)
-          {
             TRACER.debugWarning("Unable to decode value %s for attribute %s " +
-                 "in user entry %s: %s",
-                         v.getStringValue(), attributeType.getNameOrOID(),
-                         userDNString, stackTraceToSingleLineString(e));
+                "in user entry %s: %s",
+                v.getStringValue(), attributeType.getNameOrOID(),
+                userDNString, stackTraceToSingleLineString(e));
           }
 
           Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
@@ -502,19 +477,16 @@ public class PasswordPolicyState
       }
     }
 
-    if (debug)
+    if (timeValue == -1)
     {
-      if (timeValue == -1)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning -1 because attribute %s does not " +
-              "exist in user entry %s",
-                    attributeType.getNameOrOID(), userDNString);
-        }
+        TRACER.debugInfo("Returning -1 because attribute %s does not " +
+            "exist in user entry %s",
+            attributeType.getNameOrOID(), userDNString);
       }
-      // FIXME: else to be consistent...
     }
+    // FIXME: else to be consistent...
 
     return timeValue;
   }
@@ -556,14 +528,11 @@ public class PasswordPolicyState
             if (debugEnabled())
             {
               TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
 
-            if (debug)
-            {
               TRACER.debugWarning("Unable to decode value %s for attribute %s" +
-                   "in user entry %s: %s",
-                           v.getStringValue(), attributeType.getNameOrOID(),
-                           userDNString, stackTraceToSingleLineString(e));
+                  "in user entry %s: %s",
+                  v.getStringValue(), attributeType.getNameOrOID(),
+                  userDNString, stackTraceToSingleLineString(e));
             }
 
             Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
@@ -576,16 +545,13 @@ public class PasswordPolicyState
       }
     }
 
-    if (debug)
+    if (timeValues.isEmpty())
     {
-      if (timeValues.isEmpty())
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning an empty list because attribute %s " +
-              "does not exist in user entry %s",
-                    attributeType.getNameOrOID(), userDNString);
-        }
+        TRACER.debugInfo("Returning an empty list because attribute %s " +
+            "does not exist in user entry %s",
+            attributeType.getNameOrOID(), userDNString);
       }
     }
     return timeValues;
@@ -622,13 +588,10 @@ public class PasswordPolicyState
         if (valueString.equals("true") || valueString.equals("yes") ||
             valueString.equals("on") || valueString.equals("1"))
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Attribute %s resolves to true for user entry " +
-                  "%s", attributeType.getNameOrOID(), userDNString);
-            }
+            TRACER.debugInfo("Attribute %s resolves to true for user entry " +
+                "%s", attributeType.getNameOrOID(), userDNString);
           }
 
           return ConditionResult.TRUE;
@@ -637,42 +600,36 @@ public class PasswordPolicyState
         if (valueString.equals("false") || valueString.equals("no") ||
                  valueString.equals("off") || valueString.equals("0"))
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Attribute %s resolves to false for user " +
-                  "entry %s", attributeType.getNameOrOID(), userDNString);
-            }
+            TRACER.debugInfo("Attribute %s resolves to false for user " +
+                "entry %s", attributeType.getNameOrOID(), userDNString);
           }
 
           return ConditionResult.FALSE;
         }
 
-        if (debug)
+        if(debugEnabled())
         {
-            TRACER.debugError("Unable to resolve value %s for attribute %s " +
-                 "in user entry %s as a Boolean.",
-                       valueString, attributeType.getNameOrOID(),
-                       userDNString);
+          TRACER.debugError("Unable to resolve value %s for attribute %s " +
+              "in user entry %s as a Boolean.",
+              valueString, attributeType.getNameOrOID(),
+              userDNString);
         }
 
         Message message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN.get(
             valueString, attributeType.getNameOrOID(), userDNString);
         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                     message);
+            message);
       }
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning %s because attribute %s does not exist " +
-             "in user entry %s",
-                  ConditionResult.UNDEFINED.toString(),
-                  attributeType.getNameOrOID(), userDNString);
-      }
+      TRACER.debugInfo("Returning %s because attribute %s does not exist " +
+          "in user entry %s",
+          ConditionResult.UNDEFINED.toString(),
+          attributeType.getNameOrOID(), userDNString);
     }
 
     return ConditionResult.UNDEFINED;
@@ -759,13 +716,10 @@ public class PasswordPolicyState
    */
   public void setPasswordChangedTime(long passwordChangedTime)
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Setting password changed time for user %s to " +
-            "current time of %d", userDNString, currentTime);
-      }
+      TRACER.debugInfo("Setting password changed time for user %s to " +
+          "current time of %d", userDNString, currentTime);
     }
 
     // passwordChangedTime is computed in the constructor from values in the
@@ -811,13 +765,10 @@ public class PasswordPolicyState
    */
   public void clearPasswordChangedTime()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing password changed time for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Clearing password changed time for user %s",
+          userDNString);
     }
 
     AttributeType type =
@@ -865,13 +816,10 @@ public class PasswordPolicyState
   {
     if (isDisabled != ConditionResult.UNDEFINED)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored result of %b for user %s",
-                    (isDisabled == ConditionResult.TRUE), userDNString);
-        }
+        TRACER.debugInfo("Returning stored result of %b for user %s",
+            (isDisabled == ConditionResult.TRUE), userDNString);
       }
 
       return isDisabled == ConditionResult.TRUE;
@@ -891,7 +839,7 @@ public class PasswordPolicyState
       }
 
       isDisabled = ConditionResult.TRUE;
-      if (debug)
+      if (debugEnabled())
       {
           TRACER.debugWarning("User %s is considered administratively " +
               "disabled because an error occurred while attempting to make " +
@@ -905,26 +853,20 @@ public class PasswordPolicyState
     if (isDisabled == ConditionResult.UNDEFINED)
     {
       isDisabled = ConditionResult.FALSE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("User %s is not administratively disabled since " +
-              "the attribute \"%s\" is not present in the entry.",
-                     userDNString, OP_ATTR_ACCOUNT_DISABLED);
-        }
+        TRACER.debugInfo("User %s is not administratively disabled since " +
+            "the attribute \"%s\" is not present in the entry.",
+            userDNString, OP_ATTR_ACCOUNT_DISABLED);
       }
       return false;
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("User %s %s administratively disabled.",
-                  userDNString,
-                  ((isDisabled == ConditionResult.TRUE) ? " is" : " is not"));
-      }
+      TRACER.debugInfo("User %s %s administratively disabled.",
+          userDNString,
+          ((isDisabled == ConditionResult.TRUE) ? " is" : " is not"));
     }
 
     return isDisabled == ConditionResult.TRUE;
@@ -941,13 +883,10 @@ public class PasswordPolicyState
    */
   public void setDisabled(boolean isDisabled)
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating user %s to set the disabled flag to %b",
-                  userDNString, isDisabled);
-      }
+      TRACER.debugInfo("Updating user %s to set the disabled flag to %b",
+          userDNString, isDisabled);
     }
 
 
@@ -1006,13 +945,10 @@ public class PasswordPolicyState
   {
     if (isAccountExpired != ConditionResult.UNDEFINED)
     {
-      if(debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored result of %b for user %s",
-                    (isAccountExpired == ConditionResult.TRUE), userDNString);
-        }
+        TRACER.debugInfo("Returning stored result of %b for user %s",
+            (isAccountExpired == ConditionResult.TRUE), userDNString);
       }
 
       return isAccountExpired == ConditionResult.TRUE;
@@ -1034,7 +970,7 @@ public class PasswordPolicyState
       }
 
       isAccountExpired = ConditionResult.TRUE;
-      if (debug)
+      if (debugEnabled())
       {
           TRACER.debugWarning("User %s is considered to have an expired " +
                "account because an error occurred while attempting to make " +
@@ -1049,26 +985,20 @@ public class PasswordPolicyState
     {
       // The user does have an expiration time, but it hasn't arrived yet.
       isAccountExpired = ConditionResult.FALSE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("The account for user %s is not expired because " +
-              "the expiration time has not yet arrived.", userDNString);
-        }
+        TRACER.debugInfo("The account for user %s is not expired because " +
+            "the expiration time has not yet arrived.", userDNString);
       }
     }
     else if (accountExpirationTime >= 0)
     {
       // The user does have an expiration time, and it is in the past.
       isAccountExpired = ConditionResult.TRUE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("The account for user %s is expired because the " +
-              "expiration time in that account has passed.", userDNString);
-        }
+        TRACER.debugInfo("The account for user %s is expired because the " +
+            "expiration time in that account has passed.", userDNString);
       }
     }
     else
@@ -1076,14 +1006,11 @@ public class PasswordPolicyState
       // The user doesn't have an expiration time in their entry, so it
       // can't be expired.
       isAccountExpired = ConditionResult.FALSE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("The account for user %s is not expired because " +
-              "there is no expiration time in the user's entry.",
-          userDNString);
-        }
+        TRACER.debugInfo("The account for user %s is not expired because " +
+            "there is no expiration time in the user's entry.",
+            userDNString);
       }
     }
 
@@ -1126,13 +1053,10 @@ public class PasswordPolicyState
     {
       String timeStr = GeneralizedTimeSyntax.format(accountExpirationTime);
 
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Setting account expiration time for user %s to %s",
-                    userDNString, timeStr);
-        }
+        TRACER.debugInfo("Setting account expiration time for user %s to %s",
+            userDNString, timeStr);
       }
 
       this.accountExpirationTime = accountExpirationTime;
@@ -1167,13 +1091,10 @@ public class PasswordPolicyState
    */
   public void clearAccountExpirationTime()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing account expiration time for user %s",
-                  userDNString);
-      }
+      TRACER.debugInfo("Clearing account expiration time for user %s",
+          userDNString);
     }
 
     accountExpirationTime = -1;
@@ -1209,14 +1130,11 @@ public class PasswordPolicyState
   {
     if (authFailureTimes != null)
     {
-      if(debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored auth failure time list of %d " +
-              "elements for user %s" +
-              authFailureTimes.size(), userDNString);
-        }
+        TRACER.debugInfo("Returning stored auth failure time list of %d " +
+            "elements for user %s" +
+            authFailureTimes.size(), userDNString);
       }
 
       return authFailureTimes;
@@ -1241,7 +1159,7 @@ public class PasswordPolicyState
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      if (debug)
+      if (debugEnabled())
       {
         TRACER.debugWarning("Error while processing auth failure times " +
              "for user %s: %s",
@@ -1265,14 +1183,11 @@ public class PasswordPolicyState
 
     if (authFailureTimes.isEmpty())
     {
-      if (debug)
+      if (debugEnabled())
       {
-       if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning an empty auth failure time list for " +
-              "user %s because the attribute is absent from the entry.",
-                    userDNString);
-        }
+        TRACER.debugInfo("Returning an empty auth failure time list for " +
+            "user %s because the attribute is absent from the entry.",
+            userDNString);
       }
 
       return authFailureTimes;
@@ -1291,13 +1206,10 @@ public class PasswordPolicyState
         long l = iterator.next();
         if (l < expirationTime)
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Removing expired auth failure time %d for " +
-                  "user %s", l, userDNString);
-            }
+            TRACER.debugInfo("Removing expired auth failure time %d for " +
+                "user %s", l, userDNString);
           }
 
           iterator.remove();
@@ -1345,13 +1257,10 @@ public class PasswordPolicyState
       }
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning auth failure time list of %d elements " +
-            "for user %s", authFailureTimes.size(), userDNString);
-      }
+      TRACER.debugInfo("Returning auth failure time list of %d elements " +
+          "for user %s", authFailureTimes.size(), userDNString);
     }
 
     return authFailureTimes;
@@ -1371,13 +1280,10 @@ public class PasswordPolicyState
       return;
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating authentication failure times for user %s",
-                  userDNString);
-      }
+      TRACER.debugInfo("Updating authentication failure times for user %s",
+          userDNString);
     }
 
 
@@ -1440,13 +1346,10 @@ public class PasswordPolicyState
     if ((lockoutCount > 0) && (lockoutCount <= authFailureTimes.size()))
     {
       setFailureLockedTime(highestFailureTime);
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Locking user account %s due to too many failures.",
-                    userDNString);
-        }
+        TRACER.debugInfo("Locking user account %s due to too many failures.",
+            userDNString);
       }
     }
   }
@@ -1507,13 +1410,10 @@ public class PasswordPolicyState
     if ((lockoutCount > 0) && (lockoutCount <= authFailureTimes.size()))
     {
       setFailureLockedTime(highestFailureTime);
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Locking user account %s due to too many failures.",
-                    userDNString);
-        }
+        TRACER.debugInfo("Locking user account %s due to too many failures.",
+            userDNString);
       }
     }
   }
@@ -1526,13 +1426,10 @@ public class PasswordPolicyState
    */
   private void clearAuthFailureTimes()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing authentication failure times for user %s",
-                  userDNString);
-      }
+      TRACER.debugInfo("Clearing authentication failure times for user %s",
+          userDNString);
     }
 
     List<Long> failureTimes = getAuthFailureTimes();
@@ -1596,7 +1493,7 @@ public class PasswordPolicyState
       }
 
       failureLockedTime = currentTime;
-      if (debug)
+      if (debugEnabled())
       {
         TRACER.debugWarning("Returning current time for user %s because an " +
             "error occurred: %s",
@@ -1659,13 +1556,10 @@ public class PasswordPolicyState
    */
   private void clearFailureLockedTime()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing failure lockout time for user %s.",
-                         userDNString);
-      }
+      TRACER.debugInfo("Clearing failure lockout time for user %s.",
+          userDNString);
     }
 
     if (-1L == getFailureLockedTime())
@@ -1719,13 +1613,10 @@ public class PasswordPolicyState
     final int maxFailures = passwordPolicy.getLockoutFailureCount();
     if (maxFailures <= 0)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false for user %s because lockout due " +
-              "to failures is not enabled.", userDNString);
-        }
+        TRACER.debugInfo("Returning false for user %s because lockout due " +
+            "to failures is not enabled.", userDNString);
       }
 
       return false;
@@ -1750,13 +1641,10 @@ public class PasswordPolicyState
       // failure times might have accumulated to trigger a lockout.
       if (getAuthFailureTimes().size() < maxFailures)
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning false for user %s because there is " +
-                "no locked time.", userDNString);
-          }
+          TRACER.debugInfo("Returning false for user %s because there is " +
+              "no locked time.", userDNString);
         }
 
         return false;
@@ -1765,14 +1653,11 @@ public class PasswordPolicyState
       // The account isn't locked but should be, so do so now.
       setFailureLockedTime(currentTime);// FIXME: set to max(failureTimes)?
 
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Locking user %s because there were enough " +
-              "existing failures even though there was no account locked time.",
-                    userDNString);
-        }
+        TRACER.debugInfo("Locking user %s because there were enough " +
+            "existing failures even though there was no account locked time.",
+            userDNString);
       }
       // Fall through...
     }
@@ -1786,14 +1671,11 @@ public class PasswordPolicyState
       {
         secondsUntilUnlock = (int) ((unlockTime - currentTime) / 1000);
 
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning true for user %s because there is a " +
-                "locked time and the lockout duration has not been reached.",
-                      userDNString);
-          }
+          TRACER.debugInfo("Returning true for user %s because there is a " +
+              "locked time and the lockout duration has not been reached.",
+              userDNString);
         }
 
         return true;
@@ -1802,27 +1684,21 @@ public class PasswordPolicyState
       // The lockout in the entry has expired...
       clearFailureLockout();
 
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false for user %s " +
-               "because the existing lockout has expired.", userDNString);
-        }
+        TRACER.debugInfo("Returning false for user %s " +
+            "because the existing lockout has expired.", userDNString);
       }
 
       assert -1L == getFailureLockedTime();
       return false;
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning true for user %s " +
-             "because there is a locked time and no lockout duration.",
-                  userDNString);
-      }
+      TRACER.debugInfo("Returning true for user %s " +
+          "because there is a locked time and no lockout duration.",
+          userDNString);
     }
 
     assert -1L <= getFailureLockedTime();
@@ -1875,13 +1751,10 @@ public class PasswordPolicyState
   {
     if (lastLoginTime != Long.MIN_VALUE)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored last login time of %d for " +
-              "user %s.", lastLoginTime, userDNString);
-        }
+        TRACER.debugInfo("Returning stored last login time of %d for " +
+            "user %s.", lastLoginTime, userDNString);
       }
 
       return lastLoginTime;
@@ -1895,13 +1768,10 @@ public class PasswordPolicyState
     if ((type == null) || (format == null))
     {
       lastLoginTime = -1;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning -1 for user %s because no last login " +
-              "time will be maintained.", userDNString);
-        }
+        TRACER.debugInfo("Returning -1 for user %s because no last login " +
+            "time will be maintained.", userDNString);
       }
 
       return lastLoginTime;
@@ -1923,14 +1793,11 @@ public class PasswordPolicyState
           SimpleDateFormat dateFormat = new SimpleDateFormat(format);
           lastLoginTime = dateFormat.parse(valueString).getTime();
 
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Returning last login time of %d for user %s" +
-                   "decoded using current last login time format.",
-                        lastLoginTime, userDNString);
-              }
+            TRACER.debugInfo("Returning last login time of %d for user %s" +
+                "decoded using current last login time format.",
+                lastLoginTime, userDNString);
           }
 
           return lastLoginTime;
@@ -1951,14 +1818,11 @@ public class PasswordPolicyState
               SimpleDateFormat dateFormat = new SimpleDateFormat(f);
               lastLoginTime = dateFormat.parse(valueString).getTime();
 
-              if (debug)
+              if (debugEnabled())
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugInfo("Returning last login time of %d for " +
-                      "user %s decoded using previous last login time format " +
-                      "of %s.", lastLoginTime, userDNString, f);
-                }
+                TRACER.debugInfo("Returning last login time of %d for " +
+                    "user %s decoded using previous last login time format " +
+                    "of %s.", lastLoginTime, userDNString, f);
               }
 
               return lastLoginTime;
@@ -1973,7 +1837,7 @@ public class PasswordPolicyState
           }
 
           assert lastLoginTime == -1;
-          if (debug)
+          if (debugEnabled())
           {
               TRACER.debugWarning("Returning -1 for user %s because the " +
                   "last login time value %s could not be parsed using any " +
@@ -1986,13 +1850,10 @@ public class PasswordPolicyState
     }
 
     assert lastLoginTime == -1;
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning %d for user %s because no last " +
-            "login time value exists.", lastLoginTime, userDNString);
-      }
+      TRACER.debugInfo("Returning %d for user %s because no last " +
+          "login time value exists.", lastLoginTime, userDNString);
     }
 
     return lastLoginTime;
@@ -2041,7 +1902,7 @@ public class PasswordPolicyState
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      if (debug)
+      if (debugEnabled())
       {
         TRACER.debugWarning("Unable to set last login time for user %s " +
             "because an error occurred: %s",
@@ -2055,14 +1916,11 @@ public class PasswordPolicyState
     String existingTimestamp = getValue(type);
     if ((existingTimestamp != null) && timestamp.equals(existingTimestamp))
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Not updating last login time for user %s " +
-              "because the new value matches the existing value.",
-                           userDNString);
-        }
+        TRACER.debugInfo("Not updating last login time for user %s " +
+            "because the new value matches the existing value.",
+            userDNString);
       }
 
       return;
@@ -2085,13 +1943,10 @@ public class PasswordPolicyState
       modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updated the last login time for user %s to %s",
-                  userDNString, timestamp);
-      }
+      TRACER.debugInfo("Updated the last login time for user %s to %s",
+          userDNString, timestamp);
     }
   }
 
@@ -2103,12 +1958,9 @@ public class PasswordPolicyState
    */
   public void clearLastLoginTime()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing last login time for user %s", userDNString);
-      }
+      TRACER.debugInfo("Clearing last login time for user %s", userDNString);
     }
 
     lastLoginTime = -1;
@@ -2140,13 +1992,10 @@ public class PasswordPolicyState
   {
     if (isIdleLocked != ConditionResult.UNDEFINED)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored result of %b for user %s",
-                    (isIdleLocked == ConditionResult.TRUE), userDNString);
-        }
+        TRACER.debugInfo("Returning stored result of %b for user %s",
+            (isIdleLocked == ConditionResult.TRUE), userDNString);
       }
 
       return isIdleLocked == ConditionResult.TRUE;
@@ -2158,15 +2007,11 @@ public class PasswordPolicyState
     {
       isIdleLocked = ConditionResult.FALSE;
 
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false for user %s because no idle " +
-              "lockout interval is defined.", userDNString);
-        }
+        TRACER.debugInfo("Returning false for user %s because no idle " +
+            "lockout interval is defined.", userDNString);
       }
-
       return false;
     }
 
@@ -2178,44 +2023,38 @@ public class PasswordPolicyState
     if (lastLoginTime > lockTime || passwordChangedTime > lockTime)
     {
       isIdleLocked = ConditionResult.FALSE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
+        StringBuilder reason = new StringBuilder();
+        if(lastLoginTime > lockTime)
         {
-          StringBuilder reason = new StringBuilder();
-          if(lastLoginTime > lockTime)
-          {
-            reason.append("the last login time is in an acceptable window");
-          }
-          else
-          {
-            if(lastLoginTime < 0)
-            {
-              reason.append("there is no last login time, but ");
-            }
-            reason.append(
-                 "the password changed time is in an acceptable window");
-          }
-          TRACER.debugInfo("Returning false for user %s because %s.",
-                    userDNString, reason.toString());
+          reason.append("the last login time is in an acceptable window");
         }
+        else
+        {
+          if(lastLoginTime < 0)
+          {
+            reason.append("there is no last login time, but ");
+          }
+          reason.append(
+              "the password changed time is in an acceptable window");
+        }
+        TRACER.debugInfo("Returning false for user %s because %s.",
+            userDNString, reason.toString());
       }
     }
     else
     {
       isIdleLocked = ConditionResult.TRUE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          String reason = (lastLoginTime < 0)
-             ? "there is no last login time and the password " +
-                  "changed time is not in an acceptable window"
-             : "neither last login time nor password " +
-                  "changed time are in an acceptable window";
-          TRACER.debugInfo("Returning true for user %s because %s.",
-                    userDNString, reason);
-        }
+        String reason = (lastLoginTime < 0)
+            ? "there is no last login time and the password " +
+            "changed time is not in an acceptable window"
+            : "neither last login time nor password " +
+            "changed time are in an acceptable window";
+        TRACER.debugInfo("Returning true for user %s because %s.",
+            userDNString, reason);
       }
     }
 
@@ -2235,13 +2074,10 @@ public class PasswordPolicyState
   {
     if(mustChangePassword != ConditionResult.UNDEFINED)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored result of %b for user %s.",
-                    (mustChangePassword == ConditionResult.TRUE), userDNString);
-        }
+        TRACER.debugInfo("Returning stored result of %b for user %s.",
+            (mustChangePassword == ConditionResult.TRUE), userDNString);
       }
 
       return mustChangePassword == ConditionResult.TRUE;
@@ -2258,16 +2094,13 @@ public class PasswordPolicyState
                || passwordPolicy.forceChangeOnReset())))
     {
       mustChangePassword = ConditionResult.FALSE;
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false for user %s because neither " +
-               "force change on add nor force change on reset is enabled, " +
-               "or users are not allowed to self-modify passwords.",
-                    userDNString);
+        TRACER.debugInfo("Returning false for user %s because neither " +
+            "force change on add nor force change on reset is enabled, " +
+            "or users are not allowed to self-modify passwords.",
+            userDNString);
 
-        }
       }
 
       return false;
@@ -2290,14 +2123,12 @@ public class PasswordPolicyState
       if (debugEnabled())
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
 
-      mustChangePassword = ConditionResult.TRUE;
-      if (debug)
-      {
         TRACER.debugWarning("Returning true for user %s because an error " +
             "occurred: %s", userDNString, stackTraceToSingleLineString(e));
       }
+
+      mustChangePassword = ConditionResult.TRUE;
 
       return true;
     }
@@ -2305,26 +2136,20 @@ public class PasswordPolicyState
     if(mustChangePassword == ConditionResult.UNDEFINED)
     {
       mustChangePassword = ConditionResult.FALSE;
-      if(debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning %b for user since the attribute \"%s\"" +
-               " is not present in the entry.",
-                    false, userDNString, OP_ATTR_PWPOLICY_RESET_REQUIRED);
-        }
+        TRACER.debugInfo("Returning %b for user since the attribute \"%s\"" +
+            " is not present in the entry.",
+            false, userDNString, OP_ATTR_PWPOLICY_RESET_REQUIRED);
       }
 
       return false;
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning %b for user %s.",
-                  (mustChangePassword == ConditionResult.TRUE), userDNString);
-      }
+      TRACER.debugInfo("Returning %b for user %s.",
+          (mustChangePassword == ConditionResult.TRUE), userDNString);
     }
 
     return mustChangePassword == ConditionResult.TRUE;
@@ -2341,13 +2166,10 @@ public class PasswordPolicyState
 */
   public void setMustChangePassword(boolean mustChangePassword)
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating user %s to set the reset flag to %b",
-                  userDNString, mustChangePassword);
-      }
+      TRACER.debugInfo("Updating user %s to set the reset flag to %b",
+          userDNString, mustChangePassword);
     }
 
     if (mustChangePassword == mustChangePassword())
@@ -2416,13 +2238,10 @@ public class PasswordPolicyState
     // attribute.
     if (passwordPolicy.getMaximumPasswordResetAge() <= 0)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false for user %s because there is no " +
-              "maximum reset age.", userDNString);
-        }
+        TRACER.debugInfo("Returning false for user %s because there is no " +
+            "maximum reset age.", userDNString);
       }
 
       return false;
@@ -2430,13 +2249,10 @@ public class PasswordPolicyState
 
     if (! mustChangePassword())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false for user %s because the user's " +
-              "password has not been reset.", userDNString);
-        }
+        TRACER.debugInfo("Returning false for user %s because the user's " +
+            "password has not been reset.", userDNString);
       }
 
       return false;
@@ -2446,13 +2262,10 @@ public class PasswordPolicyState
         (1000L * passwordPolicy.getMaximumPasswordResetAge());
     boolean locked = (maxResetTime < currentTime);
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning %b for user %s after comparing the " +
-            "current and max reset times.", locked, userDNString);
-      }
+      TRACER.debugInfo("Returning %b for user %s after comparing the " +
+          "current and max reset times.", locked, userDNString);
     }
 
     return locked;
@@ -2642,13 +2455,10 @@ public class PasswordPolicyState
       }
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning password expiration time of %d for user " +
-            "%s.", passwordExpirationTime, userDNString);
-      }
+      TRACER.debugInfo("Returning password expiration time of %d for user " +
+          "%s.", passwordExpirationTime, userDNString);
     }
 
     return passwordExpirationTime;
@@ -2691,12 +2501,9 @@ public class PasswordPolicyState
     if (minAge <= 0)
     {
       // There is no minimum age, so the user isn't in it.
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false because there is no minimum age.");
-        }
+        TRACER.debugInfo("Returning false because there is no minimum age.");
       }
 
       return false;
@@ -2704,13 +2511,10 @@ public class PasswordPolicyState
     else if ((passwordChangedTime + (minAge*1000L)) < currentTime)
     {
       // It's been long enough since the user changed their password.
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false because the minimum age has " +
-              "expired.");
-        }
+        TRACER.debugInfo("Returning false because the minimum age has " +
+            "expired.");
       }
 
       return false;
@@ -2718,13 +2522,10 @@ public class PasswordPolicyState
     else if (mustChangePassword())
     {
       // The user is in a must-change mode, so the minimum age doesn't apply.
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false because the account is in a " +
-              "must-change state.");
-        }
+        TRACER.debugInfo("Returning false because the account is in a " +
+            "must-change state.");
       }
 
       return false;
@@ -2732,12 +2533,9 @@ public class PasswordPolicyState
     else
     {
       // The user is within the minimum age.
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning true.");
-        }
+        TRACER.debugInfo("Returning true.");
       }
 
       return true;
@@ -2849,13 +2647,10 @@ public class PasswordPolicyState
   {
     if (requiredChangeTime != Long.MIN_VALUE)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning stored required change time of %d for " +
-              "user %s", requiredChangeTime, userDNString);
-        }
+        TRACER.debugInfo("Returning stored required change time of %d for " +
+            "user %s", requiredChangeTime, userDNString);
       }
 
       return requiredChangeTime;
@@ -2876,7 +2671,7 @@ public class PasswordPolicyState
       }
 
       requiredChangeTime = -1;
-      if (debug)
+      if (debugEnabled())
       {
         TRACER.debugWarning("Returning %d for user %s because an error " +
             "occurred: %s", requiredChangeTime, userDNString,
@@ -2886,13 +2681,10 @@ public class PasswordPolicyState
       return requiredChangeTime;
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning required change time of %d for user %s",
-                  requiredChangeTime, userDNString);
-      }
+      TRACER.debugInfo("Returning required change time of %d for user %s",
+          requiredChangeTime, userDNString);
     }
 
     return requiredChangeTime;
@@ -2924,13 +2716,10 @@ public class PasswordPolicyState
    */
   public void setRequiredChangeTime(long requiredChangeTime)
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating required change time for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Updating required change time for user %s",
+          userDNString);
     }
 
     if (getRequiredChangeTime() != requiredChangeTime)
@@ -2968,13 +2757,10 @@ public class PasswordPolicyState
    */
   public void clearRequiredChangeTime()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing required change time for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Clearing required change time for user %s",
+          userDNString);
     }
 
     AttributeType type = DirectoryServer.getAttributeType(
@@ -3016,7 +2802,7 @@ public class PasswordPolicyState
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        if (debug)
+        if (debugEnabled())
         {
           TRACER.debugWarning("Unable to decode the warned time for user %s: " +
               "%s", userDNString, stackTraceToSingleLineString(e));
@@ -3027,13 +2813,10 @@ public class PasswordPolicyState
     }
 
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning a warned time of %d for user %s",
-                  warnedTime, userDNString);
-      }
+      TRACER.debugInfo("Returning a warned time of %d for user %s",
+          warnedTime, userDNString);
     }
 
     return warnedTime;
@@ -3063,14 +2846,11 @@ public class PasswordPolicyState
     long warnTime = getWarnedTime();
     if (warnTime == warnedTime)
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Not updating warned time for user %s because " +
-              "the warned time is the same as the specified time.",
-              userDNString);
-        }
+        TRACER.debugInfo("Not updating warned time for user %s because " +
+            "the warned time is the same as the specified time.",
+            userDNString);
       }
 
       return;
@@ -3096,12 +2876,9 @@ public class PasswordPolicyState
       modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updated the warned time for user %s", userDNString);
-      }
+      TRACER.debugInfo("Updated the warned time for user %s", userDNString);
     }
   }
 
@@ -3112,12 +2889,9 @@ public class PasswordPolicyState
    */
   public void clearWarnedTime()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing warned time for user %s", userDNString);
-      }
+      TRACER.debugInfo("Clearing warned time for user %s", userDNString);
     }
 
     if (getWarnedTime() < 0)
@@ -3138,12 +2912,9 @@ public class PasswordPolicyState
       modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Cleared the warned time for user %s", userDNString);
-      }
+      TRACER.debugInfo("Cleared the warned time for user %s", userDNString);
     }
   }
 
@@ -3179,7 +2950,7 @@ public class PasswordPolicyState
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        if (debug)
+        if (debugEnabled())
         {
           TRACER.debugWarning("Error while processing grace login times " +
                "for user %s: %s",
@@ -3201,13 +2972,10 @@ public class PasswordPolicyState
     }
 
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning grace login times for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Returning grace login times for user %s",
+          userDNString);
     }
 
     return graceLoginTimes;
@@ -3241,15 +3009,11 @@ public class PasswordPolicyState
    */
   public void updateGraceLoginTimes()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating grace login times for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Updating grace login times for user %s",
+          userDNString);
     }
-
 
     List<Long> graceTimes = getGraceLoginTimes();
     long highestGraceTime = -1;
@@ -3321,16 +3085,11 @@ public class PasswordPolicyState
       return;
     }
 
-
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating grace login times for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Updating grace login times for user %s",
+          userDNString);
     }
-
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC,
@@ -3364,13 +3123,10 @@ public class PasswordPolicyState
    */
   public void clearGraceLoginTimes()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing grace login times for user %s",
-                         userDNString);
-      }
+      TRACER.debugInfo("Clearing grace login times for user %s",
+          userDNString);
     }
 
     List<Long> graceTimes = getGraceLoginTimes();
@@ -3450,7 +3206,7 @@ public class PasswordPolicyState
                     : DirectoryServer.getPasswordStorageScheme(schemeName);
           if (scheme == null)
           {
-            if (debug)
+            if (debugEnabled())
             {
               TRACER.debugWarning("User entry %s contains a password with " +
                   "scheme %s that is not defined in the server.",
@@ -3478,7 +3234,7 @@ public class PasswordPolicyState
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          if (debug)
+          if (debugEnabled())
           {
             TRACER.debugWarning("Cannot get clear password value foruser %s: " +
                 "%s", userDNString, e);
@@ -3507,14 +3263,11 @@ public class PasswordPolicyState
          userEntry.getAttribute(passwordPolicy.getPasswordAttribute());
     if ((attrList == null) || attrList.isEmpty())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false because user %s does not have " +
-              "any values for password attribute %s", userDNString,
-                    passwordPolicy.getPasswordAttribute().getNameOrOID());
-        }
+        TRACER.debugInfo("Returning false because user %s does not have " +
+            "any values for password attribute %s", userDNString,
+            passwordPolicy.getPasswordAttribute().getNameOrOID());
       }
 
       return false;
@@ -3551,7 +3304,7 @@ public class PasswordPolicyState
                      : DirectoryServer.getPasswordStorageScheme(schemeName);
           if (scheme == null)
           {
-            if (debug)
+            if (debugEnabled())
             {
               TRACER.debugWarning("User entry %s contains a password with " +
                   "scheme %s that is not defined in the server.",
@@ -3569,14 +3322,11 @@ public class PasswordPolicyState
                                new ASN1OctetString(pwComponents[1].toString()));
           if (passwordMatches)
           {
-            if (debug)
+            if (debugEnabled())
             {
-              if (debugEnabled())
-              {
-                TRACER.debugInfo("Returning true for user %s because the " +
-                    "provided password matches a value encoded with scheme %s",
-                          userDNString, schemeName);
-              }
+              TRACER.debugInfo("Returning true for user %s because the " +
+                  "provided password matches a value encoded with scheme %s",
+                  userDNString, schemeName);
             }
 
             return true;
@@ -3589,7 +3339,7 @@ public class PasswordPolicyState
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          if (debug)
+          if (debugEnabled())
           {
             TRACER.debugWarning("An error occurred while attempting to " +
                 "process a password value for user %s: %s",
@@ -3600,14 +3350,11 @@ public class PasswordPolicyState
     }
 
     // If we've gotten here, then we couldn't find a match.
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning false because the provided password does " +
-            "not match any of the stored password values for user %s",
-                  userDNString);
-      }
+      TRACER.debugInfo("Returning false because the provided password does " +
+          "not match any of the stored password values for user %s",
+          userDNString);
     }
 
     return false;
@@ -3706,28 +3453,22 @@ public class PasswordPolicyState
       if (! validator.passwordIsAcceptable(newPassword, currentPasswords,
                                            operation, userEntry, invalidReason))
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("The password provided for user %s failed " +
-                "the %s password validator.",
-                             userDNString, validatorDN.toString());
-          }
+          TRACER.debugInfo("The password provided for user %s failed " +
+              "the %s password validator.",
+              userDNString, validatorDN.toString());
         }
 
         return false;
       }
       else
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("The password provided for user %s passed " +
-                "the %s password validator.",
-                             userDNString, validatorDN.toString());
-          }
+          TRACER.debugInfo("The password provided for user %s passed " +
+              "the %s password validator.",
+              userDNString, validatorDN.toString());
         }
       }
     }
@@ -3748,13 +3489,10 @@ public class PasswordPolicyState
   {
     if (passwordPolicy.getDefaultStorageSchemes().isEmpty())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Doing nothing for user %s because no " +
-              "deprecated storage schemes have been defined.", userDNString);
-        }
+        TRACER.debugInfo("Doing nothing for user %s because no " +
+            "deprecated storage schemes have been defined.", userDNString);
       }
 
       return;
@@ -3765,13 +3503,10 @@ public class PasswordPolicyState
     List<Attribute> attrList = userEntry.getAttribute(type);
     if ((attrList == null) || attrList.isEmpty())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Doing nothing for entry %s because no password " +
-              "values were found.", userDNString);
-        }
+        TRACER.debugInfo("Doing nothing for entry %s because no password " +
+            "values were found.", userDNString);
       }
 
       return;
@@ -3818,7 +3553,7 @@ public class PasswordPolicyState
                     : DirectoryServer.getPasswordStorageScheme(schemeName);
           if (scheme == null)
           {
-            if (debug)
+            if (debugEnabled())
             {
               TRACER.debugWarning("Skipping password value for user %s " +
                   "because the associated storage scheme %s is not " +
@@ -3843,13 +3578,10 @@ public class PasswordPolicyState
             }
             else if (passwordPolicy.isDeprecatedStorageScheme(schemeName))
             {
-              if (debug)
+              if (debugEnabled())
               {
-                if (debugEnabled())
-                {
-                  TRACER.debugInfo("Marking password with scheme %s for " +
-                      "removal from user entry %s.", schemeName, userDNString);
-                }
+                TRACER.debugInfo("Marking password with scheme %s for " +
+                    "removal from user entry %s.", schemeName, userDNString);
               }
 
               iterator.remove();
@@ -3866,14 +3598,11 @@ public class PasswordPolicyState
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
 
-          if (debug)
-          {
             TRACER.debugWarning("Skipping password value for user %s because " +
                 "an error occurred while attempting to decode it based on " +
                 "the user password syntax: %s",
-                         userDNString, stackTraceToSingleLineString(e));
+                userDNString, stackTraceToSingleLineString(e));
           }
         }
       }
@@ -3881,13 +3610,10 @@ public class PasswordPolicyState
 
     if (removedValues.isEmpty())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("User entry %s does not have any password values " +
-              "encoded using deprecated schemes.", userDNString);
-        }
+        TRACER.debugInfo("User entry %s does not have any password values " +
+            "encoded using deprecated schemes.", userDNString);
       }
 
       return;
@@ -3917,7 +3643,7 @@ public class PasswordPolicyState
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          if (debug)
+          if (debugEnabled())
           {
             TRACER.debugWarning("Unable to encode password for user %s using " +
                  "default scheme %s: %s",
@@ -3930,7 +3656,7 @@ public class PasswordPolicyState
 
     if (updatedValues.isEmpty())
     {
-      if (debug)
+      if (debugEnabled())
       {
         TRACER.debugWarning("Not updating user entry %s because removing " +
              "deprecated schemes would leave the user without a password.",
@@ -3958,14 +3684,11 @@ public class PasswordPolicyState
       }
     }
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Updating user entry %s to replace password values " +
-            "encoded with deprecated schemes with values encoded " +
-            "with the default schemes.", userDNString);
-      }
+      TRACER.debugInfo("Updating user entry %s to replace password values " +
+          "encoded with deprecated schemes with values encoded " +
+          "with the default schemes.", userDNString);
     }
   }
 
@@ -4000,13 +3723,10 @@ public class PasswordPolicyState
   {
     if (! maintainHistory())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning false because password history " +
-                           "checking is disabled.");
-        }
+        TRACER.debugInfo("Returning false because password history " +
+            "checking is disabled.");
       }
 
       // Password history checking is disabled, so we don't care if it is in the
@@ -4019,13 +3739,10 @@ public class PasswordPolicyState
     // passwords.  If so, then we'll consider it to be in the history.
     if (passwordMatches(password))
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Returning true because the provided password " +
-                           "is currently in use.");
-        }
+        TRACER.debugInfo("Returning true because the provided password " +
+            "is currently in use.");
       }
 
       return true;
@@ -4073,13 +3790,10 @@ public class PasswordPolicyState
     {
       if (historyValueMatches(password, v))
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning true because the password is in " +
-                             "the history.");
-          }
+          TRACER.debugInfo("Returning true because the password is in " +
+              "the history.");
         }
 
         return true;
@@ -4088,13 +3802,10 @@ public class PasswordPolicyState
 
 
     // If we've gotten here, then the password isn't in the history.
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning false because the password isn't in the " +
-                         "history.");
-      }
+      TRACER.debugInfo("Returning false because the password isn't in the " +
+          "history.");
     }
 
     return false;
@@ -4128,14 +3839,11 @@ public class PasswordPolicyState
           int    hashPos = histStr.indexOf('#');
           if (hashPos <= 0)
           {
-            if (debug)
+            if (debugEnabled())
             {
-              if (debugEnabled())
-              {
-                TRACER.debugInfo("Found value " + histStr + " in the " +
-                                 "history with no timestamp.  Marking it " +
-                                 "for removal.");
-              }
+              TRACER.debugInfo("Found value " + histStr + " in the " +
+                  "history with no timestamp.  Marking it " +
+                  "for removal.");
             }
 
             LinkedHashSet<AttributeValue> values =
@@ -4162,12 +3870,9 @@ public class PasswordPolicyState
               {
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-                if (debug)
-                {
-                  TRACER.debugInfo("Could not decode the timestamp in " +
-                                   "history value " + histStr + " -- " + e +
-                                   ".  Marking it for removal.");
-                }
+                TRACER.debugInfo("Could not decode the timestamp in " +
+                    "history value " + histStr + " -- " + e +
+                    ".  Marking it for removal.");
               }
 
               LinkedHashSet<AttributeValue> values =
@@ -4212,13 +3917,10 @@ public class PasswordPolicyState
       int    hashPos1 = histStr.indexOf('#');
       if (hashPos1 <= 0)
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning false because the password history " +
-                             "value didn't include any hash characters.");
-          }
+          TRACER.debugInfo("Returning false because the password history " +
+              "value didn't include any hash characters.");
         }
 
         return false;
@@ -4227,13 +3929,10 @@ public class PasswordPolicyState
       int hashPos2 = histStr.indexOf('#', hashPos1+1);
       if (hashPos2 < 0)
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning false because the password history " +
-                             "value only had one hash character.");
-          }
+          TRACER.debugInfo("Returning false because the password history " +
+              "value only had one hash character.");
         }
 
         return false;
@@ -4251,26 +3950,20 @@ public class PasswordPolicyState
         if (scheme.authPasswordMatches(password, authPWComponents[1].toString(),
                                        authPWComponents[2].toString()))
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Returning true because the auth password " +
-                               "history value matched.");
-            }
+            TRACER.debugInfo("Returning true because the auth password " +
+                "history value matched.");
           }
 
           return true;
         }
         else
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Returning false because the auth password " +
-                               "history value did not match.");
-            }
+            TRACER.debugInfo("Returning false because the auth password " +
+                "history value did not match.");
           }
 
           return false;
@@ -4286,26 +3979,20 @@ public class PasswordPolicyState
         if (scheme.passwordMatches(password,
                                    new ASN1OctetString(userPWComponents[1])))
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Returning true because the user password " +
-                               "history value matched.");
-            }
+            TRACER.debugInfo("Returning true because the user password " +
+                "history value matched.");
           }
 
           return true;
         }
         else
         {
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Returning false because the user password " +
-                               "history value did not match.");
-            }
+            TRACER.debugInfo("Returning false because the user password " +
+                "history value did not match.");
           }
 
           return false;
@@ -4313,14 +4000,11 @@ public class PasswordPolicyState
       }
       else
       {
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Returning false because the syntax OID " +
-                             syntaxOID + " didn't match for either the auth " +
-                             "or user password syntax.");
-          }
+          TRACER.debugInfo("Returning false because the syntax OID " +
+              syntaxOID + " didn't match for either the auth " +
+              "or user password syntax.");
         }
 
         return false;
@@ -4332,7 +4016,7 @@ public class PasswordPolicyState
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-        if (debug)
+        if (debugEnabled())
         {
           TRACER.debugInfo("Returning false because of an exception:  " +
                            stackTraceToSingleLineString(e));
@@ -4380,13 +4064,10 @@ public class PasswordPolicyState
   {
     if (! maintainHistory())
     {
-      if (debug)
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Not doing anything because password history " +
-                           "maintenance is disabled.");
-        }
+        TRACER.debugInfo("Not doing anything because password history " +
+            "maintenance is disabled.");
       }
 
       return;
@@ -4419,13 +4100,10 @@ public class PasswordPolicyState
         iterator.remove();
         numToDelete--;
 
-        if (debug)
+        if (debugEnabled())
         {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Removing history value " + v.getStringValue() +
-                             " to preserve the history count.");
-          }
+          TRACER.debugInfo("Removing history value " + v.getStringValue() +
+              " to preserve the history count.");
         }
       }
 
@@ -4455,13 +4133,10 @@ public class PasswordPolicyState
           removeValues.add(v);
           iterator.remove();
 
-          if (debug)
+          if (debugEnabled())
           {
-            if (debugEnabled())
-            {
-              TRACER.debugInfo("Removing history value " + v.getStringValue() +
-                               " to preserve the history duration.");
-            }
+            TRACER.debugInfo("Removing history value " + v.getStringValue() +
+                " to preserve the history duration.");
           }
         }
         else
@@ -4497,12 +4172,9 @@ public class PasswordPolicyState
          new Attribute(historyType, historyType.getPrimaryName(),
                        newHistValues);
 
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Going to add history value " + newHistStr);
-      }
+      TRACER.debugInfo("Going to add history value " + newHistStr);
     }
 
 
@@ -4567,12 +4239,9 @@ public class PasswordPolicyState
    */
   public void clearPasswordHistory()
   {
-    if (debug)
+    if (debugEnabled())
     {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Clearing password history for user %s", userDNString);
-      }
+      TRACER.debugInfo("Clearing password history for user %s", userDNString);
     }
 
     AttributeType type = DirectoryServer.getAttributeType(
@@ -4605,7 +4274,7 @@ public class PasswordPolicyState
     PasswordGenerator generator = passwordPolicy.getPasswordGenerator();
     if (generator == null)
     {
-      if (debug)
+      if (debugEnabled())
       {
         TRACER.debugWarning("Unable to generate a new password for user " +
             "%s because no password generator has been defined in the " +

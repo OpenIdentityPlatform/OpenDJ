@@ -38,6 +38,7 @@ import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.AbandonOperationBasis;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.asn1.ASN1Element;
 import org.opends.server.protocols.asn1.ASN1Integer;
@@ -67,23 +68,14 @@ import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
+import org.opends.messages.Message;
 
 
 /**
@@ -848,5 +840,56 @@ public class CancelExtendedOperationTestCase
 
     socket.close();
   }
+
+  /**
+   * Tests the ability to cancel an extended operation.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testCancelCancelExtendedOperation()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+
+    // Create a new connection to the Directory Server and authenticate as
+    // the Directory Manager.
+    Socket socket = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+    ASN1Reader reader = new ASN1Reader(socket);
+    ASN1Writer writer = new ASN1Writer(socket);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(new ASN1OctetString("cn=Directory Manager"),
+                                   3, new ASN1OctetString("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    writer.writeElement(message.encode());
+
+    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
+
+
+    // Create a self cancelling request and send it to the server. Make sure
+    // to include the delay request control so it won't complete before we
+    // can send the cancel request.
+    ArrayList<ASN1Element> sequenceElements = new ArrayList<ASN1Element>(1);
+    sequenceElements.add(new ASN1Integer(2));
+    ASN1Sequence valueSequence = new ASN1Sequence(sequenceElements);
+    ASN1OctetString extendedValue = new ASN1OctetString(valueSequence.encode());
+    ExtendedRequestProtocolOp extendedRequest =
+        new ExtendedRequestProtocolOp(OID_CANCEL_REQUEST, extendedValue);
+    message = new LDAPMessage(2, extendedRequest);
+    writer.writeElement(message.encode());
+
+    message = LDAPMessage.decode(reader.readElement().decodeAsSequence());
+    ExtendedResponseProtocolOp extendedResponse =
+        message.getExtendedResponseProtocolOp();
+    assertEquals(extendedResponse.getResultCode(),
+        LDAPResultCode.CANNOT_CANCEL);
+
+    socket.close();
+  }
+
 }
 

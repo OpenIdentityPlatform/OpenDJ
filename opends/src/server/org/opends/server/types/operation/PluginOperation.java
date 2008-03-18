@@ -33,11 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.Control;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.OperationType;
-
+import org.opends.server.types.*;
 
 
 /**
@@ -230,18 +226,6 @@ public interface PluginOperation
 
 
   /**
-   * Retrieves the cancel request that has been issued for this
-   * operation, if there is one.
-   *
-   * @return  The cancel request that has been issued for this
-   *          operation, or <CODE>null</CODE> if there has not been
-   *          any request to cancel.
-   */
-  public CancelRequest getCancelRequest();
-
-
-
-  /**
    * Retrieves a string representation of this operation.
    *
    * @return  A string representation of this operation.
@@ -258,5 +242,22 @@ public interface PluginOperation
    *                 this operation should be appended.
    */
   public void toString(StringBuilder buffer);
+
+
+
+  /**
+   * Checks to see if this operation requested to cancel in which case
+   * CanceledOperationException will be thrown.
+   *
+   * @param signalTooLate <code>true</code> to signal that any further
+   *                      cancel requests will be too late after
+   *                      return from this call or <code>false</code>
+   *                      otherwise.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
+   */
+  public void checkIfCanceled(boolean signalTooLate)
+      throws CanceledOperationException;
 }
 

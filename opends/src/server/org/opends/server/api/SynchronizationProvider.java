@@ -162,7 +162,7 @@ public abstract class
          throws DirectoryException
   {
     // No processing is required by default.
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
 
@@ -232,7 +232,7 @@ public abstract class
          throws DirectoryException
   {
     // No processing is required by default.
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
 
@@ -302,7 +302,7 @@ public abstract class
          throws DirectoryException
   {
     // No processing is required by default.
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
 
@@ -372,7 +372,7 @@ public abstract class
          throws DirectoryException
   {
     // No processing is required by default.
-    return new SynchronizationProviderResult(true);
+    return new SynchronizationProviderResult.ContinueProcessing();
   }
 
 

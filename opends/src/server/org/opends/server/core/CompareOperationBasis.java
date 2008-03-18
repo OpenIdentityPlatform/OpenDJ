@@ -25,7 +25,6 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.core.CoreConstants.*;
@@ -38,24 +37,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.workflowelement.localbackend.
@@ -85,9 +71,6 @@ public class CompareOperationBasis
 
   // The raw, unprocessed entry DN as included in the client request.
   private ByteString rawEntryDN;
-
-  // The cancel request that has been issued for this compare operation.
-  private CancelRequest cancelRequest;
 
   // The DN of the entry for the compare operation.
   private DN entryDN;
@@ -287,20 +270,6 @@ public class CompareOperationBasis
    * {@inheritDoc}
    */
   @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
   public final String[][] getRequestLogElements()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -456,63 +425,36 @@ public class CompareOperationBasis
     // Start the processing timer.
     setProcessingStartTime();
 
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
-    {
-      indicateCancelled(cancelRequest);
-      setProcessingStopTime();
-      return;
-    }
+    // Log the compare request message.
+    logCompareRequest(this);
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
+        DirectoryServer.getPluginConfigManager();
 
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-compareProcessing:
+    try
     {
+      // Check for and handle a request to cancel this operation.
+      checkIfCanceled(false);
+
       // Invoke the pre-parse compare plugins.
-      PreParsePluginResult preParseResult =
-           pluginConfigManager.invokePreParseComparePlugins(this);
-      if (preParseResult.connectionTerminated())
+      PluginResult.PreParse preParseResult =
+          pluginConfigManager.invokePreParseComparePlugins(this);
+      if(!preParseResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the request and
-        // result and return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logCompareRequest(this);
-        logCompareResponse(this);
-        pluginConfigManager.invokePostResponseComparePlugins(this);
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
         return;
       }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        logCompareRequest(this);
-        break compareProcessing;
-      }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        break compareProcessing;
-      }
-
-
-      // Log the compare request message.
-      logCompareRequest(this);
 
 
       // Check for a request to cancel this operation.
-      if (cancelRequest != null)
-      {
-        break compareProcessing;
-      }
+      checkIfCanceled(false);
 
 
       // Process the entry DN to convert it from the raw form to the form
@@ -534,7 +476,7 @@ compareProcessing:
         setResultCode(de.getResultCode());
         appendErrorMessage(de.getMessageObject());
 
-        break compareProcessing;
+        return;
       }
 
 
@@ -547,33 +489,37 @@ compareProcessing:
         // We have found no workflow for the requested base DN, just return
         // a no such entry result code and stop the processing.
         updateOperationErrMsgAndResCode();
-        break compareProcessing;
+        return;
       }
       workflow.execute(this);
       workflowExecuted = true;
 
-    } // end of processing block
-
-
-    // Check for a terminated connection.
-    if (getCancelResult() == CancelResult.CANCELED)
-    {
-      // Stop the processing timer.
-      setProcessingStopTime();
-
-      // Log the add response message.
-      logCompareResponse(this);
-
-      return;
     }
-
-    // Check for and handle a request to cancel this operation.
-    if (cancelRequest != null)
+    catch(CanceledOperationException coe)
     {
-      indicateCancelled(cancelRequest);
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, coe);
+      }
 
+      setResultCode(ResultCode.CANCELED);
+      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+
+      appendErrorMessage(coe.getCancelRequest().getCancelReason());
+    }
+    finally
+    {
       // Stop the processing timer.
       setProcessingStopTime();
+
+      if(cancelRequest == null || cancelResult == null ||
+          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelRequest.notifyOriginalRequestor() ||
+          DirectoryServer.notifyAbandonedOperations())
+      {
+        clientConnection.sendResponse(this);
+      }
+
 
       // Log the compare response message.
       logCompareResponse(this);
@@ -581,24 +527,12 @@ compareProcessing:
       // Invoke the post-response compare plugins.
       invokePostResponsePlugins(workflowExecuted);
 
-      return;
+      // If no cancel result, set it
+      if(cancelResult == null)
+      {
+        cancelResult = new CancelResult(ResultCode.TOO_LATE, null);
+      }
     }
-
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
-    // Stop the processing timer.
-    setProcessingStopTime();
-
-    // Send the compare response to the client.
-    clientConnection.sendResponse(this);
-
-    // Log the compare response message.
-    logCompareResponse(this);
-
-    // Invoke the post-response compare plugins.
-    invokePostResponsePlugins(workflowExecuted);
-
   }
 
 
@@ -655,70 +589,6 @@ compareProcessing:
     setResultCode(ResultCode.NO_SUCH_OBJECT);
     appendErrorMessage(
       ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(getEntryDN())));
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-
-    CancelResult cancelResult = getCancelResult();
-    long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while ((cancelResult == null) &&
-           (System.currentTimeMillis() < stopWaitingTime))
-    {
-      try
-      {
-        Thread.sleep(50);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      cancelResult = getCancelResult();
-    }
-
-    if (cancelResult == null)
-    {
-      // This can happen in some rare cases (e.g., if a client disconnects and
-      // there is still a lot of data to send to that client), and in this case
-      // we'll prevent the cancel thread from blocking for a long period of
-      // time.
-      cancelResult = CancelResult.CANNOT_CANCEL;
-    }
-
-    return cancelResult;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return cancelRequest;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    this.cancelRequest = cancelRequest;
-    return true;
   }
 
 

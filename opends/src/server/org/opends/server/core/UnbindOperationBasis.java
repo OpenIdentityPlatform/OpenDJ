@@ -25,8 +25,6 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
-
 
 
 import java.util.ArrayList;
@@ -35,12 +33,7 @@ import java.util.List;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.OperationType;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 
@@ -78,6 +71,8 @@ public class UnbindOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
+    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+        ERR_CANNOT_CANCEL_UNBIND.get());
   }
 
 
@@ -92,19 +87,6 @@ public class UnbindOperationBasis
     // candidate for being called by the logging subsystem.
 
     return OperationType.UNBIND;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message)
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
   }
 
 
@@ -186,7 +168,6 @@ public class UnbindOperationBasis
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    boolean skipPostOperation = false;
 
     setProcessingStartTime();
 
@@ -213,41 +194,6 @@ public class UnbindOperationBasis
     pluginConfigManager.invokePostOperationUnbindPlugins(this);
 
     setProcessingStopTime();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    cancelRequest.addResponseMessage(ERR_CANNOT_CANCEL_UNBIND.get());
-    return CancelResult.CANNOT_CANCEL;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    // Unbind operations cannot be canceled.
-    return false;
   }
 
 

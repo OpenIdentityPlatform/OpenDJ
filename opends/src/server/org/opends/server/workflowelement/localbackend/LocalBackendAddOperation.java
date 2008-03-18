@@ -46,8 +46,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -70,8 +69,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelledOperationException;
-import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
@@ -122,9 +120,6 @@ public class LocalBackendAddOperation
 
   // Indicates whether the request includes the LDAP no-op control.
   private boolean noOp;
-
-  // Indicates whether to skip post-operation plugin processing.
-  private boolean skipPostOperation;
 
   // The DN of the entry to be added.
   private DN entryDN;
@@ -181,22 +176,22 @@ public class LocalBackendAddOperation
    *
    * @param  backend  The backend in which the add operation should be
    *                  processed.
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
-  void processLocalAdd(Backend backend)
-  {
+  void processLocalAdd(Backend backend) throws CanceledOperationException {
+    boolean executePostOpPlugins = false;
+
     this.backend = backend;
     ClientConnection clientConnection = getClientConnection();
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    skipPostOperation = false;
 
     // Check for a request to cancel this operation.
-    if (cancelIfRequested())
-    {
-      return;
-    }
+    checkIfCanceled(false);
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
@@ -222,10 +217,7 @@ addProcessing:
       }
 
       // Check for a request to cancel this operation.
-      if (cancelIfRequested())
-      {
-        return;
-      }
+      checkIfCanceled(false);
 
 
       // Grab a read lock on the parent entry, if there is one.  We need to do
@@ -254,10 +246,7 @@ addProcessing:
       try
       {
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
+        checkIfCanceled(false);
 
 
         // Grab a write lock on the target entry.  We'll need to do this
@@ -280,7 +269,6 @@ addProcessing:
           appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(
                                   String.valueOf(entryDN)));
 
-          skipPostOperation = true;
           break addProcessing;
         }
 
@@ -293,9 +281,13 @@ addProcessing:
           try
           {
             SynchronizationProviderResult result =
-                 provider.handleConflictResolution(this);
-            if (! result.continueOperationProcessing())
+                provider.handleConflictResolution(this);
+            if (! result.continueProcessing())
             {
+              setResultCode(result.getResultCode());
+              appendErrorMessage(result.getErrorMessage());
+              setMatchedDN(result.getMatchedDN());
+              setReferralURLs(result.getReferralURLs());
               break addProcessing;
             }
           }
@@ -591,50 +583,32 @@ addProcessing:
           setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
           appendErrorMessage(ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                                   String.valueOf(entryDN)));
-          skipPostOperation = true;
           break addProcessing;
         }
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
-
+        checkIfCanceled(false);
 
         // If the operation is not a synchronization operation,
         // Invoke the pre-operation add plugins.
         if (! isSynchronizationOperation())
         {
-          PreOperationPluginResult preOpResult =
+          executePostOpPlugins = true;
+          PluginResult.PreOperation preOpResult =
             pluginConfigManager.invokePreOperationAddPlugins(this);
-          if (preOpResult.connectionTerminated())
+          if (!preOpResult.continueProcessing())
           {
-            // There's no point in continuing with anything.  Log the result
-            // and return.
-            setResultCode(ResultCode.CANCELED);
-            appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-
-            return;
-          }
-          else if (preOpResult.sendResponseImmediately())
-          {
-            skipPostOperation = true;
-            break addProcessing;
-          }
-          else if (preOpResult.skipCoreProcessing())
-          {
-            skipPostOperation = false;
+            setResultCode(preOpResult.getResultCode());
+            appendErrorMessage(preOpResult.getErrorMessage());
+            setMatchedDN(preOpResult.getMatchedDN());
+            setReferralURLs(preOpResult.getReferralURLs());
             break addProcessing;
           }
         }
 
 
         // Check for a request to cancel this operation.
-        if (cancelIfRequested())
-        {
-          return;
-        }
+        checkIfCanceled(true);
 
 
         // If it is not a private backend, then check to see if the server or
@@ -696,9 +670,13 @@ addProcessing:
               try
               {
                 SynchronizationProviderResult result =
-                     provider.doPreOperation(this);
-                if (! result.continueOperationProcessing())
+                    provider.doPreOperation(this);
+                if (! result.continueProcessing())
                 {
+                  setResultCode(result.getResultCode());
+                  appendErrorMessage(result.getErrorMessage());
+                  setMatchedDN(result.getMatchedDN());
+                  setReferralURLs(result.getReferralURLs());
                   break addProcessing;
                 }
               }
@@ -740,26 +718,6 @@ addProcessing:
           setResponseData(de);
           break addProcessing;
         }
-        catch (CancelledOperationException coe)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, coe);
-          }
-
-          CancelResult cancelResult = coe.getCancelResult();
-
-          setCancelResult(cancelResult);
-          setResultCode(cancelResult.getResultCode());
-
-          Message message = coe.getMessageObject();
-          if ((message != null) && (message.length() > 0))
-          {
-            appendErrorMessage(message);
-          }
-
-          break addProcessing;
-        }
       }
       finally
       {
@@ -772,35 +730,29 @@ addProcessing:
         {
           LockManager.unlock(parentDN, parentLock);
         }
-
-
-        for (SynchronizationProvider provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                          getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
       }
     }
 
+    for (SynchronizationProvider provider :
+        DirectoryServer.getSynchronizationProviders())
+    {
+      try
+      {
+        provider.doPostOperation(this);
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
 
-    // Indicate that it is now too late to attempt to cancel the operation.
-    setCancelResult(CancelResult.TOO_LATE);
-
+        logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+            getOperationID(), getExceptionMessage(de)));
+        setResponseData(de);
+        break;
+      }
+    }
 
     // Invoke the post-operation or post-synchronization add plugins.
     if (isSynchronizationOperation())
@@ -810,18 +762,17 @@ addProcessing:
         pluginConfigManager.invokePostSynchronizationAddPlugins(this);
       }
     }
-    else if (! skipPostOperation)
+    else if (executePostOpPlugins)
     {
       // FIXME -- Should this also be done while holding the locks?
-      PostOperationPluginResult postOpResult =
-           pluginConfigManager.invokePostOperationAddPlugins(this);
-      if (postOpResult.connectionTerminated())
+      PluginResult.PostOperation postOpResult =
+          pluginConfigManager.invokePostOperationAddPlugins(this);
+      if(!postOpResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the result and
-        // return.
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_POSTOP_DISCONNECT.get());
-
+        setResultCode(postOpResult.getResultCode());
+        appendErrorMessage(postOpResult.getErrorMessage());
+        setMatchedDN(postOpResult.getMatchedDN());
+        setReferralURLs(postOpResult.getReferralURLs());
         return;
       }
     }
@@ -850,27 +801,6 @@ addProcessing:
         }
       }
     }
-  }
-
-
-
-  /**
-   * Checks to determine whether there has been a request to cancel this
-   * operation.  If so, then set the cancel result and processing stop time.
-   *
-   * @return  {@code true} if there was a cancel request, or {@code false} if
-   *          not.
-   */
-  private boolean cancelIfRequested()
-  {
-    if (getCancelRequest() == null)
-    {
-      return false;
-    }
-
-    indicateCancelled(getCancelRequest());
-    setProcessingStopTime();
-    return true;
   }
 
 
@@ -1576,7 +1506,6 @@ addProcessing:
         if (!AccessControlConfigManager.getInstance().
                 getAccessControlHandler().isAllowed(parentDN, this, c))
         {
-          skipPostOperation = true;
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                          ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }

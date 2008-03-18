@@ -2964,7 +2964,9 @@ public final class InternalClientConnection
                                       CancelRequest cancelRequest)
   {
     // Internal operations cannot be cancelled.
-    return CancelResult.CANNOT_CANCEL;
+    // TODO: i18n
+    return new CancelResult(ResultCode.CANNOT_CANCEL,
+        Message.raw("Internal operations cannot be cancelled"));
   }
 
 

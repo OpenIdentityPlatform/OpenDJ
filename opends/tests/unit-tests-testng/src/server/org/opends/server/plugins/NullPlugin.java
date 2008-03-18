@@ -28,21 +28,11 @@ package org.opends.server.plugins;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1Long;
-import org.opends.server.protocols.asn1.ASN1OctetString;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.Control;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.operation.*;
 
 
 

@@ -71,7 +71,7 @@ import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.StartupPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.backends.RootDSEBackend;
 import static org.opends.server.config.ConfigConstants.DN_MONITOR_ROOT;
 import static org.opends.server.config.ConfigConstants.ENV_VAR_INSTANCE_ROOT;
@@ -1414,9 +1414,9 @@ public class DirectoryServer
       workQueue = new WorkQueueConfigManager().initializeWorkQueue();
 
 
-      StartupPluginResult startupPluginResult =
+      PluginResult.Startup startupPluginResult =
            pluginConfigManager.invokeStartupPlugins();
-      if (! startupPluginResult.continueStartup())
+      if (! startupPluginResult.continueProcessing())
       {
         Message message = ERR_STARTUP_PLUGIN_ERROR.
             get(startupPluginResult.getErrorMessage(),

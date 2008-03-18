@@ -1158,7 +1158,9 @@ public class JmxClientConnection
                                       CancelRequest cancelRequest)
   {
     // Jmx operations cannot be cancelled.
-    return CancelResult.CANNOT_CANCEL;
+    // TODO: i18n
+    return new CancelResult(ResultCode.CANNOT_CANCEL,
+        Message.raw("Jmx operations cannot be cancelled"));
   }
 
 

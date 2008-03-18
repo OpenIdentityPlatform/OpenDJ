@@ -33,18 +33,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PostResponsePluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1OctetString;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Control;
 import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.operation.*;
 import org.opends.messages.Message;
 
@@ -155,17 +150,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
-       doPreParse(PreParseAbandonOperation abandonOperation)
+  public PluginResult.PreParse doPreParse(
+      PreParseAbandonOperation abandonOperation)
   {
-    if (disconnectInternal(abandonOperation, "PreParse"))
-    {
-      return new PreParsePluginResult(true, false, false);
-    }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    disconnectInternal(abandonOperation, "PreParse");
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -174,16 +163,13 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(PreParseAddOperation addOperation)
-  {
+  public PluginResult.PreParse doPreParse(PreParseAddOperation addOperation)
+      throws CanceledOperationException {
     if (disconnectInternal(addOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      addOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -192,16 +178,10 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult doPreParse(PreParseBindOperation bindOperation)
+  public PluginResult.PreParse doPreParse(PreParseBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation, "PreParse"))
-    {
-      return new PreParsePluginResult(true, false, false);
-    }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    disconnectInternal(bindOperation, "PreParse");
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -210,17 +190,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(compareOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      compareOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -229,17 +206,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(deleteOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      deleteOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -248,17 +222,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(extendedOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      extendedOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -267,17 +238,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(modifyOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      modifyOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -286,17 +254,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(modifyDNOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      modifyDNOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -305,17 +270,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(searchOperation, "PreParse"))
     {
-      return new PreParsePluginResult(true, false, false);
+      searchOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -324,17 +286,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
-    if (disconnectInternal(unbindOperation, "PreParse"))
-    {
-      return new PreParsePluginResult(true, false, false);
-    }
-    else
-    {
-      return PreParsePluginResult.SUCCESS;
-    }
+    disconnectInternal(unbindOperation, "PreParse");
+    return PluginResult.PreParse.continueOperationProcessing();
   }
 
 
@@ -343,17 +299,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(addOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      addOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -362,17 +315,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation, "PreOperation"))
-    {
-      return new PreOperationPluginResult(true, false, false);
-    }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(bindOperation, "PreOperation");
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -381,17 +328,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(compareOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      compareOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -400,17 +344,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(deleteOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      deleteOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -419,17 +360,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(extendedOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      extendedOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -438,17 +376,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(modifyOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      modifyOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -457,17 +392,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(modifyDNOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      modifyDNOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -476,17 +408,14 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
-  {
+       throws CanceledOperationException {
     if (disconnectInternal(searchOperation, "PreOperation"))
     {
-      return new PreOperationPluginResult(true, false, false);
+      searchOperation.checkIfCanceled(false);
     }
-    else
-    {
-      return PreOperationPluginResult.SUCCESS;
-    }
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 
 
@@ -495,17 +424,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
-    if (disconnectInternal(abandonOperation, "PreOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(abandonOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -514,17 +437,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
-    if (disconnectInternal(addOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(addOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -533,17 +450,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(bindOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -552,17 +463,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
-    if (disconnectInternal(compareOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(compareOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -571,17 +476,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
-    if (disconnectInternal(deleteOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(deleteOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -590,17 +489,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationExtendedOperation extendedOperation)
   {
-    if (disconnectInternal(extendedOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(extendedOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -609,17 +502,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
-    if (disconnectInternal(modifyOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(modifyOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -628,17 +515,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
-    if (disconnectInternal(modifyDNOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(modifyDNOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -647,17 +528,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
-    if (disconnectInternal(searchOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(searchOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -666,17 +541,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
-    if (disconnectInternal(unbindOperation, "PostOperation"))
-    {
-      return new PostOperationPluginResult(true, false);
-    }
-    else
-    {
-      return PostOperationPluginResult.SUCCESS;
-    }
+    disconnectInternal(unbindOperation, "PostOperation");
+    return PluginResult.PostOperation.continueOperationProcessing();
   }
 
 
@@ -685,17 +554,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseAddOperation addOperation)
   {
-    if (disconnectInternal(addOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(addOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -704,17 +567,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseBindOperation bindOperation)
   {
-    if (disconnectInternal(bindOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(bindOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -723,17 +580,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
-    if (disconnectInternal(compareOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(compareOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -742,17 +593,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
-    if (disconnectInternal(deleteOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(deleteOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -761,17 +606,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
-    if (disconnectInternal(extendedOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(extendedOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -780,17 +619,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
-    if (disconnectInternal(modifyOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(modifyOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -799,17 +632,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
-    if (disconnectInternal(modifyDNOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(modifyDNOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 
@@ -818,17 +645,11 @@ public class DisconnectClientPlugin
    * {@inheritDoc}
    */
   @Override()
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
-    if (disconnectInternal(searchOperation, "PostResponse"))
-    {
-      return new PostResponsePluginResult(true, false);
-    }
-    else
-    {
-      return PostResponsePluginResult.SUCCESS;
-    }
+    disconnectInternal(searchOperation, "PostResponse");
+    return PluginResult.PostResponse.continueOperationProcessing();
   }
 
 

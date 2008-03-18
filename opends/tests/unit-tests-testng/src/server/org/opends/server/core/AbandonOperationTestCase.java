@@ -148,8 +148,9 @@ public class AbandonOperationTestCase
 
     CancelRequest cancelRequest = new CancelRequest(true,
             Message.raw("Test Cancel"));
-    assertEquals(abandonOperation.cancel(cancelRequest),
-                 CancelResult.CANNOT_CANCEL);
+
+    assertEquals(abandonOperation.cancel(cancelRequest).getResultCode(),
+                 ResultCode.CANNOT_CANCEL);
   }
 
 

@@ -975,8 +975,11 @@ public class LDAPClientConnection
     // Indicate that this connection is no longer valid.
     connectionValid = false;
 
-
-    cancelAllOperations(new CancelRequest(true, message));
+    MessageBuilder msgBuilder = new MessageBuilder();
+    msgBuilder.append(disconnectReason.getClosureMessage());
+    msgBuilder.append(": ");
+    msgBuilder.append(message);
+    cancelAllOperations(new CancelRequest(true, msgBuilder.toMessage()));
     finalizeConnectionInternal();
 
 
@@ -1271,7 +1274,8 @@ public class LDAPClientConnection
           CancelResult cancelResult =
                ps.getSearchOperation().cancel(cancelRequest);
 
-          if (keepStats && (cancelResult == CancelResult.CANCELED))
+          if (keepStats && (cancelResult.getResultCode() ==
+              ResultCode.CANCELED))
           {
             statTracker.updateAbandonedOperation();
           }
@@ -1280,12 +1284,12 @@ public class LDAPClientConnection
         }
       }
 
-      return CancelResult.NO_SUCH_OPERATION;
+      return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
     }
     else
     {
       CancelResult cancelResult = op.cancel(cancelRequest);
-      if (keepStats && (cancelResult == CancelResult.CANCELED))
+      if (keepStats && (cancelResult.getResultCode() == ResultCode.CANCELED))
       {
         statTracker.updateAbandonedOperation();
       }
@@ -1313,16 +1317,10 @@ public class LDAPClientConnection
         {
           try
           {
-            CancelResult cancelResult = o.getCancelResult();
-            if (cancelResult == null) {
-              // Before calling cancelling the operation, we need to
-              // mark this operation as cancelled so that the attempt to
-              // cancel it later won't cause an unnecessary delay.
-              o.setCancelResult(CancelResult.CANCELED);
-              cancelResult = o.cancel(cancelRequest);
-            }
+              o.abort(cancelRequest);
 
-            if (keepStats && (cancelResult == CancelResult.CANCELED))
+            // TODO: Assume its cancelled?
+            if (keepStats)
             {
               statTracker.updateAbandonedOperation();
             }
@@ -1391,8 +1389,10 @@ public class LDAPClientConnection
           {
             try
             {
-              CancelResult cancelResult = o.cancel(cancelRequest);
-              if (keepStats && (cancelResult == CancelResult.CANCELED))
+              o.abort(cancelRequest);
+
+              // TODO: Assume its cancelled?
+              if (keepStats)
               {
                 statTracker.updateAbandonedOperation();
               }

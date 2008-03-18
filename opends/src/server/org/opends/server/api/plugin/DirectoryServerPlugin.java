@@ -35,16 +35,7 @@ import java.util.Set;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
@@ -247,7 +238,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The result of the startup plugin processing.
    */
-  public StartupPluginResult doStartup()
+  public PluginResult.Startup doStartup()
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
         String.valueOf(pluginDN), PluginType.STARTUP.getName());
@@ -285,7 +276,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The result of the plugin processing.
    */
-  public PostConnectPluginResult doPostConnect(ClientConnection
+  public PluginResult.PostConnect doPostConnect(ClientConnection
                                                     clientConnection)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
@@ -309,7 +300,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The result of the plugin processing.
    */
-  public PostDisconnectPluginResult
+  public PluginResult.PostDisconnect
               doPostDisconnect(ClientConnection clientConnection,
                                DisconnectReason disconnectReason,
                                Message message)
@@ -334,8 +325,8 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The result of the plugin processing.
    */
-  public LDIFPluginResult doLDIFImport(LDIFImportConfig importConfig,
-                                       Entry entry)
+  public PluginResult.ImportLDIF
+    doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
         String.valueOf(pluginDN), PluginType.LDIF_IMPORT.getName());
@@ -354,8 +345,8 @@ public abstract class DirectoryServerPlugin
    *
    * @return  The result of the plugin processing.
    */
-  public LDIFPluginResult doLDIFExport(LDIFExportConfig exportConfig,
-                                       Entry entry)
+  public PluginResult.ImportLDIF
+    doLDIFExport(LDIFExportConfig exportConfig, Entry entry)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
         String.valueOf(pluginDN), PluginType.LDIF_EXPORT.getName());
@@ -373,7 +364,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -394,7 +385,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -412,10 +403,13 @@ public abstract class DirectoryServerPlugin
    * @param  addOperation  The add operation that has been requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseAddOperation addOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
         String.valueOf(pluginDN), PluginType.PRE_PARSE_ADD.getName());
     throw new UnsupportedOperationException(message.toString());
@@ -433,10 +427,13 @@ public abstract class DirectoryServerPlugin
    * @param  addOperation  The add operation to be processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_ADD.getName());
@@ -456,7 +453,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -478,7 +475,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseAddOperation addOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -517,7 +514,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseBindOperation bindOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -537,7 +534,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -559,7 +556,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationBindOperation bindOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -581,7 +578,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseBindOperation bindOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -600,10 +597,13 @@ public abstract class DirectoryServerPlugin
    *                           requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_PARSE_COMPARE.getName());
@@ -620,10 +620,13 @@ public abstract class DirectoryServerPlugin
    * @param  compareOperation  The compare operation to be processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_COMPARE.getName());
@@ -643,7 +646,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -665,7 +668,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -684,10 +687,13 @@ public abstract class DirectoryServerPlugin
    *                          requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_PARSE_DELETE.getName());
@@ -706,10 +712,13 @@ public abstract class DirectoryServerPlugin
    * @param  deleteOperation  The delete operation to be processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_DELETE.getName());
@@ -729,7 +738,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -751,7 +760,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -789,10 +798,13 @@ public abstract class DirectoryServerPlugin
    *                            requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_PARSE_EXTENDED.getName());
@@ -810,10 +822,13 @@ public abstract class DirectoryServerPlugin
    *                            processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_EXTENDED.getName());
@@ -834,7 +849,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationExtendedOperation
                             extendedOperation)
   {
@@ -857,7 +872,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -876,10 +891,13 @@ public abstract class DirectoryServerPlugin
    *                          requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_PARSE_MODIFY.getName());
@@ -898,10 +916,13 @@ public abstract class DirectoryServerPlugin
    * @param  modifyOperation  The modify operation to be processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_MODIFY.getName());
@@ -921,7 +942,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -943,7 +964,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -981,10 +1002,13 @@ public abstract class DirectoryServerPlugin
    *                            requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_PARSE_MODIFY_DN.getName());
@@ -1004,10 +1028,13 @@ public abstract class DirectoryServerPlugin
    *                            processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_MODIFY_DN.getName());
@@ -1042,7 +1069,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public SubordinateModifyDNPluginResult
+  public PluginResult.SubordinateModifyDN
        processSubordinateModifyDN(SubordinateModifyDNOperation
                                        modifyDNOperation,
                                   Entry oldEntry, Entry newEntry,
@@ -1067,7 +1094,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation
                             modifyDNOperation)
   {
@@ -1090,7 +1117,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -1129,10 +1156,13 @@ public abstract class DirectoryServerPlugin
    *                          requested.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
-  {
+       throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_PARSE_SEARCH.getName());
@@ -1149,10 +1179,13 @@ public abstract class DirectoryServerPlugin
    * @param  searchOperation  The search operation to be processed.
    *
    * @return  Information about the result of the plugin processing.
+   *
+   * @throws CanceledOperationException if this operation should
+   * be cancelled.
    */
-  public PreOperationPluginResult
+  public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
-  {
+      throws CanceledOperationException {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
         get(String.valueOf(pluginDN),
             PluginType.PRE_OPERATION_SEARCH.getName());
@@ -1177,7 +1210,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public SearchEntryPluginResult
+  public PluginResult.IntermediateResponse
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
   {
@@ -1201,7 +1234,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public SearchReferencePluginResult
+  public PluginResult.IntermediateResponse
        processSearchReference(SearchReferenceSearchOperation
                                    searchOperation,
                               SearchResultReference searchReference)
@@ -1225,7 +1258,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -1247,7 +1280,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostResponsePluginResult
+  public PluginResult.PostResponse
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -1267,7 +1300,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PreParsePluginResult
+  public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -1288,7 +1321,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public PostOperationPluginResult
+  public PluginResult.PostOperation
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.
@@ -1308,7 +1341,7 @@ public abstract class DirectoryServerPlugin
    *
    * @return  Information about the result of the plugin processing.
    */
-  public IntermediateResponsePluginResult
+  public PluginResult.IntermediateResponse
               processIntermediateResponse(
                    IntermediateResponse intermediateResponse)
   {

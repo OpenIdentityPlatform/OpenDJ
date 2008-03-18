@@ -41,6 +41,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.SearchResultReference;
+import org.opends.server.types.CanceledOperationException;
 
 
 /**
@@ -170,8 +171,12 @@ public abstract class WorkflowElement
    * Executes the workflow element for an operation.
    *
    * @param operation the operation to execute
+   *
+   * @throws CanceledOperationException if this operation should be
+   * cancelled
    */
-  public abstract void execute(Operation operation);
+  public abstract void execute(Operation operation)
+      throws CanceledOperationException;
 
 
   /**

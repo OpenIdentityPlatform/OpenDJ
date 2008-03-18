@@ -38,16 +38,10 @@ import static org.opends.messages.CoreMessages.*;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.plugin.PreParsePluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PreParseAbandonOperation;
 
@@ -95,6 +89,8 @@ public class AbandonOperationBasis extends AbstractOperation
 
 
     this.idToAbandon = idToAbandon;
+    this.cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
+        ERR_CANNOT_CANCEL_ABANDON.get());
   }
 
 
@@ -121,20 +117,6 @@ public class AbandonOperationBasis extends AbstractOperation
     // candidate for being called by the logging subsystem.
 
     return OperationType.ABANDON;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final void disconnectClient(DisconnectReason disconnectReason,
-                                     boolean sendNotification, Message message
-  )
-  {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
   }
 
 
@@ -239,53 +221,31 @@ public class AbandonOperationBasis extends AbstractOperation
   {
     setResultCode(ResultCode.UNDEFINED);
 
+    // Start the processing timer.
+    setProcessingStartTime();
+
+    // Log the abandon request message.
+    logAbandonRequest(this);
 
     // Get the plugin config manager that will be used for invoking plugins.
     PluginConfigManager pluginConfigManager =
          DirectoryServer.getPluginConfigManager();
-    boolean skipPostOperation = false;
-
-
-    // Start the processing timer.
-    setProcessingStartTime();
-
 
     // Create a labeled block of code that we can break out of if a problem is
     // detected.
 abandonProcessing:
     {
       // Invoke the pre-parse abandon plugins.
-      PreParsePluginResult preParseResult =
+      PluginResult.PreParse preParseResult =
            pluginConfigManager.invokePreParseAbandonPlugins(this);
-      if (preParseResult.connectionTerminated())
+      if (!preParseResult.continueProcessing())
       {
-        // There's no point in continuing.  Log the request and result and
-        // return.
-        setResultCode(ResultCode.CANCELED);
-
-        appendErrorMessage(ERR_CANCELED_BY_PREPARSE_DISCONNECT.get());
-
-        setProcessingStopTime();
-
-        logAbandonRequest(this);
-        logAbandonResult(this);
-        return;
-      }
-      else if (preParseResult.sendResponseImmediately())
-      {
-        skipPostOperation = true;
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
         break abandonProcessing;
       }
-      else if (preParseResult.skipCoreProcessing())
-      {
-        skipPostOperation = false;
-        break abandonProcessing;
-      }
-
-
-      // Log the abandon request message.
-      logAbandonRequest(this);
-
 
       // Actually perform the abandon operation.  Make sure to set the result
       // code to reflect whether the abandon was successful and an error message
@@ -306,20 +266,22 @@ abandonProcessing:
         // configurable option in the server.
         boolean notifyRequestor = DirectoryServer.notifyAbandonedOperations();
         Message cancelReason = INFO_CANCELED_BY_ABANDON_REQUEST.get(messageID);
-        MessageBuilder cancelResponse = new MessageBuilder();
         CancelResult result =
-             operation.cancel(new CancelRequest(notifyRequestor, cancelReason,
-                                                cancelResponse));
+             operation.cancel(new CancelRequest(notifyRequestor, cancelReason));
         setResultCode(result.getResultCode());
-        setErrorMessage(cancelResponse);
+        appendErrorMessage(result.getResponseMessage());
       }
-    }
 
-
-    // Invoke the post-operation abandon plugins.
-    if (! skipPostOperation)
-    {
-      pluginConfigManager.invokePostOperationAbandonPlugins(this);
+      PluginResult.PostOperation postOpResult =
+          pluginConfigManager.invokePostOperationAbandonPlugins(this);
+      if (!postOpResult.continueProcessing())
+      {
+        setResultCode(preParseResult.getResultCode());
+        appendErrorMessage(preParseResult.getErrorMessage());
+        setMatchedDN(preParseResult.getMatchedDN());
+        setReferralURLs(preParseResult.getReferralURLs());
+        break abandonProcessing;
+      }
     }
 
 
@@ -329,41 +291,6 @@ abandonProcessing:
 
     // Log the result of the abandon operation.
     logAbandonResult(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelResult cancel(CancelRequest cancelRequest)
-  {
-    cancelRequest.addResponseMessage(ERR_CANNOT_CANCEL_ABANDON.get());
-    return CancelResult.CANNOT_CANCEL;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final CancelRequest getCancelRequest()
-  {
-    return null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean setCancelRequest(CancelRequest cancelRequest)
-  {
-    // Abandon operations cannot be canceled.
-    return false;
   }
 
 

@@ -27,9 +27,6 @@
 package org.opends.server.types;
 import org.opends.messages.Message;
 
-
-import org.opends.messages.MessageBuilder;
-
 /**
  * This class defines a data structure that can be used to hold
  * information about a request to cancel or abandon an operation in
@@ -50,10 +47,6 @@ public final class CancelRequest
   // included in the response to the original requestor).
   private final Message cancelReason;
 
-  // A buffer to hold a human-readable response that the server
-  // provided for the result of the cancellation.
-  private MessageBuilder responseMessage;
-
 
 
   /**
@@ -71,32 +64,6 @@ public final class CancelRequest
   {
     this.notifyOriginalRequestor = notifyOriginalRequestor;
     this.cancelReason            = cancelReason;
-    this.responseMessage         = new MessageBuilder();
-  }
-
-
-
-  /**
-   * Creates a new cancel request with the provided information.
-   *
-   * @param  notifyOriginalRequestor  Indicates whether the original
-   *                                  requestor should receive a
-   *                                  response if the operation is
-   *                                  canceled.
-   * @param  cancelReason             A message that explains the
-   *                                  purpose for this cancellation.
-   * @param  responseMessage          A buffer to hold a
-   *                                  human-readable response that the
-   *                                  server provided for the result
-   *                                  of the cancellation.
-   */
-  public CancelRequest(boolean notifyOriginalRequestor,
-                       Message cancelReason,
-                       MessageBuilder responseMessage)
-  {
-    this.notifyOriginalRequestor = notifyOriginalRequestor;
-    this.cancelReason            = cancelReason;
-    this.responseMessage         = responseMessage;
   }
 
 
@@ -126,36 +93,6 @@ public final class CancelRequest
   public Message getCancelReason()
   {
     return cancelReason;
-  }
-
-
-
-  /**
-   * Retrieves the buffer that is used to hold a human-readable
-   * response that the server provided for the result of the
-   * cancellation.  The caller may alter the contents of this buffer.
-   *
-   * @return  The buffer that is used to hold a human-readable
-   *          response that the server provided for the result of this
-   *          cancellation.
-   */
-  public MessageBuilder getResponseMessage()
-  {
-    return responseMessage;
-  }
-
-
-
-  /**
-   * Appends the provided message to the buffer used to hold
-   * information about the result of the cancellation.
-   *
-   * @param  message  The message to append to the response message
-   *                  buffer.
-   */
-  public void addResponseMessage(Message message)
-  {
-    responseMessage.append(message);
   }
 }
 

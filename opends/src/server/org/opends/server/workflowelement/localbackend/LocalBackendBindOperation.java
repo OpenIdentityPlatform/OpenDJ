@@ -38,8 +38,7 @@ import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.api.plugin.PostOperationPluginResult;
-import org.opends.server.api.plugin.PreOperationPluginResult;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AuthorizationIdentityResponseControl;
 import org.opends.server.controls.PasswordExpiredControl;
 import org.opends.server.controls.PasswordExpiringControl;
@@ -119,8 +118,8 @@ public class LocalBackendBindOperation
   // control in the bind response.
   private boolean returnAuthzID;
 
-  // Indicates whether to skip post-operation plugin processing.
-  private boolean skipPostOperation;
+  // Indicates whether to execute post-operation plugins.
+  private boolean executePostOpPlugins;
 
   // The client connection associated with this bind operation.
   private ClientConnection clientConnection;
@@ -194,7 +193,7 @@ public class LocalBackendBindOperation
     // Initialize a number of variables for use during the bind processing.
     clientConnection         = getClientConnection();
     returnAuthzID            = false;
-    skipPostOperation        = false;
+    executePostOpPlugins     = false;
     sizeLimit                = DirectoryServer.getSizeLimit();
     timeLimit                = DirectoryServer.getTimeLimit();
     lookthroughLimit         = DirectoryServer.getLookthroughLimit();
@@ -229,7 +228,6 @@ bindProcessing:
         setResultCode(ResultCode.INVALID_CREDENTIALS);
         setAuthFailureReason(ERR_BIND_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(
                                   String.valueOf(bindDN)));
-        skipPostOperation = true;
         break bindProcessing;
       }
 
@@ -260,7 +258,7 @@ bindProcessing:
           {
             if (! processSimpleBind())
             {
-              return;
+              break bindProcessing;
             }
           }
           catch (DirectoryException de)
@@ -289,7 +287,7 @@ bindProcessing:
           {
             if (! processSASLBind())
             {
-              return;
+              break bindProcessing;
             }
           }
           catch (DirectoryException de)
@@ -316,7 +314,7 @@ bindProcessing:
         default:
           // Send a protocol error response to the client and disconnect.
           // NYI
-          return;
+          setResultCode(ResultCode.PROTOCOL_ERROR);
       }
     }
 
@@ -342,18 +340,16 @@ bindProcessing:
 
 
     // Invoke the post-operation bind plugins.
-    if (! skipPostOperation)
+    if (executePostOpPlugins)
     {
-      PostOperationPluginResult postOpResult =
+      PluginResult.PostOperation postOpResult =
            pluginConfigManager.invokePostOperationBindPlugins(this);
-      if (postOpResult.connectionTerminated())
+      if (!postOpResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the result
-        // and return.
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-        setProcessingStopTime();
-        return;
+        setResultCode(postOpResult.getResultCode());
+        appendErrorMessage(postOpResult.getErrorMessage());
+        setMatchedDN(postOpResult.getMatchedDN());
+        setReferralURLs(postOpResult.getReferralURLs());
       }
     }
 
@@ -421,9 +417,6 @@ bindProcessing:
         }
       }
     }
-
-    // Stop the processing timer.
-    setProcessingStopTime();
   }
 
 
@@ -448,7 +441,6 @@ bindProcessing:
         if (! AccessControlConfigManager.getInstance().
                  getAccessControlHandler(). isAllowed(bindDN, this, c))
         {
-          skipPostOperation = true;
           throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
                          ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
         }
@@ -557,7 +549,7 @@ bindProcessing:
 
       // Check to see if the user has a password.  If not, then fail.
       // FIXME -- We need to have a way to enable/disable debugging.
-      pwPolicyState = new PasswordPolicyState(userEntry, false, false);
+      pwPolicyState = new PasswordPolicyState(userEntry, false);
       policy = pwPolicyState.getPolicy();
       AttributeType  pwType = policy.getPasswordAttribute();
 
@@ -575,22 +567,16 @@ bindProcessing:
 
 
       // Invoke the pre-operation bind plugins.
-      PreOperationPluginResult preOpResult =
-           pluginConfigManager.invokePreOperationBindPlugins(this);
-      if (preOpResult.connectionTerminated())
+      executePostOpPlugins = true;
+      PluginResult.PreOperation preOpResult =
+          pluginConfigManager.invokePreOperationBindPlugins(this);
+      if (!preOpResult.continueProcessing())
       {
-        // There's no point in continuing with anything.  Log the result
-        // and return.
-        setResultCode(ResultCode.CANCELED);
-        appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-        setProcessingStopTime();
+        setResultCode(preOpResult.getResultCode());
+        appendErrorMessage(preOpResult.getErrorMessage());
+        setMatchedDN(preOpResult.getMatchedDN());
+        setReferralURLs(preOpResult.getReferralURLs());
         return false;
-      }
-      else if (preOpResult.sendResponseImmediately()  ||
-               preOpResult.skipCoreProcessing())
-      {
-        skipPostOperation = false;
-        return true;
       }
 
 
@@ -719,22 +705,16 @@ bindProcessing:
 
 
     // Invoke the pre-operation bind plugins.
-    PreOperationPluginResult preOpResult =
-         pluginConfigManager.invokePreOperationBindPlugins(this);
-    if (preOpResult.connectionTerminated())
+    executePostOpPlugins = true;
+    PluginResult.PreOperation preOpResult =
+        pluginConfigManager.invokePreOperationBindPlugins(this);
+    if (!preOpResult.continueProcessing())
     {
-      // There's no point in continuing with anything.  Log the result
-      // and return.
-      setResultCode(ResultCode.CANCELED);
-      appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-      setProcessingStopTime();
+      setResultCode(preOpResult.getResultCode());
+      appendErrorMessage(preOpResult.getErrorMessage());
+      setMatchedDN(preOpResult.getMatchedDN());
+      setReferralURLs(preOpResult.getReferralURLs());
       return false;
-    }
-    else if (preOpResult.sendResponseImmediately() ||
-             preOpResult.skipCoreProcessing())
-    {
-      skipPostOperation = true;
-      return true;
     }
 
     setResultCode(ResultCode.SUCCESS);
@@ -773,22 +753,15 @@ bindProcessing:
 
 
     // Invoke the pre-operation bind plugins.
-    PreOperationPluginResult preOpResult =
-         pluginConfigManager.invokePreOperationBindPlugins(this);
-    if (preOpResult.connectionTerminated())
+    PluginResult.PreOperation preOpResult =
+        pluginConfigManager.invokePreOperationBindPlugins(this);
+    if (!preOpResult.continueProcessing())
     {
-      // There's no point in continuing with anything.  Log the result
-      // and return.
-      setResultCode(ResultCode.CANCELED);
-      appendErrorMessage(ERR_CANCELED_BY_PREOP_DISCONNECT.get());
-      setProcessingStopTime();
+      setResultCode(preOpResult.getResultCode());
+      appendErrorMessage(preOpResult.getErrorMessage());
+      setMatchedDN(preOpResult.getMatchedDN());
+      setReferralURLs(preOpResult.getReferralURLs());
       return false;
-    }
-    else if (preOpResult.sendResponseImmediately() ||
-             preOpResult.skipCoreProcessing())
-    {
-      skipPostOperation = false;
-      return true;
     }
 
     // Actually process the SASL bind.
@@ -822,8 +795,7 @@ bindProcessing:
     else
     {
       // FIXME -- Need to have a way to enable debugging.
-      pwPolicyState = new PasswordPolicyState(saslAuthUserEntry, false,
-                                              false);
+      pwPolicyState = new PasswordPolicyState(saslAuthUserEntry, false);
       policy = pwPolicyState.getPolicy();
       setUserEntryDN(saslAuthUserEntry.getDN());
 
