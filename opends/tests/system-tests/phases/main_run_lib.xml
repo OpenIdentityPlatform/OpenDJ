@@ -100,7 +100,6 @@
         '=================== PREAMBLE  ========================='
       </message>
       
-      
       <!--== Do some stuff on instances machines ==-->
       <paralleliterate in="instances" var="instance">
         <sequence>
@@ -126,6 +125,17 @@
               'fileFd'     : NO_FILE
             }
           </call>
+          <!--== Get opends buildid is instance is already installed ==-->
+          <if expr="instance.getProduct() == 'opends'">
+            <sequence>
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+               file="'%s/phases/installation/installation_opends.xml' %
+               (TESTS_DIR)"/>
+              <call function="'getOpendsBuildID'">
+                { 'instance' : instance }
+              </call>
+            </sequence>
+          </if>
         </sequence>
       </paralleliterate>
       

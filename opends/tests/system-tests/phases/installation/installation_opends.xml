@@ -105,10 +105,11 @@
       
       
       <!--== Update missing parameters -->
-      <call function="'updateMissingParameters'">
-      {'instances' : instances}
-      </call>
-      
+      <iterate in="instances" var="instance">
+        <call function="'updateMissingParameters'">
+        {'instance' : instance}
+        </call>
+      </iterate>
     </sequence>
   </function>  
 
@@ -375,61 +376,83 @@
   <!-- ************************************************************ -->
   <function name="updateMissingParameters" scope="local">
     <function-map-args>
-      <function-arg-def name="instances" type="required">
+      <function-arg-def name="instance" type="required">
       </function-arg-def>
     </function-map-args>
     
     <sequence>
-      <!--========  Update missing parameters   ======-->
-      <iterate in="instances" var="instance">
-        <sequence>
+      <!--== Get instance informations ==-->
+      <process name="'%s: Get server infos' % instance.getName()">
+        <location>instance.getHost()</location>
+        <command mode="'shell'">
+          "%s/bin/start-ds -s" % instance.getInstallDir()
+        </command>
+        <envs>['PATH=/bin:/usr/bin:']</envs>
+        <stderr mode="'stdout'"/>
+        <stdout/>
+        <returnstdout/>
+      </process>
+      <!--== Parse and store the outputs returned by the CLI  ==-->
+      <script>
+        instanceInfos = STAXResult[0][1].split('\n')
         
-          <!--== Get instance informations ==-->
-          <process name="'%s: Get server infos' % instance.getName()">
-            <location>instance.getHost()</location>
-            <command mode="'shell'">
-              "%s/bin/start-ds -s" % instance.getInstallDir()
-            </command>
-            <envs>['PATH=/bin:/usr/bin:']</envs>
-            <stderr mode="'stdout'"/>
-            <stdout/>
-            <returnstdout/>
-          </process>
-          <!--== Parse and store the outputs returned by the CLI  ==-->
-          <script>
-            instanceInfos = STAXResult[0][1].split('\n')
-            
-            version = instanceInfos[0].replace("OpenDS Directory Server ","")
-            dict = {}
-            
-            for line in instanceInfos:
-              key = line[0:line.find(':')].strip()
-              value= line[line.find(':')+1:len(line)].strip()
-              dict[key]=value
-            
-            build = dict['Build ID']
-            
-            os = dict['Operating System']
-            os = os.replace("generic ","")
-            
-            jvmVersion   = dict['JVM Version']
-            jvmVendor    = dict['JVM Vendor']
-            if jvmVendor == 'Sun Microsystems Inc.':
-              jvmVendor  = 'sun'
-            jvmArch      = dict['JVM Architecture'].replace("-bit","")
-            
-            
-            jvm = '%s-%s-server-%s' % (jvmVersion,jvmVendor,jvmArch)
-            
-            # Store infos in instance object
-            instance.setJavaVersion(jvm)
-            instance.setBuildId(build)
-            instance.setOs(os)
-          </script>
-        </sequence>
-      </iterate>
+        version = instanceInfos[0].replace("OpenDS Directory Server ","")
+        dict = {}
+        
+        for line in instanceInfos:
+          key = line[0:line.find(':')].strip()
+          value= line[line.find(':')+1:len(line)].strip()
+          dict[key]=value
+        
+        build = dict['Build ID']
+        
+        os = dict['Operating System']
+        os = os.replace("generic ","")
+        
+        jvmVersion   = dict['JVM Version']
+        jvmVendor    = dict['JVM Vendor']
+        if jvmVendor == 'Sun Microsystems Inc.':
+          jvmVendor  = 'sun'
+        jvmArch      = dict['JVM Architecture'].replace("-bit","")
+        
+        
+        jvm = '%s-%s-server-%s' % (jvmVersion,jvmVendor,jvmArch)
+        
+        # Store infos in instance object
+        instance.setJavaVersion(jvm)
+        instance.setBuildId(build)
+        instance.setOs(os)
+      </script>
     </sequence>
   </function>
   
   
+  
+  
+  <!-- ************************************************************ -->
+  <function name="getOpendsBuildID" scope="local">
+    <function-map-args>
+      <function-arg-def name="instance" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--====  get build id if instance has already been installed  ====-->
+      <call function="'isFile'">
+      {
+        'location' : instance.getHost(),
+        'fileName' : instance.getInstallDir()
+      }
+      </call>
+      <script>
+        installDirExist = STAXResult
+      </script>
+      <!--== if installDir exists, get buildID ==-->
+      <if expr="installDirExist == TRUE">
+        <call function="'updateMissingParameters'">
+          {'instance' : instance}
+        </call>
+      </if>
+    </sequence>
+ </function>
 </stax>
