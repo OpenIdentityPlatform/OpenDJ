@@ -114,6 +114,8 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.cli.CLIException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.opends.server.util.cli.MenuBuilder;
+import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
@@ -140,6 +142,57 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private static final Logger LOG =
     Logger.getLogger(ReplicationCliMain.class.getName());
+
+  /**
+   * The enumeration containing the different options we display when we ask
+   * the user to provide the subcommand interactively.
+   */
+  private enum SubcommandChoice
+  {
+    /**
+     * Enable replication.
+     */
+    ENABLE(INFO_REPLICATION_ENABLE_MENU_PROMPT.get()),
+    /**
+     * Disable replication.
+     */
+    DISABLE(INFO_REPLICATION_DISABLE_MENU_PROMPT.get()),
+    /**
+     * Initialize replication.
+     */
+    INITIALIZE(INFO_REPLICATION_INITIALIZE_MENU_PROMPT.get()),
+    /**
+     * Initialize All.
+     */
+    INITIALIZE_ALL(INFO_REPLICATION_INITIALIZE_ALL_MENU_PROMPT.get()),
+    /**
+     * Pre external initialization.
+     */
+    PRE_EXTERNAL_INITIALIZATION(
+        INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_MENU_PROMPT.get()),
+    /**
+     * Post external initialization.
+     */
+    POST_EXTERNAL_INITIALIZATION(
+        INFO_REPLICATION_POST_EXTERNAL_INITIALIZATION_MENU_PROMPT.get()),
+    /**
+     * Replication status.
+     */
+    STATUS(INFO_REPLICATION_STATUS_MENU_PROMPT.get()),
+    /**
+     * Cancel operation.
+     */
+    CANCEL(null);
+    private Message prompt;
+    private SubcommandChoice(Message prompt)
+    {
+      this.prompt = prompt;
+    }
+    Message getPrompt()
+    {
+      return prompt;
+    }
+  };
 
   // The argument parser to be used.
   private ReplicationCliArgumentParser argParser;
@@ -367,10 +420,72 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else
         {
-          println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get());
-          println(Message.raw(argParser.getUsage()));
-          returnValue = ERROR_USER_DATA;
-          subcommandLaunched = false;
+          if (argParser.isInteractive())
+          {
+            String subCommand = null;
+            switch (promptForSubcommand())
+            {
+            case ENABLE:
+              subCommand =
+                ReplicationCliArgumentParser.ENABLE_REPLICATION_SUBCMD_NAME;
+              break;
+
+            case DISABLE:
+              subCommand =
+                ReplicationCliArgumentParser.DISABLE_REPLICATION_SUBCMD_NAME;
+              break;
+
+            case INITIALIZE:
+              subCommand =
+                ReplicationCliArgumentParser.INITIALIZE_REPLICATION_SUBCMD_NAME;
+              break;
+
+            case INITIALIZE_ALL:
+              subCommand =
+                ReplicationCliArgumentParser.
+                INITIALIZE_ALL_REPLICATION_SUBCMD_NAME;
+              break;
+
+            case PRE_EXTERNAL_INITIALIZATION:
+              subCommand = ReplicationCliArgumentParser.
+              PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
+              break;
+
+            case POST_EXTERNAL_INITIALIZATION:
+              subCommand = ReplicationCliArgumentParser.
+                 POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
+              break;
+
+            case STATUS:
+              subCommand =
+                ReplicationCliArgumentParser.STATUS_REPLICATION_SUBCMD_NAME;
+              break;
+
+            default:
+              // User cancelled
+              returnValue = USER_CANCELLED;
+            }
+
+            if (subCommand != null)
+            {
+              String[] newArgs = new String[args.length + 1];
+              newArgs[0] = subCommand;
+              for (int i=0; i<args.length ; i++)
+              {
+                newArgs[i+1] = args[i];
+              }
+              // The server (if requested) has already been initialized.
+              return execute(newArgs, false);
+            }
+          }
+          else
+          {
+            println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
+                ToolConstants.OPTION_LONG_NO_PROMPT));
+            println(Message.raw(argParser.getUsage()));
+            returnValue = ERROR_USER_DATA;
+            subcommandLaunched = false;
+          }
         }
 
         // Display the log file only if the operation is successful (when there
@@ -3000,6 +3115,10 @@ public class ReplicationCliMain extends ConsoleApplication
                   Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES)));
         }
       }
+      printlnProgress();
+      printProgress(INFO_REPLICATION_POST_ENABLE_INFO.get("dsreplication",
+          ReplicationCliArgumentParser.ENABLE_REPLICATION_SUBCMD_NAME));
+      printlnProgress();
     }
 
     if (ctx1 != null)
@@ -4195,6 +4314,11 @@ public class ReplicationCliMain extends ConsoleApplication
                 }
               }
             }
+          }
+          if (confirmationLimitReached)
+          {
+            suffixes.clear();
+            break;
           }
         }
       }
@@ -7422,5 +7546,45 @@ public class ReplicationCliMain extends ConsoleApplication
       hostPort = server.getHostPort(true);
     }
     return hostPort;
+  }
+
+  /**
+   * Prompts the user for the subcommand that should be executed.
+   * @return the subcommand choice of the user.
+   */
+  private SubcommandChoice promptForSubcommand()
+  {
+    SubcommandChoice returnValue;
+    MenuBuilder<SubcommandChoice> builder =
+      new MenuBuilder<SubcommandChoice>(this);
+    builder.setPrompt(INFO_REPLICATION_SUBCOMMAND_PROMPT.get());
+    builder.addCancelOption(false);
+    for (SubcommandChoice choice : SubcommandChoice.values())
+    {
+      if (choice != SubcommandChoice.CANCEL)
+      {
+        builder.addNumberedOption(choice.getPrompt(),
+            MenuResult.success(choice));
+      }
+    }
+    try
+    {
+      MenuResult<SubcommandChoice> m = builder.toMenu().run();
+      if (m.isSuccess())
+      {
+        returnValue = m.getValue();
+      }
+      else
+      {
+       // The user cancelled
+        returnValue = SubcommandChoice.CANCEL;
+      }
+    }
+    catch (CLIException ce)
+    {
+      returnValue = SubcommandChoice.CANCEL;
+      LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+    }
+    return returnValue;
   }
 }
