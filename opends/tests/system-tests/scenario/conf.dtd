@@ -43,7 +43,8 @@
 <!ELEMENT instance (host,installDir,ports?)>
 <!ATTLIST instance 
     name NMTOKEN #REQUIRED 
-    product NMTOKEN #REQUIRED>
+    product NMTOKEN #REQUIRED
+    role ( ldapServer | ldapProxy ) "ldapServer">
   
   <!ELEMENT host (#PCDATA)>
   <!ELEMENT installDir (#PCDATA)>
