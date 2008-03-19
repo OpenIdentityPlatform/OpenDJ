@@ -190,9 +190,12 @@ class Suffix:
 ###########################
 class Instance:
   "Describes a generic LDAP instance"
-  def __init__(self, iid, name, host, installDir, tarball, portLDAP):
+  def __init__(self, iid, name, product, role, host, installDir, tarball,\
+               portLDAP):
     self.iid         = iid
     self.name        = name
+    self.product     = product
+    self.role        = role
     self.host        = host
     self.installDir  = installDir
     self.tarball     = tarball
@@ -210,6 +213,12 @@ class Instance:
     
   def getName(self):
     return self.name
+    
+  def getProduct(self):
+    return self.product
+    
+  def getRole(self):
+    return self.role
     
   def getHost(self):
     return self.host
@@ -254,22 +263,22 @@ class Instance:
 ###########################
 class OpendsInstance(Instance):
   "Describes an opends Instance"
-  def __init__(self, iid, name, host, installDir, tarball, portLDAP, \
-               product, portLDAPS, portJMX, portREPL):
+  def __init__(self, iid, name, product, role, host, installDir, tarball, \
+               portLDAP, portLDAPS, portJMX, portREPL):
+    # from instance object
     self.iid         = iid
     self.name        = name
     self.product     = product
+    self.role        = role
     self.host        = host
     self.installDir  = installDir
     self.tarball     = tarball
     self.portLDAP    = portLDAP
+    # specific to opends instance
     self.portLDAPS   = portLDAPS
     self.portJMX     = portJMX
     self.portREPL    = portREPL
     self.javaVersion = NOT_DEFINED
-    
-  def getProduct(self):
-    return self.product
     
   def getLDAPSPort(self):
     return self.portLDAPS
@@ -461,12 +470,17 @@ def main(document):
       if cProduct == NOT_DEFINED:
         msg = '%s\n ERROR: cant get instance product attribute, required'% msg
         return [msg,[],[]]
+      cRole = _getAttributeNode(thisChild,'role')
+      if cRole == NOT_DEFINED:
+        msg = '%s\n ERROR: cant get instance role attribute, required'% msg
+        return [msg,[],[]]
       
       #
       # opends instance parsing
       #
       if cProduct == 'opends':
-        result = parseOpenDs(cId,cName,cProduct,opendsName,opendsZip,thisChild)
+        result = parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,\
+                             thisChild)
         msg = '%s \n %s' % (msg,result[0])
         instances.append(result[1])
       
@@ -539,7 +553,7 @@ def main(document):
 #
 # Parse children and get information for opends instance 
 #
-def parseOpenDs(cId,cName,cProduct,opendsName,opendsZip,thisChild):
+def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   msg         = ''
   cHost       = 'localhost'
   cInstallDir = NOT_DEFINED
@@ -615,8 +629,9 @@ def parseOpenDs(cId,cName,cProduct,opendsName,opendsZip,thisChild):
           (msg,cName)
   
   cInstallDir = '%s/%s/%s' % (cInstallDir,cName,opendsName)
-  return [msg,OpendsInstance(cId,cName,cHost,cInstallDir,opendsZip,cPortLDAP,\
-                             cProduct,cPortLDAPS,cPortJMX,cPortREPL)]
+  return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\
+                             opendsZip,\
+                             cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL)]
 
 
 #============================================================================
