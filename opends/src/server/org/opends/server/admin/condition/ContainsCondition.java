@@ -58,10 +58,10 @@ public final class ContainsCondition implements Condition {
   private static final class Impl<T> implements Condition {
 
     // The property.
-    private final PropertyDefinition<T> pd;
+    final PropertyDefinition<T> pd;
 
     // The required property value.
-    private final T value;
+    final T value;
 
 
 
@@ -194,4 +194,21 @@ public final class ContainsCondition implements Condition {
     this.impl = new Impl<T>(pd, value);
   }
 
+  /**
+   * Returns the property definition associated with this condition.
+   * @return the property definition associated with this condition.
+   */
+  public PropertyDefinition<?> getPropertyDefinition()
+  {
+    return impl.pd;
+  }
+
+  /**
+   * Returns the value that must be set for this condition to be fulfilled.
+   * @return the value that must be set for this condition to be fulfilled.
+   */
+  public Object getValue()
+  {
+    return impl.value;
+  }
 }

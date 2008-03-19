@@ -47,6 +47,7 @@ import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.util.cli.ConsoleApplication;
 
@@ -69,6 +70,9 @@ public final class LDAPManagementContextFactory implements
   // The management context.
   private ManagementContext context = null;
 
+  // The connection parameters command builder.
+  private CommandBuilder contextCommandBuilder;
+
   /**
    * Creates a new LDAP management context factory.
    */
@@ -89,6 +93,7 @@ public final class LDAPManagementContextFactory implements
         new LDAPConnectionConsoleInteraction(app, secureArgsList);
       ci.run();
       context = getManagementContext(app, ci);
+      contextCommandBuilder = ci.getCommandBuilder();
     }
     return context;
   }
@@ -102,6 +107,14 @@ public final class LDAPManagementContextFactory implements
     {
       context.close();
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public CommandBuilder getContextCommandBuilder()
+  {
+    return contextCommandBuilder;
   }
 
   /**

@@ -518,7 +518,13 @@ final class PropertyValueEditor {
         } else if (result.isCancel()) {
           return MenuResult.cancel();
         } else {
-          mo.setPropertyValues(d, result.getValues());
+          Collection<String> newValues = result.getValues();
+          SortedSet<String> oldValues =
+            new TreeSet<String>(mo.getPropertyValues(d));
+          mo.setPropertyValues(d, newValues);
+          isLastChoiceReset = false;
+          registerModification(d, new TreeSet<String>(newValues),
+              oldValues);
           return MenuResult.success();
         }
       } catch (CLIException e) {
@@ -561,7 +567,13 @@ final class PropertyValueEditor {
         } else if (result.isCancel()) {
           return MenuResult.cancel();
         } else {
-          mo.setPropertyValue(d, result.getValue());
+          Collection<Boolean> newValues = result.getValues();
+          SortedSet<Boolean> oldValues = new TreeSet<Boolean>(
+              mo.getPropertyValues(d));
+          mo.setPropertyValues(d, newValues);
+          isLastChoiceReset = false;
+          registerModification(d, new TreeSet<Boolean>(newValues),
+              oldValues);
           return MenuResult.success();
         }
       } catch (CLIException e) {
@@ -614,7 +626,11 @@ final class PropertyValueEditor {
         } else if (result.isCancel()) {
           return MenuResult.cancel();
         } else {
-          mo.setPropertyValues(d, result.getValues());
+          Collection<E> newValues = result.getValues();
+          SortedSet<E> oldValues = new TreeSet<E>(mo.getPropertyValues(d));
+          mo.setPropertyValues(d, newValues);
+          isLastChoiceReset = false;
+          registerModification(d, new TreeSet<E>(newValues), oldValues);
           return MenuResult.success();
         }
       } catch (CLIException e) {
@@ -636,8 +652,12 @@ final class PropertyValueEditor {
 
       // Set the new property value(s).
       try {
-        mo.setPropertyValues(d, readPropertyValues(app, mo
-            .getManagedObjectDefinition(), d));
+        SortedSet<T> values = readPropertyValues(app,
+            mo.getManagedObjectDefinition(), d);
+        SortedSet<T> oldValues = new TreeSet<T>(mo.getPropertyValues(d));
+        mo.setPropertyValues(d, values);
+        isLastChoiceReset = false;
+        registerModification(d, values, oldValues);
         return MenuResult.success();
       } catch (CLIException e) {
         this.e = e;
@@ -788,7 +808,10 @@ final class PropertyValueEditor {
 
               if (result.isSuccess()) {
                 // Set the new property value(s).
-                currentValues.addAll(result.getValues());
+                Collection<String> addedValues = result.getValues();
+                currentValues.addAll(addedValues);
+
+                isLastChoiceReset = false;
                 app.println();
                 app.pressReturnToContinue();
                 return MenuResult.success(false);
@@ -835,7 +858,9 @@ final class PropertyValueEditor {
 
             if (result.isSuccess()) {
               // Set the new property value(s).
-              currentValues.removeAll(result.getValues());
+              Collection<String> removedValues = result.getValues();
+              currentValues.removeAll(removedValues);
+              isLastChoiceReset = false;
               app.println();
               app.pressReturnToContinue();
               return MenuResult.success(false);
@@ -929,8 +954,11 @@ final class PropertyValueEditor {
               MenuResult<T> result = menu.run();
 
               if (result.isSuccess()) {
+
                 // Set the new property value(s).
-                currentValues.addAll(result.getValues());
+                Collection<T> addedValues = result.getValues();
+                currentValues.addAll(addedValues);
+                isLastChoiceReset = false;
                 app.println();
                 app.pressReturnToContinue();
                 return MenuResult.success(false);
@@ -976,7 +1004,9 @@ final class PropertyValueEditor {
 
             if (result.isSuccess()) {
               // Set the new property value(s).
-              currentValues.removeAll(result.getValues());
+              Collection<T> removedValues = result.getValues();
+              currentValues.removeAll(removedValues);
+              isLastChoiceReset = false;
               app.println();
               app.pressReturnToContinue();
               return MenuResult.success(false);
@@ -1037,8 +1067,12 @@ final class PropertyValueEditor {
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws CLIException {
             app.println();
+            SortedSet<T> previousValues = new TreeSet<T>(currentValues);
             readPropertyValues(app, mo.getManagedObjectDefinition(), d,
                 currentValues);
+            SortedSet<T> addedValues = new TreeSet<T>(currentValues);
+            addedValues.removeAll(previousValues);
+            isLastChoiceReset = false;
             return MenuResult.success(false);
           }
 
@@ -1074,7 +1108,9 @@ final class PropertyValueEditor {
 
             if (result.isSuccess()) {
               // Set the new property value(s).
-              currentValues.removeAll(result.getValues());
+              Collection<T> removedValues = result.getValues();
+              currentValues.removeAll(removedValues);
+              isLastChoiceReset = false;
               app.println();
               app.pressReturnToContinue();
               return MenuResult.success(false);
@@ -1305,6 +1341,7 @@ final class PropertyValueEditor {
 
             public MenuResult<Boolean> invoke(ConsoleApplication app)
                 throws CLIException {
+              isLastChoiceReset = false;
               currentValues.clear();
               app.println();
               app.pressReturnToContinue();
@@ -1325,6 +1362,7 @@ final class PropertyValueEditor {
               throws CLIException {
             currentValues.clear();
             currentValues.addAll(defaultValues);
+            isLastChoiceReset = true;
             app.println();
             app.pressReturnToContinue();
             return MenuResult.success(false);
@@ -1343,6 +1381,7 @@ final class PropertyValueEditor {
               throws CLIException {
             currentValues.clear();
             currentValues.addAll(oldValues);
+            isLastChoiceReset = false;
             app.println();
             app.pressReturnToContinue();
             return MenuResult.success(false);
@@ -1370,8 +1409,12 @@ final class PropertyValueEditor {
 
       if (result.isSuccess()) {
         if (result.getValue() == true) {
+
           // Set the new property value(s).
           mo.setPropertyValues(d, currentValues);
+
+          registerModification(d, currentValues, oldValues);
+
           app.println();
           app.pressReturnToContinue();
           return MenuResult.success(false);
@@ -1923,7 +1966,19 @@ final class PropertyValueEditor {
 
       if (result.isSuccess()) {
         // Set the new property value(s).
-        mo.setPropertyValues(d, result.getValues());
+        Collection<T> newValues = result.getValues();
+        SortedSet<T> oldValues = new TreeSet<T>(mo.getPropertyValues(d));
+        mo.setPropertyValues(d, newValues);
+        if (newValues.size() > 0)
+        {
+          isLastChoiceReset = false;
+        }
+        else
+        {
+          // There are no newValues when we do a reset.
+          isLastChoiceReset = true;
+        }
+        registerModification(d, new TreeSet<T>(newValues), oldValues);
         app.println();
         app.pressReturnToContinue();
         return MenuResult.success(false);
@@ -2158,6 +2213,15 @@ final class PropertyValueEditor {
   // The management context.
   private final ManagementContext context;
 
+  // The modifications performed: we assume that at most there is one
+  // modification per property definition.
+  private final List<PropertyEditorModification> mods =
+    new ArrayList<PropertyEditorModification>();
+
+  // Whether the last type of choice made by the user in a menu is a
+  // reset
+  private boolean isLastChoiceReset;
+
 
 
   /**
@@ -2204,6 +2268,7 @@ final class PropertyValueEditor {
   public MenuResult<Void> edit(ManagedObject<?> mo,
       Collection<PropertyDefinition<?>> c, boolean isCreate)
       throws CLIException {
+
     // Get values for this missing mandatory property.
     for (PropertyDefinition<?> pd : c) {
       if (pd.hasOption(PropertyOption.MANDATORY)) {
@@ -2308,4 +2373,289 @@ final class PropertyValueEditor {
       }
     }
   }
+
+  /**
+   * Register the modification in the list of modifications.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param pd the property definition.
+   * @param newValues the resulting values of the property once the
+   * modification is applied.
+   * @param previousValues the values we had before the modification is applied
+   * (these are not necessarily the *original* values if we already have other
+   * modifications applied to the same property).
+   */
+  private <T> void registerModification(PropertyDefinition<T> pd,
+      SortedSet<T> newValues, SortedSet<T> previousValues)
+  {
+
+    if (isLastChoiceReset)
+    {
+      registerResetModification(pd, previousValues);
+    }
+    else if (!newValues.equals(previousValues))
+    {
+      if (newValues.containsAll(previousValues))
+      {
+        registerAddModification(pd, newValues, previousValues);
+      }
+      else if (previousValues.containsAll(newValues))
+      {
+        registerRemoveModification(pd, newValues, previousValues);
+      }
+      else
+      {
+        registerSetModification(pd, newValues, previousValues);
+      }
+    }
+  }
+
+  /**
+   * Register a reset modification in the list of modifications.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param pd the property definition.
+   * @param previousValues the values we had before the modification is applied
+   * (these are not necessarily the *original* values if we already have other
+   * modifications applied to the same property).
+   */
+  private <T> void registerResetModification(PropertyDefinition<T> pd,
+      SortedSet<T> previousValues)
+  {
+    PropertyEditorModification<?> mod = getModification(pd);
+    SortedSet<T> originalValues;
+    if (mod != null)
+    {
+      originalValues = new TreeSet<T>();
+      castAndAddValues(originalValues, mod.getOriginalValues(), pd);
+      removeModification(mod);
+    }
+    else
+    {
+      originalValues = new TreeSet<T>(previousValues);
+    }
+
+    addModification(PropertyEditorModification.createResetModification(pd,
+        originalValues));
+  }
+
+  /**
+   * Register a set modification in the list of modifications.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param pd the property definition.
+   * @param newValues the resulting values of the property once the
+   * modification is applied.
+   * @param previousValues the values we had before the modification is applied
+   * (these are not necessarily the *original* values if we already have other
+   * modifications applied to the same property).
+   */
+  private <T> void registerSetModification(PropertyDefinition<T> pd,
+      SortedSet<T> newValues, SortedSet<T> previousValues)
+  {
+    PropertyEditorModification<?> mod = getModification(pd);
+    SortedSet<T> originalValues;
+    if (mod != null)
+    {
+      originalValues = new TreeSet<T>();
+      castAndAddValues(originalValues, mod.getOriginalValues(), pd);
+      removeModification(mod);
+    }
+    else
+    {
+      originalValues = new TreeSet<T>(previousValues);
+    }
+    addModification(PropertyEditorModification.createSetModification(pd,
+        newValues, originalValues));
+  }
+
+  /**
+   * Register an add modification in the list of modifications.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param pd the property definition.
+   * @param newValues the resulting values of the property once the
+   * modification is applied.
+   * @param previousValues the values we had before the modification is applied
+   * (these are not necessarily the *original* values if we already have other
+   * modifications applied to the same property).
+   */
+  private <T> void registerAddModification(PropertyDefinition<T> pd,
+      SortedSet<T> newValues, SortedSet<T> previousValues)
+  {
+    PropertyEditorModification<?> mod = getModification(pd);
+    PropertyEditorModification<T> newMod;
+    SortedSet<T> originalValues;
+    if (mod != null)
+    {
+      originalValues = new TreeSet<T>();
+      castAndAddValues(originalValues, mod.getOriginalValues(), pd);
+      if (mod.getType() == PropertyEditorModification.Type.ADD)
+      {
+        SortedSet<T> addedValues = new TreeSet<T>(newValues);
+        addedValues.removeAll(originalValues);
+        newMod = PropertyEditorModification.createAddModification(pd,
+            addedValues, originalValues);
+      }
+      else
+      {
+        newMod = PropertyEditorModification.createSetModification(pd,
+            new TreeSet<T>(newValues), originalValues);
+      }
+      removeModification(mod);
+    }
+    else
+    {
+      originalValues = new TreeSet<T>(previousValues);
+      SortedSet<T> addedValues = new TreeSet<T>(newValues);
+      addedValues.removeAll(originalValues);
+      newMod = PropertyEditorModification.createAddModification(pd,
+          addedValues, originalValues);
+    }
+    addModification(newMod);
+  }
+
+  /**
+   * Register a remove modification in the list of modifications.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param pd the property definition.
+   * @param newValues the resulting values of the property once the
+   * modification is applied.
+   * @param previousValues the values we had before the modification is applied
+   * (these are not necessarily the *original* values if we already have other
+   * modifications applied to the same property).
+   */
+  private <T> void registerRemoveModification(PropertyDefinition<T> pd,
+      SortedSet<T> newValues, SortedSet<T> previousValues)
+  {
+    PropertyEditorModification<?> mod = getModification(pd);
+    PropertyEditorModification<T> newMod;
+    SortedSet<T> originalValues;
+    if (mod != null)
+    {
+      originalValues = new TreeSet<T>();
+      castAndAddValues(originalValues, mod.getOriginalValues(), pd);
+      if (newValues.isEmpty())
+      {
+        newMod = PropertyEditorModification.createRemoveModification(pd,
+            originalValues, originalValues);
+      }
+      else if (mod.getType() == PropertyEditorModification.Type.REMOVE)
+      {
+        SortedSet<T> removedValues = new TreeSet<T>(originalValues);
+        removedValues.removeAll(newValues);
+        newMod = PropertyEditorModification.createRemoveModification(pd,
+            removedValues, originalValues);
+      }
+      else
+      {
+        newMod = PropertyEditorModification.createSetModification(pd,
+            new TreeSet<T>(newValues), originalValues);
+      }
+      removeModification(mod);
+    }
+    else
+    {
+      originalValues = new TreeSet<T>(previousValues);
+      SortedSet<T> removedValues = new TreeSet<T>(originalValues);
+      removedValues.removeAll(newValues);
+      newMod = PropertyEditorModification.createRemoveModification(pd,
+          removedValues, originalValues);
+    }
+    addModification(newMod);
+  }
+
+  /**
+   * Returns the modifications that have been applied during the last call of
+   * the method PropertyValueEditor.edit.
+   * @return the modifications that have been applied during the last call of
+   * the method PropertyValueEditor.edit.
+   */
+  public Collection<PropertyEditorModification> getModifications()
+  {
+    return mods;
+  }
+
+  /**
+   * Clears the list of modifications.
+   */
+  public void resetModifications()
+  {
+    mods.clear();
+  }
+
+  /**
+   * Adds a modification to the list of modifications that have been performed.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param mod the modification to be added.
+   */
+  private <T> void addModification(PropertyEditorModification<T> mod)
+  {
+    mods.add(mod);
+  }
+
+  /**
+   * Removes a modification from the list of modifications that have been
+   * performed.
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param mod the modification to be removed.
+   */
+  private <T> boolean removeModification(PropertyEditorModification<T> mod)
+  {
+    return mods.remove(mod);
+  }
+
+  /**
+   * Returns the modification associated with a given property definition:
+   * we assume that we have only one modification per property definition (in
+   * the worst case we merge the modifications and generate a unique set
+   * modification).
+   * @param <T> The type of the underlying property associated with the
+   * modification.
+   * @param pd the property definition.
+   * @return the modification associated with the provided property definition
+   * and <CODE>null</CODE> if no modification could be found.
+   */
+  private <T> PropertyEditorModification<?> getModification(
+      PropertyDefinition<T> pd)
+  {
+    PropertyEditorModification<?> mod = null;
+
+    for (PropertyEditorModification<?> m : mods)
+    {
+      if (pd.equals(m.getPropertyDefinition()))
+      {
+        mod = m;
+        break;
+      }
+    }
+
+    return mod;
+  }
+
+  /**
+   * This method is required to avoid compilation warnings.  It basically adds
+   * the contents of a collection to another collection by explicitly casting
+   * its values.  This is done because the method getModification() returns
+   * au undefined type.
+   * @param <T>  The type of the destination values.
+   * @param destination the collection that we want to update.
+   * @param source the collection whose values we want to add (and cast) to the
+   * source collection.
+   * @param pd the PropertyDefinition we use to do the casting.
+   * @throws ClassCastException if an error occurs during the cast of the
+   * objects.
+   */
+  private <T> void castAndAddValues(Collection<T> destination,
+      Collection<?> source, PropertyDefinition<T> pd) throws ClassCastException
+  {
+    for (Object o : source)
+    {
+      destination.add(pd.castValue(o));
+    }
+  }
 }
+

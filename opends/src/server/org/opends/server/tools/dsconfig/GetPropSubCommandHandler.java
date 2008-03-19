@@ -222,6 +222,14 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
 
+    //  Reset the command builder
+    getCommandBuilder().clearArguments();
+
+    setCommandBuilderUseful(false);
+
+    // Update the command builder.
+    updateCommandBuilderWithSubCommand();
+
     // Get the targeted managed object.
     Message ufn = path.getRelationDefinition().getUserFriendlyName();
     ManagementContext context = factory.getManagementContext(app);
@@ -287,6 +295,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
       if (propertyNames.isEmpty() || propertyNames.contains(pd.getName())) {
         displayProperty(app, builder, child, pd, valuePrinter);
+        setCommandBuilderUseful(true);
       }
     }
 

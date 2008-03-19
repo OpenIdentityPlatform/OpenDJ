@@ -741,6 +741,8 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       new TreeMap<String, Map<String, AbstractManagedObjectDefinition<?, ?>>>();
     this.tagMap =
       new HashMap<Tag, Map<String, AbstractManagedObjectDefinition<?, ?>>>();
+
+    setCommandBuilderUseful(false);
   }
 
 
@@ -816,10 +818,17 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
       ClientException, CLIException {
+
     String categoryName = categoryArgument.getValue();
     String typeName = typeArgument.getValue();
     Tag tag = null;
     Set<String> propertyNames = getPropertyNames();
+
+    // Reset the command builder
+    getCommandBuilder().clearArguments();
+
+    // Update the command builder.
+    updateCommandBuilderWithSubCommand();
 
     List<AbstractManagedObjectDefinition<?, ?>> dlist =
       new LinkedList<AbstractManagedObjectDefinition<?, ?>>();
@@ -923,8 +932,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     return MenuResult.success(0);
   }
-
-
 
   // Output property summary table.
   private void displayNonVerbose(ConsoleApplication app, String categoryName,

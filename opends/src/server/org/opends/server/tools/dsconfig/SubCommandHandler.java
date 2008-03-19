@@ -70,11 +70,14 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.tools.ClientException;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -124,8 +127,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
     // The current result.
     private MenuResult<ManagedObject<?>> result;
-
-
 
     /**
      * {@inheritDoc}
@@ -383,7 +384,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * A path serializer which is used to register a sub-command's
    * naming arguments.
    */
-  private static class NamingArgumentBuilder implements
+  protected static class NamingArgumentBuilder implements
       ManagedObjectPathSerializer {
 
     /**
@@ -580,7 +581,15 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   // The argument which should be used to request specific time units.
   private StringArgument unitTimeArgument;
 
+  // The command builder associated with this handler.
+  private CommandBuilder commandBuilder;
 
+
+  /**
+   * The boolean that says whether is useful to display the command builder's
+   * contents after calling the run method or not.
+   */
+  private boolean isCommandBuilderUseful = true;
 
   /**
    * Create a new sub-command handler.
@@ -631,6 +640,44 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   public abstract SubCommand getSubCommand();
 
 
+  /**
+   * Gets the command builder associated with this handler.  The method should
+   * be called after calling <CODE>run()</CODE> method.
+   *
+   * @return Returns the sub-command associated with this handler.
+   */
+  public final CommandBuilder getCommandBuilder()
+  {
+    if (commandBuilder == null)
+    {
+      commandBuilder = new CommandBuilder(
+            System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME),
+            getSubCommand().getName());
+    }
+    return commandBuilder;
+  }
+
+  /**
+   * This method tells whether displaying the command builder contents makes
+   * sense or not.  For instance in the case of the help subcommand handler
+   * displaying information makes no much sense.
+   *
+   * @return <CODE>true</CODE> if displaying the command builder is useful and
+   * <CODE>false</CODE> otherwise.
+   */
+  public final boolean isCommandBuilderUseful()
+  {
+    return isCommandBuilderUseful;
+  }
+
+  /**
+   * Sets wheter the command builder is useful or not.
+   * @param isCommandBuilderUseful whether the command builder is useful or not.
+   */
+  protected final void setCommandBuilderUseful(boolean isCommandBuilderUseful)
+  {
+    this.isCommandBuilderUseful = isCommandBuilderUseful;
+  }
 
   /**
    * Gets the tags associated with this sub-command handler.
@@ -969,7 +1016,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    *           there are no children.
    */
   protected final <C extends ConfigurationClient, S extends Configuration>
-      MenuResult<String> readChildName(
+  MenuResult<String> readChildName(
       ConsoleApplication app, ManagedObject<?> parent,
       InstantiableRelationDefinition<C, S> r,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
@@ -1019,7 +1066,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     case 0: {
       // No options available - abort.
       Message msg =
-          ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
+        ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
       app.println(msg);
       return MenuResult.cancel();
     }
@@ -1027,8 +1074,22 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       // Only one option available so confirm that the user wishes to
       // access it.
       Message msg = INFO_DSCFG_FINDER_PROMPT_SINGLE.get(
-              d.getUserFriendlyName(), children.first());
+          d.getUserFriendlyName(), children.first());
       if (app.confirmAction(msg, true)) {
+        try
+        {
+          String argName = CLIProfile.getInstance().getNamingArgument(r);
+          StringArgument arg = new StringArgument(argName, null, argName, false,
+              true, INFO_NAME_PLACEHOLDER.get(),
+              INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
+          arg.addValue(children.first());
+          getCommandBuilder().addArgument(arg);
+        }
+        catch (Throwable t)
+        {
+          // Bug
+          new RuntimeException("Unexpected exception: "+t, t);
+        }
         return MenuResult.success(children.first());
       } else {
         return MenuResult.cancel();
@@ -1052,7 +1113,22 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       builder.addQuitOption();
 
       Menu<String> menu = builder.toMenu();
-      return menu.run();
+      MenuResult<String> result = menu.run();
+      try
+      {
+        String argName = CLIProfile.getInstance().getNamingArgument(r);
+        StringArgument arg = new StringArgument(argName, null, argName, false,
+            true, INFO_NAME_PLACEHOLDER.get(),
+            INFO_DSCFG_DESCRIPTION_NAME_CREATE.get(d.getUserFriendlyName()));
+        arg.addValue(result.getValue());
+        getCommandBuilder().addArgument(arg);
+      }
+      catch (Throwable t)
+      {
+        // Bug
+        throw new RuntimeException("Unexpected exception: "+t, t);
+      }
+      return result;
     }
     }
   }
@@ -1135,6 +1211,20 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     subCommand.addArgument(unitTimeArgument);
   }
 
-
+  /**
+   * Updates the command builder with the arguments defined in the sub command.
+   * This implies basically putting the arguments provided by the user in the
+   * command builder.
+   */
+  protected final void updateCommandBuilderWithSubCommand()
+  {
+    for (Argument arg : getSubCommand().getArguments())
+    {
+      if (arg.isPresent())
+      {
+        getCommandBuilder().addArgument(arg);
+      }
+    }
+  }
 
 }

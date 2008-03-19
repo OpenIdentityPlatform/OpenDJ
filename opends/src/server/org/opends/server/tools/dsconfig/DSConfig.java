@@ -35,6 +35,9 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Comparator;
@@ -46,6 +49,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.opends.messages.Message;
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -60,6 +64,7 @@ import org.opends.server.tools.ClientException;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -68,6 +73,7 @@ import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
 import org.opends.server.util.args.ArgumentGroup;
 import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -116,6 +122,11 @@ public final class DSConfig extends ConsoleApplication {
         if (result.isQuit()) {
           return result;
         } else {
+          if (result.isSuccess() && isInteractive() &&
+              handler.isCommandBuilderUseful())
+          {
+            printCommandBuilder(getCommandBuilder(handler));
+          }
           // Success or cancel.
           app.println();
           app.pressReturnToContinue();
@@ -364,6 +375,14 @@ public final class DSConfig extends ConsoleApplication {
   // behavior.
   private BooleanArgument noPromptArgument;
 
+  // The argument that the user must set to display the equivalent
+  // non-interactive mode argument
+  private BooleanArgument displayEquivalentArgument;
+
+  // The argument that allows the user to dump the equivalent non-interactive
+  // command to a file.
+  private StringArgument equivalentCommandFileArgument;
+
   // The command-line argument parser.
   private final SubCommandArgumentParser parser;
 
@@ -386,6 +405,10 @@ public final class DSConfig extends ConsoleApplication {
   // The argument which should be used to indicate that we will not look for
   // properties file.
   private BooleanArgument noPropertiesFileArgument;
+
+  // The boolean that is used to know if data must be appended to the file
+  // containing equivalent non-interactive commands.
+  private boolean alreadyWroteEquivalentCommand;
 
   /**
    * Creates a new dsconfig application instance.
@@ -540,6 +563,19 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
               .get());
 
+      displayEquivalentArgument = new BooleanArgument(
+          OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
+          null, OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
+          INFO_DSCFG_DESCRIPTION_DISPLAY_EQUIVALENT.get());
+      advancedModeArgument.setPropertyName(
+          OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT);
+
+      equivalentCommandFileArgument = new StringArgument(
+          OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
+          OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, false, false, true,
+          INFO_PATH_PLACEHOLDER.get(), null, null,
+          INFO_DSCFG_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
+
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
           false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
@@ -561,6 +597,8 @@ public final class DSConfig extends ConsoleApplication {
       parser.addGlobalArgument(quietArgument);
       parser.addGlobalArgument(scriptFriendlyArgument);
       parser.addGlobalArgument(noPromptArgument);
+      parser.addGlobalArgument(displayEquivalentArgument);
+      parser.addGlobalArgument(equivalentCommandFileArgument);
       parser.addGlobalArgument(propertiesFileArgument);
       parser.setFilePropertiesArgument(propertiesFileArgument);
       parser.addGlobalArgument(noPropertiesFileArgument);
@@ -711,6 +749,18 @@ public final class DSConfig extends ConsoleApplication {
       return 1;
     }
 
+    // Check that we can write on the provided path where we write the
+    // equivalent non-interactive commands.
+    if (equivalentCommandFileArgument.isPresent())
+    {
+      String file = equivalentCommandFileArgument.getValue();
+      if (!Utils.canWrite(file))
+      {
+        println(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
+        return 1;
+      }
+    }
+
     // Make sure that management context's arguments are valid.
     try {
       factory.validateGlobalArguments();
@@ -724,31 +774,31 @@ public final class DSConfig extends ConsoleApplication {
       hasSubCommand = false;
 
       if (isInteractive()) {
-          // Top-level interactive mode.
-          retCode = runInteractiveMode();
-        } else {
-          Message message = ERR_ERROR_PARSING_ARGS
-              .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
-          displayMessageAndUsageReference(message);
-          retCode = 1;
-        }
+        // Top-level interactive mode.
+        retCode = runInteractiveMode();
       } else {
-        hasSubCommand = true;
-
-        // Retrieve the sub-command implementation and run it.
-        SubCommandHandler handler = handlers.get(parser.getSubCommand());
-        retCode = runSubCommand(handler);
+        Message message = ERR_ERROR_PARSING_ARGS
+        .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
+        displayMessageAndUsageReference(message);
+        retCode = 1;
       }
+    } else {
+      hasSubCommand = true;
 
-      try {
-        // Close the Management context ==> an LDAP UNBIND is sent
-        factory.close();
-      } catch (Exception e) {
-      // Nothing to report in this case
-      }
-
-      return retCode;
+      // Retrieve the sub-command implementation and run it.
+      SubCommandHandler handler = handlers.get(parser.getSubCommand());
+      retCode = runSubCommand(handler);
     }
+
+    try {
+      // Close the Management context ==> an LDAP UNBIND is sent
+      factory.close();
+    } catch (Exception e) {
+      // Nothing to report in this case
+    }
+
+    return retCode;
+  }
 
 
 
@@ -874,6 +924,13 @@ public final class DSConfig extends ConsoleApplication {
       MenuResult<Integer> result = handler.run(this, factory);
 
       if (result.isSuccess()) {
+        if (isInteractive())
+        {
+          println();
+          println(INFO_DSCFG_NON_INTERACTIVE.get(
+              getCommandBuilder(handler).toString()));
+        }
+
         return result.getValue();
       } else {
         // User must have quit.
@@ -916,6 +973,156 @@ public final class DSConfig extends ConsoleApplication {
       }
       println(Message.raw(StaticUtils.stackTraceToString(e)));
       return 1;
+    }
+  }
+
+  /**
+   * Updates the command builder with the global options: script friendly,
+   * verbose, etc. for a given subcommand.  It also adds systematically the
+   * no-prompt option.
+   * @param handler the subcommand handler.
+   */
+  private CommandBuilder getCommandBuilder(SubCommandHandler handler)
+  {
+    String commandName =
+      System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME);
+    if (commandName == null)
+    {
+      commandName = "dsconfig";
+    }
+
+    CommandBuilder commandBuilder =
+      new CommandBuilder(commandName, handler.getSubCommand().getName());
+
+    if (advancedModeArgument.isPresent())
+    {
+      commandBuilder.addArgument(advancedModeArgument);
+    }
+
+    commandBuilder.append(handler.getCommandBuilder());
+
+    if ((factory != null) && (factory.getContextCommandBuilder() != null))
+    {
+      commandBuilder.append(factory.getContextCommandBuilder());
+    }
+
+    if (verboseArgument.isPresent())
+    {
+      commandBuilder.addArgument(verboseArgument);
+    }
+
+    if (scriptFriendlyArgument.isPresent())
+    {
+      commandBuilder.addArgument(scriptFriendlyArgument);
+    }
+
+    commandBuilder.addArgument(noPromptArgument);
+
+    if (propertiesFileArgument.isPresent())
+    {
+      commandBuilder.addArgument(propertiesFileArgument);
+    }
+
+    if (noPropertiesFileArgument.isPresent())
+    {
+      commandBuilder.addArgument(noPropertiesFileArgument);
+    }
+
+    return commandBuilder;
+  }
+
+  /**
+   * Creates a command builder with the global options: script friendly,
+   * verbose, etc. for a given subcommand name.  It also adds systematically the
+   * no-prompt option.
+   * @param subcommandName the subcommand name.
+   * @return the command builder that has been created with the specified
+   * subcommandName.
+   */
+  CommandBuilder getCommandBuilder(String subcommandName)
+  {
+    String commandName =
+      System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME);
+    if (commandName == null)
+    {
+      commandName = "dsconfig";
+    }
+
+    CommandBuilder commandBuilder =
+      new CommandBuilder(commandName, subcommandName);
+
+    if (advancedModeArgument.isPresent())
+    {
+      commandBuilder.addArgument(advancedModeArgument);
+    }
+
+    if ((factory != null) && (factory.getContextCommandBuilder() != null))
+    {
+      commandBuilder.append(factory.getContextCommandBuilder());
+    }
+
+    if (verboseArgument.isPresent())
+    {
+      commandBuilder.addArgument(verboseArgument);
+    }
+
+    if (scriptFriendlyArgument.isPresent())
+    {
+      commandBuilder.addArgument(scriptFriendlyArgument);
+    }
+
+    commandBuilder.addArgument(noPromptArgument);
+
+    if (propertiesFileArgument.isPresent())
+    {
+      commandBuilder.addArgument(propertiesFileArgument);
+    }
+
+    if (noPropertiesFileArgument.isPresent())
+    {
+      commandBuilder.addArgument(noPropertiesFileArgument);
+    }
+
+    return commandBuilder;
+  }
+
+  /**
+   * Prints the contents of a command builder.  This method has been created
+   * since SetPropSubCommandHandler calls it.  All the logic of DSConfig is on
+   * this method.  Currently it simply writes the content of the CommandBuilder
+   * to the standard output, but if we provide an option to write the content
+   * to a file only the implementation of this method must be changed.
+   * @param commandBuilder the command builder to be printed.
+   */
+  void printCommandBuilder(CommandBuilder commandBuilder)
+  {
+    if (displayEquivalentArgument.isPresent())
+    {
+      println();
+      // We assume that the app we are running is this one.
+      println(INFO_DSCFG_NON_INTERACTIVE.get(commandBuilder.toString()));
+    }
+    if (equivalentCommandFileArgument.isPresent())
+    {
+      // Write to the file.
+      boolean append = alreadyWroteEquivalentCommand;
+      String file = equivalentCommandFileArgument.getValue();
+      try
+      {
+        BufferedWriter writer =
+          new BufferedWriter(new FileWriter(file, append));
+        writer.write(commandBuilder.toString());
+        writer.newLine();
+
+        writer.flush();
+        writer.close();
+      }
+      catch (IOException ioe)
+      {
+        println(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file,
+            ioe.toString()));
+      }
+      alreadyWroteEquivalentCommand = true;
     }
   }
 }

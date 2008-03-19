@@ -67,11 +67,13 @@ import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.ContainsCondition;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
 import org.opends.server.util.args.SubCommandArgumentParser;
 import org.opends.server.util.cli.CLIException;
+import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
 
@@ -146,8 +148,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    */
   private static final Character OPTION_DSCFG_SHORT_SET = null;
 
-
-
   /**
    * Creates a new set-xxx-prop sub-command for an instantiable
    * relation.
@@ -210,10 +210,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     return new SetPropSubCommandHandler(parser, path.child(r), r);
   }
 
-
-
   /**
-   * Configure the provided managed object.
+   * Configure the provided managed object and updates the command builder
+   * in the pased SetPropSubCommandHandler object.
    *
    * @param app
    *          The console application.
@@ -221,6 +220,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    *          The management context.
    * @param mo
    *          The managed object to be configured.
+   * @param handler
+   *          The SubCommandHandler whose command builder properties must be
+   *          updated.
    * @return Returns a MenuResult.success() if the managed object was
    *         configured successfully, or MenuResult.quit(), or
    *         MenuResult.cancel(), if the managed object was edited
@@ -233,12 +235,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    *           console.
    */
   public static MenuResult<Void> modifyManagedObject(ConsoleApplication app,
-      ManagementContext context, ManagedObject<?> mo) throws ClientException,
+      ManagementContext context, ManagedObject<?> mo,
+      SubCommandHandler handler) throws ClientException,
       CLIException {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     Message ufn = d.getUserFriendlyName();
 
     while (true) {
+      PropertyValueEditor editor = new PropertyValueEditor(app, context);
       // Interactively set properties if applicable.
       if (app.isInteractive()) {
         SortedSet<PropertyDefinition<?>> properties =
@@ -253,12 +257,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           properties.add(pd);
         }
 
-        PropertyValueEditor editor = new PropertyValueEditor(app, context);
         MenuResult<Void> result = editor.edit(mo, properties, false);
 
         // Interactively enable/edit referenced components.
         if (result.isSuccess()) {
-          result = checkReferences(app, context, mo);
+          result = checkReferences(app, context, mo, handler);
           if (result.isAgain()) {
             // Edit again.
             continue;
@@ -286,6 +289,22 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           app.println();
           Message msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
           app.printVerboseMessage(msg);
+
+          for (PropertyEditorModification mod : editor.getModifications())
+          {
+            try
+            {
+              handler.getCommandBuilder().addArgument(createArgument(mod));
+            }
+            catch (ArgumentException ae)
+            {
+              // This is a bug
+              throw new RuntimeException(
+                  "Unexpected error generating the command builder: "+ae, ae);
+            }
+          }
+
+          handler.setCommandBuilderUseful(true);
         }
 
         return MenuResult.success();
@@ -339,7 +358,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   // Check that any referenced components are enabled if
   // required.
   private static MenuResult<Void> checkReferences(ConsoleApplication app,
-      ManagementContext context, ManagedObject<?> mo) throws ClientException,
+      ManagementContext context, ManagedObject<?> mo,
+      SubCommandHandler handler) throws ClientException,
       CLIException {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     Message ufn = d.getUserFriendlyName();
@@ -394,6 +414,59 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                   cvc.setPropertyValue(ref);
                   try {
                     ref.commit();
+
+                    // Try to create the command builder
+                    if ((app instanceof DSConfig) && app.isInteractive())
+                    {
+                      DSConfig dsConfig = (DSConfig)app;
+                      String subCommandName = "set-" +
+                      path.getRelationDefinition().getName() + "-prop";
+                      CommandBuilder builder =
+                        dsConfig.getCommandBuilder(subCommandName);
+
+                      if (path.getRelationDefinition() instanceof
+                          InstantiableRelationDefinition<?, ?>)
+                      {
+                        String argName =
+                          CLIProfile.getInstance().getNamingArgument(
+                              (InstantiableRelationDefinition<?, ?>)
+                              path.getRelationDefinition());
+                        try
+                        {
+                          StringArgument arg = new StringArgument(argName, null,
+                              argName, false, true,
+                              INFO_NAME_PLACEHOLDER.get(),
+                              INFO_DSCFG_DESCRIPTION_NAME.get(
+                                  d.getUserFriendlyName()));
+                          arg.addValue(name);
+                          builder.addArgument(arg);
+                        }
+                        catch (Throwable t)
+                        {
+                          // Bug
+                          throw new RuntimeException("Unexpected error: "+t, t);
+                        }
+                      }
+
+                      try
+                      {
+                        StringArgument arg = new StringArgument(
+                            OPTION_DSCFG_LONG_SET, OPTION_DSCFG_SHORT_SET,
+                            OPTION_DSCFG_LONG_SET, false, true, true,
+                            INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+                            INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+                        arg.addValue(cvc.getPropertyDefinition().getName()+':'+
+                            cvc.getValue());
+                        builder.addArgument(arg);
+                      }
+                      catch (Throwable t)
+                      {
+                        // Bug
+                        throw new RuntimeException("Unexpected error: "+t, t);
+                      }
+                      dsConfig.printCommandBuilder(builder);
+                    }
+
                     isBadReference = false;
                   } catch (MissingMandatoryPropertiesException e) {
                     // Give the user the chance to fix the problems.
@@ -403,7 +476,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                     if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn),
                         true)) {
                       MenuResult<Void> result = modifyManagedObject(app,
-                          context, ref);
+                          context, ref, handler);
                       if (result.isQuit()) {
                         return result;
                       } else if (result.isSuccess()) {
@@ -424,7 +497,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                     if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn),
                         true)) {
                       MenuResult<Void> result = modifyManagedObject(app,
-                          context, ref);
+                          context, ref, handler);
                       if (result.isQuit()) {
                         return result;
                       } else if (result.isSuccess()) {
@@ -443,7 +516,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_TO_ENABLE.get(
                     rufn, name, ufn), true)) {
                   MenuResult<Void> result = SetPropSubCommandHandler
-                      .modifyManagedObject(app, context, ref);
+                      .modifyManagedObject(app, context, ref, handler);
                   if (result.isQuit()) {
                     return result;
                   } else if (result.isSuccess()) {
@@ -585,7 +658,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -596,6 +668,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       ClientException, CLIException {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
+
+    // Reset the command builder
+    getCommandBuilder().clearArguments();
+
+    setCommandBuilderUseful(false);
+
+    // Update the command builder.
+    updateCommandBuilderWithSubCommand();
 
     // Get the targeted managed object.
     Message ufn = path.getRelationDefinition().getUserFriendlyName();
@@ -790,20 +870,36 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       } catch (PropertyException e) {
         throw ArgumentExceptionFactory.adaptPropertyException(e, d);
       }
+      setCommandBuilderUseful(true);
     }
 
     // Now the command line changes have been made, apply the changes
     // interacting with the user to fix any problems if required.
-    MenuResult<Void> result2 = modifyManagedObject(app, context, child);
+    MenuResult<Void> result2 = modifyManagedObject(app, context, child, this);
     if (result2.isCancel()){
       return MenuResult.cancel();
     } else if (result2.isQuit()) {
       return MenuResult.quit();
     } else {
+      if (propertyResetArgument.hasValue())
+      {
+        getCommandBuilder().addArgument(propertyResetArgument);
+      }
+      if (propertySetArgument.hasValue())
+      {
+        getCommandBuilder().addArgument(propertySetArgument);
+      }
+      if (propertyAddArgument.hasValue())
+      {
+        getCommandBuilder().addArgument(propertyAddArgument);
+      }
+      if (propertyRemoveArgument.hasValue())
+      {
+        getCommandBuilder().addArgument(propertyRemoveArgument);
+      }
       return MenuResult.success(0);
     }
   }
-
 
 
   // Apply a single modification to the current change-set.
@@ -843,5 +939,67 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     }
 
     changes.put(pd, values);
+  }
+
+  /**
+   * Creates an argument (the one that the user should provide in the
+   * command-line) that is equivalent to the modification proposed by the user
+   * in the provided PropertyEditorModification object.
+   * @param mod the object describing the modification made.
+   * @return the argument representing the modification.
+   * @throws ArgumentException if there is a problem creating the argument.
+   */
+  private static Argument createArgument(PropertyEditorModification mod)
+  throws ArgumentException
+  {
+    StringArgument arg;
+
+    String propName = mod.getPropertyDefinition().getName();
+
+    switch (mod.getType())
+    {
+    case RESET:
+      arg = new StringArgument(OPTION_DSCFG_LONG_RESET,
+          OPTION_DSCFG_SHORT_RESET, OPTION_DSCFG_LONG_RESET, false, true, true,
+          INFO_PROPERTY_PLACEHOLDER.get(), null, null,
+          INFO_DSCFG_DESCRIPTION_RESET_PROP.get());
+      arg.addValue(propName);
+      break;
+    case REMOVE:
+      arg = new StringArgument(OPTION_DSCFG_LONG_REMOVE,
+          OPTION_DSCFG_SHORT_REMOVE, OPTION_DSCFG_LONG_REMOVE, false, true,
+          true, INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+          INFO_DSCFG_DESCRIPTION_REMOVE_PROP_VAL.get());
+      for (Object value : mod.getModificationValues())
+      {
+        arg.addValue(propName+':'+value);
+      }
+      break;
+    case ADD:
+      arg = new StringArgument(OPTION_DSCFG_LONG_ADD,
+          OPTION_DSCFG_SHORT_ADD, OPTION_DSCFG_LONG_ADD, false, true, true,
+          INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+          INFO_DSCFG_DESCRIPTION_ADD_PROP_VAL.get());
+      for (Object value : mod.getModificationValues())
+      {
+        arg.addValue(propName+':'+value);
+      }
+      break;
+    case SET:
+      arg = new StringArgument(OPTION_DSCFG_LONG_SET,
+          OPTION_DSCFG_SHORT_SET, OPTION_DSCFG_LONG_SET, false, true, true,
+          INFO_VALUE_SET_PLACEHOLDER.get(), null, null,
+          INFO_DSCFG_DESCRIPTION_PROP_VAL.get());
+      for (Object value : mod.getModificationValues())
+      {
+        arg.addValue(propName+':'+value);
+      }
+      break;
+    default:
+      // Bug
+      throw new IllegalStateException("Unknown modification type: "+
+          mod.getType());
+    }
+    return arg;
   }
 }

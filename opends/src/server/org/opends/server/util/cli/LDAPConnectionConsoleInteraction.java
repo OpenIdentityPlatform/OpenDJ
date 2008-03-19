@@ -115,6 +115,12 @@ public class LDAPConnectionConsoleInteraction {
 
   private Message heading = INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
 
+  // A copy of the secureArgList for convenience.
+  private SecureConnectionCliArgs copySecureArgsList = null;
+
+  // The command builder that we can return with the connection information.
+  private CommandBuilder commandBuilder;
+
   /**
    * Enumeration description protocols for interactive CLI choices.
    */
@@ -274,6 +280,18 @@ public class LDAPConnectionConsoleInteraction {
                                           SecureConnectionCliArgs secureArgs) {
     this.app = app;
     this.secureArgsList = secureArgs;
+    this.commandBuilder = new CommandBuilder(null);
+    copySecureArgsList = new SecureConnectionCliArgs();
+    try
+    {
+      copySecureArgsList.createGlobalArguments();
+    }
+    catch (Throwable t)
+    {
+      // This is  a bug: we should always be able to create the global arguments
+      // no need to localize this one.
+      throw new RuntimeException("Unexpected error: "+t, t);
+    }
   }
 
   /**
@@ -301,6 +319,9 @@ public class LDAPConnectionConsoleInteraction {
   public void run(boolean canUseSSL, boolean canUseStartTLS)
           throws ArgumentException
   {
+    // Reset everything
+    commandBuilder.clearArguments();
+    copySecureArgsList.createGlobalArguments();
     boolean secureConnection = (canUseSSL || canUseStartTLS) &&
       (
           secureArgsList.useSSLArg.isPresent()
@@ -371,6 +392,10 @@ public class LDAPConnectionConsoleInteraction {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
     }
+
+    copySecureArgsList.hostNameArg.clearValues();
+    copySecureArgsList.hostNameArg.addValue(hostName);
+    commandBuilder.addArgument(copySecureArgsList.hostNameArg);
 
     useSSL = secureArgsList.useSSL();
     useStartTLS = secureArgsList.useStartTLS();
@@ -455,6 +480,15 @@ public class LDAPConnectionConsoleInteraction {
       }
     }
 
+    if (useSSL)
+    {
+      commandBuilder.addArgument(copySecureArgsList.useSSLArg);
+    }
+    else if (useStartTLS)
+    {
+      commandBuilder.addArgument(copySecureArgsList.useStartTLSArg);
+    }
+
     if ((useSSL || useStartTLS) && (trustManager == null))
     {
       initializeTrustManager();
@@ -527,6 +561,10 @@ public class LDAPConnectionConsoleInteraction {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
     }
+
+    copySecureArgsList.portArg.clearValues();
+    copySecureArgsList.portArg.addValue(String.valueOf(portNumber));
+    commandBuilder.addArgument(copySecureArgsList.portArg);
 
     // Get the LDAP bind credentials.
     bindDN = secureArgsList.bindDnArg.getValue();
@@ -629,6 +667,18 @@ public class LDAPConnectionConsoleInteraction {
               .unableToReadConnectionParameters(e);
         }
       }
+      if (useAdmin)
+      {
+        copySecureArgsList.adminUidArg.clearValues();
+        copySecureArgsList.adminUidArg.addValue(getAdministratorUID());
+        commandBuilder.addArgument(copySecureArgsList.adminUidArg);
+      }
+      else
+      {
+        copySecureArgsList.bindDnArg.clearValues();
+        copySecureArgsList.bindDnArg.addValue(getBindDN());
+        commandBuilder.addArgument(copySecureArgsList.bindDnArg);
+      }
     }
     else
     {
@@ -655,6 +705,10 @@ public class LDAPConnectionConsoleInteraction {
             throw ArgumentExceptionFactory.missingBindPassword(bindDN);
           }
         }
+        copySecureArgsList.bindPasswordFileArg.clearValues();
+        copySecureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(
+            secureArgsList.bindPasswordFileArg.getNameToValueMap());
+        commandBuilder.addArgument(secureArgsList.bindPasswordFileArg);
       }
       else if (bindPassword == null || bindPassword.equals("-"))
       {
@@ -695,6 +749,10 @@ public class LDAPConnectionConsoleInteraction {
               .unableToReadConnectionParameters(e);
         }
       }
+      copySecureArgsList.bindPasswordArg.clearValues();
+      copySecureArgsList.bindPasswordArg.addValue(bindPassword);
+      commandBuilder.addObfuscatedArgument(
+          copySecureArgsList.bindPasswordArg);
     }
   }
 
@@ -707,10 +765,17 @@ public class LDAPConnectionConsoleInteraction {
   private ApplicationTrustManager getTrustManagerInternal()
   throws ArgumentException
   {
+    // Remove these arguments since this method might be called several times.
+    commandBuilder.removeArgument(copySecureArgsList.trustAllArg);
+    commandBuilder.removeArgument(copySecureArgsList.trustStorePathArg);
+    commandBuilder.removeArgument(copySecureArgsList.trustStorePasswordArg);
+    commandBuilder.removeArgument(copySecureArgsList.trustStorePasswordFileArg);
+
     // If we have the trustALL flag, don't do anything
     // just return null
     if (secureArgsList.trustAllArg.isPresent())
     {
+      commandBuilder.addArgument(copySecureArgsList.trustAllArg);
       return null;
     }
 
@@ -755,6 +820,7 @@ public class LDAPConnectionConsoleInteraction {
         {
           if (result.getValue().equals(TrustMethod.TRUSTALL.getChoice()))
           {
+            commandBuilder.addArgument(copySecureArgsList.trustAllArg);
             // If we have the trustALL flag, don't do anything
             // just return null
             return null;
@@ -771,6 +837,10 @@ public class LDAPConnectionConsoleInteraction {
             // The certificate will be displayed to the user
             askForTrustStore = false;
             trustStoreInMemory = true;
+
+            // There is no direct equivalent for this option, so propose the
+            // trust all option as command-line argument.
+            commandBuilder.addArgument(copySecureArgsList.trustAllArg);
           }
           else
           {
@@ -791,9 +861,10 @@ public class LDAPConnectionConsoleInteraction {
       }
     }
 
-    // If we not trust all server certificates, we have to get info
+    // If we do not trust all server certificates, we have to get info
     // about truststore. First get the truststore path.
     truststorePath = secureArgsList.trustStorePathArg.getValue();
+
     if (app.isInteractive() && !secureArgsList.trustStorePathArg.isPresent()
         && askForTrustStore)
     {
@@ -841,6 +912,13 @@ public class LDAPConnectionConsoleInteraction {
       }
     }
 
+    if (truststorePath != null)
+    {
+      copySecureArgsList.trustStorePathArg.clearValues();
+      copySecureArgsList.trustStorePathArg.addValue(truststorePath);
+      commandBuilder.addArgument(copySecureArgsList.trustStorePathArg);
+    }
+
     // Then the truststore password.
     //  As the most common case is to have no password for truststore,
     // we don't ask it in the interactive mode.
@@ -877,6 +955,7 @@ public class LDAPConnectionConsoleInteraction {
         }
       }
     }
+
     // We've got all the information to get the truststore manager
     try
     {
@@ -898,6 +977,23 @@ public class LDAPConnectionConsoleInteraction {
       {
         truststore.load(null, null);
       }
+
+      if (secureArgsList.trustStorePasswordFileArg.isPresent())
+      {
+        copySecureArgsList.trustStorePasswordFileArg.clearValues();
+        copySecureArgsList.trustStorePasswordFileArg.getNameToValueMap().putAll(
+            secureArgsList.trustStorePasswordFileArg.getNameToValueMap());
+        commandBuilder.addArgument(
+            copySecureArgsList.trustStorePasswordFileArg);
+      }
+      else
+      {
+        copySecureArgsList.trustStorePasswordArg.clearValues();
+        copySecureArgsList.trustStorePasswordArg.addValue(truststorePassword);
+        commandBuilder.addObfuscatedArgument(
+            copySecureArgsList.trustStorePasswordArg);
+      }
+
       return new ApplicationTrustManager(truststore);
     }
     catch (Exception e)
@@ -915,6 +1011,12 @@ public class LDAPConnectionConsoleInteraction {
   private KeyManager getKeyManagerInternal()
   throws ArgumentException
   {
+//  Remove these arguments since this method might be called several times.
+    commandBuilder.removeArgument(copySecureArgsList.certNicknameArg);
+    commandBuilder.removeArgument(copySecureArgsList.keyStorePathArg);
+    commandBuilder.removeArgument(copySecureArgsList.keyStorePasswordArg);
+    commandBuilder.removeArgument(copySecureArgsList.keyStorePasswordFileArg);
+
     // Do we need client side authentication ?
     // If one of the client side authentication args is set, we assume
     // that we
@@ -979,6 +1081,14 @@ public class LDAPConnectionConsoleInteraction {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
     }
+
+    if (keystorePath != null)
+    {
+      copySecureArgsList.keyStorePathArg.clearValues();
+      copySecureArgsList.keyStorePathArg.addValue(keystorePath);
+      commandBuilder.addArgument(copySecureArgsList.keyStorePathArg);
+    }
+
 
     // Then the keystore password.
     keystorePassword = secureArgsList.keyStorePasswordArg.getValue();
@@ -1093,6 +1203,29 @@ public class LDAPConnectionConsoleInteraction {
     // We'we got all the information to get the keys manager
     ApplicationKeyManager akm = new ApplicationKeyManager(keystore,
         keystorePassword.toCharArray());
+
+
+    if (secureArgsList.keyStorePasswordFileArg.isPresent())
+    {
+      copySecureArgsList.keyStorePasswordFileArg.clearValues();
+      copySecureArgsList.keyStorePasswordFileArg.getNameToValueMap().putAll(
+          secureArgsList.keyStorePasswordFileArg.getNameToValueMap());
+      commandBuilder.addArgument(
+          copySecureArgsList.keyStorePasswordFileArg);
+    }
+    else
+    {
+      copySecureArgsList.keyStorePasswordArg.clearValues();
+      copySecureArgsList.keyStorePasswordArg.addValue(keystorePassword);
+      commandBuilder.addObfuscatedArgument(
+          copySecureArgsList.keyStorePasswordArg);
+    }
+
+    if (certifNickname != null)
+    {
+      copySecureArgsList.certNicknameArg.clearValues();
+      copySecureArgsList.certNicknameArg.addValue(certifNickname);
+    }
 
     if (certifNickname != null)
     {
@@ -1499,7 +1632,7 @@ public class LDAPConnectionConsoleInteraction {
   }
 
  /**
-  * Populates an a set of LDAP options with state from this interaction.
+  * Populates a set of LDAP options with state from this interaction.
   *
   * @param  options existing set of options; may be null in which case this
   *         method will create a new set of <code>LDAPConnectionOptions</code>
@@ -1659,6 +1792,17 @@ public class LDAPConnectionConsoleInteraction {
  public void setHeadingMessage(Message heading)
  {
    this.heading = heading;
+ }
+
+ /**
+  * Returns the command builder with the equivalent arguments on the
+  * non-interactive mode.
+  * @return the command builder with the equivalent arguments on the
+  * non-interactive mode.
+  */
+ public CommandBuilder getCommandBuilder()
+ {
+   return commandBuilder;
  }
 
  /**

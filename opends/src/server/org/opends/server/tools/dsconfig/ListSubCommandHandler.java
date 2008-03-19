@@ -193,6 +193,12 @@ final class ListSubCommandHandler extends SubCommandHandler {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();
 
+    // Reset the command builder
+    getCommandBuilder().clearArguments();
+
+    // Update the command builder.
+    updateCommandBuilderWithSubCommand();
+
     if (propertyNames.isEmpty()) {
       // Use a default set of properties.
       propertyNames = CLIProfile.getInstance().getDefaultListPropertyNames(

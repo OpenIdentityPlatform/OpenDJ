@@ -32,6 +32,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 
 
@@ -94,6 +95,14 @@ public final class InternalManagementContextFactory implements
    */
   public void validateGlobalArguments() throws ArgumentException {
     // No implementation required.
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public CommandBuilder getContextCommandBuilder() {
+    // No implementation required.
+    return new CommandBuilder(null, null);
   }
 
 }
