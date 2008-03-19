@@ -93,14 +93,6 @@ public class DebugLogger implements
   // The singleton instance of this class for configuration purposes.
   static final DebugLogger instance = new DebugLogger();
 
-  static
-  {
-    // Add the default publisher to stdout.
-    addDebugLogPublisher(
-        TextDebugLogPublisher.getStartupTextDebugPublisher(
-            new TextWriter.STDOUT()));
-  }
-
   /**
    * Add an debug log publisher to the debug logger.
    *
@@ -157,26 +149,6 @@ public class DebugLogger implements
     updateTracerSettings();
 
     enabled = false;
-  }
-
-  /**
-   * Removes first debug log publisher from the logger.
-   */
-  public synchronized static void removeFirstDebugLogPublisher()
-  {
-    if(!debugPublishers.isEmpty())
-    {
-      DebugLogPublisher publisher = debugPublishers.remove(0);
-
-      publisher.close();
-    }
-
-    updateTracerSettings();
-
-    if(debugPublishers.isEmpty())
-    {
-      enabled = false;
-    }
   }
 
   /**

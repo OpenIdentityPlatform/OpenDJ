@@ -345,7 +345,7 @@ public class VerifyJob
                    String.valueOf(keyCount));
       if (cleanMode)
       {
-        Message message = INFO_JEB_VERIFY_CLEAN_FINAL_STATUS.get(
+        Message message = NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS.get(
             keyCount, errorCount, totalTime/1000, rate);
         logError(message);
 
@@ -384,7 +384,7 @@ public class VerifyJob
       }
       else
       {
-        Message message = INFO_JEB_VERIFY_FINAL_STATUS.get(
+        Message message = NOTE_JEB_VERIFY_FINAL_STATUS.get(
             keyCount, errorCount, totalTime/1000, rate);
         logError(message);
         //TODO add entry-limit-stats to the statEntry
@@ -2092,7 +2092,7 @@ public class VerifyJob
 
       float rate = 1000f*deltaCount / deltaTime;
 
-      Message message = INFO_JEB_VERIFY_PROGRESS_REPORT.get(
+      Message message = NOTE_JEB_VERIFY_PROGRESS_REPORT.get(
         latestCount, totalCount, errorCount, rate);
       logError(message);
 

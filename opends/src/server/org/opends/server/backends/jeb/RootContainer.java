@@ -891,7 +891,7 @@ public class RootContainer
                   getAttributeForProperty(param.getName());
               if (configAttr != null)
               {
-                messages.add(INFO_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(
+                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(
                         configAttr));
               }
               if(debugEnabled())
@@ -947,7 +947,7 @@ public class RootContainer
         }
 
         adminActionRequired = true;
-        messages.add(INFO_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
+        messages.add(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
                         this.config.getDBDirectory(), cfg.getDBDirectory()));
       }
 

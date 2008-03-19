@@ -37,9 +37,11 @@ import org.opends.server.extensions.ConfigFileHandler;
 import static org.opends.messages.ToolMessages.*;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.loggers.ErrorLogger.logError;
-import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.debug.DebugLogger;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.core.DirectoryServer;
@@ -48,6 +50,7 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.types.*;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.RebuildConfig;
 import org.opends.server.admin.std.server.BackendCfg;
@@ -66,7 +69,6 @@ import java.util.List;
  */
 public class RebuildIndex
 {
-  private static ErrorLogPublisher errorLogPublisher = null;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -76,11 +78,6 @@ public class RebuildIndex
   public static void main(String[] args)
   {
     int retCode = mainRebuildIndex(args, true, System.out, System.err);
-
-    if(errorLogPublisher != null)
-    {
-      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
-    }
 
     if(retCode != 0)
     {
@@ -357,15 +354,16 @@ public class RebuildIndex
 
 
 
-      // FIXME -- Install a custom logger to capture information about the state
-      // of the verify process.
       try
       {
-        errorLogPublisher =
-            new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
-                                                  new TextWriter.STREAM(out));
+        ErrorLogPublisher errorLogPublisher =
+            TextErrorLogPublisher.getStartupTextErrorPublisher(
+            new TextWriter.STREAM(out));
+        DebugLogPublisher debugLogPublisher =
+            TextDebugLogPublisher.getStartupTextDebugPublisher(
+            new TextWriter.STREAM(out));
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-
+        DebugLogger.addDebugLogPublisher(debugLogPublisher);
       }
       catch(Exception e)
       {

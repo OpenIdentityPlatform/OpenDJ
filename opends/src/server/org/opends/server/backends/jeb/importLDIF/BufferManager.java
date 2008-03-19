@@ -179,7 +179,7 @@ public class BufferManager {
   void prepareFlush() {
     limitFlush=false;
     Message msg =
-           INFO_JEB_IMPORT_LDIF_BUFFER_FLUSH.get(elementMap.size(), total, hit);
+           NOTE_JEB_IMPORT_LDIF_BUFFER_FLUSH.get(elementMap.size(), total, hit);
     logError(msg);
   }
 

@@ -26,8 +26,8 @@
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.INFO_JEB_EXPORT_FINAL_STATUS;
-import static org.opends.messages.JebMessages.INFO_JEB_EXPORT_PROGRESS_REPORT;
+import static org.opends.messages.JebMessages.NOTE_JEB_EXPORT_FINAL_STATUS;
+import static org.opends.messages.JebMessages.NOTE_JEB_EXPORT_PROGRESS_REPORT;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -634,7 +634,7 @@ public class ReplicationBackend
       rate = 1000f*exportedCount / totalTime;
     }
 
-    Message message = INFO_JEB_EXPORT_FINAL_STATUS.get(
+    Message message = NOTE_JEB_EXPORT_FINAL_STATUS.get(
         exportedCount, skippedCount, totalTime/1000, rate);
     logError(message);
   }
@@ -1123,7 +1123,7 @@ public class ReplicationBackend
       float rate = 1000f*deltaCount / deltaTime;
 
       Message message =
-          INFO_JEB_EXPORT_PROGRESS_REPORT.get(latestCount, skippedCount, rate);
+          NOTE_JEB_EXPORT_PROGRESS_REPORT.get(latestCount, skippedCount, rate);
       logError(message);
 
       previousCount = latestCount;

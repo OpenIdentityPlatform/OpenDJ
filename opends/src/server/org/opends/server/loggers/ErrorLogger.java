@@ -27,8 +27,6 @@
 package org.opends.server.loggers;
 import org.opends.messages.Message;
 
-
-
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.ArrayList;
@@ -75,14 +73,6 @@ public class ErrorLogger implements
 
   // The singleton instance of this class for configuration purposes.
   private static final ErrorLogger instance = new ErrorLogger();
-
-  static
-  {
-    // Add the default publisher to stdout.
-    addErrorLogPublisher(
-        TextErrorLogPublisher.getStartupTextErrorPublisher(
-            new TextWriter.STDOUT()));
-  }
 
   /**
    * Retrieve the singleton instance of this class.
@@ -135,19 +125,6 @@ public class ErrorLogger implements
     }
 
     errorPublishers.clear();
-  }
-
-  /**
-   * Removes first error log publisher from the logger.
-   */
-  public synchronized static void removeFirstErrorLogPublisher()
-  {
-    if(!errorPublishers.isEmpty())
-    {
-      ErrorLogPublisher publisher = errorPublishers.remove(0);
-
-      publisher.close();
-    }
   }
 
   /**
