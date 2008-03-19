@@ -1196,9 +1196,11 @@ public class ReplicationServerDomain
           catch (Exception e)
           {
             // TODO: i18n
-            logError(Message.raw(
-                "Exception caught while clearing dbHandler:" +
-                e.getLocalizedMessage()));
+            MessageBuilder mb = new MessageBuilder();
+            mb.append(ERR_ERROR_CLEARING_DB.get(dbHandler.toString(),
+                e.getMessage() + " " +
+                stackTraceToSingleLineString(e)));
+            logError(mb.toMessage());
           }
         }
         sourceDbHandlers.clear();

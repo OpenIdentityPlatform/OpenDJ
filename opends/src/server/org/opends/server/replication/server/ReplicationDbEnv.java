@@ -526,22 +526,31 @@ public class ReplicationDbEnv
      */
     public final void clearDb(String databaseName)
     {
+      Transaction txn = null;
       try
       {
-        if (debugEnabled())
-          TRACER.debugInfo(
-              "In " + this.replicationServer.getMonitorInstanceName() +
-              "clearDb" + databaseName);
-
-        Transaction txn = dbEnvironment.beginTransaction(null, null);
+        txn = dbEnvironment.beginTransaction(null, null);
         dbEnvironment.truncateDatabase(txn, databaseName, false);
+        txn.commitWriteNoSync();
+        txn = null;
       }
-      catch (DatabaseException dbe)
+      catch (DatabaseException e)
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_ERROR_CLEARING_DB.get(databaseName,
-            dbe.getLocalizedMessage()));
+            e.getMessage() + " " +
+            stackTraceToSingleLineString(e)));
         logError(mb.toMessage());
+      }
+      finally
+      {
+        try
+        {
+          if (txn != null)
+            txn.abort();
+        }
+        catch(Exception e)
+        {}
       }
     }
 }
