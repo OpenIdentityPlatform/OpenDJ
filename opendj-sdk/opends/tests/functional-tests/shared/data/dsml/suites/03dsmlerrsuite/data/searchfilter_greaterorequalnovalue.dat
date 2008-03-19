@@ -1,0 +1,26 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 656
+SOAPAction: batchRequest
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+  <soap-env:Body>
+<batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core"
+   requestID="Mandatory [value] element child of [greaterOrEqual] element is missing"
+   >
+<searchRequest
+   dn="uid=abergin,ou=People,dc=siroe,dc=com"
+   scope="singleLevel"
+   derefAliases="neverDerefAliases">
+<filter>
+<greaterOrEqual name="sn"></greaterOrEqual>
+</filter>
+</searchRequest>
+</batchRequest>
+</soap-env:Body>
+</soap-env:Envelope>

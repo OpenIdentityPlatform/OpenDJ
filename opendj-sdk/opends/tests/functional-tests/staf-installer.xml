@@ -147,6 +147,12 @@
          dest="${bits.download.dir}/${bits.staf.archive}" />
     <property name="bits.staf.downloaded" value="true"/>
   </target>
+  
+  <target name="download-do-get-tomcat" unless="bits.tomcat.downloaded.before">
+    <get src="${bits.tomcat.download.url}/${bits.tomcat.archive}"
+         dest="${bits.webcontainer.download.dir}/${bits.tomcat.archive}" />
+    <property name="bits.tomcat.downloaded" value="true"/>
+  </target>
 
   <target name="download-do-get-services"  unless="bits.services.downloaded.before">
     <get src="${bits.download.url}/${bits.email.archive}" 
@@ -157,17 +163,21 @@
          dest="${bits.download.dir}/${bits.eventmanager.archive}" />
     <get src="${bits.download.url}/${bits.stax.archive}" 
          dest="${bits.download.dir}/${bits.stax.archive}" />
+    <get src="${bits.download.url}/${bits.http.archive}" 
+         dest="${bits.download.dir}/${bits.http.archive}" />
     <property name="bits.services.downloaded" value="true" />
   </target>
   
   <target name="download-do" 
           if="platform.supported" 
-          depends="status-do,download-do-prepare,download-do-get-staf,download-do-get-services">
+          depends="status-do,download-do-prepare,download-do-get-staf,download-do-get-services,download-do-get-tomcat">
     <condition property="bits.all.downloaded" >
       <and>
         <or>
           <isset property="bits.staf.downloaded"/>
           <isset property="bits.staf.downloaded.before" />
+          <isset property="bits.tomcat.downloaded"/>
+          <isset property="bits.tomcat.downloaded.before" />
         </or>
         <or>
           <isset property="bits.services.downloaded"/>
@@ -222,6 +232,15 @@
     <unzip 
         src="${bits.download.dir}/${bits.stax.archive}" 
         dest="${staf.install.dir}/services"/>
+    <unzip 
+        src="${bits.download.dir}/${bits.http.archive}" 
+        dest="${staf.install.dir}/services"/>
+    <!-- adding dsml service extension -->
+    <mkdir dir="${staf.install.dir}/services/dsml"/>
+    <copy todir="${staf.install.dir}/services/dsml">
+      <fileset dir="${basedir}/../ext/staf" includes="dsmlService.jar"/>
+    </copy>
+
   </target>
 
   <target name="install-staf-jar" 
@@ -935,7 +954,9 @@ email.server.pwd=${email.server.pwd.input}
      <env key="STAF_INSTANCE_NAME" value="STAF"/>
    </exec>
    <echo message="Waiting for service to become available..."/>
-    <waitfor>
+    <waitfor maxwait="3" maxwaitunit="minute" 
+             checkevery="10" checkeveryunit="second"
+             timeoutproperty="timeout">
       <socket server="${host.name}" port="${staf.port}"/>
     </waitfor>
     <echo message="STAF is now ready to serve requests"/>
@@ -968,7 +989,9 @@ email.server.pwd=${email.server.pwd.input}
       <arg line="local shutdown shutdown"/>
     </exec>
     <echo message="Waiting for service to shutdown gracefully..."/>
-    <waitfor>
+    <waitfor maxwait="3" maxwaitunit="minute"
+             checkevery="10" checkeveryunit="second" 
+             timeoutproperty="timeoutSocketListening">
       <not>
         <socket server="${host.name}" port="${staf.port}"/>
       </not>
@@ -1028,10 +1051,14 @@ email.server.pwd=${email.server.pwd.input}
       <condition property="bits.services.downloaded.before" >
         <available file="${bits.download.dir}/${bits.stax.archive}" />
       </condition>
+      <condition property="bits.tomcat.downloaded.before">
+        <available file="${bits.download.dir}/${bits.tomcat.archive}"/>
+      </condition>
       <condition property="bits.all.downloaded.before">
         <and>
           <isset property="bits.staf.downloaded.before"/>
           <isset property="bits.services.downloaded.before"/>
+          <isset property="bits.tomcat.downloaded.before"/>
         </and>
       </condition>
       <available file="${daily.package}" property="daily.package.downloaded"/>
@@ -1151,7 +1178,7 @@ email.server.pwd=${email.server.pwd.input}
       <arg value="testcases/security/pwd_validator"/>
       <arg value="testcases/security/sasl"/>
       <arg value="testcases/security/startTLS"/>-->
-      <arg value="shared/functions"/>
+      <arg value="../shared/functions"/>
       <arg value="testcases/sample" />
     </java>
   </target>

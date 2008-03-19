@@ -1,0 +1,22 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 541
+SOAPAction: batchRequest
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+  <soap-env:Body>
+<batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core"
+   requestID="[compareRequest] end element is missing"
+   >
+<compareRequest dn="uid=abergin,ou=People,dc=siroe,dc=com">
+<assertion name="sn">
+<value>Bergin</value>
+</assertion>
+</batchRequest>
+</soap-env:Body>
+</soap-env:Envelope>

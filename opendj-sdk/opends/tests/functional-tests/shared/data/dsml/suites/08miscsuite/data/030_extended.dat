@@ -1,0 +1,44 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1298
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+
+        <extendedRequest requestID="144589556658lkj">
+        <requestName>1.3.6.1.4.4203.1.11.3</requestName>
+        <requestValue></requestValue>
+        </extendedRequest>
+
+        <extendedRequest requestID="144589556659">
+        <requestName>1.3.6.1.4.4203.1.11.3</requestName>
+        </extendedRequest>
+
+        <extendedRequest requestID="144589556660">
+        <requestName>1.3.6.1.4.4203.1.11.3</requestName>
+        <requestValue></requestValue>
+        </extendedRequest>
+
+        <extendedRequest requestID="144589556661">
+        <requestName>1.3.6.1.4.4203.1.12.4</requestName>
+        <requestValue></requestValue>
+        </extendedRequest>
+
+        <extendedRequest>
+        <requestName>2.16.840.1.113730.3.5.7</requestName>
+        </extendedRequest>
+
+        <extendedRequest requestID="144589556662">
+        <requestName>2.16.840.1.113730.3.5.8</requestName>
+        </extendedRequest>
+
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

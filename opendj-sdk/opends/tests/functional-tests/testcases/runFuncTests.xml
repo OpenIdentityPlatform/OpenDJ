@@ -132,6 +132,12 @@
       -->
       
       <import machine="STAF_LOCAL_HOSTNAME"
+              file="'%s/testcases/dsml/dsml.xml' % (TESTS_DIR)" />
+      <!--
+      add keyword 'main_dsml' in run-custom-suites.dat file to run this specific testsuite or run CLI : build run-my-tests
+      -->
+
+      <import machine="STAF_LOCAL_HOSTNAME"
               file="'%s/testcases/sample/sample.xml' % TESTS_DIR" />
       <script>
         # this function return a well-formatted testcase name
@@ -187,11 +193,11 @@
               coverageFiles+='%s/coverage/%s/coverage.ec' % (TMPDIR,group)
           </script>
           <call function="'runCommand'">
-              { 'name'      : 'Generate global coverage xml report',
-                'command'   : 'java',
-                'arguments' : ' -Xms64M -Xmx1024M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (dsPath,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
-                'path'      : TMPDIR
-              }
+            { 'name'      : 'Generate global coverage xml report',
+              'command'   : 'java',
+              'arguments' : ' -Xms64M -Xmx1024M -cp %s/lib/emma.jar emma report -r xml,html -in %s/coverage.em,%s -Dreport.xml.out.file=%s/coverage/coverage.xml -Dreport.html.out.file=%s/coverage/coverage.html -sp %s/../../../src' % (dsPath,dsPath,coverageFiles,TMPDIR,TMPDIR,TMPDIR),
+              'path'      : TMPDIR
+            }
           </call>
           <script>
             from java.io import FileInputStream

@@ -1,0 +1,38 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1077
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+  <soap-env:Body>
+  <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+     <searchRequest dn="o=dsmlfe.com" scope="wholeSubtree" derefAliases="neverDerefAliases">
+     	<filter>
+		<equalityMatch name="uid">
+			<value>scarter</value>
+		</equalityMatch>
+	</filter>
+     </searchRequest>
+     <searchRequest dn="o=dsmlfe.com" scope="wholeSubtree" derefAliases="neverDerefAliases">
+     	<filter>
+		<equalityMatch name="uid">
+			<value>jwallace</value>
+		</equalityMatch>
+	</filter>
+     </searchRequest>
+     <searchRequest dn="o=dsmlfe.com" scope="wholeSubtree" derefAliases="neverDerefAliases">
+     	<filter>
+		<equalityMatch name="uid">
+			<value>achassin</value>
+		</equalityMatch>
+	</filter>
+	<attributes><attribute name="roomnumber"/></attributes>
+     </searchRequest>
+  </batchRequest>
+  </soap-env:Body>
+  </soap-env:Envelope>

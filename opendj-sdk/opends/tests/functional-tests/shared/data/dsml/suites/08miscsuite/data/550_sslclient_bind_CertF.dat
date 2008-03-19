@@ -1,0 +1,27 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Authorization: Basic Y249cGFibG8gcGljYXNzbyt1aWQ9MDAxMjM0NTY3ODksb3U9c2VhcmNoLG89aW1jLGM9dXM6dTE=
+Content-Length: 835
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+        <compareRequest dn="cn=clint eastwood,ou=corporate tax,ou=fin-accounting,ou=americas,ou=search,o=imc,c=us">
+        <assertion name="employeeNumber">
+        	<value>1100008</value>
+        </assertion>
+        </compareRequest>
+        <compareRequest dn="cn=clint eastwood,ou=corporate tax,ou=fin-accounting,ou=americas,ou=search,o=imc,c=us">
+        <assertion name="employeeNumber">
+        	<value>1100009</value>
+        </assertion>
+        </compareRequest>
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

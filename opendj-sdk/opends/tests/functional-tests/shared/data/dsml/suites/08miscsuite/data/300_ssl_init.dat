@@ -1,0 +1,36 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1680
+Authorization: Basic %VALIDAUTH%
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+		
+        <modifyRequest dn="cn=pablo picasso+uid=00123456789,ou=search,o=imc,c=us">
+          <modification name="userpassword" operation="replace">
+               <value>u1</value>
+          </modification>
+        </modifyRequest>
+	
+        <modifyRequest dn="cn=pablo picasso+uid=00123456789,ou=search,o=imc,c=us">
+          <modification name="description" operation="replace">
+               <value>CN=User00Cert</value>
+          </modification>
+        </modifyRequest>
+	
+        <modifyRequest dn="cn=pablo picasso+uid=00123456789,ou=search,o=imc,c=us">
+          <modification name="userCertificate;binary" operation="add">
+               <value>MIIBmjCCAQOgAwIBAgIBADANBgkqhkiG9w0BAQQFADARMQ8wDQYDVQQDEwZDQWNlcnQwHhcNMDEwNjE1MTA1NzExWhcNMTEwOTE1MTA1NzExWjAVMRMwEQYDVQQDEwpVc2VyMDBDZXJ0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDHojZL+FlPO2PDopHPld0zcDKsTl2BEu7RTLM8qC/5AUkgT/66a4iADyiET+vlMomsuEQ+fZlgwr5rHvyhVAgSl1rpjnjDf4yo+ATeCoPli8Zo2scJFELXLGyDyufv5tcam2Mi3c0e/GEa+wqGTW4LPNx7+B3RBVlKB7lUHpUmzwIDAQABMA0GCSqGSIb3DQEBBAUAA4GBAJDz6JNAp6lanBZawivGA3xJayfU1Zai3wvEn6RCS4EM5Ry1Hb2pGGbqWvOcwDX8BQmVdAxrhQLmj6eJw9VFPqLniL5VvEh0zSkK87BAogG98AKYHkY6cRyKKph5Zq+mCYBr+q+fzaxNJDKMwkCN1X/JCCWN1sM9KuGgAcWP3wxx</value>
+          </modification>
+        </modifyRequest>
+	
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

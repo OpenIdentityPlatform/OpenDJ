@@ -521,6 +521,8 @@
           standardReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
         except IOError,details:
           _message='Unable to generate standard test report %s.' % details
+        except:
+          _message='Unable to generate standard test report !!!'
       </script>
       <message>_message</message>
 
@@ -537,6 +539,8 @@
           groupsReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
         except IOError,details:
           _message='Unable to generate groups test report %s.' % details          
+        except:
+          _message='Unable to generate groups test report !!!'
       </script>
       <message>_message</message>
 
@@ -562,6 +566,8 @@
               suitesReport.transformReport(xslfile,xmlfile,htmlfile,stringParamsDict)
             except IOError,details:
               _message='Unable to generate suites test report %s.' % details
+            except:
+              _message='Unable to generate suites test report %s !!!' % groupDir
       </script>
       <message>_message</message>
                                 
@@ -580,6 +586,8 @@
           drillDownReport.transformReport(myreportxsl,mytestslog,myreporthtml,stringParamsDict)
         except IOError,details:
           _message='Unable to generate drill down test report %s.' % details
+        except:
+          _message='Unable to generate drill down test report !!!'
       </script>
       <message>_message</message>
 
