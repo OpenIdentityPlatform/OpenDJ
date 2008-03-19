@@ -95,9 +95,8 @@ public class PreloadEntryCacheTestCase
     // Create dummy JE backend for this test.
     TestCaseUtils.dsconfig("create-backend", "--backend-name", "cacheTest",
       "--type", "local-db", "--set", "db-directory:" + jeDir, "--set",
-      "base-dn:o=cachetest", "--set",
-      "import-temp-directory:importTmp", "--set",
-      "writability-mode:enabled", "--set", "enabled:true");
+      "base-dn:o=cachetest", "--set", "writability-mode:enabled", "--set",
+      "enabled:true");
 
     // Configure the entry cache, use FileSystemEntryCache.
     Entry cacheConfigEntry = TestCaseUtils.makeEntry(
