@@ -85,45 +85,45 @@
             </sequence>
           </if>
         </sequence>
-      <else>
-        <!-- MULTIPLE instance deployment: read parameters from
-          topologyDescFile -->
-        <sequence>
-          <message>
-            'MULTIPLE instance deployment: read parameters from %s' \
-            % topologyDescFile
-          </message>
-          
-          <!-- Parse the topology description file and set
-            _topologyServerList -->
-          <call function="'readTopology'">
-            { 'file' : topologyDescFile }
-          </call>
-           
-          <message>
-            'Number of server instances required by the deployment: %s' \
-            % len(_topologyServerList)
-          </message>
-          
-          <iterate var="server" in="_topologyServerList">
-            <sequence>
-              <!-- Create the instance-->
-              <call function="'createInstance'">
-                { 'dsHost'    : server.getHostname(),
-                  'dsDir'     : server.getDir(),
-                  'dsPort'    : server.getPort(),
-                  'dsSslPort' : server.getSslPort(),
-                  'dsJmxPort' : server.getJmxPort(),
-                  'dsBindDN'  : server.getRootDn(),
-                  'dsBindPwd' : server.getRootPwd(),
-                  'dsBaseDN'  : server.getBaseDn()
-                }
-              </call>
-              
-            </sequence>
-          </iterate>
-        </sequence>
-      </else>
+        <else>
+          <!-- MULTIPLE instance deployment: read parameters from
+            topologyDescFile -->
+          <sequence>
+            <message>
+              'MULTIPLE instance deployment: read parameters from %s' \
+              % topologyDescFile
+            </message>
+            
+            <!-- Parse the topology description file and set
+              _topologyServerList -->
+            <call function="'readTopology'">
+              { 'file' : topologyDescFile }
+            </call>
+            
+            <message>
+              'Number of server instances required by the deployment: %s' \
+              % len(_topologyServerList)
+            </message>
+            
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+                <!-- Create the instance-->
+                <call function="'createInstance'">
+                  { 'dsHost'    : server.getHostname(),
+                    'dsDir'     : server.getDir(),
+                    'dsPort'    : server.getPort(),
+                    'dsSslPort' : server.getSslPort(),
+                    'dsJmxPort' : server.getJmxPort(),
+                    'dsBindDN'  : server.getRootDn(),
+                    'dsBindPwd' : server.getRootPwd(),
+                    'dsBaseDN'  : server.getBaseDn()
+                  }
+                </call>
+                
+              </sequence>
+            </iterate>
+          </sequence>
+        </else>
       </if>
     </sequence>
   </function>
@@ -144,6 +144,14 @@
           group
         </function-arg-description>
         <function-arg-property name="type" value="string"/>     
+      </function-arg-def>
+      <function-arg-def name="fileExtensions" 
+                        type="optional" 
+                        default="[]">
+        <function-arg-description>
+          Specifies a list of file extension to add to testdata.zip
+        </function-arg-description>
+        <function-arg-property name="type" value="list"/>     
       </function-arg-def>
     </function-map-args>   
     <sequence>
@@ -177,6 +185,24 @@
               'extension'  : 'ldif'
             }
           </call>
+
+          <if expr="len(fileExtensions) > 0">
+            <iterate var="ft" in="fileExtensions">
+              <sequence>
+                <!-- add file extension test data files -->
+                <message>
+                  'Copy %s data files locally to %s.' % (ft,localTestsGroupDir)
+                </message>
+                <call function="'CopyFolderByExtension'">
+                  { 'location'   : STAXServiceMachine,
+                    'srcfolder'  : testsGroupDir,
+                    'destfolder' : localTestsGroupDir,
+                    'extension'  : '%s' % ft
+                  }
+                </call>
+              </sequence>
+            </iterate>
+          </if>
 
           <!-- LDIF (.ldif) files for quickinstall -->
           <script>
@@ -906,7 +932,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean" />
       </function-arg-def>
-      
+                                      
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.

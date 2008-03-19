@@ -1,0 +1,48 @@
+POST /dsml HTTP/1.0
+Host: Foo
+Connection: Keep-Alive
+Authorization: Basic %VALIDAUTH%
+Content-Length: 617
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+		
+        <modifyRequest dn="cn=paul cezanne,ou=americas,ou=search,o=imc,c=us">
+          <modification name="givenname" operation="replace">
+               <value>Paloa</value>
+          </modification>
+        </modifyRequest>
+	
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>
+
+POST /dsml HTTP/1.0
+Host: Foo
+Authorization: Basic Y249UGFibG8gUGljYXNzbyArIHVpZD0wMDEyMzQ1Njc4OSwgb3U9U2VhcmNoLCBvPUlNQywgYz1VUzpwYWJsbw==
+Content-Length: 617
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+		
+        <modifyRequest dn="cn=paul cezanne,ou=americas,ou=search,o=imc,c=us">
+          <modification name="givenname" operation="replace">
+               <value>Josep</value>
+          </modification>
+        </modifyRequest>
+	
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

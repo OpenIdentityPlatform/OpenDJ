@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
+! -->
+<stax>
+  
+  <function name="createWebcontainer">
+    <function-prolog>
+      This function creates a default webcontainer instance  
+    </function-prolog>
+    
+    <try>
+      
+      <sequence>
+        
+        <!-- Unzip webcontainer into temporary folder -->
+        <message>
+          'Extract temporary webcontainer zip archive to %s %s.' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+        </message>
+        <call function="'unZipFile'">
+          { 'location' : STAF_REMOTE_HOSTNAME, 
+          'zipfile'  : '%s/%s' % (WC_ZIPPATH,WC_ZIPNAME), 
+          'unzipdir' : '%s' % WC_DIRECTORY }
+        </call>
+        <!-- chmod +x all the .sh file in tomcat bin directory -->
+        <stafcmd name="'create import temp directory'">
+          <location>'%s' % location</location>
+          <service>'fs'</service>
+          <request>' LIST DIRECTORY %s/%s-%s/bin EXT sh' % \
+                   (WC_DIRECTORY, WC_TYPE, WC_VERSION)</request>
+        </stafcmd>
+        <script>
+          shFilesRC=RC
+          shFilesResult=" ".join(STAFResult)
+        </script>
+        <message>'shFilesResult=%s' % shFilesResult</message>
+        <process name="'chmod +x tomcat\'s shell scripts'">
+          <location>'%s' % location</location>
+          <command mode="'shell'">'chmod +x %s' % shFilesResult</command>
+          <parms/>
+          <workdir>'%s/%s-%s/bin' % (WC_DIRECTORY, WC_TYPE, WC_VERSION)</workdir>
+          <envs>['PATH=/bin:/usr/bin']</envs>
+          <stderr mode="'stdout'"/>
+          <stdout/>
+          <returnstdout/>
+        </process>
+
+        <!-- configure webcontainer's PORTs -->
+        <message>
+          'Configure webcontainer ports HTTP %s / HTTPS %s' % (WC_PORT, WC_SSL_PORT)
+        </message>
+        <script>
+          serverXmlInput=open('%s/%s-%s/conf/server.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION),'r')
+          import re
+          portRegEx = re.compile('8080')
+          sslPortRegEx = re.compile('8443')
+          c=serverXmlInput.read()
+          ci=portRegEx.sub(WC_PORT, c)
+          content=portRegEx.sub(WC_SSL_PORT, ci)
+          serverXmlInput.close()
+          serverXmlOutput=open('%s/%s-%s/conf/server.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION),'w')
+          serverXmlOutput.write(content)
+          serverXmlOutput.close()
+        </script>
+        
+        <!-- configure webcontainer's SSL environement -->
+        <message>
+          'Configure webcontainer SSL keystore '
+        </message>
+        <message>
+          'TODO....'
+        </message>
+        
+        <if expr="RC != 0">
+          <return>RC</return>
+        </if>
+        
+      </sequence>
+      
+      <catch exception="'TestExceptionResultFailed'" typevar="eType" var="eInfo">
+        <sequence>
+          <message>'caught %s with %s' % (eType,eInfo)</message>
+          <message>
+            'Remove temporary webcontainer zip archive from %s %s' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+          </message>
+          <call function="'deleteFolder'">
+            { 'location'   : STAF_REMOTE_HOSTNAME ,
+            'foldername' : '%s' % WC_DIRECTORY }
+          </call>
+        </sequence>
+      </catch>
+      
+    </try>
+    
+  </function>
+  
+  <function name="deployWebApplicationWAR">
+    <function-prolog>
+      This function deploys a Web Application War file
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="warFilePath" type="required" default="''">
+        <function-arg-description>
+          Web application war file path
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="destWarFileName" type="optional" default="'dsml.war'">
+        <function-arg-description>
+          Web application war destination file path
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      
+      <message>
+        'setup: deploy web application %s to %s/%s-%s/webapps/%s' % (warFilePath, WC_DIRECTORY, WC_TYPE, WC_VERSION, destWarFileName) 
+      </message>
+
+      <call function="'copyFile'">
+        { 'location'   : STAF_REMOTE_HOSTNAME ,
+        'srcfile' : '%s' % warFilePath,
+        'destfile' : '%s/%s-%s/webapps/%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION, destWarFileName) }
+      </call>
+      
+    </sequence>
+    
+  </function>
+  
+  <function name="stopWebcontainerWithScript">
+    <function-prolog>
+      This function stops a webcontainer 
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      
+      <!-- Build the Command -->
+      <script>
+        if wcPath:
+          wcBinPath='%s/bin' % wcPath
+          STAFCmd='%s/shutdown.sh' % wcBinPath
+          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin']
+      </script>
+      
+      <message>
+        '%s' % STAFCmd
+      </message>
+      
+      <call function="'runCommand'">
+        { 'location'  : location,
+        'command'   : STAFCmd,
+        'env' : STAFCmdEnv,
+        'name' : STAFCmd,
+        'path' : wcBinPath
+        }
+      </call>
+      <script>
+        stopRC=RC
+        stopResult=STAXResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : stopRC,
+        'result'     : stopResult }
+      </call>
+      <return>stopResult</return>
+      
+    </sequence>
+    
+  </function>
+  
+  <function name="startWebcontainerWithScript">
+    <function-prolog>
+      This function starts a webcontainer 
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      
+      <!-- Build the Command -->
+      <script>
+        if wcPath:
+          wcBinPath='%s/bin' % wcPath
+          STAFCmd='%s/startup.sh' % wcBinPath
+          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin']
+      </script>
+      
+      <message>
+        '%s' % STAFCmd
+      </message>
+      
+      <call function="'runCommand'">
+        { 'location'  : location,
+        'command'   : STAFCmd,
+        'env' : STAFCmdEnv,
+        'name' : STAFCmd,
+        'path' : wcBinPath
+        }
+      </call>
+      <script>
+        startRC=RC
+        startResult=STAXResult
+      </script>
+      <call function="'checkRC'">
+        { 'returncode' : startRC ,
+        'result'     : startResult }
+      </call>
+      
+      <return>startResult</return>
+      
+    </sequence>
+    
+  </function>
+  
+  <function name="removeWebcontainer">
+    <function-prolog>
+      This function removes the webcontainer instance  
+    </function-prolog>
+    
+    <try>
+      
+      <sequence>
+        
+        <!-- Remove webcontainer directory -->
+        <message>
+          'Remove webcontainer from %s %s.' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+        </message>
+        <call function="'deleteFolder'">
+          { 'location' : STAF_REMOTE_HOSTNAME, 
+          'foldername'  : '%s/%s-%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION) }
+        </call>
+        
+        <if expr="RC != 0">
+          <return>RC</return>
+        </if>
+        
+      </sequence>
+      
+      <catch exception="'TestExceptionResultFailed'" typevar="eType" var="eInfo">
+        <sequence>
+          <message>'caught %s with %s' % (eType,eInfo)</message>
+          <message>
+            'Remove temporary webcontainer zip archive from %s %s' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+          </message>
+          <call function="'deleteFolder'">
+            { 'location'   : STAF_REMOTE_HOSTNAME ,
+            'foldername' : '%s/%s-%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION) }
+          </call>
+        </sequence>
+      </catch>
+      
+    </try>
+    
+  </function>
+</stax>

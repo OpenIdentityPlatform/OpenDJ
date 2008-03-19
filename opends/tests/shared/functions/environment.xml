@@ -68,6 +68,9 @@
       <import machine="STAF_LOCAL_HOSTNAME"
         file="'%s/tools.xml' % (TESTS_FUNCTIONS_DIR)" />
         
+      <import machine="STAF_LOCAL_HOSTNAME"
+        file="'%s/webcontainer.xml' % (TESTS_FUNCTIONS_DIR)" />
+        
   </sequence>  
       
   </function>

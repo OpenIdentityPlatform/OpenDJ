@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <defaultcall function="dsml_test" />
+  <function name="dsml_test">
+    <block name="'test'">
+      <sequence>
+        <!--- Test Suite information
+          #@TestSuiteName       test
+          #@TestSuitePurpose    test for the dsml test suite.
+          #@TestSuiteGroup      dsml test
+          #@TestScript          dsml_test.xml
+        -->
+        <script>
+          if not CurrentTestPath.has_key('group'):
+            CurrentTestPath['group'] = 'dsml'              
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+        <call function="'testSuite_Preamble'"/>
+        <sequence>
+          <message>'TESTS_DATA_DIR=%s '%(TESTS_DATA_DIR)
+          </message>
+          <!--- Test Case information
+              #@TestMarker          test
+              #@TestName            test: test webcontainer
+              #@TestIssue           none
+              #@TestPurpose         test webcontainer responding necessary to the
+                                    test suite.
+              #@TestPreamble        none
+              #@TestSteps           get the list of DSML test family
+              #@TestSteps           for each family get the list of DSML SOAP requests (testXYZ.dat)
+              #@TestSteps           for each SOAP request, submit it and store the result (testXYZ.run)
+              #@TestSteps           for each SOAP result, compare it with reference (testXYZ.run vs testXYZ.res)
+              #@TestResult          Success if returns 0.
+          -->
+          <testcase name="getTestCaseName('dsml suites')">
+            <sequence>
+              <message>'TESTS_DIR=%s / TESTS_DATA_DIR=%s' % (TESTS_DIR,TESTS_DATA_DIR)</message>
+              <stafcmd name="'STAF Command: list DSML suites families'">
+                <location>'%s' % location</location>
+                <service>'fs'</service>
+                <request>' LIST DIRECTORY %s/dsml/suites SORTBYNAME TYPE d' % \
+                 (TESTS_DATA_DIR)</request>
+              </stafcmd>
+              <if expr="RC != 0">
+                <sequence>
+                  <message>
+                    'Folder %d/dsml/suites does not exist.' % (TESTS_DATA_DIR)
+                  </message>
+                  <return>0</return>
+                </sequence>
+              </if>
+
+              <script>
+                cmdRC=RC
+                familyList=STAFResult
+                import re
+                import base64
+                runFileRE = re.compile( 'dat$')
+                validAuthRE = re.compile ( '\%VALIDAUTH\%' )
+                sslRE = re.compile( '_ssl' )
+                dsmlSvcLoaded = False
+                urls = { \
+                  'noSSL' : 'http://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_PORT), \
+                  'SSL'   : 'https://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_SSL_PORT) \
+                }
+              </script>
+              <message>'DSML familyList = %s' % familyList</message>
+              <iterate var="family" in="familyList">
+                <sequence>
+                  <message>'DSML family %s ' % (family)</message>
+                  <stafcmd name="'STAF Command: list DSML suite %s input' % (family)">
+                    <location>'%s' % location</location>
+                    <service>'fs'</service>
+                    <request>' LIST DIRECTORY %s/dsml/suites/%s/data \
+                      SORTBYNAME EXT dat TYPE f' % (TESTS_DATA_DIR,family)
+                    </request>
+                  </stafcmd>
+                  <script>
+                    familyInput = STAFResult
+                  </script>
+                  <stafcmd name="'STAF Command: list DSML suite %s expected results' % (family)">
+                    <location>'%s' % location</location>
+                    <service>'fs'</service>
+                    <request>' LIST DIRECTORY %s/dsml/suites/%s/data \
+                      SORTBYNAME EXT res TYPE f' % (TESTS_DATA_DIR,family)
+                    </request>
+                  </stafcmd>
+                  <script>
+                    familyExpected = STAFResult
+                  </script>
+                  <iterate var="test" in="familyInput">
+                    <testcase name="getTestCaseName('%s-%s' % (family,test))">
+                      <sequence>
+                        <call function="'testCase_Preamble'"/>
+                        <script>
+                          runFileName = runFileRE.sub('run',test)
+                          runFilePath = '/tmp/%s_%s' % (family, runFileName)
+                          requestFilePath = '%s/dsml/suites/%s/data/%s' % \
+                            (TESTS_DATA_DIR,family,test)
+                          expectedFileName = runFileRE.sub('res',test)
+                          expectedFilePath = '%s/dsml/suites/%s/data/%s' % \
+                            (TESTS_DATA_DIR,family,expectedFileName)
+                          if (sslRE.search(test) != None):
+                            url = urls['SSL']
+                          else:
+                            url = urls['noSSL']
+                        </script>
+                        <stafcmd name="'STAF Command: list DSML suite %s file %s' % (family,test)">
+                          <location>'%s' % location</location>
+                          <service>'fs'</service>
+                          <request>'GET FILE %s' % requestFilePath</request>
+                        </stafcmd>
+                        <script>
+                          from com.ibm.staf import STAFUtil
+                          BODYSeparator = '\n\n'
+                          BODYStart = STAFResult.index(BODYSeparator)
+                          h = STAFResult[:BODYStart]
+                          kvs=h.split("\n")
+                          SOAPHeaders = "HEADER content-type=text/xml "
+                          
+                          for e in kvs[1:]:
+                            if (e.upper().startswith("CONTENT-LENGTH:")):
+                              continue
+                            if len(e.strip()) == 0:
+                              continue
+                            if (e.upper().startswith("AUTHORIZATION:")):
+                              e = validAuthRE.sub( base64.encodestring('%s:%s' % \
+                                     (DIRECTORY_INSTANCE_DN,DIRECTORY_INSTANCE_PSWD)) , \
+                                   e )
+                            s = e.split(':')
+                            rs = re.compile(' ')
+                            s[1]=s[1].strip()
+                            if (rs.search(s[1]) != None):
+                              s[1] = '"' + s[1] + '"'
+                            SOAPHeaders = SOAPHeaders + 'HEADER ' + s[0] + '=' + s[1] + ' '
+                            
+                          SOAPBody = STAFUtil.wrapData(STAFResult[BODYStart+len(BODYSeparator):])
+                        </script>
+                        <stafcmd name="'submit SOAPBody '">
+                          <location>'local'</location>
+                          <service>'http'</service>
+                          <request>
+                            'REQUEST METHOD POST URL %s FOLLOWREDIRECT %s CONTENT %s RETURNHEADERS ' % \
+                            (url, SOAPHeaders, SOAPBody)
+                          </request>
+                        </stafcmd>
+                        <call function="'checktestRC'">
+                          {
+                          'returncode' : RC ,
+                          'result'     : STAFResult
+                          }
+                        </call>
+                        <if expr="result['statusCode'] == '200'">
+                          <sequence>
+                            <script>
+                              # writing the result file to compare with expected result
+                              httpHeaders = result['headers']
+                              httpContent = result['content']
+                              resultContent = "HTTP1.1 "
+                              resultContent += result['statusCode'] + ' ' 
+                              resultContent += result['statusMessage'] + '\n'
+                              resultContent += "\n".join(["%s: %s" % (k, v) for k, v in httpHeaders.items()])
+                              resultContent += '\n\n' + httpContent
+                              f=open(runFilePath,'w')
+                              f.write(resultContent)
+                              f.close()
+                            </script>
+                            <message>'Comparing result %s and expected result %s' %  (runFilePath, expectedFilePath)</message>
+                            <stafcmd name="'compared SOAPResult with expected'">
+                              <location>'%s' % location</location>
+                              <service>'dsml'</service>
+                              <request>
+                                'COMPARE FILE %s EXP_FILE %s' %(runFilePath, expectedFilePath)
+                              </request>
+                            </stafcmd>
+                            <call function="'checktestRC'">
+                              {
+                              'returncode' : RC ,
+                              'result'     : STAXResult
+                              }
+                            </call>
+                          </sequence>
+                          <else>
+                            <call function="'checktestRC'">
+                              {
+                              'returncode' : result['statusCode'] ,
+                              'result'     : result['statusMessage']
+                              }
+                            </call>
+                          </else>
+                        </if>
+                        <if expr="dsmlSvcLoaded == False">
+                          <sequence>
+                            <stafcmd name="'load DSML service'">
+                            <location>'%s' % location</location>
+                            <service>'service'</service>
+                            <request>
+                              'ADD SERVICE DSML LIBRARY JSTAF \
+                                 EXECUTE %s/ext/staf/dsmlService.jar \
+                                 OPTION JVMNAME=dsmlJVM  \
+                                 OPTION J2=-Xmx512m' % \
+                                 TESTS_ROOT
+                            </request>
+                            </stafcmd> 
+                            <script>
+                              dsmlSvcLoaded = True
+                            </script>
+                          </sequence>
+                        </if>
+                        
+                        <call function="'testCase_Postamble'"/>
+                      </sequence>
+                    </testcase>
+                  </iterate>
+                </sequence>
+              </iterate>
+              <if expr="dsmlSvcLoaded == True">
+                <sequence>
+                  <stafcmd name="'unload DSML service'">
+                    <location>'%s' % location</location>
+                    <service>'service'</service>
+                    <request>
+                      'REMOVE SERVICE DSML'
+                    </request>
+                  </stafcmd>
+                  <script>
+                    dsmlSvcLoaded = True
+                  </script>
+                </sequence>
+              </if>
+              <call function="'checktestRC'">
+                {
+                'returncode' : RC ,
+                'result'     : STAFResult
+                }
+              </call>
+            </sequence>
+          </testcase>
+        </sequence>
+        <call function="'testSuite_Postamble'"/>
+      </sequence>
+    </block>
+  </function>
+</stax>

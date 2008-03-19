@@ -1,0 +1,57 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1536
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+        <addRequest dn="uid=foo11, ou=People, o=dsmlfe.com">
+        <attr name="labeleduri">
+        <value>This is an ExamPle laBeledURI</value>
+        </attr>
+        <attr name="mail">
+        <value>foo11@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 111 1111</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 11</value>
+        </attr>
+        <attr name="uid">
+        <value>foo11</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>a1</value>
+        </attr>
+        <attr name="sn">
+        <value>11</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+1 408 111 1111</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

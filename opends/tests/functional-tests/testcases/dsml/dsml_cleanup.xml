@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Portions Copyright 2008 Sun Microsystems, Inc.
+! -->
+<stax>
+  <defaultcall function="dsml_cleanup" />
+  <function name="dsml_cleanup">
+    <block name="'cleanup'">
+      <sequence>
+        <!--- Test Suite information
+          #@TestSuiteName       cleanup
+          #@TestSuitePurpose    cleanup for the dsml test suite.
+          #@TestSuiteGroup      dsml cleanup
+          #@TestScript          dsml_cleanup.xml
+        -->
+        <script>
+          if not CurrentTestPath.has_key('group'):
+            CurrentTestPath['group'] = 'dsml'              
+          CurrentTestPath['suite'] = STAXCurrentBlock
+        </script>
+
+        <call function="'testSuite_Preamble'"/>
+        <sequence>
+        <!--- Test Case information
+            #@TestMarker          cleanup
+            #@TestName            cleanup: stop directory server
+            #@TestIssue           none
+            #@TestPurpose         Stop the directory server necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestStep            stop directory server as described in config.py.
+            #@TestPostamble       none
+            #@TestResult          Success if stopDSWithScript returns 0.
+        -->
+        <testcase name="getTestCaseName('cleanup: stop directory server')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+             'Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+            </message>
+
+            <call function="'StopDsWithScript'">
+              { 'location'  : STAF_REMOTE_HOSTNAME,
+                'dsHost'    : DIRECTORY_INSTANCE_HOST,
+                'dsPort'    : DIRECTORY_INSTANCE_PORT,
+                'dsBindDN'  : DIRECTORY_INSTANCE_DN,
+                'dsBindPwd' : DIRECTORY_INSTANCE_PSWD }
+            </call>
+
+            <call function="'checktestRC'">
+              {
+              'returncode' : RC ,
+              'result'     : STAFResult
+              }
+            </call>
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case information
+            #@TestMarker          cleanup
+            #@TestName            cleanup: remove DS instance
+            #@TestIssue           none
+            #@TestPurpose         remove DS instance
+            #@TestPreamble        none
+            #@TestStep            remove DS instance as described in config.py.
+            #@TestPostamble       none
+            #@TestResult          Success if removeInstance returns 0.
+        -->
+        <testcase name="getTestCaseName('cleanup: remove directory server')">
+          <sequence>
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'Remove DS as described in config.py '
+            </message>
+            <call function="'removeInstance'"/>
+            <call function="'checktestRC'">
+              {
+              'returncode' : RC ,
+              'result'     : STAFResult
+              }
+            </call>
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+
+        <!--- Test Case information
+            #@TestMarker          cleanup
+            #@TestName            cleanup: stop web webcontainer
+            #@TestIssue           none
+            #@TestPurpose         Stop the webcontainer necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestStep            stop webcontainer as described in config.py.
+            #@TestPostamble       none
+            #@TestResult          Success if stopWebcontainerWithScript returns 0.
+        -->
+        <testcase name="getTestCaseName('cleanup: stop webcontainer')">
+          <sequence> 
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'cleanup: stop webcontainer as described in config.py'
+            </message>
+            <call function="'stopWebcontainerWithScript'">
+              { 'location'   : STAF_REMOTE_HOSTNAME ,
+              'wcPath' : '%s/%s-%s' % (WC_DIRECTORY,WC_TYPE,WC_VERSION) }
+            </call>
+            <call function="'checktestRC'">
+              {
+              'returncode' : RC ,
+              'result'     : STAXResult
+              }
+            </call>
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        
+        <!--- Test Case information
+            #@TestMarker          cleanup
+            #@TestName            cleanup: stops and remove webcontainer
+            #@TestIssue           none
+            #@TestPurpose         Remove the webcontainer necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestStep            Remove webcontainer as described in config.py.
+            #@TestPostamble       none
+            #@TestResult          Success if removeWebcontainer returns 0.
+          -->
+        <testcase name="getTestCaseName('cleanup: remove webcontainer')">
+          <sequence> 
+            <call function="'testCase_Preamble'"/>
+            <message>
+              'cleanup: remove webcontainer as described in config.py'
+            </message>
+            <call function="'removeWebcontainer'" />
+            <call function="'checktestRC'">
+              {
+              'returncode' : RC ,
+              'result'     : STAXResult
+              }
+            </call>
+            <call function="'testCase_Postamble'"/>
+          </sequence>
+        </testcase>
+        </sequence>
+        <call function="'testSuite_Postamble'"/>
+        
+      </sequence>
+    </block>
+  </function>
+</stax>
