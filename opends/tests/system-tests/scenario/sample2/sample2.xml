@@ -58,7 +58,7 @@
          'runPreConfiguration'   : 'true',
          'runConfiguration'      : 'true',
          'runPostConfiguration'  : 'true',
-         'runScheduler'          : 'false'
+         'runScheduler'          : 'true'
         }
         </call>
     </sequence>
