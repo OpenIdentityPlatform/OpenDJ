@@ -155,6 +155,9 @@
     </function-map-args>
 
     <sequence>
+      <script>
+        cmdRC=0
+      </script>
       <call function="'writeStartTagOperation'">
       { 'tagName' : 'copyFolder',
         'fileFd'  : fileFd }
