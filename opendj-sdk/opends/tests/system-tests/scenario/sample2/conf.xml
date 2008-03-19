@@ -52,13 +52,13 @@
   
   
   <!-- ================= Instance ============================== -->
-  <instance name="I1" product="opends">
+  <instance name="I1" product="opends" role="ldapServer">
     <host>localhost</host>
     <installDir>NEED_VALUE</installDir>
   </instance>
   
   <!-- ================= Instance ============================== -->
-  <instance name="I2" product="opends">
+  <instance name="I2" product="opends" role="ldapServer">
     <host>localhost</host>
     <installDir>NEED_VALUE</installDir>
     <ports>
