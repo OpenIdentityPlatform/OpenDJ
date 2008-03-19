@@ -54,6 +54,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.ReplicationBroker;
 import org.opends.server.replication.plugin.ReplicationDomain;
@@ -65,7 +66,9 @@ import org.opends.server.replication.protocol.InitializeTargetMessage;
 import org.opends.server.replication.protocol.ReplicationMessage;
 import org.opends.server.replication.protocol.SocketSession;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
+import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -73,6 +76,9 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -688,6 +694,38 @@ public class GenerationIdTest extends ReplicationTestCase
     return addMsg;
   }
 
+  /*
+   * Check that the expected number of changes are in the replication
+   * server database.
+   */
+  private void checkChangelogSize(int expectedCount)
+  {
+    try
+    {
+      SearchFilter filter =
+        SearchFilter.createFilterFromString("(objectclass=*)");
+      InternalSearchOperation searchOperation =
+        connection.processSearch(DN.decode("dc=replicationchanges"),
+            SearchScope.SUBORDINATE_SUBTREE,
+            filter);
+      if (debugEnabled())
+      {
+        if (searchOperation.getSearchEntries().size() != expectedCount)
+        {
+          for (SearchResultEntry sre : searchOperation.getSearchEntries())
+          {
+            debugInfo("Entry found: " + sre.toLDIFString());
+          }
+        }
+      }
+      assertEquals(searchOperation.getSearchEntries().size(), expectedCount);      
+    }
+    catch(Exception e)
+    {
+
+    }
+  }
+
   /**
    * SingleRS tests basic features of generationID
    * with one single Replication Server.
@@ -711,6 +749,13 @@ public class GenerationIdTest extends ReplicationTestCase
       long genId;
 
       replServer1 = createReplicationServer(changelog1ID, false, testCase);
+      
+      // To search the replication server db later in these tests, we need
+      // to attach the search backend to the replication server just created.
+      Thread.sleep(500);
+      ReplicationBackend b =
+        (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
+      b.setServer(replServer1);
 
       /*
        * Test  : empty replicated backend
@@ -824,6 +869,11 @@ public class GenerationIdTest extends ReplicationTestCase
       String ent1[] = { createEntry(UUID.randomUUID()) };
       this.addTestEntriesToDB(ent1);
 
+      // Verify that the replication server does contain the change related
+      // to this ADD.
+      Thread.sleep(500);
+      checkChangelogSize(1);
+
       try
       {
         ReplicationMessage msg = broker3.receive();
@@ -846,8 +896,14 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Create again replServer1");
       replServer1 = createReplicationServer(changelog1ID, false, testCase);
+
+      // To search the replication server db later in these tests, we need
+      // to attach the search backend to the replication server just created.
+      Thread.sleep(500);
+      b = (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
+      b.setServer(replServer1);
+
       debugInfo("Delay to allow DS to reconnect to replServer1");
-      Thread.sleep(1000);
 
       long genIdAfterRestart = replServer1.getGenerationId(baseDn);
       debugInfo("Aft restart / replServer.genId=" + genIdAfterRestart);
@@ -874,15 +930,10 @@ public class GenerationIdTest extends ReplicationTestCase
         fail("Broker connection is expected to be accepted.");
       }
 
-      /*
-       *
-       * FIXME Should clearJEBackend() regenerate generationId and do a start
-       *       against ReplicationServer ?
-       */
-
-      /*
-       * Test: Reset the replication server in order to allow new data set.
-       */
+      // Also verify that no change occured on the replication server db
+      // and still contain the ADD submitted initially.
+      Thread.sleep(500);
+      checkChangelogSize(1);
 
       debugInfo("Launch an on-line import on DS.");
       genId=-1;
@@ -905,7 +956,9 @@ public class GenerationIdTest extends ReplicationTestCase
       waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
       Thread.sleep(200);
 
-      // TODO: Test that replication server db has been cleared
+      // FIXME: Known bug : the replication server db should not have been
+      // cleared in that case since it has the proper generation ID.
+      checkChangelogSize(0);
 
       debugInfo("Expect new genId to be computed on DS and sent to all replServers after on-line import.");
       genId = readGenId();
@@ -925,7 +978,6 @@ public class GenerationIdTest extends ReplicationTestCase
       assertTrue(replServer1.getReplicationServerDomain(baseDn, false).
           isDegradedDueToGenerationId(server3ID),
       "Expecting that broker3 is degraded since domain genId has been reset");
-
 
       // Now create a change that normally would be replicated
       // but will not be replicated here since DS and brokers are degraded

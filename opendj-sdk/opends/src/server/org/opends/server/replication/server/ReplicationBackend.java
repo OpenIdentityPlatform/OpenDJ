@@ -136,7 +136,7 @@ public class ReplicationBackend
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private static final String EXPORT_BASE_DN = "dc=replicationChanges";
+  private static final String BASE_DN = "dc=replicationchanges";
 
   // The base DNs for this backend.
   private DN[] baseDNs;
@@ -545,7 +545,7 @@ public class ReplicationBackend
         ReplicationServerDomain rc = rsdi.next();
 
         // Skip containers that are not covered by the include branches.
-        baseDN = DN.decode(rc.getBaseDn().toString() + "," + EXPORT_BASE_DN);
+        baseDN = DN.decode(rc.getBaseDn().toString() + "," + BASE_DN);
 
         if (includeBranches == null || includeBranches.isEmpty())
         {
@@ -662,7 +662,7 @@ public class ReplicationBackend
     try
     {
       AddChangeRecordEntry changeRecord =
-        new AddChangeRecordEntry(DN.decode(EXPORT_BASE_DN),
+        new AddChangeRecordEntry(DN.decode(BASE_DN),
                                attributes);
       ldifWriter.writeChangeRecord(changeRecord);
     }
@@ -706,7 +706,7 @@ public class ReplicationBackend
       {
         AddChangeRecordEntry changeRecord =
           new AddChangeRecordEntry(DN.decode(
-              exportContainer.getBaseDn() + "," + EXPORT_BASE_DN),
+              exportContainer.getBaseDn() + "," + BASE_DN),
               attributes);
         ldifWriter.writeChangeRecord(changeRecord);
       }
@@ -717,7 +717,7 @@ public class ReplicationBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
         Message message = ERR_BACKEND_EXPORT_ENTRY.get(
-            exportContainer.getBaseDn() + "," + EXPORT_BASE_DN,
+            exportContainer.getBaseDn() + "," + BASE_DN,
             String.valueOf(e));
         logError(message);
       }
@@ -788,7 +788,7 @@ public class ReplicationBackend
 
         dn = DN.decode("puid=" + addMsg.getParentUid() + "," +
             "changeNumber=" + msg.getChangeNumber().toString() + "," +
-            msg.getDn() +","+ "dc=replicationChanges");
+            msg.getDn() +","+ BASE_DN);
 
         Map<AttributeType,List<Attribute>> attributes =
           new HashMap<AttributeType,List<Attribute>>();
@@ -831,7 +831,7 @@ public class ReplicationBackend
 
         dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
             "changeNumber=" + delMsg.getChangeNumber().toString()+ "," +
-            msg.getDn() +","+ "dc=replicationChanges");
+            msg.getDn() +","+ BASE_DN);
 
         DeleteChangeRecordEntry changeRecord =
           new DeleteChangeRecordEntry(dn);
@@ -854,7 +854,7 @@ public class ReplicationBackend
 
         dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
             "changeNumber=" + msg.getChangeNumber().toString()+ "," +
-            msg.getDn() +","+ "dc=replicationChanges");
+            msg.getDn() +","+ BASE_DN);
         op.setInternalOperation(true);
 
         ModifyChangeRecordEntry changeRecord =
@@ -878,7 +878,7 @@ public class ReplicationBackend
 
         dn = DN.decode("uuid=" + msg.getUniqueId() + "," +
             "changeNumber=" + msg.getChangeNumber().toString()+ "," +
-            msg.getDn() +","+ "dc=replicationChanges");
+            msg.getDn() +","+ BASE_DN);
         op.setInternalOperation(true);
 
         ModifyDNChangeRecordEntry changeRecord =
@@ -907,12 +907,13 @@ public class ReplicationBackend
       else
       {
         // Get the base DN, scope, and filter for the search.
-        DN           searchBaseDN = searchOperation.getBaseDN();
+        DN  searchBaseDN = searchOperation.getBaseDN();
         SearchScope  scope  = searchOperation.getScope();
         SearchFilter filter = searchOperation.getFilter();
 
-        if (entry.matchesBaseAndScope(searchBaseDN, scope) &&
-            filter.matchesEntry(entry))
+        boolean ms = entry.matchesBaseAndScope(searchBaseDN, scope);
+        boolean mf = filter.matchesEntry(entry);
+        if ( ms && mf )
         {
           searchOperation.returnEntry(entry, new LinkedList<Control>());
         }
@@ -1188,10 +1189,17 @@ public class ReplicationBackend
       {
         if (baseDNSet.contains(searchBaseDN))
         {
-          searchOperation.returnEntry(
-              new Entry(searchBaseDN, rootObjectclasses, attributes,
-                  operationalAttributes),
-                  new LinkedList<Control>());
+          // Get the base DN, scope, and filter for the search.
+          SearchScope  scope  = searchOperation.getScope();
+          SearchFilter filter = searchOperation.getFilter();
+          Entry re = new Entry(searchBaseDN, rootObjectclasses, attributes,
+              operationalAttributes);
+
+          if (re.matchesBaseAndScope(searchBaseDN, scope) &&
+              filter.matchesEntry(re))
+          {
+            searchOperation.returnEntry(re, new LinkedList<Control>());
+          }
           return;
         }
         else
@@ -1204,6 +1212,18 @@ public class ReplicationBackend
       }
     }
 
+    // Get the base DN, scope, and filter for the search.
+    SearchScope  scope  = searchOperation.getScope();
+    SearchFilter filter = searchOperation.getFilter();
+    Entry re = new Entry(searchBaseDN, rootObjectclasses, attributes,
+        operationalAttributes);
+
+    if (re.matchesBaseAndScope(searchBaseDN, scope) &&
+        filter.matchesEntry(re))
+    {
+      searchOperation.returnEntry(re, new LinkedList<Control>());
+    }
+
     // Walk through all entries and send the ones that match.
     Iterator<ReplicationServerDomain> rsdi = server.getCacheIterator();
     if (rsdi != null)
@@ -1213,7 +1233,7 @@ public class ReplicationBackend
         ReplicationServerDomain rsd = rsdi.next();
 
         // Skip containers that are not covered by the include branches.
-        baseDN = DN.decode(rsd.getBaseDn().toString() + "," + EXPORT_BASE_DN);
+        baseDN = DN.decode(rsd.getBaseDn().toString() + "," + BASE_DN);
 
             if (searchBaseDN.isDescendantOf(baseDN) ||
                 searchBaseDN.isAncestorOf(baseDN))
