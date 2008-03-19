@@ -32,6 +32,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.SubCommandArgumentParser;
+import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 
 
@@ -96,4 +97,12 @@ public interface ManagementContextFactory {
    *           If the global arguments are invalid for some reason.
    */
   void validateGlobalArguments() throws ArgumentException;
+
+  /**
+   * Returns the command builder that provides the equivalent arguments in
+   * interactive mode to get the management context.
+   * @return the command builder that provides the equivalent arguments in
+   * interactive mode to get the management context.
+   */
+  CommandBuilder getContextCommandBuilder();
 }

@@ -203,6 +203,10 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
 
+    // Reset the command builder
+    getCommandBuilder().clearArguments();
+    setCommandBuilderUseful(false);
+
     // Delete the child managed object.
     ManagementContext context = factory.getManagementContext(app);
     MenuResult<ManagedObject<?>> result;
@@ -276,6 +280,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         }
 
         if (confirmDeletion(app)) {
+          setCommandBuilderUseful(true);
           parent.removeChild(irelation, childName);
         } else {
           return MenuResult.cancel();
@@ -285,6 +290,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           (OptionalRelationDefinition<?, ?>) relation;
 
         if (confirmDeletion(app)) {
+          setCommandBuilderUseful(true);
+
           parent.removeChild(orelation);
         } else {
           return MenuResult.cancel();
@@ -334,6 +341,15 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     } catch (CommunicationException e) {
       Message msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
       throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+    }
+
+    // Add the naming arguments if they were provided.
+    for (StringArgument arg : namingArgs)
+    {
+      if (arg.isPresent())
+      {
+        getCommandBuilder().addArgument(arg);
+      }
     }
 
     // Output success message.
