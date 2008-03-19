@@ -59,7 +59,7 @@ import java.util.Set;
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.JebMessages.
-     INFO_JEB_REFERRAL_RESULT_MESSAGE;
+     NOTE_JEB_REFERRAL_RESULT_MESSAGE;
 /**
  * This class represents the referral database which contains URIs from referral
  * entries.  The key is the DN of the referral entry and the value is that of a
@@ -517,7 +517,7 @@ public class DN2URI extends DatabaseContainer
 
     // Throw a directory referral exception containing the URIs.
     Message msg =
-        INFO_JEB_REFERRAL_RESULT_MESSAGE.get(String.valueOf(referralDN));
+        NOTE_JEB_REFERRAL_RESULT_MESSAGE.get(String.valueOf(referralDN));
     throw new DirectoryException(
             ResultCode.REFERRAL, msg, referralDN, URIList, null);
   }

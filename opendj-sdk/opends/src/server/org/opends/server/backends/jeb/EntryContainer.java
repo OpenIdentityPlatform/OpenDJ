@@ -1305,7 +1305,7 @@ public class EntryContainer
             //Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
             searchOperation.appendErrorMessage(
-              INFO_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+              NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
             return;
           }
           int cmp = dn2id.getComparator().compare(key.getData(), end);
@@ -1498,7 +1498,7 @@ public class EntryContainer
       //Lookthrough limit exceeded
       searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
       searchOperation.appendErrorMessage(
-          INFO_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+          NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
       continueSearch = false;
     }
 

@@ -1243,7 +1243,7 @@ public class BackendImpl
           long finishTime = System.currentTimeMillis();
           long closeTime = (finishTime - startTime) / 1000;
           Message msg =
-                       INFO_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
+                       NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
           logError(msg);
           rootContainer = null;
         }
@@ -1251,7 +1251,7 @@ public class BackendImpl
         // Sync the environment to disk.
         if (debugEnabled())
         {
-          Message message = INFO_JEB_IMPORT_CLOSING_DATABASE.get();
+          Message message = NOTE_JEB_IMPORT_CLOSING_DATABASE.get();
           TRACER.debugInfo(message.toString());
         }
       }

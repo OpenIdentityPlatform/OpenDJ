@@ -39,6 +39,7 @@ import java.util.Random;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.config.ConfigConstants.*;
@@ -46,8 +47,11 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.debug.DebugLogger;
 
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.types.AttributeType;
@@ -90,8 +94,6 @@ public class ImportLDIF extends TaskTool {
    */
   public static final int LDIF_BUFFER_SIZE = 1048576;
 
-  private static ErrorLogPublisher errorLogPublisher = null;
-
 
   /**
    * The main method for ImportLDIF tool.
@@ -101,11 +103,6 @@ public class ImportLDIF extends TaskTool {
   public static void main(String[] args)
   {
     int retCode = mainImportLDIF(args, true, System.out, System.err);
-
-    if(errorLogPublisher != null)
-    {
-      removeErrorLogPublisher(errorLogPublisher);
-    }
 
     if(retCode != 0)
     {
@@ -763,20 +760,21 @@ public class ImportLDIF extends TaskTool {
 
       if (! quietMode.isPresent())
       {
-        // FIXME -- Install a custom logger to capture information about the
-        // state of the import.
         try
         {
-          errorLogPublisher =
-              new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
-                                                    new TextWriter.STREAM(out));
-          addErrorLogPublisher(errorLogPublisher);
-
+          ErrorLogPublisher errorLogPublisher =
+              TextErrorLogPublisher.getStartupTextErrorPublisher(
+                  new TextWriter.STREAM(out));
+          DebugLogPublisher debugLogPublisher =
+              TextDebugLogPublisher.getStartupTextDebugPublisher(
+                  new TextWriter.STREAM(out));
+          ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+          DebugLogger.addDebugLogPublisher(debugLogPublisher);
         }
         catch(Exception e)
         {
           err.println("Error installing the custom error logger: " +
-                      stackTraceToSingleLineString(e));
+              stackTraceToSingleLineString(e));
         }
       }
 

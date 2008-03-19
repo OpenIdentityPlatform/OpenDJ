@@ -42,14 +42,18 @@ import java.util.TimeZone;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.ErrorLogPublisher;
+import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.config.ConfigException;
 import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.debug.DebugLogger;
 import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
@@ -84,7 +88,6 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
  */
 public class BackUpDB extends TaskTool
 {
-  private static ErrorLogPublisher errorLogPublisher = null;
   /**
    * The main method for BackUpDB tool.
    *
@@ -93,11 +96,6 @@ public class BackUpDB extends TaskTool
   public static void main(String[] args)
   {
     int retCode = mainBackUpDB(args, true, System.out, System.err);
-
-    if(errorLogPublisher != null)
-    {
-      removeErrorLogPublisher(errorLogPublisher);
-    }
 
     if(retCode != 0)
     {
@@ -704,16 +702,16 @@ public class BackUpDB extends TaskTool
         return 1;
       }
 
-
-      // FIXME -- Install a custom logger to capture information about the state
-      // of the export.
       try
       {
-        errorLogPublisher =
-            new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
-                                                  new TextWriter.STREAM(out));
-        addErrorLogPublisher(errorLogPublisher);
-
+        ErrorLogPublisher errorLogPublisher =
+            TextErrorLogPublisher.getStartupTextErrorPublisher(
+            new TextWriter.STREAM(out));
+        DebugLogPublisher debugLogPublisher =
+            TextDebugLogPublisher.getStartupTextDebugPublisher(
+            new TextWriter.STREAM(out));
+        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+        DebugLogger.addDebugLogPublisher(debugLogPublisher);
       }
       catch(Exception e)
       {

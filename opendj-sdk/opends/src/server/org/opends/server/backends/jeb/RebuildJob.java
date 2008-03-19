@@ -46,15 +46,15 @@ import org.opends.server.core.DirectoryServer;
 import static org.opends.messages.JebMessages.
     ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED;
 import static org.opends.messages.JebMessages.
-    INFO_JEB_REBUILD_PROGRESS_REPORT;
+    NOTE_JEB_REBUILD_PROGRESS_REPORT;
 import static org.opends.messages.JebMessages.
-    INFO_JEB_REBUILD_FINAL_STATUS;
+    NOTE_JEB_REBUILD_FINAL_STATUS;
 import static org.opends.messages.JebMessages.
-    INFO_JEB_REBUILD_CACHE_AND_MEMORY_REPORT;
+    NOTE_JEB_REBUILD_CACHE_AND_MEMORY_REPORT;
 import static org.opends.messages.JebMessages.
     ERR_JEB_REBUILD_INDEX_CONFLICT;
 import static org.opends.messages.JebMessages.
-    INFO_JEB_REBUILD_START;
+    NOTE_JEB_REBUILD_START;
 import static org.opends.messages.JebMessages.
     ERR_JEB_VLV_INDEX_NOT_CONFIGURED;
 /**
@@ -212,7 +212,7 @@ public class RebuildJob
         completed = 100f*latestProcessed / totalEntries;
       }
 
-      Message message = INFO_JEB_REBUILD_PROGRESS_REPORT.get(
+      Message message = NOTE_JEB_REBUILD_PROGRESS_REPORT.get(
           completed, latestProcessed, totalEntries, rate);
       logError(message);
 
@@ -232,7 +232,7 @@ public class RebuildJob
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
 
-        message = INFO_JEB_REBUILD_CACHE_AND_MEMORY_REPORT.get(
+        message = NOTE_JEB_REBUILD_CACHE_AND_MEMORY_REPORT.get(
             freeMemory, cacheMissRate);
         logError(message);
 
@@ -471,7 +471,7 @@ public class RebuildJob
           sb.append(index);
         }
         Message message =
-            INFO_JEB_REBUILD_START.get(sb.toString(), totalToProcess);
+            NOTE_JEB_REBUILD_START.get(sb.toString(), totalToProcess);
         logError(message);
 
         // Make a note of the time we started.
@@ -547,7 +547,7 @@ public class RebuildJob
           rate = 1000f*totalProcessed / totalTime;
         }
 
-        message = INFO_JEB_REBUILD_FINAL_STATUS.get(
+        message = NOTE_JEB_REBUILD_FINAL_STATUS.get(
             totalProcessed, totalTime/1000, rate);
         logError(message);
 

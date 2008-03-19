@@ -48,20 +48,14 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
@@ -379,17 +373,14 @@ public final class TestCaseUtils {
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
-      AccessLogger.removeAllAccessLogPublishers();
       AccessLogger.addAccessLogPublisher(
           TextAccessLogPublisher.getStartupTextAccessPublisher(
               ACCESS_TEXT_WRITER, false));
 
-      ErrorLogger.removeAllErrorLogPublishers();
       ErrorLogger.addErrorLogPublisher(
          TextErrorLogPublisher.getStartupTextErrorPublisher(
               ERROR_TEXT_WRITER));
 
-      DebugLogger.removeAllDebugLogPublishers();
       DebugLogger.addDebugLogPublisher(
          TextDebugLogPublisher.getStartupTextDebugPublisher(
               DEBUG_TEXT_WRITER));

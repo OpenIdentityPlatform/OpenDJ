@@ -165,7 +165,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     //Below min, use the min value.
     if(memoryPerContext < minBuffer) {
       Message msg =
-            INFO_JEB_IMPORT_LDIF_BUFFER_CONTEXT_AVAILMEM.get(memoryPerContext,
+            NOTE_JEB_IMPORT_LDIF_BUFFER_CONTEXT_AVAILMEM.get(memoryPerContext,
                                                              minBuffer);
       logError(msg);
       memoryPerContext = minBuffer;
@@ -218,7 +218,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     long startTime;
     try {
       int importThreadCount = config.getImportThreadCount();
-      message = INFO_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
+      message = NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
                                                      BUILD_ID, REVISION_NUMBER);
       logError(message);
       message = INFO_JEB_IMPORT_THREAD_COUNT.get(importThreadCount);
@@ -314,13 +314,13 @@ public class Importer implements Thread.UncaughtExceptionHandler {
       rate = 1000f*importedCount / importTime;
     }
 
-    message = INFO_JEB_IMPORT_FINAL_STATUS.
+    message = NOTE_JEB_IMPORT_FINAL_STATUS.
         get(reader.getEntriesRead(), importedCount,
             reader.getEntriesIgnored(), reader.getEntriesRejected(),
             migratedCount, importTime/1000, rate);
     logError(message);
 
-    message = INFO_JEB_IMPORT_ENTRY_LIMIT_EXCEEDED_COUNT.get(
+    message = NOTE_JEB_IMPORT_ENTRY_LIMIT_EXCEEDED_COUNT.get(
         getEntryLimitExceededCount());
     logError(message);
 
@@ -341,7 +341,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     if(!firstClean || (entriesRead %  evictEntryNumber) == 0) {
       //Make sure work queue is empty before starting.
       drainWorkQueue();
-      Message msg = INFO_JEB_IMPORT_LDIF_CLEAN.get();
+      Message msg = NOTE_JEB_IMPORT_LDIF_CLEAN.get();
       runCleaner(msg);
       if(!firstClean) {
         firstClean=true;
@@ -366,14 +366,14 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     int cleaned = rootContainer.cleanedLogFiles();
     //This checkpoint removes the files if any were cleaned.
     if(cleaned > 0) {
-      msg = INFO_JEB_IMPORT_LDIF_CLEANER_REMOVE_LOGS.get(cleaned);
+      msg = NOTE_JEB_IMPORT_LDIF_CLEANER_REMOVE_LOGS.get(cleaned);
       logError(msg);
       rootContainer.importForceCheckPoint();
     }
     pTask.setPause(false);
     long finishTime = System.currentTimeMillis();
     long cleanTime = (finishTime - startTime) / 1000;
-    msg = INFO_JEB_IMPORT_LDIF_CLEANER_RUN_DONE.get(cleanTime, cleaned);
+    msg = NOTE_JEB_IMPORT_LDIF_CLEANER_RUN_DONE.get(cleanTime, cleaned);
     logError(msg);
   }
 
@@ -386,7 +386,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
    */
   private void
   processLDIF() throws JebException, DatabaseException, IOException {
-    Message message = INFO_JEB_IMPORT_LDIF_START.get();
+    Message message = NOTE_JEB_IMPORT_LDIF_START.get();
     logError(message);
     do {
       if (ldifImportConfig.isCancelled()) {
@@ -404,7 +404,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
         Entry entry = reader.readEntry();
         // Check for end of file.
         if (entry == null) {
-          message = INFO_JEB_IMPORT_LDIF_END.get();
+          message = NOTE_JEB_IMPORT_LDIF_END.get();
           logError(message);
 
           break;
@@ -546,13 +546,13 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     stopWorkThreads(true, false);
     long finishTime = System.currentTimeMillis();
     long flushTime = (finishTime - startTime) / 1000;
-     msg = INFO_JEB_IMPORT_LDIF_BUFFER_FLUSH_COMPLETED.get(flushTime);
+     msg = NOTE_JEB_IMPORT_LDIF_BUFFER_FLUSH_COMPLETED.get(flushTime);
     logError(msg);
     timer.cancel();
     for(DNContext context : importMap.values()) {
       context.setIndexesTrusted();
     }
-    msg = INFO_JEB_IMPORT_LDIF_FINAL_CLEAN.get();
+    msg = NOTE_JEB_IMPORT_LDIF_FINAL_CLEAN.get();
     //Run the cleaner.
     runCleaner(msg);
   }
@@ -779,12 +779,12 @@ public class Importer implements Thread.UncaughtExceptionHandler {
     totalAvailBufferMemory = (totFreeMemory * 10) / 100;
     if(totalAvailBufferMemory < (10 * minBuffer)) {
        msg =
-          INFO_JEB_IMPORT_LDIF_BUFFER_TOT_AVAILMEM.get(totalAvailBufferMemory,
+          NOTE_JEB_IMPORT_LDIF_BUFFER_TOT_AVAILMEM.get(totalAvailBufferMemory,
                                                       (10 * minBuffer));
       logError(msg);
       totalAvailBufferMemory = (10 * minBuffer);
     }
-    msg=INFO_JEB_IMPORT_LDIF_MEMORY_INFO.get(dbCacheLimit,
+    msg=NOTE_JEB_IMPORT_LDIF_MEMORY_INFO.get(dbCacheLimit,
                                              totalAvailBufferMemory);
     logError(msg);
   }
@@ -815,7 +815,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
         DatabaseEntry data = new DatabaseEntry();
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
-        Message message = INFO_JEB_IMPORT_MIGRATION_START.get(
+        Message message = NOTE_JEB_IMPORT_MIGRATION_START.get(
             "existing", String.valueOf(context.getBaseDN()));
         logError(message);
         Cursor cursor =
@@ -881,7 +881,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
         DatabaseEntry data = new DatabaseEntry();
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
-        Message message = INFO_JEB_IMPORT_MIGRATION_START.get(
+        Message message = NOTE_JEB_IMPORT_MIGRATION_START.get(
             "excluded", String.valueOf(importContext.getBaseDN()));
         logError(message);
         Cursor cursor =
@@ -1032,7 +1032,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
         long numIgnored  = reader.getEntriesIgnored();
         long numRejected = reader.getEntriesRejected();
          float rate = 1000f*deltaCount / deltaTime;
-         message = INFO_JEB_IMPORT_PROGRESS_REPORT.get(
+         message = NOTE_JEB_IMPORT_PROGRESS_REPORT.get(
             numRead, numIgnored, numRejected, 0, rate);
         logError(message);
       }
@@ -1066,22 +1066,22 @@ public class Importer implements Thread.UncaughtExceptionHandler {
             if(!ldifRead) {
               evictionEntryCount=reader.getEntriesRead();
               message =
-                 INFO_JEB_IMPORT_LDIF_EVICTION_DETECTED.get(evictionEntryCount);
+                 NOTE_JEB_IMPORT_LDIF_EVICTION_DETECTED.get(evictionEntryCount);
               logError(message);
             }
           }
           message =
-                  INFO_JEB_IMPORT_LDIF_EVICTION_DETECTED_STATS.get(evictPasses,
+                  NOTE_JEB_IMPORT_LDIF_EVICTION_DETECTED_STATS.get(evictPasses,
                           evictNodes, evictBinsStrip);
           logError(message);
         }
         if(cleanerRuns != 0) {
-          message = INFO_JEB_IMPORT_LDIF_CLEANER_STATS.get(cleanerRuns,
+          message = NOTE_JEB_IMPORT_LDIF_CLEANER_STATS.get(cleanerRuns,
                   cleanerDeletions, cleanerEntriesRead, cleanerINCleaned);
           logError(message);
         }
         if(checkPoints  > 1) {
-          message = INFO_JEB_IMPORT_LDIF_BUFFER_CHECKPOINTS.get(checkPoints);
+          message = NOTE_JEB_IMPORT_LDIF_BUFFER_CHECKPOINTS.get(checkPoints);
           logError(message);
         }
         prevEnvStats = envStats;

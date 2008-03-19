@@ -491,7 +491,7 @@ public class BackupManager
             break;
           }
 
-          message = INFO_JEB_BACKUP_FILE_UNCHANGED.get(logFileName);
+          message = NOTE_JEB_BACKUP_FILE_UNCHANGED.get(logFileName);
           logError(message);
 
           unchangedList.add(logFileName);
@@ -609,7 +609,7 @@ public class BackupManager
 
           Arrays.sort(logFiles);
 
-          message = INFO_JEB_BACKUP_CLEANER_ACTIVITY.get(
+          message = NOTE_JEB_BACKUP_CLEANER_ACTIVITY.get(
                   String.valueOf(logFiles.length));
           logError(message);
         }
@@ -1068,7 +1068,7 @@ public class BackupManager
       {
         if (verifyOnly)
         {
-          Message message = INFO_JEB_BACKUP_VERIFY_FILE.get(zipEntry.getName());
+          Message message = NOTE_JEB_BACKUP_VERIFY_FILE.get(zipEntry.getName());
           logError(message);
         }
 
@@ -1113,7 +1113,7 @@ public class BackupManager
         {
           outputStream.close();
 
-          Message message = INFO_JEB_BACKUP_RESTORED_FILE.get(
+          Message message = NOTE_JEB_BACKUP_RESTORED_FILE.get(
               zipEntry.getName(), totalBytesRead);
           logError(message);
         }
@@ -1210,7 +1210,7 @@ public class BackupManager
     // Finish the zip entry.
     zipStream.closeEntry();
 
-    Message message = INFO_JEB_BACKUP_ARCHIVED_FILE.get(zipEntry.getName());
+    Message message = NOTE_JEB_BACKUP_ARCHIVED_FILE.get(zipEntry.getName());
     logError(message);
 
     return totalBytesRead;

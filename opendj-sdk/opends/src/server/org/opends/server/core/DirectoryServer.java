@@ -88,6 +88,7 @@ import org.opends.server.loggers.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
 
 import org.opends.messages.MessageDescriptor;
 import org.opends.messages.Message;
@@ -190,16 +191,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -1452,11 +1444,6 @@ public class DirectoryServer
       Message message = NOTE_DIRECTORY_SERVER_STARTED.get();
       logError(message);
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
-
-
-      // Remove default loggers
-      ErrorLogger.removeFirstErrorLogPublisher();
-      DebugLogger.removeFirstDebugLogPublisher();
 
       // Force the root connection to be initialized.
       InternalClientConnection.getRootConnection();
@@ -9488,6 +9475,22 @@ public class DirectoryServer
     }
 
 
+    // Install the default loggers so the startup messages
+    // will be printed.
+    TextErrorLogPublisher startupErrorLogPublisher = null;
+    TextDebugLogPublisher startupDebugLogPublisher = null;
+
+    startupErrorLogPublisher =
+        TextErrorLogPublisher.getStartupTextErrorPublisher(
+            new TextWriter.STDOUT());
+    ErrorLogger.addErrorLogPublisher(startupErrorLogPublisher);
+
+    startupDebugLogPublisher =
+        TextDebugLogPublisher.getStartupTextDebugPublisher(
+            new TextWriter.STDOUT());
+    DebugLogger.addDebugLogPublisher(startupDebugLogPublisher);
+
+
     // Create an environment configuration for the server and populate a number
     // of appropriate properties.
     DirectoryEnvironmentConfig environmentConfig =
@@ -9556,6 +9559,9 @@ public class DirectoryServer
               stackTraceToSingleLineString(e));
       shutDown(directoryServer.getClass().getName(), message);
     }
+
+    ErrorLogger.removeErrorLogPublisher(startupErrorLogPublisher);
+    DebugLogger.removeDebugLogPublisher(startupDebugLogPublisher);
   }
 
   /**

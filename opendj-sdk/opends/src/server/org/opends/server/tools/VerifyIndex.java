@@ -38,9 +38,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.ThreadFilterTextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.types.DirectoryException;
@@ -75,8 +75,6 @@ import org.opends.server.admin.std.server.BackendCfg;
  */
 public class VerifyIndex
 {
-  private static ErrorLogPublisher errorLogPublisher = null;
-  private static DebugLogPublisher debugLogPublisher = null;
   /**
    * Processes the command-line arguments and invokes the verify process.
    *
@@ -85,15 +83,6 @@ public class VerifyIndex
   public static void main(String[] args)
   {
     int retCode = mainVerifyIndex(args, true, System.out, System.err);
-
-    if(errorLogPublisher != null)
-    {
-      ErrorLogger.removeErrorLogPublisher(errorLogPublisher);
-    }
-    if(debugLogPublisher != null)
-    {
-      DebugLogger.removeDebugLogPublisher(debugLogPublisher);
-    }
 
     if(retCode != 0)
     {
@@ -387,20 +376,16 @@ public class VerifyIndex
       }
 
 
-      // FIXME -- Install a custom logger to capture information about the state
-      // of the verify process.
       try
       {
-        errorLogPublisher =
-            new ThreadFilterTextErrorLogPublisher(Thread.currentThread(),
-                                                  new TextWriter.STREAM(out));
+        ErrorLogPublisher errorLogPublisher =
+            TextErrorLogPublisher.getStartupTextErrorPublisher(
+            new TextWriter.STREAM(out));
+        DebugLogPublisher debugLogPublisher =
+            TextDebugLogPublisher.getStartupTextDebugPublisher(
+            new TextWriter.STREAM(out));
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-
-        debugLogPublisher =
-          TextDebugLogPublisher.getStartupTextDebugPublisher(
-              new TextWriter.STDOUT());
         DebugLogger.addDebugLogPublisher(debugLogPublisher);
-
       }
       catch(Exception e)
       {
