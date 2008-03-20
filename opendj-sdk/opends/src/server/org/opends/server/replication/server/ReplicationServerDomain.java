@@ -426,7 +426,8 @@ public class ReplicationServerDomain
           " has servers connected to it - will not reset generationId");
     }
 
-    if ((!lDAPServersConnectedInTheTopology) && (!this.generationIdSavedStatus))
+    if ((!lDAPServersConnectedInTheTopology) && (!this.generationIdSavedStatus)
+        && (generationId != -1))
     {
       setGenerationId(-1, false);
     }
@@ -1109,20 +1110,24 @@ public class ReplicationServerDomain
           " baseDN=" + baseDn +
           " RCache.set GenerationId=" + generationId);
 
-      if (generationId == this.generationId)
-        return;
-
-      if (this.generationId>0)
+      if (this.generationId != generationId)
       {
+        // we are changing of genId
+        clearDbs();
+
+        this.generationId = generationId;
+        this.generationIdSavedStatus = savedStatus;
+
+        // they have a generationId different from the reference one
         for (ServerHandler handler : connectedServers.values())
         {
-          handler.warnBadGenerationId();
+          if (generationId != handler.getGenerationId())
+          {
+            // Notify our remote LS that from now on have a different genID
+            handler.warnBadGenerationId();
+          }
         }
       }
-
-      this.generationId = generationId;
-      this.generationIdSavedStatus = savedStatus;
-
     }
 
     /**
@@ -1137,20 +1142,9 @@ public class ReplicationServerDomain
     {
       long newGenId = genIdMsg.getGenerationId();
 
-      if (debugEnabled())
-        TRACER.debugInfo(
-            "In " + this.replicationServer.getMonitorInstanceName() +
-            " baseDN=" + baseDn +
-            " RCache.resetGenerationId received new ref genId="  + newGenId);
-
-      // Notifies the remote LDAP servers that from now on
-      // they have a generationId different from the reference one
-      for (ServerHandler handler : connectedServers.values())
+      if (newGenId != this.generationId)
       {
-        if (newGenId != handler.getGenerationId())
-        {
-          handler.warnBadGenerationId();
-        }
+        this.setGenerationId(newGenId, false);
       }
 
       // If we are the first replication server warned,
@@ -1159,6 +1153,8 @@ public class ReplicationServerDomain
       {
         try
         {
+          // After we'll have send the mssage , the remote RS will adopt
+          // the new genId
           rsHandler.setGenerationId(newGenId);
           if (senderHandler.isLDAPserver())
           {
@@ -1171,12 +1167,6 @@ public class ReplicationServerDomain
               get(rsHandler.getMonitorInstanceName()));
         }
       }
-
-      clearDbs();
-
-      // Reset the in memory domain generationId
-      generationId = newGenId;
-
     }
 
     /**
