@@ -234,8 +234,8 @@ import com.sleepycat.je.JEVersion;
     * Write runtime information to error log.
     */
    public static void logInfo() {
-    logError(NOTE_JVM_INFO.get(System.getProperty("java.vm.version"),
-                               System.getProperty("java.vm.vendor"),
+    logError(NOTE_JVM_INFO.get(System.getProperty("java.runtime.version"),
+                               System.getProperty("java.vendor"),
                                getArch(),Runtime.getRuntime().maxMemory()));
     Long physicalMemorySize = getPhysicalMemorySize();
     if (physicalMemorySize != -1)
