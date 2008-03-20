@@ -54,7 +54,7 @@ import org.testng.annotations.Test;
  * <p>As a reminder, if you wish to query the SNMP agent example provided
  *    as part of Java DMK, use port 8085.
  */
-@Test(enabled=false, groups = {"precommit", "snmp"}, sequential = true)
+@Test(enabled=true, groups = {"precommit", "snmp"}, sequential = true)
 public class SNMPTrapManagerTest extends SNMPConnectionManager {
 
     @BeforeClass
@@ -63,7 +63,7 @@ public class SNMPTrapManagerTest extends SNMPConnectionManager {
         super.setUp();
     }
     
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void checkTraps() {
         try {
             

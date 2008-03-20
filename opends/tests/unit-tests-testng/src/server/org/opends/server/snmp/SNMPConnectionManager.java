@@ -32,6 +32,7 @@ import com.sun.management.snmp.SnmpOidTableSupport;
 import com.sun.management.snmp.manager.SnmpPeer;
 import com.sun.management.snmp.manager.SnmpSession;
 import com.sun.management.snmp.manager.usm.SnmpUsmPeer;
+import java.io.File;
 import java.net.InetAddress;
 import static org.testng.Assert.*;
 
@@ -53,7 +54,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract class that all SNMP unit test should extend.
  */
-@Test(enabled=false, groups = {"precommit", "snmp"}, sequential = true)
+@Test(enabled=true, groups = {"precommit", "snmp"}, sequential = true)
 public abstract class SNMPConnectionManager extends DirectoryServerTestCase {
 
     /**
@@ -74,7 +75,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase {
         
         // Make sure that the server is up and running.
         TestCaseUtils.restartServer();
-        synchronized (this) {
+                synchronized (this) {
             this.wait(500);
         }
         SNMPConnectionHandler snmpHandler = getSNMPConnectionHandler();
@@ -152,7 +153,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase {
      * @return an SNMP Connection handler
      * @throws an Exception is something went wrong.
      */
-    public SNMPConnectionHandler getSNMPConnectionHandler() throws Exception {
+    protected SNMPConnectionHandler getSNMPConnectionHandler() throws Exception {
         List<ConnectionHandler> handlers =
                 DirectoryServer.getConnectionHandlers();
         assertNotNull(handlers);
@@ -197,10 +198,7 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase {
 
         InternalClientConnection conn =
                 InternalClientConnection.getRootConnection();
-        mods.add(new Modification(ModificationType.REPLACE,
-                new org.opends.server.types.Attribute(
-                "ds-cfg-enabled", "true")));
-
+ 
         mods.add(new Modification(ModificationType.REPLACE,
                 new org.opends.server.types.Attribute(
                 "ds-cfg-listen-port", String.valueOf(this.snmpPort))));
@@ -215,13 +213,37 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase {
                 new org.opends.server.types.Attribute(
                 "ds-cfg-traps-destination", hosts)));
 
-        ModifyOperationBasis op = new ModifyOperationBasis(
+       String jarFileLocation = 
+               System.getProperty("org.opends.server.snmp.opendmk");
+       
+       mods.add(new Modification(ModificationType.ADD,
+                new org.opends.server.types.Attribute(
+                "ds-cfg-opendmk-jarfile", jarFileLocation + File.separator + 
+                "jdmkrt.jar")));
+        
+       ModifyOperationBasis op = new ModifyOperationBasis(
                 conn,
                 conn.nextOperationID(),
                 conn.nextMessageID(),
                 new ArrayList<Control>(),
                 DN.decode("cn=SNMP Connection Handler,cn=Connection Handlers,cn=config"),
                 mods);
+        op.run();
+               
+        mods.clear();
+
+        mods.add(new Modification(ModificationType.REPLACE,
+                new org.opends.server.types.Attribute(
+                "ds-cfg-enabled", "true")));
+        
+        op = new ModifyOperationBasis(
+                conn,
+                conn.nextOperationID(),
+                conn.nextMessageID(),
+                new ArrayList<Control>(),
+                DN.decode("cn=SNMP Connection Handler,cn=Connection Handlers,cn=config"),
+                mods);
+        
         op.run();
     }
 

@@ -60,7 +60,7 @@ import static org.testng.Assert.*;
  * A simple test for : - JMX connection establishment withou using SSL -
  * JMX get and set - configuration change
  */
-@Test(enabled=false, groups = {"precommit", "snmp"}, sequential = true)
+@Test(enabled=true, groups = {"precommit", "snmp"}, sequential = true)
 public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
 
     @BeforeClass
@@ -86,7 +86,7 @@ public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
             {"dsSlaveHits"}};
     }
 
-    @Test(enabled=false,dataProvider = "listAttributes")
+    @Test(enabled=true,dataProvider = "listAttributes")
     public void checkAttribute(String attributeName) {
 
         // get the SNMP peer agent
@@ -194,7 +194,7 @@ public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
             {"", false}};
     }
 
-    @Test(enabled = false,dataProvider = "listCommunities")
+    @Test(enabled = true,dataProvider = "listCommunities")
     public void checkCommunity(String community, boolean expectedResult) {
 
         try {

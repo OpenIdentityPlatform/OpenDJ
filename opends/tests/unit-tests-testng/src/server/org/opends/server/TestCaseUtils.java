@@ -135,7 +135,13 @@ public final class TestCaseUtils {
    * cases that depend on this specific value of "o=test".
    */
   public static final String TEST_ROOT_DN_STRING = "o=test";
-
+  
+  /**
+   * The string representation of the OpenDMK jar file location
+   * that will be used as base to determine if snmp is included or not
+   */
+  public static final String PROPERTY_OPENDMK_LOCATION = 
+          "org.opends.server.snmp.opendmk";
 
   /**
    * The test text writer for the Debug Logger
@@ -254,13 +260,20 @@ public final class TestCaseUtils {
       File testBinDir       = new File(testRoot, "bin");
       
       // Snmp resource
+      String opendmkJarFileLocation = 
+              System.getProperty(PROPERTY_OPENDMK_LOCATION);
+      
+      File opendmkJar = new File(opendmkJarFileLocation, "jdmkrt.jar");
+      
       File   snmpResourceDir = new File(buildRoot + File.separator + "src" +
                                     File.separator + "snmp" + File.separator +
                                     "resource");
       
+      File snmpConfigDir = new File(snmpResourceDir, "config");
+      
       File testSnmpResourceDir = new File (testConfigDir + File.separator +
                                     "snmp");
-
+      
       if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG)) {
         copyDirectory(serverClassesDir, testClassesDir);
         copyDirectory(unitClassesDir, testClassesDir);
@@ -287,6 +300,11 @@ public final class TestCaseUtils {
                new File(testConfigDir, "server-cert.p12"));
       copyFile(new File(testResourceDir, "client-cert.p12"),
                new File(testConfigDir, "client-cert.p12"));
+      
+      if (opendmkJar.exists()) {
+          appendFile(new File(snmpConfigDir, "config.snmp.ldif"),
+               new File(testConfigDir,"config.ldif"));
+      }
 
       for (File f : testBinDir.listFiles())
       {
@@ -814,6 +832,21 @@ public final class TestCaseUtils {
     in.close();
     out.close();
   }
+  
+  public static void appendFile(File src, File dst) throws IOException {
+    InputStream in = new FileInputStream(src);
+    OutputStream out = new FileOutputStream(dst, true);
+
+    // Transfer bytes from in to out
+    byte[] buf = new byte[8192];
+    int len;
+    while ((len = in.read(buf)) > 0) {
+      out.write(buf, 0, len);
+    }
+    in.close();
+    out.close();
+  }
+   
 
   /**
    * Get the LDAP port the test environment Directory Server instance is
