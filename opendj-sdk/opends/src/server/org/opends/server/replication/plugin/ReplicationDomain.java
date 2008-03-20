@@ -203,6 +203,8 @@ public class ReplicationDomain extends DirectoryThread
   private long generationId = -1;
   private boolean generationIdSavedStatus = false;
 
+  ChangeNumberGenerator generator;
+
   /**
    * This object is used to store the list of update currently being
    * done on the local database.
@@ -482,7 +484,7 @@ public class ReplicationDomain extends DirectoryThread
      * The generator time is adjusted to the time of the last CN received from
      * remote other servers.
      */
-    ChangeNumberGenerator generator =
+    generator =
       new ChangeNumberGenerator(serverId, state);
 
     pendingChanges =
@@ -2255,6 +2257,21 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
+   * Do what necessary when the data have changed : load state, load
+   * generation Id.
+   * @exception DirectoryException Thrown when an error occurs.
+  */
+  protected void loadDataState()
+  throws DirectoryException
+  {
+    state.clearInMemory();
+    state.loadState();
+    generator.adjust(state.getMaxChangeNumber(serverId));
+    // Retrieves the generation ID associated with the data imported
+    generationId = loadGenerationId();
+  }
+
+  /**
    * Enable back the domain after a previous disable.
    * The domain will connect back to a replication Server and
    * will recreate threads to listen for messages from the Sycnhronization
@@ -2264,13 +2281,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public void enable()
   {
-    state.clearInMemory();
-    state.loadState();
-    disabled = false;
-
     try
     {
-      generationId = loadGenerationId();
+      loadDataState();
     }
     catch (Exception e)
     {
@@ -2293,6 +2306,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Create the listener thread
     listenerThread = new ListenerThread(this, updateToReplayQueue);
     listenerThread.start();
+
+    disabled = false;
   }
 
   /**
@@ -3247,17 +3262,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     else
     {
-      // Retrieves the generation ID associated with the data imported
-      try
-      {
-        generationId = loadGenerationId();
-      }
-      catch (DirectoryException e)
-      {
-        logError(ERR_LOADING_GENERATION_ID.get(
-            baseDN.toNormalizedString(),
-            e.getLocalizedMessage()));
-      }
+      loadDataState();
 
       if (debugEnabled())
         TRACER.debugInfo(
