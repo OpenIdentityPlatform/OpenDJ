@@ -1049,7 +1049,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
         if (deltaCount > 0) {
           cacheMissRate = nCacheMiss/(float)deltaCount;
         }
-        message = INFO_JEB_IMPORT_CACHE_AND_MEMORY_REPORT.get(
+        message = NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT.get(
             freeMemory, cacheMissRate);
         logError(message);
         long evictPasses = envStats.getNEvictPasses();
