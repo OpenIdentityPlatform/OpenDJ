@@ -707,12 +707,12 @@ public class ToolConstants
    * Display the equivalent non-interactive command.
    */
   public static final String OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT =
-    "displayEquivalentCommand";
+    "displayCommand";
 
   /**
    * The path where we write the equivalent non-interactive command.
    */
   public static final String OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH =
-    "equivalentCommandFilePath";
+    "commandFilePath";
 }
 
