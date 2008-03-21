@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  
+  <function name="_dsconfigCommonArgs">
+    <function-prolog>
+      This function resolves common dsconfig arguments
+    </function-prolog>
+    <function-no-args />
+    <script>
+      if dsInstanceHost:
+        STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+      
+      if dsInstancePort:
+        STAFCmdParamsList.append('-p %s' % dsInstancePort)
+      
+      if dsInstanceDn:
+        STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+      
+      if dsInstancePswd:
+        STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
+        
+      STAFCmdParamsList.append('-n')
+    </script>
+  </function>
+  
+  
+  <function name="dsconfig" scope="local">
+    <function-prolog>
+      This function lists, get or set a list of attributes using dsconfig
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location"
+                        type="optional"
+                        default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN" />
+      </function-arg-def>
+      
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="subcommand" type="required">
+        <function-arg-description>
+          dsconfig subcommand to execute
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="objectType" type="optional">
+        <function-arg-description>
+          Object type to modify, e.g. backend-name
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="objectName" type="optional">
+        <function-arg-description>
+          object name  to modify, e.g. userroot
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="optionsString" type="optional">
+        <function-arg-description>
+          String containing  the dsconfig options.  e.g. --set enabled:true --set key-store-pin:servercert
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+          
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+        </function-arg-description>
+        <function-arg-property name="type" value="string" />
+      </function-arg-def>
+      
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        STAFCmd=''
+        dsconfigRC=999999
+        dsconfigResult='ERROR_not_run'
+        
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/dsconfig' % (dsBinPath)
+        
+        STAFCmdParamsList.append(subcommand)
+        if objectType:
+          STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))      
+        if optionsString:
+          STAFCmdParamsList.append(' %s' % optionsString)
+      </script>
+      <call function="'_dsconfigCommonArgs'" />
+      <script>
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      <!-- check if bin file exists -->
+      <call function="'isFile'">
+      {
+        'location' : location,
+        'fileName' : STAFCmd
+      }
+      </call>
+      <script>
+        STAFCmdExist = STAXResult
+      </script>
+      
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'opendsconfig',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <!--== Log message ==-->
+      <if expr="STAFCmdExist == TRUE">
+        <sequence>
+          <if expr="fileFd == ''">
+            <sequence>
+              <message>'%s : run dsconfig :' % dsInstanceHost</message>
+              <message>'%s %s' % (STAFCmd, STAFCmdParams)</message>
+            </sequence>
+          <else>
+            <sequence>
+              <call function="'writeMessage'">
+              { 'content' : 'Run dsconfig on %s' % dsInstanceHost,
+                'fileFd'  : fileFd }
+              </call>
+              <call function="'writeMessage'">
+              { 'content' : 'Run command : %s %s' % (STAFCmd,STAFCmdParams),
+                'fileFd'  : fileFd }
+              </call>
+            </sequence>
+          </else>
+          </if>
+          <!--== Run the command ==-->
+          <process name="'%s: dsconfig (opends)' % location">
+            <location>'%s' % (location)</location>
+            <command>'%s' % (STAFCmd)</command>
+            <parms>'%s' % (STAFCmdParams)</parms>
+            <workdir>'%s' % dsBinPath</workdir>
+            <envs>
+              ['PATH=/bin:/usr/bin:%s' % dsBinPath]
+            </envs>
+            <stderr mode="'stdout'"/>
+            <returnstdout/>
+          </process>
+          <script>
+            dsconfigRC=RC
+            dsconfigResult=STAXResult
+          </script>
+          <call function="'checkRC'">
+            { 'returncode' : dsconfigRC,
+              'result'     : dsconfigResult,
+              'expected'   : [expectedRC],
+              'fileFd'     : fileFd }
+          </call>
+        </sequence>
+      
+      <else>
+          <if expr="fileFd == ''">
+            <message>
+              'WARNING : file does not exist on %s : %s/%s'\
+              % (location,dsBinPath,STAFCmd)
+            </message>
+          <else>
+            <call function="'writeMessage'">
+            { 
+              'content' : 'WARNING : file does not exist on %s : %s/%s'\
+                          % (location,dsBinPath,STAFCmd),
+              'fileFd'  : fileFd
+            }
+            </call>
+          </else>
+          </if>
+      </else>
+      </if>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd }</call>
+      
+      <return> [dsconfigRC,dsconfigResult]</return>
+      
+    </sequence>
+  </function>
+  
+  
+  
+</stax>
