@@ -528,7 +528,7 @@
       </script>
       
       
-      <!-- TBD : check if bin file exists -->
+      <!-- check if bin file exists -->
       <call function="'isFile'">
       {
         'location' : location,
