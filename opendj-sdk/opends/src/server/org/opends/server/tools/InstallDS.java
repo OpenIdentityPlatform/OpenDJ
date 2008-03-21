@@ -30,6 +30,7 @@ package org.opends.server.tools;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 
 import java.io.File;
 import java.io.InputStream;
@@ -928,8 +929,10 @@ public class InstallDS extends ConsoleApplication
    * If the user did not provide explicitly some data or if the provided data is
    * not valid, it prompts the user to provide it.
    * @param uData the UserData object to be updated.
+   * @throws UserDataException if something went wrong checking the data.
    */
   private void promptIfRequiredForDirectoryManager(UserData uData)
+  throws UserDataException
   {
     LinkedList<String> dns = promptIfRequiredForDNs(
         argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(),
@@ -937,8 +940,14 @@ public class InstallDS extends ConsoleApplication
     uData.setDirectoryManagerDn(dns.getFirst());
 
     String pwd = argParser.getDirectoryManagerPassword();
+    int nTries = 0;
     while (pwd == null)
     {
+      if (nTries >= CONFIRMATION_MAX_TRIES)
+      {
+        throw new UserDataException(null,
+            ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+      }
       String pwd1 = null;
       // Prompt for password and confirm.
 
@@ -965,29 +974,38 @@ public class InstallDS extends ConsoleApplication
         println();
         println(ERR_INSTALLDS_PASSWORDS_DONT_MATCH.get());
       }
+
+      nTries++;
     }
     uData.setDirectoryManagerPwd(pwd);
   }
 
   /**
    * This method returns a list of DNs.  It checks that the provided list of
-   * actually contain some values.  If no valid values are found it prompts
+   * DNs actually contain some values.  If no valid values are found it prompts
    * the user to provide a valid DN.
    * @param arg the Argument that the user provided to specify the DNs.
    * @param promptMsg the prompt message to be displayed.
    * @param includeLineBreak whether to include a line break before the first
    * prompt or not.
    * @return a list of valid DNs.
+   * @throws UserDataException if something went wrong checking the data.
    */
   private LinkedList<String> promptIfRequiredForDNs(StringArgument arg,
-      Message promptMsg, boolean includeLineBreak)
+      Message promptMsg, boolean includeLineBreak) throws UserDataException
   {
     LinkedList<String> dns = new LinkedList<String>();
 
     boolean usedProvided = false;
     boolean firstPrompt = true;
+    int nTries = 0;
     while (dns.isEmpty())
     {
+      if (nTries >= CONFIRMATION_MAX_TRIES)
+      {
+        throw new UserDataException(null,
+            ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+      }
       boolean prompted = false;
       if (usedProvided || !arg.isPresent())
       {
@@ -1037,6 +1055,7 @@ public class InstallDS extends ConsoleApplication
         println();
       }
       dns.removeAll(toRemove);
+      nTries++;
     }
     return dns;
   }
@@ -1182,8 +1201,10 @@ public class InstallDS extends ConsoleApplication
    * If the user did not provide explicitly some data or if the provided data is
    * not valid, it prompts the user to provide it.
    * @param uData the UserData object to be updated.
+   * @throws UserDataException if something went wrong checking the data.
    */
   private void promptIfRequiredForImportData(UserData uData)
+  throws UserDataException
   {
     // Check the validity of the base DNs
     LinkedList<String> baseDNs = promptIfRequiredForDNs(

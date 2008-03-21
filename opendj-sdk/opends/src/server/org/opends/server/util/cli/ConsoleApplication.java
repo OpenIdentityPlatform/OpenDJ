@@ -686,7 +686,7 @@ public abstract class ConsoleApplication {
       nTries++;
     }
     throw new CLIException(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
-        CONFIRMATION_MAX_TRIES));
+        maxTries));
   }
 
   /**
