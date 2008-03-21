@@ -44,7 +44,13 @@
     </function-map-args>
     
     <sequence>
-      <!-- ================= Call preambule ======================== -->
+    
+    <!-- ================= Import Libs    ======================== -->
+    <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+      file="'%s/opendscfg.xml' % (SHARED_FUNC_DIR)"/>
+    
+    
+    <!-- ================= Call preambule ======================== -->
       <call function="'phasePreamble'">
       { 'phaseName' : 'postconfiguration',
         'fileFd'    : LOG_MAIN_FD }
@@ -69,6 +75,31 @@
             'content' : 'my instance is : %s' % instance.getName()
           }
           </call>
+          
+          <call function="'dsconfig'">
+          { 
+            'dsInstanceHost' : instance.getHost(),
+            'dsPath'         : instance.getInstallDir(),
+            'dsInstancePort' : instance.getLDAPPort(),
+            'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+            'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+            'subcommand'     : 'list-log-publishers',
+            'objectType'     : '',
+            'objectName'     : '',
+            'optionsString'  : '',
+            'expectedRC'     : 0,
+            'fileFd'         : LOG_MAIN_FD
+          }
+          </call>
+          
+          
+          <call function="'writeMessage'">
+          { 
+            'fileFd'  : LOG_MAIN_FD,
+            'content' : 'dsconfig result : %s' % STAXResult
+          }
+          </call>
+          
           
           <!-- == Write tag for xml report -->
           <call function="'writeEndTagInstance'">
