@@ -1052,7 +1052,7 @@ email.server.pwd=${email.server.pwd.input}
         <available file="${bits.download.dir}/${bits.stax.archive}" />
       </condition>
       <condition property="bits.tomcat.downloaded.before">
-        <available file="${bits.download.dir}/${bits.tomcat.archive}"/>
+        <available file="${bits.webcontainer.download.dir}/${bits.tomcat.archive}"/>
       </condition>
       <condition property="bits.all.downloaded.before">
         <and>
