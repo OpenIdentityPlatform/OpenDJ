@@ -27,30 +27,45 @@
 ! -->
 <stax>
   
-  <function name="createWebcontainer">
+  <function name="createWebcontainer" scope="local">
     <function-prolog>
       This function creates a default webcontainer instance  
     </function-prolog>
-    
+
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+
     <try>
       
       <sequence>
         
         <!-- Unzip webcontainer into temporary folder -->
         <message>
-          'Extract temporary webcontainer zip archive to %s %s.' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+          'Extract temporary webcontainer zip archive to %s %s.' % (location, wcPath)
         </message>
         <call function="'unZipFile'">
-          { 'location' : STAF_REMOTE_HOSTNAME, 
+          { 'location' : location, 
           'zipfile'  : '%s/%s' % (WC_ZIPPATH,WC_ZIPNAME), 
-          'unzipdir' : '%s' % WC_DIRECTORY }
+          'unzipdir' : '%s' % wcPath }
         </call>
         <!-- chmod +x all the .sh file in tomcat bin directory -->
         <stafcmd name="'create import temp directory'">
           <location>'%s' % location</location>
           <service>'fs'</service>
           <request>' LIST DIRECTORY %s/%s-%s/bin EXT sh' % \
-                   (WC_DIRECTORY, WC_TYPE, WC_VERSION)</request>
+                   (wcPath, WC_TYPE, WC_VERSION)</request>
         </stafcmd>
         <script>
           shFilesRC=RC
@@ -61,7 +76,7 @@
           <location>'%s' % location</location>
           <command mode="'shell'">'chmod +x %s' % shFilesResult</command>
           <parms/>
-          <workdir>'%s/%s-%s/bin' % (WC_DIRECTORY, WC_TYPE, WC_VERSION)</workdir>
+          <workdir>'%s/%s-%s/bin' % (wcPath, WC_TYPE, WC_VERSION)</workdir>
           <envs>['PATH=/bin:/usr/bin']</envs>
           <stderr mode="'stdout'"/>
           <stdout/>
@@ -72,20 +87,31 @@
         <message>
           'Configure webcontainer ports HTTP %s / HTTPS %s' % (WC_PORT, WC_SSL_PORT)
         </message>
+        <stafcmd name="'get tomcat configuration file'">
+          <location>'%s' % location</location>
+          <service>'fs'</service>
+          <request>' GET FILE %s/%s-%s/conf/server.xml ' % \
+                   (wcPath, WC_TYPE, WC_VERSION)</request>
+        </stafcmd>
         <script>
-          serverXmlInput=open('%s/%s-%s/conf/server.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION),'r')
+          serverXmlInput=STAFResult
           import re
           portRegEx = re.compile('8080')
           sslPortRegEx = re.compile('8443')
-          c=serverXmlInput.read()
-          ci=portRegEx.sub(WC_PORT, c)
-          content=portRegEx.sub(WC_SSL_PORT, ci)
-          serverXmlInput.close()
-          serverXmlOutput=open('%s/%s-%s/conf/server.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION),'w')
+          content=portRegEx.sub(WC_PORT, serverXmlInput)
+          content=sslPortRegEx.sub(WC_SSL_PORT, content)
+          serverXmlOutput=open('%s/%s-%s-%s_server.xml' % \
+                          (TMPDIR,STAF_REMOTE_HOSTNAME,WC_TYPE,WC_VERSION),'w')
           serverXmlOutput.write(content)
           serverXmlOutput.close()
         </script>
-        
+        <call function="'copyFile'">
+          {'srcfile' : '%s/%s-%s-%s_server.xml' % (TMPDIR, STAF_REMOTE_HOSTNAME, WC_TYPE, WC_VERSION),
+           'destfile' : '%s/%s-%s/conf/server.xml' % (wcPath, WC_TYPE, WC_VERSION),
+           'remotehost' : '%s' % STAF_REMOTE_HOSTNAME
+          }
+        </call>
+
         <!-- configure webcontainer's SSL environement -->
         <message>
           'Configure webcontainer SSL keystore '
@@ -104,11 +130,11 @@
         <sequence>
           <message>'caught %s with %s' % (eType,eInfo)</message>
           <message>
-            'Remove temporary webcontainer zip archive from %s %s' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+            'Remove temporary webcontainer zip archive from %s %s' % (location,wcPath)
           </message>
           <call function="'deleteFolder'">
-            { 'location'   : STAF_REMOTE_HOSTNAME ,
-            'foldername' : '%s' % WC_DIRECTORY }
+            { 'location'   : location ,
+            'foldername' : '%s' % wcPath }
           </call>
         </sequence>
       </catch>
@@ -117,25 +143,31 @@
     
   </function>
   
-  <function name="deployWebApplicationWAR">
+  <function name="deployWebApplicationWAR" scope="local">
     <function-prolog>
       This function deploys a Web Application War file
     </function-prolog>
     
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def  name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="warFilePath" type="required" default="''">
+      <function-arg-def  name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def  name="warFilePath" type="required" default="''">
         <function-arg-description>
           Web application war file path
         </function-arg-description>
         <function-arg-property name="type" value="filepath"/>
       </function-arg-def>
-      <function-arg-def name="destWarFileName" type="optional" default="'dsml.war'">
+      <function-arg-def  name="destWarFileName" type="optional" default="'dsml.war'">
         <function-arg-description>
           Web application war destination file path
         </function-arg-description>
@@ -145,31 +177,32 @@
     <sequence>
       
       <message>
-        'setup: deploy web application %s to %s/%s-%s/webapps/%s' % (warFilePath, WC_DIRECTORY, WC_TYPE, WC_VERSION, destWarFileName) 
+        'setup: deploy web application %s to %s/%s-%s/webapps/%s' % (warFilePath, wcPath, WC_TYPE, WC_VERSION, destWarFileName) 
       </message>
 
       <call function="'copyFile'">
-        { 'location'   : STAF_REMOTE_HOSTNAME ,
+        { 'location'   : STAXServiceMachine,
         'srcfile' : '%s' % warFilePath,
-        'destfile' : '%s/%s-%s/webapps/%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION, destWarFileName) }
+        'destfile' : '%s/%s-%s/webapps/%s' % (wcPath, WC_TYPE, WC_VERSION, destWarFileName),
+        'remotehost' : location}
       </call>
       
     </sequence>
     
   </function>
   
-  <function name="stopWebcontainerWithScript">
+  <function name="stopWebcontainerWithScript" scope="local">
     <function-prolog>
       This function stops a webcontainer 
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def  name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+      <function-arg-def  name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -184,7 +217,8 @@
         if wcPath:
           wcBinPath='%s/bin' % wcPath
           STAFCmd='%s/shutdown.sh' % wcBinPath
-          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin']
+          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin'\
+                      'JAVA_HOME=%s' % JAVA_HOME]
       </script>
       
       <message>
@@ -213,18 +247,18 @@
     
   </function>
   
-  <function name="startWebcontainerWithScript">
+  <function name="startWebcontainerWithScript" scope="local">
     <function-prolog>
-      This function starts a webcontainer 
+      This function start a webcontainer 
     </function-prolog>
     <function-map-args>
-      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def  name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
         <function-arg-description>
           Location of target host
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
-      <function-arg-def name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+      <function-arg-def  name="wcPath" type="optional" default="'%s/%s-%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION)">
         <function-arg-description>
           Pathname to installation root
         </function-arg-description>
@@ -239,7 +273,8 @@
         if wcPath:
           wcBinPath='%s/bin' % wcPath
           STAFCmd='%s/startup.sh' % wcBinPath
-          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin']
+          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin' \
+                      'JAVA_HOME=%s' % JAVA_HOME]
       </script>
       
       <message>
@@ -269,22 +304,37 @@
     
   </function>
   
-  <function name="removeWebcontainer">
+  <function name="removeWebcontainer" scope="local">
     <function-prolog>
       This function removes the webcontainer instance  
     </function-prolog>
-    
+
+    <function-map-args>
+      <function-arg-def  name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def  name="wcPath" type="optional" default="'%s' % WC_DIRECTORY">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>
+
     <try>
       
       <sequence>
         
         <!-- Remove webcontainer directory -->
         <message>
-          'Remove webcontainer from %s %s.' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+          'Remove webcontainer from %s %s.' % (location,wcPath)
         </message>
         <call function="'deleteFolder'">
-          { 'location' : STAF_REMOTE_HOSTNAME, 
-          'foldername'  : '%s/%s-%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION) }
+          { 'location' : location, 
+          'foldername'  : '%s/%s-%s' % (wcPath, WC_TYPE, WC_VERSION) }
         </call>
         
         <if expr="RC != 0">
@@ -297,11 +347,11 @@
         <sequence>
           <message>'caught %s with %s' % (eType,eInfo)</message>
           <message>
-            'Remove temporary webcontainer zip archive from %s %s' % (STAF_REMOTE_HOSTNAME,WC_DIRECTORY)
+            'Remove temporary webcontainer zip archive from %s %s' % (location,wcPath)
           </message>
           <call function="'deleteFolder'">
-            { 'location'   : STAF_REMOTE_HOSTNAME ,
-            'foldername' : '%s/%s-%s' % (WC_DIRECTORY, WC_TYPE, WC_VERSION) }
+            { 'location'   : location ,
+            'foldername' : '%s/%s-%s' % (wcPath, WC_TYPE, WC_VERSION) }
           </call>
         </sequence>
       </catch>

@@ -46,12 +46,12 @@
         <sequence>
           <!--- Test Case information
               #@TestMarker          setup
-              #@TestName            setup: create DSML directory server
+              #@TestName            setup: prepare DSML directory server
               #@TestIssue           none
-              #@TestPurpose         Create the directory server necessary to the
+              #@TestPurpose         Prepare the directory server necessary to the
                                     test suite.
               #@TestPreamble        none
-              #@TestStep            Create Directory server as defined in config.py.
+              #@TestStep            prepare dsml directory server instance
               #@TestPostamble       none
               #@TestResult          Success if  returns 0.
           -->
@@ -106,7 +106,7 @@
                 'Start DS instance'
               </message>
               <call function="'StartDsWithScript'">
-               { 'location'  : STAF_REMOTE_HOSTNAME }
+               { 'location'  : DIRECTORY_INSTANCE_HOST }
               </call>
               <call function="'checktestRC'">
                 {
@@ -170,7 +170,7 @@
                                      dsmlBaseDNs.get(baseDN)[1])
                   </script>
                   <stafcmd name="'create import temp directory'">
-                    <location>'%s' % location</location>
+                    <location>'%s' % DIRECTORY_INSTANCE_HOST</location>
                     <service>'fs'</service>
                     <request>' CREATE DIRECTORY %s' % (importTempDir)</request>
                   </stafcmd>
@@ -179,7 +179,7 @@
                       'result'     : STAXResult }
                   </call>
                   <stafcmd name="'create database directory'">
-                    <location>'%s' % location</location>
+                    <location>'%s' % DIRECTORY_INSTANCE_HOST</location>
                     <service>'fs'</service>
                     <request>' CREATE DIRECTORY %s' % (ldapDB)</request>
                   </stafcmd>
@@ -276,9 +276,7 @@
                 'setup: deploy DSML gateway webapp as described in config.py'
               </message>
               <call function="'deployWebApplicationWAR'">
-                { 'location'   : STAF_REMOTE_HOSTNAME ,
-                'warFilePath' : '%s' % DSML_WARPATH,
-                'destWarFileName' : 'dsml.war'}
+                { 'warFilePath' : '%s' % DSML_WARPATH }
               </call>
               <call function="'checktestRC'">
                 {
@@ -307,10 +305,7 @@
               <message>
                 'setup: start webcontainer as described in config.py'
               </message>
-              <call function="'startWebcontainerWithScript'">
-                { 'location'   : STAF_REMOTE_HOSTNAME ,
-                'wcPath' : '%s/%s-%s' % (WC_DIRECTORY,WC_TYPE,WC_VERSION) }
-              </call>
+              <call function="'startWebcontainerWithScript'"/>
               <call function="'checktestRC'">
                 {
                 'returncode' : RC ,
@@ -326,11 +321,24 @@
             </sequence>
           </testcase>
 
+          <!--- Test Case information
+              #@TestMarker          setup
+              #@TestName            setup: configure DSML gateway DS port param
+              #@TestIssue           none
+              #@TestPurpose         Set the gateway web.xml param pointing to DS
+              #@TestPreamble        none
+              #@TestSteps           extract web.xml out of DSML war file locally
+              #@TestSteps           substitute default port 389 with DIRECTORY_INSTANCE_PORT
+              #@TestSteps           substitute default directory host localhost with DIRECTORY_INSTANCE_HOST
+              #@TestSteps           overwrite the destination DSML gateway web.xml
+              #@TestPostamble       none
+              #@TestResult          Success if statWebcontainerWithScript returns 0.
+          -->
           <testcase name="getTestCaseName('configure: dsml web.xml port')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <stafcmd name="'extract DSML gateway web.xml'">
-                <location>'local'</location>
+                <location>STAXServiceMachine</location>
                 <service>'zip'</service>
                 <request>'UNZIP ZIPFILE %s TODIRECTORY %s FILE WEB-INF/web.xml' % (DSML_WARPATH, TMPDIR)</request>
               </stafcmd>
@@ -338,15 +346,17 @@
                 webXmlInput=open('%s/WEB-INF/web.xml' % TMPDIR,'r')
                 import re
                 portRegEx = re.compile('389')
-                c=webXmlInput.read()
-                content=portRegEx.sub(DIRECTORY_INSTANCE_PORT, c)
+                hostRegEx = re.compile('localhost')
+                c0=webXmlInput.read()
+                c1=portRegEx.sub(DIRECTORY_INSTANCE_PORT, c0)
+                content=hostRegEx.sub(DIRECTORY_INSTANCE_HOST, c1)
                 webXmlInput.close()
                 webXmlOutput=open('%s/WEB-INF/web.xml.out' % TMPDIR,'w')
                 webXmlOutput.write(content)
                 webXmlOutput.close()
               </script>
               <call function="'copyFile'">
-                { 'location' : 'local',
+                { 'location' : STAXServiceMachine,
                   'remotehost' : '%s' % location,
                   'srcfile' : '%s/WEB-INF/web.xml.out' % TMPDIR,
                   'destfile' : '%s/%s-%s/webapps/dsml/WEB-INF/web.xml' % (TMPDIR,WC_TYPE,WC_VERSION)
