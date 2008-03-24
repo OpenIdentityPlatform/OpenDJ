@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
@@ -61,7 +61,6 @@ import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -113,7 +112,9 @@ public class FIFOEntryCache
 
   // The lock used to provide threadsafe access when changing the contents of
   // the cache.
-  private Lock cacheLock;
+  private ReentrantReadWriteLock cacheLock;
+  private Lock cacheWriteLock;
+  private Lock cacheReadLock;
 
   // The maximum amount of memory in bytes that the JVM will be allowed to use
   // before we need to start purging entries.
@@ -154,8 +155,11 @@ public class FIFOEntryCache
     // Initialize the cache structures.
     idMap     = new HashMap<Backend,HashMap<Long,CacheEntry>>();
     dnMap     = new LinkedHashMap<DN,CacheEntry>();
-    cacheLock = new ReentrantLock();
 
+    // Initialize locks.
+    cacheLock = new ReentrantReadWriteLock(true);
+    cacheWriteLock = cacheLock.writeLock();
+    cacheReadLock = cacheLock.readLock();
 
     // Read configuration and apply changes.
     boolean applyChanges = true;
@@ -186,7 +190,7 @@ public class FIFOEntryCache
    */
   public void finalizeEntryCache()
   {
-    cacheLock.lock();
+    cacheWriteLock.lock();
 
     try {
       registeredConfiguration.removeFIFOChangeListener(this);
@@ -202,7 +206,7 @@ public class FIFOEntryCache
         }
       }
     } finally {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -218,7 +222,12 @@ public class FIFOEntryCache
     }
 
     // Indicate whether the DN map contains the specified DN.
-    return dnMap.containsKey(entryDN);
+    cacheReadLock.lock();
+    try {
+      return dnMap.containsKey(entryDN);
+    } finally {
+      cacheReadLock.unlock();
+    }
   }
 
 
@@ -229,18 +238,20 @@ public class FIFOEntryCache
   public Entry getEntry(DN entryDN)
   {
     // Simply return the entry from the DN map.
-    CacheEntry e = dnMap.get(entryDN);
-    if (e == null)
-    {
-      // Indicate cache miss.
-      cacheMisses.getAndIncrement();
-      return null;
-    }
-    else
-    {
-      // Indicate cache hit.
-      cacheHits.getAndIncrement();
-      return e.getEntry();
+    cacheReadLock.lock();
+    try {
+      CacheEntry e = dnMap.get(entryDN);
+      if (e == null) {
+        // Indicate cache miss.
+        cacheMisses.getAndIncrement();
+        return null;
+      } else {
+        // Indicate cache hit.
+        cacheHits.getAndIncrement();
+        return e.getEntry();
+      }
+    } finally {
+      cacheReadLock.unlock();
     }
   }
 
@@ -252,14 +263,16 @@ public class FIFOEntryCache
   public long getEntryID(DN entryDN)
   {
     // Simply return the ID from the DN map.
-    CacheEntry e = dnMap.get(entryDN);
-    if (e == null)
-    {
-      return -1;
-    }
-    else
-    {
-      return e.getEntryID();
+    cacheReadLock.lock();
+    try {
+      CacheEntry e = dnMap.get(entryDN);
+      if (e == null) {
+        return -1;
+      } else {
+        return e.getEntryID();
+      }
+    } finally {
+      cacheReadLock.unlock();
     }
   }
 
@@ -271,14 +284,19 @@ public class FIFOEntryCache
   public DN getEntryDN(Backend backend, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
-    HashMap<Long,CacheEntry> backendMap = idMap.get(backend);
-    if (backendMap != null) {
-      CacheEntry e = backendMap.get(entryID);
-      if (e != null) {
-        return e.getDN();
+    cacheReadLock.lock();
+    try {
+      HashMap<Long, CacheEntry> backendMap = idMap.get(backend);
+      if (backendMap != null) {
+        CacheEntry e = backendMap.get(entryID);
+        if (e != null) {
+          return e.getDN();
+        }
       }
+      return null;
+    } finally {
+      cacheReadLock.unlock();
     }
-    return null;
   }
 
 
@@ -295,7 +313,7 @@ public class FIFOEntryCache
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
     {
-      if (! cacheLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
+      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
       {
         return;
       }
@@ -388,7 +406,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -406,7 +424,7 @@ public class FIFOEntryCache
     // Obtain a lock on the cache.  If this fails, then don't do anything.
     try
     {
-      if (! cacheLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
+      if (!cacheWriteLock.tryLock(getLockTimeout(), TimeUnit.MILLISECONDS))
       {
         // We can't rule out the possibility of a conflict, so return false.
         return false;
@@ -514,7 +532,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -530,7 +548,7 @@ public class FIFOEntryCache
     // FIXME -- An alternate approach could be to block for a maximum length of
     // time and then if it fails then put it in a queue for processing by some
     // other thread before it releases the lock.
-    cacheLock.lock();
+    cacheWriteLock.lock();
 
 
     // At this point, it is absolutely critical that we always release the lock
@@ -575,7 +593,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -588,7 +606,7 @@ public class FIFOEntryCache
   {
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
-    cacheLock.lock();
+    cacheWriteLock.lock();
 
 
     // At this point, it is absolutely critical that we always release the lock
@@ -612,7 +630,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -625,7 +643,7 @@ public class FIFOEntryCache
   {
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
-    cacheLock.lock();
+    cacheWriteLock.lock();
 
 
     // At this point, it is absolutely critical that we always release the lock
@@ -656,9 +674,9 @@ public class FIFOEntryCache
 
         if ((entriesDeleted % 1000)  == 0)
         {
-          cacheLock.unlock();
+          cacheWriteLock.unlock();
           Thread.currentThread().yield();
-          cacheLock.lock();
+          cacheWriteLock.lock();
         }
       }
     }
@@ -673,7 +691,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -695,7 +713,7 @@ public class FIFOEntryCache
 
     // Acquire a lock on the cache.  We should not return until the cache has
     // been cleared, so we will block until we can obtain the lock.
-    cacheLock.lock();
+    cacheWriteLock.lock();
 
 
     // At this point, it is absolutely critical that we always release the lock
@@ -715,7 +733,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -762,9 +780,9 @@ public class FIFOEntryCache
       entriesExamined++;
       if ((entriesExamined % 1000) == 0)
       {
-        cacheLock.unlock();
+        cacheWriteLock.unlock();
         Thread.currentThread().yield();
-        cacheLock.lock();
+        cacheWriteLock.lock();
       }
     }
 
@@ -798,7 +816,7 @@ public class FIFOEntryCache
   public void handleLowMemory()
   {
     // Grab the lock on the cache and wait until we have it.
-    cacheLock.lock();
+    cacheWriteLock.lock();
 
 
     // At this point, it is absolutely critical that we always release the lock
@@ -843,7 +861,7 @@ public class FIFOEntryCache
     }
     finally
     {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
   }
 
@@ -1048,7 +1066,7 @@ public class FIFOEntryCache
 
     // Grab cache lock to prevent any modifications
     // to the cache maps until a snapshot is taken.
-    cacheLock.lock();
+    cacheWriteLock.lock();
     try {
       // Examining the real maps will hold the lock and can cause map
       // modifications in case of any access order maps, make copies
@@ -1056,7 +1074,7 @@ public class FIFOEntryCache
       dnMapCopy = new LinkedHashMap<DN,CacheEntry>(dnMap);
       idMapCopy = new HashMap<Backend,HashMap<Long,CacheEntry>>(idMap);
     } finally {
-      cacheLock.unlock();
+      cacheWriteLock.unlock();
     }
 
     // Check dnMap first.
