@@ -221,7 +221,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
       message = NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
                                                      BUILD_ID, REVISION_NUMBER);
       logError(message);
-      message = INFO_JEB_IMPORT_THREAD_COUNT.get(importThreadCount);
+      message = NOTE_JEB_IMPORT_THREAD_COUNT.get(importThreadCount);
       logError(message);
       RuntimeInformation.logInfo();
       for (EntryContainer entryContainer : rootContainer.getEntryContainers()) {
