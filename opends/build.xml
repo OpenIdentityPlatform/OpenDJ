@@ -33,7 +33,7 @@
 
   <!-- Build JVM properties -->
   <property name="MEM" value="256M"/>
-  
+
   <!-- Build OpenDMK properties -->
   <property file="build.properties"/>
 
@@ -138,7 +138,7 @@
   <property name="admin.src.dir"   location="src/admin/generated" />
   <property name="admin.rules.dir" location="resource/admin" />
   <property name="configguide.resource.dir" location="resource/admin/config-guide" />
-  
+
   <!-- Properties for generating messages. -->
   <property name="msg.prop.dir"    location="src/messages/messages" />
   <property name="msg.javagen.dir" location="src/messages/generated" />
@@ -151,26 +151,26 @@
   <property name="snmp.config.dir"   location="src/snmp/resource/config" />
   <property name="snmp.gen.dir"      location="src/snmp/generated" />
   <property name="snmp.src.dir"      location="src/snmp/src" />
-  
-  <property name="snmp.classes.dir"  
+
+  <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
-  
+
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"
        description="Build a Directory Server package bundle with DSML.">
   </target>
- 
- 
-  
-  
+
+
+
+
   <!-- The build target that should be used before committing code. -->
   <target name="precommit" depends="checkstyle,clean,checkprecommit,dsml,testwithcoverage"
        description="Perform all processing needed before committing code.">
   </target>
 
 
-  
-  
+
+
   <!-- The build target that should be used for nightly builds. -->
   <target name="nightly"
        depends="checkstyle,dsml,srczip,javadoc,docgen,coverage,testallwithcoverage"
@@ -186,8 +186,8 @@
   </target>
 
 
-  
-  
+
+
   <!-- The build target that should be used to build everything. -->
   <target name="all"
        depends="checkstyle,clean,checkprecommit,dsml,srczip,javadoc,docgen,testallwithcoverage"
@@ -332,7 +332,7 @@
     <path id="quickSetup.classpath">
        <pathelement location="${quicksetup.classes.dir}" />
     </path>
-    
+
     <tstamp>
       <format property="timestamp" pattern="yyyyMMddHHmmss'Z'"
            timezone="UTC" />
@@ -368,7 +368,7 @@
         <isset property="JVM_VENDOR" />
       </not>
     </condition>
-    
+
     <condition property="isopendmkpresent">
      <or>
      <and>
@@ -381,7 +381,7 @@
      </and>
      </or>
     </condition>
-    
+
   </target>
 
 
@@ -503,6 +503,12 @@
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
       <fileset dir="${guitools.src.dir}" includes="**/*.java" />
+      <formatter type="plain" />
+    </checkstyle>
+
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+         failOnViolation="true">
+      <fileset dir="${dsml.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>
 
@@ -715,7 +721,7 @@
         </fileset>
       </classpath>
     </javac>
- 
+
     <copy todir="${classes.dir}">
       <fileset dir="${src.dir}" includes="**/*.properties" />
       <fileset dir="${quicksetup.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
@@ -791,8 +797,8 @@
   <!-- Generate the Configuration guides. -->
   <target name="docgen" depends="configguide,configguideldap"
        description="Generate the Configuration guides (1 standard + 1 with ldap mapping) (html).">
-  </target>  
-  
+  </target>
+
   <!-- Generate the Standard Configuration guide. -->
   <target name="configguide" depends="compile,copymessages"
        description="Generate the Configuration guide (standard) (html).">
@@ -809,7 +815,7 @@
         <dirset dir="${classes.dir}" />
       </classpath>
       <jvmarg value="-DGenerationDir=${configguide.dir}"/>
-    </java>         
+    </java>
   </target>
 
   <!-- Generate the Configuration guide with LDAP mapping. -->
@@ -829,7 +835,7 @@
       </classpath>
       <jvmarg value="-DGenerationDir=${configguideldap.dir}"/>
       <jvmarg value="-DLdapMapping"/>
-    </java>         
+    </java>
   </target>
 
   <!-- Populate the Directory Server package, but don't zip it up. -->
@@ -881,7 +887,7 @@
     <!-- copy the message descriptor registry file -->
     <copy todir="${classes.dir}/org/opends/messages"
           file="${msg.javagen.dir}/org/opends/messages/descriptors.reg" />
-    
+
     <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
          basedir="${classes.dir}"
          excludes="${ads.classes.dir}, ${quicksetup.globalcompile.classes.dir},
@@ -893,11 +899,11 @@
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.jar" />
     </copy>
-    
+
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.exe" />
     </copy>
-    
+
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" excludes="*.bat,_client-script.sh,_server-script.sh,_mixed-script.sh,_script-util.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.sh,_server-script.sh,_mixed-script.sh,_script-util.sh" eol="lf" />
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/bin" includes="README_WINDOWS.txt" eol="crlf" />
@@ -907,9 +913,9 @@
     <copy todir="${pdir}/config">
       <fileset file="${config.dir}/*" />
     </copy>
-    
+
     <antcall target="package-snmp" />
-    
+
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
 
@@ -1021,7 +1027,7 @@
            filemode="755" dirmode="755" />
     </zip>
     <property name="package.built" value="true"/>
-    
+
     <!-- print a time stamp in Unix 'date' format -->
     <tstamp>
       <format property="package.built.ts" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
@@ -1075,7 +1081,7 @@
 		  overwrite="true">
     </genrpm>
 
-    <rpm 
+    <rpm
 			specfile="specFile"
 			topdir="${build.dir}/rpm"
       quiet="true"
@@ -1347,19 +1353,19 @@
   </target>
 
 
-  
-  <!-- Prepare to execute the Directory Server TestNG unit tests. --> 
+
+  <!-- Prepare to execute the Directory Server TestNG unit tests. -->
   <target name="test.OpenDS.package.required" depends="dynamicconstants">
     <condition property="test.OpenDS.package.required">
       <available file="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}.zip"/>
     </condition>
   </target>
-  
+
   <target name="testinit-package" depends="test.OpenDS.package.required" unless="test.OpenDS.package.required">
     <echo message="Performing full rebuild (no OpenDS zip package found)"/>
     <antcall target="package"/>
   </target>
-  
+
   <target name="testinit-recompile" depends="test.OpenDS.package.required" if="test.OpenDS.package.required">
     <echo message="Performing partial rebuild (OpenDS zip package found)"/>
     <mkdir dir="${classes.dir}" />
@@ -1386,7 +1392,7 @@
       <fileset dir="${guitools.src.dir}" includes="**/*.properties, **/*.gif, **/*.png" />
     </copy>
   </target>
-    
+
   <target name="testinit" depends="testinit-package,testinit-recompile"
          description="Prepare to execute the Directory Server TestNG unit tests.">
     <!-- If we are to perform coverage tests, then set that up. -->
@@ -1431,7 +1437,7 @@
 
     <!-- Compile SNMP Tests if needed -->
     <antcall target="testsnmpinit"/>
-    
+
     <!-- Prep the TestNG XML file -->
 
     <condition property="test.groups" value="exclude=slow">
@@ -1901,11 +1907,11 @@
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
         </fileset>
-        
+
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar"/>
         </fileset>
-        
+
       </classpath>
       <jvmarg  value="-Demma.coverage.out.file=${coverage.data.dir}/unit.emma" />
       <jvmarg value="-Demma.coverage.out.merge=false" />
@@ -2006,8 +2012,8 @@
   </target>
 
 
-  
-  
+
+
   <target name="buildtools" depends="init"
         description="Builds the build tools">
 
@@ -2080,8 +2086,8 @@
     </exec>
   </target>
 
-  
-  
+
+
   <target name="compileadminsubtask">
     <!-- Generate introspection API for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml" style="${admin.rules.dir}/metaMO.xsl">
@@ -2134,7 +2140,7 @@
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
     </xslt>
-    
+
     <!-- Generate manifest file for core administration components. -->
     <tempfile property="admin.temp.dir" destDir="${build.dir}" prefix="tmp" />
     <mkdir dir="${admin.temp.dir}" />
@@ -2188,8 +2194,8 @@
     </zip>
   </target>
 
-  
-  
+
+
   <!-- Generate example plugin package. -->
   <target name="example-plugin" if="pdir">
     <!-- Create folder hierarchy in temporary directory. -->
@@ -2223,12 +2229,12 @@
     </zip>
     <delete dir="${plugin.temp.dir}" />
   </target>
-  
+
   <target name="snmpmessagebuild" if="isopendmkpresent">
       <echo message="SNMP extension will be built and included in the delivery."/>
       <echo message="OpenDMK jar file location is ${opendmk.lib.dir}/jdmkrt.jar"/>
   </target>
-  
+
   <target name="snmpmessageNotbuild" unless="isopendmkpresent">
       <echo message="SNMP extension will NOT be built/included in the delivery."/>
       <echo message="You have to set the opendmk.lib.dir property in"/>
@@ -2237,34 +2243,34 @@
       <echo message="To get the OpenDMK jar files please, go under"/>
       <echo message="https://opendmk.dev.java.net/"/>
   </target>
-  
+
   <target name="snmpecho" depends="snmpmessageNotbuild,snmpmessagebuild"/>
-  
+
   <!-- SNMP targets -->
   <target name="cleansnmp" description="Clean up any SNMP generated source files">
     <delete includeemptydirs="true" failonerror="false">
       <fileset dir="${snmp.gen.dir}" includes="**/*" />
     </delete>
   </target>
-  
+
   <target name="mibgeneration" if="isopendmkpresent" description="mibgen invocation">
     <property name="opendmktk.path" location="${opendmk.lib.dir}/jdmktk.jar"/>
     <mkdir dir="${snmp.gen.dir}/org/opends/server/snmp" />
     <exec dir="${snmp.mib.dir}" executable="java">
       <arg line="-classpath ${opendmktk.path}
-        com.sun.jdmk.tools.MibGen -X:use-display-hint 
-        -d ${snmp.gen.dir}/org/opends/server/snmp -mc -desc 
-        -tp org.opends.server.snmp ${snmp.mib.dir}/rfc2605.txt 
+        com.sun.jdmk.tools.MibGen -X:use-display-hint
+        -d ${snmp.gen.dir}/org/opends/server/snmp -mc -desc
+        -tp org.opends.server.snmp ${snmp.mib.dir}/rfc2605.txt
         ${snmp.mib.dir}/mib_core.txt
         ${snmp.mib.dir}/rfc2021.txt ${snmp.mib.dir}/rfc2788.txt"/>
     </exec>
   </target>
-  
+
    <target name="compilesnmp"
        depends="init,checkjavaversion,dynamicconstants,generatemessages,compileadmin,mibgeneration"
        if="isopendmkpresent"
        description="Compile the SNMP Connection Handler extension source files.">
-         
+
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${snmp.gen.dir}"
@@ -2272,7 +2278,7 @@
          source="1.4" target="1.4" deprecation="true" fork="true" nowarn="on"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
-      
+
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />
@@ -2282,7 +2288,7 @@
         </fileset>
       </classpath>
     </javac>
-    
+
      <javac srcdir="${snmp.src.dir}"
          destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
          source="1.5" target="1.5" deprecation="true" fork="true"
@@ -2300,9 +2306,9 @@
     </javac>
   </target>
 
-    
+
   <!-- Package the SNMP Directory Server extension for distribution. -->
-  <target name="package-snmp" if="isopendmkpresent" depends="snmpecho,compilesnmp" 
+  <target name="package-snmp" if="isopendmkpresent" depends="snmpecho,compilesnmp"
           description="Package the SNMP Directory Server extension for distribution.">
     <property name="pdir" location="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     <mkdir dir="${pdir}/lib/extensions" />
@@ -2314,12 +2320,12 @@
     </copy>
     <!-- Copy the mib -->
     <copy todir="${pdir}/snmp/mib" file="${snmp.mib.dir}/rfc2605.txt"/>
-    
+
     <!-- Update the config.ldif file with snmp config -->
     <concat destfile="${pdir}/config/config.ldif" append="true">
         <filelist dir="${snmp.config.dir}" files="config.snmp.ldif"/>
     </concat>
-    
+
     <!-- Create the jar file -->
     <jar jarfile="${pdir}/lib/extensions/snmp-mib2605.jar"
          basedir="${classes.dir}"
@@ -2328,7 +2334,7 @@
     <echo message="SNMP Extension is built"/>
     <echo message="${pdir}/lib/extensions/snmp-mib2605.jar"/>
   </target>
-  
+
   <target name="testsnmpinit" if="isopendmkpresent">
     <!-- Compile the SNMP test cases -->
     <mkdir dir="${unittest.classes.dir}" />
@@ -2346,7 +2352,7 @@
         <fileset dir="${testng.lib.dir}">
           <include name="*.jar" />
         </fileset>
-        
+
         <fileset dir="${opendmk.lib.dir}">
           <include name="*.jar" />
         </fileset>
@@ -2356,5 +2362,5 @@
       </classpath>
     </javac>
   </target>
-    
+
 </project>
