@@ -60,7 +60,6 @@ import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 
 
