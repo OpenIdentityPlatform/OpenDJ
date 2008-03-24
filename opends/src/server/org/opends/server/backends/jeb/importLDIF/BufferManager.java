@@ -75,7 +75,7 @@ public class BufferManager {
   private final static int TREEMAP_ENTRY_OVERHEAD = 29;
   private final static int KEY_ELEMENT_OVERHEAD = 28;
 
-  //Count of number of worker threads.
+  //Import worker thread count.
   private int importThreadCount;
 
   //Used to prevent memory flush
@@ -149,7 +149,7 @@ public class BufferManager {
     } else {
       iter = elementMap.tailMap(nextElem).keySet().iterator();
     }
-    while((memoryUsage + extraBytes > memoryLimit) && limitFlush) {
+    while(((memoryUsage + extraBytes) > memoryLimit) && limitFlush) {
       if(iter.hasNext()) {
         KeyHashElement curElem = iter.next();
         //Never flush undefined elements.
@@ -184,27 +184,22 @@ public class BufferManager {
   }
 
   /**
-   * Writes all of the buffer elements to DB. The specific id is used to
-   * share the buffer among the worker threads so this function can be
-   * multi-threaded.
+   * Writes all of the buffer elements to DB. Thread id 0 always peforms the
+   * flushing.
    *
    * @param id The thread id.
    * @throws DatabaseException If an error occurred during the insert.
    */
   void flushAll(int id) throws DatabaseException {
+    if(id != 0) {
+      return;
+    }
     TreeSet<KeyHashElement>  tSet =
             new TreeSet<KeyHashElement>(elementMap.keySet());
-    Iterator<KeyHashElement> iter = tSet.iterator();
-    int i=0;
-    while(iter.hasNext()) {
-      KeyHashElement curElem = iter.next();
+    for (KeyHashElement curElem : tSet) {
       Index index = curElem.getIndex();
-      //Each thread handles a piece of the buffer based on its thread id.
-      if((i % importThreadCount) == id) {
-        index.insert(null, new DatabaseEntry(curElem.getKey()),
-                curElem.getIDSet());
-      }
-      i++;
+      index.insert(null, new DatabaseEntry(curElem.getKey()),
+              curElem.getIDSet());
     }
   }
 
