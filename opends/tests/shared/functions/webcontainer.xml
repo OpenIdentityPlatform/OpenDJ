@@ -50,19 +50,36 @@
     <try>
       
       <sequence>
+
+        <script>
+          mylocation=location
+        </script>
         
+        <!-- Copy webcontainer zip archive to remote host -->
+        <message>
+          'Copy webcontainer %s to host %s' % (WC_ZIPNAME,location)
+        </message>
+        <call function="'copyFile'">
+          { 'location'   : STAXServiceMachine,
+            'srcfile'    : '%s/%s' % (WC_ZIPPATH,WC_ZIPNAME),
+            'destfile'   : '%s/%s' % (wcPath,WC_ZIPNAME),
+            'remotehost' : mylocation
+          }
+        </call>
+                      
         <!-- Unzip webcontainer into temporary folder -->
         <message>
           'Extract temporary webcontainer zip archive to %s %s.' % (location, wcPath)
         </message>
         <call function="'unZipFile'">
-          { 'location' : location, 
-          'zipfile'  : '%s/%s' % (WC_ZIPPATH,WC_ZIPNAME), 
-          'unzipdir' : '%s' % wcPath }
+          { 'location' : mylocation, 
+            'zipfile'  : '%s/%s' % (wcPath,WC_ZIPNAME), 
+            'unzipdir' : '%s' % wcPath }
         </call>
+
         <!-- chmod +x all the .sh file in tomcat bin directory -->
         <stafcmd name="'create import temp directory'">
-          <location>'%s' % location</location>
+          <location>'%s' % mylocation</location>
           <service>'fs'</service>
           <request>' LIST DIRECTORY %s/%s-%s/bin EXT sh' % \
                    (wcPath, WC_TYPE, WC_VERSION)</request>
@@ -73,7 +90,7 @@
         </script>
         <message>'shFilesResult=%s' % shFilesResult</message>
         <process name="'chmod +x tomcat\'s shell scripts'">
-          <location>'%s' % location</location>
+          <location>'%s' % mylocation</location>
           <command mode="'shell'">'chmod +x %s' % shFilesResult</command>
           <parms/>
           <workdir>'%s/%s-%s/bin' % (wcPath, WC_TYPE, WC_VERSION)</workdir>
@@ -88,7 +105,7 @@
           'Configure webcontainer ports HTTP %s / HTTPS %s' % (WC_PORT, WC_SSL_PORT)
         </message>
         <stafcmd name="'get tomcat configuration file'">
-          <location>'%s' % location</location>
+          <location>'%s' % mylocation</location>
           <service>'fs'</service>
           <request>' GET FILE %s/%s-%s/conf/server.xml ' % \
                    (wcPath, WC_TYPE, WC_VERSION)</request>
@@ -217,7 +234,7 @@
         if wcPath:
           wcBinPath='%s/bin' % wcPath
           STAFCmd='%s/shutdown.sh' % wcBinPath
-          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin'\
+          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin',\
                       'JAVA_HOME=%s' % JAVA_HOME]
       </script>
       

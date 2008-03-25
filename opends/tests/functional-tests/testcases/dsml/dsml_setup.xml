@@ -42,7 +42,6 @@
         CurrentTestPath['suite'] = STAXCurrentBlock
       </script>
       <call function="'testSuite_Preamble'"/>
-      <parallel>
         <sequence>
           <!--- Test Case information
               #@TestMarker          setup
@@ -146,8 +145,8 @@
               <script>
                 dsmlBaseDNs = {
                   'o=dsmlfe.com'      : ('dsmlfe.ldif', 'dsmlfe_BE'),
-                  'dc=example,dc=com'       : ('oasis.ldif', 'oasis_BE'),
-                  'o=IMC, c=US' : ('search.ldif', 'example_BE')
+                  'dc=example,dc=com' : ('oasis.ldif', 'oasis_BE'),
+                  'o=IMC, c=US'       : ('search.ldif', 'example_BE')
                 }
               </script>
               <iterate var="baseDN" in="dsmlBaseDNs.keys()">
@@ -159,49 +158,31 @@
                        DIRECTORY_INSTANCE_DIR, OPENDSNAME, dsmlBaseDNs.get(baseDN)[1],\
                        DIRECTORY_INSTANCE_DIR, OPENDSNAME)
                   </message>
+
+                  <message>
+                   'Create database backend %s.' % dsmlBaseDNs.get(baseDN)[1] 
+                  </message>
                   <script>
-                    ldapDB='%s/%s/db/%s' % \
-                             (DIRECTORY_INSTANCE_DIR,\
-                              OPENDSNAME, \
-                              dsmlBaseDNs.get(baseDN)[1])
-                    importTempDir='%s/%s/import-tmp/%s' % \
-                                    (DIRECTORY_INSTANCE_DIR, \
-                                     OPENDSNAME, \
-                                     dsmlBaseDNs.get(baseDN)[1])
+                    options=[]
+                    options.append('--backend-name %s' % dsmlBaseDNs.get(baseDN)[1])
+                    options.append('--set db-directory:%s' % dsmlBaseDNs.get(baseDN)[1])
+                    options.append('--set base-dn:"%s"' % baseDN)
+                    options.append('--set enabled:true')
+                    options.append('--set writability-mode:enabled')
+                    options.append('-t local-db')
+                    createBackendOptions=' '.join(options)
                   </script>
-                  <stafcmd name="'create import temp directory'">
-                    <location>'%s' % DIRECTORY_INSTANCE_HOST</location>
-                    <service>'fs'</service>
-                    <request>' CREATE DIRECTORY %s' % (importTempDir)</request>
-                  </stafcmd>
-                  <call function="'checkRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                  </call>
-                  <stafcmd name="'create database directory'">
-                    <location>'%s' % DIRECTORY_INSTANCE_HOST</location>
-                    <service>'fs'</service>
-                    <request>' CREATE DIRECTORY %s' % (ldapDB)</request>
-                  </stafcmd>
-                  <call function="'checkRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                  </call>
-                  <call function="'CreateBackendWithScript'">
-                    {
-                    'dsBaseDN' : '%s' % baseDN,
-                    'dsBackendID' : '%s' % dsmlBaseDNs.get(baseDN)[1],
-                    'dsLdapDB' : '%s' % ldapDB,
-                    'dsImportTempDir' : '%s' % importTempDir,
-                    'dsInstancePort' : '%s' % DIRECTORY_INSTANCE_PORT,
-                    'dsInstanceDn' : '%s' % DIRECTORY_INSTANCE_DN,
-                    'dsInstancePswd' : '%s' % DIRECTORY_INSTANCE_PSWD
+
+                  <call function="'dsconfig'">
+                    { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                      'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
+                      'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                      'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                      'subcommand'     : 'create-backend',
+                      'optionsString'  : createBackendOptions
                     }
                   </call>
-                  <call function="'checkRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                  </call>
+
                   <call function="'importLdifTask'">
                     { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
                       'dsInstancePort' : DIRECTORY_INSTANCE_PORT,
@@ -269,7 +250,7 @@
               #@TestPostamble       none
               #@TestResult          Success if deployWebApplicationWAR returns 0.
           -->
-          <testcase name="getTestCaseName('setup: deploy Webapplication %s' % DSML_WARPATH)">
+          <testcase name="getTestCaseName('setup: deploy Webapplication')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
@@ -337,11 +318,19 @@
           <testcase name="getTestCaseName('configure: dsml web.xml port')">
             <sequence>
               <call function="'testCase_Preamble'"/>
-              <stafcmd name="'extract DSML gateway web.xml'">
-                <location>STAXServiceMachine</location>
-                <service>'zip'</service>
-                <request>'UNZIP ZIPFILE %s TODIRECTORY %s FILE WEB-INF/web.xml' % (DSML_WARPATH, TMPDIR)</request>
-              </stafcmd>
+              <message>
+                'setup: configure DSML gateway DS port param.'
+              </message>
+
+              <call function="'runSTAFCommand'">
+                { 'name'      :  'Extract DSML gateway web.xml',
+                  'location'  :  STAXServiceMachine,
+                  'service'   :  'ZIP',
+                  'request'   :  'UNZIP',
+                  'arguments' :  'ZIPFILE %s TODIRECTORY %s FILE WEB-INF/web.xml' % (DSML_WARPATH, TMPDIR)
+                }
+              </call>
+
               <script>
                 webXmlInput=open('%s/WEB-INF/web.xml' % TMPDIR,'r')
                 import re
@@ -357,9 +346,9 @@
               </script>
               <call function="'copyFile'">
                 { 'location' : STAXServiceMachine,
-                  'remotehost' : '%s' % location,
+                  'remotehost' : '%s' % STAF_REMOTE_HOSTNAME,
                   'srcfile' : '%s/WEB-INF/web.xml.out' % TMPDIR,
-                  'destfile' : '%s/%s-%s/webapps/dsml/WEB-INF/web.xml' % (TMPDIR,WC_TYPE,WC_VERSION)
+                  'destfile' : '%s/%s-%s/webapps/dsml/WEB-INF/web.xml' % (WC_DIRECTORY,WC_TYPE,WC_VERSION)
                  }
               </call>
               <call function="'checktestRC'">
@@ -372,7 +361,6 @@
             </sequence>
           </testcase>
         </sequence>
-      </parallel>
       <call function="'testSuite_Postamble'"/>
       </sequence>
     </block>
