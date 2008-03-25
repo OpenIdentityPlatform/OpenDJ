@@ -30,12 +30,12 @@ import javax.management.ObjectName;
 
 /**
  * This interface should be implemented by all the DS:OID MBean and
- * allows to get the ObjectName of a SNMP OID MBean
+ * allows to get the ObjectName of a SNMP OID MBean.
  */
 public interface DsEntry {
-  
+
   /**
-   * Returns the ObjectName of the SNMP Entry
+   * Returns the ObjectName of the SNMP Entry.
    * @return the ObjectName of the SNMP Entry
    */
   public ObjectName getObjectName();

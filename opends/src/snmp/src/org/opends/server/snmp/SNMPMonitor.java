@@ -33,7 +33,6 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Set;
 
 import javax.management.Attribute;
 import javax.management.MBeanServer;
@@ -53,23 +52,23 @@ import org.opends.server.types.DebugLogLevel;
 public class SNMPMonitor {
 
   /**
-   * Debug Tracer for this class
+   * Debug Tracer for this class.
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
   /**
-   * Singleton SNMPMonitor object
+   * Singleton SNMPMonitor object.
    */
   private static SNMPMonitor monitor = null;
-  /** 
-   * Monitor MBeanServer server
+  /**
+   * Monitor MBeanServer server.
    */
   private MBeanServer server;
   /**
-   * Subject Auth to use to access the JMX Mbeans cn=monitor
+   * Subject Auth to use to access the JMX Mbeans cn=monitor.
    */
   private Subject subject = null;
   /**
-   * Pattern to use to query the cn=monitor MBeans
+   * Pattern to use to query the cn=monitor MBeans.
    */
   public static ObjectName pattern;
 
@@ -86,7 +85,7 @@ public class SNMPMonitor {
   }
 
   /**
-   * Creates an SNMPMonitor object mapping
+   * Creates an SNMPMonitor object mapping.
    * @param server to use to the mapping
    */
   private SNMPMonitor(MBeanServer server) {
@@ -99,9 +98,9 @@ public class SNMPMonitor {
   }
 
   /**
-   * Gets the singleton SNMPMonitor object
-   * @param server
-   * @return the SNMPMonitor mapping object 
+   * Gets the singleton SNMPMonitor object.
+   * @param server The server
+   * @return the SNMPMonitor mapping object.
    */
   public static SNMPMonitor getMonitor(MBeanServer server) {
     if (monitor == null) {
@@ -111,8 +110,8 @@ public class SNMPMonitor {
   }
 
   /**
-   * Gets the Connection Handlers Statistics MBean
-   * @return the Set<ObjectName> of Connection Handlers Statistics.
+   * Gets the Connection Handlers Statistics MBean.
+   * @return the Set of Connection Handlers Statistics.
    *     If Statistics do not exixist then an empty Set is returned
    */
   public Set<ObjectName> getConnectionHandlersStatistics() {
@@ -136,7 +135,7 @@ public class SNMPMonitor {
 
   /**
    * Return the ObjectName of the Connection Handler corresponding to
-   * the statistics name
+   * the statistics name.
    * @param statistics ObjectName
    * @return the Connection Handler ObjectName, null otherwise
    */
@@ -170,7 +169,7 @@ public class SNMPMonitor {
   }
 
   /**
-   * Return a Set of Connection Handler ObjectNames
+   * Return a Set of Connection Handler ObjectNames.
    * @return the Set of ObjectNames, an empty Set if no connection handlers
    */
   public Set<ObjectName> getConnectionHandlers() {
@@ -195,9 +194,9 @@ public class SNMPMonitor {
   }
 
   /**
-   * Returns the ObjectName of the Statistics Connection Handler name 
+   * Returns the ObjectName of the Statistics Connection Handler name.
    * corresponding to the Connection Handler name
-   * @param connectionHandlerName
+   * @param connectionHandlerName The connection handler name
    * @return the ObjectName of the statistics ObjectName, null if the statistics
    * could not be found
    */
@@ -208,7 +207,7 @@ public class SNMPMonitor {
       return null;
     }
     try {
-      String value = 
+      String value =
               connectionHandlerName.getCanonicalName().concat("_Statistics");
       ObjectName statistics = new ObjectName(value);
       // Check if the MBean exists
@@ -225,7 +224,7 @@ public class SNMPMonitor {
   }
 
   /**
-   * Get the value of the attribute
+   * Get the value of the attribute.
    * @param name of Mbean as a String
    * @param attribute to look for
    * @return the value of the attribute, null if the attribute could not
@@ -246,10 +245,10 @@ public class SNMPMonitor {
   }
 
   /**
-   * Gets the value of an attribute
+   * Gets the value of an attribute.
    * @param name of the Mbean
    * @param attribute to look for
-   * @return the value of the attribute, null if the attribute value could not 
+   * @return the value of the attribute, null if the attribute value could not
    * be found
    */
   @SuppressWarnings("unchecked")
@@ -272,8 +271,8 @@ public class SNMPMonitor {
       });
   }
 
-  /** 
-   * Wrapper for SNMP Counter32 
+  /**
+   * Wrapper for SNMP Counter32.
    * @param v value
    * @return a counter32
    */
@@ -285,9 +284,9 @@ public class SNMPMonitor {
     }
   }
 
-  /** 
-   * Wrapper for SNMP Counter32
-   * @param V Value 
+  /**
+   * Wrapper for SNMP Counter32.
+   * @param V Value
    * @return a Counter32
    */
   public static Long counter32Value(Long V) {
@@ -299,8 +298,8 @@ public class SNMPMonitor {
     }
   }
 
-  /** 
-   * Latcher for SNMP Gauge32 
+  /**
+   * Latcher for SNMP Gauge32.
    * @param v value
    * @return a gauge32
    */
@@ -312,8 +311,8 @@ public class SNMPMonitor {
     }
   }
 
-  /** 
-   * Latcher for SNMP Gauge32
+  /**
+   * Latcher for SNMP Gauge32.
    * @param V value
    * @return a gauge32
    */
@@ -327,10 +326,10 @@ public class SNMPMonitor {
   }
 
   /**
-   * Checker for SNMP INTEGER   
+   * Checker for SNMP INTEGER.
    * @param V value
    * @return an Integer
-   * @throws com.sun.management.snmp.SnmpStatusException 
+   * @throws com.sun.management.snmp.SnmpStatusException If an error occurs
    */
   public static Integer integerValue(Long V) throws SnmpStatusException {
     long v = V.longValue();
@@ -342,7 +341,7 @@ public class SNMPMonitor {
   }
 
   /**
-   * pow x^y
+   * pow x^y.
    */
   private static long pow(long x, long y) {
     int j = 1;

@@ -53,24 +53,24 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
   /**
-   * Directory Server MBeanServer
+   * Directory Server MBeanServer.
    */
   private MBeanServer server;
   /**
-   * Mapping Class
+   * Mapping Class.
    */
   private SNMPMonitor monitor;
   /**
-   * ObjectName of the entry
+   * ObjectName of the entry.
    */
   private ObjectName entryName;
   /**
-   * Index of the Directory Server Instance (applIndex)
+   * Index of the Directory Server Instance (applIndex).
    */
   private Integer applIndex;
 
   /**
-   * Creates a DsTableEntry
+   * Creates a DsTableEntry.
    * @param mib the SNMP Mib where the entry will be created
    * @param server where the mapping objects will be found
    * @param index of the entry in the DsTable
@@ -134,7 +134,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
       monitorBackends = this.server.queryNames(SNMPMonitor.pattern, null);
       for (Iterator iter = monitorBackends.iterator(); iter.hasNext();) {
         ObjectName name = (ObjectName) iter.next();
-        Object value = this.monitor.getAttribute(name, 
+        Object value = this.monitor.getAttribute(name,
                 "ds-backend-entry-count");
         if (value != null) {
           result = result + new Long((String) value);
@@ -169,7 +169,7 @@ public class DsTableEntryImpl extends DsTableEntry implements DsEntry {
   }
 
   /**
-   * Gets the object of the entry
+   * Gets the object of the entry.
    * @return ObjectName of the entry
    */
   public ObjectName getObjectName() {

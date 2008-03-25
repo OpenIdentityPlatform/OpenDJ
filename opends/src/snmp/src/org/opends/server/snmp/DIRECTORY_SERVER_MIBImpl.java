@@ -48,24 +48,24 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
   /**
-   * Indicates if the SNMP Mbeans have to be registered or not
+   * Indicates if the SNMP Mbeans have to be registered or not.
    */
   private boolean registeredSnmpMBean = false;
   /**
-   * The Current Directory Server MIB
+   * The Current Directory Server MIB.
    */
   private DsMIBImpl dsMib = null;
   /**
-   * ObjectName of the Current Direcotry Server MIB
+   * ObjectName of the Current Direcotry Server MIB.
    */
   private ObjectName mibObName;
   /**
-   * ObjectName of the dsMIB group in the Directory Server MIB
+   * ObjectName of the dsMIB group in the Directory Server MIB.
    */
   private ObjectName groupObjName;
 
   /**
-   * Creates the Current Directory Server MIB
+   * Creates the Current Directory Server MIB.
    * @param registeredMBean indicates if the SNMP MBean has to register
    * in the Direcotry Server MBeanServer
    * @param mibName of the Directory Server MIB
@@ -94,7 +94,7 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
               SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
               "type=group,name=DsMib");
     }
-    final DsMIBMeta meta = createDsMIBMetaNode("DsMIB", oid, groupObjName, 
+    final DsMIBMeta meta = createDsMIBMetaNode("DsMIB", oid, groupObjName,
             server);
     if (meta != null) {
       meta.registerTableNodes(this, server);
@@ -103,7 +103,7 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
       // the returned object must implement the "DsMIBMBean"
       // interface.
       //
-      final DsMIBMBean group = (DsMIBMBean) createDsMIBMBean("DsMIB", oid, 
+      final DsMIBMBean group = (DsMIBMBean) createDsMIBMBean("DsMIB", oid,
               groupObjName, server);
       meta.setInstance(group);
       registerGroupNode("DsMIB", oid, groupObjName, meta, group, server);
@@ -121,7 +121,7 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
   }
 
   /**
-   * Returns the created dsMIB group
+   * Returns the created dsMIB group.
    * @return the DsMIBImpl
    */
   protected DsMIBImpl getMib() {
@@ -129,7 +129,7 @@ public class DIRECTORY_SERVER_MIBImpl extends DIRECTORY_SERVER_MIB {
   }
 
   /**
-   * Returns the ObjectName of the dsMIB group
+   * Returns the ObjectName of the dsMIB group.
    * @return the ObjectName of the created dsMIB group
    */
   protected ObjectName getObjectName() {

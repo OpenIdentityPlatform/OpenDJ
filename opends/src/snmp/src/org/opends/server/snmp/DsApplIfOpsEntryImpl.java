@@ -26,7 +26,6 @@
  */
 package org.opends.server.snmp;
 
-import com.sun.management.snmp.SnmpStatusException;
 import com.sun.management.snmp.agent.SnmpMib;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -51,39 +50,39 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
   /**
-   * ObjectName of the DsApplIfOpsEntry
+   * ObjectName of the DsApplIfOpsEntry.
    */
   private ObjectName entryName;
   /**
-   * MBeanServer where the cn=monitor Connection Handler MBean are registered 
+   * MBeanServer where the cn=monitor Connection Handler MBean are registered.
    */
   private MBeanServer server;
   /**
-   * ObjectName of the cn=monitor Connection Handler MBean
+   * ObjectName of the cn=monitor Connection Handler MBean.
    */
   private ObjectName connectionHandlerName;
   /**
    * SNMPMonitor representing the gateway beetween SNMP MBeans and cn=monitor
-   * MBeans
+   * MBeans.
    */
   private SNMPMonitor monitor;
   /**
    * ObjectName of the MBeans representing the Statistics of the cn=monitor
-   * ConnectionHandler 
+   * ConnectionHandler.
    */
   private ObjectName stats;
 
   /**
-   * Created a DsApplIfOpsEntry in the SnmpMib
+   * Created a DsApplIfOpsEntry in the SnmpMib.
    * @param mib where the entry has to be created
    * @param server where the corresponding cn=monitor MBean are registered
    * @param connectionHandlerObjectName mapping ObjectName
    * @param applIndex key in the DsTable
-   * @param connectionHandlerIndex key corresponding to this entry in the 
+   * @param connectionHandlerIndex key corresponding to this entry in the
    * DsApplIfOpsTable
    */
   public DsApplIfOpsEntryImpl(SnmpMib mib, MBeanServer server,
-          ObjectName connectionHandlerObjectName, int applIndex, 
+          ObjectName connectionHandlerObjectName, int applIndex,
           int connectionHandlerIndex) {
     super(mib);
     this.server = server;
@@ -104,7 +103,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
               connectionHandlerName);
     }
     if (stats != null) {
-      long value = Long.parseLong((String) this.monitor.getAttribute(stats, 
+      long value = Long.parseLong((String) this.monitor.getAttribute(stats,
               "searchRequests"));
       return SNMPMonitor.counter32Value(value);
     } else {
@@ -214,11 +213,11 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
    */
   @Override
   public Long getDsApplIfReadOps() {
-    return this.getDsApplIfCompareOps() + 
-            this.getDsApplIfAddEntryOps() + 
-            this.getDsApplIfRemoveEntryOps() + 
-            this.getDsApplIfModifyEntryOps() + 
-            this.getDsApplIfModifyRDNOps() + 
+    return this.getDsApplIfCompareOps() +
+            this.getDsApplIfAddEntryOps() +
+            this.getDsApplIfRemoveEntryOps() +
+            this.getDsApplIfModifyEntryOps() +
+            this.getDsApplIfModifyRDNOps() +
             this.getDsApplIfSearchOps();
   }
 
@@ -271,7 +270,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
 
   /**
    * {@inheritDoc}
-   * @return ApplIndex index of the corresponding DsTable entry 
+   * @return ApplIndex index of the corresponding DsTable entry
    */
   @Override
   public Integer getApplIndex() {
@@ -279,7 +278,7 @@ public class DsApplIfOpsEntryImpl extends DsApplIfOpsEntry implements DsEntry {
   }
 
   /**
-   * Returns the ObjectName of the SNMP entry MBean
+   * Returns the ObjectName of the SNMP entry MBean.
    * @return ObjectName of the entry
    */
   public ObjectName getObjectName() {

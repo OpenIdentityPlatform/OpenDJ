@@ -52,31 +52,31 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
      * Current Security Configuration for the SNMP Connection Handler.
      */
     private SNMPConnectionHandlerCfg currentConfig;
-   
+
     private TreeSet<InetAddress> hostsList;
     private boolean allManagers = false;
-    
+
     private SortedSet<String> trapsDestinations;
     private String trapsCommunity;
-    
+
     private SortedSet<String> communitiesList;
-    
+
 
     /**
-     * Creates an IP-Based ACL controller
-     * @param configuration of the Configuration 
+     * Creates an IP-Based ACL controller.
+     * @param configuration of the Configuration
      */
     public SNMPInetAddressAcl(SNMPConnectionHandlerCfg configuration) {
         super();
         this.currentConfig = configuration;
-        
+
         // hostsList
         SortedSet tmp = this.currentConfig.getAllowedManager();
         if (tmp.isEmpty()) {
             this.allManagers=true;
         }
         this.hostsList = new TreeSet<InetAddress>();
-        // Transform the String list into InetAddress List 
+        // Transform the String list into InetAddress List
         for (Iterator iter = tmp.iterator(); iter.hasNext();) {
             try {
                 String dest = (String) iter.next();
@@ -84,15 +84,15 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
             } catch (UnknownHostException ex) {
             }
         }
-        
+
         this.trapsDestinations = this.currentConfig.getTrapsDestination();
         this.communitiesList = this.currentConfig.getCommunity();
         this.trapsCommunity = this.currentConfig.getTrapsCommunity();
-        
+
     }
 
     /**
-     * Gets the name of the acl
+     * Gets the name of the acl.
      * @return the name of the acl as a String
      */
     public String getName() {
@@ -107,7 +107,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
         if (this.allManagers) {
             return true;
         }
-        
+
         if ((this.hostsList==null) || (this.hostsList.isEmpty())) {
             return false;
         }
@@ -161,11 +161,11 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
 
     /**
      * {@inheritDoc}
-     * @return the list<InetAddress> of traps destinations
+     * @return the list of traps destinations
      */
     public Enumeration getTrapDestinations() {
         Vector<InetAddress> tempDests = new Vector<InetAddress>();
-        for (Iterator iter = this.trapsDestinations.iterator(); iter.hasNext();) 
+        for (Iterator iter = this.trapsDestinations.iterator(); iter.hasNext();)
         {
             try {
                 String dest = (String) iter.next();
@@ -180,7 +180,7 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
     /**
      * {@inheritDoc}
      * @param address
-     * @return 
+     * @return the list of communities
      */
     public Enumeration getTrapCommunities(InetAddress address) {
         Vector<String> trapCommunities = new Vector<String>();
@@ -206,5 +206,5 @@ public class SNMPInetAddressAcl implements InetAddressAcl {
         Vector<String> informCommunities = new Vector<String>();
         return informCommunities.elements();
     }
-    
+
 }
