@@ -30,7 +30,7 @@
 /**
  * Common administration classes.
  * <p>
- * This package contains the generation of the Configuretion Guide
+ * This package contains the generation of the Configuration Guide
  * common to both the client and server.
  */
 @org.opends.server.types.PublicAPI(
