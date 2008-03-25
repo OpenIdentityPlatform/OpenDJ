@@ -134,7 +134,7 @@ public class LengthBasedPasswordValidator extends
     int maxLength = config.getMaxPasswordLength();
     if ((maxLength > 0) && (numChars > maxLength))
     {
-      invalidReason.append(ERR_PWLENGTHVALIDATOR_TOO_LONG.get(minLength));
+      invalidReason.append(ERR_PWLENGTHVALIDATOR_TOO_LONG.get(maxLength));
       return false;
     }
 
