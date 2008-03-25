@@ -49,7 +49,6 @@ import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.core.DirectoryServer;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines an SNMP connection handler, which can be used to answer
@@ -65,19 +64,19 @@ public final class SNMPConnectionHandler
     // Current configuration
     SNMPConnectionHandlerCfg currentConfig;
     /**
-     * The list of active client connection
+     * The list of active client connection.
      */
     private LinkedList<ClientConnection> connectionList;
     /**
-     * The set of listeners for this connection handler
+     * The set of listeners for this connection handler.
      */
     private LinkedList<HostPort> listeners = new LinkedList<HostPort>();
-    /** 
-     * SNMP Connection Handler delegation class
+    /**
+     * SNMP Connection Handler delegation class.
      */
     private SNMPClassLoaderProvider provider;
     /**
-     * Is the SNMP Connection Handler Operational
+     * Is the SNMP Connection Handler Operational.
      */
     private boolean isOperational = false;
 
@@ -112,7 +111,7 @@ public final class SNMPConnectionHandler
             logError(message);
             return;
         }
-        
+
         // Get the jarFile Location and test if exists to be able to
         // start the SNMP Connection Handler as requested
         File jarFile = new File(jarLocation);
@@ -249,7 +248,8 @@ public final class SNMPConnectionHandler
      * {@inheritDoc}
      */
     public LinkedHashMap<String, String> getAlerts() {
-        LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> alerts =
+          new LinkedHashMap<String, String>();
         return alerts;
     }
 
@@ -258,22 +258,28 @@ public final class SNMPConnectionHandler
         try {
             URL u = new URL("jar:file://"+ file.toString()+"!/");
             Class[] parameters = new Class[]{URL.class};
-            URLClassLoader sysloader = (URLClassLoader)ClassLoader.getSystemClassLoader();
-	    Class sysclass = URLClassLoader.class;
-	    Method method = sysclass.getDeclaredMethod("addURL",new Class[]{URL.class});
+            URLClassLoader sysloader =
+              (URLClassLoader)ClassLoader.getSystemClassLoader();
+            Class sysclass = URLClassLoader.class;
+            Method method =
+              sysclass.getDeclaredMethod("addURL",new Class[]{URL.class});
             method.setAccessible(true);
-	    method.invoke(sysloader,new Object[]{ u });
-        } 
+            method.invoke(sysloader,new Object[]{ u });
+        }
         catch (Throwable t) {
         }
     }//end method
-    
+
     private void initSnmpClasses() {
         try {
-            URLClassLoader opendsLoader = (URLClassLoader)DirectoryServer.getClassLoader();
-            Class.forName("com.sun.management.comm.SnmpV3AdaptorServer", true, opendsLoader);
-            Class.forName("com.sun.management.snmp.InetAddressAcl",true, opendsLoader);
-            Class.forName("com.sun.management.snmp.SnmpEngineParameters",true, opendsLoader);
+            URLClassLoader opendsLoader =
+              (URLClassLoader)DirectoryServer.getClassLoader();
+            Class.forName("com.sun.management.comm.SnmpV3AdaptorServer",
+                true, opendsLoader);
+            Class.forName("com.sun.management.snmp.InetAddressAcl",
+                true, opendsLoader);
+            Class.forName("com.sun.management.snmp.SnmpEngineParameters",
+                true, opendsLoader);
             Class.forName("com.sun.management.snmp.UserAcl",true, opendsLoader);
             this.isOperational = true;
         } catch (ClassNotFoundException ex) {
@@ -281,16 +287,24 @@ public final class SNMPConnectionHandler
         }
     }
 
+    /**
+     * Indicate if operational.
+     * @param file The file
+     * @return true is operational
+     */
     public boolean isOperational(File file) {
         this.addFile(file);
         this.initSnmpClasses();
         return this.isOperational;
     }
-    
+
+    /**
+     * Indicate if operational.
+     * @return true is operational
+     */
     public boolean isOperational() {
         return this.isOperational;
     }
 }
 
-    
 

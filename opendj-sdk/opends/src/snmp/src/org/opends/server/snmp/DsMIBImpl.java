@@ -55,52 +55,52 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
    * utility included with the Java SDK.
    */
   private static final long serialVersionUID = 6787374593664749374L;
-  
+
   /**
    * The debug log tracer for this class.
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
-  
+
   /**
-   * Directory Server MIB access
+   * Directory Server MIB access.
    */
   private SnmpMib mib;
-  
-  /** 
-   * Register or not the SNMP MBean
+
+  /**
+   * Register or not the SNMP MBean.
    */
   private boolean registeredSnmpMBean = false;
-  
+
   /**
-   * List of DsTableEntries
+   * List of DsTableEntries.
    */
-  private Hashtable<ObjectName, DsEntry> dsTableEntries = 
+  private Hashtable<ObjectName, DsEntry> dsTableEntries =
           new Hashtable<ObjectName, DsEntry>();
-  
+
   /**
-   * List of DsIntTableEntries
+   * List of DsIntTableEntries.
    */
-  private Hashtable<ObjectName, DsEntry> dsApplIfOpsTableEntries = 
+  private Hashtable<ObjectName, DsEntry> dsApplIfOpsTableEntries =
           new Hashtable<ObjectName, DsEntry>();
-  
+
    /**
-   * List of DsIntTableEntries
+   * List of DsIntTableEntries.
    */
-  private Hashtable<ObjectName, DsEntry> dsIntTableEntries = 
+  private Hashtable<ObjectName, DsEntry> dsIntTableEntries =
           new Hashtable<ObjectName, DsEntry>();
-  
+
   /**
-   * Directory Server MBeanServer
+   * Directory Server MBeanServer.
    */
   private MBeanServer server;
-  
+
   /**
-   * cn=monitor Mapping Class SNMP->MBean
+   * cn=monitor Mapping Class SNMP->MBean.
    */
   private SNMPMonitor monitor;
-  
-  /** 
-   * Start Table indexes
+
+  /**
+   * Start Table indexes.
    */
   private int applIndex = 1;
   private int applIfOpsIndex = 1;
@@ -108,7 +108,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
 
   /**
    * Constructor for the "DsMIB" group.
-   * If the group contains a table, the entries created through an SNMP SET 
+   * If the group contains a table, the entries created through an SNMP SET
    * will not be registered in Java DMK.
    * @param myMib snmp mib
    * @param server where the MBeans are registered
@@ -128,15 +128,15 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
     this.intIndex = 1;
     // Initialize the MIB
     initDsTables();
-    
+
     if (DebugLogger.debugEnabled()) {
       TRACER.debugVerbose("DsMIB Group Created");
     }
   }
-  
+
   /**
-   * Returns the Set of ObjectName of all the created entries in all the Table
-   * @return Set<ObjectName>
+   * Returns the Set of ObjectName of all the created entries in all the Table.
+   * @return The Set of ObjectName
    */
   @SuppressWarnings("unchecked")
   public Set<ObjectName> getEntriesObjectNames() {
@@ -146,10 +146,10 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
     results.addAll(this.dsIntTableEntries.keySet());
     return results;
   }
-  
+
   /**
-   * Returns the list of Created Entries 
-   * @return Set<ObjectName> of created entries
+   * Returns the list of Created Entries.
+   * @return Set of created entries
    */
   @SuppressWarnings("unchecked")
   public Set<ObjectName> getEntries() {
@@ -159,12 +159,12 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
     results.addAll(this.dsIntTableEntries.values());
     return results;
   }
-  
+
   /**
    * handleNotification callback called when an MBeansServer Notification is
-   * received
+   * received.
    * @param notification received
-   * @param handback 
+   * @param handback The handback
    */
   public void handleNotification(Notification notification, Object handback) {
     if (notification instanceof MBeanServerNotification) {
@@ -177,7 +177,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
                 (isAConnectionHandler(name))) {
           addRowInDsApplIfOpsTable(name);
         }
-      } 
+      }
       // Process the ConnectionHandler unregistration
       else if (notif.getType().equals(
               MBeanServerNotification.UNREGISTRATION_NOTIFICATION)) {
@@ -191,16 +191,16 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
   }
 
   /**
-   * initDsTables in the dsMib Group
+   * initDsTables in the dsMib Group.
    */
   private void initDsTables() {
-    
+
     // Initialize the DSTable with one Entry : Current Directory Server
     initializeDsTable();
-    
-    // Initialize the DsApplIfOpsTable with one entry per Connection Handler 
+
+    // Initialize the DsApplIfOpsTable with one entry per Connection Handler.
     initializeDsApplIfOpsTable();
-    
+
     // Register as listener of the MBeanServer Notification to process
     // new Connection Handler MBeans
     try {
@@ -215,40 +215,40 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
   }
 
   /**
-   * initializeDsTable with the current Direcotry server instance
+   * initializeDsTable with the current Directory server instance.
    * Only one entry is created in this table
    **/
   private void initializeDsTable() {
     // Add the Current Directory Server Instance in the DsTable
     addRowInDsTable();
   }
-  
+
   /**
    * initializeDsApplIfOpsTable with the already registered Connection
-   * Handlers
+   * Handlers.
    **/
   private void initializeDsApplIfOpsTable() {
     // Get the list of ConnectionHandlers MBeans
     Set connectionHandlers = this.monitor.getConnectionHandlers();
     for (Iterator iter=connectionHandlers.iterator();iter.hasNext();) {
       ObjectName name = (ObjectName)iter.next();
-      // Add the ConnectionHandler in the DsApplIfOpsTable 
+      // Add the ConnectionHandler in the DsApplIfOpsTable
       addRowInDsApplIfOpsTable(name);
     }
   }
 
  /**
-  * addRowInDsTable
+  * addRowInDsTable.
   * @return true if the entry has been added else false
   */
   private boolean addRowInDsTable() {
 
     try {
-      
+
       // Create the entry
       DsTableEntryImpl entry = new DsTableEntryImpl(
               this.mib, this.server, this.applIndex);
-      
+
       // if the entry alreday exists nothing to do
       if ((this.dsTableEntries.containsKey(entry.getObjectName())) ||
               (entry == null)) {
@@ -272,7 +272,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
   }
 
   /**
-   * addRowInDsIntTable Not Supported
+   * addRowInDsIntTable Not Supported.
    * @return false (Not Supported for this current delivery)
    */
   private boolean addRowInDsIntTable() {
@@ -280,7 +280,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
   }
 
   /**
-   * addRowInDsApplIfOpsTable
+   * addRowInDsApplIfOpsTable.
    * @param connectionHandlerName to add
    * @return true if the entry has been added else false
    */
@@ -315,7 +315,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
   }
 
   /**
-   * removeRowInDsApplIfOpsTable 
+   * removeRowInDsApplIfOpsTable.
    * @param connectionHandlerName
    * @return true if the entry has been removed else false
    */
@@ -325,7 +325,7 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
       if (!this.dsApplIfOpsTableEntries.containsKey(connectionHandlerName)) {
         return false;
       }
-      DsApplIfOpsEntryImpl entry = (DsApplIfOpsEntryImpl) 
+      DsApplIfOpsEntryImpl entry = (DsApplIfOpsEntryImpl)
               this.dsApplIfOpsTableEntries.get(connectionHandlerName);
 
       this.DsApplIfOpsTable.removeEntry((DsApplIfOpsEntryMBean) entry);
@@ -337,9 +337,9 @@ public class DsMIBImpl extends DsMIB implements NotificationListener {
     }
   }
 
- 
+
 /**
- * isAConnectionHandler allows to check if the Mbean is a Connection Handler
+ * isAConnectionHandler allows to check if the Mbean is a Connection Handler.
  * @param name of the MBean
  * @return true if the MBean is a Connection Handler else false
  */

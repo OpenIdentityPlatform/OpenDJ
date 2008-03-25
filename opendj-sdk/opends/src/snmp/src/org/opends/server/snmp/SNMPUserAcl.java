@@ -33,6 +33,10 @@ import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 
+/**
+ * The SNMP User ACL.
+ *
+ */
 public class SNMPUserAcl implements UserAcl {
 
     /**
@@ -40,7 +44,7 @@ public class SNMPUserAcl implements UserAcl {
      */
     private static final DebugTracer TRACER = DebugLogger.getTracer();
     /**
-     * If * then all the users are allowed to access in read 
+     * If * then all the users are allowed to access in read.
      */
     private static final String ALL_USERS_ALLOWED = "*";
     /**
@@ -48,19 +52,19 @@ public class SNMPUserAcl implements UserAcl {
      */
     private SNMPConnectionHandlerCfg currentConfig;
     /**
-     * Configured hosts list 
+     * Configured hosts list.
      */
     private SortedSet usersList;
     /**
-     * Configured traps destinations
+     * Configured traps destinations.
      */
     private SortedSet trapDestinations;
     /**
-     * Configured communities string
+     * Configured communities string.
      */
     private SortedSet communityList;
     /**
-     * Configured Security level
+     * Configured Security level.
      */
     private SecurityLevel securityLevel;
     /**
@@ -76,7 +80,7 @@ public class SNMPUserAcl implements UserAcl {
     public SNMPUserAcl(SNMPConnectionHandlerCfg configuration) {
         // Keep the configuration
         this.currentConfig = configuration;
-        // Get the community/context string to accept 
+        // Get the community/context string to accept
         this.communityList = this.currentConfig.getCommunity();
         // Get the list of allowed users (SNMPV3)
         this.usersList = this.currentConfig.getAllowedUser();
@@ -114,7 +118,9 @@ public class SNMPUserAcl implements UserAcl {
             int securityLevel) {
 
         // Special check for the defaultUser
-        if ((user.equals(this.templateUsername)) && (contextName.equals("null")) && ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
+        if ((user.equals(this.templateUsername))
+            && (contextName.equals("null"))
+            && ((this.securityLevel.ordinal() + 1) >= securityLevel)) {
             return true;
         }
 

@@ -496,6 +496,12 @@
 
     <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
          failOnViolation="true">
+      <fileset dir="${snmp.src.dir}" includes="**/*.java" />
+      <formatter type="plain" />
+    </checkstyle>
+
+    <checkstyle config="${checkstyle.dir}/opends-checkstyle.xml"
+         failOnViolation="true">
       <fileset dir="${quicksetup.src.dir}" includes="**/*.java" />
       <formatter type="plain" />
     </checkstyle>

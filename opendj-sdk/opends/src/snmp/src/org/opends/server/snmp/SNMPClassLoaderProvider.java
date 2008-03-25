@@ -27,17 +27,11 @@
 package org.opends.server.snmp;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import com.sun.management.comm.SnmpV3AdaptorServer;
@@ -58,82 +52,94 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.Validator;
 
 
+/**
+ * The SNMPClassLoaderProvider.
+ */
 public class SNMPClassLoaderProvider {
-    
+
     /**
      * The debug log tracer for this class.
      */
     private static final DebugTracer TRACER = DebugLogger.getTracer();
-        
+
     /**
      * The current configuration state.
      */
     private SNMPConnectionHandlerCfg currentConfig;
-    
-    
+
+
     /**
-     * MBeanServer of OpenDS
+     * MBeanServer of OpenDS.
      */
     private MBeanServer server;
-    
+
     /**
-     * MIB to manage
+     * MIB to manage.
      */
     private DIRECTORY_SERVER_MIBImpl dsMib;
-    
+
     /**
-     * ObjectName of the MIB2605
+     * ObjectName of the MIB2605.
      */
     private ObjectName mibObjName;
-    
+
     /**
-     * ObjectName of the SnmpAdaptor
+     * ObjectName of the SnmpAdaptor.
      */
     private ObjectName snmpObjName;
-    
+
     /**
-     * SNMP Port Number for SNMP requests
+     * SNMP Port Number for SNMP requests.
      */
     private int snmpPort = 161;
-    
-    /** 
-     * Default SNMP trap port Number for SNMP Traps
+
+    /**
+     * Default SNMP trap port Number for SNMP Traps.
      */
     private int snmpTrapPort = 162;
-    
-    /** 
-     * Default SNMP Version
-     */
-    private String snmpVersion = SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3;
-    
+
     /**
-     * Registration of the SNMP MBeans
+     * Default SNMP Version.
+     */
+    private String snmpVersion =
+      SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3;
+
+    /**
+     * Registration of the SNMP MBeans.
      */
     private boolean registeredSNMPMBeans = false;
-    
+
     /**
-     * The unique name for this connection handler
+     * The unique name for this connection handler.
      */
     private String connectionHandlerName;
-    
+
     /**
-     * ObjectName of the UsmMIB
+     * ObjectName of the UsmMIB.
      */
     private ObjectName UsmObjName;
-    
+
     private SnmpV3AdaptorServer snmpAdaptor;
-    
+
+    /**
+     * Default constructor.
+     */
     public SNMPClassLoaderProvider() {
+      // No implementation required
     }
-    
+
+    /**
+     * Initialization.
+     * @param configuration The configuration
+     */
     public void initializeConnectionHandler(
             SNMPConnectionHandlerCfg configuration) {
 
-        
+
         // Keep the connection handler configuration
         this.currentConfig = configuration;
-        
-        // Get the Directory Server JMX MBeanServer 
+
+        // Get the Directory Server JMX MBeanServer
         this.server = DirectoryServer.getJMXMBeanServer();
 
         // Initialize he Connection Handler with the givewn configuration
@@ -141,6 +147,14 @@ public class SNMPClassLoaderProvider {
 
     }
 
+    /**
+     * Applies the configuration changes to this change listener.
+     *
+     * @param configuration
+     *          The new configuration containing the changes.
+     * @return Returns information about the result of changing the
+     *         configuration.
+     */
     public ConfigChangeResult applyConfigurationChange(
             SNMPConnectionHandlerCfg configuration) {
 
@@ -168,11 +182,12 @@ public class SNMPClassLoaderProvider {
                 // Creates and starts the SNMP Adaptor
                 this.snmpObjName = new ObjectName(
                         SNMPConnectionHandlerDefinitions.SNMP_DOMAIN +
-                        "class=SnmpAdaptorServer,protocol=snmp,port=" + snmpPort);
+                        "class=SnmpAdaptorServer,protocol=snmp," +
+                        "port=" + snmpPort);
                 this.server.registerMBean(this.snmpAdaptor, this.snmpObjName);
                 this.snmpAdaptor.start();
 
-                // Send a coldStart SNMP Trap on the new trap port if required 
+                // Send a coldStart SNMP Trap on the new trap port if required
                 if (this.snmpTrapPort != configuration.getTrapPort()) {
                     this.snmpTrapPort = configuration.getTrapPort();
                     this.snmpAdaptor.setTrapPort(snmpTrapPort);
@@ -187,19 +202,19 @@ public class SNMPClassLoaderProvider {
 
         // Check if the security file
         // If security file have changed, changeConfiguration not
-        // Supported 
+        // Supported.
 
         return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
 
     /**
-     * Gets the ObjectName of the crated USM MIB MBean
-     * @return
+     * Gets the ObjectName of the crated USM MIB MBean.
+     * @return The UsmMIB ObjectName
      */
     public ObjectName getUsmMIBName() {
         return this.UsmObjName;
     }
-    
+
      // private methods
     private void initializeConnectionHandler() {
 
@@ -247,7 +262,7 @@ public class SNMPClassLoaderProvider {
 
             this.snmpAdaptor.start();
 
-            // Send a coldStart SNMP Trap. 
+            // Send a coldStart SNMP Trap.
             this.snmpAdaptor.setTrapPort(snmpTrapPort);
             this.snmpAdaptor.snmpV1Trap(0, 0, null);
 
@@ -262,7 +277,7 @@ public class SNMPClassLoaderProvider {
 
             this.server.registerMBean(this.snmpAdaptor, snmpObjName);
             this.server.registerMBean(this.dsMib, this.mibObjName);
-            
+
         } catch (Exception ex) {
             if (debugEnabled()) {
                 TRACER.debugCaught(DebugLogLevel.ERROR, ex);
@@ -270,6 +285,10 @@ public class SNMPClassLoaderProvider {
         }
     }
 
+
+    /**
+     * Finalize.
+     */
     public void finalizeConnectionHandler() {
 
         try {
@@ -278,10 +297,10 @@ public class SNMPClassLoaderProvider {
             this.snmpAdaptor.snmpV1Trap(0, 0, null);
 
             String[] names = this.snmpAdaptor.getMibs();
-            
+
             // Stop the SNMP Adaptor
             this.snmpAdaptor.stop();
-            
+
             this.server.unregisterMBean(this.snmpObjName);
             this.server.unregisterMBean(this.mibObjName );
             this.server.unregisterMBean(new ObjectName(
@@ -291,7 +310,7 @@ public class SNMPClassLoaderProvider {
             // Unregister the created SNMP MBeans
             if (this.registeredSNMPMBeans) {
                 this.unregisterSnmpMBeans();
-                
+
                 if (this.snmpVersion.equals(
                         SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3)) {
                     this.server.unregisterMBean(this.UsmObjName);
@@ -315,8 +334,9 @@ public class SNMPClassLoaderProvider {
         }
     }
 
-    
-    private SnmpV3AdaptorServer getSnmpAdaptor(SNMPConnectionHandlerCfg configuration) {
+
+    private SnmpV3AdaptorServer getSnmpAdaptor(
+        SNMPConnectionHandlerCfg configuration) {
 
         Validator.ensureNotNull(configuration);
         SnmpV3AdaptorServer adaptor = null;
@@ -328,7 +348,8 @@ public class SNMPClassLoaderProvider {
 
             if (configuration.getVersion().toLowerCase().equals(
                     SNMPConnectionHandlerDefinitions.SNMP_VERSION_V3)) {
-                System.setProperty("jdmk.security.file", file.getAbsolutePath());
+                System.setProperty("jdmk.security.file",
+                    file.getAbsolutePath());
             }
 
             // Create the Security Parameters for the engine
@@ -342,7 +363,8 @@ public class SNMPClassLoaderProvider {
             engineParameters.setUserAcl(uacls);
 
             // V1/V2 Security parameters
-            InetAddressAcl acls = (InetAddressAcl)new SNMPInetAddressAcl(configuration);
+            InetAddressAcl acls =
+              (InetAddressAcl)new SNMPInetAddressAcl(configuration);
 
             adaptor = new SnmpV3AdaptorServer(engineParameters, null, acls,
                     configuration.getListenPort(), InetAddress.getLocalHost());
