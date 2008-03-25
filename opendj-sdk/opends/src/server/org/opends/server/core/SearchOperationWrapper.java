@@ -41,7 +41,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.SearchScope;
-import org.opends.server.workflowelement.WorkflowElement;
 
 
 /**
@@ -54,24 +53,6 @@ public abstract class SearchOperationWrapper extends OperationWrapper
 {
   // The wrapped operation.
   private SearchOperation search;
-
-  // The workflow element which has invoked the current operation.
-  // The returned entries and returned references must be sent to that
-  // workflow element.
-  private WorkflowElement<?> callingWorkflowElement = null;
-
-  /**
-   * Set the calling workflow element.
-   *
-   * @param callingWorkflowElement  the workflow element which has invoked
-   *                                the current operation
-   */
-  public void setCallingWorkflowElement(
-      WorkflowElement<?> callingWorkflowElement
-      )
-  {
-    this.callingWorkflowElement = callingWorkflowElement;
-  }
 
   /**
    * Creates a new search operation based on the provided search operation.
@@ -91,20 +72,7 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   {
     boolean result;
 
-    // If the calling workflow element is defined then send the return
-    // entry to the workflow element, otherwise send the entry to the
-    // calling operation.
-    // Sometimes, the calling workflow element might not be set for
-    // an internal operation because the internal search is done using
-    // a local backend operation instead of an operation basis.
-    if (callingWorkflowElement != null)
-    {
-      result = callingWorkflowElement.returnEntry(entry, controls);
-    }
-    else
-    {
-      result = this.search.returnEntry(entry, controls);
-    }
+    result = this.search.returnEntry(entry, controls);
 
     return result;
   }
@@ -116,19 +84,7 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   {
     boolean result;
 
-    // If the calling workflow element is not set then send the
-    // reference to the calling operation, otherwise send the reference
-    // to the calling workflow element.
-    // an internal operation because the internal search is done using
-    // a local backend operation instead of an operation basis.
-    if (callingWorkflowElement != null)
-    {
-      result = callingWorkflowElement.returnReference(dn, reference);
-    }
-    else
-    {
-      result = this.search.returnReference(dn, reference);
-    }
+    result = this.search.returnReference(dn, reference);
 
     return result;
   }
