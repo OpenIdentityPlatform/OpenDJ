@@ -454,31 +454,48 @@ public class ConfigGuideGeneration {
 
     // Relations
     if (!mo.getRelationDefinitions().isEmpty()) {
-      heading3("Relations From this Component");
-      paragraph(
-        "The following components have a direct composition relation FROM " +
-        mo.getUserFriendlyPluralName() + " :");
+      boolean emptyList = true;
       @SuppressWarnings("unchecked")
       Collection<RelationDefinition> rels = mo.getRelationDefinitions();
       for ( RelationDefinition rel : rels) {
-        beginList();
-        AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
-        link(childRel.getUserFriendlyName().toString(), childRel.getName() +
-          ".html");
-        endList();
+        if (rel.hasOption(RelationOption.HIDDEN)) {
+          continue;
+        }
+        emptyList = false;
+      }
+      if (!emptyList) {
+        heading3("Relations From this Component");
+        paragraph(
+          "The following components have a direct composition relation FROM " +
+          mo.getUserFriendlyPluralName() + " :");
+        for ( RelationDefinition rel : rels) {
+          if (rel.hasOption(RelationOption.HIDDEN)) {
+            continue;
+          }
+          beginList();
+          AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
+          link(childRel.getUserFriendlyName().toString(), childRel.getName() +
+            ".html");
+          endList();
+        }
       }
     }
+
     if (!mo.getReverseRelationDefinitions().isEmpty()) {
-      boolean isRoot = false;
+      boolean emptyList = true;
       @SuppressWarnings("unchecked")
       Collection<RelationDefinition> rels = mo.getReverseRelationDefinitions();
       for ( RelationDefinition rel : rels) {
-        // only check if it is not root
-        if (rel.getParentDefinition().getName().equals("")) {
-          isRoot = true;
+        if (rel.hasOption(RelationOption.HIDDEN)) {
+          continue;
         }
+        // check if it is not root
+        if (rel.getParentDefinition().getName().equals("")) {
+          continue;
+        }
+        emptyList = false;
       }
-      if (!isRoot) {
+      if (!emptyList) {
         heading3("Relations To this Component");
         paragraph(
           "The following components have a direct composition relation TO " +
