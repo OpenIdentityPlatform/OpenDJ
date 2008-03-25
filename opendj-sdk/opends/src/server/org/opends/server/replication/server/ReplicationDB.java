@@ -253,13 +253,27 @@ public class ReplicationDB
     return new ReplServerDBCursor();
   }
 
+  private void closeLockedCursor(Cursor cursor)
+    throws DatabaseException
+  {
+    try
+    {
+      if (cursor != null)
+        cursor.close();
+    }
+    finally
+    {
+      dbCloseLock.readLock().unlock();
+    }
+  }
+
   /**
    * Read the first Change from the database.
    * @return the first ChangeNumber.
    */
   public ChangeNumber readFirstChange()
   {
-    Cursor cursor;
+    Cursor cursor = null;
     String str = null;
 
     try
@@ -274,35 +288,32 @@ public class ReplicationDB
     }
     try
     {
-      DatabaseEntry key = new DatabaseEntry();
-      DatabaseEntry data = new DatabaseEntry();
-      OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
-      cursor.close();
-      dbCloseLock.readLock().unlock();
-      if (status != OperationStatus.SUCCESS)
-      {
-        /* database is empty */
-        return null;
-      }
       try
       {
-       str = new String(key.getData(), "UTF-8");
-      } catch (UnsupportedEncodingException e)
-      {
-        // never happens
+        DatabaseEntry key = new DatabaseEntry();
+        DatabaseEntry data = new DatabaseEntry();
+        OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
+        if (status != OperationStatus.SUCCESS)
+        {
+          /* database is empty */
+          return null;
+        }
+        try
+        {
+          str = new String(key.getData(), "UTF-8");
+        } catch (UnsupportedEncodingException e)
+        {
+          // never happens
+        }
+        return new ChangeNumber(str);
       }
-      return new ChangeNumber(str);
-    } catch (DatabaseException e)
+      finally
+      {
+        closeLockedCursor(cursor);
+      }
+    }
+    catch (DatabaseException e)
     {
-      try
-      {
-        cursor.close();
-        dbCloseLock.readLock().unlock();
-      }
-      catch (DatabaseException dbe)
-      {
-        // The db is dead - let's only log.
-      }
       /* database is faulty */
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
@@ -319,32 +330,39 @@ public class ReplicationDB
    */
   public ChangeNumber readLastChange()
   {
-    Cursor cursor;
+    Cursor cursor = null;
     String str = null;
 
     try
     {
       dbCloseLock.readLock().lock();
-      cursor = db.openCursor(null, null);
-      DatabaseEntry key = new DatabaseEntry();
-      DatabaseEntry data = new DatabaseEntry();
-      OperationStatus status = cursor.getLast(key, data, LockMode.DEFAULT);
-      cursor.close();
-      dbCloseLock.readLock().unlock();
-      if (status != OperationStatus.SUCCESS)
-      {
-        /* database is empty */
-        return null;
-      }
       try
       {
-       str = new String(key.getData(), "UTF-8");
-      } catch (UnsupportedEncodingException e)
-      {
-        // never happens
+        cursor = db.openCursor(null, null);
+        DatabaseEntry key = new DatabaseEntry();
+        DatabaseEntry data = new DatabaseEntry();
+        OperationStatus status = cursor.getLast(key, data, LockMode.DEFAULT);
+        if (status != OperationStatus.SUCCESS)
+        {
+          /* database is empty */
+          return null;
+        }
+        try
+        {
+          str = new String(key.getData(), "UTF-8");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+          // never happens
+        }
+        return new ChangeNumber(str);
       }
-      return new ChangeNumber(str);
-    } catch (DatabaseException e)
+      finally
+      {
+        closeLockedCursor(cursor);
+      }
+    }
+    catch (DatabaseException e)
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
@@ -371,6 +389,10 @@ public class ReplicationDB
   public class ReplServerDBCursor
   {
     private Cursor cursor = null;
+
+    // The transaction that will protect the actions done with the cursor
+    // Will be let null for a read cursor
+    // Will be set non null for a write cursor
     private Transaction txn = null;
     DatabaseEntry key = new DatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
@@ -407,8 +429,6 @@ public class ReplicationDB
               OperationStatus.SUCCESS)
             {
               // We could not even move the cursor closed to it => failure
-              // Unlocking is required before throwing any exception
-              dbCloseLock.readLock().unlock();
               throw new Exception("ChangeNumber not available");
             }
             else
@@ -420,17 +440,9 @@ public class ReplicationDB
               if (cursor.getPrev(key, data, LockMode.DEFAULT) !=
                 OperationStatus.SUCCESS)
               {
-                try
-                {
-                  cursor.close();
-                  cursor = db.openCursor(txn, null);
-                }
-                catch(Exception e)
-                {
-                  // Unlocking is required before throwing any exception
-                  dbCloseLock.readLock().unlock();
-                  throw(e);
-                }
+                closeLockedCursor(cursor);
+                dbCloseLock.readLock().lock();
+                cursor = db.openCursor(txn, null);
               }
             }
           }
@@ -438,9 +450,8 @@ public class ReplicationDB
       }
       catch (Exception e)
       {
-        // Unlocking is required before throwing any exception
-        dbCloseLock.readLock().unlock();
-        cursor.close();
+       // Unlocking is required before throwing any exception
+        closeLockedCursor(cursor);
         throw (e);
       }
     }
@@ -451,12 +462,25 @@ public class ReplicationDB
       {
         // We'll go on only if no close or no clear is running
         dbCloseLock.readLock().lock();
+
+        // Create the transaction that will protect whatever done with this
+        // write cursor.
         txn = dbenv.beginTransaction();
+
         cursor = db.openCursor(txn, null);
       }
       catch(DatabaseException e)
       {
-        dbCloseLock.readLock().unlock();
+        if (txn != null)
+        {
+          try
+          {
+            txn.abort();
+          }
+          catch (DatabaseException dbe)
+          {}
+        }
+        closeLockedCursor(cursor);
         throw (e);
       }
     }
@@ -468,23 +492,17 @@ public class ReplicationDB
     {
       try
       {
-        if (cursor != null)
-        {
-          cursor.close();
-          cursor = null;
-        }
+        closeLockedCursor(cursor);
+        cursor = null;
       }
       catch (DatabaseException e)
       {
-        dbCloseLock.readLock().unlock();
-
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
         mb.append(stackTraceToSingleLineString(e));
         logError(mb.toMessage());
         replicationServer.shutdown();
       }
-
       if (txn != null)
       {
         try
@@ -499,7 +517,6 @@ public class ReplicationDB
           replicationServer.shutdown();
         }
       }
-      dbCloseLock.readLock().unlock();
     }
 
     /**
@@ -515,7 +532,7 @@ public class ReplicationDB
         return;
       try
       {
-        cursor.close();
+        closeLockedCursor(cursor);
         cursor = null;
       }
       catch (DeadlockException e1)
@@ -526,8 +543,6 @@ public class ReplicationDB
       }
       catch (DatabaseException e)
       {
-        dbCloseLock.readLock().unlock();
-
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
         mb.append(stackTraceToSingleLineString(e));
@@ -548,7 +563,6 @@ public class ReplicationDB
           replicationServer.shutdown();
         }
       }
-      dbCloseLock.readLock().unlock();
     }
 
     /**
