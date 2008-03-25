@@ -273,7 +273,7 @@
         if wcPath:
           wcBinPath='%s/bin' % wcPath
           STAFCmd='%s/startup.sh' % wcBinPath
-          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin' \
+          STAFCmdEnv=['CATALINA_HOME=%s' % wcPath,'PATH=/bin:/usr/bin', \
                       'JAVA_HOME=%s' % JAVA_HOME]
       </script>
       
