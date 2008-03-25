@@ -513,8 +513,7 @@ public class ConfigGuideGeneration {
 
     heading3("Properties");
 
-    paragraph("The links below will jump you down the page to the " +
-      "description of a particular property.");
+    paragraph("A description of each property follows.");
     newline();
 
     TreeMap<String, PropertyDefinition> basicProps =
