@@ -60,13 +60,18 @@
           -->
           <testcase name="getTestCaseName('dsml suites')">
             <sequence>
-              <message>'TESTS_DIR=%s / TESTS_DATA_DIR=%s' % (TESTS_DIR,TESTS_DATA_DIR)</message>
-              <stafcmd name="'STAF Command: list DSML suites families'">
-                <location>'%s' % location</location>
-                <service>'fs'</service>
-                <request>' LIST DIRECTORY %s/dsml/suites SORTBYNAME TYPE d' % \
-                 (TESTS_DATA_DIR)</request>
-              </stafcmd>
+
+              <message>'List DSML suites families'</message>
+
+              <call function="'runSTAFCommand'">
+                { 'name'      :  'list DSML suites families',
+                  'location'  :  STAXServiceMachine,
+                  'service'   :  'FS',
+                  'request'   :  'LIST DIRECTORY',
+                  'arguments' :  '%s/dsml/suites SORTBYNAME TYPE d' % TESTS_DATA_DIR
+                }
+              </call>
+
               <if expr="RC != 0">
                 <sequence>
                   <message>
@@ -79,6 +84,9 @@
               <script>
                 cmdRC=RC
                 familyList=STAFResult
+                # The subversion folder could be present, if so remove it
+                if familyList.count != 0:
+                  familyList.remove('.svn')
                 import re
                 import base64
                 runFileRE = re.compile( 'dat$')
@@ -93,27 +101,36 @@
               <message>'DSML familyList = %s' % familyList</message>
               <iterate var="family" in="familyList">
                 <sequence>
-                  <message>'DSML family %s ' % (family)</message>
-                  <stafcmd name="'STAF Command: list DSML suite %s input' % (family)">
-                    <location>'%s' % location</location>
-                    <service>'fs'</service>
-                    <request>' LIST DIRECTORY %s/dsml/suites/%s/data \
-                      SORTBYNAME EXT dat TYPE f' % (TESTS_DATA_DIR,family)
-                    </request>
-                  </stafcmd>
+                  <message>'DSML family %s ' % family</message>
+
+                  <call function="'runSTAFCommand'">
+                    { 'name'      :  'List DSML suite %s input' % family,
+                      'location'  :  STAXServiceMachine,
+                      'service'   :  'FS',
+                      'request'   :  'LIST DIRECTORY',
+                      'arguments' :  '%s/dsml/suites/%s/data \
+                                      SORTBYNAME EXT dat TYPE f' % (TESTS_DATA_DIR,family)
+                    }
+                  </call>
+
                   <script>
                     familyInput = STAFResult
                   </script>
-                  <stafcmd name="'STAF Command: list DSML suite %s expected results' % (family)">
-                    <location>'%s' % location</location>
-                    <service>'fs'</service>
-                    <request>' LIST DIRECTORY %s/dsml/suites/%s/data \
-                      SORTBYNAME EXT res TYPE f' % (TESTS_DATA_DIR,family)
-                    </request>
-                  </stafcmd>
+
+                  <call function="'runSTAFCommand'">
+                    { 'name'      :  'List DSML suite %s expected results' % family,
+                      'location'  :  STAXServiceMachine,
+                      'service'   :  'FS',
+                      'request'   :  'LIST DIRECTORY',
+                      'arguments' :  '%s/dsml/suites/%s/data \
+                                      SORTBYNAME EXT res TYPE f' % (TESTS_DATA_DIR,family)
+                    }
+                  </call>
+
                   <script>
                     familyExpected = STAFResult
                   </script>
+
                   <iterate var="test" in="familyInput">
                     <testcase name="getTestCaseName('%s-%s' % (family,test))">
                       <sequence>
@@ -131,11 +148,16 @@
                           else:
                             url = urls['noSSL']
                         </script>
-                        <stafcmd name="'STAF Command: list DSML suite %s file %s' % (family,test)">
-                          <location>'%s' % location</location>
-                          <service>'fs'</service>
-                          <request>'GET FILE %s' % requestFilePath</request>
-                        </stafcmd>
+
+                        <call function="'runSTAFCommand'">
+                          { 'name'      :  'List DSML suite %s file %s' % (family,test),
+                            'location'  :  STAXServiceMachine,
+                            'service'   :  'FS',
+                            'request'   :  'GET FILE',
+                            'arguments' :  requestFilePath
+                          }
+                        </call>
+
                         <script>
                           from com.ibm.staf import STAFUtil
                           BODYSeparator = '\n\n'
@@ -162,14 +184,17 @@
                             
                           SOAPBody = STAFUtil.wrapData(STAFResult[BODYStart+len(BODYSeparator):])
                         </script>
-                        <stafcmd name="'submit SOAPBody '">
-                          <location>'local'</location>
-                          <service>'http'</service>
-                          <request>
-                            'REQUEST METHOD POST URL %s FOLLOWREDIRECT %s CONTENT %s RETURNHEADERS ' % \
-                            (url, SOAPHeaders, SOAPBody)
-                          </request>
-                        </stafcmd>
+
+                        <call function="'runSTAFCommand'">
+                          { 'name'      :  'Submit SOAPBody',
+                            'location'  :  STAXServiceMachine,
+                            'service'   :  'HTTP',
+                            'request'   :  'REQUEST METHOD POST',
+                            'arguments' :  'URL %s FOLLOWREDIRECT %s CONTENT %s RETURNHEADERS ' \
+                                            % (url, SOAPHeaders, SOAPBody)
+                          }
+                        </call>
+
                         <call function="'checktestRC'">
                           {
                           'returncode' : RC ,
@@ -192,13 +217,16 @@
                               f.close()
                             </script>
                             <message>'Comparing result %s and expected result %s' %  (runFilePath, expectedFilePath)</message>
-                            <stafcmd name="'compared SOAPResult with expected'">
-                              <location>'%s' % location</location>
-                              <service>'dsml'</service>
-                              <request>
-                                'COMPARE FILE %s EXP_FILE %s' %(runFilePath, expectedFilePath)
-                              </request>
-                            </stafcmd>
+
+                            <call function="'runSTAFCommand'">
+                              { 'name'      :  'Compare SOAPResult with expected result',
+                                'location'  :  STAXServiceMachine,
+                                'service'   :  'DSML',
+                                'request'   :  'COMPARE FILE',
+                                'arguments' :  '%s EXP_FILE %s' %(runFilePath, expectedFilePath)
+                              }
+                            </call>
+
                             <call function="'checktestRC'">
                               {
                               'returncode' : RC ,
@@ -217,17 +245,20 @@
                         </if>
                         <if expr="dsmlSvcLoaded == False">
                           <sequence>
-                            <stafcmd name="'load DSML service'">
-                            <location>'%s' % location</location>
-                            <service>'service'</service>
-                            <request>
-                              'ADD SERVICE DSML LIBRARY JSTAF \
-                                 EXECUTE %s/ext/staf/dsmlService.jar \
-                                 OPTION JVMNAME=dsmlJVM  \
-                                 OPTION J2=-Xmx512m' % \
-                                 TESTS_ROOT
-                            </request>
-                            </stafcmd> 
+
+                            <call function="'runSTAFCommand'">
+                              { 'name'      :  'Load DSML service',
+                                'location'  :  STAXServiceMachine,
+                                'service'   :  'SERVICE',
+                                'request'   :  'ADD SERVICE',
+                                'arguments' :  'DSML LIBRARY JSTAF \
+                                                EXECUTE %s/ext/staf/dsmlService.jar \
+                                                OPTION JVMNAME=dsmlJVM  \
+                                                OPTION J2=-Xmx512m' % \
+                                                TESTS_ROOT
+                              }
+                            </call>
+                            
                             <script>
                               dsmlSvcLoaded = True
                             </script>
@@ -242,13 +273,16 @@
               </iterate>
               <if expr="dsmlSvcLoaded == True">
                 <sequence>
-                  <stafcmd name="'unload DSML service'">
-                    <location>'%s' % location</location>
-                    <service>'service'</service>
-                    <request>
-                      'REMOVE SERVICE DSML'
-                    </request>
-                  </stafcmd>
+
+                  <call function="'runSTAFCommand'">
+                    { 'name'      :  'Unload DSML service',
+                      'location'  :  STAXServiceMachine,
+                      'service'   :  'SERVICE',
+                      'request'   :  'REMOVE SERVICE',
+                      'arguments' :  'DSML'
+                    }
+                  </call>
+
                   <script>
                     dsmlSvcLoaded = True
                   </script>
