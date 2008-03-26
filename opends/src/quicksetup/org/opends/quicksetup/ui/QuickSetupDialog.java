@@ -270,7 +270,6 @@ public class QuickSetupDialog
   {
     getButtonsPanel().addButtonActionListener(l);
     getInstalledPanel().addButtonActionListener(l);
-    getButtonsPanel().addButtonActionListener(l);
     getCurrentStepPanel().addButtonActionListener(l);
 
     buttonListeners.add(l);

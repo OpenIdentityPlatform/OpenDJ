@@ -72,7 +72,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getFormattedText(Message text)
   {
-    return Message.raw(getHtml(String.valueOf(text)));
+    return Message.raw(Utils.getHtml(String.valueOf(text)));
   }
 
   /**
@@ -106,7 +106,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
       html = UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE)
           + SPACE
           + SPACE
-          + UIFactory.applyFontToHtml(getHtml(String.valueOf(text)),
+          + UIFactory.applyFontToHtml(Utils.getHtml(String.valueOf(text)),
               UIFactory.PROGRESS_ERROR_FONT);
     } else {
       html =
@@ -141,7 +141,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
         UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE)
             + SPACE
             + SPACE
-            + UIFactory.applyFontToHtml(getHtml(String.valueOf(text)),
+            + UIFactory.applyFontToHtml(Utils.getHtml(String.valueOf(text)),
                 UIFactory.PROGRESS_WARNING_FONT);
     } else {
       html =
@@ -187,7 +187,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getFormattedLogError(Message text)
   {
-    String html = getHtml(String.valueOf(text));
+    String html = Utils.getHtml(String.valueOf(text));
     return Message.raw(UIFactory.applyFontToHtml(html,
         UIFactory.PROGRESS_LOG_ERROR_FONT));
   }
@@ -201,7 +201,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getFormattedLog(Message text)
   {
-    String html = getHtml(String.valueOf(text));
+    String html = Utils.getHtml(String.valueOf(text));
     return Message.raw(UIFactory.applyFontToHtml(html,
             UIFactory.PROGRESS_LOG_FONT));
   }
@@ -214,7 +214,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   {
     if (doneHtml == null)
     {
-      String html = getHtml(INFO_PROGRESS_DONE.get().toString());
+      String html = Utils.getHtml(INFO_PROGRESS_DONE.get().toString());
       doneHtml = Message.raw(UIFactory.applyFontToHtml(html,
           UIFactory.PROGRESS_DONE_FONT));
     }
@@ -228,7 +228,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   public Message getFormattedError() {
     if (errorHtml == null)
     {
-      String html = getHtml(INFO_PROGRESS_ERROR.get().toString());
+      String html = Utils.getHtml(INFO_PROGRESS_ERROR.get().toString());
       errorHtml = Message.raw(UIFactory.applyFontToHtml(html,
           UIFactory.PROGRESS_ERROR_FONT));
     }
@@ -244,9 +244,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getFormattedWithPoints(Message text)
   {
-    String html = getHtml(String.valueOf(text));
+    String html = Utils.getHtml(String.valueOf(text));
     String points = SPACE +
-            getHtml(INFO_PROGRESS_POINTS.get().toString()) + SPACE;
+            Utils.getHtml(INFO_PROGRESS_POINTS.get().toString()) + SPACE;
 
     MessageBuilder buf = new MessageBuilder();
     buf.append(UIFactory.applyFontToHtml(html, UIFactory.PROGRESS_FONT))
@@ -285,7 +285,8 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    */
   public Message getFormattedProgress(Message text)
   {
-    return Message.raw(UIFactory.applyFontToHtml(getHtml(String.valueOf(text)),
+    return Message.raw(UIFactory.applyFontToHtml(
+        Utils.getHtml(String.valueOf(text)),
         UIFactory.PROGRESS_FONT));
   }
 
@@ -315,7 +316,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     Throwable root = t.getCause();
     while (root != null)
     {
-      stackBuf.append(getHtml(INFO_EXCEPTION_ROOT_CAUSE.get().toString()))
+      stackBuf.append(Utils.getHtml(INFO_EXCEPTION_ROOT_CAUSE.get().toString()))
               .append(Constants.HTML_LINE_BREAK);
       stackBuf.append(getHtmlStack(root));
       root = root.getCause();
@@ -328,7 +329,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     String msg = t.getMessage();
     if (msg != null)
     {
-      buf.append(UIFactory.applyFontToHtml(getHtml(t.getMessage()),
+      buf.append(UIFactory.applyFontToHtml(Utils.getHtml(t.getMessage()),
               UIFactory.PROGRESS_ERROR_FONT)).append(Constants.HTML_LINE_BREAK);
     } else
     {
@@ -416,75 +417,6 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   }
 
   /**
-   * Returns the HTML representation for a given text. without adding any kind
-   * of font or style elements.  Just escapes the problematic characters
-   * (like '<') and transform the break lines into '\n' characters.
-   *
-   * @param text the source text from which we want to get the HTML
-   * representation
-   * @return the HTML representation for the given text.
-   */
-  private String getHtml(String text)
-  {
-    StringBuilder buffer = new StringBuilder();
-    if (text != null) {
-      text = text.replaceAll("\r\n", "\n");
-      String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
-      for (int i = 0; i < lines.length; i++)
-      {
-        if (i != 0)
-        {
-          buffer.append(Constants.HTML_LINE_BREAK);
-        }
-        buffer.append(escape(lines[i]));
-      }
-    }
-    return buffer.toString();
-  }
-
-  /**
-   * Returns the HTML representation of a plain text string which is obtained
-   * by converting some special characters (like '<') into its equivalent
-   * escaped HTML representation.
-   *
-   * @param rawString the String from which we want to obtain the HTML
-   * representation.
-   * @return the HTML representation of the plain text string.
-   */
-  private String escape(String rawString)
-  {
-    StringBuilder buffer = new StringBuilder();
-    for (int i = 0; i < rawString.length(); i++)
-    {
-      char c = rawString.charAt(i);
-      switch (c)
-      {
-      case '<':
-        buffer.append("&lt;");
-        break;
-
-      case '>':
-        buffer.append("&gt;");
-        break;
-
-      case '&':
-        buffer.append("&amp;");
-        break;
-
-      case '"':
-        buffer.append("&quot;");
-        break;
-
-      default:
-        buffer.append(c);
-        break;
-      }
-    }
-
-    return buffer.toString();
-  }
-
-  /**
    * Returns a HTML representation of the stack trace of a Throwable object.
    * @param ex the throwable object from which we want to obtain the stack
    * trace HTML representation.
@@ -503,7 +435,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     .append(SPACE)
     .append(SPACE)
     .append(SPACE)
-    .append(getHtml(ex.toString()))
+    .append(Utils.getHtml(ex.toString()))
     .append(Constants.HTML_LINE_BREAK);
     StackTraceElement[] stack = ex.getStackTrace();
     for (StackTraceElement aStack : stack) {
@@ -517,7 +449,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
               .append(SPACE)
               .append(SPACE)
               .append(SPACE)
-              .append(getHtml(aStack.toString()))
+              .append(Utils.getHtml(aStack.toString()))
               .append(Constants.HTML_LINE_BREAK);
     }
     return buf.toString();

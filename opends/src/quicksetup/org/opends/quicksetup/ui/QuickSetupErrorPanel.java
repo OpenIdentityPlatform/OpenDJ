@@ -38,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
+import org.opends.messages.Message;
 import org.opends.quicksetup.ButtonName;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -68,6 +69,18 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
   public QuickSetupErrorPanel(GuiApplication application,
                               CurrentInstallStatus installStatus)
   {
+    this(application, installStatus.getInstallationMsg());
+    continueButton.setVisible(installStatus.canOverwriteCurrentInstall());
+  }
+
+  /**
+   * Constructor of the QuickSetupErrorPanel.
+   * @param application Application this panel represents
+   * @param msg the error message to display formatted in HTML.
+   */
+  public QuickSetupErrorPanel(GuiApplication application,
+                              Message msg)
+  {
     super(application);
     JPanel p1 = new JPanel(new GridBagLayout());
     p1.setBackground(UIFactory.CURRENT_STEP_PANEL_BACKGROUND);
@@ -83,8 +96,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
     gbc.fill = GridBagConstraints.BOTH;
     gbc.insets.left = 0;
     JTextComponent tf =
-            UIFactory.makeHtmlPane(
-                    installStatus.getInstallationMsg(),
+            UIFactory.makeHtmlPane(msg,
                     UIFactory.INSTRUCTIONS_FONT);
     tf.setOpaque(false);
     tf.setEditable(false);
@@ -143,7 +155,7 @@ public class QuickSetupErrorPanel extends QuickSetupPanel
 
     gbc.gridwidth = GridBagConstraints.RELATIVE;
     p2.add(continueButton, gbc);
-    continueButton.setVisible(installStatus.canOverwriteCurrentInstall());
+    continueButton.setVisible(false);
 
     gbc.insets.left = UIFactory.HORIZONTAL_INSET_BETWEEN_BUTTONS;
     gbc.gridwidth = GridBagConstraints.REMAINDER;

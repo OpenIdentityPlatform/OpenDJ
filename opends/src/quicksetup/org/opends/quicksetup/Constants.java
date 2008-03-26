@@ -93,4 +93,7 @@ public class Constants {
 
   /** The default replication port. */
   public static final int DEFAULT_REPLICATION_PORT = 8989;
+
+  /** The maximum chars we show in a line of a dialog. */
+  public static final int MAX_CHARS_PER_LINE_IN_DIALOG = 100;
 }

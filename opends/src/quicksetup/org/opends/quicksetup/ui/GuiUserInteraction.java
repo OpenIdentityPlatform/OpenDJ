@@ -48,8 +48,6 @@ import java.util.List;
  */
 public class GuiUserInteraction implements UserInteraction {
 
-  static private final int MAX_CHARS_PER_LINE = 100;
-
   private Component parent = null;
 
   /**
@@ -99,9 +97,11 @@ public class GuiUserInteraction implements UserInteraction {
     }
     JOptionPane op;
     if (fineDetails != null) {
-      op = new DetailsOptionPane(MAX_CHARS_PER_LINE, fineDetails);
+      op = new DetailsOptionPane(Constants.MAX_CHARS_PER_LINE_IN_DIALOG,
+          fineDetails);
     } else {
-      op = new MaxCharactersPerLineOptionPane(MAX_CHARS_PER_LINE);
+      op = new MaxCharactersPerLineOptionPane(
+          Constants.MAX_CHARS_PER_LINE_IN_DIALOG);
     }
 
     // Create the main message using HTML formatting.  The max
@@ -110,12 +110,14 @@ public class GuiUserInteraction implements UserInteraction {
     // have to format this ourselves.
     MessageBuilder sb = new MessageBuilder();
     sb.append(Constants.HTML_BOLD_OPEN);
-    sb.append(Utils.breakHtmlString(summary, MAX_CHARS_PER_LINE));
+    sb.append(Utils.breakHtmlString(summary,
+        Constants.MAX_CHARS_PER_LINE_IN_DIALOG));
     sb.append(Constants.HTML_BOLD_CLOSE);
     sb.append(Constants.HTML_LINE_BREAK);
     sb.append(Constants.HTML_LINE_BREAK);
 
-    sb.append(Utils.breakHtmlString(details, MAX_CHARS_PER_LINE));
+    sb.append(Utils.breakHtmlString(details,
+        Constants.MAX_CHARS_PER_LINE_IN_DIALOG));
     JEditorPane ep = UIFactory.makeHtmlPane(
             sb.toMessage(),
             UIFactory.INSTRUCTIONS_FONT);

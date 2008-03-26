@@ -101,12 +101,17 @@ public class ReturnCode {
   public static final ReturnCode BUG = new ReturnCode(12);
 
   /**
-   * Return code: Bug.
+   * Return code: java version non-compatible.
+   */
+  public static final ReturnCode JAVA_VERSION_INCOMPATIBLE = new ReturnCode(13);
+
+  /**
+   * Return code: Print Version.
    */
   public static final ReturnCode PRINT_VERSION = new ReturnCode(50);
 
   /**
-   * Return code: Bug.
+   * Return code: Print Usage.
    */
   public static final ReturnCode PRINT_USAGE = new ReturnCode(51);
 
