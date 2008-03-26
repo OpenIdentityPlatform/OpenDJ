@@ -92,7 +92,6 @@
                 runFileRE = re.compile( 'dat$')
                 validAuthRE = re.compile ( '\%VALIDAUTH\%' )
                 sslRE = re.compile( '_ssl' )
-                dsmlSvcLoaded = False
                 urls = { \
                   'noSSL' : 'http://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_PORT), \
                   'SSL'   : 'https://%s:%s/dsml/DSMLServlet' % (WC_HOST,WC_SSL_PORT) \
@@ -243,27 +242,6 @@
                             </call>
                           </else>
                         </if>
-                        <if expr="dsmlSvcLoaded == False">
-                          <sequence>
-
-                            <call function="'runSTAFCommand'">
-                              { 'name'      :  'Load DSML service',
-                                'location'  :  STAXServiceMachine,
-                                'service'   :  'SERVICE',
-                                'request'   :  'ADD SERVICE',
-                                'arguments' :  'DSML LIBRARY JSTAF \
-                                                EXECUTE %s/ext/staf/dsmlService.jar \
-                                                OPTION JVMNAME=dsmlJVM  \
-                                                OPTION J2=-Xmx512m' % \
-                                                TESTS_ROOT
-                              }
-                            </call>
-                            
-                            <script>
-                              dsmlSvcLoaded = True
-                            </script>
-                          </sequence>
-                        </if>
                         
                         <call function="'testCase_Postamble'"/>
                       </sequence>
@@ -271,23 +249,7 @@
                   </iterate>
                 </sequence>
               </iterate>
-              <if expr="dsmlSvcLoaded == True">
-                <sequence>
 
-                  <call function="'runSTAFCommand'">
-                    { 'name'      :  'Unload DSML service',
-                      'location'  :  STAXServiceMachine,
-                      'service'   :  'SERVICE',
-                      'request'   :  'REMOVE SERVICE',
-                      'arguments' :  'DSML'
-                    }
-                  </call>
-
-                  <script>
-                    dsmlSvcLoaded = True
-                  </script>
-                </sequence>
-              </if>
               <call function="'checktestRC'">
                 {
                 'returncode' : RC ,
