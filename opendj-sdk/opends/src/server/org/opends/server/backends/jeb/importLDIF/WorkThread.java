@@ -236,7 +236,9 @@ public class WorkThread extends DirectoryThread {
     if (ldifImportConfig.appendToExistingData() &&
             ldifImportConfig.replaceExistingEntries()) {
       Entry existingEntry = element.getExistingEntry();
-      processIndexesEntryDelete(element, existingEntry, entryID, txn);
+      if(existingEntry != null) {
+          processIndexesEntryDelete(element, existingEntry, entryID, txn);
+      }
     }
     Map<AttributeType, AttributeIndex> attrIndexMap =
             context.getAttrIndexMap();
@@ -351,7 +353,9 @@ public class WorkThread extends DirectoryThread {
       if (ldifImportConfig.appendToExistingData() &&
               ldifImportConfig.replaceExistingEntries()) {
         Entry existingEntry = element.getExistingEntry();
-        dn2uri.replaceEntry(txn, existingEntry, entry);
+        if(existingEntry != null) {
+          dn2uri.replaceEntry(txn, existingEntry, entry);
+        }
       } else {
         ret= dn2uri.addEntry(txn, entry);
       }
