@@ -224,7 +224,7 @@
                 msg1 = 'ID                        126'
                 msg2 = 'Type                      Disconnect Client'
                 msg3 = 'Status                    Waiting on start time'
-                msg4 = 'Scheduled Start Time      Dec 12, 2048 12:00:00 AM MET'
+                msg4 = 'Scheduled Start Time      Dec 12, 2048 12:00:00 AM'
               </script>
                              
               <call function="'checktestString'">
