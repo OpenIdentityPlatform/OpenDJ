@@ -36,8 +36,7 @@ import org.opends.server.util.StaticUtils;
 import org.opends.messages.Message;
 
 /**
- * This enum contains the different type of ApplicationException that we can
- * have.
+ * Class used by Launcher to start a CLI application.
  *
  */
 public class QuickSetupCli {

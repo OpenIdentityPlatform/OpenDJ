@@ -145,13 +145,16 @@ public final class MenuBuilder<T> {
     // The menu title.
     private final Message title;
 
-
+    // The maximum number of times we display the menu if the user provides
+    // bad input (-1 for unlimited).
+    private int nMaxTries;
 
     // Private constructor.
     private MenuImpl(ConsoleApplication app, Message title, Message prompt,
         TableBuilder ntable, TableBuilder ctable, TablePrinter printer,
         Map<String, MenuCallback<T>> callbacks, boolean allowMultiSelect,
-        MenuCallback<T> defaultCallback, Message defaultDescription) {
+        MenuCallback<T> defaultCallback, Message defaultDescription,
+        int nMaxTries) {
       this.app = app;
       this.title = title;
       this.prompt = prompt;
@@ -162,6 +165,7 @@ public final class MenuBuilder<T> {
       this.allowMultiSelect = allowMultiSelect;
       this.defaultCallback = defaultCallback;
       this.defaultDescription = defaultDescription;
+      this.nMaxTries = nMaxTries;
     }
 
 
@@ -276,7 +280,16 @@ public final class MenuBuilder<T> {
         }
 
         // Get the user's choice.
-        MenuCallback<T> choice = app.readValidatedInput(promptMsg, validator);
+        MenuCallback<T> choice;
+
+        if (nMaxTries != -1)
+        {
+          choice = app.readValidatedInput(promptMsg, validator, nMaxTries);
+        }
+        else
+        {
+          choice = app.readValidatedInput(promptMsg, validator);
+        }
 
         // Invoke the user's selected choice.
         MenuResult<T> result = choice.invoke(app);
@@ -371,7 +384,9 @@ public final class MenuBuilder<T> {
   // The menu prompt.
   private Message prompt = null;
 
-
+  // The maximum number of times that we allow the user to provide an invalid
+  // answer (-1 if unlimited).
+  private int nMaxTries = -1;
 
   /**
    * Creates a new menu.
@@ -805,6 +820,18 @@ public final class MenuBuilder<T> {
     }
 
     return new MenuImpl<T>(app, title, prompt, nbuilder, cbuilder, printer,
-        callbacks, allowMultiSelect, defaultCallback, defaultDescription);
+        callbacks, allowMultiSelect, defaultCallback, defaultDescription,
+        nMaxTries);
+  }
+
+  /**
+   * Sets the maximum number of tries that the user can provide an invalid
+   * value in the menu. -1 for unlimited tries (the default).  If this limit is
+   * reached a CLIException will be thrown.
+   * @param nTries the maximum number of tries.
+   */
+  public void setMaxTries(int nTries)
+  {
+    nMaxTries = nTries;
   }
 }

@@ -43,6 +43,7 @@ import org.opends.messages.MessageBuilder;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
@@ -255,7 +256,6 @@ class UninstallCliHelper extends ConsoleApplication {
       println();
     }
 
-
     return userData;
   }
 
@@ -297,6 +297,8 @@ class UninstallCliHelper extends ConsoleApplication {
     builder.setDefault(Message.raw(String.valueOf(REMOVE_ALL)),
         MenuResult.success(REMOVE_ALL));
 
+    builder.setMaxTries(CONFIRMATION_MAX_TRIES);
+
     Menu<Integer> menu = builder.toMenu();
     int choice;
     try
@@ -320,7 +322,12 @@ class UninstallCliHelper extends ConsoleApplication {
     catch (CLIException ce)
     {
       choice = REMOVE_ALL;
+      cancelled = true;
       LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
+      if (ce.getMessageObject().getDescriptor().equals(ERR_TRIES_LIMIT_REACHED))
+      {
+        println(ce.getMessageObject());
+      }
     }
 
     if (cancelled)
@@ -634,7 +641,7 @@ class UninstallCliHelper extends ConsoleApplication {
         {
           println(ce.getMessageObject());
           println();
-          cancelled = false;
+          cancelled = true;
         }
       }
       else
