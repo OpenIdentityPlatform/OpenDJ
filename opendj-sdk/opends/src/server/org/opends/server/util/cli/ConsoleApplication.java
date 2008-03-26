@@ -685,8 +685,7 @@ public abstract class ConsoleApplication {
       }
       nTries++;
     }
-    throw new CLIException(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
-        maxTries));
+    throw new CLIException(ERR_TRIES_LIMIT_REACHED.get(maxTries));
   }
 
   /**
@@ -726,9 +725,10 @@ public abstract class ConsoleApplication {
       }
       catch (CLIException ce)
       {
-        if (ce.getMessageObject().equals(
-            ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(
-                  CONFIRMATION_MAX_TRIES)))
+        if (ce.getMessageObject().getDescriptor().equals(
+            ERR_CONFIRMATION_TRIES_LIMIT_REACHED) ||
+            ce.getMessageObject().getDescriptor().equals(
+                ERR_TRIES_LIMIT_REACHED))
         {
           throw ce;
         }

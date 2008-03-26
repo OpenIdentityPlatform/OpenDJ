@@ -296,6 +296,10 @@ public abstract class Launcher {
       printUsage(true);
       System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
     }
+    else if (returnValue.equals(ReturnCode.CANCELLED))
+    {
+      System.exit(ReturnCode.CANCELLED.getReturnCode());
+    }
     return returnValue.getReturnCode();
   }
 
