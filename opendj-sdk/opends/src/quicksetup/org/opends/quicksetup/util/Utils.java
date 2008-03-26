@@ -1454,6 +1454,100 @@ public class Utils
     }
     return time;
   }
+
+  /**
+   * Checks that the java version we are running is compatible with OpenDS.
+   * @throws IncompatibleVersionException if the java version we are running
+   * is not compatible with OpenDS.
+   */
+  public static void checkJavaVersion() throws IncompatibleVersionException
+  {
+    String vendor = System.getProperty("java.vendor");
+    String version = System.getProperty("java.version");
+    for (CompatibleJava i : CompatibleJava.values())
+    {
+      if (i.getVendor().equalsIgnoreCase(vendor))
+      {
+        // Compare versions.
+        boolean versionCompatible =
+          i.getVersion().compareToIgnoreCase(version) <= 0;
+        if (!versionCompatible)
+        {
+          throw new IncompatibleVersionException(
+              ERR_INCOMPATIBLE_VERSION.get(i.getVersion(), version), null);
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns the HTML representation of a plain text string which is obtained
+   * by converting some special characters (like '<') into its equivalent
+   * escaped HTML representation.
+   *
+   * @param rawString the String from which we want to obtain the HTML
+   * representation.
+   * @return the HTML representation of the plain text string.
+   */
+  static String escapeHtml(String rawString)
+  {
+    StringBuilder buffer = new StringBuilder();
+    for (int i = 0; i < rawString.length(); i++)
+    {
+      char c = rawString.charAt(i);
+      switch (c)
+      {
+      case '<':
+        buffer.append("&lt;");
+        break;
+
+      case '>':
+        buffer.append("&gt;");
+        break;
+
+      case '&':
+        buffer.append("&amp;");
+        break;
+
+      case '"':
+        buffer.append("&quot;");
+        break;
+
+      default:
+        buffer.append(c);
+        break;
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  /**
+   * Returns the HTML representation for a given text. without adding any kind
+   * of font or style elements.  Just escapes the problematic characters
+   * (like '<') and transform the break lines into '\n' characters.
+   *
+   * @param text the source text from which we want to get the HTML
+   * representation
+   * @return the HTML representation for the given text.
+   */
+  public static String getHtml(String text)
+  {
+    StringBuilder buffer = new StringBuilder();
+    if (text != null) {
+      text = text.replaceAll("\r\n", "\n");
+      String[] lines = text.split("[\n\r\u0085\u2028\u2029]");
+      for (int i = 0; i < lines.length; i++)
+      {
+        if (i != 0)
+        {
+          buffer.append(Constants.HTML_LINE_BREAK);
+        }
+        buffer.append(escapeHtml(lines[i]));
+      }
+    }
+    return buffer.toString();
+  }
 }
 
 /**

@@ -125,15 +125,6 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
   }
 
   /**
-   * Gets the current installation status of the filesystem
-   * bits this quick setup is managing.
-   * @return CurrentInstallStatus indicating the install status
-   */
-  public CurrentInstallStatus getInstallStatus() {
-    return installStatus;
-  }
-
-  /**
    * This method displays the setup dialog. This method must be called from the
    * event thread.
    */

@@ -39,6 +39,7 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.Launcher;
 import org.opends.quicksetup.QuickSetupLog;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
+import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
 import org.opends.messages.Message;
 import org.opends.server.tools.InstallDS;
@@ -128,7 +129,6 @@ public class SetupLauncher extends Launcher {
    * {@inheritDoc}
    */
   public void launch() {
-    //  Validate user provided data
     try
     {
       argParser.parseArguments(args);
@@ -145,11 +145,15 @@ public class SetupLauncher extends Launcher {
       }
       else if (isCli())
       {
+        Utils.checkJavaVersion();
         System.exit(InstallDS.mainCLI(args));
       }
       else
       {
         willLaunchGui();
+        // The java version is checked in the launchGui code to be sure
+        // that if there is a problem with the java version the message
+        // (if possible) is displayed graphically.
         int exitCode = launchGui(args);
         if (exitCode != 0) {
           File logFile = QuickSetupLog.getLogFile();
@@ -161,6 +165,7 @@ public class SetupLauncher extends Launcher {
           {
             guiLaunchFailed(null);
           }
+          Utils.checkJavaVersion();
           System.exit(InstallDS.mainCLI(args));
         }
       }
@@ -173,6 +178,11 @@ public class SetupLauncher extends Launcher {
       System.err.println(argParser.getUsage());
 
       System.exit(ReturnCode.USER_DATA_ERROR.getReturnCode());
+    }
+    catch (IncompatibleVersionException ive)
+    {
+      System.err.println(ive.getMessageObject());
+      System.exit(ReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode());
     }
   }
 

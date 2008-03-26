@@ -63,12 +63,15 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
 
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.quicksetup.Step.*;
 import org.opends.quicksetup.*;
 import org.opends.server.util.CertificateManager;
+import org.opends.quicksetup.event.ButtonActionListener;
+import org.opends.quicksetup.event.ButtonEvent;
 import org.opends.quicksetup.installer.ui.DataOptionsPanel;
 import org.opends.quicksetup.installer.ui.DataReplicationPanel;
 import org.opends.quicksetup.installer.ui.GlobalAdministratorPanel;
@@ -110,6 +113,8 @@ public abstract class Installer extends GuiApplication {
 
   /** When true indicates that the user has canceled this operation. */
   protected boolean canceled = false;
+
+  private boolean javaVersionCheckFailed;
 
   /** Map containing information about what has been configured remotely. */
   Map<ServerDescriptor, ConfiguredReplication> hmConfiguredRemoteReplication =
@@ -403,6 +408,11 @@ public abstract class Installer extends GuiApplication {
               "Cannot click on quit from progress step");
     } else if (installStatus.isInstalled()) {
       qs.quit();
+
+    } else if (javaVersionCheckFailed)
+    {
+      qs.quit();
+
     } else if (qs.displayConfirmation(INFO_CONFIRM_QUIT_INSTALL_MSG.get(),
             INFO_CONFIRM_QUIT_INSTALL_TITLE.get())) {
       qs.quit();
@@ -436,10 +446,42 @@ public abstract class Installer extends GuiApplication {
    */
   public JPanel createFramePanel(QuickSetupDialog dlg) {
     JPanel p;
-    if (installStatus.isInstalled() && !forceToDisplaySetup) {
-      p = dlg.getInstalledPanel();
-    } else {
-      p = super.createFramePanel(dlg);
+    javaVersionCheckFailed = true;
+    try
+    {
+      Utils.checkJavaVersion();
+      javaVersionCheckFailed = false;
+      if (installStatus.isInstalled() && !forceToDisplaySetup) {
+        p = dlg.getInstalledPanel();
+      } else {
+        p = super.createFramePanel(dlg);
+      }
+    }
+    catch (IncompatibleVersionException ijv)
+    {
+      MessageBuilder sb = new MessageBuilder();
+      sb.append(Utils.breakHtmlString(
+          Utils.getHtml(ijv.getMessageObject().toString()),
+          Constants.MAX_CHARS_PER_LINE_IN_DIALOG));
+      QuickSetupErrorPanel errPanel =
+        new QuickSetupErrorPanel(this, sb.toMessage());
+      final QuickSetupDialog fDlg = dlg;
+      errPanel.addButtonActionListener(
+          new ButtonActionListener()
+          {
+            /**
+             * ButtonActionListener implementation. It assumes that we are
+             * called in the event thread.
+             *
+             * @param ev the ButtonEvent we receive.
+             */
+            public void buttonActionPerformed(ButtonEvent ev)
+            {
+              // Simulate a close button event
+              fDlg.notifyButtonEvent(ButtonName.QUIT);
+            }
+          });
+      p = errPanel;
     }
     return p;
   }
