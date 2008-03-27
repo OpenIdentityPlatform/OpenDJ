@@ -45,16 +45,9 @@ import static org.testng.Assert.*;
 import org.testng.annotations.Test;
 
 /**
- * The class is a simple example showing how to use the SNMP Manager API.
- *
- * <p>When calling the program, you must specify:
- * <br>     - host: hostname of the SNMP agent you want to query.
- * <br>     - port: port number to use.
- *
- * <p>As a reminder, if you wish to query the SNMP agent example provided
- *    as part of Java DMK, use port 8085.
+ * SNMP trap test.
  */
-@Test(enabled=false, groups = {"precommit", "snmp"}, sequential = true)
+@Test(enabled=true, groups = {"precommit", "snmp"}, sequential = true)
 public class SNMPTrapManagerTest extends SNMPConnectionManager {
 
     @BeforeClass
@@ -63,7 +56,7 @@ public class SNMPTrapManagerTest extends SNMPConnectionManager {
         super.setUp();
     }
     
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void checkTraps() {
         try {
             
@@ -97,12 +90,11 @@ public class SNMPTrapManagerTest extends SNMPConnectionManager {
             trapThread.start();
             
             // One Trap
-            this.setDown(
-                 "On demand from org.opends.server.snmp.SNMPTrapManagerTest");
+            this.setDown();
             
             int trapNumbers = trapListener.getNumberV1Traps();
             
-            // Should received 3 traps
+            // Should received 1 traps
             assertEquals(trapNumbers, 1);
             
             // Nicely stop the SnmpEventReportDispatcher.
