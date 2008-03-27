@@ -163,6 +163,7 @@
         LOG_DIR         = '%s/%s' % (TMPDIR,logsDate)
         LOG_TMP_DIR     = '%s/tmp' % LOG_DIR
         LOG_XML_TMP_DIR = '%s/xmltmp' % LOG_DIR
+        LOCAL_TESTS_DIR = '%s/fwrk' % LOG_DIR
       </script>
       <call function="'createLogDir'"/>
       <!-- Write xml result header -->

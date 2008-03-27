@@ -77,16 +77,7 @@
             clients.extend(m.getClients())
       </script>
       
-      
-      <!--==== Copy client data into client host ====-->
-      <call function="'copyClients'">
-      { 
-        'clients'    : clients
-      }
-      </call>
-      <script>
-        MachineList = STAXResult
-      </script>
+      <!--==== Run clients only if no errors occured before   ===========-->
       <if expr="ERR_NUM[0] == 0">
         <sequence>
           <!--==== Start the system test and launch client's process ====-->
@@ -113,83 +104,6 @@
         'fileFd'    : LOG_MAIN_FD
       }
       </call>
-    </sequence>
-  </function>
-
-
-
-  <!-- ************************************************************ -->
-  <function name="copyClients" scope="local">
-    <function-map-args>
-      <function-arg-def name="clients" type="required">
-      </function-arg-def>
-    </function-map-args>
-    
-    <sequence>
-      <!--==========  Define variables  =========-->
-      <script>
-        fileList = STAXGlobal([])
-      </script>
-      <!--==== Get the list of hosts for each client ====-->
-      <script>
-        list = NOT_DEFINED
-        
-        # for each clients get from conf.xml file
-        for client in clients:          
-          if list == NOT_DEFINED:
-            list = '%s' % client.getHost()
-          elif list.find(client.getHost()) == -1:
-            list = '%s,%s' % (list,client.getHost())
-        
-        list = list.split(",")
-      </script>
-      <!--==========  Copy directory in parallel   ==========-->
-      <paralleliterate in="list" var="host">
-        <sequence>
-          <if expr="host != NOT_DEFINED">
-            <sequence>
-              <!--==== open logfile ====-->
-               <call function="'getLogFileName'">
-                {
-                  'type'   : 'host',
-                  'object' : host,
-                  'prefix' : 'client_copy'
-                }
-              </call>
-              <script>
-                logFile = STAXResult
-                fileList.append(logFile)
-                fileFd = open(logFile,'w')
-              </script>
-              <!--==== copy directory ====-->
-              <script>
-                fullHostName = '%s%s' % (host,DOMAIN[0])
-              </script>
-              <call function="'copyFolder'">
-                {
-                  'remoteHost'    : fullHostName,
-                  'fromDirectory' : '%s/clients' % TESTS_DIR,
-                  'toDirectory'   : '%s/clients' % LOG_DIR,
-                  'fileFd'        : fileFd
-                }
-              </call>
-              <!--==== close logfile ====-->
-              <script>
-                fileFd.close()
-                fileFd = ''
-              </script>
-            </sequence>
-          </if>
-        </sequence>
-      </paralleliterate>
-      <!--==========  Merge files    ==========-->
-      <call function="'mergeFiles'">
-        {
-          'fileList' : fileList,
-          'fileFd'   : LOG_MAIN_FD
-        }
-      </call>
-      <return>list</return>
     </sequence>
   </function>
   
@@ -417,7 +331,7 @@
       <script>
         timerKilled = TRUE
         clientXmlFile = '%s/clients/%s/%s.xml' % \
-                        (TESTS_DIR,client.getName(),client.getName())
+                        (LOCAL_TESTS_DIR,client.getName(),client.getName())
       </script>
       <timer duration="'%ss' % duration">
         <sequence>

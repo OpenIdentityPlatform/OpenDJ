@@ -124,7 +124,7 @@
             <location>client.getHost()</location>
             <command mode="'shell'">'chmod +x build.ksh'</command>
             <parms/>
-            <workdir>'%s/clients/modifyLoad' % LOG_DIR</workdir>
+            <workdir>'%s/clients/modifyLoad' % LOCAL_TESTS_DIR</workdir>
             <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
@@ -155,7 +155,7 @@
             <location>client.getHost()</location>
             <command mode="'shell'">'./build.ksh'</command>
             <parms/>
-            <workdir>'%s/clients/modifyLoad' % LOG_DIR</workdir>
+            <workdir>'%s/clients/modifyLoad' % LOCAL_TESTS_DIR</workdir>
             <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
@@ -193,8 +193,10 @@
           <script>
             cParam = '-client -Xmx1G -Xms1G'
             cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
-            cParam = '%s -cp %s/clients/LDAPjdk/ldapjdk.jar' % (cParam,LOG_DIR)
-            cParam = '%s:%s/clients/searchLoad/search.jar' % (cParam,LOG_DIR)
+            cParam = '%s -cp %s/clients/LDAPjdk/ldapjdk.jar' \
+                      % (cParam,LOCAL_TESTS_DIR)
+            cParam = '%s:%s/clients/searchLoad/search.jar' \
+                      % (cParam,LOCAL_TESTS_DIR)
             cParam = '%s Client %s' % (cParam,parms)
             
             titleName = '%s: run %s on %s' % \
@@ -205,7 +207,7 @@
             <location>client.getHost()</location>
             <command>'java'</command>
             <parms>cParam </parms>
-            <workdir>'%s/clients/searchLoad' % LOG_DIR</workdir>
+            <workdir>'%s/clients/searchLoad' % LOCAL_TESTS_DIR</workdir>
             <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
             <stdout>outFile</stdout>
