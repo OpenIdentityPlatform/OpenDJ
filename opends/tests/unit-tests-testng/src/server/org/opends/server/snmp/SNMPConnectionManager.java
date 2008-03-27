@@ -85,12 +85,11 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase {
     }
 
     /**
-     * Set Down the Directory Server
-     * @param message
+     * Set Down the Directory Server.
      * @throws java.lang.Exception
      */
-    protected void setDown(String message) throws Exception {
-        TestCaseUtils.shutdownServer(message);
+    protected void setDown() throws Exception {
+        TestCaseUtils.restartServer();
     }
 
     /**

@@ -57,8 +57,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * A simple test for : - JMX connection establishment withou using SSL -
- * JMX get and set - configuration change
+ * SNMP tests.
  */
 @Test(enabled=false, groups = {"precommit", "snmp"}, sequential = true)
 public class SNMPSyncManagerV2AccessTest extends SNMPConnectionManager {
