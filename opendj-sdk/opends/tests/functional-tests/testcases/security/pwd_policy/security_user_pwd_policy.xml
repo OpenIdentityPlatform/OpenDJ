@@ -102,7 +102,7 @@
         </testcase>
 
         <!--- Test Case : User Change Password With Bad Credentials -->
-        <testcase name="getTestCaseName('User With Bad Credentials Change Password ')">
+        <testcase name="getTestCaseName('User With Bad Credentials Change Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
