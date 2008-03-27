@@ -1056,7 +1056,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     if (!isVerbose())
     {
-      notifyListeners(getFormattedDone());
+      notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
 
@@ -1083,7 +1083,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
     if (!isVerbose())
     {
-      notifyListeners(getFormattedDone());
+      notifyListeners(getFormattedDoneWithLineBreak());
     }
   }
 

@@ -28,7 +28,6 @@
 package org.opends.quicksetup.util;
 
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.quicksetup.*;
@@ -584,12 +583,10 @@ public class FileManager {
                   destination.getAbsolutePath() + "' already exists");
           if ((application != null) && application.isVerbose()) {
             application.notifyListeners(
-                    new MessageBuilder(
-                            INFO_INFO_IGNORING_FILE.get(
+                    INFO_INFO_IGNORING_FILE.get(
                                     objectFile.getAbsolutePath(),
-                                    destination.getAbsolutePath()))
-                            .append(application.getLineBreak())
-                            .toMessage());
+                                    destination.getAbsolutePath()));
+            application.notifyListeners(application.getLineBreak());
           }
         }
       }
