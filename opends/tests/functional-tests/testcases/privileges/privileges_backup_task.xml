@@ -95,13 +95,10 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Admin adding privilege'
@@ -128,13 +125,10 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Admin adding global ACI'
@@ -168,10 +162,6 @@
                   'backupDir'        : '%s/privileges/' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Admin deleting privilege'
@@ -213,14 +203,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules' ,
                   'taskID'           : '3.1' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'expectedRC'       : 50
                 }
-                </call>
-    
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 50 }
                 </call>
                      
                 <call function="'testCase_Postamble'"/>
@@ -265,10 +250,6 @@
                   'backupDir'        : '%s/privileges/' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Directory Manager, alternative root user removing privilege'
@@ -295,13 +276,10 @@
                   'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD  ,
                   'taskID'           : '3.3' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, Directory Manager, alternative root user putting back privilege'
@@ -330,11 +308,6 @@
                   'taskID'           : '3.4' ,
                   'backupDir'        : '%s/privileges/' % logsRemoteDataDir
                 }
-                </call>
-    
-                <call function="'checktestRC'">
-                  { 'returncode' : STAFCmdRC ,
-                    'result'     : STAXResult  }
                 </call>
                      
                 <call function="'testCase_Postamble'"/>
@@ -391,10 +364,6 @@
                   'backupDir'        : '%s/privileges/' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, New Root User, alternative root user removing privilege'
@@ -421,13 +390,10 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : '3.6' ,
-                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir
+                  'backupDir'        : '%s/privileges/' % logsRemoteDataDir ,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Backup Tasks: backend-backup, New Root User, alternative root user putting back privilege'
@@ -456,11 +422,6 @@
                   'taskID'           : '3.7' ,
                   'backupDir'        : '%s/privileges/' % logsRemoteDataDir
                 }
-                </call>
-    
-                <call function="'checktestRC'">
-                  { 'returncode' : STAFCmdRC ,
-                    'result'     : STAXResult  }
                 </call>
                      
                 <call function="'testCase_Postamble'"/>

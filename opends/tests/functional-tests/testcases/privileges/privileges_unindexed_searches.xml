@@ -124,13 +124,6 @@
                 }
               </call>
               
-              <call function="'checktestRC'">
-                { 
-                'returncode' : RC ,
-                'result'     : STAXResult  
-                }
-              </call>
-              
               <call function="'testCase_Postamble'"/>
               
             </sequence>

@@ -1058,11 +1058,6 @@
                     'expectedRC'             : 50
                   }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -1249,11 +1244,6 @@
                     'expectedRC'             : 50
                   }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -1436,11 +1426,6 @@
                     'expectedRC'             : 50
                   }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -1586,11 +1571,6 @@
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : 'modify-acl' ,
                     'changetype'             : 'delete' }
-                </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -2101,11 +2081,6 @@
                     'expectedRC'             : 50
                   }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -2376,11 +2351,6 @@
                     'expectedRC'             : 50
                   }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -2570,11 +2540,6 @@
                     'changetype'             : 'replace' ,
                     'expectedRC'             : 50
                   }
-                </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -2775,11 +2740,6 @@
                     'newAttributeValue'      : 'update-schema' ,
                     'changetype'             : 'delete' }
                 </call>
-    
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult  }
-                </call>
                      
                 <call function="'testCase_Postamble'"/>
     
@@ -2936,11 +2896,6 @@
                     'newAttributeValue'      : write_aci ,
                     'changetype'             : 'delete' }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -2985,12 +2940,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                
                 <message>
                    'Privileges: Users: server-shutdown, Admin adding privilege'
@@ -3017,12 +2969,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
 
                 <message>
                    'Privileges: Users: server-shutdown, Admin adding ACI'
@@ -3111,12 +3060,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                
                 <message>
                    'Privileges: Users: server-shutdown, Admin removing ACI'
@@ -3143,13 +3089,8 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
-                </call>
-    
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 50 }
                 </call>
                      
                 <call function="'testCase_Postamble'"/>
@@ -3195,12 +3136,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                
                 <message>
                    'Privileges: Users: server-restart, Admin adding privilege'
@@ -3227,12 +3165,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: server-restart, Admin adding ACI'
@@ -3265,10 +3200,6 @@
                   'taskID'           : STAXCurrentTestcase,
                 }
                 </call>
-    
-                <if expr="STAFCmdRC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Users: server-restart, Admin deleting privilege'
@@ -3296,12 +3227,9 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                
                 <message>
                    'Privileges: Users: server-restart, Admin removing ACI'
@@ -3328,13 +3256,8 @@
                   'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                   'dsInstancePswd'   : 'ACIRules',
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
-                </call>
-    
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult ,
-                    'expected'   : 50 }
                 </call>
                 -->     
                 <call function="'testCase_Postamble'"/>

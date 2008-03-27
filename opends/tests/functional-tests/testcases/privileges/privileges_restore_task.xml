@@ -101,10 +101,6 @@
                   'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Admin adding backup task'
@@ -119,10 +115,6 @@
                   'backupDir'           : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Admin deleting entry'
@@ -177,13 +169,10 @@
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules',
                     'taskID'           : '6.1',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir,
+                    'expectedRC'       : 50
                   }
                 </call>
-      
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Admin adding global ACI'
@@ -217,10 +206,6 @@
                     'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
                   }
                 </call>
-      
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Admin deleting global ACI'
@@ -306,10 +291,6 @@
                   'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Directory Manager, alternative root user adding backup task'
@@ -324,10 +305,6 @@
                   'backupDir'           : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Directory Manager, alternative root user deleting entry'
@@ -382,13 +359,10 @@
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD,
                     'taskID'           : '6.4',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir,
+                    'expectedRC'       : 50
                   }
                 </call>
-      
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, Directory Manager, alternative root user putting back privilege'
@@ -418,10 +392,6 @@
                     'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
                   }
                 </call>
-      
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                   'Privileges: Restore Tasks: backend-restore, Directory Manager, alternative root user searching entry'
@@ -505,10 +475,6 @@
                   'ldifFile'            : '%s/privileges/privileges_restore_task/restore_task.ldif' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, New User Root, new root user adding backup task'
@@ -523,10 +489,6 @@
                   'backupDir'           : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
                 }
                 </call>
-    
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, New User Root, alternative root user deleting entry'
@@ -581,13 +543,10 @@
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
                     'taskID'           : '6.7',
-                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
+                    'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir,
+                    'expectedRC'       : 50
                   }
                 </call>
-      
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: Restore Tasks: backend-restore, New User Root, alternative root user putting back privilege'
@@ -617,10 +576,6 @@
                     'backupDir'        : '%s/privileges/privileges_restore_task/' % logsRemoteDataDir
                   }
                 </call>
-      
-                <if expr="RC != 0">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                   'Privileges: Restore Tasks: backend-restore, New User Root, alternative root user searching entry'
