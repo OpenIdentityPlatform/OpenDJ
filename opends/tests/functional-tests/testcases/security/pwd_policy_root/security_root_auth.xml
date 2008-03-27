@@ -32,19 +32,7 @@
   <function name="security_root_auth">
 
     <sequence>
-
-      <block name="'security-root-auth'">
       
-        <sequence>
-  
-          <script>
-            if not CurrentTestPath.has_key('group'):
-              CurrentTestPath['group']='security'                
-            CurrentTestPath['suite']=STAXCurrentBlock
-          </script>
-      
-          <call function="'testSuite_Preamble'"/>
-          
           <!---
                 Place suite-specific test information here.
                 #@TestSuiteName             Root Authentication Tests
@@ -481,13 +469,8 @@
           </sequence>
         </testcase>
 
-        <call function="'testSuite_Postamble'"/>
-            
-        </sequence>
-       
-      </block>
-       
-    </sequence>
+        
+     </sequence>
       
   </function>
 
