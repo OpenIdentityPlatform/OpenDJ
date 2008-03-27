@@ -1764,7 +1764,7 @@ public class InstallDS extends ConsoleApplication
       try
       {
         boolean defaultValue = (lastResetStartServer == null) ?
-            false : lastResetStartServer;
+            true : lastResetStartServer;
         startServer = confirmAction(message, defaultValue);
       }
       catch (CLIException ce)
