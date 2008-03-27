@@ -84,7 +84,7 @@
   #@TestResult               Success if OpenDS returns 0 for all operations
       -->
     
-  <testcase name="getTestCaseName('Equal DN mapping ')">
+  <testcase name="getTestCaseName('Equal DN mapping')">
     <sequence>
 
     <call function="'testCase_Preamble'"/>
