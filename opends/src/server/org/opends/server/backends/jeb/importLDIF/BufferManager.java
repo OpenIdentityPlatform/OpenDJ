@@ -111,7 +111,6 @@ public class BufferManager {
      this.flushThreadNumber = MIN_FLUSH_THREAD_NUM;
     else
       this.flushThreadNumber = importThreadCount;
-System.out.println("Num: " + flushThreadNumber);
   }
 
   /**
