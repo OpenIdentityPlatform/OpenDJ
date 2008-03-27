@@ -88,11 +88,6 @@
                     'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD  ,
                     'entryToBeAdded'      : '%s/privileges/add_new_root_user.ldif' % logsRemoteDataDir }
                 </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -552,11 +547,6 @@
                     'newAttributeValue'      : search2_aci ,
                     'changetype'             : 'delete' }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -665,11 +655,6 @@
                     'newAttributeValue'      : search_aci ,
                     'changetype'             : 'replace' }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -765,11 +750,6 @@
                     'attributeName'          : 'ds-privilege-name' ,
                     'newAttributeValue'      : '-modify-acl' ,
                     'changetype'             : 'delete' }
-                </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
                 </call>
               
                 <call function="'testCase_Postamble'"/>
@@ -1073,11 +1053,6 @@
                     'newAttributeValue'      : 'true' ,
                     'changetype'             : 'replace' }
                 </call>
-
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -1272,11 +1247,6 @@
                     'newAttributeValue'      : global2_aci ,
                     'changetype'             : 'delete' }
                 </call>
-                
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult  }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -1380,11 +1350,6 @@
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'pickles' ,
                     'changetype'             : 'replace' }
-                </call>
-                
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult }
                 </call>
                      
                 <call function="'testCase_Postamble'"/>
@@ -1701,11 +1666,6 @@
                     'newAttributeValue'      : write_aci ,
                     'changetype'             : 'delete' }
                 </call>
-    
-                <call function="'checktestRC'">
-                    { 'returncode' : RC ,
-                      'result'     : STAXResult }
-                </call>
               
                 <call function="'testCase_Postamble'"/>
     
@@ -1761,12 +1721,9 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: server-shutdown, alternative root user putting back privilege'
@@ -1903,12 +1860,9 @@
                   'dsInstanceDn'     : 'cn=Zroot' ,
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : STAXCurrentTestcase,
+                  'expectedRC'       : 50
                 }
                 </call>
-    
-                <if expr="RC != 50">
-                    <tcstatus result="'fail'"/>
-                </if>
                 
                 <message>
                    'Privileges: New Root User: server-restart, alternative root user putting back privilege'
@@ -1936,11 +1890,6 @@
                   'dsInstancePswd'   : 'PrivsRule' ,
                   'taskID'           : STAXCurrentTestcase
                 }
-                </call>
-                
-                <call function="'checktestRC'">
-                  { 'returncode' : RC ,
-                    'result'     : STAXResult  }
                 </call>
                      
                 <call function="'testCase_Postamble'"/>

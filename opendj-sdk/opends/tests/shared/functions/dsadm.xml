@@ -1129,7 +1129,7 @@
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>      
-        </function-arg-def>    
+      </function-arg-def>    
       
     </function-map-args>
     <sequence>
@@ -1216,8 +1216,7 @@
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
           'dsTaskLdif' : taskLdif,
-          'expectedRC' : expectedRC
-        }
+          'expectedRC' : expectedRC }
       </call>
 
       <script>
@@ -1679,6 +1678,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -1758,7 +1764,8 @@
           'dsPort'     : dsInstancePort,
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
+          'dsTaskLdif' : taskLdif,
+          'expectedRC' : expectedRC }
       </call>
 
       <script>
@@ -1777,6 +1784,11 @@
               'dsBindDn'   : dsInstanceDn,
               'dsBindPswd' : dsInstancePswd }
            </call>
+           <message>'Check CheckLdapTask returns RC=0'</message>
+            <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
+            </call>           
         </sequence>
       </if>
     </sequence>
@@ -2009,8 +2021,15 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>
     </function-map-args>
-    
+
     <sequence>
     
        <script>
@@ -2075,7 +2094,8 @@
           'dsPort'     : dsInstancePort,
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
+          'dsTaskLdif' : taskLdif,
+          'expectedRC' : expectedRC }
       </call>
 
       <script>
@@ -2093,6 +2113,11 @@
               'dsPort'     : dsInstancePort,
               'dsBindDn'   : dsInstanceDn,
               'dsBindPswd' : dsInstancePswd }
+            </call>
+            <message>'Check CheckLdapTask returns RC=0'</message>
+            <call function="'checktestRC'">
+             { 'returncode' : RC ,
+               'result'     : STAXResult }
             </call>
         </sequence>
       </if>  
@@ -2281,6 +2306,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="boolean"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -2339,7 +2371,8 @@
           'dsPort'     : dsInstancePort,
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
+          'dsTaskLdif' : taskLdif,
+          'expectedRC' : expectedRC }
       </call>
 
       <script>
@@ -2357,6 +2390,11 @@
               'dsPort'     : dsInstancePort,
               'dsBindDn'   : dsInstanceDn,
               'dsBindPswd' : dsInstancePswd }
+            </call>
+            <message>'Check CheckLdapTask returns RC=0'</message>
+            <call function="'checktestRC'">
+              { 'returncode' : RC ,
+                'result'     : STAXResult }
             </call>
          </sequence>
       </if>
@@ -2412,6 +2450,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -2466,7 +2511,8 @@
           'dsPort'     : dsInstancePort,
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
+          'dsTaskLdif' : taskLdif,
+          'expectedRC' : expectedRC }
       </call>
 
       <script>
@@ -2526,6 +2572,13 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+      </function-arg-def>
     </function-map-args>
 
     <sequence>
@@ -2580,7 +2633,8 @@
           'dsPort'     : dsInstancePort,
           'dsBindDn'   : dsInstanceDn,
           'dsBindPswd' : dsInstancePswd,
-          'dsTaskLdif' : taskLdif }
+          'dsTaskLdif' : taskLdif,
+          'expectedRC' : expectedRC }
       </call>
       
       <script>
