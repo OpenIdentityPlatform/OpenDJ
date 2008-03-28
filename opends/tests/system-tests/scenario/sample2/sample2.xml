@@ -41,12 +41,12 @@
              files allow you to configure the products as you want !-->
         <!-- ********************************************************* -->
         <script>
-          dirName   = 'sample2'
-          fConf     = '%s/scenario/%s/conf.xml' % (TESTS_DIR,dirName)
+          DIR_NAME  = 'sample2'
+          fConf     = '%s/scenario/%s/conf.xml' % (TESTS_DIR,DIR_NAME)
           fPreConf  = '%s/scenario/%s/pre_configuration.xml' % \
-                      (TESTS_DIR,dirName)
+                      (TESTS_DIR,DIR_NAME)
           fPostConf = '%s/scenario/%s/post_configuration.xml' % \
-                      (TESTS_DIR,dirName)
+                      (TESTS_DIR,DIR_NAME)
         </script>
         <call function="'main_run'">
         {
