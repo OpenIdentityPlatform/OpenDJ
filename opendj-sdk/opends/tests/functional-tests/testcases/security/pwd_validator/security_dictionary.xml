@@ -195,10 +195,7 @@
                     'newAttributeValue'      : 'sbbad' ,
                     'changetype'             : 'replace' }
             </call>
-            <script>
-              knownIssue(2361)
-            </script>
-            <!-- Uncomment when Issue 2361 is resolved.
+
             <message>
                'Security: Pwd Validator: Dictionary: user binding with valid password'
             </message>
@@ -212,7 +209,11 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-            -->
+
+            <script>
+              knownIssue(2361)
+            </script>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
@@ -245,7 +246,7 @@
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
                     'dsInstanceDn'           : 'uid=abergin,ou=people,ou=password tests,o=Pwd Validator Tests,dc=example,dc=com' ,
-                    'dsInstancePswd'         : 'inflict' ,
+                    'dsInstancePswd'         : 'sbbad' ,
                     'DNToModify'             : 'uid=abergin, ou=People, ou=password tests,  o=Pwd Validator Tests, dc=example,dc=com' ,
                     'attributeName'          : 'userpassword' ,
                     'newAttributeValue'      : 'zymochemistry' ,
@@ -265,7 +266,17 @@
                 'dsFilter'         : 'objectclass=*'  ,
                 'extraParams'      : '-s base' }
             </call>
-
+            
+            <!--  
+              On Windows platforms:
+              "Dictionary: Using Using Reverse Password 2" testcase failed due
+              to issue 2361 and the password for user "uid=abergin" is not 
+              changed => so this testcase failed for this reason
+            -->
+            <script>
+              knownIssue(2361)
+            </script>
+            
             <call function="'testCase_Postamble'"/>
             
           </sequence>
