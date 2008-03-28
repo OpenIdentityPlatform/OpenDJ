@@ -1494,5 +1494,14 @@ public class InitOnLineTest extends ReplicationTestCase
       server3 = null;
     }
     super.cleanRealEntries();
+    
+    if (changelog1 != null)
+    	changelog1.clearDb();
+    
+    if (changelog2 != null)
+    	changelog2.clearDb();
+    
+    if (changelog3 != null)
+    	changelog3.clearDb();
   }
 }
