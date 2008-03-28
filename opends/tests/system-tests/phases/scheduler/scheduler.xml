@@ -330,27 +330,59 @@
       <!--=== run the client, exit if time exceed duration time ===-->
       <script>
         timerKilled = TRUE
-        clientXmlFile = '%s/clients/%s/%s.xml' % \
-                        (LOCAL_TESTS_DIR,client.getName(),client.getName())
+        workingDir  = NOT_DEFINED
+        localWorkingDir = '%s/scenario/%s/clients/%s' % \
+                           (LOCAL_TESTS_DIR,DIR_NAME,client.getName())
+        sharedWorkingdir = '%s/clients/%s/' % \
+                           (LOCAL_TESTS_DIR,client.getName())
       </script>
       <timer duration="'%ss' % duration">
         <sequence>
-          <!-- check if client exists before launching it-->
+          <!-- check if local client exists before launching it-->
           <call function="'isFile'">
           {
             'location' : STAXServiceMachine,
-            'fileName' : clientXmlFile
+            'fileName' : '%s/%s.xml' % (localWorkingDir,client.getName())
           }
           </call>
           <script>
-            fileExist = STAXResult
+            localClientExist = STAXResult
           </script>
-          <if expr="fileExist == TRUE">
+          <!-- check if remote client exists before launching it-->
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : '%s/%s.xml' % (sharedWorkingdir,client.getName())
+          }
+          </call>
+          <script>
+            sharedClientExist = STAXResult
+          </script>
+          
+          <!-- use local client by default else the shared client -->
+          <if expr="localClientExist == TRUE">
+            <script> workingDir = localWorkingDir </script>
+          <elseif expr="sharedClientExist == TRUE">
+            <script> workingDir = sharedWorkingdir </script>
+          </elseif>
+          <else>
+            <sequence>
+              <message>
+                'ERROR : cant find files %s and %s' % \
+                (localClientXmlFile,clientXmlFile)
+              </message>
+              <script>ERR_NUM[0] += 1</script>
+            </sequence>
+          </else>
+          </if>
+          
+          <if expr="workingDir != NOT_DEFINED">
             <sequence>
               <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                      file="'%s' % clientXmlFile"/>
+                      file="'%s/%s.xml' % (workingDir,client.getName())"/>
               <call function="'%s' % client.getName()">
               { 
+                'workingDir' : workingDir,
                 'client'     : client,
                 'instances'  : instances,
                 'duration'   : duration,
@@ -362,10 +394,8 @@
                 timerKilled = FALSE
               </script>
             </sequence>
-          <else>
-            <message>'ERROR : cant find file %s' % clientXmlFile </message>
-          </else>
           </if>
+          
         </sequence>
       
       </timer>
