@@ -85,15 +85,6 @@
       <else>
         <sequence>
           
-          <!--===========  Generate template  ==========-->
-          <script>
-            sys.path.append("%s/phases/parser" % TESTS_DIR )
-            from parser import *
-            localTemplateFile = '%s/template.ldif' % (LOG_DIR)
-          </script>
-          <call function="'generateTemplate'">
-          { 'templateFile' : localTemplateFile }
-          </call>
           
           <!--===========  For the first host, copy and run makeldif  ======-->
           <script>
@@ -108,22 +99,63 @@
             ldifFile = '%s/data.ldif' % \
                         topoElements[0].getInstanceRef().getInstallDir()
           </script>
-          <call function="'copyFile'">
-          { 'location'   : topoElements[0].getInstanceRef().getHost(),
-            'srcFile'    : localTemplateFile,
-            'destFile'   : templateFile,
-            'remoteHost' : topoElements[0].getInstanceRef().getHost(),
-            'fileFd'     : LOG_MAIN_FD
-          }
-          </call>
-          <call function="'makeLdif'">
-          { 'location'     : topoElements[0].getInstanceRef().getHost(),
-            'dsPath'       : topoElements[0].getInstanceRef().getInstallDir(),
-            'templateFile' : templateFile,
-            'ldifFile'     : ldifFile,
-            'fileFd'       : LOG_MAIN_FD
-          }
-          </call>
+          
+          
+          <!--=== If suffix has already a generated ldif file, copy it ====-->
+          <if expr="suffix.getLdifFile() != NOT_DEFINED">
+            <sequence>
+              <call function="'copyFile'">
+              { 'location'   : STAXServiceMachine,
+                'srcFile'    : suffix.getLdifFile(),
+                'destFile'   : ldifFile,
+                'remoteHost' : topoElements[0].getInstanceRef().getHost(),
+                'fileFd'     : LOG_MAIN_FD
+              }
+              </call>
+              <message>
+                '%s : copy ldif file done' % topoElements[0].getInstanceRef().getHost()
+              </message>
+            </sequence>
+          
+          
+          <!--=== No ldif file provided, Generate it ===-->
+          <else>
+            <sequence>
+              <!--==  Generate and copy the template ==-->
+              <script>
+                sys.path.append("%s/phases/parser" % TESTS_DIR )
+                from parser import *
+                localTemplateFile = '%s/template.ldif' % (LOG_DIR)
+              </script>
+              <call function="'generateTemplate'">
+              { 'templateFile' : localTemplateFile }
+              </call>
+              <call function="'copyFile'">
+              { 'location'   : STAXServiceMachine,
+                'srcFile'    : localTemplateFile,
+                'destFile'   : templateFile,
+                'remoteHost' : topoElements[0].getInstanceRef().getHost(),
+                'fileFd'     : LOG_MAIN_FD
+              }
+              </call>
+              <!--==  Run make ldif  ==-->
+              <call function="'makeLdif'">
+              { 'location'     : topoElements[0].getInstanceRef().getHost(),
+                'dsPath'       : topoElements[0].getInstanceRef().getInstallDir(),
+                'templateFile' : templateFile,
+                'ldifFile'     : ldifFile,
+                'fileFd'       : LOG_MAIN_FD
+              }
+              </call>
+              <message>
+                '%s : makeLDIF done' % topoElements[0].getInstanceRef().getHost()
+              </message>
+            </sequence>
+          </else>
+          </if>
+          
+          
+          <!--==================  Import ldif file  =======================-->
           <call function="'ImportLdifWithScript'">
           {
             'location'     : topoElements[0].getInstanceRef().getHost(),
@@ -134,7 +166,7 @@
           }
           </call>
           <message>
-            '%s : makeLDIF done' % topoElements[0].getInstanceRef().getHost()
+            '%s : importLDIF done' % topoElements[0].getInstanceRef().getHost()
           </message>
           <script>LOG_MAIN_FD.write('&lt;/instance&gt;\n')</script>
           

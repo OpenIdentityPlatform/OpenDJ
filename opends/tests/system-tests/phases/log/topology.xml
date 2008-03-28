@@ -263,9 +263,14 @@
         topoMsg = '%s\n&lt;/topology&gt;\n' % topoMsg
         
         # SUFFIX DATA
-        suffixDataForXml = NOT_DEFINED
-        root = suffix.getTree()
-        suffixDataForXml = getSuffixDataForXML(suffix.getSuffixDn(),root)
+        # Get ldif file if specified in conf.xml
+        suffixDataForXml = suffix.getLdifFile()
+        nbOfEntries = 'unknown'
+        # if ldif file is not specified in conf.xml, get the tree data
+        if suffixDataForXml == NOT_DEFINED:
+          root = suffix.getTree()
+          suffixDataForXml = getSuffixDataForXML(suffix.getSuffixDn(),root)
+          nbOfEntries = suffix.getNbOfEntries()
       </script>
       <call function="'writeStartTag'">
       {
@@ -281,7 +286,7 @@
         'content' : '\n %s \
 &lt;numberOfEntries&gt;%s&lt;/numberOfEntries&gt;\n \
 %s \n \
-' % (topoMsg,suffix.getNbOfEntries(),suffixDataForXml)
+' % (topoMsg,nbOfEntries,suffixDataForXml)
       }
       </call>
       <call function="'writeEndTag'">
