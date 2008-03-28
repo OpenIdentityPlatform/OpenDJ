@@ -2019,6 +2019,8 @@
           <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/backends/backend_cleanup.xml' % (TESTS_DIR)"/>
           <call function="'backend_cleanup'"> { 'stopDS' : False } </call>
+
+          <call function="'testSuite_Postamble'"/>
         </sequence>
       </block>
     </sequence>
