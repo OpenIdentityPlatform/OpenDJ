@@ -80,7 +80,7 @@
  <!---
 #@TestMarker            Plugin 7bit
 #@TestName              Plugin 7bit with default attribute-type
-#@TestPurpose           Check the serve behavior when the plugin 7bit is activated
+#@TestPurpose           Check the server behavior when the plugin 7bit is activated
 #@TestPreamble          none
 #@TestStep              Enable the plugin 7bit
 #@TestStep              Add an entry with a userPassword containing a non-ASCII 
@@ -115,7 +115,7 @@
       'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
       'DNToAdd'        : 'uid=testuser_7bit,%s' % DIRECTORY_INSTANCE_SFX,
       'listAttributes' : listAttr,
-      'expectedRC'     :  255
+      'expectedRC'     : 19
       }
     </call>
 
@@ -140,7 +140,7 @@
   <sequence>
     <call function="'testCase_Preamble'"/>
 
-    <message>'-- disable the plugin 7-Bit Clean --'</message>   
+    <message>'-- configure a new attribute-type for the plugin 7-Bit --'</message>   
     <call function="'dsconfig'">
       { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
       'dsInstancePort'       : DIRECTORY_INSTANCE_PORT ,
@@ -176,7 +176,7 @@
       'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,	
       'DNToAdd'        : 'uid=testuser_7bit,%s' % DIRECTORY_INSTANCE_SFX,
       'listAttributes' : listAttr,
-      'expectedRC'     :  255
+      'expectedRC'     : 19
       }
     </call>
 
