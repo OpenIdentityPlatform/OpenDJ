@@ -34,6 +34,8 @@
   <!-- ************************************************************ -->
   <function name="searchLoad" scope="local">
     <function-map-args>
+      <function-arg-def name="workingDir" type="required">
+      </function-arg-def>
       <function-arg-def name="client" type="required">
       </function-arg-def>
       <function-arg-def name="instances" type="required">
@@ -124,7 +126,7 @@
             <location>client.getHost()</location>
             <command mode="'shell'">'chmod +x build.ksh'</command>
             <parms/>
-            <workdir>'%s/clients/searchLoad' % LOCAL_TESTS_DIR</workdir>
+            <workdir>workingDir</workdir>
             <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
@@ -155,7 +157,7 @@
             <location>client.getHost()</location>
             <command mode="'shell'">'./build.ksh'</command>
             <parms/>
-            <workdir>'%s/clients/searchLoad' % LOCAL_TESTS_DIR</workdir>
+            <workdir>workingDir</workdir>
             <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
@@ -169,7 +171,7 @@
           <if expr="RC != 0">
             <message>
               'FAILED to build client %s on %s' % \
-              (client.getHost(),client.getName())
+              (client.getName(),client.getHost())
             </message>
           </if>
           <script>
@@ -205,7 +207,7 @@
             <location>client.getHost()</location>
             <command>'java'</command>
             <parms>cParam </parms>
-            <workdir>'%s/clients/searchLoad' % LOCAL_TESTS_DIR</workdir>
+            <workdir>workingDir</workdir>
             <envs>['PATH=/bin:/usr/bin']</envs>
             <stderr mode="'stdout'"/>
             <stdout>outFile</stdout>
