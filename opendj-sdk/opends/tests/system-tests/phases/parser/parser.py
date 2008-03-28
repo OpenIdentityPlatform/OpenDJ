@@ -148,12 +148,13 @@ class Suffix:
   """Describes suffix information, 
    tree is a list of Branch objectclasses
    topology is a list of SuffixTopology objectclasses"""
-  def __init__(self, sid, dn, topology, nbOfEntries, tree):
+  def __init__(self, sid, dn, topology, nbOfEntries, tree, ldifFile):
     self.sid         = sid
     self.dn          = dn
     self.topology    = topology
     self.nbOfEntries = nbOfEntries
     self.tree        = tree
+    self.ldifFile    = ldifFile
   
   def getId(self):
     return self.sid
@@ -181,7 +182,9 @@ class Suffix:
     
   def getTree(self):
     return self.tree
-
+    
+  def getLdifFile(self):
+    return self.ldifFile
 
 #
 # Class for instance 
@@ -642,6 +645,8 @@ def parseSuffix(cId,cSuffixName,thisChild):
   msg                = ''
   cSuffixReplServers = NOT_DEFINED
   cNbOfEntries       = NOT_DEFINED
+  cBranches          = NOT_DEFINED
+  cLdifFile          = NOT_DEFINED
   
   #
   # Parsing second level : instanceList,numberOfEntries,...
@@ -695,8 +700,9 @@ def parseSuffix(cId,cSuffixName,thisChild):
                 (msg,thisSubChild.getNodeName())
           
       elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
-            thisSubChild.getNodeName() == 'numberOfEntries'):
-        cNbOfEntries = _getPropValue(thisSubChild)
+            thisSubChild.getNodeName() == 'ldifFile'):
+        cLdifFile = _getPropValue(thisSubChild)
+        cLdifFile = cLdifFile.strip()
         
       # parsing suffix TREE
       elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
@@ -728,7 +734,8 @@ def parseSuffix(cId,cSuffixName,thisChild):
   else:
     msg = '%s\n ERROR: parseSuffix() : no children for suffix node' % msg
   
-  return [msg,Suffix(cId,cSuffixName,cSuffixReplServers,cNbOfEntries,cBranches)]
+  return [msg,Suffix(cId,cSuffixName,cSuffixReplServers,\
+                     cNbOfEntries,cBranches,cLdifFile)]
   
   
   

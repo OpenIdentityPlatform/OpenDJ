@@ -56,7 +56,7 @@
 
 
 <!-- ========== SUFFIX NODE ========================= -->
-<!ELEMENT suffix (topology,tree)> 
+<!ELEMENT suffix (topology,ldifFile?,tree?)> 
 <!ATTLIST suffix 
     dn CDATA #REQUIRED>
   
@@ -67,6 +67,7 @@
           initRule ( importLdif | totalUpdate ) "importLdif"
           instanceSourceName NMTOKEN #IMPLIED>
   
+  <!ELEMENT ldifFile (#PCDATA)>
   
   <!ELEMENT tree (branch+,subordinateTemplate*)>
     <!ATTLIST tree nbOfEntries CDATA #REQUIRED>
