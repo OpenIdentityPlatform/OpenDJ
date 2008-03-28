@@ -109,7 +109,7 @@
     <!--== Module 1 ==-->
     <module name="search" enabled="true">
     
-      <client id="1" name="searchLoad" host="localhost" start="t30"
+      <client id="1" name="sampleSearchLoad" host="localhost" start="t30"
                                                          stop="t60">
         <serverInstance>I1</serverInstance>
         <baseDn>dc=com</baseDn>
