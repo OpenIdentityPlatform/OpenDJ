@@ -273,6 +273,7 @@
         }
       </call>
       
+      
       <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
       
     </sequence>
@@ -394,34 +395,40 @@
       </process>
       <!--== Parse and store the outputs returned by the CLI  ==-->
       <script>
-        instanceInfos = STAXResult[0][1].split('\n')
-        
-        version = instanceInfos[0].replace("OpenDS Directory Server ","")
-        dict = {}
-        
-        for line in instanceInfos:
-          key = line[0:line.find(':')].strip()
-          value= line[line.find(':')+1:len(line)].strip()
-          dict[key]=value
-        
-        build = dict['Build ID']
-        
-        os = dict['Operating System']
-        os = os.replace("generic ","")
-        
-        jvmVersion   = dict['JVM Version']
-        jvmVendor    = dict['JVM Vendor']
-        if jvmVendor == 'Sun Microsystems Inc.':
-          jvmVendor  = 'sun'
-        jvmArch      = dict['JVM Architecture'].replace("-bit","")
-        
-        
-        jvm = '%s-%s-server-%s' % (jvmVersion,jvmVendor,jvmArch)
-        
-        # Store infos in instance object
-        instance.setJavaVersion(jvm)
-        instance.setBuildId(build)
-        instance.setOs(os)
+        try:
+          instanceInfos = STAXResult[0][1].split('\n')
+          
+          version = instanceInfos[0].replace("OpenDS Directory Server ","")
+          dict = {}
+          
+          for line in instanceInfos:
+            key = line[0:line.find(':')].strip()
+            value= line[line.find(':')+1:len(line)].strip()
+            dict[key]=value
+          
+          build = dict['Build ID']
+          
+          os = dict['Operating System']
+          os = os.replace("generic ","")
+          
+          jvmVersion   = dict['JVM Version']
+          jvmVendor    = dict['JVM Vendor']
+          if jvmVendor == 'Sun Microsystems Inc.':
+            jvmVendor  = 'sun'
+          jvmArch      = dict['JVM Architecture'].replace("-bit","")
+          
+          
+          jvm = '%s-%s-server-%s' % (jvmVersion,jvmVendor,jvmArch)
+          
+          # Store infos in instance object
+          instance.setJavaVersion(jvm)
+          instance.setBuildId(build)
+          instance.setOs(os)
+        except:
+          instance.setJavaVersion(NOT_DEFINED)
+          instance.setBuildId(NOT_DEFINED)
+          instance.setOs(NOT_DEFINED)
+          
       </script>
     </sequence>
   </function>
