@@ -969,6 +969,10 @@ public class SubCommandArgumentParser extends ArgumentParser
               try
               {
                 getUsage(usageOutputStream);
+                if (usageArgument != null)
+                {
+                  usageArgument.setPresent(true);
+                }
               } catch (Exception e) {}
 
               return;
