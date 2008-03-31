@@ -3117,7 +3117,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       printlnProgress();
       printProgress(INFO_REPLICATION_POST_ENABLE_INFO.get("dsreplication",
-          ReplicationCliArgumentParser.ENABLE_REPLICATION_SUBCMD_NAME));
+          ReplicationCliArgumentParser.INITIALIZE_REPLICATION_SUBCMD_NAME));
       printlnProgress();
     }
 
