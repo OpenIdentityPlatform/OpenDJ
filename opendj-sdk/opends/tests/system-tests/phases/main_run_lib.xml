@@ -99,6 +99,8 @@
           clients list
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="runScheduler" type="required">
+      </function-arg-def>
     </function-map-args>
     <sequence>
       
@@ -211,45 +213,50 @@
               }
               </call>
               <!-- Copy framework files needed to instance host -->
-              <call function="'createFolder'">
-              { 'location'   : client.getHost(),
-                'foldername' : '%s/clients' % LOCAL_TESTS_DIR,
-                'fileFd'     : NO_FILE
-              }
-              </call>
-              <script>
-                fullHostName = '%s%s' % (client.getHost(),DOMAIN[0])
-              </script>
-              <!-- Copy shared clients -->
-              <call function="'copyFolder'">
-              {
-                'remoteHost'    : fullHostName,
-                'fromDirectory' : '%s/clients' % TESTS_DIR,
-                'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
-                'fileFd'        : NO_FILE
-              }
-              </call>
-              <!-- Copy clients that are under the scenario directory -->
-              <call function="'isFile'">
-              {
-                'location' : STAXServiceMachine,
-                'fileName' : '%s/scenario/%s/clients' % (TESTS_DIR,DIR_NAME),
-              }
-              </call>
-              <script>
-                fileExist = STAXResult
-              </script>
-              <if expr="fileExist == TRUE">
-                <call function="'copyFolder'">
-                {
-                  'remoteHost'    : fullHostName,
-                  'fromDirectory' : '%s/scenario/%s/clients' % \
-                                    (TESTS_DIR,DIR_NAME),
-                  'toDirectory'   : '%s/scenario/%s/clients' % \
-                                    (LOCAL_TESTS_DIR,DIR_NAME),
-                  'fileFd'        : NO_FILE
-                }
-                </call>
+              <if expr="runScheduler == 'true'">
+                <sequence>
+                  <call function="'createFolder'">
+                  { 'location'   : client.getHost(),
+                    'foldername' : '%s/clients' % LOCAL_TESTS_DIR,
+                    'fileFd'     : NO_FILE
+                  }
+                  </call>
+                  <script>
+                    fullHostName = '%s%s' % (client.getHost(),DOMAIN[0])
+                  </script>
+                  <!-- Copy shared clients -->
+                  <call function="'copyFolder'">
+                  {
+                    'remoteHost'    : fullHostName,
+                    'fromDirectory' : '%s/clients' % TESTS_DIR,
+                    'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
+                    'fileFd'        : NO_FILE
+                  }
+                  </call>
+                  <!-- Copy clients that are under the scenario directory -->
+                  <call function="'isFile'">
+                  {
+                    'location' : STAXServiceMachine,
+                    'fileName' : '%s/scenario/%s/clients' % \
+                                 (TESTS_DIR,DIR_NAME),
+                  }
+                  </call>
+                  <script>
+                    fileExist = STAXResult
+                  </script>
+                  <if expr="fileExist == TRUE">
+                    <call function="'copyFolder'">
+                    {
+                      'remoteHost'    : fullHostName,
+                      'fromDirectory' : '%s/scenario/%s/clients' % \
+                                        (TESTS_DIR,DIR_NAME),
+                      'toDirectory'   : '%s/scenario/%s/clients' % \
+                                        (LOCAL_TESTS_DIR,DIR_NAME),
+                      'fileFd'        : NO_FILE
+                    }
+                    </call>
+                  </if>
+                </sequence>
               </if>
               
             </sequence>
