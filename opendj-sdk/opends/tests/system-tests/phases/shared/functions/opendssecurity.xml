@@ -1,0 +1,1564 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+  <!-- **************************************************** -->
+  <!--                       generate a certificate         -->
+  <!-- **************************************************** -->
+  <function name="genCertificate" scope="local">
+    <function-prolog>
+      This function generates a server certificate
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dname" type="optional" 
+                        default="'cn=server,O=Sun Microsystems,C=US'">
+        <function-arg-description>
+          Certificate subject
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+          Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional"
+                                         default="'servercert'">
+        <function-arg-description>
+           Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keypass" type="optional" default="'servercert'">
+        <function-arg-description>
+          Password to protect the private key on the key store: keypass
+        </function-arg-description>     
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+          The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/bin' % dsPath
+        arg1 = '-genkey -alias %s -keyalg rsa -dname "%s"' % (certAlias,dname)
+        arg2 = '-keystore %s -storepass %s' % (keystore,storepass)
+        arg3 = '-keypass %s -storetype %s' % (keypass,storetype)
+        args = '%s %s %s' % (arg1,arg2,arg3)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'Generate a Certificate',
+          'location'  : location,
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : args,
+          'path'      : dsConfigPath,
+          'expectedRC': expectedRC,
+          'fileFd'    : fileFd
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- **************************************************** -->
+  <!--                       Self signed a certificate      -->
+  <!-- **************************************************** -->
+  <function name="SelfSignCertificate" scope="local">
+    <function-prolog>
+      This function self-signs a certificate
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+          Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional"
+                                         default="'servercert'">
+        <function-arg-description>
+          Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keypass" type="optional" default="'servercert'">
+        <function-arg-description>
+          Password to protect the private key on the key store: keypass
+        </function-arg-description>     
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+          The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/bin' % dsPath
+        
+        arg1 = '-selfcert -alias %s -keystore "%s"' % (certAlias,keystore)
+        arg2 = '-keypass "%s" -storepass "%s" -storetype "%s"' % \
+               (keypass,storepass,storetype)
+        args = '%s %s' % (arg1,arg2)
+      </script>
+      
+      <call function="'runCommand'" >
+        { 'name'      : 'Generate a Self-Signed Server Certificate',
+          'location'  : location,
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : args,
+          'path'      : dsConfigPath,
+          'expectedRC': expectedRC,
+          'fileFd'    : fileFd
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- **************************************************** -->
+  <!--                       Export  a certificate                                 -->
+  <!-- **************************************************** -->  
+  <function name="ExportCertificate" scope="local">
+    <function-prolog>
+      This function exports a certificate
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+          Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional"
+                                         default="'servercert'">
+        <function-arg-description>
+          Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="format" type="optional">
+        <function-arg-description>
+          Format of the certificate. By default, it's in binary encoding
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+          The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="outputfile" type="required">
+        <function-arg-description>
+          Output file to store certificate
+        </function-arg-description> 
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/bin' % dsPath
+        
+        STAFCmdParams=''
+        if format:
+          STAFCmdParams='-%s' % (format)
+        
+        arg1 = '-export -alias %s -file %s' % (certAlias,outputfile)
+        arg2 = '-keystore "%s" -storepass "%s" -storetype %s %s' % \
+               (keystore,storepass,storetype,STAFCmdParams)
+        args = '%s %s' % (arg1,arg2)
+      </script>
+      
+      <call function="'runCommand'">
+        { 'name'       : 'Export a Certificate',
+          'location'   : location,
+          'command'    : '%s/bin/keytool' % JAVA_HOME,
+          'arguments'  : args,
+          'path'       : dsConfigPath,
+          'expectedRC' : expectedRC,
+          'fileFd'     : fileFd
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- **************************************************** -->
+  <!--                       Import  a certificate          -->
+  <!-- **************************************************** -->
+  <function name="ImportCertificate" scope="local">
+    <function-prolog>
+      This function imports a certificate
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+          Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional"
+                                         default="'servercert'">
+        <function-arg-description>
+          Password to protect the contents of the key store
+       </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storetype" type="optional" default="'JKS'">
+        <function-arg-description>
+          The storetype. can be JKS or PKCS12
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="inputfile" type="required">
+        <function-arg-description>
+          Certificate to import
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      
+      <!-- Local variables -->
+      <script>
+        if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/bin' % dsPath
+        
+        arg1 = '-import  -alias %s -file %s' % (certAlias,inputfile)
+        arg2 = '-keystore "%s" -storepass "%s"' % (keystore,storepass)
+        arg3 = '-storetype %s -noprompt' % storetype
+        args = '%s %s %s' % (arg1,arg2,arg3)
+      </script>
+      
+      <call function="'runCommand'">
+        { 'name'        : 'Import a Certificate',
+          'location'    : location,
+          'command'     : '%s/bin/keytool' % JAVA_HOME,
+          'arguments'   : args,
+          'path'        : dsConfigPath,
+          'expectedRC'  : expectedRC,
+          'fileFd'      : fileFd
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- **************************************************** -->
+  <!--                      get MD5 and SHA1 values         -->
+  <!-- **************************************************** -->  
+  <function name="getFingerprint" scope="local">
+    <function-prolog>
+      This function returns the fingerprint MD5 or SHA1
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>  
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>       
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+          Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional"
+                                         default="'servercert'">
+        <function-arg-description>
+          Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fingerprint" type="optional" default="'MD5'">
+        <function-arg-description>
+          fingerprint. can be MD5 or SHA1
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/bin' % (dsPath)
+        
+        args = '-list -v -keystore "%s"  -storepass "%s" -alias "%s"' % \
+                (keystore,storepass,certAlias)
+      </script>
+      <call function="'runCommand'">
+        { 'name'      : 'getFingerprint',
+          'location'  : location,
+          'command'   : '%s/bin/keytool' % JAVA_HOME,
+          'arguments' : args,
+          'path'      : dsConfigPath,
+          'expectedRC': expectedRC,
+          'fileFd'    : fileFd
+        }
+      </call>
+      <return>STAXResult</return>
+    </sequence>
+  </function>
+  
+  
+  <!-- ################################################## -->  
+  <!--  configure SSL  -->
+  <!-- ################################################## -->    
+  <function name="configureSSL" scope="local">
+    <function-prolog>
+      This function makes the configuration changes for SSL
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="staxServiveMachine">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="optional" default="'JKS'">
+        <function-arg-description>
+          Keystore type : JKS or PKCS12
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystorePin" type="optional"
+                                           default="'servercert'">
+        <function-arg-description>
+          Keystore pin
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="customKeyMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new key manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="customTrustMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new trust manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!--- configure Key Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Configure Key Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <if expr="len(customKeyMgr.strip()) != 0">
+        <sequence>
+          <script>
+            opt1 = '--type file-based --set enabled:true'
+            opt2 = '--set key-store-file:config/keystore'
+            opt3 = '--set key-store-pin:%s --set key-store-type:JKS' % \
+                    keystorePin
+            opts = '%s %s %s' % (opt1,opt2,opt3)
+          </script>
+          <call function="'dsconfig'">
+            { 'location'       : location,
+              'dsPath'         : dsPath,
+              'dsInstanceHost' : dsInstanceHost,
+              'dsInstancePort' : dsInstancePort,
+              'dsInstanceDn'   : dsInstanceDn,
+              'dsInstancePswd' : dsInstancePswd,
+              'subcommand'     : 'create-key-manager-provider',
+              'objectType'     : 'provider-name',
+              'objectName'     : customKeyMgr,
+              'optionsString'  : opts,
+              'expectedRC'     : 0,
+              'fileFd'         : fileFd
+            }
+          </call>
+        </sequence>
+      <else>
+        <sequence>
+          <script>
+            opt1 = '--set key-store-file:config/keystore'
+            opt2 = '--reset key-store-pin-file'
+            opt3 = '--set key-store-pin:%s --set enabled:true' % keystorePin
+            opts = '%s %s %s' % (opt1,opt2,opt3)
+          </script>
+          <call function="'dsconfig'">
+            { 'location'       : location,
+              'dsPath'         : dsPath,
+              'dsInstanceHost' : dsInstanceHost,
+              'dsInstancePort' : dsInstancePort,
+              'dsInstanceDn'   : dsInstanceDn,
+              'dsInstancePswd' : dsInstancePswd,
+              'subcommand'     : 'set-key-manager-provider-prop',
+              'objectType'     : 'provider-name',
+              'objectName'     : keystoreType,
+              'optionsString'  : opts,
+              'expectedRC'     : 0,
+              'fileFd'         : fileFd
+            }
+          </call>
+        </sequence>
+      </else>
+      </if>
+        
+      <!--- configure Trust Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Configure Trust Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+        
+      <if expr="len(customTrustMgr.strip()) != 0">
+        <sequence>
+          <script>
+            opt1 = '--type blind --set enabled:true'
+            opt2 = '--set java-class:'
+            opt3 = 'org.opends.server.extensions.BlindTrustManagerProvider'
+            opts = '%s %s%s' % (opt1,opt2,opt3)
+          </script>
+          <call function="'dsconfig'">
+            { 'location'       : location,
+              'dsPath'         : dsPath,
+              'dsInstanceHost' : dsInstanceHost,
+              'dsInstancePort' : dsInstancePort,
+              'dsInstanceDn'   : dsInstanceDn,
+              'dsInstancePswd' : dsInstancePswd,
+              'subcommand'     : 'create-trust-manager-provider',
+              'objectType'     : 'provider-name',
+              'objectName'     : customTrustMgr,
+              'optionsString'  : opts,
+              'expectedRC'     : 0,
+              'fileFd'         : fileFd
+            }
+          </call>
+        </sequence>
+      <else>
+        <call function="'dsconfig'">
+          { 'location'       : location,
+            'dsPath'         : dsPath,
+            'dsInstanceHost' : dsInstanceHost,
+            'dsInstancePort' : dsInstancePort,
+            'dsInstanceDn'   : dsInstanceDn,
+            'dsInstancePswd' : dsInstancePswd,
+            'subcommand'     : 'set-trust-manager-provider-prop',
+            'objectType'     : 'provider-name',
+            'objectName'     : 'Blind Trust',
+            'optionsString'  : '--set enabled:true',
+            'expectedRC'     : 0,
+            'fileFd'         : fileFd
+          }
+        </call>
+      </else>
+      </if>
+      
+      
+      <!--- Enable LDAPS Connection Handler -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Enabling LDAPS Connection Handler - Keystore type',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
+        option1='--set ssl-cert-nickname:%s' % certAlias
+        if customTrustMgr:
+          option2='--set trust-manager-provider:"%s"' % (customTrustMgr)
+        else:
+          option2='--set trust-manager-provider:"Blind Trust"'
+        if customKeyMgr:
+          option3='--set key-manager-provider:"%s"' % (customKeyMgr)
+        else:
+          option3='--set key-manager-provider:"%s"' % (keystoreType)
+        option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
+        option5='--set enabled:true --set use-ssl:true' 
+        optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)     
+      </script>
+      
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAPS Connection Handler',
+          'optionsString'  : optionsString,
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+    </sequence>
+  </function>
+  
+  
+  <!-- ################################################## -->
+  <!--  configureTLS -->
+  <!-- ################################################## -->
+  <function name="configureTLS" scope="local">
+    <function-prolog>
+      This function makes the configuration changes for startTLS
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+            Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="staxServiveMachine">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystorePin" type="optional"
+                                           default="'servercert'">
+        <function-arg-description>
+          Keystore pin
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="optional" default="'JKS'">
+        <function-arg-description>
+          Keystore type : JKS or PKCS12
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!--- configure Key Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Configure Key Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
+        opt1 = '--set key-store-file:config/keystore'
+        opt2 = '--reset key-store-pin-file'
+        opt3 = '--set key-store-pin:%s --set enabled:true' % keystorePin
+        opts = '%s %s%s' % (opt1,opt2,opt3)
+      </script>
+      <call function="'dsconfig'">
+        { 'location'        : location,
+          'dsPath'          : dsPath,
+          'dsInstanceHost'  : dsInstanceHost,
+          'dsInstancePort'  : dsInstancePort,
+          'dsInstanceDn'    : dsInstanceDn,
+          'dsInstancePswd'  : dsInstancePswd,
+          'subcommand'      : 'set-key-manager-provider-prop',
+          'objectType'      : 'provider-name',
+          'objectName'      : keystoreType,
+          'optionsString'   : opts,
+          'expectedRC'      : 0,
+          'fileFd'          : fileFd
+        }
+      </call>
+      
+      <!--- configure Trust Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Configure Trust Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : 'Blind Trust',
+          'optionsString'  : '--set enabled:true',
+          'expectedRC'     : 0,
+          'fileFd'          : fileFd
+        }
+      </call>
+      
+      <!--- Enable StartTLS -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Enabling StartTLS',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
+        option1='--set ssl-cert-nickname:%s' % certAlias
+        option2='--set trust-manager-provider:"Blind Trust" '
+        option3='--set key-manager-provider:"%s"' % (keystoreType)
+        option4='--set allow-start-tls:true' 
+        optionsString='%s %s %s %s' % (option1,option2,option3,option4)
+      </script>
+      
+      <call function="'dsconfig'">
+      { 'location'       : location,
+        'dsPath'         : dsPath,
+        'dsInstanceHost' : dsInstanceHost,
+        'dsInstancePort' : dsInstancePort,
+        'dsInstanceDn'   : dsInstanceDn,
+        'dsInstancePswd' : dsInstancePswd,
+        'subcommand'     : 'set-connection-handler-prop',
+        'objectType'     : 'handler-name',
+        'objectName'     : 'LDAP Connection Handler',
+        'optionsString'  : optionsString,
+        'expectedRC'     : 0,
+        'fileFd'         : fileFd
+      }
+      </call>
+    </sequence>
+  </function>
+  
+  
+  <!-- ################################################## -->  
+  <!--  configure SSL  and TLS -->
+  <!-- ################################################## -->    
+  <function name="configureSSL_TLS" scope="local">
+    <function-prolog>
+      This function makes the configuration changes for SSL and TLS
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="staxServiveMachine">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="optional" default="'JKS'">
+        <function-arg-description>
+          Keystore type : JKS or PKCS12
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional"
+                                         default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystorePin" type="optional"
+                                           default="'servercert'">
+        <function-arg-description>
+          Keystore pin
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!--- configure Key Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Configure Key Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
+        opt1 = '--set key-store-file:config/keystore'
+        opt2 = '--reset key-store-pin-file'
+        opt3 = '--reset key-store-pin-file --set key-store-pin:%s' % \
+               keystorePin
+        opt4 = '--set enabled:true'
+        opts = '%s %s %s %s' % (opt1,opt2,opt3,opt4)
+      </script>
+      <call function="'dsconfig'">
+      { 'location'       : location,
+        'dsPath'         : dsPath,
+        'dsInstanceHost' : dsInstanceHost,
+        'dsInstancePort' : dsInstancePort,
+        'dsInstanceDn'   : dsInstanceDn,
+        'dsInstancePswd' : dsInstancePswd,
+        'subcommand'     : 'set-key-manager-provider-prop',
+        'objectType'     : 'provider-name',
+        'objectName'     : keystoreType,
+        'optionsString'  : opts,
+        'expectedRC'     : 0,
+        'fileFd'         : fileFd
+      }
+      </call>
+      
+      
+      <!--- configure Trust Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Configure Trust Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+      { 'location'       : location,
+        'dsPath'         : dsPath,
+        'dsInstanceHost' : dsInstanceHost,
+        'dsInstancePort' : dsInstancePort,
+        'dsInstanceDn'   : dsInstanceDn,
+        'dsInstancePswd' : dsInstancePswd,
+        'subcommand'     : 'set-trust-manager-provider-prop',
+        'objectType'     : 'provider-name',
+        'objectName'     : 'Blind Trust',
+        'optionsString'  : '--set enabled:true',
+        'expectedRC'     : 0,
+        'fileFd'         : fileFd
+      }
+      </call>
+      
+      
+      <!--- Enable LDAPS Connection Handler -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Enabling LDAPS Connection Handler - Keystore type',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
+        option1='--set ssl-cert-nickname:%s' % certAlias
+        option2='--set trust-manager-provider:"Blind Trust"'
+        option3='--set key-manager-provider:"%s"' % (keystoreType)
+        option4='--set listen-port:%s' % DIRECTORY_INSTANCE_SSL_PORT
+        option5='--set enabled:true --set use-ssl:true'
+        optionsString='%s %s %s %s %s' % (option1,option2,option3,option4,option5)
+      </script>
+      <call function="'dsconfig'">
+      { 'location'       : location,
+        'dsPath'         : dsPath,
+        'dsInstanceHost' : dsInstanceHost,
+        'dsInstancePort' : dsInstancePort,
+        'dsInstanceDn'   : dsInstanceDn,
+        'dsInstancePswd' : dsInstancePswd,
+        'subcommand'     : 'set-connection-handler-prop',
+        'objectType'     : 'handler-name',
+        'objectName'     : 'LDAPS Connection Handler',
+        'optionsString'  : optionsString,
+        'expectedRC'     : 0,
+        'fileFd'         : fileFd
+      }
+      </call>
+      
+      
+      <!--- Enable StartTLS -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Enabling StartTLS',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <script>
+        option1='--set ssl-cert-nickname:%s' % certAlias
+        option2='--set trust-manager-provider:"Blind Trust" '
+        option3='--set key-manager-provider:"%s"' % (keystoreType)
+        option4='--set allow-start-tls:true' 
+        optionsString='%s %s %s %s' % (option1,option2,option3,option4)    
+      </script>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAP Connection Handler',
+          'optionsString'  : optionsString,
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+    </sequence>
+  </function>
+  
+  
+  <!-- ################################################## -->  
+  <!-- Unconfigure SSL -->
+  <!-- ################################################## -->  
+  <function name="unconfigureSSL" scope="local">
+    <function-prolog>
+      This function reverses the configuration changes for SSL
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="staxServiveMachine">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="optional" default="'JKS'">
+        <function-arg-description>
+          Keystore type : JKS or PKCS12
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="customKeyMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new key manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="customTrustMgr" type="optional" default="''">
+        <function-arg-description>
+          Name for a new trust manager
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!--- Disable LDAPS Connection Handler -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling LDAPS Connection Handler',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAPS Connection Handler',
+          'optionsString'  : '--set enabled:false --set use-ssl:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      <script>
+        opt1 = '--reset key-manager-provider --reset trust-manager-provider'
+        opt2 = '--reset ssl-cert-nickname'
+        opts = '%s %s' % (opt1,opt2)
+      </script>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAPS Connection Handler',
+          'optionsString'  : opts,
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      <!--- Disable SSL Trust Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling SSL Trust Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <if expr="len(customTrustMgr.strip()) != 0">
+        <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'delete-trust-manager-provider',
+          'objectType'     : 'provider-name',
+          'objectName'     : customTrustMgr,
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+        </call>
+      <else>
+        <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : 'Blind Trust',
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+        </call>
+      </else>
+      </if>
+      
+      <!--- Disable Key Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling Key Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <if expr="len(customKeyMgr.strip()) != 0">
+        <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'delete-key-manager-provider',
+          'objectType'     : 'provider-name',
+          'objectName'     : customKeyMgr,
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+        </call>
+      <else>
+        <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-key-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : keystoreType,
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+        </call>
+      </else>
+      </if>
+    </sequence>
+  </function>
+  
+  
+  <!-- ################################################## -->  
+  <!--  unconfigureTLS -->
+  <!-- ################################################## -->    
+  <function name="unconfigureTLS" scope="local">
+    <function-prolog>
+      This function reverses the configuration changes for startTLS
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+            Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="staxServiveMachine">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="optional" default="'JKS'">
+        <function-arg-description>
+          Keystore type : JKS or PKCS12
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!--- Disable StartTLS -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling StartTLS',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAP Connection Handler',
+          'optionsString'  : ' --set allow-start-tls:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      
+      <!--- Disable SSL Trust Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling SSL Trust Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : 'Blind Trust',
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      
+      <!--- Disable Key Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling Key Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-key-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : keystoreType,
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+    </sequence>
+  </function>
+  
+  
+  <!-- ################################################## -->  
+  <!-- Unconfigure SSL and TLS -->
+  <!-- ################################################## -->  
+  <function name="unconfigureSSL_TLS" scope="local">
+    <function-prolog>
+      This function reverses the configuration changes for SSL and TLS
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="required">
+        <function-arg-description>
+            Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="staxServiceMachine">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="keystoreType" type="optional" default="'JKS'">
+        <function-arg-description>
+          Keystore type : JKS or PKCS12
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!--- Disable LDAPS Connection Handler -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling LDAPS Connection Handler',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAPS Connection Handler',
+          'optionsString'  : '--set enabled:false --set use-ssl:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      <!--- Disable StartTLS -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling StartTLS',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   :  dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     :  'set-connection-handler-prop',
+          'objectType'     : 'handler-name',
+          'objectName'     : 'LDAP Connection Handler',
+          'optionsString'  :  ' --set allow-start-tls:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      <!--- Disable SSL Trust Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling SSL Trust Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-trust-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : 'Blind Trust',
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+      
+      <!--- Disable Key Manager Provider -->
+      <call function="'writeMessage'">
+      {
+        'content' : 'Disabling Key Manager Provider',
+        'fileFd'  : fileFd
+      }
+      </call>
+      <call function="'dsconfig'">
+        { 'location'       : location,
+          'dsPath'         : dsPath,
+          'dsInstanceHost' : dsInstanceHost,
+          'dsInstancePort' : dsInstancePort,
+          'dsInstanceDn'   : dsInstanceDn,
+          'dsInstancePswd' : dsInstancePswd,
+          'subcommand'     : 'set-key-manager-provider-prop',
+          'objectType'     : 'provider-name',
+          'objectName'     : keystoreType,
+          'optionsString'  : '--set enabled:false',
+          'expectedRC'     : 0,
+          'fileFd'         : fileFd
+        }
+      </call>
+    </sequence>
+  </function>
+</stax>
