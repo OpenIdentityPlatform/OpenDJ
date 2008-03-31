@@ -6489,9 +6489,9 @@ public class ReplicationCliMain extends ConsoleApplication
                 serverDisplay, lastLogMsg, state, serverDisplay);
           }
 
-          LOG.log(Level.WARNING, "Processed errorMsg: "+errorMsg);
           if (helper.isCompletedWithErrors(state))
           {
+            LOG.log(Level.WARNING, "Processed errorMsg: "+errorMsg);
             if (displayProgress)
             {
               println(errorMsg);
@@ -6500,6 +6500,7 @@ public class ReplicationCliMain extends ConsoleApplication
           else if (!helper.isSuccessful(state) ||
               helper.isStoppedByError(state))
           {
+            LOG.log(Level.WARNING, "Processed errorMsg: "+errorMsg);
             ApplicationException ae = new ApplicationException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
@@ -6524,6 +6525,7 @@ public class ReplicationCliMain extends ConsoleApplication
               printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
               printlnProgress();
             }
+            LOG.log(Level.INFO, "Processed msg: "+errorMsg);
             LOG.log(Level.INFO, "Initialization completed successfully.");
           }
         }
