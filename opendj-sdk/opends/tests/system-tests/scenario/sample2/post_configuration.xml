@@ -78,6 +78,7 @@
           
           <call function="'dsconfig'">
           { 
+            'location'       : instance.getHost(),
             'dsInstanceHost' : instance.getHost(),
             'dsPath'         : instance.getInstallDir(),
             'dsInstancePort' : instance.getLDAPPort(),
