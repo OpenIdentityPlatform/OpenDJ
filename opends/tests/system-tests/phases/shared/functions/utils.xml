@@ -654,5 +654,244 @@
       <return>date</return>
     </sequence>
   </function>
-
+  
+  
+  <function name="runCommand" scope="local">
+    <function-description>
+      A general wrapper to run a command without having to write a dedicated 
+      function for it
+    </function-description>
+    <function-map-args>
+      <function-arg-def name="command" type="required">
+        <function-arg-description>
+          the command to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="path" type="required">
+        <function-arg-description>
+          the path where the command is to be run from
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="arguments" type="optional" default="''">
+        <function-arg-description>
+          the path where the command is to be found
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="env" 
+                        type="optional">
+        <function-arg-description>
+          the environment variables to set. The default set here should just
+          work for OpenDS commands
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="location" 
+                        type="optional" 
+                        default="STAXServiceMachine">
+        <function-arg-description>
+          Which machine should the command be executed on
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="name" 
+                        default="'Running %s' % command" 
+                        type="optional">
+        <function-arg-description>
+          The name to give the process (only matters in the STAX Monitor really)
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="stripOutput" default="'true'" type="optional">
+        <function-arg-description>
+          A boolean (use True or False here, case matters) to enable disable
+          stripping the output of a command
+          TODO: consider allowing passing a function name to enable custom
+                output manipulation (overkill?)
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="'true'"/>
+          <function-arg-property-data type="choice" value="'false'"/>
+        </function-arg-property>
+      </function-arg-def>
+      <function-arg-def name="timerDuration" 
+                        type="optional" 
+                        default="'5m'">
+        <function-arg-description>
+          The duration that the process is allowed to run
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="outputFile" type="optional" default="'None'">
+        <function-arg-description>
+          Output file containing the command output
+        </function-arg-description>
+        <function-arg-property name="type" value="file"/>
+      </function-arg-def>
+      <function-arg-def name="outputPath" 
+                        type="optional" 
+                        default="LOG_TMP_DIR">
+        <function-arg-description>
+          Path containing the outputFile
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>  
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="logStderr" type="optional" default="'true'">
+        <function-arg-description>
+          If true, stderr for the command is redirect to stdout.
+        </function-arg-description>
+        <function-arg-property name="type" value="enum">
+          <function-arg-property-description>
+            This argument can only have boolean values
+          </function-arg-property-description>
+          <function-arg-property-data type="choice" value="'true'"/>
+          <function-arg-property-data type="choice" value="'false'"/>
+        </function-arg-property>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        import random
+        import java.util.Date
+        random.seed(java.util.Date().getTime())
+        _id = '%s#%d' % (strftime('%Y-%m-%d %H:%M:%S',localtime()),random.randint(0,999))
+        
+        if not env:
+          #if isWindows:
+          #  env=['PATH=C:\Windows;C:\Windows\system32;%s' % path, 'JAVA_HOME=%s' % JAVA_HOME]
+          #else:
+            env=['PATH=/bin:/usr/bin:%s' % path, 'JAVA_HOME=%s' % JAVA_HOME]
+      </script>
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : name,
+        'fileFd'  : fileFd }
+      </call>
+      
+      <!-- check if command exists -->
+      <call function="'isFile'">
+      {
+        'location' : location,
+        'fileName' : command
+      }
+      </call>
+      <script>
+        STAFCmdExist = STAXResult
+      </script>
+      <if expr="STAFCmdExist == TRUE">
+        <sequence>
+          <call function="'writeMessage'">
+            { 'content'  : 'Running cmd: %s' % command,
+              'fileFd'   : fileFd }
+          </call>
+          
+          <!-- If 'logStderr' is True then redirect sdterr to sdtout -->
+          <if expr="logStderr == 'true'">
+            <process name="name">
+              <location>location</location>
+              <command>command</command>
+              <parms>arguments</parms>
+              <workdir>path</workdir>
+              <envs>env</envs>
+              <console use="'same'"/>
+              <stdout if="outputFile != 'None'" mode="'replace'">
+                '%s/%s' % (outputPath, outputFile)
+              </stdout>
+              <stderr mode="'stdout'"/>
+              <returnstdout/>
+            </process>
+            <else>
+              <process name="name">
+                <location>location</location>
+                <command>command</command>
+                <parms>arguments</parms>
+                <workdir>path</workdir>
+                <envs>env</envs>
+                <console use="'same'"/>
+                <stdout if="outputFile != 'None'" mode="'replace'">
+                  '%s/%s' % (outputPath, outputFile)
+                </stdout>
+                <returnstdout/>
+              </process>
+            </else>
+          </if>
+          
+          <!-- The problem here is that STAXResult can either be a
+               string, list or a map object -->
+          <script>
+            try:
+              cmdOutput=STAXResult[0][1]
+              cmdRC = RC
+            except:
+              cmdOutput=STAXResult
+              cmdRC = RC
+              
+            cmdResult=STAXResult
+          </script>
+          
+          <if expr="expectedRC != 'noCheck'">
+            <call function="'checkRC'">
+              { 'returncode' : cmdRC,
+                'result'     : cmdOutput,
+                'expected'   : [expectedRC],
+                'fileFd'     : fileFd
+              }
+            </call>
+          </if>
+          <!--
+          <script>
+            def dig(var):
+              try:
+                if var.__class__==[].__class__:
+                  for i in range(len(var)):
+                    var[i]=dig(var[i])
+                  return var
+                else:
+                  if var.__class__==''.__class__:
+                    return re.compile(r'EMMA:.*\n').sub('',var)
+                  else:
+                    return var
+              except TypeError:
+                return 'could not evaluate the following component: %s' % var
+            
+            if stripOutput == 'true':
+              cmdResult=dig(cmdResult)
+          </script>
+          -->
+        </sequence>
+      <else>
+        <sequence>
+          <call function="'writeMessage'">
+          { 
+            'content' : 'ERROR : file does not exist on %s : %s'\
+                        % (location,command),
+            'fileFd'  : fileFd
+          }
+          </call>
+          <script>
+            ERR_NUM[0] += 1
+          </script>
+        </sequence>
+      </else>
+      </if>
+      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      <return>
+        cmdResult
+      </return>
+    </sequence>
+  </function>
+  
+  
+  
+  
+  
+  
 </stax>

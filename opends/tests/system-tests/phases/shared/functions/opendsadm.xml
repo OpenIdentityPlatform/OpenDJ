@@ -147,33 +147,17 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <call function="'writeStartTagOperation'">
-      { 'tagName' : 'SetUpDsWithScript',
-        'fileFd'  : fileFd }
+      <call function="'runCommand'">
+        { 'name'      : 'SetUpOpenDSWithScript',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsPath,
+          'fileFd'    : fileFd
+        }
       </call>
-      <call function="'writeMessage'">
-        { 'content'  : 'Setup product : %s %s' % (STAFCmd, STAFCmdParams) ,
-          'fileFd'   : fileFd }
-      </call>
-            
-      <process name="'%s : Setup DS' % location">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult,
-          'fileFd'     : fileFd }
-      </call>
-      <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
+      
+      <return>STAXResult</return>
     </sequence>
   </function>
 
@@ -258,51 +242,22 @@
           
         if dsBuildInfo:
           STAFCmdParamsList.append('-F')
- 
+          
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
-
       
-      <call function="'writeStartTagOperation'">
-      { 'tagName' : 'StartDsWithScript',
-        'fileFd'  : fileFd }
-      </call>
-  
-      <call function="'writeMessage'">
-      { 'fileFd'  : fileFd,
-        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
-      }
-      </call>
-      
-      <process name="'%s: Start DS' % location">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>
-        <console use="'same'"/>
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-
-      <script>
-        startRC=RC
-        startResult=STAXResult
-      </script>
-      
-      <call function="'checkRC'">
-        { 'returncode' : startRC ,
-          'result'     : startResult,
-          'fileFd'     : fileFd
+      <call function="'runCommand'">
+        { 'name'      : 'StartDsWithScript',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
         }
       </call>
-     
-      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd }</call>
-
-      <return>[startRC,startResult]</return>
-          
+      
+      <return>STAXResult</return>
+      
     </sequence>
     
   </function>
@@ -527,81 +482,17 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      
-      <!-- check if bin file exists -->
-      <call function="'isFile'">
-      {
-        'location' : location,
-        'fileName' : '%s' % STAFCmd
-      }
-      </call>
-      <script>
-        STAFCmdExist = STAXResult
-      </script>
-      
-      <call function="'writeStartTagOperation'">
-      { 'tagName' : 'StopDsWithScript',
-        'fileFd'  : fileFd }
+      <call function="'runCommand'">
+        { 'name'      : 'StopDsWithScript',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
+        }
       </call>
       
-      <!-- if jarfile does not exist, build it, may have problem if several builds are run at the same time... -->
-      <if expr="STAFCmdExist == TRUE">
-        <sequence>
-          <if expr="fileFd == ''">
-            <sequence>
-              <message>'%s : Stop instance if started' % dsHost</message>
-              <message>'%s %s' % (STAFCmd, STAFCmdParams)</message>
-            </sequence>
-          <else>
-            <sequence>
-              <call function="'writeMessage'">
-              { 'content' : 'Stop instance on %s' % dsHost,
-                'fileFd'  : fileFd }
-              </call>
-              <call function="'writeMessage'">
-              { 'content' : 'Run command : %s %s' % (STAFCmd,STAFCmdParams),
-                'fileFd'  : fileFd }
-              </call>
-            </sequence>
-          </else>
-          </if>
-          <process name="'%s: Stop DS' % location">
-            <location>'%s' % (location)</location>
-            <command>'%s' % (STAFCmd)</command>
-            <parms>'%s' % (STAFCmdParams)</parms>
-            <workdir>'%s' % dsBinPath</workdir>
-            <envs>
-              ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-          </process>
-          <script>
-            stopRC=RC
-            stopResult=STAXResult
-          </script>
-          <call function="'checkRC'">
-            { 'returncode' : stopRC ,
-              'result'     : stopResult,
-              'fileFd'     : fileFd }
-          </call>
-        </sequence>
-      <else>
-          <if expr="fileFd == ''">
-            <message>'WARNING : file does not exist on %s : %s/%s' % (location,dsBinPath,STAFCmd)</message>
-          <else>
-            <call function="'writeMessage'">
-            { 'content' : 'WARNING : file does not exist on %s : %s/%s' % (location,dsBinPath,STAFCmd),
-              'fileFd'  : fileFd }
-            </call>
-          </else>
-          </if>
-      </else>
-      </if>
-      
-      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd }</call>
-      
-      <return> [stopRC,stopResult]</return>
+      <return>STAXResult</return>
     </sequence>
   </function>
 
@@ -656,36 +547,17 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <call function="'writeStartTagOperation'">
-      { 'tagName' : 'makeLdif',
-        'fileFd'  : fileFd }
-      </call>
-      <call function="'writeMessage'">
-      { 'fileFd'  : fileFd,
-        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
-      }
-      </call>
-            
-      <process name="'Generate ldif'">
-        <location>'%s' % location</location>
-        <command>'%s' % STAFCmd</command>
-        <parms>'%s' % STAFCmdParams</parms>
-        <workdir>'%s' % dsBinPath</workdir>
-        <envs>
-          ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-        </envs>         
-        <stderr mode="'stdout'"/>
-        <returnstdout/>
-      </process>
-      
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult,
-          'fileFd'     : fileFd }
+      <call function="'runCommand'">
+        { 'name'      : 'MakeLdif',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
+        }
       </call>
       
-      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
-    
+      <return>STAXResult</return>
     </sequence>
   </function>
   
