@@ -201,8 +201,9 @@
       <!-- ============ PREAMBLE ===================================== -->
       <call function="'mainPreamble'">
         {
-          'instances' : instances,
-          'scheduler' : scheduler
+          'instances'    : instances,
+          'scheduler'    : scheduler,
+          'runScheduler' : runScheduler
         }
       </call>
       
