@@ -878,6 +878,7 @@
           </call>
           <script>
             ERR_NUM[0] += 1
+            cmdResult = [['9999','ERROR : file does not exist']]
           </script>
         </sequence>
       </else>
