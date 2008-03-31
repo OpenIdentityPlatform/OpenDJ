@@ -57,7 +57,7 @@
     <function-map-args>
       <function-arg-def name="location"
                         type="optional"
-                        default="STAF_REMOTE_HOSTNAME">
+                        default="STAXServiceMachine">
         <function-arg-description>
           Location of target host
         </function-arg-description>
@@ -71,7 +71,8 @@
         <function-arg-property name="type" value="filepath" />
       </function-arg-def>
       
-      <function-arg-def name="dsInstanceHost" type="optional" default="STAF_REMOTE_HOSTNAME">
+      <function-arg-def name="dsInstanceHost" type="optional"
+                                              default="STAXServiceMachine">
         <function-arg-description>
           Directory server hostname or IP address
         </function-arg-description>
@@ -122,7 +123,8 @@
       
       <function-arg-def name="optionsString" type="optional">
         <function-arg-description>
-          String containing  the dsconfig options.  e.g. --set enabled:true --set key-store-pin:servercert
+          String containing  the dsconfig options.  
+          e.g. --set enabled:true --set key-store-pin:servercert
         </function-arg-description>
         <function-arg-property name="type" value="string" />
       </function-arg-def>
@@ -146,8 +148,6 @@
         STAFCmdParamsList=[]
         STAFCmdParams=''
         STAFCmd=''
-        dsconfigRC=999999
-        dsconfigResult='ERROR_not_run'
         
         if dsPath:
           dsBinPath='%s/bin' % (dsPath) 
@@ -155,7 +155,7 @@
         
         STAFCmdParamsList.append(subcommand)
         if objectType:
-          STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))      
+          STAFCmdParamsList.append('--%s "%s" ' % (objectType,objectName))
         if optionsString:
           STAFCmdParamsList.append(' %s' % optionsString)
       </script>
@@ -164,89 +164,17 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <!-- check if bin file exists -->
-      <call function="'isFile'">
-      {
-        'location' : location,
-        'fileName' : STAFCmd
-      }
-      </call>
-      <script>
-        STAFCmdExist = STAXResult
-      </script>
-      
-      <call function="'writeStartTagOperation'">
-      { 'tagName' : 'opendsconfig',
-        'fileFd'  : fileFd }
+      <call function="'runCommand'">
+        { 'name'      : 'OpenDSdsconfig',
+          'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'fileFd'    : fileFd
+        }
       </call>
       
-      <!--== Log message ==-->
-      <if expr="STAFCmdExist == TRUE">
-        <sequence>
-          <if expr="fileFd == ''">
-            <sequence>
-              <message>'%s : run dsconfig :' % dsInstanceHost</message>
-              <message>'%s %s' % (STAFCmd, STAFCmdParams)</message>
-            </sequence>
-          <else>
-            <sequence>
-              <call function="'writeMessage'">
-              { 'content' : 'Run dsconfig on %s' % dsInstanceHost,
-                'fileFd'  : fileFd }
-              </call>
-              <call function="'writeMessage'">
-              { 'content' : 'Run command : %s %s' % (STAFCmd,STAFCmdParams),
-                'fileFd'  : fileFd }
-              </call>
-            </sequence>
-          </else>
-          </if>
-          <!--== Run the command ==-->
-          <process name="'%s: dsconfig (opends)' % location">
-            <location>'%s' % (location)</location>
-            <command>'%s' % (STAFCmd)</command>
-            <parms>'%s' % (STAFCmdParams)</parms>
-            <workdir>'%s' % dsBinPath</workdir>
-            <envs>
-              ['PATH=/bin:/usr/bin:%s' % dsBinPath]
-            </envs>
-            <stderr mode="'stdout'"/>
-            <returnstdout/>
-          </process>
-          <script>
-            dsconfigRC=RC
-            dsconfigResult=STAXResult
-          </script>
-          <call function="'checkRC'">
-            { 'returncode' : dsconfigRC,
-              'result'     : dsconfigResult,
-              'expected'   : [expectedRC],
-              'fileFd'     : fileFd }
-          </call>
-        </sequence>
-      
-      <else>
-          <if expr="fileFd == ''">
-            <message>
-              'WARNING : file does not exist on %s : %s/%s'\
-              % (location,dsBinPath,STAFCmd)
-            </message>
-          <else>
-            <call function="'writeMessage'">
-            { 
-              'content' : 'WARNING : file does not exist on %s : %s/%s'\
-                          % (location,dsBinPath,STAFCmd),
-              'fileFd'  : fileFd
-            }
-            </call>
-          </else>
-          </if>
-      </else>
-      </if>
-      
-      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd }</call>
-      
-      <return> [dsconfigRC,dsconfigResult]</return>
+      <return>STAXResult</return>
       
     </sequence>
   </function>
