@@ -97,7 +97,7 @@
             }
           </call>
           <script>
-            errNum += STAXResult[0]
+            errNum += STAXResult[0][0]
           </script>
           
           <!-- ==== Start DS ==== -->
@@ -108,7 +108,7 @@
             }
           </call>
           <script>
-            errNum += STAXResult[0]
+            errNum += STAXResult[0][0]
           </script>
           
         </sequence>
