@@ -409,7 +409,7 @@
           <!--- Test Case information
             #@TestMarker          ldapsearch check behavior tests
             #@TestName            ldapsearch: check behavior with a scope of
-                                  "base" and a basedn of ""
+                                  base and a basedn of ''
             #@TestIssue           none
             #@TestPurpose         Verify that the Root DSE entry is returned.
             #@TestPreamble        none

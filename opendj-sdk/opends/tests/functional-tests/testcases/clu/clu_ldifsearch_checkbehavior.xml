@@ -395,9 +395,6 @@
             #@TestIssue           none
             #@TestPurpose         Verify the output of ldifsearch with @ocname 
                                   in the list of requested attributes.
-            #@TestPurpose         Verify that the output returned by ldifseach
-                                  are the same than the entries returned by
-                                  ldapsearch
             #@TestPreamble        none
             #@TestStep            Do an ldapsearch using @person as attribute
             #@TestStep            Do an ldifsearch with the same option.

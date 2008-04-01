@@ -135,22 +135,20 @@ public class WriteXMLFile_xml {
             fwOutput.write("              </step>\n");
           }
           fwOutput.write("            </steps>\n");
-          String tmpString = new String(arrayData.getTestPreamble(j));
-          if (tmpString.length() == 0) {
+          String tmpString = arrayData.getTestPreamble(j);
+          if (tmpString == null || tmpString.length() == 0) {
             fwOutput.write("            <preamble>None</preamble>\n");
           } else {
             fwOutput.write("            <preamble>" + tmpString
                 + "</preamble>\n");
           }
-          tmpString = new String(arrayData.getTestPostamble(j));
+          tmpString = arrayData.getTestPostamble(j);
           if (tmpString == null || tmpString.length() == 0) {
             fwOutput.write("            <postamble>None</postamble>\n");
           } else {
             fwOutput.write("            <postamble>" + tmpString
                 + "</postamble>\n");
           }
-          fwOutput.write("            <postamble>"
-              + arrayData.getTestPostamble(j) + "</postamble>\n");
           fwOutput.write("            <result>\n");
           fwOutput.write("             " + arrayData.getTestResult(j) + "\n");
           fwOutput.write("            </result>\n");
