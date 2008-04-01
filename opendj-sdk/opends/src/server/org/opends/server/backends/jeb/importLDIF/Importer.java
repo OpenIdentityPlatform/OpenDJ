@@ -489,7 +489,7 @@ public class Importer implements Thread.UncaughtExceptionHandler {
 
   private void abortImport() throws JebException {
     //Stop work threads telling them to skip substring flush.
-     stopWorkThreads(false, true);
+     stopWorkThreads(false);
      timer.cancel();
      Message message = ERR_JEB_IMPORT_LDIF_ABORT.get();
      throw new JebException(message);
@@ -498,17 +498,13 @@ public class Importer implements Thread.UncaughtExceptionHandler {
   /**
    * Stop work threads.
    *
-   * @param flushBuffer Flag telling threads that it should do substring flush.
    * @param abort <CODE>True</CODE> if stop work threads was called from an
    *              abort.
    * @throws JebException if a Jeb error occurs.
    */
   private void
-  stopWorkThreads(boolean flushBuffer, boolean abort) throws JebException {
+  stopWorkThreads(boolean abort) throws JebException {
     for (WorkThread t : threads) {
-      if(!flushBuffer) {
-        t.setFlush(false);
-      }
       t.stopProcessing();
     }
     // Wait for each thread to stop.
@@ -537,13 +533,14 @@ public class Importer implements Thread.UncaughtExceptionHandler {
      Message msg;
     //Drain the work queue.
     drainWorkQueue();
-    //Prepare the buffer managers to flush.
-    for(DNContext context : importMap.values()) {
-      context.getBufferManager().prepareFlush();
-    }
     pTask.setPause(true);
     long startTime = System.currentTimeMillis();
-    stopWorkThreads(true, false);
+    stopWorkThreads(true);
+    //Flush the buffer managers.
+    for(DNContext context : importMap.values()) {
+      context.getBufferManager().prepareFlush();
+      context.getBufferManager().flushAll();
+    }
     long finishTime = System.currentTimeMillis();
     long flushTime = (finishTime - startTime) / 1000;
      msg = NOTE_JEB_IMPORT_LDIF_BUFFER_FLUSH_COMPLETED.get(flushTime);
