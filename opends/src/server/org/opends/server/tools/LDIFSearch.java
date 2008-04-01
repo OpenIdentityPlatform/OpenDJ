@@ -29,6 +29,9 @@ import org.opends.messages.Message;
 
 
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -55,12 +58,12 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.MultiChoiceArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 
@@ -177,7 +180,7 @@ public class LDIFSearch
     BooleanArgument     dontWrap;
     BooleanArgument     overwriteExisting;
     BooleanArgument     showUsage;
-    FileBasedArgument   filterFile;
+    StringArgument      filterFile;
     IntegerArgument     sizeLimit;
     IntegerArgument     timeLimit;
     MultiChoiceArgument scopeString;
@@ -230,10 +233,9 @@ public class LDIFSearch
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
-      filterFile = new FileBasedArgument("filterfile", 'f', "filterFile", false,
-                            false, INFO_FILTER_FILE_PLACEHOLDER.get(), null,
-                            null,
-                            INFO_LDIFSEARCH_DESCRIPTION_FILTER_FILE.get());
+      filterFile = new StringArgument("filterfile", 'f', "filterFile", false,
+          false, true, INFO_FILTER_FILE_PLACEHOLDER.get(), null, null,
+          INFO_LDIFSEARCH_DESCRIPTION_FILTER_FILE.get());
       argParser.addArgument(filterFile);
 
       outputFile = new StringArgument(
@@ -316,10 +318,40 @@ public class LDIFSearch
     boolean            includeObjectclassAttrs = true;
     LinkedList<String> attributeNames;
     LinkedList<String> objectClassNames    = new LinkedList<String>();
-    LinkedList<String> filterStrings;
+    LinkedList<String> filterStrings = new LinkedList<String>();
     if (filterFile.isPresent())
     {
-      filterStrings = filterFile.getValues();
+      BufferedReader in = null;
+      try
+      {
+        String fileNameValue = filterFile.getValue();
+        in = new BufferedReader(new FileReader(fileNameValue));
+        String line = null;
+
+        while ((line = in.readLine()) != null)
+        {
+          if(line.trim().equals(""))
+          {
+            // ignore empty lines.
+            continue;
+          }
+          filterStrings.add(line);
+        }
+      } catch(Exception e)
+      {
+        err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        return 1;
+      }
+      finally
+      {
+        if(in != null)
+        {
+          try
+          {
+           in.close();
+          } catch (IOException ioe) {}
+        }
+      }
 
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
       if ((trailingArguments == null) || trailingArguments.isEmpty())
