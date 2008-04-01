@@ -68,6 +68,11 @@
     </function-map-args>
     <sequence>
       
+      <script>
+        cmdRC = 0
+        cmdResult = NOT_DEFINED
+      </script>
+      
       <call function="'writeStartTagOperation'">
       { 'tagName' : 'copyFile',
         'fileFd'  : fileFd }
@@ -78,19 +83,55 @@
          'fileFd'   : fileFd }
       </call>
       
-      <if expr="destFile != NOT_DEFINED">
-        <stafcmd name="'STAF Command: Copy File'">
-          <location>'%s' % location</location>
-          <service>'fs'</service>
-          <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcFile,destFile,remoteHost) </request>
-        </stafcmd>
-      <elseif expr="destDir != NOT_DEFINED">
-        <stafcmd name="'STAF Command: Copy File'">
-          <location>'%s' % location</location>
-          <service>'fs'</service>
-          <request>'COPY FILE %s TODIRECTORY %s TOMACHINE %s' % (srcFile,destDir,remoteHost) </request>
-        </stafcmd>
+      <if expr="remoteHost == location and srcFile == destFile">
+        <sequence>
+          <call function="'writeMessage'">
+          {
+            'content' : 'SKIP : same file %s, same host %s' % \
+                        (srcFile,location),
+            'fileFd'  : fileFd 
+          }
+          </call>
+        </sequence>
+      
+      <elseif expr="srcFile != NOT_DEFINED">
+        <sequence>
+          <stafcmd name="'STAF Command: Copy File'">
+            <location>'%s' % location</location>
+            <service>'fs'</service>
+            <request>'COPY FILE %s TOFILE %s TOMACHINE %s' % (srcFile,destFile,remoteHost) </request>
+          </stafcmd>
+          <script>
+            cmdRC=RC
+            cmdResult=STAFResult
+          </script>
+          <call function="'checkRC'">
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult,
+              'fileFd'     : fileFd }
+          </call>
+        </sequence>
       </elseif>
+      
+      <elseif expr="destDir != NOT_DEFINED">
+        <sequence>
+          <stafcmd name="'STAF Command: Copy File'">
+            <location>'%s' % location</location>
+            <service>'fs'</service>
+            <request>'COPY FILE %s TODIRECTORY %s TOMACHINE %s' % (srcFile,destDir,remoteHost) </request>
+          </stafcmd>
+          <script>
+            cmdRC=RC
+            cmdResult=STAFResult
+          </script>
+          <call function="'checkRC'">
+            { 'returncode' : cmdRC ,
+              'result'     : cmdResult,
+              'fileFd'     : fileFd }
+          </call>
+        </sequence>
+      </elseif>
+      
       <else>
         <sequence>
           <message>'ERROR copyFile() destFile or destDir must be specified'</message>
@@ -102,15 +143,6 @@
         </sequence>
       </else>
       </if>
-      <script>
-        cmdRC=RC
-        cmdResult=STAFResult
-      </script>
-      <call function="'checkRC'">
-        { 'returncode' : cmdRC ,
-          'result'     : cmdResult,
-          'fileFd'     : fileFd }
-      </call>
       
       <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
       
@@ -167,12 +199,12 @@
           'fileFd'   : fileFd }
       </call>
       
-      <if expr="remoteHost == STAXServiceMachine and fromDirectory == toDirectory">
+      <if expr="remoteHost == location and fromDirectory == toDirectory">
         <sequence>
           <call function="'writeMessage'">
           {
             'content' : 'SKIP : same directory %s, same host %s' % \
-                        (remoteHost,fromDirectory),
+                        (remoteHost,remoteHost),
             'fileFd'  : fileFd 
           }
           </call>
