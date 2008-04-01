@@ -158,7 +158,7 @@
             <command mode="'shell'">'./build.sh'</command>
             <parms/>
             <workdir>workingDir</workdir>
-            <envs>['PATH=/bin:/usr/bin']</envs>
+            <envs>['PATH=%s:/bin:/usr/bin' % JAVA_HOME]</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
             <returnstdout/>
@@ -209,7 +209,7 @@
             <command>'java'</command>
             <parms>cParam </parms>
             <workdir>workingDir</workdir>
-            <envs>['PATH=/bin:/usr/bin']</envs>
+            <envs>['PATH=%s:/bin:/usr/bin' % JAVA_HOME]</envs>
             <stderr mode="'stdout'"/>
             <stdout>outFile</stdout>
             <returnstdout/>
