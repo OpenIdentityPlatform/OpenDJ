@@ -109,7 +109,7 @@ public class ParseData
                   }
                   else if(tmpStr.indexOf("#@TestName") >= 0)
                   {
-                    arrayData.setTestName(StripSubstring(tmpStr, "#@TestName"));
+                    arrayData.setTestName(MultipleLines(tmpStr, "#@TestName", fin));
                     arrayData.setTestSuite(fileDir);
                   }
                   else if(tmpStr.indexOf("#@TestMarker") >= 0)

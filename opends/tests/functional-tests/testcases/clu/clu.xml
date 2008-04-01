@@ -49,6 +49,7 @@
           
           <!--- 
             Links between tests:
+            - clu_ldapsearch_checkbehavior add a new suffix
             - clu_ldapdelete_checkbehavior remove one entry under dc=com
             - clu_rebuild-index_checkbehavior add a new index
             - clu_make-ldif_checkbehavior import new data
@@ -76,7 +77,7 @@
             testList.append(['.','clu_manage-tasks_checkbehavior'])
             testList.append(['.','clu_dbtest_checkbehavior'])
             testList.append(['.','clu_ldifmodify_checkbehavior'])
-            testList.append(['.','clu_ldif-diff_checkbehavior'])            
+            testList.append(['.','clu_ldif-diff_checkbehavior'])
             testList.append(['.','clu_cleanup'])
           </script>
           
