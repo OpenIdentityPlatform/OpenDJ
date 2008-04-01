@@ -803,7 +803,7 @@ public class LDIFSearch
         writer.flush();
 
         matchCount++;
-        if ((sizeLimitValue > 0) && (matchCount > sizeLimitValue))
+        if ((sizeLimitValue > 0) && (matchCount >= sizeLimitValue))
         {
           resultCode = LDAPResultCode.SIZE_LIMIT_EXCEEDED;
 
