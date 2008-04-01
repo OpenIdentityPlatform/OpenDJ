@@ -76,9 +76,6 @@ public class WorkThread extends DirectoryThread {
   //The substring buffer manager to use.
   private BufferManager bufferMgr;
 
-  //Flag set when substring buffer should be flushed.
-  private boolean flushBuffer = true;
-
   /**
    * Create a work thread instance using the specified parameters.
    *
@@ -112,15 +109,6 @@ public class WorkThread extends DirectoryThread {
     stopRequested = true;
   }
 
-
-  /**
-   * Tells thread to flush substring buffer.
-   *
-   * @param flush Set to false if substring flush should be skipped.
-   */
-   void setFlush(boolean flush) {
-    this.flushBuffer = flush;
-  }
   /**
    * Run the thread. Read from item from queue and give it to the
    * buffer manage, unless told to stop. Once stopped, ask buffer manager
@@ -143,9 +131,6 @@ public class WorkThread extends DirectoryThread {
           }
         }
       } while (!stopRequested);
-      if(flushBuffer) {
-        bufferMgr.flushAll(threadNumber);
-      }
     } catch (Exception e) {
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -403,6 +388,7 @@ public class WorkThread extends DirectoryThread {
       IDs.set(0, entryID);
     }
     else {
+      EntryID nodeID;
       IDs = new ArrayList<EntryID>(entryDN.getNumComponents());
       IDs.add(entryID);
       if (parentID != null)
@@ -411,8 +397,11 @@ public class WorkThread extends DirectoryThread {
         EntryContainer ec = context.getEntryContainer();
         for (DN dn = ec.getParentWithinBase(parentDN); dn != null;
              dn = ec.getParentWithinBase(dn)) {
-          EntryID nodeID = dn2id.get(txn, dn);
-          IDs.add(nodeID);
+          if((nodeID =  getAncestorID(dn2id, dn, txn)) == null) {
+            return false;
+          } else {
+            IDs.add(nodeID);
+          }
         }
       }
     }
@@ -420,6 +409,26 @@ public class WorkThread extends DirectoryThread {
     context.setIDs(IDs);
     entry.setAttachment(IDs);
     return true;
+  }
+
+  private EntryID getAncestorID(DN2ID dn2id, DN dn, Transaction txn)
+          throws DatabaseException {
+    int i=0;
+    EntryID nodeID = dn2id.get(txn, dn);
+    if(nodeID == null) {
+      while((nodeID = dn2id.get(txn, dn)) == null) {
+        try {
+          Thread.sleep(50);
+          if(i == 3) {
+            return null;
+          }
+          i++;
+        } catch (Exception e) {
+          return null;
+        }
+      }
+    }
+    return nodeID;
   }
 
   /**
