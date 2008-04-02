@@ -157,7 +157,13 @@
               'fileFd'        : NO_FILE
             }
           </call>
-          <!-- Get opends buildid is instance is already installed -->
+        </sequence>
+      </paralleliterate>
+      
+      
+      <!-- Get opends buildid if instance is already installed -->
+      <paralleliterate in="instances" var="instance">
+        <sequence>
           <if expr="instance.getProduct() == 'opends'">
             <sequence>
               <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
@@ -170,7 +176,6 @@
           </if>
         </sequence>
       </paralleliterate>
-      
       
       <!--== Get the clients list from all modules ==-->
       <script>
