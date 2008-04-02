@@ -56,6 +56,10 @@ public final class Message implements CharSequence, Formattable,
   /** Represents an empty message string. */
   public static final Message EMPTY = Message.raw("");
 
+  // Variable used to workaround a bug in AIX Java 1.6
+  // TODO: remove this code once the JDK issue referenced in 3077 is closed.
+  private final boolean isAIXPost5 = isAIXPost5();
+
   /**
    * Creates an uninternationalized message that will render itself
    * the same way regardless of the locale requested in
@@ -180,7 +184,46 @@ public final class Message implements CharSequence, Formattable,
     String fmt = descriptor.getFormatString(locale);
     if (descriptor.requiresFormatter()) {
       try {
-        s = new Formatter(locale).format(locale, fmt, args).toString();
+        // TODO: remove this code once the JDK issue referenced in 3077 is
+        // closed.
+        if (isAIXPost5)
+        {
+          // Java 6 in AIX Formatter does not handle properly Formattable
+          // arguments; this code is a workaround for the problem.
+          boolean changeType = false;
+          for (Object o : args)
+          {
+            if (o instanceof Formattable)
+            {
+              changeType = true;
+              break;
+            }
+          }
+          if (changeType)
+          {
+            Object[] newArgs = new Object[args.length];
+            for (int i=0; i<args.length; i++)
+            {
+              if (args[i] instanceof Formattable)
+              {
+                newArgs[i] = args[i].toString();
+              }
+              else
+              {
+                newArgs[i] = args[i];
+              }
+            }
+            s = new Formatter(locale).format(locale, fmt, newArgs).toString();
+          }
+          else
+          {
+            s = new Formatter(locale).format(locale, fmt, args).toString();
+          }
+        }
+        else
+        {
+          s = new Formatter(locale).format(locale, fmt, args).toString();
+        }
       } catch (IllegalFormatException e) {
         // This should not happend with any of our internal messages.
         // However, this may happen for raw messages that have a
@@ -429,6 +472,29 @@ public final class Message implements CharSequence, Formattable,
     int result;
     result = 31 * toString().hashCode();
     return result;
+  }
+
+
+  // TODO: remove this code once the JDK issue referenced in 3077 is closed.
+  /**
+   * Returns whether we are running post 1.5 on AIX or not.
+   * @return <CODE>true</CODE> if we are running post 1.5 on AIX and
+   * <CODE>false</CODE> otherwise.
+   */
+  private boolean isAIXPost5()
+  {
+    boolean isJDK15 = false;
+    try
+    {
+      String javaRelease = System.getProperty ("java.version");
+      isJDK15 = javaRelease.startsWith("1.5");
+    }
+    catch (Throwable t)
+    {
+      System.err.println("Cannot get the java version: " + t);
+    }
+    boolean isAIX = "aix".equalsIgnoreCase(System.getProperty("os.name"));
+    return !isJDK15 && isAIX;
   }
 
 }
