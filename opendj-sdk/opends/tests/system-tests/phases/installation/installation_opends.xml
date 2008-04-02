@@ -85,8 +85,8 @@
           <call function="'installSetupOpends'">
           {
             'instance'           : instance,
-            'fileFd'             : cFileFd,
-            'suffixDn'           : suffixDn
+            'suffixDn'           : suffixDn,
+            'fileFd'             : cFileFd
           }
           </call>
           
@@ -207,14 +207,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
-      <function-arg-def name="fileFd" type="required">
-        <function-arg-description>
-          file descriptor
-        </function-arg-description>
-      </function-arg-def>
       <function-arg-def name="suffixDn" type="required">
         <function-arg-description>
           suffix dn
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
         </function-arg-description>
       </function-arg-def>
     </function-map-args>
