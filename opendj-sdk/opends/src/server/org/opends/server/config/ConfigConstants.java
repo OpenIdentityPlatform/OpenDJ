@@ -2915,6 +2915,12 @@ public final class ConfigConstants
   public static final String ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME =
        "ds-cfg-cipher-transformation-name";
 
+  /**
+   * The name of the attribute that is used to hold the key wrapping
+   * transformation used by the Crypto Manager.
+   */
+  public static final String ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION =
+    "ds-cfg-key-wrapping-transformation";
 
   /**
    * The name of the attribute that is used to hold the name of a

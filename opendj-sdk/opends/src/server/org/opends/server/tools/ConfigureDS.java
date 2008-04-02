@@ -29,11 +29,19 @@ import org.opends.messages.Message;
 
 
 
+import java.security.GeneralSecurityException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.io.File;
 
+import javax.crypto.Cipher;
+
+import org.opends.server.admin.DefaultBehaviorProvider;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.StringPropertyDefinition;
+import org.opends.server.admin.std.meta.CryptoManagerCfgDefn;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.BooleanConfigAttribute;
 import org.opends.server.config.ConfigEntry;
@@ -126,6 +134,11 @@ public class ConfigureDS
    */
   private static final String DN_ROOT_USER =
        "cn=Directory Manager," + DN_ROOT_DN_CONFIG_BASE;
+
+  /**
+   * The DN of the Crypto Manager.
+   */
+  private static final String DN_CRYPTO_MANAGER = "cn=Crypto Manager,cn=config";
 
 
 
@@ -988,6 +1001,59 @@ public class ConfigureDS
       }
 
 
+      // Check that the cipher specified is supported.  This is intended to
+      // fix issues with JVM that do not support the default cipher (see
+      // issue 3075 for instance).
+      CryptoManagerCfgDefn cryptoManager = CryptoManagerCfgDefn.getInstance();
+      StringPropertyDefinition prop =
+        cryptoManager.getKeyWrappingTransformationPropertyDefinition();
+      String defaultCipher = null;
+      DefaultBehaviorProvider p = prop.getDefaultBehaviorProvider();
+      if (p instanceof DefinedDefaultBehaviorProvider)
+      {
+        Collection<?> defaultValues =
+          ((DefinedDefaultBehaviorProvider)p).getDefaultValues();
+        if (!defaultValues.isEmpty())
+        {
+          defaultCipher = defaultValues.iterator().next().toString();
+        }
+      }
+      if (defaultCipher != null)
+      {
+        // Check that the default cipher is supported by the JVM.
+        try
+        {
+          Cipher.getInstance(defaultCipher);
+        }
+        catch (GeneralSecurityException ex)
+        {
+          // The cipher is not supported: try to find an alternative one.
+          String alternativeCipher = getAlternativeCipher();
+          if (alternativeCipher != null)
+          {
+            try
+            {
+              DN cipherDN = DN.decode(DN_CRYPTO_MANAGER);
+              ConfigEntry configEntry = configHandler.getConfigEntry(cipherDN);
+
+              // Set the alternative cipher
+              StringConfigAttribute keyWrappingTransformation =
+                new StringConfigAttribute(
+                    ATTR_CRYPTO_CIPHER_KEY_WRAPPING_TRANSFORMATION,
+                    Message.EMPTY, false, false, true, alternativeCipher);
+              configEntry.putConfigAttribute(keyWrappingTransformation);
+            }
+            catch (Exception e)
+            {
+              Message message = ERR_CONFIGDS_CANNOT_UPDATE_CRYPTO_MANAGER.get(
+                  String.valueOf(e));
+              System.err.println(wrapText(message, MAX_LINE_WIDTH));
+              return 1;
+            }
+          }
+        }
+      }
+
       // Write the updated configuration.
       try
       {
@@ -1012,6 +1078,34 @@ public class ConfigureDS
 
     // If we've gotten here, then everything was successful.
     return 0;
+  }
+
+  /**
+   * Returns a cipher that is supported by the JVM we are running at.
+   * Returns <CODE>null</CODE> if no alternative cipher could be found.
+   * @return a cipher that is supported by the JVM we are running at.
+   */
+  private static String getAlternativeCipher()
+  {
+    final String[] preferredAlternativeCiphers =
+    {
+        "RSA/ECB/OAEPWITHSHA1ANDMGF1PADDING",
+        "RSA/ECB/PKCS1Padding"
+    };
+    String alternativeCipher = null;
+    for (String cipher : preferredAlternativeCiphers)
+    {
+      try
+      {
+        Cipher.getInstance(cipher);
+        alternativeCipher = cipher;
+        break;
+      }
+      catch (Throwable t)
+      {
+      }
+    }
+    return alternativeCipher;
   }
 }
 

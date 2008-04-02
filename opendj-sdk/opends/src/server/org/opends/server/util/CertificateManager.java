@@ -40,6 +40,7 @@ import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
+import org.opends.server.types.OperatingSystem;
 
 
 /**
@@ -443,13 +444,12 @@ public final class CertificateManager
     // invoking the KeyTool command.
     keyStore = null;
 
-
     // First, we need to run with the "-genkey" command to create the private
     // key.
     String[] commandElements =
     {
       KEYTOOL_COMMAND,
-      "-genkey",
+      getGenKeyCommand(),
       "-alias", alias,
       "-dname", subjectDN,
       "-keyalg", "rsa",
@@ -541,7 +541,7 @@ public final class CertificateManager
     String[] commandElements =
     {
       KEYTOOL_COMMAND,
-      "-genkey",
+      getGenKeyCommand(),
       "-alias", alias,
       "-dname", subjectDN,
       "-keyalg", "rsa",
@@ -553,6 +553,7 @@ public final class CertificateManager
     // Next, we need to run with the "-certreq" command to generate the
     // certificate signing request.
     File csrFile = File.createTempFile("CertificateManager-", ".csr");
+    csrFile.deleteOnExit();
     commandElements = new String[]
     {
       KEYTOOL_COMMAND,
@@ -743,11 +744,11 @@ public final class CertificateManager
       KEY_STORE_TYPE_PKCS11.equals(keyStoreType);
 
     boolean isNewKeyStorePassword = !keyStoreDefined &&
-      ("-genkey".equalsIgnoreCase(commandElements[1]) ||
+      (getGenKeyCommand().equalsIgnoreCase(commandElements[1]) ||
       "-import".equalsIgnoreCase(commandElements[1]));
 
     boolean isNewStorePassword =
-      "-genkey".equalsIgnoreCase(commandElements[1]);
+      getGenKeyCommand().equalsIgnoreCase(commandElements[1]);
 
     boolean askForStorePassword =
       !"-import".equalsIgnoreCase(commandElements[1]);
@@ -762,15 +763,34 @@ public final class CertificateManager
       Process process = processBuilder.start();
       InputStream inputStream = process.getInputStream();
       OutputStream out = process.getOutputStream();
+      if (!isJDK15() &&
+          (SetupUtils.getOperatingSystem() == OperatingSystem.AIX))
+      {
+        // This is required when using JDK 1.6 on AIX to be able to write
+        // on the OutputStream.
+        try
+        {
+          Thread.sleep(1500);
+        } catch (Throwable t) {}
+      }
       out.write(keyStorePassword.getBytes()) ;
       out.write(lineSeparator.getBytes()) ;
       out.flush() ;
       // With Java6 and above, keytool asks for the password twice.
       if (!isJDK15() && isNewKeyStorePassword)
       {
-         out.write(keyStorePassword.getBytes()) ;
-         out.write(lineSeparator.getBytes()) ;
-         out.flush() ;
+        if (SetupUtils.getOperatingSystem() == OperatingSystem.AIX)
+        {
+          // This is required when using JDK 1.6 on AIX to be able to write
+          // on the OutputStream.
+          try
+          {
+            Thread.sleep(1500);
+          } catch (Throwable t) {}
+        }
+        out.write(keyStorePassword.getBytes()) ;
+        out.write(lineSeparator.getBytes()) ;
+        out.flush() ;
       }
 
       if (askForStorePassword)
@@ -779,8 +799,10 @@ public final class CertificateManager
         out.write(lineSeparator.getBytes()) ;
         out.flush() ;
 
-        // With Java6 and above, keytool asks for the password twice!
-        if (!isJDK15() && isNewStorePassword)
+        // With Java6 and above, keytool asks for the password twice (if we
+        // are not running AIX).
+        if (!isJDK15() && isNewStorePassword &&
+            (SetupUtils.getOperatingSystem() != OperatingSystem.AIX))
         {
           out.write(storePassword.getBytes()) ;
           out.write(lineSeparator.getBytes()) ;
@@ -933,6 +955,20 @@ public final class CertificateManager
       System.err.println("Cannot get the java version: " + t);
     }
     return isJDK15;
+  }
+
+  private String getGenKeyCommand()
+  {
+    String genKeyCommand;
+    if (!isJDK15())
+    {
+      genKeyCommand = "-genkeypair";
+    }
+    else
+    {
+      genKeyCommand = "-genkey";
+    }
+    return genKeyCommand;
   }
 }
 
