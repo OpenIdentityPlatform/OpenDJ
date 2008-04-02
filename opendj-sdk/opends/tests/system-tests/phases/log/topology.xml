@@ -115,25 +115,68 @@
       <iterate var="a" in="instanceList">
         <sequence>
           <script>
-            str = '\n &lt;id&gt;%s&lt;/id&gt;\n'     % a.getId()
-            str = '%s &lt;host&gt;%s&lt;/host&gt;\n' % (str,a.getHost())
-            str = '%s &lt;installDir&gt;%s&lt;/installDir&gt;\n' % \
-                  (str,a.getInstallDir())
+            try:
+              str = '\n &lt;id&gt;%s&lt;/id&gt;\n' % a.getId()
+            except AttributeError:
+              str = '\n &lt;id&gt;ERROR_id_not_found&lt;/id&gt;\n'
+            try:
+              str = '%s &lt;host&gt;%s&lt;/host&gt;\n' % (str,a.getHost())
+            except AttributeError:
+              str = '\n &lt;host&gt;ERROR_host_not_found&lt;/host&gt;\n'
+            try:
+              str = '%s &lt;installDir&gt;%s&lt;/installDir&gt;\n' % \
+                    (str,a.getInstallDir())
+            except AttributeError:
+              str = '%s &lt;installDir&gt;ERROR_id_not_found' % str
+              str = '%s&lt;/installDir&gt;\n' % str
+            
             str = '%s &lt;port&gt;\n'                  % str
-            str = '%s &lt;ldap&gt;%s&lt;/ldap&gt;\n'   % (str,a.getLDAPPort())
-            str = '%s &lt;ldaps&gt;%s&lt;/ldaps&gt;\n' % (str,a.getLDAPSPort())
-            str = '%s &lt;jmx&gt;%s&lt;/jmx&gt;\n'     % (str,a.getJMXPort())
-            str = '%s &lt;replicationServer&gt;%s&lt;/replicationServer&gt;\n'%\
-                  (str,a.getREPLPort())
+            
+            try:
+              str = '%s &lt;ldap&gt;%s&lt;/ldap&gt;\n' % (str,a.getLDAPPort())
+            except AttributeError:
+              str = '%s &lt;ldap&gt;ERROR_ldap_not_found&lt;/ldap&gt;\n' % str
+            try:
+              str = '%s &lt;ldaps&gt;%s&lt;/ldaps&gt;\n' % (str,a.getLDAPSPort())
+            except AttributeError:
+              str = '%s &lt;ldaps&gt;ERROR_ldaps_not_found&lt;/ldaps&gt;\n' % \
+                    str
+            try:
+              str = '%s &lt;jmx&gt;%s&lt;/jmx&gt;\n'     % (str,a.getJMXPort())
+            except AttributeError:
+              str = '%s &lt;jmx&gt;ERROR_jmx_not_found&lt;/jmx&gt;\n' % str
+            try:
+              str = '%s &lt;replicationServer&gt;%s&lt;/replicationServer&gt;\n'%\
+                    (str,a.getREPLPort())
+            except AttributeError:
+              str = '%s &lt;replicationServerp&gt;' % str
+              str = '%sERROR_replicationServer_not_found' % str
+              str = '%s&lt;/replicationServer&gt;\n' % str
+            
             str = '%s &lt;/port&gt;\n' % str
-            str = '%s &lt;buildId&gt;%s&lt;/buildId&gt;\n' % \
-                  (str,a.getBuildId())
-            str = '%s &lt;jvm&gt;%s&lt;/jvm&gt;\n' % \
-                  (str,a.getJavaVersion())
-            str = '%s &lt;os&gt;%s&lt;/os&gt;\n' % \
-                  (str,a.getOs())
-            str = '%s &lt;synchroDate&gt;%s&lt;/synchroDate&gt;\n' % \
-                  (str,a.getSynchroDate())
+            
+            try:
+              str = '%s &lt;buildId&gt;%s&lt;/buildId&gt;\n' % \
+                    (str,a.getBuildId())
+            except AttributeError:
+              str = '%s &lt;buildId&gt;ERROR_buildId_not_found' % str
+              str = '%s &lt;/buildId&gt;\n' % str
+            try:
+              str = '%s &lt;jvm&gt;%s&lt;/jvm&gt;\n' % \
+                    (str,a.getJavaVersion())
+            except AttributeError:
+              str = '%s &lt;jvm&gt;ERROR_jvm_not_found&lt;/jvm&gt;\n' % str
+            try:
+              str = '%s &lt;os&gt;%s&lt;/os&gt;\n' % \
+                    (str,a.getOs())
+            except AttributeError:
+              str = '%s &lt;os&gt;ERROR_os_not_found&lt;/os&gt;\n' % str
+            try:
+              str = '%s &lt;synchroDate&gt;%s&lt;/synchroDate&gt;\n' % \
+                    (str,a.getSynchroDate())
+            except AttributeError:
+              str = '%s &lt;synchroDate&gt;ERROR_synchroDate_not_found' % str
+              str = '%s &lt;/synchroDate&gt;\n' % str
           </script>
           
           <call function="'writeTag'">
