@@ -290,6 +290,7 @@
       
       <script>
         startTime=strftime("%Y%m%d@%H:%M:%S",localtime())
+        errNum = NOT_DEFINED
       </script>
       
       <!--=== log info ===-->
