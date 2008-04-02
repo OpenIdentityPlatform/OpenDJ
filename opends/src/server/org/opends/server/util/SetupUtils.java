@@ -260,7 +260,7 @@ public class SetupUtils
    * Commodity method to help identifying the OS we are running on.
    * @return the OperatingSystem we are running on.
    */
-  private static OperatingSystem getOperatingSystem()
+  public static OperatingSystem getOperatingSystem()
   {
     return OperatingSystem.forName(System.getProperty("os.name"));
   }
