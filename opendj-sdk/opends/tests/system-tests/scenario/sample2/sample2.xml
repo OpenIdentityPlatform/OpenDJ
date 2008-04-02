@@ -27,9 +27,9 @@
  ! -->
 <stax>
   
-  <defaultcall function="mainSample"/>
+  <defaultcall function="mainSample2"/>
   
-  <function name="mainSample" scope="local">
+  <function name="mainSample2" scope="local">
       <sequence>
         <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
           file="'%s/phases/main_run.xml' % (TESTS_DIR)"/>
