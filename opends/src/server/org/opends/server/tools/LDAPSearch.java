@@ -1079,18 +1079,27 @@ public class LDAPSearch
       argParser.getTrailingArguments();
     if(filterAndAttributeStrings.size() > 0)
     {
-      String filterString = filterAndAttributeStrings.remove(0);
-      try
+      // the list of trailing arguments should be structured as follow:
+      // - If a filter file is present, trailing arguments are considered
+      //   as attributes
+      // - If filter file is not present, the first trailing argument is
+      // considered the filter, the other as attributes.
+      if (! filename.isPresent())
       {
-        filters.add(LDAPFilter.decode(filterString));
-      } catch(LDAPException le)
-      {
-        if (debugEnabled())
+        String filterString = filterAndAttributeStrings.remove(0);
+
+        try
         {
-          TRACER.debugCaught(DebugLogLevel.ERROR, le);
+          filters.add(LDAPFilter.decode(filterString));
+        } catch (LDAPException le)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, le);
+          }
+          err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
+          return 1;
         }
-        err.println(wrapText(le.getMessage(), MAX_LINE_WIDTH));
-        return 1;
       }
       // The rest are attributes
       for(String s : filterAndAttributeStrings)
