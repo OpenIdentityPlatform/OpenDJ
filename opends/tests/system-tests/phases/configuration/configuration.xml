@@ -82,7 +82,7 @@
         <sequence>
           <message>'%s' % msg</message>
           <call function="'writeMessage'">
-          { 'fileFd'  : fileFd,
+          { 'fileFd'  : LOG_MAIN_FD,
             'content' : msg
           }
           </call>
