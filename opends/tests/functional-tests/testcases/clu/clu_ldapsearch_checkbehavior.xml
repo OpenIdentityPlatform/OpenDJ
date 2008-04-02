@@ -513,13 +513,18 @@
                 'outputFile'       : 'ldapsearch_simplepagesize_30.out'
                 }                
               </call>
-
-              <call function="'compareFile'">
+              
+              <call function="'LdifDiffWithScript'">
                 { 
-                'outputFile'     : 'ldapsearch_simplepagesize_30.out'
+                'sourceLdif' : '%s/ldapsearch_simplepagesize_30.out' \
+                               % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/clu/ldapsearch_simplepagesize_30.ref' \
+                               % logsRemoteDataDir ,
+                'outputLdif' : '%s/ldapsearch_simplepagesize_30.diff' \
+                               % DIRECTORY_INSTANCE_DIR
                 }
               </call>
-
+              
               <message>
                 'ldapsearch: check output with simplePageSize of 1'
               </message>
@@ -539,11 +544,16 @@
                 }                
               </call>
 
-              <call function="'compareFile'">
+              <call function="'LdifDiffWithScript'">
                 { 
-                'outputFile'     : 'ldapsearch_simplepagesize_1.out'
+                'sourceLdif' : '%s/ldapsearch_simplepagesize_1.out' \
+                               % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/clu/ldapsearch_simplepagesize_1.ref' \
+                               % logsRemoteDataDir ,
+                'outputLdif' : '%s/ldapsearch_simplepagesize_1.diff' \
+                               % DIRECTORY_INSTANCE_DIR
                 }
-              </call>              
+              </call>         
               
               <call function="'testCase_Postamble'"/>
               
@@ -604,10 +614,15 @@
                 'nbExpected'  : 8
                 }
               </call> 
-              
-              <call function="'compareFile'">
+
+              <call function="'LdifDiffWithScript'">
                 { 
-                'outputFile'     : 'ldapsearch_filterfile_and_attribute.out'
+                'sourceLdif' : '%s/ldapsearch_filterfile_and_attribute.out' \
+                               % DIRECTORY_INSTANCE_DIR ,
+                'targetLdif' : '%s/clu/ldapsearch_filterfile_and_attribute.ref'\
+                               % logsRemoteDataDir ,
+                'outputLdif' : '%s/ldapsearch_filterfile_and_attribute.diff' \
+                               % DIRECTORY_INSTANCE_DIR
                 }
               </call>
               
