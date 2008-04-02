@@ -126,16 +126,22 @@ public class FramePanel extends JPanel
     backgroundIcon =
       UIFactory.getImageIcon(UIFactory.IconType.BACKGROUND);
 
+    int backGroundIconWidth = 0;
+    int backGroundIconHeight = 0;
+    if (backgroundIcon != null)
+    {
+      backGroundIconWidth = backgroundIcon.getIconWidth();
+      backGroundIconHeight = backgroundIcon.getIconHeight();
+    }
+
     this.buttonsPanel = buttonsPanel;
     this.stepsPanel = stepsPanel;
     int width =
-        Math.max((int) getPreferredSize().getWidth(), backgroundIcon
-            .getIconWidth()
+        Math.max((int) getPreferredSize().getWidth(), backGroundIconWidth
             + UIFactory.LEFT_INSET_BACKGROUND
             + UIFactory.RIGHT_INSET_BACKGROUND);
     int height =
-        Math.max((int) getPreferredSize().getHeight(), backgroundIcon
-            .getIconHeight()
+        Math.max((int) getPreferredSize().getHeight(), backGroundIconHeight
             + UIFactory.TOP_INSET_BACKGROUND
             + UIFactory.BOTTOM_INSET_BACKGROUND);
     setPreferredSize(new Dimension(width, height));
