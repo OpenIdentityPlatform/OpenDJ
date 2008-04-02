@@ -529,7 +529,7 @@
         <call function="'writeMessage'">
           {
             'content'  : '%s: Directory %s already exists, skip' %\
-                         (location,foldername),
+                         (foldername,location),
             'fileFd'   : fileFd
           }
         </call>
