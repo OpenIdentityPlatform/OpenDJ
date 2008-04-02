@@ -508,36 +508,61 @@
     </function-map-args>
 
     <sequence>
+      <script>
+        cmdRC = 0
+      </script>
       <call function="'writeStartTagOperation'">
       { 'tagName' : 'createFolder',
         'fileFd'  : fileFd }
       </call>
-      <call function="'writeMessage'">
-        {
-          'content'  : 'Create directory %s on %s' % (foldername,location) ,
-          'fileFd'   : fileFd
-        }
+      
+      <call function="'isFile'">
+      {
+        'location' : location,
+        'fileName' : foldername
+      }
       </call>
-      
-      <stafcmd name="'STAF Command: Create Folder'">
-        <location>'%s' % location</location>
-        <service>'fs'</service>
-        <request>
-          'CREATE DIRECTORY %s FULLPATH' % foldername
-        </request>
-      </stafcmd>
-      
       <script>
-        cmdRC=RC
-        cmdResult=STAFResult
+        fileExist = STAXResult
       </script>
-      
-       <call function="'checkRC'">
-          { 'returncode' : cmdRC ,
-            'result'     : cmdResult ,
-            'fileFd'     : fileFd
+      <if expr="fileExist == TRUE">
+        <call function="'writeMessage'">
+          {
+            'content'  : '%s: Directory %s already exists, skip' %\
+                         (location,foldername),
+            'fileFd'   : fileFd
           }
-      </call>
+        </call>
+      <else>
+        <sequence>
+          <call function="'writeMessage'">
+            {
+              'content'  : 'Create directory %s on %s' % (foldername,location) ,
+              'fileFd'   : fileFd
+            }
+          </call>
+          <stafcmd name="'STAF Command: Create Folder'">
+            <location>'%s' % location</location>
+            <service>'fs'</service>
+            <request>
+              'CREATE DIRECTORY %s FULLPATH' % foldername
+            </request>
+          </stafcmd>
+          
+          <script>
+            cmdRC=RC
+            cmdResult=STAFResult
+          </script>
+          
+           <call function="'checkRC'">
+              { 'returncode' : cmdRC ,
+                'result'     : cmdResult ,
+                'fileFd'     : fileFd
+              }
+          </call>
+        </sequence>
+      </else>
+      </if>
       <call function="'writeEndTagOperation'">{'fileFd' : fileFd}</call>
       
       <return>cmdRC</return>
