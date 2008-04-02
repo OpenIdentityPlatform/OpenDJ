@@ -400,7 +400,17 @@
       
       </timer>
       <if expr="timerKilled == TRUE">
-        <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+        <sequence>
+          <!-- TBD: The client has been killed, we have to make sure that 
+               xml result structure is coherent... -->
+          <message>
+            'WARNING: client %s has been killed, %s is probably over loaded'%\
+            (client.getName(),client.getHost())
+          </message>
+          <!-- 
+          <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+          -->
+        </sequence>
       </if>
       
       <script>
