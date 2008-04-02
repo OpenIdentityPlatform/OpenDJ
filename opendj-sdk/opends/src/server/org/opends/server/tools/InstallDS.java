@@ -914,6 +914,7 @@ public class InstallDS extends ConsoleApplication
     uData.setConfigurationClassName(argParser.configClassArg.getValue());
     uData.setConfigurationFile(argParser.configFileArg.getValue());
     uData.setQuiet(isQuiet());
+    uData.setVerbose(isVerbose());
 
     promptIfRequiredForDirectoryManager(uData);
     promptIfRequiredForPortData(uData);
