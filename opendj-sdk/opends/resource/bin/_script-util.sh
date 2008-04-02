@@ -71,7 +71,14 @@ test_java() {
   if test -z "${OPENDS_JAVA_ARGS}"
   then
     "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t 2> /dev/null
-    if test ${?} -ne 0
+    RESULT_CODE=${?}
+    if test ${RESULT_CODE} -eq 13
+    then
+      # This is a particular error code that means that the Java version is 5
+      # but not supported.  Let InstallDS to display the localized error message
+      "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t
+      exit 1
+    elif test ${RESULT_CODE} -ne 0
     then
       echo "ERROR:  The detected Java version could not be used.  The detected"
       echo "java binary is:"
@@ -91,7 +98,14 @@ test_java() {
     fi
   else
     "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
-    if test ${?} -ne 0
+    RESULT_CODE=${?}
+    if test ${RESULT_CODE} -eq 13
+    then
+      # This is a particular error code that means that the Java version is 5
+      # but not supported.  Let InstallDS to display the localized error message
+      "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t
+      exit 1
+    elif test ${RESULT_CODE} -ne 0
     then
       echo "ERROR:  The detected Java version could not be used with the set of java"
       echo "arguments ${OPENDS_JAVA_ARGS}."
