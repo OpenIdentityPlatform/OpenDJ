@@ -103,6 +103,9 @@ else
   if test ${EC} -eq 52
   then
     MUST_CALL_AGAIN="true"
+  else
+    # This is likely a problem with the provided arguments.
+    exit ${EC}
   fi
 fi
 
