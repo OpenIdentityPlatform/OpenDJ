@@ -49,6 +49,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.CurrentInstallStatus;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.SecurityOptions;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataException;
@@ -58,6 +59,7 @@ import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.installer.ui.InstallReviewPanel;
 import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
@@ -372,6 +374,16 @@ public class InstallDS extends ConsoleApplication
       {
         LOG.log(Level.WARNING, "Error while trying to update the contents of "+
             "the set-java-home file in test only mode: "+t, t);
+      }
+      // Test that we are running a compatible java 1.5 version.
+      try
+      {
+        Utils.checkJavaVersion();
+      }
+      catch (IncompatibleVersionException ive)
+      {
+        println(ive.getMessageObject());
+        return ReturnCode.JAVA_VERSION_INCOMPATIBLE.getReturnCode();
       }
     }
 

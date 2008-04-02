@@ -124,7 +124,9 @@ goto scriptBegin
 
 :testJava
 "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% org.opends.server.tools.InstallDS -t > NUL 2>&1
-if not %errorlevel% == 0 goto noValidJavaHome
+set RESULT_CODE=%errorlevel%
+if %RESULT_CODE% == 13 goto notSupportedJavaHome
+if not %RESULT_CODE% == 0 goto noValidJavaHome
 goto end
 
 :noValidJavaHome
@@ -143,6 +145,13 @@ echo 3. Edit the properties file specifying the java binary and the java argumen
 echo for each command line.  The java properties file is located in:
 echo %INSTANCE_ROOT%\config\java.properties.
 echo 4. Run the command-line %INSTANCE_ROOT%\bin\dsjavaproperties
+pause
+exit /B 1
+
+:notSupportedJavaHome
+rem We get here when the java version is 5 (or up) but not supported.  We run
+rem InstallDS again to see a localized message.
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% org.opends.server.tools.InstallDS -t
 pause
 exit /B 1
 
