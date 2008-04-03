@@ -28,6 +28,6 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDIFModify"
-set SCRIPT_NAME_ARG=ldifmodify
+set SCRIPT_NAME=ldifmodify
 for %%i in (%~sf0) do  call "%%~dPsi\..\lib\_server-script.bat" %*
 

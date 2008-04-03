@@ -28,7 +28,7 @@ rem      Copyright 2006-2008 Sun Microsystems, Inc.
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDIFDiff"
-set SCRIPT_NAME_ARG=ldif-diff
+set SCRIPT_NAME=ldif-diff
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 
 
