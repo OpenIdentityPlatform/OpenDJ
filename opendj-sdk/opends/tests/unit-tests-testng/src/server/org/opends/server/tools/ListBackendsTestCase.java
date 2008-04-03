@@ -357,7 +357,7 @@ public class ListBackendsTestCase
       "--baseDN", "ou=nonexistent"
     };
 
-    assertEquals(ListBackends.listBackends(args, false, null, null), 0);
+    assertEquals(ListBackends.listBackends(args, false, null, null), 1);
   }
 
 
