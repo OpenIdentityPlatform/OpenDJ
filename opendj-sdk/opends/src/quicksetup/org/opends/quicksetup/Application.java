@@ -842,6 +842,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
   }
 
   /**
+   * Method that is invoked by the printstreams with the messages received
+   * on operations such as start or import.  This is done so that the
+   * application can parse this messages and display them.
+   * @param message the message that has been received
+   */
+  protected void applicationPrintStreamReceived(String message)
+  {
+  }
+
+  /**
    * This class is used to notify the ProgressUpdateListeners of events
    * that are written to the standard error.  It is used in WebStartInstaller
    * and in OfflineInstaller.  These classes just create a ErrorPrintStream and
@@ -947,7 +957,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
       }
 
       notifyListeners(mb.toMessage());
-      LOG.log(Level.INFO, "server: " + msg);
+      applicationPrintStreamReceived(msg);
+      LOG.log(Level.INFO, msg);
       isFirstLine = false;
     }
 

@@ -161,6 +161,7 @@ public abstract class Installer extends GuiApplication {
   private boolean registeredNewServerOnRemote;
   private boolean createdAdministrator;
   private boolean createdRemoteAds;
+  private String lastImportProgress;
 
   /**
    * An static String that contains the class name of ConfigFileHandler.
@@ -1282,10 +1283,34 @@ public abstract class Installer extends GuiApplication {
         // TODO: implement the abort
       }
     };
-    invokeLongOperation(thread);
+    try
+    {
+      invokeLongOperation(thread);
+    } catch (ApplicationException ae)
+    {
+      if (!isVerbose())
+      {
+        if (lastImportProgress != null)
+        {
+          notifyListeners(
+              getFormattedProgress(Message.raw(lastImportProgress)));
+          notifyListeners(getLineBreak());
+        }
+      }
+      throw ae;
+    }
     if (!isVerbose())
     {
-      notifyListeners(getFormattedDoneWithLineBreak());
+      if (lastImportProgress == null)
+      {
+        notifyListeners(getFormattedDoneWithLineBreak());
+      }
+      else
+      {
+        notifyListeners(
+            getFormattedProgress(Message.raw(lastImportProgress)));
+        notifyListeners(getLineBreak());
+      }
     }
   }
 
@@ -4700,6 +4725,19 @@ public abstract class Installer extends GuiApplication {
       hostPort = server.getHostPort(true);
     }
     return hostPort;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  protected void applicationPrintStreamReceived(String message)
+  {
+    InstallerHelper helper = new InstallerHelper();
+    String parsedMessage = helper.getImportProgressMessage(message);
+    if (parsedMessage != null)
+    {
+      lastImportProgress = parsedMessage;
+    }
   }
 }
 

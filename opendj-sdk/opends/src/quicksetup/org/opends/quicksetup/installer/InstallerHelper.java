@@ -63,6 +63,7 @@ import org.opends.server.admin.std.client.*;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.backends.task.TaskState;
 import org.opends.messages.CoreMessages;
+import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
 import org.opends.messages.Message;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -825,6 +826,34 @@ public class InstallerHelper {
       throw new IOException(
           ERR_ERROR_CREATING_JAVA_HOME_SCRIPTS.get(returnValue).toString());
     }
+  }
+
+  /**
+   * If the log message is of type "[03/Apr/2008:21:25:43 +0200] category=JEB
+   * severity=NOTICE msgID=8847454 Processed 1 entries, imported 0, skipped 1,
+   * rejected 0 and migrated 0 in 1 seconds (average rate 0.0/sec)" returns
+   * the message part.  Returns <CODE>null</CODE> otherwise.
+   * @param msg the message to be parsed.
+   * @return the parsed import message.
+   */
+  public String getImportProgressMessage(String msg)
+  {
+    String parsedMsg = null;
+    if (msg != null)
+    {
+      if ((msg.indexOf(
+          "msgID="+JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS.getId()) != -1) ||
+          (msg.indexOf(
+          "msgID="+JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT.getId()) != -1))
+      {
+        int index = msg.indexOf("msg=");
+        if (index != -1)
+        {
+          parsedMsg = msg.substring(index + 4);
+        }
+      }
+    }
+    return parsedMsg;
   }
 
   /**
