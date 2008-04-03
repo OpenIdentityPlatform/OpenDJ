@@ -748,7 +748,7 @@ public class InstallerHelper {
           "backup.offline", "encode-password", "export-ldif.offline",
           "import-ldif.offline", "ldif-diff", "ldifmodify", "ldifsearch",
           "make-ldif", "rebuild-index", "restore.offline", "start-ds",
-          "upgrade", "verify-install"
+          "upgrade", "verify-index", "dbtest"
       };
 
       if (supportsServer)
