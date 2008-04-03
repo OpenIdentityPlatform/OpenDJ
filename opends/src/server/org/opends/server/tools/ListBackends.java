@@ -336,6 +336,7 @@ public class ListBackends
     // backend ID argument was present, then list the base DNs for that backend.
     // If the base DN argument was present, then list the backend for that base
     // DN.  If no arguments were provided, then list all backends and base DNs.
+    boolean invalidDn = false;
     if (baseDN.isPresent())
     {
       // Create a map from the base DNs of the backends to the corresponding
@@ -391,6 +392,7 @@ public class ListBackends
               message = INFO_LISTBACKENDS_NO_BACKEND_FOR_DN.get(
                       dn.toString());
               out.println(message);
+              invalidDn = true;
               break;
             }
             else
@@ -505,7 +507,7 @@ public class ListBackends
 
 
     // If we've gotten here, then everything completed successfully.
-    return 0;
+    return invalidDn ? 1 : 0 ;
   }
 
 
