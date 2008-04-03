@@ -437,8 +437,19 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
           } while (!taskEntry.isDone());
           if (TaskState.isSuccessful(taskEntry.getTaskState())) {
+            out.println(
+                wrapText(INFO_TASK_TOOL_TASK_SUCESSFULL.get(
+                        taskEntry.getType(),
+                        taskEntry.getId()),
+                MAX_LINE_WIDTH));
+
             return 0;
           } else {
+            out.println(
+                wrapText(INFO_TASK_TOOL_TASK_NOT_SUCESSFULL.get(
+                        taskEntry.getType(),
+                        taskEntry.getId()),
+                MAX_LINE_WIDTH));
             return 1;
           }
         }
