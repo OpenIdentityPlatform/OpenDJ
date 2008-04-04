@@ -62,6 +62,7 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -1346,7 +1347,7 @@ public class StatusPanelDialog extends JFrame
   /**
    * Class used to render the databases table cells.
    */
-  class DatabasesCellRenderer extends JLabel implements TableCellRenderer
+  class DatabasesCellRenderer extends DefaultTableCellRenderer
   {
     private static final long serialVersionUID = -256719167426289735L;
 
@@ -1364,13 +1365,14 @@ public class StatusPanelDialog extends JFrame
      */
     public Component getTableCellRendererComponent(JTable table, Object value,
         boolean isSelected, boolean hasFocus, int row, int column) {
+      String text = null;
       if (value instanceof String)
       {
-        setTextValue(this, (String)value);
+        text = (String)value;
       }
       else if (value instanceof Message)
       {
-        setTextValue(this, ((Message)value).toString());
+        text = ((Message)value).toString();
       }
       else if (value instanceof Set)
       {
@@ -1379,10 +1381,10 @@ public class StatusPanelDialog extends JFrame
         {
           baseDns.add((String)v);
         }
-        setTextValue(this, "<html>" +
-            UIFactory.applyFontToHtml(Utils.getStringFromCollection(
-                baseDns, "<br>"),
-                UIFactory.SECONDARY_FIELD_VALID_FONT));
+        text = "<html>" +
+        UIFactory.applyFontToHtml(Utils.getStringFromCollection(
+            baseDns, "<br>"),
+            UIFactory.SECONDARY_FIELD_VALID_FONT);
       }
       else
       {
@@ -1393,7 +1395,7 @@ public class StatusPanelDialog extends JFrame
           int nEntries = (Integer)value;
           if (nEntries >= 0)
           {
-            setTextValue(this, String.valueOf(nEntries));
+            text = String.valueOf(nEntries);
           }
           else
           {
@@ -1412,25 +1414,32 @@ public class StatusPanelDialog extends JFrame
           setNotAvailableBecauseServerIsDown(this);
         }
       }
+      if (text != null)
+      {
+        setTextValue(this, text);
+      }
+      JComponent comp = (JComponent)
+      super.getTableCellRendererComponent(table, getText(), isSelected,
+        hasFocus, row, column);
       if (column == 0)
       {
-        setBorder(BorderFactory.createCompoundBorder(
+        comp.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 1, 0, 0,
                 UIFactory.PANEL_BORDER_COLOR),
                 BorderFactory.createEmptyBorder(4, 4, 4, 4)));
       }
       else
       {
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        comp.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
       }
-      return this;
+      return comp;
     }
   }
 
   /**
    * Class used to render the listeners table cells.
    */
-  class ListenersCellRenderer extends JLabel implements TableCellRenderer
+  class ListenersCellRenderer extends DefaultTableCellRenderer
   {
     private static final long serialVersionUID = -256719167426289735L;
 
@@ -1450,18 +1459,21 @@ public class StatusPanelDialog extends JFrame
         boolean isSelected, boolean hasFocus, int row, int column) {
 
       setTextValue(this, (String)value);
+      JComponent comp = (JComponent)
+        super.getTableCellRendererComponent(table, getText(), isSelected,
+          hasFocus, row, column);
       if (column == 0)
       {
-        setBorder(BorderFactory.createCompoundBorder(
+        comp.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 1, 0, 0,
                 UIFactory.PANEL_BORDER_COLOR),
                 BorderFactory.createEmptyBorder(4, 4, 4, 4)));
       }
       else
       {
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        comp.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
       }
-      return this;
+      return comp;
     }
   }
 }

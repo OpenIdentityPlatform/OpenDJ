@@ -53,6 +53,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.BevelBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -719,7 +720,6 @@ public class UIFactory
       {
         UIManager.setLookAndFeel(
             UIManager.getSystemLookAndFeelClassName());
-
       } catch (Exception ex)
       {
         ex.printStackTrace();
@@ -1724,7 +1724,7 @@ public class UIFactory
 /**
  * Class used to render the table headers.
  */
-class HeaderRenderer extends JLabel implements TableCellRenderer
+class HeaderRenderer extends DefaultTableCellRenderer
 {
   private static final long serialVersionUID = -8604332267021523835L;
 
@@ -1743,21 +1743,23 @@ class HeaderRenderer extends JLabel implements TableCellRenderer
   public Component getTableCellRendererComponent(JTable table, Object value,
       boolean isSelected, boolean hasFocus, int row, int column) {
     setText((String)value);
+    JComponent comp = (JComponent)super.getTableCellRendererComponent(table,
+        value, isSelected, hasFocus, row, column);
     if (column == 0)
     {
-      setBorder(BorderFactory.createCompoundBorder(
+      comp.setBorder(BorderFactory.createCompoundBorder(
           BorderFactory.createMatteBorder(1, 1, 1, 1,
               UIFactory.PANEL_BORDER_COLOR),
               BorderFactory.createEmptyBorder(4, 4, 4, 4)));
     }
     else
     {
-      setBorder(BorderFactory.createCompoundBorder(
+      comp.setBorder(BorderFactory.createCompoundBorder(
           BorderFactory.createMatteBorder(1, 0, 1, 1,
               UIFactory.PANEL_BORDER_COLOR),
               BorderFactory.createEmptyBorder(4, 4, 4, 4)));
     }
-    return this;
+    return comp;
   }
 }
 
