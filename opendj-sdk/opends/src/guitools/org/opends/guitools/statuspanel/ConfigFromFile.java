@@ -28,6 +28,7 @@
 package org.opends.guitools.statuspanel;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,6 +37,10 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.opends.server.admin.DefaultBehaviorProvider;
+import org.opends.server.admin.DefinedDefaultBehaviorProvider;
+import org.opends.server.admin.IPAddressPropertyDefinition;
+import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -415,6 +420,31 @@ public class ConfigFromFile
   }
 
   /**
+   * Returns the default LDAP address as defined in the configuration.
+   * @return the default LDAP address as defined in the configuration.
+   */
+  static String getDefaultLdapAddress()
+  {
+    String address = null;
+    //  Get default value
+    LDAPConnectionHandlerCfgDefn connHandler =
+      LDAPConnectionHandlerCfgDefn.getInstance();
+    IPAddressPropertyDefinition prop =
+      connHandler.getListenAddressPropertyDefinition();
+    DefaultBehaviorProvider p = prop.getDefaultBehaviorProvider();
+    if (p instanceof DefinedDefaultBehaviorProvider)
+    {
+      Collection<?> defaultValues =
+        ((DefinedDefaultBehaviorProvider)p).getDefaultValues();
+      if (!defaultValues.isEmpty())
+      {
+        address = defaultValues.iterator().next().toString();
+      }
+    }
+    return address;
+  }
+
+  /**
    * An convenience method to know if the provided ID corresponds to a
    * configuration backend or not.
    * @param id the backend ID to analyze
@@ -483,6 +513,11 @@ public class ConfigFromFile
     ListenerDescriptor.State state;
     if (entry.hasObjectClass(ldapConnectionHandlerOc))
     {
+      if (address == null)
+      {
+        address = getDefaultLdapAddress();
+      }
+
       addressPort = address+":"+port;
       if (isSecure)
       {

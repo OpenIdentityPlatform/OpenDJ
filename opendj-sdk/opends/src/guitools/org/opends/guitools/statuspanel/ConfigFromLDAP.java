@@ -849,6 +849,10 @@ public class ConfigFromLDAP
     ListenerDescriptor.State state;
     if (hasObjectClass(entry, "ds-cfg-ldap-connection-handler"))
     {
+      if (address == null)
+      {
+        address = ConfigFromFile.getDefaultLdapAddress();
+      }
       addressPort = address+":"+port;
       if (isSecure)
       {
