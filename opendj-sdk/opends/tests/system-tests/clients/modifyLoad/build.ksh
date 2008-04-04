@@ -27,10 +27,12 @@
 
 
 export CLASSPATH=$CLASSPATH:../LDAPjdk/ldapjdk.jar
+mkdir -p $COMPILDIR
 echo "Compiling classes..."
-javac src/*.java -d .
+javac src/*.java -d $COMPILDIR
 [ $? -ne 0 ] && return 1
 echo "Creating jarfile"
+cd $COMPILDIR
 jar cvf modify.jar *.class
 [ $? -ne 0 ] && return 1
 echo "Cleanup"
