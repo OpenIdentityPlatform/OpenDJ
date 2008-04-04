@@ -174,15 +174,14 @@
             logFile = STAXResult
             fileList.append(logFile)
             fileFd = open(logFile,'w')
-            
-            # Write start tag
-            str = '\n&lt;client name=\"%s\"' % client.getName()
-            str = '%s host=\"%s\"'           % (str,client.getHost())
-            str = '%s start=\"%s\"'          % (str,client.getStart())
-            str = '%s stop=\"%s\"'           % (str,client.getStop())
-            str = '%s dependency=\"%s\"&gt;\n' % (str,client.getDependency())
-            fileFd.write(str)
           </script>
+          <!-- == Write tag for xml report -->
+          <call function="'writeStartTagClient'">
+          {
+            'client' : client,
+            'fileFd' : LOG_MAIN_FD 
+          }
+          </call>
           
           
           <!--== Start is NOT defined in client attribute ==-->
@@ -259,9 +258,12 @@
           </call>
           
           
+          <!-- == Write tag for xml report -->
+          <call function="'writeEndTagClient'">
+          { 'fileFd'    : LOG_MAIN_FD }
+          </call>
           <!--==== close logfile ====-->
           <script>
-            fileFd.write('&lt;/client&gt;\n')
             fileFd.close()
             fileFd = ''
           </script>

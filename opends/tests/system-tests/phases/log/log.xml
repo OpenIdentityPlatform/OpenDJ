@@ -49,13 +49,13 @@
       
       <!-- Create folders -->
       <call function="'createFolder'">
-        { 'location'   : STAF_LOCAL_HOSTNAME, 
+        { 'location'   : STAF_LOCAL_HOSTNAME,
           'foldername' : LOG_DIR,
           'fileFd'     : NO_FILE
         }
       </call>
       <call function="'createFolder'">
-        { 'location'   : STAF_LOCAL_HOSTNAME, 
+        { 'location'   : STAF_LOCAL_HOSTNAME,
           'foldername' : LOG_TMP_DIR,
           'fileFd'     : NO_FILE
         }
@@ -534,7 +534,57 @@
     </sequence>
   </function>
   
-
+  
+  <!-- ************************************************************ -->
+  <function name="writeStartTagClient" scope="local">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="client" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          str = '\n&lt;client name=\"%s\"' % client.getName()
+          str = '%s id=\"%s\"'             % (str,client.getId())
+          str = '%s host=\"%s\"'           % (str,client.getHost())
+          str = '%s start=\"%s\"'          % (str,client.getStart())
+          str = '%s stop=\"%s\"'           % (str,client.getStop())
+          str = '%s dependency=\"%s\"&gt;\n' % (str,client.getDependency())
+          fileFd.write(str)
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+  <function name="writeEndTagClient" scope="local">
+   <function-prolog>
+      ''
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <if expr="fileFd != NO_FILE">
+        <script>
+          fileFd.write('&lt;/client&gt;\n\n')
+        </script>
+      </if>
+    </sequence>
+  </function>
+  
+  
   <!-- ************************************************************ -->
   <function name="writeStartTagOperation" scope="local">
    <function-prolog>

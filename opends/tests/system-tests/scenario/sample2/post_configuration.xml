@@ -41,6 +41,11 @@
           suffix class
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="scheduler" type="required">
+        <function-arg-description>
+          suffix class
+        </function-arg-description>
+      </function-arg-def>
     </function-map-args>
     
     <sequence>
@@ -111,6 +116,34 @@
       </iterate>
       
       
+      <!-- ================= Display client names    ================ -->
+      <!--== Get the enabled clients list from all modules ==-->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
+      
+      <iterate in="clients" var="client">
+        <sequence>
+          <!-- == Write tag for xml report -->
+          <call function="'writeStartTagClient'">
+          {
+            'client' : client,
+            'fileFd' : LOG_MAIN_FD 
+          }
+          </call>
+          
+          <call function="'writeMessage'">
+          { 
+            'fileFd'  : LOG_MAIN_FD,
+            'content' : 'my client is : %s' % client.getName()
+          }
+          </call>
+          
+          <!-- == Write tag for xml report -->
+          <call function="'writeEndTagClient'">
+          { 'fileFd'    : LOG_MAIN_FD }
+          </call>
+        </sequence>
+      </iterate>
       
       
       <!-- ================= Call postambule ======================= -->

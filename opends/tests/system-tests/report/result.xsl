@@ -500,6 +500,23 @@
             
           </li><br/><br/>
         </xsl:when>
+        <!--== client node ==-->
+        <xsl:when test="$nodeName = 'client'">
+          <xsl:variable name="clientName" select="normalize-space(@name)"/>
+          <xsl:variable name="clientHost" select="normalize-space(@host)"/>
+          <xsl:variable name="clientId" select="normalize-space(@id)"/>
+          <li>
+            <b>
+              <xsl:value-of select="$phaseName"/> for client
+              <font color="blue"><xsl:value-of select="$clientName"/></font>
+              (id <xsl:value-of select="$clientId"/>) 
+              on <xsl:value-of select="$clientHost"/>
+            </b><br/>
+            
+            <xsl:call-template name="parseChildPhase" />
+            
+          </li><br/><br/>
+        </xsl:when>
         <!--== phaseResult node ==-->
         <xsl:when test="$nodeName = 'phaseResult'">
         </xsl:when>
