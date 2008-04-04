@@ -789,7 +789,7 @@
       <if expr="STAFCmdExist == TRUE">
         <sequence>
           <call function="'writeMessage'">
-            { 'content'  : 'Running cmd: %s' % command,
+            { 'content'  : 'Running cmd: %s %s ' % (command,arguments),
               'fileFd'   : fileFd }
           </call>
           
