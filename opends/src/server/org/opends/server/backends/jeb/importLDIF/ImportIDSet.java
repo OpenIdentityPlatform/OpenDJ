@@ -80,4 +80,9 @@ public interface ImportIDSet {
    */
   public boolean merge(byte[] dbBytes, ImportIDSet bufImportIDSet,
                        int entryLimit);
+
+  /**
+   * Set the import ID set to the undefined state.
+   */
+  public void setUndefined();
 }

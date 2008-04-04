@@ -79,6 +79,14 @@ public class IntegerImportIDSet implements ImportIDSet {
   }
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public void setUndefined() {
+    array = null;
+    isDefined = false;
+  }
+
 
   /**
    * {@inheritDoc}
@@ -110,6 +118,7 @@ public class IntegerImportIDSet implements ImportIDSet {
         isDefined=false;
         incrLimitCount=true;
         count = 0;
+        importIdSet.setUndefined();
       } else {
         count = array.length;
         addAll((IntegerImportIDSet) importIdSet);

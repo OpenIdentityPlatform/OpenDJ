@@ -147,11 +147,18 @@ public class BufferManager {
         KeyHashElement curElem = iter.next();
         //Never flush undefined elements.
         if(curElem.isDefined()) {
+          int oldSize = curElem.getMemorySize();
           Index index = curElem.getIndex();
           index.insert(null, new DatabaseEntry(curElem.getKey()),
                   curElem.getIDSet());
-          memoryUsage -= TREEMAP_ENTRY_OVERHEAD + curElem.getMemorySize();
-          iter.remove();
+          if(curElem.isDefined()) {
+             memoryUsage -= TREEMAP_ENTRY_OVERHEAD + curElem.getMemorySize();
+             iter.remove();
+          } else {
+            //Went undefined don't remove the element, just substract the
+            //memory size difference.
+            memoryUsage -= (oldSize - curElem.getMemorySize());
+          }
         }
       } else {
         //Wrapped around, start at the first element.
