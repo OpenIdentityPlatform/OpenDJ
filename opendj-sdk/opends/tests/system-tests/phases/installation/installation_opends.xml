@@ -265,21 +265,41 @@
       }
       </call>
       
-      <!--== Setup product ==-->
-      <call function="'SetUpDsWithScript'">
-        { 
-          'location'      : instance.getHost(), 
-          'dsPath'        : instance.getInstallDir(),
-          'dsPort'        : instance.getLDAPPort(),
-          'dsJmxPort'     : instance.getJMXPort(),
-          'dsBindDN'      : DIRECTORY_INSTANCE_DN,
-          'dsBindPwd'     : DIRECTORY_INSTANCE_PSWD,
-          'dsBaseDN'      : suffixDn,
-          'dsDoNotStart'  : 'TRUE',
-          'fileFd'        : fileFd
-        }
-      </call>
       
+      <!--== Setup product ==-->
+      <if expr="instance.isSecurityEnabled() == 'false'">
+        <call function="'SetUpDsWithScript'">
+          { 
+            'location'         : instance.getHost(), 
+            'dsPath'           : instance.getInstallDir(),
+            'dsPort'           : instance.getLDAPPort(),
+            'dsJmxPort'        : instance.getJMXPort(),
+            'dsBindDN'         : DIRECTORY_INSTANCE_DN,
+            'dsBindPwd'        : DIRECTORY_INSTANCE_PSWD,
+            'dsBaseDN'         : suffixDn,
+            'dsDoNotStart'     : 'true',
+            'fileFd'           : fileFd
+          }
+        </call>
+     <else>
+        <call function="'SetUpDsWithScript'">
+          { 
+            'location'         : instance.getHost(), 
+            'dsPath'           : instance.getInstallDir(),
+            'dsPort'           : instance.getLDAPPort(),
+            'dsSslPort'        : instance.getLDAPSPort(),
+            'dsJmxPort'        : instance.getJMXPort(),
+            'dsBindDN'         : DIRECTORY_INSTANCE_DN,
+            'dsBindPwd'        : DIRECTORY_INSTANCE_PSWD,
+            'dsBaseDN'         : suffixDn,
+            'dsDoNotStart'     : 'true',
+            'dsEnableStartTLS' : instance.isStartTlsEnabled(),
+            'dsCertificate'    : instance.getCertificate(),
+            'fileFd'           : fileFd
+          }
+        </call>
+      </else>
+      </if>
       
       <call function="'writeEndTagStep'">{ 'fileFd' : fileFd}</call>
       
