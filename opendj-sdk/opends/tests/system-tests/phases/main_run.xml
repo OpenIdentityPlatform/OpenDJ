@@ -261,7 +261,8 @@
               <call function="'preConfiguration'">
               { 
                 'instances' : instances,
-                'suffix'    : suffix
+                'suffix'    : suffix,
+                'scheduler' : scheduler
               }
               </call>
               <script>
@@ -308,7 +309,8 @@
               <call function="'postConfiguration'">
               { 
                 'instances' : instances,
-                'suffix'    : suffix
+                'suffix'    : suffix,
+                'scheduler' : scheduler
               }
               </call>
               <script>
