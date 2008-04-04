@@ -56,27 +56,31 @@
         <sequence>
           <!-- parallel process, all variables defined and values set below -->
           <!-- are local to this sequence -->
+          
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
           <script>
-            cHost = instance.getHost()
-            cLDAPPort = instance.getLDAPPort()
-            cName = instance.getName()
-            cInstallDir = instance.getInstallDir()
-            logName = '%s_%s' % (cHost,cName)
-            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            logFile = STAXResult
+            
             fileList.append(logFile)
             
             # Write start instance tag
             cFileFd = open(logFile,'w')
-            str = '\n&lt;instance name=\"%s\"' % cName
-            str = '%s host=\"%s\" product=\"opends\"&gt;\n' % (str, cHost)
+            str = '\n&lt;instance name=\"%s\"' % instance.getName()
+            str = '%s host=\"%s\" product=\"opends\"&gt;\n' % \
+                  (str, instance.getHost())
             cFileFd.write(str)
           </script>
           
           <!--== clean previous installation if needed ==-->
           <call function="'cleanPreviousOpendsInstall'">
           {
-            'host'               : cHost,
-            'instanceInstallDir' : cInstallDir,
+            'host'               : instance.getHost(),
+            'instanceInstallDir' : instance.getInstallDir(),
             'fileFd'             : cFileFd
           }
           </call>
@@ -92,7 +96,10 @@
           
           
           <!--== Post operations ======-->
-          <message>'%s : %s : installation complete'% (cHost,cName)</message>
+          <message>
+            '%s : %s : installation complete' % \
+            (instance.getHost(),instance.getName())
+          </message>
           
           <script>
             cFileFd.write('&lt;/instance&gt;\n')

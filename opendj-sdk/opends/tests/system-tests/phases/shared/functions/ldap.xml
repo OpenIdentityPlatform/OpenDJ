@@ -251,9 +251,12 @@
             failedServers = []
             failingServerList = ''
             referenceServerPath = instance.getInstallDir()
-            referenceTree = '%s/%s_%s_referenceTree.ldif' % (LOG_TMP_DIR,filePrefix,instance.getName()),
-            sampleTree = '%s/%s_%s_sampleTree.ldif' % (LOG_TMP_DIR,filePrefix,instance.getName()),
-            treeDiffs = '%s/%s_%s_treeDiffs.ldif' % (LOG_TMP_DIR,filePrefix,instance.getName())
+            referenceTree = '%s/%s_%s_referenceTree.ldif' % \
+                      (instance.getLogDir(),filePrefix,instance.getName()),
+            sampleTree = '%s/%s_%s_sampleTree.ldif' % \
+                      (instance.getLogDir(),filePrefix,instance.getName()),
+            treeDiffs = '%s/%s_%s_treeDiffs.ldif' % \
+                      (instance.getLogDir(),filePrefix,instance.getName())
             
             dsAttributes = 'dn postalAddress postalCode description \
     uid employeeNumber initials givenName pager mobile \

@@ -195,7 +195,8 @@
         'fileFd'  : fileFd }
       </call>
       <call function="'writeMessage'">
-        { 'content'  : 'Copy directory %s FROM machine %s TO machine %s into %s' % (fromDirectory,location,remoteHost,toDirectory),
+        { 'content'  : 'Copy directory %s FROM machine %s TO machine %s into %s' %\
+                       (fromDirectory,location,remoteHost,toDirectory),
           'fileFd'   : fileFd }
       </call>
       
@@ -204,29 +205,52 @@
           <call function="'writeMessage'">
           {
             'content' : 'SKIP : same directory %s, same host %s' % \
-                        (remoteHost,remoteHost),
+                        (fromDirectory,remoteHost),
             'fileFd'  : fileFd 
           }
           </call>
         </sequence>
       <else>
         <sequence>
-          <stafcmd name="'STAF Command: copy directory'">
-            <location>'%s' % location</location>
-            <service>'fs'</service>
-            <request>
-                'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s RECURSE CASEINSENSITIVE' % (fromDirectory,toDirectory,remoteHost)
-            </request>
-          </stafcmd>
-          <script>
-            cmdRC=RC
-            cmdResult=STAFResult
-          </script>
-          <call function="'checkRC'">
-            { 'returncode' : cmdRC ,
-              'result'     : cmdResult,
-              'fileFd'     : fileFd }
+          
+          <call function="'isFile'">
+          {
+            'location' : remoteHost,
+            'fileName' : toDirectory
+          }
           </call>
+          <script>
+            fileExist = STAXResult
+          </script>
+          <if expr="fileExist == TRUE">
+            <call function="'writeMessage'">
+            {
+              'content' : 'SKIP: remote folder %s exists (NFS?) on %s' % \
+                          (toDirectory,remoteHost),
+              'fileFd'  : fileFd 
+            }
+            </call>
+          <else>
+            <sequence>
+              <stafcmd name="'STAF Command: copy directory'">
+                <location>'%s' % location</location>
+                <service>'fs'</service>
+                <request>
+                    'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s RECURSE CASEINSENSITIVE' % (fromDirectory,toDirectory,remoteHost)
+                </request>
+              </stafcmd>
+              <script>
+                cmdRC=RC
+                cmdResult=STAFResult
+              </script>
+              <call function="'checkRC'">
+                { 'returncode' : cmdRC ,
+                  'result'     : cmdResult,
+                  'fileFd'     : fileFd }
+              </call>
+            </sequence>
+          </else>
+          </if>
         </sequence>
       </else>
       </if>

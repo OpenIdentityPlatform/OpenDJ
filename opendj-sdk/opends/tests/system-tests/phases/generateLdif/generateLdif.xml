@@ -95,9 +95,9 @@
             LOG_MAIN_FD.write(str)
             
             templateFile = '%s/template.ldif' % \
-                            topoElements[0].getInstanceRef().getInstallDir()
+                            topoElements[0].getInstanceRef().getLogDir()
             ldifFile = '%s/data.ldif' % \
-                        topoElements[0].getInstanceRef().getInstallDir()
+                        topoElements[0].getInstanceRef().getLogDir()
           </script>
           
           
@@ -125,7 +125,7 @@
               <script>
                 sys.path.append("%s/phases/parser" % TESTS_DIR )
                 from parser import *
-                localTemplateFile = '%s/template.ldif' % (LOG_DIR)
+                localTemplateFile = '%s/tmp/template.ldif' % (LOG_DIR)
               </script>
               <call function="'generateTemplate'">
               { 'templateFile' : localTemplateFile }
@@ -161,7 +161,8 @@
             'location'     : topoElements[0].getInstanceRef().getHost(),
             'dsPath'       : topoElements[0].getInstanceRef().getInstallDir(),
             'dsLdifFile'   : ldifFile,
-            'dsRejectFile' : '%s/importLdif_rejectedfile.txt' % LOG_TMP_DIR,
+            'dsRejectFile' : '%s/importLdif_rejectedfile.txt' % \
+                             topoElements[0].getInstanceRef().getLogDir(),
             'fileFd'       : LOG_MAIN_FD
           }
           </call>

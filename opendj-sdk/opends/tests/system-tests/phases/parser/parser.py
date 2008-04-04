@@ -207,6 +207,7 @@ class Instance:
     self.buildId     = NOT_DEFINED
     self.binDir      = NOT_DEFINED
     self.synchroDate = NOT_DEFINED
+    self.logDir      = NOT_DEFINED
     
   def getId(self):
     return self.iid
@@ -261,7 +262,12 @@ class Instance:
     
   def setSynchroDate(self,synchroDate):
     self.synchroDate = synchroDate
-
+    
+  def getLogDir(self):
+    return self.logDir
+    
+  def setLogDir(self,logDir):
+    self.logDir = logDir
 
 ###########################
 class OpendsInstance(Instance):
@@ -316,6 +322,7 @@ class Client:
     self.stop       = NOT_DEFINED
     self.dependency = NOT_DEFINED
     self.result     = NOT_DEFINED
+    self.logDir     = NOT_DEFINED
     
   def getId(self):
     return self.iid
@@ -355,6 +362,12 @@ class Client:
     
   def setResult(self,result):
     self.result = result
+    
+  def getLogDir(self):
+    return self.logDir
+    
+  def setLogDir(self,logDir):
+    self.logDir = logDir
 
 
 ###########################

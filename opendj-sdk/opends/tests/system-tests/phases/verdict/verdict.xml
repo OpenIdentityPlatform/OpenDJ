@@ -96,11 +96,17 @@
               <!-- parallel process, all variables defined        -->
               <!-- and values set below are local to the sequence -->
               <script>
-                
                 instance = topoInstance.getInstanceRef()
+              </script>
+              <call function="'getLogFileName'">
+                { 'type'   : 'instance',
+                  'object' : instance,
+                  'prefix' : 'verdict'
+                }
+              </call>
+              <script>
+                logFile = STAXResult
                 
-                logName = '%s_%s' % (instance.getHost(),instance.getName())
-                logFile = '%s/verdict_%s.xml' % (LOG_XML_TMP_DIR,logName)
                 fileList.append(logFile)
                 
                 cFileFd = open(logFile,'w')
