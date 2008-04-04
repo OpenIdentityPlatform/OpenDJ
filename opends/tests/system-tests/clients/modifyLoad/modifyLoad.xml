@@ -62,7 +62,10 @@
       <!-- get the ldap instance parameters                     -->
       
       <script>
-        outFile = '%s/client_modifyLoad_%s.txt' % (LOG_DIR,client.getId())
+        compilDir = '%s/%s_%s' % (workingDir,client.getHost(),client.getId())
+        
+        outFile = '%s/client_modifyLoad_id%s.txt' % \
+                  (client.getLogDir(),client.getId())
         cParams = client.getParams()
         serverInstanceFromClient = cParams[0][1]
         baseDn = cParams[1][1]
@@ -142,7 +145,8 @@
           </script>
           <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
           
-          <!-- ==== build client : run build.ksh file ==== -->
+          
+          <!-- ==== Build client : run build.ksh file ==== -->
           <call function="'writeStartTagOperation'">
           { 'tagName' : 'build',
             'fileFd'  : fileFd }
@@ -152,13 +156,14 @@
            'fileFd'  : fileFd}
           </call>
           
-          
+          <!-- Build Client in unique directory (compilDir), avoid          -->
+          <!-- conflict if same client is run several time at the same time -->
           <process name="'%s: build %s' % (client.getHost(),client.getName())">
             <location>client.getHost()</location>
             <command mode="'shell'">'./build.ksh'</command>
             <parms/>
             <workdir>workingDir</workdir>
-            <envs>['PATH=%s:/bin:/usr/bin' % JAVA_HOME]</envs>
+            <envs>['PATH=%s:/bin:/usr/bin' % JAVA_HOME,'COMPILDIR=%s' % compilDir]</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
             <returnstdout/>
@@ -197,8 +202,7 @@
             cParam = '%s -XX:NewRatio=1 -XX:SurvivorRatio=100' % cParam
             cParam = '%s -cp %s/clients/LDAPjdk/ldapjdk.jar' \
                       % (cParam,LOCAL_TESTS_DIR)
-            cParam = '%s:%s/clients/searchLoad/search.jar' \
-                      % (cParam,LOCAL_TESTS_DIR)
+            cParam = '%s:%s/modify.jar' % (cParam,compilDir)
             cParam = '%s Client %s' % (cParam,parms)
             
             titleName = '%s: run %s on %s' % \
@@ -254,26 +258,6 @@
           </call>
           
           
-          <!-- ==== Copy output file in main log directory ==== -->
-          <script>
-            clientHostFullName = '%s%s' % (client.getHost(),DOMAIN[0])
-          </script>
-          <if expr="clientHostFullName != STAXServiceMachine">
-            <sequence>
-              <call function="'copyFile'">
-                {
-                  'location'   : client.getHost(),
-                  'remoteHost' : STAXServiceMachine,
-                  'srcFile'    : outFile,
-                  'destFile'   : outFile,
-                  'fileFd'     : fileFd
-                }
-              </call>
-              <script>
-                errNum += STAXResult[0]
-              </script>
-            </sequence>
-          </if>
         </sequence>
       </else>
       </if>
