@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/sh
 
 # CDDL HEADER START
 #
@@ -26,10 +26,12 @@
 #      Copyright 2008 Sun Microsystems, Inc.
 
 export CLASSPATH=$CLASSPATH:../../../../clients/LDAPjdk/ldapjdk.jar
+mkdir -p $COMPILDIR
 echo "Compiling classes..."
-javac src/*.java -d .
+javac src/*.java -d $COMPILDIR
 [ $? -ne 0 ] && return 1
 echo "Creating jarfile"
+cd $COMPILDIR
 jar cvf search.jar *.class
 [ $? -ne 0 ] && return 1
 echo "Cleanup"
