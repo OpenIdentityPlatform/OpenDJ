@@ -40,7 +40,7 @@
   <!ELEMENT domain (#PCDATA)>
 
 <!-- ========== INSTANCE NODE ========================= -->
-<!ELEMENT instance (host,installDir,ports?)>
+<!ELEMENT instance (host,installDir,ports?,security?)>
 <!ATTLIST instance 
     name NMTOKEN #REQUIRED 
     product NMTOKEN #REQUIRED
@@ -53,6 +53,12 @@
     <!ELEMENT ldaps (#PCDATA)>
     <!ELEMENT jmx (#PCDATA)>
     <!ELEMENT replicationServer (#PCDATA)>
+  <!ELEMENT security EMPTY>
+  <!ATTLIST security 
+      enabled ( true | false ) "true" 
+      certificate ( selfSigned | Pkcs11keyStore | Pkcs12keyStore 
+                    | JavakeyStore ) "selfSigned"
+      startTlsEnabled ( true | false) "false">
 
 
 <!-- ========== SUFFIX NODE ========================= -->

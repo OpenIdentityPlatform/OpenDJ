@@ -273,21 +273,25 @@ class Instance:
 class OpendsInstance(Instance):
   "Describes an opends Instance"
   def __init__(self, iid, name, product, role, host, installDir, tarball, \
-               portLDAP, portLDAPS, portJMX, portREPL):
+               portLDAP, portLDAPS, portJMX, portREPL, \
+               securityEnabled, certificate, startTlsEnabled):
     # from instance object
-    self.iid         = iid
-    self.name        = name
-    self.product     = product
-    self.role        = role
-    self.host        = host
-    self.installDir  = installDir
-    self.tarball     = tarball
-    self.portLDAP    = portLDAP
+    self.iid             = iid
+    self.name            = name
+    self.product         = product
+    self.role            = role
+    self.host            = host
+    self.installDir      = installDir
+    self.tarball         = tarball
+    self.portLDAP        = portLDAP
     # specific to opends instance
-    self.portLDAPS   = portLDAPS
-    self.portJMX     = portJMX
-    self.portREPL    = portREPL
-    self.javaVersion = NOT_DEFINED
+    self.portLDAPS       = portLDAPS
+    self.portJMX         = portJMX
+    self.portREPL        = portREPL
+    self.javaVersion     = NOT_DEFINED
+    self.securityEnabled = securityEnabled
+    self.certificate     = certificate
+    self.startTlsEnabled = startTlsEnabled
     
   def getLDAPSPort(self):
     return self.portLDAPS
@@ -303,7 +307,15 @@ class OpendsInstance(Instance):
     
   def setJavaVersion(self,javaVersion):
     self.javaVersion = javaVersion
-
+    
+  def isSecurityEnabled(self):
+    return self.securityEnabled
+    
+  def getCertificate(self):
+    return self.certificate
+    
+  def isStartTlsEnabled(self):
+    return self.startTlsEnabled
 
 
 #
@@ -570,13 +582,16 @@ def main(document):
 # Parse children and get information for opends instance 
 #
 def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
-  msg         = ''
-  cHost       = 'localhost'
-  cInstallDir = NOT_DEFINED
-  cPortLDAP   = '1389'
-  cPortLDAPS  = '1636'
-  cPortJMX    = '1390'
-  cPortREPL   = '1391'
+  msg              = ''
+  cHost            = 'localhost'
+  cInstallDir      = NOT_DEFINED
+  cPortLDAP        = '1389'
+  cPortLDAPS       = '1636'
+  cPortJMX         = '1390'
+  cPortREPL        = '1391'
+  cSecurityEnabled = 'false'
+  cCertificate     = NOT_DEFINED
+  cStartTlsEnabled = 'false'
   
   #
   # Parsing second level : host,ports,...
@@ -625,7 +640,14 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
             else:
               msg = '%s\n ERROR: instance %s : unknown port node name %s' % \
                     (msg, cName, thisPort.getNodeName())
-            
+      
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'security'):
+      
+        cSecurityEnabled = _getAttributeNode(thisSubChild,'enabled')
+        cCertificate     = _getAttributeNode(thisSubChild,'certificate')
+        cStartTlsEnabled = _getAttributeNode(thisSubChild,'startTlsEnabled')
+        
       
       # must be at the end of the if case
       elif (thisSubChild.getNodeType() == Node.TEXT_NODE or
@@ -647,7 +669,8 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   cInstallDir = '%s/%s/%s' % (cInstallDir,cName,opendsName)
   return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\
                              opendsZip,\
-                             cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL)]
+                             cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL,\
+                             cSecurityEnabled,cCertificate,cStartTlsEnabled)]
 
 
 #============================================================================

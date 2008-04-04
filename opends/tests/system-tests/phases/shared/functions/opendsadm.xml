@@ -50,6 +50,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
+      <function-arg-def name="dsSslPort" type="optional">
+        <function-arg-description>
+          Directory server secure port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
       <function-arg-def name="dsJmxPort" type="optional">
         <function-arg-description>
           Directory server JMX port number
@@ -97,7 +103,22 @@
           Help option
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
-      </function-arg-def>    
+      </function-arg-def>
+      <function-arg-def name="dsEnableStartTLS" type="optional"
+                                                default="'false'">
+        <function-arg-description>
+          Enable startTLS, must use dsCertifiacte parameter
+        </function-arg-description>
+        <function-arg-property name="type" value="boolean"/>
+      </function-arg-def>
+      <function-arg-def name="dsCertificate" type="optional">
+        <function-arg-description>
+          certificate mode: selfsigned,Pkcs11keyStore,Pkcs12keyStore,
+                            JavakeyStore,
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
       <function-arg-def name="fileFd" type="required">
         <function-arg-description>
           output file descriptor
@@ -119,6 +140,9 @@
                   
         if dsPort:
           STAFCmdParamsList.append('-p %s' % dsPort)
+        
+        if dsSslPort:
+          STAFCmdParamsList.append('-Z %s' % dsSslPort)
         
         if dsJmxPort:
           STAFCmdParamsList.append('-x %s' % dsJmxPort)
@@ -143,7 +167,23 @@
                   
         if dsHelp:
           STAFCmdParamsList.append('-H')
- 
+        
+        if dsEnableStartTLS:
+          dsEnableStartTLS = dsEnableStartTLS.lower()
+          if dsEnableStartTLS == 'true':
+            STAFCmdParamsList.append('--enableStartTLS')
+          
+        if dsCertificate:
+          dsCertificate = dsCertificate.lower()
+          if dsCertificate == 'selfsigned':
+            STAFCmdParamsList.append('--generateSelfSignedCertificate')
+          elif dsCertificate == 'pkcs11keystore':
+            STAFCmdParamsList.append('--usePkcs11Keystore')
+          elif dsCertificate == 'pkcs12keystore':
+            STAFCmdParamsList.append('--usePkcs12keyStore')
+          elif dsCertificate == 'javakeystore':
+            STAFCmdParamsList.append('--useJavaKeystore')
+          
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
