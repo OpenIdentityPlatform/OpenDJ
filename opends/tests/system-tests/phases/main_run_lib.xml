@@ -99,6 +99,10 @@
           clients list
         </function-arg-description>
       </function-arg-def>
+      <function-arg-def name="runInstallation" type="required">
+      </function-arg-def>
+      <function-arg-def name="runConfiguration" type="required">
+      </function-arg-def>
       <function-arg-def name="runScheduler" type="required">
       </function-arg-def>
     </function-map-args>
@@ -108,22 +112,15 @@
         '=================== PREAMBLE  ========================='
       </message>
       
-      <!--==== Get the list of hosts for each instance ====-->
-      <script>
-        _list = []
-        _listName = []
-        for instance in instances:
-          if instance.getHost() not in _listName:
-            _listName.append(instance.getHost())
-            _list.append(instance)
-      </script>
-      <!--== Do some stuff on instances machines ==-->
-      <paralleliterate in="_list" var="instance">
+      <!--========================================================-->
+      <!--=======          INSTANCE PREAMBLE                 =====-->
+      
+      <!--======= Create instance log dir on instance's host =====-->
+      <paralleliterate in="instances" var="instance">
         <sequence>
-          <!-- Create folders on remote hosts -->
           <call function="'createFolder'">
             { 'location'   : instance.getHost(),
-              'foldername' : LOG_DIR,
+              'foldername' : instance.getLogDir(),
               'fileFd'     : NO_FILE
             }
           </call>
@@ -133,13 +130,24 @@
               'fileFd'     : NO_FILE
             }
           </call>
-          <call function="'createFolder'">
-            { 'location'   : instance.getHost(),
-              'foldername' : LOG_XML_TMP_DIR,
-              'fileFd'     : NO_FILE
-            }
-          </call>
-          <!-- Copy framework files needed to instance host -->
+        </sequence>
+      </paralleliterate>
+      
+      <!--== Copy framework files needed to instance hosts    ==-->
+      <!-- Copy framework one time per host even if several     -->
+      <!-- instances are on a same host                         -->
+      
+      <!--== Get the list of hosts for each instance ==-->
+      <script>
+        _list = []
+        _listName = []
+        for instance in instances:
+          if instance.getHost() not in _listName:
+            _listName.append(instance.getHost())
+            _list.append(instance)
+      </script>
+      <paralleliterate in="_list" var="instance">
+        <sequence>
           <call function="'createFolder'">
             { 'location'   : instance.getHost(),
               'foldername' : LOCAL_TESTS_DIR,
@@ -161,31 +169,53 @@
       </paralleliterate>
       
       
-      <!-- Get opends buildid if instance is already installed -->
-      <paralleliterate in="instances" var="instance">
+      <!--== Get opends buildid if instance is already installed ==-->
+      <if expr="runInstallation == 'false'">
+        <paralleliterate in="instances" var="instance">
+          <sequence>
+            <if expr="instance.getProduct() == 'opends'">
+              <sequence>
+                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                 file="'%s/phases/installation/installation_opends.xml' %
+                 (TESTS_DIR)"/>
+                <call function="'getOpendsBuildID'">
+                  { 'instance' : instance }
+                </call>
+              </sequence>
+            </if>
+          </sequence>
+        </paralleliterate>
+      </if>
+      
+      <!--========================================================-->
+      <!--=======          CLIENT PREAMBLE                   =====-->
+      
+      <!--== Get the enabled clients list from all modules ==-->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
+      
+      <!--======= Create instance log dir on instance's host =====-->
+      <paralleliterate in="clients" var="client">
         <sequence>
-          <if expr="instance.getProduct() == 'opends'">
-            <sequence>
-              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-               file="'%s/phases/installation/installation_opends.xml' %
-               (TESTS_DIR)"/>
-              <call function="'getOpendsBuildID'">
-                { 'instance' : instance }
-              </call>
-            </sequence>
-          </if>
+          <call function="'createFolder'">
+            { 'location'   : client.getHost(),
+              'foldername' : client.getLogDir(),
+              'fileFd'     : NO_FILE
+            }
+          </call>
+          <call function="'createFolder'">
+            { 'location'   : client.getHost(),
+              'foldername' : LOG_TMP_DIR,
+              'fileFd'     : NO_FILE
+            }
+          </call>
         </sequence>
       </paralleliterate>
       
-      <!--== Get the clients list from all modules ==-->
-      <script>
-        clients = []
-        for module in scheduler:
-          if (module.getEnabled() == "true"):
-            clients.extend(module.getClients())
-      </script>
-      
-      <!--==== Get the list of hosts for each client ====-->
+      <!--====== Copy framework files needed to client hosts ======-->
+      <!-- Copy framework one time per host even if several        -->
+      <!-- client on same host                                     -->
+      <!--== Get the list of hosts for each client              ===-->
       <script>
         _list = []
         _listName = []
@@ -196,74 +226,43 @@
       </script>
       <paralleliterate in="_list" var="client">
         <sequence>
-          <if expr="client.getHost() != NOT_DEFINED">
+          <if expr="runScheduler == 'true' or runConfiguration == 'true'">
             <sequence>
-              <!--== Create folders on remote hosts ==-->
-              <call function="'createFolder'">
-              { 'location'   : client.getHost(),
-                'foldername' : LOG_DIR,
-                'fileFd'     : NO_FILE
+              <script>
+                fullHostName = '%s%s' % (client.getHost(),DOMAIN[0])
+              </script>
+              <!-- Copy shared clients -->
+              <call function="'copyFolder'">
+              {
+                'remoteHost'    : fullHostName,
+                'fromDirectory' : '%s/clients' % TESTS_DIR,
+                'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
+                'fileFd'        : NO_FILE
               }
               </call>
-              <call function="'createFolder'">
-              { 'location'   : client.getHost(),
-                'foldername' : LOG_TMP_DIR,
-                'fileFd'     : NO_FILE
+              <!-- Copy clients that are under the scenario directory -->
+              <call function="'isFile'">
+              {
+                'location' : STAXServiceMachine,
+                'fileName' : '%s/scenario/%s/clients' % \
+                             (TESTS_DIR,DIR_NAME),
               }
               </call>
-              <call function="'createFolder'">
-              { 'location'   : client.getHost(),
-                'foldername' : LOG_XML_TMP_DIR,
-                'fileFd'     : NO_FILE
-              }
-              </call>
-              <!-- Copy framework files needed to instance host -->
-              <if expr="runScheduler == 'true'">
-                <sequence>
-                  <call function="'createFolder'">
-                  { 'location'   : client.getHost(),
-                    'foldername' : '%s/clients' % LOCAL_TESTS_DIR,
-                    'fileFd'     : NO_FILE
-                  }
-                  </call>
-                  <script>
-                    fullHostName = '%s%s' % (client.getHost(),DOMAIN[0])
-                  </script>
-                  <!-- Copy shared clients -->
-                  <call function="'copyFolder'">
-                  {
-                    'remoteHost'    : fullHostName,
-                    'fromDirectory' : '%s/clients' % TESTS_DIR,
-                    'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
-                    'fileFd'        : NO_FILE
-                  }
-                  </call>
-                  <!-- Copy clients that are under the scenario directory -->
-                  <call function="'isFile'">
-                  {
-                    'location' : STAXServiceMachine,
-                    'fileName' : '%s/scenario/%s/clients' % \
-                                 (TESTS_DIR,DIR_NAME),
-                  }
-                  </call>
-                  <script>
-                    fileExist = STAXResult
-                  </script>
-                  <if expr="fileExist == TRUE">
-                    <call function="'copyFolder'">
-                    {
-                      'remoteHost'    : fullHostName,
-                      'fromDirectory' : '%s/scenario/%s/clients' % \
-                                        (TESTS_DIR,DIR_NAME),
-                      'toDirectory'   : '%s/scenario/%s/clients' % \
-                                        (LOCAL_TESTS_DIR,DIR_NAME),
-                      'fileFd'        : NO_FILE
-                    }
-                    </call>
-                  </if>
-                </sequence>
+              <script>
+                fileExist = STAXResult
+              </script>
+              <if expr="fileExist == TRUE">
+                <call function="'copyFolder'">
+                {
+                  'remoteHost'    : fullHostName,
+                  'fromDirectory' : '%s/scenario/%s/clients' % \
+                                    (TESTS_DIR,DIR_NAME),
+                  'toDirectory'   : '%s/scenario/%s/clients' % \
+                                    (LOCAL_TESTS_DIR,DIR_NAME),
+                  'fileFd'        : NO_FILE
+                }
+                </call>
               </if>
-              
             </sequence>
           </if>
         </sequence>
@@ -301,27 +300,23 @@
         '=================== POSTAMBLE  ========================='
       </message>
       
-      <script> hosts = [] </script>
       
+      <!--========================================================-->
+      <!--=======          INSTANCE PREAMBLE                 =====-->
       <iterate in="instances" var="instance">
         <sequence>
-          <!--== Create instance directory on main host ==-->
-          <call function="'createFolder'">
-            { 'location'   : STAXServiceMachine,
-              'foldername' : '%s/%s' % (LOG_DIR,instance.getName()) ,
-              'fileFd'     : NO_FILE
+          <!--== Copy instance directory on main host ==-->
+          <call function="'copyFolder'">
+            { 'location'      : instance.getHost(),
+              'remoteHost'    : STAXServiceMachine,
+              'fromDirectory' : instance.getLogDir(),
+              'toDirectory'   : instance.getLogDir(),
+              'fileFd'        : NO_FILE
             }
           </call>
           
           
           <!--== Log cn=monitor replication stuff ==-->
-          <script>
-            clientHostFullName = '%s%s' % (instance.getHost(),DOMAIN[0])
-            if (clientHostFullName != STAXServiceMachine):
-              outputFile = '%s/cnMonitor.txt' % LOG_DIR
-            else:
-              outputFile = '%s/%s/cnMonitor.txt' % (LOG_DIR,instance.getName())
-          </script>
           <call function="'ldapSearch'">
             { 'location'       : instance.getHost(),
               'dsPath'         : instance.getInstallDir(),
@@ -334,62 +329,52 @@
               'dsFilter'       : 'objectclass=*',
               'expectedRC'     : 0,
               'fileFd'         : NO_FILE,
-              'outputFile'     : outputFile
+              'outputFile'     : '%s/cnMonitor.txt' % instance.getLogDir()
             }
           </call>
-          <if expr="clientHostFullName != STAXServiceMachine">
-            <call function="'copyFile'">
-            {
-              'srcFile'    : '%s/cnMonitor.txt' % LOG_DIR,
-              'destFile'   : '%s/%s/cnMonitor.txt'%(LOG_DIR,instance.getName()),
-              'location'   : instance.getHost(),
-              'remoteHost' : STAXServiceMachine,
-              'fileFd'     : NO_FILE
-            }
-            </call>
-          </if>
-          
-          <!--== Save conf.ldif file ==-->
           <call function="'copyFile'">
           {
-            'srcFile'    : '%s/config/config.ldif'%(instance.getInstallDir()),
-            'destFile'   : '%s/%s/config.ldif' % (LOG_DIR,instance.getName()),
+            'srcFile'    : '%s/cnMonitor.txt' % instance.getLogDir(),
+            'destFile'   : '%s/cnMonitor.txt' % instance.getLogDir(),
             'location'   : instance.getHost(),
             'remoteHost' : STAXServiceMachine,
             'fileFd'     : NO_FILE
           }
           </call>
           
-          <!--== Move tmp folder from remote hosts to main host ==-->
-          <call function="'moveFolder'">
+          <!--== Save conf.ldif file ==-->
+          <call function="'copyFile'">
           {
-            'sourceHost' : instance.getHost(),
-            'directory'  : '%s/tmp' % LOG_DIR,
-            'hosts'      : hosts
+            'srcFile'    : '%s/config/config.ldif' % instance.getInstallDir(),
+            'destFile'   : '%s/config.ldif' % instance.getLogDir(),
+            'location'   : instance.getHost(),
+            'remoteHost' : STAXServiceMachine,
+            'fileFd'     : NO_FILE
           }
           </call>
-          <script> hosts = STAXResult </script>
+          
         </sequence>
       </iterate>
       
-      <!--== Get the clients list from all modules ==-->
-      <script>
-        clients = []
-        for module in scheduler:
-          if (module.getEnabled() == "true"):
-            clients.extend(module.getClients())
-      </script>
+      
+      <!--========================================================-->
+      <!--=======          CLIENT PREAMBLE                   =====-->
+      
+      <!--== Get the enabled clients list from all modules ==-->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
       
       <iterate in="clients" var="client">
         <sequence>
-          <call function="'moveFolder'">
-          {
-            'sourceHost' : client.getHost(),
-            'directory'  : '%s/tmp' % LOG_DIR,
-            'hosts'      : hosts
-          }
+          <call function="'copyFolder'">
+            { 'location'      : client.getHost(),
+              'remoteHost'    : STAXServiceMachine,
+              'fromDirectory' : client.getLogDir(),
+              'toDirectory'   : client.getLogDir(),
+              'fileFd'        : NO_FILE
+            }
           </call>
-          <script> hosts = STAXResult </script>
+          
         </sequence>
       </iterate>
       
@@ -430,64 +415,6 @@
   </function>
   
   
-  
-  <!-- ************************************************************ -->
-  <function name="moveFolder" scope="local">
-   <function-prolog>
-      'copy remote directory to STAXServiceMachine and delete it'
-    </function-prolog>
-    <function-map-args>
-      <function-arg-def name="sourceHost" type="required">
-        <function-arg-description>
-          remote source host name where directory will be get
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="directory" type="required">
-        <function-arg-description>
-          directory path
-        </function-arg-description>
-      </function-arg-def>
-      <function-arg-def name="hosts" type="optional" default="[]">
-        <function-arg-description>
-          if sourceHost is in the hosts list, then do nothing
-          add the sourceHost in the list if operations are done
-        </function-arg-description>
-      </function-arg-def>
-    </function-map-args>
-    <sequence>
-      <script>
-        sourceHostFullName = '%s%s' % (sourceHost,DOMAIN[0])
-      </script>
-      <if expr="sourceHost not in hosts
-                and sourceHostFullName != STAXServiceMachine
-                and sourceHost != NOT_DEFINED">
-        <sequence>
-          <call function="'copyFolder'">
-          {
-            'location'      : sourceHost,
-            'fromDirectory' : directory,
-            'toDirectory'   : directory,
-            'remoteHost'    : STAXServiceMachine,
-            'fileFd'        : NO_FILE
-          }
-          </call>
-          <!--
-          <call function="'deleteFolder'">
-            { 'location'   : sourceHost, 
-              'foldername' : '%s' % directory,
-              'fileFd'     : NO_FILE,
-              'expectedRC' : [0]
-            }
-          </call>
-          -->
-          <script>
-            hosts.append(sourceHost)
-          </script>
-        </sequence>
-      </if>
-      <return> hosts </return> 
-    </sequence>
-  </function>
 
 
 </stax>

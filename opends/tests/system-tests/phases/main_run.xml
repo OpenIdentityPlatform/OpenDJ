@@ -140,6 +140,8 @@
                % (TESTS_DIR)"/>
       
       <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+        file="'%s/phases/parser/object_lib.xml' % (TESTS_DIR)"/>
+      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
         file="'%s/phases/log/log.xml' % (TESTS_DIR)"/>
       
       
@@ -201,9 +203,11 @@
       <!-- ============ PREAMBLE ===================================== -->
       <call function="'mainPreamble'">
         {
-          'instances'    : instances,
-          'scheduler'    : scheduler,
-          'runScheduler' : runScheduler
+          'instances'        : instances,
+          'scheduler'        : scheduler,
+          'runInstallation'  : runInstallation,
+          'runConfiguration' : runConfiguration,
+          'runScheduler'     : runScheduler
         }
       </call>
       

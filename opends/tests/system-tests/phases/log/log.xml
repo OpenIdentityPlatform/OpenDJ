@@ -43,11 +43,6 @@
     </function-prolog>
     
     <sequence>
-      <script>
-        logsClientDir = '%s/client' % LOG_DIR
-        logsConfDir = '%s/configuration' % LOG_DIR
-      </script>
-      
       <message log="1">
         'Logs output set to %s' % LOG_DIR
       </message>
@@ -55,13 +50,13 @@
       <!-- Create folders -->
       <call function="'createFolder'">
         { 'location'   : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % LOG_DIR ,
+          'foldername' : LOG_DIR,
           'fileFd'     : NO_FILE
         }
       </call>
       <call function="'createFolder'">
         { 'location'   : STAF_LOCAL_HOSTNAME, 
-          'foldername' : '%s' % LOG_TMP_DIR ,
+          'foldername' : LOG_TMP_DIR,
           'fileFd'     : NO_FILE
         }
       </call>
@@ -89,17 +84,20 @@
       <if expr="type == 'client'">
         <script>
           logFile = '%s/%s_%s_%s_%s.xml' % \
-                    ( LOG_XML_TMP_DIR,\
-                      prefix,\
-                      object.getName(),\
-                      object.getHost(),\
-                      object.getId() )
+                    ( LOG_TMP_DIR,prefix,\
+                      object.getName(),object.getHost(),object.getId())
         </script>
-      <elseif expr="type == 'host'">
+      <elseif expr="type == 'instance'">
         <script>
-          logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,prefix,object)
+          logFile = '%s/%s_%s_%s.xml' % \
+          (LOG_TMP_DIR,prefix,object.getName(),object.getHost())
         </script>
       </elseif>
+      <else>
+        <script>
+          logFile = 'getLogFileName_%s' % NOT_DEFINED
+        </script>
+      </else>
       </if>
       <return>
         logFile

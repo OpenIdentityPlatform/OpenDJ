@@ -368,10 +368,19 @@
           </elseif>
           <else>
             <sequence>
+              <script>
+                str = 'ERROR : cant find files %s/%s.xml and %s/%s.xml' % \
+                (localWorkingDir,client.getName(),\
+                 sharedWorkingdir,client.getName())
+              </script>
               <message>
-                'ERROR : cant find files %s and %s' % \
-                (localClientXmlFile,clientXmlFile)
+                str
               </message>
+              <call function="'writeMessage'">
+              { 'fileFd'  : fileFd,
+                'content' : str
+              }
+              </call>
               <script>ERR_NUM[0] += 1</script>
             </sequence>
           </else>
@@ -403,11 +412,16 @@
       <if expr="timerKilled == TRUE">
         <sequence>
           <!-- TBD: The client has been killed, we have to make sure that 
-               xml result structure is coherent... -->
+               xml result structure is coherent...
+               Another issue: in this case we can not get the client RC
+          -->
           <message>
-            'WARNING: client %s has been killed, %s is probably over loaded'%\
+            'ERROR: client %s has been killed, %s is probably over loaded'%\
             (client.getName(),client.getHost())
           </message>
+          <script>
+            ERR_NUM[0] += 1
+          </script>
           <!-- 
           <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
           -->

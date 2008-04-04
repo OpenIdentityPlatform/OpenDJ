@@ -40,12 +40,14 @@
     
     <sequence>
       
+      <!--=================================================================-->
       <!--==========  Load XML file  =========-->
       <message log="1"> 
         'configuration file is : %s' % configurationFile
       </message>
       <call function="'parseXML'">configurationFile</call>
       
+      <!--=================================================================-->
       <!--==========  Parse xml  =========-->
       <script>
         instances = []
@@ -65,7 +67,8 @@
       </script>
       
       
-      <!--========  Set some attributes to add in objects   ======-->
+      <!--=================================================================-->
+      <!--========  Set some attributes to add in instance objects   ======-->
       <paralleliterate in="instances" var="instance">
         <sequence>
           <call function="'getOSvariables'">
@@ -95,10 +98,29 @@
           <script>
             instance.setSynchroDate(STAXResult[0])
           </script>
+          <!-- Set log dir for each instance -->
+          <script>
+            instance.setLogDir('%s/%s' % (LOG_DIR,instance.getName()))
+          </script>
         </sequence>
       </paralleliterate>
       
       
+      <!--========  Set some attributes to add in client objects   ======-->
+      <!--== Get the enabled clients list from all modules ==-->
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
+      <paralleliterate in="clients" var="client">
+        <sequence>
+          <script>
+            client.setLogDir('%s/client_%s_id%s' % \
+            (LOG_DIR,client.getName(),client.getId()))
+          </script>
+        </sequence>
+      </paralleliterate>
+      
+      
+      <!--=================================================================-->
       <!--========  Basic configuration checks       ======-->
       
       <!-- replace localhost by real host name -->
@@ -127,6 +149,10 @@
             portLdap1  = instance.getLDAPPort()
             portLdaps1 = instance.getLDAPSPort()
             portJmx1   = instance.getJMXPort()
+            
+            if host1 == NOT_DEFINED:
+              msg = '%s\nERROR : instance %s has host %s'%\
+                    (msg,name1,host1)
             
             for instance2 in instances:
               name2      = instance2.getName()
@@ -164,6 +190,11 @@
         i = 0
         while i &lt; nbClients:
           client1 = clients.pop()
+          
+          if client1.getHost() == NOT_DEFINED:
+              msg = '%s\nERROR : client %s has host %s'%\
+                    (msg,client1.getHost(),host1)
+          
           for client2 in clients:
             if client1.getId() == client2.getId():
               msg = '%s\ERROR: clients %s and %s have same id %s, must NOT!'%\

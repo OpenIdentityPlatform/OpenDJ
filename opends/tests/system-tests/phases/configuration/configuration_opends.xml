@@ -54,9 +54,15 @@
       <!-- ===== Start instances ===== -->
       <paralleliterate in="topoInstances" var="instance">
         <sequence>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
           <script>
-            logName = '%s_%s' % (instance.getHost(),instance.getName())
-            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            logFile = STAXResult
+            
             fileList.append(logFile)
             
             cFileFd = open(logFile,'w')
@@ -111,9 +117,16 @@
                 i += 1
             
             instanceSource = topoInstances[i]
+          </script>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
+          <script>
+            logFile = STAXResult
             
-            logName = '%s_%s' % (instance.getHost(),instance.getName())
-            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
             # reopen existing files, no need to add in fileList variable 
             # as it has already been added
             cFileFd = open(logFile,'a')
@@ -190,9 +203,14 @@
       <!--== Initialize replication (totalUpdate) ==-->
       <iterate in="topoInstances" var="instance">
         <sequence>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
           <script>
-            logName = '%s_%s' % (instance.getHost(),instance.getName())
-            logFile = '%s/%s_%s.xml' % (LOG_XML_TMP_DIR,filePrefix,logName)
+            logFile = STAXResult
             # reopen existing files, no need to add in fileList variable
             # as it has already been added
             cFileFd = open(logFile,'a')
