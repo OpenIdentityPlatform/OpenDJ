@@ -91,6 +91,14 @@ public class LongImportIDSet implements ImportIDSet {
     return isDefined;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public void setUndefined() {
+    array = null;
+    isDefined = false;
+  }
+
 
   /**
    * {@inheritDoc}
@@ -121,6 +129,7 @@ public class LongImportIDSet implements ImportIDSet {
       if(array.length + importIdSet.size() > limit) {
           isDefined=false;
           incrLimitCount=true;
+          importIdSet.setUndefined();
       } else {
         count = array.length;
         addAll((LongImportIDSet) importIdSet);
