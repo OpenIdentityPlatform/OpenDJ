@@ -140,14 +140,32 @@
       <!--== Get the list of hosts for each instance ==-->
       <script>
         _list = []
+        _i = 0
         _listName = []
         for instance in instances:
           if instance.getHost() not in _listName:
             _listName.append(instance.getHost())
-            _list.append(instance)
+            _list.append([_i,instance])
+            _i += 1
       </script>
-      <paralleliterate in="_list" var="instance">
+      <paralleliterate in="_list" var="element">
         <sequence>
+          <script>
+            id = element[0]
+            instance = element[1]
+          </script>
+          <!-- Parrallel copy, all instances except instance 0 wait 1 sec -->
+          <!-- This prevent copying the same folder in case of NFS        -->
+          <if expr="id != 0">
+            <call function="'sleep'">
+              {
+                'sleepForMilliSeconds'  : '1000',
+                'silentMode' : 'TRUE',
+                'fileFd' : NO_FILE
+              }
+            </call>
+          </if>
+          
           <call function="'createFolder'">
             { 'location'   : instance.getHost(),
               'foldername' : LOCAL_TESTS_DIR,
@@ -218,16 +236,33 @@
       <!--== Get the list of hosts for each client              ===-->
       <script>
         _list = []
+        _i = 0
         _listName = []
         for client in clients:
           if client.getHost() not in _listName:
             _listName.append(client.getHost())
-            _list.append(client)
+            _list.append([_i,client])
+            _i += 1
       </script>
-      <paralleliterate in="_list" var="client">
+      <paralleliterate in="_list" var="element">
         <sequence>
           <if expr="runScheduler == 'true' or runConfiguration == 'true'">
             <sequence>
+              <script>
+                id = element[0]
+                instance = element[1]
+              </script>
+              <!-- Parrallel copy, all instances except client 0 wait 1 sec -->
+              <!-- This prevent copying the same folder in case of NFS      -->
+              <if expr="id != 0">
+                <call function="'sleep'">
+                  {
+                    'sleepForMilliSeconds'  : '1000',
+                    'silentMode' : 'TRUE',
+                    'fileFd' : NO_FILE
+                  }
+                </call>
+              </if>
               <script>
                 fullHostName = '%s%s' % (client.getHost(),DOMAIN[0])
               </script>
