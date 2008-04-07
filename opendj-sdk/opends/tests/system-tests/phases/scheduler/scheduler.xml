@@ -70,12 +70,8 @@
       </call>
       
       <!--==== Get the clients list from all modules ==============-->
-      <script>
-        clients = []
-        for m in scheduler:
-          if (m.getEnabled() == "true"):
-            clients.extend(m.getClients())
-      </script>
+      <call function="'getEnabledClients'">{'scheduler':scheduler}</call>
+      <script>clients = STAXResult </script>
       
       <!--==== Run clients only if no errors occured before   ===========-->
       <if expr="ERR_NUM[0] == 0">
@@ -179,7 +175,7 @@
           <call function="'writeStartTagClient'">
           {
             'client' : client,
-            'fileFd' : LOG_MAIN_FD 
+            'fileFd' : fileFd 
           }
           </call>
           
@@ -260,7 +256,7 @@
           
           <!-- == Write tag for xml report -->
           <call function="'writeEndTagClient'">
-          { 'fileFd'    : LOG_MAIN_FD }
+          { 'fileFd'    : fileFd }
           </call>
           <!--==== close logfile ====-->
           <script>
