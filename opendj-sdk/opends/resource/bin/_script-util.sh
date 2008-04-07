@@ -145,7 +145,7 @@ set_environment_vars() {
 
 # Configure the appropriate CLASSPATH.
 set_classpath() {
-  CLASSPATH="${INSTANCE_ROOT}"/classes
+  CLASSPATH=${INSTANCE_ROOT}/classes
   for JAR in "${INSTANCE_ROOT}"/lib/*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}
@@ -160,7 +160,7 @@ then
   # root so that we can use them to create appropriate paths.
   WORKING_DIR=`pwd`
 
-  cd `dirname "${0}"`
+  cd "`dirname "${0}"`"
   cd ..
   INSTANCE_ROOT=`pwd`
   cd "${WORKING_DIR}"
