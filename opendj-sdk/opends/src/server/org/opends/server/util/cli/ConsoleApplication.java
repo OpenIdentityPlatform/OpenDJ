@@ -396,7 +396,7 @@ public abstract class ConsoleApplication {
   public final void printProgress(Message msg) {
     if (!isQuiet())
     {
-      out.print(wrapText(msg, MAX_LINE_WIDTH));
+      out.print(msg);
     }
   }
 
