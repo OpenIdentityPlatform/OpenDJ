@@ -47,7 +47,9 @@
 
           <!--- Test Suite information
           #@TestSuiteName       Replication Ldif Import Tests
-          #@TestSuitePurpose    Verify that the servers in a replicated topology can be initialised by the means of an ldif import.
+          #@TestSuitePurpose    Verify that the servers in a replicated topology
+                                can be initialised by the means of an ldif 
+                                import.
           #@TestSuiteID         Ldif Import Tests
           #@TestSuiteGroup      Ldif Import
           #@TestGroup           Replication
@@ -55,95 +57,159 @@
           #@TestHTMLLink        http://opends.dev.java.net/
           -->
             
-                                                                        
+
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
+            file="'%s/testcases/replication/replication_setup.xml'
+                  % (TESTS_DIR)"/>
           <call function="'replication_setup'" />
-                                    
-          <script>
-            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()              
-          </script>            
+     
             
           <!--- Test Case information
           #@TestMarker          Replication Ldif Import Tests
-          #@TestName            Replication: Ldif Import: Off-line initialisation
-          #@TestID                  Off-line initialisation
-          #@TestPurpose         Initialise replicated servers using off-line export/import
+          #@TestName            Replication: Ldif Import: Off-line
+                                initialisation
+          #@TestID              Off-line initialisation
+          #@TestPurpose         Initialise replicated servers using off-line
+                                export/import
           #@TestPreamble
-          #@TestSteps
+          #@TestSteps           Call dsreplication pre-external-initialization
+          #@TestSteps           Stop servers
+          #@TestSteps           Import data on server A
+          #@TestSteps           Export suffix on server A
+          #@TestSteps           Import exported file on other servers
+          #@TestSteps           Start servers
+          #@TestSteps           Call dsreplication post-external-initialization
+          #@TestSteps           Add entry on server A
           #@TestPostamble
-          #@TestResult
+          #@TestResult          Success if trees synchronized
           -->               
           <testcase name="getTestCaseName('Off-line initialisation')">
-            <sequence>            
+            <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Ldif Import: Off-line initialisation. Initialise replicated servers using off-line export/import'
+                'Replication: Ldif Import: Off-line initialisation. \
+                Initialise replicated servers using off-line export/import'
               </message>
+                
+              <!-- Pre-initialise the servers in the topology -->
+              <message>
+                '+++++ ldif import off-line: prepare servers for external \
+                initialization'
+              </message>
+              <call function="'preInitializeReplication'">
+                { 'location'          : clientHost,
+                  'dsPath'            : clientPath,
+                  'dsInstanceHost'    : masterHost,
+                  'dsInstancePort'    : master.getPort(),
+                  'localOnly'         : False,
+                  'replicationDnList' : [synchroSuffix],
+                  'adminUID'          : adminUID,
+                  'adminPswd'         : adminPswd
+                }
+              </call>                           
                               
-              <!-- Stop the servers in the topology -->  
+              <!-- Stop the servers in the topology -->
               <call function="'stopServers'">
                 [_topologyServerList]
               </call>
               
                                 
-              <!-- Import data into "master" server -->              
+              <!-- Import data into "master" server -->
+              <message>
+                '+++++ ldif import off-line: import data on %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'ImportLdifWithScript'">
-                { 'location'     : masterHost,
-                  'dsPath'       : masterPath,
-                  'dsBackEnd'    : 'userRoot',             
-                  'dsLdifFile'   : '%s/replication/Example.ldif' % masterDataDir }
+                { 'location'   : masterHost,
+                  'dsPath'     : masterPath,
+                  'dsBackEnd'  : 'userRoot',             
+                  'dsLdifFile' : '%s/replication/Example.ldif' % masterDataDir
+                }
               </call>
 
-              <!-- Check some data was imported into "master" server -->    
-              <call function="'checkImport'">
-                { 'location'  : clientHost,
-                  'dsPath'    : clientPath,                
-                  'dsHost'    : masterHost,
-                  'dsPort'    : master.getPort(),
-                  'dsDn'      : master.getRootDn(),
-                  'dsPswd'    : master.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example'] }
-              </call>
-                
-
-              <!-- Export data from  "master" server -->  
+              <!-- Export data from  "master" server -->
+              <message>
+                '+++++ ldif import off-line: export suffix on server %s:%s' \
+                % (masterHost, master.getPort())
+              </message>                
               <call function="'exportLdif'">
-                { 'location'  :  masterHost,
-                  'dsPath'  :  masterPath,
-                  'ldifFile'  :  '%s/replication/master_export.ldif' % masterDataDir }
-              </call>                
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'ldifFile'  : '%s/replication/master_export.ldif' \
+                                % masterDataDir
+                }
+              </call>
                 
               <!-- Copy export file  to "consumer" servers and import it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
                   <call function="'copyFile'">
-                    { 'location'   :  masterHost,
-                      'remotehost'  :  consumer.getHostname(),
-                      'srcfile'  :  '%s/replication/master_export.ldif' % masterDataDir,
-                      'destfile' :  '%s/%s/replication/master_export.ldif' % (consumer.getDir(),relativeDataDir) }
-                  </call>         
+                    { 'location'   : masterHost,
+                      'remotehost' : consumer.getHostname(),
+                      'srcfile'    : '%s/replication/master_export.ldif' \
+                                     % masterDataDir,
+                      'destfile'   : '%s/%s/replication/master_export.ldif' \
+                                     % (consumer.getDir(),relativeDataDir)
+                    }
+                  </call>
 
+                  <message>
+                    '+++++ ldif import off-line: import exported file on %s:%s'\
+                    % (consumer.getHostname(), consumer.getPort())
+                  </message>
                   <call function="'ImportLdifWithScript'">
-                    { 'location'  : consumer.getHostname(),
-                      'dsPath'  :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'dsBackEnd'    : 'userRoot',  
-                      'dsLdifFile'   :  '%s/%s/replication/master_export.ldif' % (consumer.getDir(),relativeDataDir) }
-                  </call>                                             
-                </sequence>                  
+                    { 'location'   : consumer.getHostname(),
+                      'dsPath'     : '%s/%s' % (consumer.getDir(), OPENDSNAME),
+                      'dsBackEnd'  : 'userRoot',  
+                      'dsLdifFile' : '%s/%s/replication/master_export.ldif' \
+                                     % (consumer.getDir(),relativeDataDir)
+                    }
+                  </call>                                 
+                </sequence>
               </paralleliterate>
                 
                 
 
-              <!-- Start the servers in the topology -->  
+              <!-- Start the servers in the topology -->
               <call function="'startServers'">
                 [_topologyServerList]
-              </call>                
-                
+              </call>
 
-              <!-- Add entry to "master" server -->                       
+              <!-- Check some data was imported into "master" server -->    
+              <call function="'checkImport'">
+                { 'location'        : clientHost,
+                  'dsPath'          : clientPath,                
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
+                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
+                                       'uid=dmiller, ou=People, o=example',
+                                       'uid=rhunt, ou=People, o=example'],
+                  'startDS'         : 'no'
+                }
+              </call>
+                                
+              <!-- Post-initialise the servers in the topology -->
+              <message>
+                '+++++ ldif import off-line: end external server initialization'
+              </message>
+              <call function="'postInitializeReplication'">
+                { 'location'          : clientHost,
+                  'dsPath'            : clientPath,
+                  'dsInstanceHost'    : masterHost,
+                  'dsInstancePort'    : master.getPort(),
+                  'replicationDnList' : [synchroSuffix],
+                  'adminUID'          : adminUID,
+                  'adminPswd'         : adminPswd
+                }
+              </call>
+                
+              <!-- Add entry to "master" server -->
+              <message>
+                '+++++ ldif import off-line: add entry to %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -151,118 +217,179 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir }
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                     % clientDataDir
+                }
               </call>
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
-                                
+
+              <script>
+                knownIssue(3122)
+              </script>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>                                                                                   
-            
+          </testcase>
+
 
 
           <!--- Test Case information
           #@TestMarker          Replication Ldif Import Tests
           #@TestName            Replication: Ldif Import: On-line initialisation
-          #@TestID                  On-line initialisation
-          #@TestPurpose         Initialise replicated servers using on-line export/import
+          #@TestID              On-line initialisation
+          #@TestPurpose         Initialise replicated servers using on-line
+                                export/import
           #@TestPreamble
-          #@TestSteps
+          #@TestSteps           Call dsreplication pre-external-initialization
+          #@TestSteps           Import data on server A
+          #@TestSteps           Export suffix on server A
+          #@TestSteps           Import exported file on other servers
+          #@TestSteps           Call dsreplication post-external-initialization
+          #@TestSteps           Add entry on server A
           #@TestPostamble
-          #@TestResult
+          #@TestResult          Success if trees synchronized
           -->               
           <testcase name="getTestCaseName('On-line initialisation')">
-            <sequence>            
+            <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                 'Replication: Ldif Import: On-line initialisation. Initialise replicated servers using on-line export/import'
+                'Replication: Ldif Import: On-line initialisation. Initialise \
+                replicated servers using on-line export/import'
               </message>
-                              
-              <!-- Clean the servers in the topology
-              <call function="'deleteTrees'">
-                [_topologyServerList, synchroSuffix, False]
-              </call> -->
-              
-              <!-- Delete manually added entry so that replication server won't add it automatically later on -->
-              <call function="'ldapDeleteWithScript'">
-                { 'location'  :  clientHost,
-                  'dsPath'  :  clientPath,
-                  'dsInstanceHost'  :  master.getHostname(),
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  : master.getRootDn(),
-                  'dsInstancePswd' :  master.getRootPwd(),
-                  'dsDn'  :  ['uid=tfitter, ou=People,%s' % synchroSuffix] }
-              </call>                                                                
-                                
-              <!-- Import data into "master" server -->              
+
+              <!-- Pre-initialise the servers in the topology -->
+              <message>
+                '+++++ ldif import on-line: prepare servers for external \
+                initialization'
+              </message>
+              <call function="'preInitializeReplication'">
+                { 'location'          : clientHost,
+                  'dsPath'            : clientPath,
+                  'dsInstanceHost'    : masterHost,
+                  'dsInstancePort'    : master.getPort(),
+                  'localOnly'         : False,
+                  'replicationDnList' : [synchroSuffix],
+                  'adminUID'          : adminUID,
+                  'adminPswd'         : adminPswd
+                 }
+              </call>         
+                                                                 
+              <!-- Import data into "master" server -->
+              <message>
+                '+++++ ldif import on-line: import data on %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'importLdifTask'">
-                { 'location'  :  clientHost,
-                  'dsPath'  :  clientPath,
-                  'dsInstanceHost'  : masterHost,
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  :  master.getRootDn(),
-                  'dsInstancePswd'  :  master.getRootPwd(),
-                  'taskID'  :  'import task',
-                  'ldifFile'  :  '%s/replication/Example.ldif' % masterDataDir }
+                { 'location'       : clientHost,
+                  'dsPath'         : clientPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'taskID'         : 'import task',
+                  'ldifFile'       : '%s/replication/Example.ldif' \
+                                     % masterDataDir
+                }
               </call>
 
-              <!-- Check some data was imported into "master" server -->    
+              <!-- Check some data was imported into "master" server -->
               <call function="'checkImport'">
-                { 'location'  : clientHost,
-                  'dsPath'    : clientPath,                
-                  'dsHost'    : masterHost,
-                  'dsPort'    : master.getPort(),
-                  'dsDn'      : master.getRootDn(),
-                  'dsPswd'    : master.getRootPwd(),
+                { 'location'        : clientHost,
+                  'dsPath'          : clientPath,
+                  'dsHost'          : masterHost,
+                  'dsPort'          : master.getPort(),
+                  'dsDn'            : master.getRootDn(),
+                  'dsPswd'          : master.getRootPwd(),
                   'expectedEntries' : ['uid=scarter,ou=People,o=example',
                                        'uid=dmiller, ou=People, o=example',
                                        'uid=rhunt, ou=People, o=example'], 
-                  'startDS'  : 'no' }
+                  'startDS'         : 'no'
+                }
               </call>
-                
 
-              <!-- Export data from  "master" server -->  
-              <call function="'exportLdifTask'">
-                { 'location'  :  masterHost,
-                  'dsPath'  :  masterPath,
-                  'dsInstanceHost'  : masterHost,
-                  'dsInstancePort'  :  master.getPort(),
-                  'dsInstanceDn'  :  master.getRootDn(),
-                  'dsInstancePswd'  :  master.getRootPwd(),
-                  'taskID'  :  'export task',
-                  'ldifFile'  :  '%s/replication/master_export_online.ldif' % masterDataDir }
-              </call>                
+              <script>
+                sourceFile = '%s/replication/master_export_online.ldif' \
+                             % masterDataDir
+              </script>
                 
+              <!-- Export data from  "master" server -->
+              <message>
+                '+++++ ldif import on-line: export suffix on server %s:%s' \
+                % (masterHost, master.getPort())
+              </message>                     
+              <call function="'exportLdifTask'">
+                { 'location'       : masterHost,
+                  'dsPath'         : masterPath,
+                  'dsInstanceHost' : masterHost,
+                  'dsInstancePort' : master.getPort(),
+                  'dsInstanceDn'   : master.getRootDn(),
+                  'dsInstancePswd' : master.getRootPwd(),
+                  'taskID'         : 'export task',
+                  'ldifFile'       : sourceFile
+                }
+              </call>                
+
               <!-- Copy export file  to "consumer" servers and import it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <script>
+                    filename = 'master_export_online_ldif'
+                    destinationFile = '%s/%s/replication/%s'\
+                                      % (consumer.getDir(),relativeDataDir,
+                                         filename)
+                  </script>
+
                   <call function="'copyFile'">
-                    { 'location'   :  masterHost,
-                      'remotehost'  :  consumer.getHostname(),
-                      'srcfile'  :  '%s/replication/master_export_online.ldif' % masterDataDir,
-                      'destfile' :  '%s/%s/replication/master_export_online.ldif' % (consumer.getDir(),relativeDataDir) }
+                    { 'location'   : masterHost,
+                      'remotehost' : consumer.getHostname(),
+                      'srcfile'    : sourceFile,
+                      'destfile'   : destinationFile
+                    }
                   </call>         
 
+                  <message>
+                    '+++++ ldif import on-line: import exported file on %s:%s'\
+                    % (consumer.getHostname(), consumer.getPort())
+                  </message>                    
                   <call function="'importLdifTask'">
-                    { 'location'  :  clientHost,
-                      'dsPath'  :  clientPath,
-                      'dsInstanceHost'  : consumer.getHostname(),
-                      'dsInstancePort'  :  consumer.getPort(),
-                      'dsInstanceDn'  :  consumer.getRootDn(),
-                      'dsInstancePswd'  :  consumer.getRootPwd(),
-                      'taskID'  :  'import task',
-                      'ldifFile'  :  '%s/%s/replication/master_export_online.ldif' % (consumer.getDir(),relativeDataDir) }
-                  </call>                                     
-                </sequence>                  
+                    { 'location'       : clientHost,
+                      'dsPath'         : clientPath,
+                      'dsInstanceHost' : consumer.getHostname(),
+                      'dsInstancePort' : consumer.getPort(),
+                      'dsInstanceDn'   : consumer.getRootDn(),
+                      'dsInstancePswd' : consumer.getRootPwd(),
+                      'taskID'         : 'import task',
+                      'ldifFile'       : destinationFile
+                    }
+                  </call>
+                </sequence>
               </paralleliterate>
                 
+              <!-- Post-initialise the servers in the topology -->
+              <message>
+                '+++++ ldif import on-line: end external server initialization'
+              </message>
+              <call function="'postInitializeReplication'">
+                { 'location'          : clientHost,
+                  'dsPath'            : clientPath,
+                  'dsInstanceHost'    : masterHost,
+                  'dsInstancePort'    : master.getPort(),
+                  'replicationDnList' : [synchroSuffix],
+                  'adminUID'          : adminUID,
+                  'adminPswd'         : adminPswd
+                }
+              </call>                                    
 
-
-              <!-- Add entry to "master" server -->                       
+              <!-- Add entry to "master" server -->
+              <message>
+                '+++++ ldif import on-line: add entry to %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -270,23 +397,27 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir }
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                     % clientDataDir
+                }
               </call>
                 
-              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
-              </call> 
-                                
+              </call>
+
               <call function="'testCase_Postamble'"/>
             </sequence>
-          </testcase>                                                                                   
+          </testcase>
             
 
                                                             
           
           <import machine="STAF_LOCAL_HOSTNAME"
-            file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
+            file="'%s/testcases/replication/replication_cleanup.xml'
+                  % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
                           
           <call function="'testSuite_Postamble'"/>

@@ -39,7 +39,9 @@
           <call function="'testSuite_Preamble'"/>
           <!--- Test Suite information
           #@TestSuiteName       Replication Re-Synchronization Tests
-          #@TestSuitePurpose    Verify that the servers in a replicated topology can be initialised with an old backup and still re-synchronize.
+          #@TestSuitePurpose    Verify that the servers in a replicated topology
+                                can be initialised with an old backup and still
+                                re-synchronize.
           #@TestSuiteID         Re-Synchronization Tests
           #@TestSuiteGroup      Re-Synchronization
           #@TestGroup           Replication
@@ -48,74 +50,41 @@
           -->
           
           <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_setup.xml' % (TESTS_DIR)"/>
-          <call function="'replication_setup'" />
+                  file="'%s/testcases/replication/replication_setup.xml' 
+                        % (TESTS_DIR)"/>
+          <call function="'replication_setup'">
+            { 'dataFile' : 'Example.ldif' }
+          </call>
           
-          <script>
-            synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
-          </script>
           
           <!--- Test Case information
           #@TestMarker          Replication Re-Synchronization Tests
-          #@TestName            Replication: Re-Synchronization: Off-line initialisation
-          #@TestID                  Off-line initialisation
-          #@TestPurpose         Initialise replicated servers using off-line backup/restore
-          #@TestPreamble
-          #@TestSteps
+          #@TestName            Replication: Re-Synchronization: Off-line
+                                initialisation
+          #@TestID              Off-line initialisation
+          #@TestPurpose         Initialise replicated servers using off-line
+                                backup/restore
+          #@TestPreamble        Back-up server A
+          #@TestSteps           Add entry on server A
+          #@TestSteps           Stop servers
+          #@TestSteps           Restore back-up on other servers
+          #@TestSteps           Start servers
           #@TestPostamble
-          #@TestResult
+          #@TestResult          Success if trees synchronized
           -->
           <testcase name="getTestCaseName('Off-line initialisation')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                'Replication: Re-Synchronization: Off-line initialisation. Initialise replicated servers using off-line backup/restore'
+                'Replication: Re-Synchronization: Off-line initialisation. \
+                Initialise replicated servers using off-line backup/restore'
               </message>
-              
-              <!-- Stop the servers in the topology -->
-              <call function="'stopServers'">
-                [_topologyServerList]
-              </call>
-              
-              <!-- Import data into "master" server -->
-              <call function="'ImportLdifWithScript'">
-                { 'location'   : masterHost,
-                  'dsPath'     : masterPath,
-                  'dsBackEnd'  : 'userRoot',
-                  'dsLdifFile' : '%s/replication/Example.ldif' % masterDataDir
-                }
-              </call>
-              
-              <!-- Check some data was imported into "master" server -->
-              <call function="'checkImport'">
-                { 'location'        : clientHost,
-                  'dsPath'          : clientPath,
-                  'dsHost'          : masterHost,
-                  'dsPort'          : master.getPort(),
-                  'dsDn'            : master.getRootDn(),
-                  'dsPswd'          : master.getRootPwd(),
-                  'expectedEntries' : ['uid=scarter,ou=People,o=example',
-                                       'uid=dmiller, ou=People, o=example',
-                                       'uid=rhunt, ou=People, o=example']
-                }
-              </call>
-              
-              <!-- Backup "master" server -->
-              <call function="'backup'">
-                { 'location'  :  masterHost,
-                  'dsPath'    :  masterPath,
-                  'backupDir' :  '%s/replication/master_backup' % masterDataDir
-                }
-              </call>
-              
-              <!-- Start the "master" server -->
-              <call function="'StartDsWithScript'">
-                { 'location'  :  masterHost,
-                  'dsPath'  :  masterPath
-                }
-              </call>
-              
+                             
               <!-- Add entry to "master" server -->
+              <message>
+                '+++++ resynchronization off-line: add entry to %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -123,34 +92,38 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                     % clientDataDir
                 }
               </call>
+                
+              <!-- Stop the "consumer" servers -->
+              <call function="'stopServers'">
+                [consumerList]
+              </call>                
               
-              <!-- Copy backup to "consumer" servers and restore it -->
+              <!-- Copy master backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
-                  <if expr="os.path.exists('%s/config/schematokens.dat' % dsPath)">
-                    <call function="'copyFile'">
-                      { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
-                        'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
-                        'remotehost' : consumer.getHostname()
-                      }
-                    </call>
-                  </if>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup' % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir),
+                      'srcfolder'  : masterBackupDir,
+                      'destfolder' : '%s/%s/replication/master_backup' \
+                                     % (consumer.getDir(),relativeDataDir),
                       'extension'  : '*'
                     }
                   </call>
 
+                  <message>
+                    '+++++ resynchronization off-line: restore backup on %s:%s'\
+                    % (consumer.getHostname(), consumer.getPort())
+                  </message>
                   <call function="'restore'">
                     { 'location'  :  consumer.getHostname(),
                       'dsPath'    :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' :  '%s/%s/replication/master_backup' % (consumer.getDir(),relativeDataDir)
+                      'backupDir' :  '%s/%s/replication/master_backup' \
+                                     % (consumer.getDir(),relativeDataDir)
                     }
                   </call>
                 </sequence>
@@ -161,7 +134,8 @@
                 [consumerList]
               </call>
               
-              <!-- Verify the synchronization of the trees among the servers in the topology -->          
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->          
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
@@ -171,39 +145,51 @@
           
           <!--- Test Case information
           #@TestMarker          Replication Re-Synchronization Tests
-          #@TestName            Replication: Re-Synchronization: On-line initialisation
-          #@TestID                  On-line initialisation
-          #@TestPurpose         Initialise replicated servers using on-line backup/restore
+          #@TestName            Replication: Re-Synchronization: On-line 
+                                initialisation
+          #@TestID              On-line initialisation
+          #@TestPurpose         Initialise replicated servers using on-line
+                                backup/restore
           #@TestPreamble
-          #@TestSteps
+          #@TestSteps           Call dsreplication pre-external-initialization
+          #@TestSteps           Import data on server A
+          #@TestSteps           Back-up server A
+          #@TestSteps           Add entry on server A
+          #@TestSteps           Restore back-up on other servers
+          #@TestSteps           Call dsreplication post-external-initialization
           #@TestPostamble
-          #@TestResult
+          #@TestResult          Success if trees synchronized
           -->
           <testcase name="getTestCaseName('On-line initialisation')">
             <sequence>
               <call function="'testCase_Preamble'"/>
               <message>
-                'Replication: Re-Synchronization: On-line initialisation. Initialise replicated servers using on-line backup/restore'
+                'Replication: Re-Synchronization: On-line initialisation. \
+                Initialise replicated servers using on-line backup/restore'
               </message>
-              
-              <!-- Clean the servers in the topology
-              <call function="'deleteTrees'">
-                [_topologyServerList, synchroSuffix, False]
-              </call> -->
-              
-              <!-- Delete manually added entry so that replication server won't add it automatically later on -->
-              <call function="'ldapDeleteWithScript'">
-                { 'location'       : clientHost,
-                  'dsPath'         : clientPath,
-                  'dsInstanceHost' : master.getHostname(),
-                  'dsInstancePort' : master.getPort(),
-                  'dsInstanceDn'   : master.getRootDn(),
-                  'dsInstancePswd' : master.getRootPwd(),
-                  'dsDn'           : ['uid=tfitter, ou=People,%s' % synchroSuffix]
+
+              <!-- Pre-initialise the servers in the topology -->
+              <message>
+                '+++++ resynchronization on-line: prepare servers for external \
+                initialization'
+              </message>                
+              <call function="'preInitializeReplication'">
+                { 'location'          : clientHost,
+                  'dsPath'            : clientPath,
+                  'dsInstanceHost'    : masterHost,
+                  'dsInstancePort'    : master.getPort(),
+                  'localOnly'         : False,
+                  'replicationDnList' : [synchroSuffix],
+                  'adminUID'          : adminUID,
+                  'adminPswd'         : adminPswd
                 }
               </call>
-              
+                
               <!-- Import data into "master" server -->
+              <message>
+                '+++++ resynchronization on-line: import data on %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'importLdifTask'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -212,11 +198,12 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'import task',
-                  'ldifFile'       : '%s/replication/Example.ldif' % masterDataDir
+                  'ldifFile'       : '%s/replication/Example.ldif' \
+                                     % masterDataDir
                 }
               </call>
               
-              <!-- Check some data was imported into "master" server -->    
+              <!-- Check some data was imported into "master" server -->
               <call function="'checkImport'">
                 { 'location'        : clientHost,
                   'dsPath'          : clientPath,
@@ -231,7 +218,11 @@
                 }
               </call>
                 
-              <!-- Backup "master" server -->  
+              <!-- Backup "master" server -->
+              <message>
+                '+++++ resynchronization on-line: back-up server %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
               <call function="'backupTask'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -240,11 +231,16 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task',
-                  'backupDir'      : '%s/replication/master_backup_online' % masterDataDir
+                  'backupDir'      : '%s/replication/master_backup_online' \
+                                     % masterDataDir
                 }
               </call>
               
-              <!-- Add entry to "master" server -->                       
+              <!-- Add entry to "master" server -->
+              <message>
+                '+++++ resynchronization on-line: add entry to %s:%s' \
+                % (masterHost, master.getPort())
+              </message>                        
               <call function="'addEntry'">
                 { 'location'       : clientHost,
                   'dsPath'         : clientPath,
@@ -252,30 +248,29 @@
                   'dsInstancePort' : master.getPort(), 
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
-                  'entryToBeAdded' : '%s/replication/tfitter.ldif' % clientDataDir
+                  'entryToBeAdded' : '%s/replication/tfitter.ldif' \
+                                     % clientDataDir
                 }
               </call>
               
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
-                  <if expr="os.path.exists('%s/config/schematokens.dat' % dsPath)">
-                    <call function="'copyFile'">
-                      { 'srcfile'    : '%s/config/schematokens.dat' % dsPath,
-                        'destfile'   : '%s/%s/config/schematokens.dat' % (consumer.getDir(),OPENDSNAME),
-                        'remotehost' : consumer.getHostname()
-                      }
-                    </call>
-                  </if>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup_online' % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir),
+                      'srcfolder'  : '%s/replication/master_backup_online' \
+                                     % masterDataDir,
+                      'destfolder' : '%s/%s/replication/master_backup_online' \
+                                     % (consumer.getDir(),relativeDataDir),
                       'extension'  : '*'
                     }
                   </call>
-                  
+
+                  <message>
+                    '+++++ resynchronization on-line: restore back-up on %s:%s'\
+                    % (consumer.getHostname(), consumer.getPort())
+                  </message>
                   <call function="'restoreTask'">
                     { 'location'       : clientHost,
                       'dsPath'         : clientPath,
@@ -284,13 +279,31 @@
                       'dsInstanceDn'   : consumer.getRootDn(),
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task',
-                      'backupDir'      : '%s/%s/replication/master_backup_online' % (consumer.getDir(),relativeDataDir)
+                      'backupDir'   : '%s/%s/replication/master_backup_online' \
+                                      % (consumer.getDir(),relativeDataDir)
                     }
                   </call>
                 </sequence>
               </paralleliterate>
               
-              <!-- Verify the synchronization of the trees among the servers in the topology -->
+              <!-- Post-initialise the servers in the topology -->
+              <message>
+                '+++++ resynchronization on-line: end external server \
+                initialization'
+              </message>                       
+              <call function="'postInitializeReplication'">
+                { 'location'          : clientHost,
+                  'dsPath'            : clientPath,
+                  'dsInstanceHost'    : masterHost,
+                  'dsInstancePort'    : master.getPort(),
+                  'replicationDnList' : [synchroSuffix],
+                  'adminUID'          : adminUID,
+                  'adminPswd'         : adminPswd
+                }
+              </call>
+                                
+              <!-- Verify the synchronization of the trees among the servers in
+                the topology -->
               <call function="'verifyTrees'">
                 [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
@@ -300,7 +313,8 @@
           </testcase>
           
           <import machine="STAF_LOCAL_HOSTNAME"
-                  file="'%s/testcases/replication/replication_cleanup.xml' % (TESTS_DIR)"/>
+                  file="'%s/testcases/replication/replication_cleanup.xml' 
+                        % (TESTS_DIR)"/>
           <call function="'replication_cleanup'" />
           
           <call function="'testSuite_Postamble'"/>
