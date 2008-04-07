@@ -76,8 +76,6 @@ import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
 /**
  * This class provides a very simple mechanism for installing the OpenDS
  * Directory Service.  It performs the following tasks:
@@ -2342,21 +2340,46 @@ public class InstallDS extends ConsoleApplication
         Message.raw(uData.getDirectoryManagerDn()),
         Message.raw(InstallReviewPanel.getDataDisplayString(uData)),
     };
-    TableBuilder table = new TableBuilder();
+    int maxWidth = 0;
+    StringBuilder sb = new StringBuilder();
+    for (Message l : labels)
+    {
+      maxWidth = Math.max(maxWidth, l.length());
+    }
+
     for (int i=0; i<labels.length; i++)
     {
       if (values[i] != null)
       {
-        table.startRow();
-        table.appendCell(labels[i]);
-        table.appendCell(values[i]);
+        Message l = labels[i];
+        sb.append(l.toString());
+
+        sb.append(" ");
+        String[] lines = values[i].toString().split(Constants.LINE_SEPARATOR);
+        for (int j=0; j<lines.length; j++)
+        {
+          if (j != 0)
+          {
+            sb.append(Constants.LINE_SEPARATOR);
+            for (int k=0; k <= maxWidth; k++)
+            {
+              sb.append(" ");
+            }
+          }
+          else
+          {
+            for (int k=0; k<maxWidth - l.length(); k++)
+            {
+              sb.append(" ");
+            }
+          }
+          sb.append(lines[j].toString());
+        }
+        sb.append(Constants.LINE_SEPARATOR);
       }
     }
-    TextTablePrinter printer = new TextTablePrinter(getOutputStream());
-    printer.setDisplayHeadings(false);
-    printer.setColumnSeparator("");
-    table.print(printer);
 
+    println(Message.raw(sb));
     println();
     if (uData.getStartServer())
     {
