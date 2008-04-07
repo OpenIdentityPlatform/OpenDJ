@@ -40,7 +40,7 @@ fi
 # root so that we can use them to create appropriate paths.
 WORKING_DIR=`pwd`
 
-cd `dirname "${0}"`
+cd "`dirname "${0}"`"
 SCRIPT_DIR=`pwd`
 
 cd ..

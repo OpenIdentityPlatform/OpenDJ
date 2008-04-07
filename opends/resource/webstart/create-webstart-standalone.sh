@@ -3,7 +3,7 @@
 
 # Determine the location to this script so that we know where we are in the
 # OpenDS source tree.
-cd `dirname $0`
+cd "`dirname $0`"
 SCRIPT_DIR=`pwd`
 cd ../..
 ROOT_DIR=`pwd`
