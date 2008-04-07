@@ -73,7 +73,7 @@ public class BufferManager {
   //Overhead values determined from using JHAT. They appear to be the same
   //for both 32 and 64 bit machines. Close enough.
   private final static int TREEMAP_ENTRY_OVERHEAD = 29;
-  private final static int KEY_ELEMENT_OVERHEAD = 28;
+  private final static int KEY_ELEMENT_OVERHEAD = 32;
 
 
   /**
@@ -98,13 +98,53 @@ public class BufferManager {
    * @throws DatabaseException If a problem happened during a flushAll cycle.
    */
   void insert(Index index, Entry entry,
-                     EntryID entryID, Transaction txn)
-  throws DatabaseException {
-     int entryLimit = index.getIndexEntryLimit();
-     Set<byte[]> keySet = new HashSet<byte[]>();
-     index.indexer.indexEntry(txn, entry, keySet);
+              EntryID entryID, Transaction txn)
+          throws DatabaseException {
+
+    Set<byte[]> keySet = new HashSet<byte[]>();
+    index.indexer.indexEntry(txn, entry, keySet);
     synchronized(elementMap) {
-       for(byte[] key : keySet) {
+      insertKeySet(keySet, index, entryID);
+      //If over the memory limit and import hasn't completed
+      //flush some keys from the cache to make room.
+      if(memoryUsage > memoryLimit) {
+        flushUntilUnderLimit();
+      }
+    }
+  }
+
+  /**
+   * Special case for id2children and id2subtree.
+   * Insert an entry ID into the buffer using the both the specified index and
+   * entry to build a key set.
+   * @param id2children  The id2children index.
+   * @param id2subtree The id2subtree index.
+   * @param entry  The entry to used to build the keyset.
+   * @param entryID The entry ID to insert into the key set.
+   * @param txn A transaction.
+   * @throws DatabaseException  If a problem happens formating the keyset.
+   */
+  void insert(Index id2children, Index id2subtree, Entry entry,
+         EntryID entryID, Transaction txn) throws DatabaseException {
+    Set<byte[]> childKeySet = new HashSet<byte[]>();
+    id2children.indexer.indexEntry(txn, entry, childKeySet);
+    Set<byte[]> subKeySet = new HashSet<byte[]>();
+    id2subtree.indexer.indexEntry(txn, entry, subKeySet);
+     synchronized(elementMap) {
+      insertKeySet(childKeySet, id2children, entryID);
+      insertKeySet(subKeySet, id2subtree, entryID);
+    }
+  }
+
+  /**
+   * Insert a keySet into the element map using the provided index and entry ID.
+   * @param keySet The key set to add to the map.
+   * @param index  The index that eventually will contain the entry IDs.
+   * @param entryID The entry ID to add to the entry ID set.
+   */
+  private void insertKeySet(Set<byte[]> keySet, Index index, EntryID entryID) {
+      int entryLimit = index.getIndexEntryLimit();
+      for(byte[] key : keySet) {
          KeyHashElement elem = new KeyHashElement(key, index, entryID);
          total++;
          if(!elementMap.containsKey(elem)) {
@@ -112,7 +152,7 @@ public class BufferManager {
             memoryUsage += TREEMAP_ENTRY_OVERHEAD + elem.getMemorySize();
          } else {
            KeyHashElement curElem = elementMap.get(elem);
-           if(curElem.isDefined()) {
+           if(curElem.isDefined() || index.getMaintainCount()) {
             int oldSize = curElem.getMemorySize();
             curElem.addEntryID(entryID, entryLimit);
             int newSize = curElem.getMemorySize();
@@ -121,13 +161,7 @@ public class BufferManager {
             hit++;
            }
          }
-       }
-       //If over the memory limit and import hasn't completed
-      //flush some keys from the cache to make room.
-       if(memoryUsage > memoryLimit) {
-         flushUntilUnderLimit();
-       }
-    }
+      }
   }
 
   /**
@@ -215,6 +249,9 @@ public class BufferManager {
     //The set of IDs related to the key.
     private ImportIDSet importIDSet;
 
+    //Used to speed up lookup.
+    private int keyHashCode;
+
     /**
      * Create instance of an element for the specified key and index, the add
      * the specified entry ID to the ID set.
@@ -232,6 +269,7 @@ public class BufferManager {
       //Used if there when there are conflicts if two or more indexes have
       //the same key.
       this.indexHashCode = System.identityHashCode(index);
+      this.keyHashCode = Arrays.hashCode(key);
     }
 
     /**
@@ -241,7 +279,7 @@ public class BufferManager {
      * @param entryLimit The entry limit
      */
     void addEntryID(EntryID entryID, int entryLimit) {
-      importIDSet.addEntryID(entryID, entryLimit);
+      importIDSet.addEntryID(entryID, entryLimit, index.getMaintainCount());
     }
 
     /**
@@ -263,6 +301,15 @@ public class BufferManager {
     }
 
     /**
+     * Return value of the key hash code.
+     *
+     * @return The key hash code value.
+     */
+    int getKeyHashCode() {
+      return keyHashCode;
+    }
+
+    /**
      * Return the ID set.
       * @return The import ID set.
      */
@@ -280,7 +327,8 @@ public class BufferManager {
     }
 
     /**
-     * Compare the bytes of two keys.
+     * Compare the bytes of two keys.  The is slow, only use if the hashcode
+     * had a collision.
      *
      * @param a  Key a.
      * @param b  Key b.
@@ -309,6 +357,27 @@ public class BufferManager {
     }
 
     /**
+     * Compare two element keys. First check the precomputed hashCode. If
+     * the hashCodes are equal, do a second byte per byte comparision in case
+     * there was a  collision.
+     *
+     * @param elem The element to compare.
+     * @return  0 if the keys are equal, -1 if key a is less than key b, 1 if
+     *          key a is greater than key b.
+     */
+    private int compare(KeyHashElement elem) {
+      if(keyHashCode == elem.getKeyHashCode()) {
+        return compare(key, elem.key);
+      } else {
+        if(keyHashCode < elem.getKeyHashCode()) {
+          return -1;
+        } else {
+          return 1;
+        }
+      }
+    }
+
+    /**
      * Compare the specified object to the current object. If the keys are
      * equal, then the indexHashCode value is used as a tie-breaker.
      *
@@ -321,7 +390,8 @@ public class BufferManager {
         throw new NullPointerException();
       }
       KeyHashElement inElem = (KeyHashElement) o;
-      int keyCompare = compare(key, inElem.key);
+    //  int keyCompare = compare(key, inElem.key);
+      int keyCompare = compare(inElem);
       if(keyCompare == 0) {
         if(indexHashCode == inElem.indexHashCode) {
           return 0;

@@ -280,8 +280,8 @@ public class Index extends DatabaseContainer
       status = read(txn, key, data, LockMode.RMW);
       if(status == OperationStatus.SUCCESS) {
         ImportIDSet newImportIDSet = new IntegerImportIDSet();
-        if (newImportIDSet.merge(data.getData(), importIdSet, indexEntryLimit))
-        {
+        if (newImportIDSet.merge(data.getData(), importIdSet,
+                                 indexEntryLimit, maintainCount)) {
           entryLimitExceededCount++;
         }
         data.setData(newImportIDSet.toDatabase());

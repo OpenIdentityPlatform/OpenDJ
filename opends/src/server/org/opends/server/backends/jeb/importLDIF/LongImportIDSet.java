@@ -58,6 +58,11 @@ public class LongImportIDSet implements ImportIDSet {
   //Boolean to keep track if the instance is defined or not.
   boolean isDefined=true;
 
+
+  //Size of the undefines.
+  private long undefinedSize = 0;
+
+
   static {
     if(RuntimeInformation.is64Bit()) {
       LONGS_OVERHEAD = LONGS_OVERHEAD_64;
@@ -99,6 +104,12 @@ public class LongImportIDSet implements ImportIDSet {
     isDefined = false;
   }
 
+   /**
+   * {@inheritDoc}
+   */
+  public long getUndefinedSize() {
+    return undefinedSize;
+  }
 
   /**
    * {@inheritDoc}
@@ -115,7 +126,8 @@ public class LongImportIDSet implements ImportIDSet {
   /**
    * {@inheritDoc}
    */
-  public boolean merge(byte[] DBbytes, ImportIDSet importIdSet, int limit) {
+  public boolean merge(byte[] DBbytes, ImportIDSet importIdSet,
+                       int limit, boolean maintainCount) {
     boolean incrLimitCount=false;
     boolean dbUndefined = ((DBbytes[0] & 0x80) == 0x80);
 
@@ -142,13 +154,21 @@ public class LongImportIDSet implements ImportIDSet {
   /**
    * {@inheritDoc}
    */
-  public void addEntryID(EntryID entryID, int limit) {
+  public void addEntryID(EntryID entryID, int limit, boolean maintainCount) {
     if(!isDefined()) {
-       return;
+      if(maintainCount)  {
+        undefinedSize++;
+      }
+      return;
     }
     if(isDefined() && ((count + 1) > limit)) {
       isDefined = false;
       array = null;
+      if(maintainCount)  {
+        undefinedSize = count + 1;
+      } else {
+        undefinedSize = Long.MAX_VALUE;
+      }
       count = 0;
     } else {
        add(entryID.longValue());
@@ -160,8 +180,11 @@ public class LongImportIDSet implements ImportIDSet {
    * {@inheritDoc}
    */
   public byte[] toDatabase() {
-    if (isDefined()) return encode(null);
-    else return JebFormat.entryIDUndefinedSizeToDatabase(Long.MAX_VALUE);
+    if (isDefined()) {
+      return encode(null);
+    } else {
+      return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
+    }
   }
 
   /**

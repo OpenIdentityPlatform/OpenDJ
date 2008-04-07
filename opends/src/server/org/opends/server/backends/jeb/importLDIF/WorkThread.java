@@ -272,8 +272,7 @@ public class WorkThread extends DirectoryThread {
     }
     Index id2children = context.getEntryContainer().getID2Children();
     Index id2subtree = context.getEntryContainer().getID2Subtree();
-    insert(id2children, entry, entryID, txn);
-    insert(id2subtree, entry, entryID, txn);
+    bufferMgr.insert(id2children, id2subtree, entry, entryID, txn);
   }
 
   /**

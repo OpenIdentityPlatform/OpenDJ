@@ -39,8 +39,10 @@ public interface ImportIDSet {
    *
    * @param entryID The entry ID to add.
    * @param entryLimit The entry limit.
+   * @param maintainCount Maintain count of IDs if in undefined mode.
    */
-  public void addEntryID(EntryID entryID, int entryLimit);
+  public void
+  addEntryID(EntryID entryID, int entryLimit, boolean maintainCount);
 
   /**
    * Return if a  set is defined or not.
@@ -76,13 +78,22 @@ public interface ImportIDSet {
    * @param dbBytes The byte array read from DB.
    * @param bufImportIDSet The import ID set to merge.
    * @param entryLimit The entry limit.
+   * @param maintainCount Maintain count of iDs if in undefined mode.
    * @return <CODE>True</CODE> if the merged set is undefined.
    */
   public boolean merge(byte[] dbBytes, ImportIDSet bufImportIDSet,
-                       int entryLimit);
+                       int entryLimit, boolean maintainCount);
 
   /**
    * Set the import ID set to the undefined state.
    */
   public void setUndefined();
+
+
+  /**
+   * Return the undefined size.
+   *
+   * @return The undefined count.
+   */
+  public long getUndefinedSize();
 }
