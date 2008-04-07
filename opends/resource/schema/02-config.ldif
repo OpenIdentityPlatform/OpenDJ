@@ -2252,6 +2252,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.463
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.464
+  NAME 'ds-task-export-include-operational-attributes'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2953,6 +2958,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.68
         ds-task-export-wrap-column $
         ds-task-export-compress-ldif $
         ds-task-export-encrypt-ldif $
+        ds-task-export-include-operational-attributes $
         ds-task-export-sign-hash )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.69

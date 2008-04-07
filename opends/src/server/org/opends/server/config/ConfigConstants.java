@@ -4123,6 +4123,12 @@ public final class ConfigConstants
   public static final String ATTR_TASK_EXPORT_WRAP_COLUMN =
        NAME_PREFIX_TASK + "export-wrap-column";
 
+  /**
+   * The name of the attribute in an export task definition that specifies
+   * that operational attributes have to be included.
+   */
+  public static final String ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES =
+       NAME_PREFIX_TASK + "export-include-operational-attributes";
 
 
   /**

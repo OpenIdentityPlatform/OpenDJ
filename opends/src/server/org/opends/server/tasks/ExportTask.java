@@ -131,6 +131,7 @@ public class ExportTask extends Task
   private boolean compressLDIF;
   private boolean encryptLDIF;
   private boolean signHash;
+  private boolean includeOperationalAttributes;
   private ArrayList<String> includeAttributeStrings;
   private ArrayList<String> excludeAttributeStrings;
   private ArrayList<String> includeFilterStrings;
@@ -189,6 +190,7 @@ public class ExportTask extends Task
     AttributeType typeIncludeBranch;
     AttributeType typeExcludeBranch;
     AttributeType typeWrapColumn;
+    AttributeType typeIncludeOperationalAttributes;
 
 
     typeLdifFile =
@@ -217,6 +219,8 @@ public class ExportTask extends Task
          getAttributeType(ATTR_TASK_EXPORT_EXCLUDE_BRANCH, true);
     typeWrapColumn =
          getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN, true);
+    typeIncludeOperationalAttributes =
+      getAttributeType(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES, true);
 
 
     List<Attribute> attrList;
@@ -259,6 +263,9 @@ public class ExportTask extends Task
 
     attrList = taskEntry.getAttribute(typeWrapColumn);
     wrapColumn = TaskUtils.getSingleValueInteger(attrList, 0);
+
+    attrList = taskEntry.getAttribute(typeIncludeOperationalAttributes);
+    includeOperationalAttributes = TaskUtils.getBoolean(attrList, true);
 
   }
 
@@ -522,6 +529,7 @@ public class ExportTask extends Task
     exportConfig.setIncludeFilters(includeFilters);
     exportConfig.setSignHash(signHash);
     exportConfig.setWrapColumn(wrapColumn);
+    exportConfig.setIncludeOperationalAttributes(includeOperationalAttributes);
 
     // FIXME -- Should this be conditional?
     exportConfig.setInvokeExportPlugins(true);

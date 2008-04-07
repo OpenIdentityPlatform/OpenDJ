@@ -69,6 +69,9 @@ public final class LDIFExportConfig extends OperationConfig
   // Indicates whether the data should be encrypted as it is written.
   private boolean encryptData;
 
+  // Indicates whether we should exclude operational attributes.
+  private boolean excludeOperationalAttributes;
+
   // Indicates whether to generate a cryptographic hash of the data as
   // it is // written.
   private boolean hashData;
@@ -155,6 +158,7 @@ public final class LDIFExportConfig extends OperationConfig
     includeFilters               = new ArrayList<SearchFilter>();
     compressData                 = false;
     encryptData                  = false;
+    excludeOperationalAttributes = false;
     hashData                     = false;
     includeObjectClasses         = true;
     includeOperationalAttributes = true;
