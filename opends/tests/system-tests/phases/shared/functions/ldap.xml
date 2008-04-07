@@ -863,7 +863,8 @@
       </call>
       
       
-      <process name="'LDAP Search'">
+      <process name="'LDAP Search %s on %s:%s' % 
+                     (dsBaseDN,dsInstanceHost,dsInstancePort)">
         <location>'%s' % location</location>
         <command>'%s' % STAFCmd</command>
         <parms>'%s' % STAFCmdParams</parms>
