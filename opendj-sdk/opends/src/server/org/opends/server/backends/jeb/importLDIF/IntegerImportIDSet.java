@@ -36,7 +36,7 @@ import com.sleepycat.je.dbi.MemoryBudget;
 public class IntegerImportIDSet implements ImportIDSet {
 
   //Gleamed from JHAT. The same for 32/64 bit.
-  private final static int THIS_OVERHEAD = 17;
+  private final static int THIS_OVERHEAD = 25;
 
   /**
    * The internal array where elements are stored.
@@ -52,6 +52,10 @@ public class IntegerImportIDSet implements ImportIDSet {
 
   //Boolean to keep track if the instance is defined or not.
   private boolean isDefined=true;
+
+
+  //Size of the undefines.
+  private long undefinedSize = 0;
 
   /**
    * Create an empty import set.
@@ -78,6 +82,12 @@ public class IntegerImportIDSet implements ImportIDSet {
     return isDefined;
   }
 
+   /**
+   * {@inheritDoc}
+   */
+  public long getUndefinedSize() {
+    return undefinedSize;
+  }
 
   /**
    * {@inheritDoc}
@@ -103,25 +113,97 @@ public class IntegerImportIDSet implements ImportIDSet {
   /**
    * {@inheritDoc}
    */
-  public boolean merge(byte[] dBbytes, ImportIDSet importIdSet, int limit) {
+  public void addEntryID(EntryID entryID, int limit, boolean maintainCount) {
+    if(!isDefined()) {
+      if(maintainCount)  {
+        undefinedSize++;
+      }
+      return;
+    }
+    if(isDefined() && ((count + 1) > limit)) {
+      isDefined = false;
+      array = null;
+      if(maintainCount)  {
+        undefinedSize = count + 1;
+      } else {
+        undefinedSize = Long.MAX_VALUE;
+      }
+      count = 0;
+    } else {
+      add((int)entryID.longValue());
+    }
+  }
+
+  /**
+   * More complicated version of merge below that keeps track of the undefined
+   * sizes when in undefined mode or moving to undefined mode.
+   *
+   * @param dBbytes The bytes read from jeb.
+   * @param importIdSet
+   * @param limit
+   * @return
+   */
+  private boolean
+  mergeCount(byte[] dBbytes, ImportIDSet importIdSet, int limit)  {
     boolean incrLimitCount=false;
     boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
 
-    if(dbUndefined) {
-      isDefined=false;
+    if(dbUndefined && (!importIdSet.isDefined()))  {
+       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
+                                                 importIdSet.getUndefinedSize();
+       isDefined=false;
+    } else if(dbUndefined && (importIdSet.isDefined()))  {
+       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
+                                                 importIdSet.size();
+       importIdSet.setUndefined();
+       isDefined=false;
     } else if(!importIdSet.isDefined()) {
-      isDefined=false;
-      incrLimitCount=true;
+       int dbSize = JebFormat.entryIDListFromDatabase(dBbytes).length;
+       undefinedSize= dbSize + importIdSet.getUndefinedSize();
+       isDefined=false;
+       incrLimitCount = true;
     } else {
       array = JebFormat.intArrayFromDatabaseBytes(dBbytes);
       if(array.length + importIdSet.size() > limit) {
-        isDefined=false;
-        incrLimitCount=true;
-        count = 0;
-        importIdSet.setUndefined();
+          undefinedSize = array.length + importIdSet.size();
+          importIdSet.setUndefined();
+          isDefined=false;
+          incrLimitCount=true;
       } else {
         count = array.length;
         addAll((IntegerImportIDSet) importIdSet);
+      }
+    }
+    return incrLimitCount;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean merge(byte[] dBbytes, ImportIDSet importIdSet,
+                       int limit, boolean maintainCount) {
+    boolean incrLimitCount=false;
+    if(maintainCount) {
+      incrLimitCount = mergeCount(dBbytes,  importIdSet, limit);
+    } else {
+      boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
+      if(dbUndefined) {
+        isDefined=false;
+        importIdSet.setUndefined();
+      } else if(!importIdSet.isDefined()) {
+        isDefined=false;
+        incrLimitCount=true;
+      } else {
+        array = JebFormat.intArrayFromDatabaseBytes(dBbytes);
+        if(array.length + importIdSet.size() > limit) {
+          isDefined=false;
+          incrLimitCount=true;
+          count = 0;
+          importIdSet.setUndefined();
+        } else {
+          count = array.length;
+          addAll((IntegerImportIDSet) importIdSet);
+        }
       }
     }
     return incrLimitCount;
@@ -222,22 +304,6 @@ public class IntegerImportIDSet implements ImportIDSet {
 
 
   /**
-   * {@inheritDoc}
-   */
-  public void addEntryID(EntryID entryID, int limit) {
-    if(!isDefined()) {
-      return;
-    }
-    if(isDefined() && ((count + 1) > limit)) {
-      isDefined = false;
-      array = null;
-      count = 0;
-    } else {
-      add((int)entryID.longValue());
-    }
-  }
-
-  /**
    * Add the specified integer to the import set.
    *
    * @param v The integer value to add.
@@ -330,7 +396,7 @@ public class IntegerImportIDSet implements ImportIDSet {
     if(isDefined) {
        return encode(null);
      } else {
-       return JebFormat.entryIDUndefinedSizeToDatabase(Long.MAX_VALUE);
+       return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
      }
    }
 
