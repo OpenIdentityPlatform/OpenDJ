@@ -32,12 +32,33 @@
   <function name="user_pwd_policy">
 
       <sequence>
-
+        
+        <!--- Test Suite information
+         #@TestSuiteName       User Password Policy
+         #@TestSuitePurpose    User Password Policy
+         #@TestSuiteGroup      User Password Policy
+         #@TestScript          security_user_pwd_policy.xml
+        -->
+        
+        
+        <!--- Test Case information
+          #@TestMarker         User Password Policy
+          #@TestName           Check ds-cfg-allow-user-password-changes
+          #@TestIssue          none
+          #@TestPurpose        Checking existence of 
+                               ds-cfg-allow-user-password-changes behavior tests
+          #@TestPreamble       none
+          #@TestStep           Check ds-cfg-allow-user-password-changes
+          #@TestStep           Check the output of the command.
+          #@TestPostamble      none
+          #@TestResult         Success if compareEntry returns 0 and the 
+                               output is correct.
+        -->
         <testcase name="getTestCaseName('Preamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Policy: Checking existence of ds-cfg-allow-user-password-changes'
+             'Security: Pwd Policy: Check of ds-cfg-allow-user-password-changes'
             </message>
 
             <call function="'compareEntry'">
@@ -54,7 +75,19 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Search With Password -->
+
+        <!--- Test Case information
+          #@TestMarker          User Password Policy
+          #@TestName            Check User Search With Password
+          #@TestIssue           none
+          #@TestPurpose         Check User Search With Password
+          #@TestPreamble        none
+          #@TestStep            Check User Search With Password
+          #@TestStep            Check the output of the command.
+          #@TestPostamble       none
+          #@TestResult          Success if SearchObject returns 0
+        -->
+
         <testcase name="getTestCaseName('User Search')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -77,7 +110,16 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Search With Bad Password -->
+        <!--- Test Case information
+          #@TestMarker          User Password Policy
+          #@TestName            Check User Search With Bad Password
+          #@TestIssue           none
+          #@TestPurpose         Check User Search With Bad Password
+          #@TestPreamble        none
+          #@TestStep            Check User Search With Bad Password
+          #@TestPostamble       none
+          #@TestResult          Success if SearchObject returns 49
+        -->
         <testcase name="getTestCaseName('User Search With Bad Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -101,7 +143,16 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Change Password With Bad Credentials -->
+        <!--- Test Case information
+          #@TestMarker          User Password Policy
+          #@TestName            User With Bad Credentials Change Password
+          #@TestIssue           none
+          #@TestPurpose         Check User Search With Bad Credentials
+          #@TestPreamble        none
+          #@TestStep            Check User Search With Bad Credentials
+          #@TestPostamble       none
+          #@TestResult          Success if modifyAnAttribute returns 49
+        -->
         <testcase name="getTestCaseName('User With Bad Credentials Change Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -126,12 +177,23 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : User Change Password -->
+        <!--- Test Case information
+          #@TestMarker          User Password Policy
+          #@TestName            User Change Password
+          #@TestIssue           none
+          #@TestPurpose         User Change Password
+          #@TestPreamble        none
+          #@TestStep            Step 1 User Change Password
+          #@TestStep            Step 2 User Searching With Old Password
+          #@TestStep            Step 3 User Searching With New Password
+          #@TestPostamble       none
+          #@TestResult          Success if SearchObject returns 0 
+        -->
         <testcase name="getTestCaseName('User Change Password')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Policy: User Changing Password'
+               'Security: Pwd Policy: Step 1 User Changing Password'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -146,7 +208,7 @@
             </call>
             
             <message>
-               'Security: Pwd Policy: User Searching With Old Password'
+               'Security: Pwd Policy: Step 2 User Searching With Old Password'
             </message>
 
             <call function="'SearchObject'">
@@ -161,7 +223,7 @@
             </call>
 
             <message>
-               'Security: Pwd Policy: User Searching With New Password'
+               'Security: Pwd Policy: Step 3 User Searching With New Password'
             </message>
 
             <call function="'SearchObject'">
@@ -179,12 +241,24 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Change Password Policy -->
+        <!--- Test Case information
+          #@TestMarker          User Password Policy
+          #@TestName            Admin Change Password Policy
+          #@TestIssue           none
+          #@TestPurpose         Admin Change Password Policy
+          #@TestPreamble        none
+          #@TestStep            Step 1 Modify the Password Policy by setting
+                                allow-user-password-changes to false
+          #@TestStep            Step 2 User resetting password should fail (49)
+          #@TestPostamble       none
+          #@TestResult          Success if modifyAnAttribute returns 49
+        -->
+        
         <testcase name="getTestCaseName('Admin Change Password Policy')">
           <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
-               'Security: Pwd Policy: Admin Changing Password Policy'
+               'Security: Pwd Policy: Step 1 Admin Changing Password Policy'
             </message>
 
             <call function="'modifyPwdPolicy'">
@@ -198,7 +272,7 @@
             </call>
             
             <message>
-               'Security: Pwd Policy: User Resetting Password'
+               'Security: Pwd Policy: Step 2 User Resetting Password'
             </message>
 
             <call function="'modifyAnAttribute'">
@@ -218,7 +292,20 @@
           </sequence>
         </testcase>
 
-        <!--- Test Case : Admin Reset Password Policy -->
+        <!--- Test Case information
+          #@TestMarker          User Password Policy
+          #@TestName            Admin Reset Password Policy
+          #@TestIssue           none
+          #@TestPurpose         Admin Reset Password Policy
+          #@TestPreamble        none
+          #@TestStep            Step 1 - Admin Resetting Password Policy
+                                set allow-user-password-changes to true
+          #@TestStep            Step 2 - User Resetting Password
+          #@TestStep            Step 3 - User Searching With Old Password
+          #@TestStep            Step 4 - User Searching With New Password
+          #@TestPostamble       none
+          #@TestResult          Success if SearchObject returns 0.
+        -->
         <testcase name="getTestCaseName('Postamble')">
           <sequence>
             <call function="'testCase_Preamble'"/>
@@ -285,7 +372,7 @@
           </sequence>
         </testcase>
 
-     </sequence>
+      </sequence>
 
   </function>
 
