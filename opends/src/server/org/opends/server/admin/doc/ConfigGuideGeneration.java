@@ -453,62 +453,7 @@ public class ConfigGuideGeneration {
     }
 
     // Relations
-    if (!mo.getRelationDefinitions().isEmpty()) {
-      boolean emptyList = true;
-      @SuppressWarnings("unchecked")
-      Collection<RelationDefinition> rels = mo.getRelationDefinitions();
-      for ( RelationDefinition rel : rels) {
-        if (rel.hasOption(RelationOption.HIDDEN)) {
-          continue;
-        }
-        emptyList = false;
-      }
-      if (!emptyList) {
-        heading3("Relations From this Component");
-        paragraph(
-          "The following components have a direct composition relation FROM " +
-          mo.getUserFriendlyPluralName() + " :");
-        for ( RelationDefinition rel : rels) {
-          if (rel.hasOption(RelationOption.HIDDEN)) {
-            continue;
-          }
-          beginList();
-          AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
-          link(childRel.getUserFriendlyName().toString(), childRel.getName() +
-            ".html");
-          endList();
-        }
-      }
-    }
-
-    if (!mo.getReverseRelationDefinitions().isEmpty()) {
-      boolean emptyList = true;
-      @SuppressWarnings("unchecked")
-      Collection<RelationDefinition> rels = mo.getReverseRelationDefinitions();
-      for ( RelationDefinition rel : rels) {
-        if (rel.hasOption(RelationOption.HIDDEN)) {
-          continue;
-        }
-        // check if it is not root
-        if (rel.getParentDefinition().getName().equals("")) {
-          continue;
-        }
-        emptyList = false;
-      }
-      if (!emptyList) {
-        heading3("Relations To this Component");
-        paragraph(
-          "The following components have a direct composition relation TO " +
-          mo.getUserFriendlyPluralName() + " :");
-        for ( RelationDefinition rel : rels) {
-          beginList();
-          AbstractManagedObjectDefinition childRel = rel.getParentDefinition();
-          link(childRel.getUserFriendlyName().toString(), childRel.getName() +
-            ".html");
-          endList();
-        }
-      }
-    }
+    generateRelationsSection(mo);
 
     // Page links in case of LDAP mapping
     if (ldapMapping) {
@@ -595,6 +540,134 @@ public class ConfigGuideGeneration {
       "\" target=\"_top\">Configuration Reference Home</a></div>");
   }
 
+
+  private void generateRelationsSection(AbstractManagedObjectDefinition mo) {
+    // Composition relations
+    @SuppressWarnings("unchecked")
+    Collection<RelationDefinition> compRels = mo.getRelationDefinitions();
+    @SuppressWarnings("unchecked")
+    Collection<RelationDefinition> reverseCompRels =
+      mo.getReverseRelationDefinitions();
+    // Aggregation properties
+    @SuppressWarnings("unchecked")
+    Collection<AggregationPropertyDefinition> aggregProps =
+      mo.getAggregationPropertyDefinitions();
+    @SuppressWarnings("unchecked")
+    Collection<AggregationPropertyDefinition> reverseAggregProps =
+      mo.getReverseAggregationPropertyDefinitions();
+
+
+    // Check if something to print in composition relations
+    // (even if the list not empty, it may contain only hidden relations)
+    boolean isCompRelsEmpty = true;
+    if (!compRels.isEmpty()) {
+      for (RelationDefinition rel : compRels) {
+        if (rel.hasOption(RelationOption.HIDDEN)) {
+          continue;
+        }
+        isCompRelsEmpty = false;
+      }
+    }
+    boolean isReverseCompRelsEmpty = true;
+    if (!reverseCompRels.isEmpty()) {
+      for (RelationDefinition rel : reverseCompRels) {
+        if (rel.hasOption(RelationOption.HIDDEN)) {
+          continue;
+        }
+        // check if it is not root
+        if (rel.getParentDefinition().getName().equals("")) {
+          continue;
+        }
+        isReverseCompRelsEmpty = false;
+      }
+    }
+
+    //
+    // Relations FROM this component
+    //
+
+    if (!isCompRelsEmpty || !aggregProps.isEmpty()) {
+        heading3("Relations From this Component");
+    }
+
+    if (!isCompRelsEmpty) {
+      paragraph(
+        "The following components have a direct COMPOSITION relation FROM " +
+        mo.getUserFriendlyPluralName() + " :");
+      for ( RelationDefinition rel : compRels) {
+        if (rel.hasOption(RelationOption.HIDDEN)) {
+          continue;
+        }
+        beginList();
+        AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
+        link(childRel.getUserFriendlyName().toString(), childRel.getName() +
+          ".html");
+        endList();
+      }
+    }
+    if (!aggregProps.isEmpty()) {
+      paragraph(
+        "The following components have a direct AGGREGATION relation FROM " +
+        mo.getUserFriendlyPluralName() + " :");
+      TreeMap<String, AbstractManagedObjectDefinition> componentList =
+        new TreeMap<String, AbstractManagedObjectDefinition>();
+      for ( AggregationPropertyDefinition agg : aggregProps) {
+        RelationDefinition rel = agg.getRelationDefinition();
+        AbstractManagedObjectDefinition childRel = rel.getChildDefinition();
+        componentList.put(childRel.getName(), childRel);
+      }
+      for (AbstractManagedObjectDefinition component : componentList.values()) {
+        beginList();
+        link(component.getUserFriendlyName().toString(), component.getName() +
+          ".html");
+        endList();
+      }
+    }
+
+
+    //
+    // Relations TO this component
+    //
+
+    if (!isReverseCompRelsEmpty || !reverseAggregProps.isEmpty()) {
+        heading3("Relations To this Component");
+    }
+
+    if (!mo.getReverseRelationDefinitions().isEmpty()) {
+      if (!isReverseCompRelsEmpty) {
+        paragraph(
+          "The following components have a direct COMPOSITION relation TO " +
+          mo.getUserFriendlyPluralName() + " :");
+        for ( RelationDefinition rel : reverseCompRels) {
+          beginList();
+          AbstractManagedObjectDefinition childRel = rel.getParentDefinition();
+          link(childRel.getUserFriendlyName().toString(), childRel.getName() +
+            ".html");
+          endList();
+        }
+      }
+    }
+    if (!reverseAggregProps.isEmpty()) {
+      paragraph(
+        "The following components have a direct AGGREGATION relation TO " +
+        mo.getUserFriendlyPluralName() + " :");
+      TreeMap<String, AbstractManagedObjectDefinition> componentList =
+        new TreeMap<String, AbstractManagedObjectDefinition>();
+      for ( AggregationPropertyDefinition agg : reverseAggregProps) {
+        AbstractManagedObjectDefinition fromMo =
+          agg.getManagedObjectDefinition();
+        componentList.put(fromMo.getName(), fromMo);
+      }
+      for (AbstractManagedObjectDefinition component : componentList.values()) {
+        beginList();
+        link(component.getUserFriendlyName().toString(), component.getName() +
+          ".html");
+        endList();
+
+      }
+    }
+
+  }
 
   private void generateProperty(
     AbstractManagedObjectDefinition mo, PropertyDefinition prop) {

@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 
+import java.util.Vector;
 import org.opends.messages.Message;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 
@@ -94,6 +95,21 @@ public abstract class AbstractManagedObjectDefinition
   // object definition including inherited relation definitions.
   private final Map<String, RelationDefinition<?, ?>> allRelationDefinitions;
 
+  // The set of aggregation property definitions applicable to this
+  // managed object definition.
+  private final Map<String, AggregationPropertyDefinition<?, ?>>
+    aggregationPropertyDefinitions;
+
+  // The set of aggregation property definitions directly referencing this
+  // managed object definition.
+  private final Vector<AggregationPropertyDefinition<?, ?>>
+    reverseAggregationPropertyDefinitions;
+
+  // The set of all aggregation property definitions associated with this
+  // managed object definition including inherited relation definitions.
+  private final Map<String, AggregationPropertyDefinition<?, ?>>
+    allAggregationPropertyDefinitions;
+
   // The set of tags associated with this managed object.
   private final Set<Tag> allTags;
 
@@ -128,6 +144,12 @@ public abstract class AbstractManagedObjectDefinition
     this.allPropertyDefinitions = new HashMap<String, PropertyDefinition<?>>();
     this.allRelationDefinitions =
       new HashMap<String, RelationDefinition<?, ?>>();
+    this.aggregationPropertyDefinitions =
+      new HashMap<String, AggregationPropertyDefinition<?,?>>();
+    this.reverseAggregationPropertyDefinitions =
+      new Vector<AggregationPropertyDefinition<?,?>>();
+    this.allAggregationPropertyDefinitions =
+      new HashMap<String, AggregationPropertyDefinition<?, ?>>();
     this.allTags = new HashSet<Tag>();
     this.options = EnumSet.noneOf(ManagedObjectOption.class);
 
@@ -144,6 +166,12 @@ public abstract class AbstractManagedObjectDefinition
 
       for (RelationDefinition<?, ?> rd : parent.getAllRelationDefinitions()) {
         allRelationDefinitions.put(rd.getName(), rd);
+      }
+
+      for (AggregationPropertyDefinition<?, ?> apd :
+        parent.getAllAggregationPropertyDefinitions()) {
+
+        allAggregationPropertyDefinitions.put(apd.getName(), apd);
       }
 
       // Tag inheritance is performed during preprocessing.
@@ -257,6 +285,52 @@ public abstract class AbstractManagedObjectDefinition
     rdlist.addAll(reverseRelationDefinitions);
 
     return rdlist;
+  }
+
+
+
+  /**
+   * Get all the aggregation property definitions associated with this type of
+   * managed object. The returned collection will contain inherited
+   * aggregation property definitions.
+   *
+   * @return Returns an unmodifiable collection containing all the
+   *         aggregation property definitions associated with this type of
+   *         managed object.
+   */
+  public final Collection<AggregationPropertyDefinition<?, ?>>
+      getAllAggregationPropertyDefinitions() {
+    return Collections.unmodifiableCollection(
+      allAggregationPropertyDefinitions.values());
+  }
+
+
+
+  /**
+   * Get all the aggregation property definitions which refer to this managed
+   * object definition. The returned collection will contain aggregation
+   * property definitions which refer to parents of this managed object
+   * definition.
+   *
+   * @return Returns a collection containing all the aggregation property
+   *         definitions which refer to this managed object
+   *         definition. The caller is free to modify the collection
+   *         if required.
+   */
+  public final Collection<AggregationPropertyDefinition<?, ?>>
+  getAllReverseAggregationPropertyDefinitions() {
+    // This method does not used a cached set of aggregation properties because
+    // aggregation properties may be updated after child definitions have been
+    // defined.
+    List<AggregationPropertyDefinition<?, ?>> apdlist =
+      new LinkedList<AggregationPropertyDefinition<?, ?>>();
+
+    if (parent != null) {
+      apdlist.addAll(parent.getAllReverseAggregationPropertyDefinitions());
+    }
+    apdlist.addAll(reverseAggregationPropertyDefinitions);
+
+    return apdlist;
   }
 
 
@@ -522,6 +596,68 @@ public abstract class AbstractManagedObjectDefinition
   }
 
 
+
+  /**
+   * Get the specified aggregation property definition associated with this type
+   * of managed object.The search will include any inherited aggregation
+   * property definitions.
+   *
+   * @param name
+   *          The name of the aggregation property definition to be retrieved.
+   * @return Returns the specified aggregation property definition associated
+   *         with this type of managed object.
+   * @throws IllegalArgumentException
+   *           If the specified aggregation property name was null or empty or
+   *           if the requested aggregation property definition was not found.
+   */
+  public final AggregationPropertyDefinition<?, ?>
+    getAggregationPropertyDefinition(String name)
+    throws IllegalArgumentException {
+    if ((name == null) || (name.length() == 0)) {
+      throw new IllegalArgumentException(
+        "null or empty aggregation property name");
+    }
+
+    AggregationPropertyDefinition<?, ?> d =
+      allAggregationPropertyDefinitions.get(name);
+    if (d == null) {
+      throw new IllegalArgumentException("aggregation property definition \""
+        + name + "\" not found");
+    }
+
+    return d;
+  }
+
+  /**
+   * Get the aggregation property definitions defined by this managed object
+   * definition. The returned collection will not contain inherited
+   * aggregation property definitions.
+   *
+   * @return Returns an unmodifiable collection containing the
+   *         aggregation property definitions defined by this managed object
+   *         definition.
+   */
+  public final Collection<AggregationPropertyDefinition<?, ?>>
+    getAggregationPropertyDefinitions() {
+    return Collections.unmodifiableCollection(
+      aggregationPropertyDefinitions.values());
+  }
+
+  /**
+   * Get the aggregation property definitions which refer directly to this
+   * managed object definition. The returned collection will not contain
+   * aggregation property definitions which refer to parents of this managed
+   * object definition.
+   *
+   * @return Returns an unmodifiable collection containing the
+   *         aggregation property definitions which refer directly to this
+   *         managed object definition.
+   */
+  public final Collection<AggregationPropertyDefinition<?, ?>>
+    getReverseAggregationPropertyDefinitions() {
+    return Collections.unmodifiableCollection(
+      reverseAggregationPropertyDefinitions);
+  }
 
   /**
    * Gets the synopsis of this managed object definition in the
@@ -817,6 +953,15 @@ public abstract class AbstractManagedObjectDefinition
       rd.initialize();
     }
 
+    for (AggregationPropertyDefinition<?, ?> apd :
+      getAllAggregationPropertyDefinitions()) {
+
+      apd.initialize();
+      // Now register the aggregation property in the referenced managed object
+      // definition for reverse lookups.
+      registerReverseAggregationPropertyDefinition(apd);
+    }
+
     for (Constraint constraint : getAllConstraints()) {
       constraint.initialize();
     }
@@ -848,10 +993,19 @@ public abstract class AbstractManagedObjectDefinition
    *          The property definition to be registered.
    */
   protected final void registerPropertyDefinition(PropertyDefinition<?> d) {
-    String name = d.getName();
+    String propName = d.getName();
 
-    propertyDefinitions.put(name, d);
-    allPropertyDefinitions.put(name, d);
+    propertyDefinitions.put(propName, d);
+    allPropertyDefinitions.put(propName, d);
+
+    if (d instanceof AggregationPropertyDefinition) {
+      AggregationPropertyDefinition apd = (AggregationPropertyDefinition) d;
+      aggregationPropertyDefinitions.put(propName, apd);
+      // The key must also contain the managed object name, since several MOs
+      // in an inheritance tree may aggregate the same aggregation property name
+      allAggregationPropertyDefinitions.put(
+        apd.getManagedObjectDefinition().getName() + ":" + propName, apd);
+    }
   }
 
 
@@ -867,10 +1021,10 @@ public abstract class AbstractManagedObjectDefinition
    */
   protected final void registerRelationDefinition(RelationDefinition<?, ?> d) {
     // Register the relation in this managed object definition.
-    String name = d.getName();
+    String relName = d.getName();
 
-    relationDefinitions.put(name, d);
-    allRelationDefinitions.put(name, d);
+    relationDefinitions.put(relName, d);
+    allRelationDefinitions.put(relName, d);
 
     // Now register the relation in the referenced managed object
     // definition for reverse lookups.
@@ -937,9 +1091,9 @@ public abstract class AbstractManagedObjectDefinition
   final void deregisterRelationDefinition(
       RelationDefinition<?, ?> d) {
    // Deregister the relation from this managed object definition.
-    String name = d.getName();
-    relationDefinitions.remove(name);
-    allRelationDefinitions.remove(name);
+    String relName = d.getName();
+    relationDefinitions.remove(relName);
+    allRelationDefinitions.remove(relName);
 
     // Now deregister the relation from the referenced managed object
     // definition for reverse lookups.
@@ -967,6 +1121,17 @@ public abstract class AbstractManagedObjectDefinition
   private <CC extends ConfigurationClient, SS extends Configuration>
   void registerReverseRelationDefinition(RelationDefinition<CC, SS> rd) {
     rd.getChildDefinition().reverseRelationDefinitions.add(rd);
+  }
+
+
+
+  // Register a aggregation property definition in the referenced managed object
+  // definition's reverse lookup table.
+  private void registerReverseAggregationPropertyDefinition(
+    AggregationPropertyDefinition<?, ?> apd) {
+
+    apd.getRelationDefinition().getChildDefinition().
+      reverseAggregationPropertyDefinitions.add(apd);
   }
 
 
