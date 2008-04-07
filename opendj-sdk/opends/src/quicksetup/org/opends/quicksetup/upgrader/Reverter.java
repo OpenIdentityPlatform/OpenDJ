@@ -260,6 +260,7 @@ public class Reverter extends Application implements CliApplication {
             }
           };
           String[] childNames = historyDir.list(filter);
+          boolean found = false;
           if (childNames != null && childNames.length > 0) {
 
             // The directories beneath 'history' are named according
@@ -272,11 +273,16 @@ public class Reverter extends Application implements CliApplication {
               File b = new File(historyDir, childName);
               File d = new File(b, HISTORY_BACKUP_FILES_DIR_NAME);
               if (isReversionFilesDirectory(d)) {
+                found = true;
                 ud.setReversionArchiveDirectory(d);
                 break;
               }
             }
-
+            if (!found)
+            {
+              throw new UserDataException(null,
+                  INFO_REVERT_ERROR_INVALID_HISTORY_DIR.get());
+            }
           } else {
             throw new UserDataException(null,
                     INFO_REVERT_ERROR_EMPTY_HISTORY_DIR.get());
@@ -499,6 +505,12 @@ public class Reverter extends Application implements CliApplication {
         if (toBi != null) {
           toBuildString = toBi.toString();
         } else {
+          if (getReversionFilesDirectory() == null)
+          {
+            throw new ApplicationException(
+                ReturnCode.APPLICATION_ERROR,
+                INFO_REVERT_ERROR_INVALID_HISTORY_DIR.get(), null);
+          }
           toBuildString = INFO_UPGRADE_BUILD_ID_UNKNOWN.get().toString();
         }
         if (cancel.equals(ui.confirm(
@@ -896,8 +908,14 @@ public class Reverter extends Application implements CliApplication {
     FileManager fm = new FileManager();
     try {
       fm.deleteRecursively(getReversionFilesDirectory());
+      File parent = getReversionFilesDirectory().getParentFile();
+      if (Utils.directoryExistsAndIsEmpty(parent.getAbsolutePath()))
+      {
+        fm.deleteRecursively(parent);
+      }
     } catch (Exception e) {
       // ignore; this is best effort
+      LOG.log(Level.WARNING, "Error: "+e, e);
     }
   }
 
@@ -910,6 +928,7 @@ public class Reverter extends Application implements CliApplication {
       fm.deleteRecursively(getTempBackupDirectory());
     } catch (Exception e) {
       // ignore; this is best effort
+      LOG.log(Level.WARNING, "Error: "+e, e);
     }
   }
 

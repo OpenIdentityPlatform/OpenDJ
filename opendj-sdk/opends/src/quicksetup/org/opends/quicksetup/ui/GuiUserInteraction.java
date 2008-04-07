@@ -162,6 +162,14 @@ public class GuiUserInteraction implements UserInteraction {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  public boolean isCLI()
+  {
+    return false;
+  }
+
+  /**
    * JOptionPane that controls the number of characters that are allowed
    * to appear on a single line in the input area of the dialog.
    */

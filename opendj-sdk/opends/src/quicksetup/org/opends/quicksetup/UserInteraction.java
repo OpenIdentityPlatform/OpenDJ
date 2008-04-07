@@ -115,4 +115,11 @@ public interface UserInteraction {
    */
   String promptForString(Message prompt, Message title, String defaultValue);
 
+  /**
+   * Tells whether the interaction is command-line based.
+   * @return <CODE>true</CODE> if the user interaction is command-line based and
+   * <CODE>false</CODE> otherwise.
+   */
+  boolean isCLI();
+
 }

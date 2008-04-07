@@ -70,7 +70,6 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
    * {@inheritDoc}
    */
   public void notifyUser() throws ApplicationException {
-    String[] args = { currentBuildInfo.toString(), newBuildInfo.toString() };
     Message cont = INFO_ORACLE_ACTION_PROMPT_CONTINUE.get();
     Message cancel = INFO_ORACLE_ACTION_PROMPT_CANCEL.get();
     if (hasIssues()) {
@@ -94,6 +93,8 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                 null);
       } else {
         if (ui != null) {
+          String lineBreak = ui.isCLI() ?
+              Constants.LINE_SEPARATOR : Constants.HTML_LINE_BREAK;
           for (VersionIssueNotifier.Directive directive : issues) {
             Message title;
             Message summary;
@@ -105,8 +106,8 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                 title = INFO_GENERAL_ACTION_REQUIRED.get();
                 summary = INFO_UPGRADE_ORACLE_ACTION.get();
                 details = new MessageBuilder(directive.getMessage())
-                        .append(Constants.HTML_LINE_BREAK)
-                        .append(Constants.HTML_LINE_BREAK)
+                        .append(lineBreak)
+                        .append(lineBreak)
                         .append(INFO_ORACLE_ACTION_PROMPT.get())
                         .toMessage();
                 msgType = UserInteraction.MessageType.WARNING;
@@ -116,8 +117,8 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                 title = INFO_GENERAL_INFO.get();
                 summary = INFO_UPGRADE_ORACLE_INFO.get();
                 details = new MessageBuilder(directive.getMessage())
-                        .append(Constants.HTML_LINE_BREAK)
-                        .append(Constants.HTML_LINE_BREAK)
+                        .append(lineBreak)
+                        .append(lineBreak)
                         .append(INFO_ORACLE_INFO_PROMPT.get())
                         .toMessage();
                 msgType = UserInteraction.MessageType.INFORMATION;
@@ -127,8 +128,8 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
                 title = INFO_GENERAL_WARNING.get();
                 summary = INFO_UPGRADE_ORACLE_WARNING.get();
                 details = new MessageBuilder(directive.getMessage())
-                        .append(Constants.HTML_LINE_BREAK)
-                        .append(Constants.HTML_LINE_BREAK)
+                        .append(lineBreak)
+                        .append(lineBreak)
                         .append(INFO_ORACLE_INFO_PROMPT.get())
                         .toMessage();
                 msgType = UserInteraction.MessageType.WARNING;
@@ -178,8 +179,10 @@ public class UpgradeIssueNotifier extends VersionIssueNotifier {
     // If the import/export effect is present, append the detailed
     // instructions.
     if (effects.contains(Effect.UPGRADE_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
+      String lineBreak = ui.isCLI() ?
+          Constants.LINE_SEPARATOR : Constants.HTML_LINE_BREAK;
       msg = new MessageBuilder(msg)
-              .append(Constants.HTML_LINE_BREAK)
+              .append(lineBreak)
               .append(ui.createUnorderedList(getExportImportInstructions()))
               .toMessage();
     }
