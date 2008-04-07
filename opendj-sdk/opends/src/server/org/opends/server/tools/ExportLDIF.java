@@ -467,6 +467,15 @@ public class ExportLDIF extends TaskTool {
       attributes.add(
               new LDAPAttribute(ATTR_TASK_EXPORT_WRAP_COLUMN, values));
     }
+
+    if (excludeOperationalAttrs.isPresent())
+    {
+      values = new ArrayList<ASN1OctetString>(1);
+      values.add(new ASN1OctetString("false"));
+      attributes.add(
+          new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES,
+              values));
+    }
   }
 
   /**
