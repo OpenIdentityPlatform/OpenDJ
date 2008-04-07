@@ -55,9 +55,8 @@
     <!ELEMENT replicationServer (#PCDATA)>
   <!ELEMENT security EMPTY>
   <!ATTLIST security 
-      enabled ( true | false ) "true" 
-      certificate ( selfSigned | Pkcs11keyStore | Pkcs12keyStore 
-                    | JavakeyStore ) "selfSigned"
+      sslEnabled ( true | false ) "true" 
+      certificate ( generateSelfSigned ) "generateSelfSigned"
       startTlsEnabled ( true | false) "false">
 
 

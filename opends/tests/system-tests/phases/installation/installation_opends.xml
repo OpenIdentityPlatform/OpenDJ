@@ -267,7 +267,7 @@
       
       
       <!--== Setup product ==-->
-      <if expr="instance.isSecurityEnabled() == 'false'">
+      <if expr="instance.isSslEnabled() == 'false'">
         <call function="'SetUpDsWithScript'">
           { 
             'location'         : instance.getHost(), 
