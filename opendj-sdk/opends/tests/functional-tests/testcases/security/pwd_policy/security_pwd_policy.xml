@@ -42,6 +42,13 @@
               CurrentTestPath['group']='security'                                          
             CurrentTestPath['suite']=STAXCurrentBlock
           </script>
+          
+       <!---
+            Place group-specific test information here.
+            #@TestGroupName             Security
+            #@TestGroupPurpose          To test the security functionality.
+            #@TestSubgroupName          Password Policy
+        -->
       
           <call function="'testSuite_Preamble'"/>
 

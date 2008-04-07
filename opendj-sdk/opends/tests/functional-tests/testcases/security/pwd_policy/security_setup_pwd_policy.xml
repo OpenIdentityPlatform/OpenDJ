@@ -33,7 +33,27 @@
 
       <sequence>
 
-        <!--- Test Case : Add Entries for Password Policy Tests -->
+
+         <!--- Test Suite information
+            #@TestSuiteName       setup Password Policy
+            #@TestSuitePurpose    Setup for the Password Policy test suite.
+            #@TestSuiteGroup      setup Password Policy
+            #@TestScript          security_setup_pwd_policy.xml
+          -->
+          
+             
+           <!--- Test Case information
+            #@TestMarker          setup Password Policy
+            #@TestName            setup: Add Initials Entries
+            #@TestIssue           none
+            #@TestPurpose         Add the initial entries necessary to the
+                                  test suite.
+            #@TestPreamble        none
+            #@TestStep            Add pwd_policy_startup.ldif.
+            #@TestPostamble       none
+            #@TestResult          Success if addEntry returns 0.
+          -->
+        
         <testcase name="getTestCaseName('Add Initial Entries')">
           <sequence>
             <call function="'testCase_Preamble'"/>
