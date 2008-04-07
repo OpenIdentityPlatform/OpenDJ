@@ -307,6 +307,33 @@ public class Utils
   }
 
   /**
+   * Returns <CODE>true</CODE> if the the provided path is a directory, exists
+   * and is empty <CODE>false</CODE> otherwise.
+   * @param path the path that we are analyzing.
+   * @return <CODE>true</CODE> if the the provided path is a directory, exists
+   * and is empty <CODE>false</CODE> otherwise.
+   */
+  public static boolean directoryExistsAndIsEmpty(String path)
+  {
+    boolean directoryExistsAndIsEmpty = false;
+    boolean isDirectory = false;
+
+    File f = new File(path);
+    if (f != null)
+    {
+      isDirectory = f.isDirectory();
+    }
+    if (isDirectory)
+    {
+      String[] ch = f.list();
+
+      directoryExistsAndIsEmpty = (ch == null) || (ch.length == 0);
+    }
+
+    return directoryExistsAndIsEmpty;
+  }
+
+  /**
    * Returns <CODE>true</CODE> if the the provided string is a DN and
    * <CODE>false</CODE> otherwise.
    * @param dn the String we are analyzing.

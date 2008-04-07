@@ -98,13 +98,15 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
             Message details;
             Message defaultAction;
             UserInteraction.MessageType msgType;
+            String lineBreak = ui.isCLI() ?
+                Constants.LINE_SEPARATOR : Constants.HTML_LINE_BREAK;
             switch (directive.getType()) {
               case ACTION:
                 title = INFO_GENERAL_ACTION_REQUIRED.get();
                 summary = INFO_REVERSION_ORACLE_ACTION.get();
                 details = new MessageBuilder(directive.getMessage())
-                        .append(Constants.HTML_LINE_BREAK)
-                        .append(Constants.HTML_LINE_BREAK)
+                        .append(lineBreak)
+                        .append(lineBreak)
                         .append(INFO_ORACLE_ACTION_PROMPT.get())
                         .toMessage();
                 msgType = UserInteraction.MessageType.WARNING;
@@ -114,8 +116,8 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
                 title = INFO_GENERAL_INFO.get();
                 summary = INFO_REVERSION_ORACLE_INFO.get();
                 details = new MessageBuilder(directive.getMessage())
-                        .append(Constants.HTML_LINE_BREAK)
-                        .append(Constants.HTML_LINE_BREAK)
+                        .append(lineBreak)
+                        .append(lineBreak)
                         .append(INFO_ORACLE_INFO_PROMPT.get())
                         .toMessage();
                 msgType = UserInteraction.MessageType.INFORMATION;
@@ -125,8 +127,8 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
                 title = INFO_GENERAL_WARNING.get();
                 summary = INFO_REVERSION_ORACLE_WARNING.get();
                 details = new MessageBuilder(directive.getMessage())
-                        .append(Constants.HTML_LINE_BREAK)
-                        .append(Constants.HTML_LINE_BREAK)
+                        .append(lineBreak)
+                        .append(lineBreak)
                         .append(INFO_ORACLE_INFO_PROMPT.get())
                         .toMessage();
                 msgType = UserInteraction.MessageType.WARNING;
@@ -176,8 +178,10 @@ public class ReversionIssueNotifier extends VersionIssueNotifier {
     // If the import/export effect is present, append the detailed
     // instructions.
     if (effects.contains(Effect.REVERSION_DATA_EXPORT_AND_REIMPORT_REQUIRED)) {
+      String lineBreak = ui.isCLI() ?
+          Constants.LINE_SEPARATOR : Constants.HTML_LINE_BREAK;
       msg = new MessageBuilder(msg)
-              .append(Constants.HTML_LINE_BREAK)
+              .append(lineBreak)
               .append(ui.createUnorderedList(getExportImportInstructions()))
               .toMessage();
     }

@@ -300,7 +300,14 @@ public abstract class VersionIssueNotifier {
    */
   protected List<Message> getExportImportInstructions() {
     List<Message> instructions = new ArrayList<Message>();
-    instructions.add(INFO_ORACLE_EI_ACTION_STEP1.get());
+    if (ui.isCLI())
+    {
+      instructions.add(INFO_ORACLE_EI_ACTION_STEP1_CLI.get());
+    }
+    else
+    {
+      instructions.add(INFO_ORACLE_EI_ACTION_STEP1.get());
+    }
     instructions.add(INFO_ORACLE_EI_ACTION_STEP2.get());
     instructions.add(INFO_ORACLE_EI_ACTION_STEP3.get());
     instructions.add(INFO_ORACLE_EI_ACTION_STEP4.get());

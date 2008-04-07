@@ -166,7 +166,7 @@ public class CliUserInteraction extends ConsoleApplication
     StringBuilder sb = new StringBuilder();
     if (list != null) {
       for (Object o : list) {
-        sb.append(/*bullet=*/"\u2022 ");
+        sb.append(/*bullet=*/"* ");
         sb.append(o.toString());
         sb.append(Constants.LINE_SEPARATOR);
       }
@@ -240,6 +240,14 @@ public class CliUserInteraction extends ConsoleApplication
    * {@inheritDoc}
    */
   public boolean isVerbose() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isCLI()
+  {
     return true;
   }
 }
