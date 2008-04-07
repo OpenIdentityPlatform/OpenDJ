@@ -113,8 +113,7 @@
       </function-arg-def>
       <function-arg-def name="dsCertificate" type="optional">
         <function-arg-description>
-          certificate mode: selfsigned,Pkcs11keyStore,Pkcs12keyStore,
-                            JavakeyStore,
+          certificate mode: generateSelfSigned
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
@@ -175,14 +174,8 @@
           
         if dsCertificate:
           dsCertificate = dsCertificate.lower()
-          if dsCertificate == 'selfsigned':
+          if dsCertificate == 'generateSelfSigned':
             STAFCmdParamsList.append('--generateSelfSignedCertificate')
-          elif dsCertificate == 'pkcs11keystore':
-            STAFCmdParamsList.append('--usePkcs11Keystore')
-          elif dsCertificate == 'pkcs12keystore':
-            STAFCmdParamsList.append('--usePkcs12keyStore')
-          elif dsCertificate == 'javakeystore':
-            STAFCmdParamsList.append('--useJavaKeystore')
           
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>

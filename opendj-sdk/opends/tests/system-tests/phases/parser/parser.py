@@ -274,7 +274,7 @@ class OpendsInstance(Instance):
   "Describes an opends Instance"
   def __init__(self, iid, name, product, role, host, installDir, tarball, \
                portLDAP, portLDAPS, portJMX, portREPL, \
-               securityEnabled, certificate, startTlsEnabled):
+               sslEnabled, certificate, startTlsEnabled):
     # from instance object
     self.iid             = iid
     self.name            = name
@@ -289,7 +289,7 @@ class OpendsInstance(Instance):
     self.portJMX         = portJMX
     self.portREPL        = portREPL
     self.javaVersion     = NOT_DEFINED
-    self.securityEnabled = securityEnabled
+    self.sslEnabled      = sslEnabled
     self.certificate     = certificate
     self.startTlsEnabled = startTlsEnabled
     
@@ -308,8 +308,8 @@ class OpendsInstance(Instance):
   def setJavaVersion(self,javaVersion):
     self.javaVersion = javaVersion
     
-  def isSecurityEnabled(self):
-    return self.securityEnabled
+  def isSslEnabled(self):
+    return self.sslEnabled
     
   def getCertificate(self):
     return self.certificate
@@ -589,7 +589,7 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   cPortLDAPS       = '1636'
   cPortJMX         = '1390'
   cPortREPL        = '1391'
-  cSecurityEnabled = 'false'
+  cSslEnabled      = 'false'
   cCertificate     = NOT_DEFINED
   cStartTlsEnabled = 'false'
   
@@ -644,7 +644,7 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
       elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
           thisSubChild.getNodeName() == 'security'):
       
-        cSecurityEnabled = _getAttributeNode(thisSubChild,'enabled')
+        cSslEnabled      = _getAttributeNode(thisSubChild,'sslEnabled')
         cCertificate     = _getAttributeNode(thisSubChild,'certificate')
         cStartTlsEnabled = _getAttributeNode(thisSubChild,'startTlsEnabled')
         
@@ -670,7 +670,7 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\
                              opendsZip,\
                              cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL,\
-                             cSecurityEnabled,cCertificate,cStartTlsEnabled)]
+                             cSslEnabled,cCertificate,cStartTlsEnabled)]
 
 
 #============================================================================
