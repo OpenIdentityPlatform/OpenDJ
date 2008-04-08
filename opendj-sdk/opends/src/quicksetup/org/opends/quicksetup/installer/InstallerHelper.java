@@ -760,6 +760,14 @@ public class InstallerHelper {
           writer.write(serverScripts[i]+".java-args=-server");
         }
       }
+      else
+      {
+        for (int i=0; i<serverScripts.length; i++)
+        {
+          writer.newLine();
+          writer.write(serverScripts[i]+".java-args=");
+        }
+      }
 
 
       if (supportsClient || supportsClientInitialHeap)
@@ -781,6 +789,14 @@ public class InstallerHelper {
             arg += INITIAL_CLIENT_HEAP_ARG;
           }
           writer.write(clientScripts[i]+".java-args="+arg);
+        }
+      }
+      else
+      {
+        for (int i=0; i<clientScripts.length; i++)
+        {
+          writer.newLine();
+          writer.write(clientScripts[i]+".java-args=");
         }
       }
 
