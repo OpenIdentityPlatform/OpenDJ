@@ -176,6 +176,7 @@
           {
             'location'  : host ,
             'dsPath'    : instanceInstallDir,
+            'expectedRC': 'noCheck',
             'fileFd'    : fileFd
           }
           </call>
