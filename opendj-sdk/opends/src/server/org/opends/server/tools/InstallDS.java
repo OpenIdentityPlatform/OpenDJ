@@ -454,6 +454,7 @@ public class InstallDS extends ConsoleApplication
           userApproved = true;
           break;
         case CANCEL:
+          LOG.log(Level.INFO, "User cancelled setup.");
           return ErrorReturnCode.ERROR_USER_CANCELLED.getReturnCode();
         default:
           // Reset the arguments
