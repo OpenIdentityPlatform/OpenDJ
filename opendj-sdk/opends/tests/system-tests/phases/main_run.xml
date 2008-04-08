@@ -210,6 +210,10 @@
           'runScheduler'     : runScheduler
         }
       </call>
+      <if expr="ERR_NUM[0] != 0">
+        <return/>
+      </if>
+      
       
       <!-- ============ INSTALLATION ================================= -->
       <if expr="runInstallation == 'true'">
@@ -231,106 +235,97 @@
       
       
       <!-- ============ GENERATE LDIF & IMPORT LDIF  ================== -->
-      <if expr="runGenerateLdif == 'true'">
-        <if expr="ERR_NUM_INSTALL == '' or ERR_NUM_INSTALL == 0">
-          <sequence>
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/phases/generateLdif/generateLdif.xml' % (TESTS_DIR)"/>
-            <call function="'generateLdif'">
-              { 'suffix'       : suffix }
-            </call>
-            <script>
-              ERR_NUM_GEN_LDIF = ERR_NUM[0]
-              ERR_NUM_TOTAL    = ERR_NUM_TOTAL + ERR_NUM[0]
-            </script>
-          </sequence>
-        </if>
+      <if expr="runGenerateLdif == 'true' and ERR_NUM_TOTAL == 0">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/generateLdif/generateLdif.xml' % (TESTS_DIR)"/>
+          <call function="'generateLdif'">
+            { 'suffix'       : suffix }
+          </call>
+          <script>
+            ERR_NUM_GEN_LDIF = ERR_NUM[0]
+            ERR_NUM_TOTAL    = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
       </if>
       
       
       <!-- ============ PRE-CONFIGURATION ============================ -->
-      <if expr="runPreConfiguration == 'true'">
-        <if expr="ERR_NUM_GEN_LDIF == '' or ERR_NUM_GEN_LDIF == 0">
-          <sequence>
-            <call function="'isFile'">
-            {
-              'location' : STAXServiceMachine,
-              'fileName' : preConfigurationFile
-            }
-            </call>
-            <if expr="STAXResult == TRUE">
-              <sequence>
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                        file="'%s' % preConfigurationFile"/>
-                <call function="'preConfiguration'">
-                { 
-                  'instances' : instances,
-                  'suffix'    : suffix,
-                  'scheduler' : scheduler
-                }
-                </call>
-                <script>
-                  ERR_NUM_PRE_CONFIGURATION = ERR_NUM[0]
-                  ERR_NUM_TOTAL             = ERR_NUM_TOTAL + ERR_NUM[0]
-                </script>
-              </sequence>
-            </if>
-          </sequence>
-        </if>
+      <if expr="runPreConfiguration == 'true' and ERR_NUM_TOTAL == 0">
+        <sequence>
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : preConfigurationFile
+          }
+          </call>
+          <if expr="STAXResult == TRUE">
+            <sequence>
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                      file="'%s' % preConfigurationFile"/>
+              <call function="'preConfiguration'">
+              { 
+                'instances' : instances,
+                'suffix'    : suffix,
+                'scheduler' : scheduler
+              }
+              </call>
+              <script>
+                ERR_NUM_PRE_CONFIGURATION = ERR_NUM[0]
+                ERR_NUM_TOTAL             = ERR_NUM_TOTAL + ERR_NUM[0]
+              </script>
+            </sequence>
+          </if>
+        </sequence>
       </if>
       
       
       <!-- ============ CONFIGURATION  =============================== -->
-      <if expr="runConfiguration == 'true'">
-        <if expr="ERR_NUM_PRE_CONFIGURATION == '' or
-                  ERR_NUM_PRE_CONFIGURATION == 0">
-          <sequence>
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/phases/configuration/configuration.xml' % TESTS_DIR"/>
-            <call function="'configuration'">
-              {
-                'instances' : instances ,
-                'suffix'    : suffix
-              }
-            </call>
-            <script>
-              ERR_NUM_CONFIGURATION = ERR_NUM[0]
-              ERR_NUM_TOTAL         = ERR_NUM_TOTAL + ERR_NUM[0]
-            </script>
-          </sequence>
-        </if>
+      <if expr="runConfiguration == 'true' and ERR_NUM_TOTAL == 0">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/configuration/configuration.xml' % TESTS_DIR"/>
+          <call function="'configuration'">
+            {
+              'instances' : instances ,
+              'suffix'    : suffix
+            }
+          </call>
+          <script>
+            ERR_NUM_CONFIGURATION = ERR_NUM[0]
+            ERR_NUM_TOTAL         = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
       </if>
       
       
       <!-- ============ POST-CONFIGURATION =========================== -->
-      <if expr="runPostConfiguration == 'true'">
-        <if expr="ERR_NUM_CONFIGURATION == '' or ERR_NUM_CONFIGURATION == 0">
-          <sequence>
-            <call function="'isFile'">
-            {
-              'location' : STAXServiceMachine,
-              'fileName' : postConfigurationFile
-            }
-            </call>
-            <if expr="STAXResult == TRUE">
-              <sequence>
-                <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-                        file="'%s' % postConfigurationFile"/>
-                <call function="'postConfiguration'">
-                { 
-                  'instances' : instances,
-                  'suffix'    : suffix,
-                  'scheduler' : scheduler
-                }
-                </call>
-                <script>
-                  ERR_NUM_POST_CONFIGURATION = ERR_NUM[0]
-                  ERR_NUM_TOTAL              = ERR_NUM_TOTAL + ERR_NUM[0]
-                </script>
-              </sequence>
-            </if>
-          </sequence>
-        </if>
+      <if expr="runPostConfiguration == 'true' and ERR_NUM_TOTAL == 0">
+        <sequence>
+          <call function="'isFile'">
+          {
+            'location' : STAXServiceMachine,
+            'fileName' : postConfigurationFile
+          }
+          </call>
+          <if expr="STAXResult == TRUE">
+            <sequence>
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                      file="'%s' % postConfigurationFile"/>
+              <call function="'postConfiguration'">
+              { 
+                'instances' : instances,
+                'suffix'    : suffix,
+                'scheduler' : scheduler
+              }
+              </call>
+              <script>
+                ERR_NUM_POST_CONFIGURATION = ERR_NUM[0]
+                ERR_NUM_TOTAL              = ERR_NUM_TOTAL + ERR_NUM[0]
+              </script>
+            </sequence>
+          </if>
+        </sequence>
       </if>
       
       
@@ -339,26 +334,23 @@
       
       
       <!-- ============ scheduler ==================================== -->
-      <if expr="runScheduler == 'true'">
-        <if expr="ERR_NUM_POST_CONFIGURATION == '' or 
-                  ERR_NUM_POST_CONFIGURATION == 0">
-          <sequence>
-            <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-              file="'%s/phases/scheduler/scheduler.xml' % (TESTS_DIR)"/>
-            <call function="'scheduler'">
-              {
-                'instances' : instances,
-                'suffix'    : suffix,
-                'scheduler' : scheduler,
-                'scenario'  : scenario
-              }
-            </call>
-            <script>
-              ERR_NUM_SCHEDULER = ERR_NUM[0]
-              ERR_NUM_TOTAL     = ERR_NUM_TOTAL + ERR_NUM[0]
-            </script>
-          </sequence>
-        </if>
+      <if expr="runScheduler == 'true' and ERR_NUM_TOTAL == 0">
+        <sequence>
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+            file="'%s/phases/scheduler/scheduler.xml' % (TESTS_DIR)"/>
+          <call function="'scheduler'">
+            {
+              'instances' : instances,
+              'suffix'    : suffix,
+              'scheduler' : scheduler,
+              'scenario'  : scenario
+            }
+          </call>
+          <script>
+            ERR_NUM_SCHEDULER = ERR_NUM[0]
+            ERR_NUM_TOTAL     = ERR_NUM_TOTAL + ERR_NUM[0]
+          </script>
+        </sequence>
       </if>
       
       
