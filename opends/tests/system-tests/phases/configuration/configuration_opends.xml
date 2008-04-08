@@ -87,9 +87,10 @@
           
           <if expr="isAliveResult == FALSE">
             <call function="'StartDsWithScript'">
-              { 'location'  : instance.getHost(),
-                 'dsPath'   : instance.getInstallDir(),
-                 'fileFd'   : cFileFd
+              { 'location' : instance.getHost(),
+                'instance' : instance,
+                'dsPath'   : instance.getInstallDir(),
+                'fileFd'   : cFileFd
               }
             </call>
           </if>
