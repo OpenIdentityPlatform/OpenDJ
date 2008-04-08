@@ -293,6 +293,7 @@ public class LDAPAuthenticationHandler
       {
         System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(
                 bindDN.stringValue()));
+        System.out.flush();
         char[] pwChars = PasswordReader.readPassword();
         if (pwChars == null)
         {
