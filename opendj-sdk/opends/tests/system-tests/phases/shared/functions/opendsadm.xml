@@ -207,6 +207,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="hostname"/>
       </function-arg-def>
+      <function-arg-def name="instance" type="optional">
+        <function-arg-description>
+          instance object of the instance
+        </function-arg-description>
+        <function-arg-property name="type" value="option"/>
+      </function-arg-def>
      <function-arg-def name="dsPath" type="required">
         <function-arg-description>
           Pathname to installation root
@@ -279,12 +285,28 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
+      <!-- define environment variables -->
+      <script>
+        env = []
+        env.append('PATH=/bin:/usr/bin:%s' % dsBinPath)
+        env.append('JAVA_HOME=%s' % JAVA_HOME)
+        env.append('OPENDS_JAVA_HOME=%s' % JAVA_HOME)
+        
+        if instance:
+          sys.path.append("%s/phases/parser" % TESTS_DIR )
+          from parser import *
+          tuning = instance.getTuning()
+          if tuning.getJavaArgs() != NOT_DEFINED:
+            env.append('OPENDS_JAVA_ARGS=%s' % tuning.getJavaArgs())
+      </script>
       <call function="'runCommand'">
-        { 'name'      : 'StartDsWithScript',
+        { 'name'      : 'StartDs %s:%s' % \
+                        (instance.getName(),instance.getLDAPPort()),
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
           'path'      : dsBinPath,
+          'env'       : env,
           'fileFd'    : fileFd
         }
       </call>

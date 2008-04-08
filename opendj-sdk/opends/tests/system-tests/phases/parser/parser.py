@@ -186,6 +186,70 @@ class Suffix:
   def getLdifFile(self):
     return self.ldifFile
 
+
+#
+# Class for opendsTuning 
+#
+
+###########################
+class OpendsTuning:
+  "Describes tuning informations for OpenDS instance"
+  def __init__(self,isJava,xms,xmx,xxNewSize,xxMaxNewSize,\
+               xxSurvivorRatio,xxPermSize,xxMaxPermSize,xxUseConcMarkSweepGC,\
+               isDataBase,databaseCachePercentage):
+    self.isJava                  = isJava
+    self.javaArgs                = NOT_DEFINED
+    self.xms                     = xms
+    self.xmx                     = xmx
+    self.xxNewSize               = xxNewSize
+    self.xxMaxNewSize            = xxMaxNewSize
+    self.xxSurvivorRatio         = xxSurvivorRatio
+    self.xxPermSize              = xxPermSize
+    self.xxMaxPermSize           = xxMaxPermSize
+    self.xxUseConcMarkSweepGC    = xxUseConcMarkSweepGC
+    self.isDataBase              = isDataBase
+    self.databaseCachePercentage = databaseCachePercentage
+    
+  def getIsJava(self):
+    return self.isJava
+    
+  def getJavaArgs(self):
+    return self.javaArgs
+    
+  def setJavaArgs(self,javaArgs):
+    self.javaArgs = javaArgs
+    
+  def getXms(self):
+    return self.xms
+    
+  def getXmx(self):
+    return self.xmx
+    
+  def getXxNewSize(self):
+    return self.xxNewSize
+    
+  def getXxMaxNewSize(self):
+    return self.xxMaxNewSize
+    
+  def getXxSurvivorRatio(self):
+    return self.xxSurvivorRatio
+    
+  def getXxPermSize(self):
+    return self.xxPermSize
+    
+  def getXxMaxPermSize(self):
+    return self.xxMaxPermSize
+    
+  def getXxUseConcMarkSweepGC(self):
+    return self.xxUseConcMarkSweepGC
+    
+  def getIsDataBase(self):
+    return self.isDataBase
+    
+  def getDatabaseCachePercentage(self):
+    return self.databaseCachePercentage
+    
+
 #
 # Class for instance 
 #
@@ -274,7 +338,8 @@ class OpendsInstance(Instance):
   "Describes an opends Instance"
   def __init__(self, iid, name, product, role, host, installDir, tarball, \
                portLDAP, portLDAPS, portJMX, portREPL, \
-               sslEnabled, certificate, startTlsEnabled):
+               sslEnabled, certificate, startTlsEnabled, \
+               tuning):
     # from instance object
     self.iid             = iid
     self.name            = name
@@ -292,6 +357,7 @@ class OpendsInstance(Instance):
     self.sslEnabled      = sslEnabled
     self.certificate     = certificate
     self.startTlsEnabled = startTlsEnabled
+    self.tuning          = tuning
     
   def getLDAPSPort(self):
     return self.portLDAPS
@@ -308,15 +374,17 @@ class OpendsInstance(Instance):
   def setJavaVersion(self,javaVersion):
     self.javaVersion = javaVersion
     
-  def isSslEnabled(self):
+  def getIsSslEnabled(self):
     return self.sslEnabled
     
   def getCertificate(self):
     return self.certificate
     
-  def isStartTlsEnabled(self):
+  def getIsStartTlsEnabled(self):
     return self.startTlsEnabled
-
+    
+  def getTuning(self):
+    return self.tuning
 
 #
 # Class for client
@@ -592,6 +660,17 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   cSslEnabled      = 'false'
   cCertificate     = NOT_DEFINED
   cStartTlsEnabled = 'false'
+  cIsJava          = 'false'
+  cXms             = NOT_DEFINED
+  cXmx             = NOT_DEFINED
+  cXxNewSize       = NOT_DEFINED
+  cXxMaxNewSize    = NOT_DEFINED
+  cXxSurvivorRatio = NOT_DEFINED
+  cXxPermSize      = NOT_DEFINED
+  cXxMaxPermSize   = NOT_DEFINED
+  cXxUseConcMarkSweepGC = NOT_DEFINED
+  cIsDataBase      = 'false'
+  cDatabaseCachePercentage = NOT_DEFINED
   
   #
   # Parsing second level : host,ports,...
@@ -649,6 +728,35 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
         cStartTlsEnabled = _getAttributeNode(thisSubChild,'startTlsEnabled')
         
       
+      elif (thisSubChild.getNodeType() == Node.ELEMENT_NODE and
+          thisSubChild.getNodeName() == 'tuning'):
+          
+        # Get tuning values
+        if thisSubChild.hasChildNodes():
+          tuningList = thisSubChild.getChildNodes()
+          for k in range(tuningList.getLength()):
+            thisTuning = tuningList.item(k)
+            if (thisTuning.getNodeType() == Node.ELEMENT_NODE and
+                thisTuning.getNodeName() == 'java'):
+              cIsJava = 'true'
+              cXms = _getAttributeNode(thisTuning,'xms')
+              cXmx = _getAttributeNode(thisTuning,'xmx')
+              cXxNewSize = _getAttributeNode(thisTuning,'xxNewSize')
+              cXxMaxNewSize = _getAttributeNode(thisTuning,'xxMaxNewSize')
+              cXxSurvivorRatio = _getAttributeNode(thisTuning,
+                                                   'xxSurvivorRatio')
+              cXxPermSize = _getAttributeNode(thisTuning,'xxPermSize')
+              cXxMaxPermSize = _getAttributeNode(thisTuning,'xxMaxPermSize')
+              cXxUseConcMarkSweepGC = _getAttributeNode(thisTuning,
+                                                        'xxUseConcMarkSweepGC')
+              
+            elif (thisTuning.getNodeType() == Node.ELEMENT_NODE and
+                thisTuning.getNodeName() == 'databaseCache'):
+              cIsDataBase = 'true'
+              cDatabaseCachePercentage = _getAttributeNode(thisTuning,
+                                                     'percentage')
+              
+              
       # must be at the end of the if case
       elif (thisSubChild.getNodeType() == Node.TEXT_NODE or
             thisSubChild.getNodeType() == Node.COMMENT_NODE):
@@ -666,11 +774,20 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
     msg = '%s\n ERROR: instance %s : no children for instance node' % \
           (msg,cName)
   
+  
+  cOpendsTuning = OpendsTuning(cIsJava,cXms,cXmx,cXxNewSize,cXxMaxNewSize,\
+                              cXxSurvivorRatio,cXxPermSize,cXxMaxPermSize,\
+                              cXxUseConcMarkSweepGC,\
+                              cIsDataBase,cDatabaseCachePercentage)
+  
   cInstallDir = '%s/%s/%s' % (cInstallDir,cName,opendsName)
   return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\
                              opendsZip,\
                              cPortLDAP,cPortLDAPS,cPortJMX,cPortREPL,\
-                             cSslEnabled,cCertificate,cStartTlsEnabled)]
+                             cSslEnabled,cCertificate,cStartTlsEnabled,\
+                             cOpendsTuning)]
+
+
 
 
 #============================================================================

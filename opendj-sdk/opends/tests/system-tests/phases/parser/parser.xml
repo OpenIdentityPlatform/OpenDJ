@@ -102,6 +102,38 @@
           <script>
             instance.setLogDir('%s/%s' % (LOG_DIR,instance.getName()))
           </script>
+          <!-- Set javaArgs tuning property -->
+          <script>
+            
+            tuning = instance.getTuning()
+            if tuning.getIsJava() == 'true':
+              if tuning.getXms() != NOT_DEFINED:
+                c1 = '-Xms%s' % tuning.getXms()
+                
+              if tuning.getXmx() != NOT_DEFINED:
+                c2 = '-Xmx%s' % tuning.getXmx()
+                
+              if tuning.getXxNewSize() != NOT_DEFINED:
+                c3 = '-XX&#58;NewSize=%s' % tuning.getXxNewSize()
+                
+              if tuning.getXxMaxNewSize() != NOT_DEFINED:
+                c4 = '-XX&#58;MaxNewSize=%s' % tuning.getXxMaxNewSize()
+                
+              if tuning.getXxSurvivorRatio() != NOT_DEFINED:
+                c5 = '-XX&#58;SurvivorRatio=%s' % tuning.getXxSurvivorRatio()
+                
+              if tuning.getXxPermSize() != NOT_DEFINED:
+                c6 = '-XX&#58;PermSize=%s' % tuning.getXxPermSize()
+                
+              if tuning.getXxMaxPermSize() != NOT_DEFINED:
+                c7 = '-XX&#58;MaxPermSize=%s' % tuning.getXxMaxPermSize()
+                
+              if tuning.getXxUseConcMarkSweepGC() == 'true':
+                c8 = '-XX&#58;+UseConcMarkSweepGC'
+              
+              tuning.setJavaArgs('%s %s %s %s %s %s %s %s' % \
+                                (c1,c2,c3,c4,c5,c6,c7,c8))
+          </script>
         </sequence>
       </paralleliterate>
       

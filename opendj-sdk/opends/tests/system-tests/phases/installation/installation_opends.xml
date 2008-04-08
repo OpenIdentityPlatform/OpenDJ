@@ -267,7 +267,7 @@
       
       
       <!--== Setup product ==-->
-      <if expr="instance.isSslEnabled() == 'false'">
+      <if expr="instance.getIsSslEnabled() == 'false'">
         <call function="'SetUpDsWithScript'">
           { 
             'location'         : instance.getHost(), 
@@ -293,7 +293,7 @@
             'dsBindPwd'        : DIRECTORY_INSTANCE_PSWD,
             'dsBaseDN'         : suffixDn,
             'dsDoNotStart'     : 'true',
-            'dsEnableStartTLS' : instance.isStartTlsEnabled(),
+            'dsEnableStartTLS' : instance.getIsStartTlsEnabled(),
             'dsCertificate'    : instance.getCertificate(),
             'fileFd'           : fileFd
           }

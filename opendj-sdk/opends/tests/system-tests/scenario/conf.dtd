@@ -40,7 +40,7 @@
   <!ELEMENT domain (#PCDATA)>
 
 <!-- ========== INSTANCE NODE ========================= -->
-<!ELEMENT instance (host,installDir,ports?,security?)>
+<!ELEMENT instance (host,installDir,ports?,security?,tuning?)>
 <!ATTLIST instance 
     name NMTOKEN #REQUIRED 
     product NMTOKEN #REQUIRED
@@ -54,10 +54,23 @@
     <!ELEMENT jmx (#PCDATA)>
     <!ELEMENT replicationServer (#PCDATA)>
   <!ELEMENT security EMPTY>
-  <!ATTLIST security 
-      sslEnabled ( true | false ) "true" 
-      certificate ( generateSelfSigned ) "generateSelfSigned"
-      startTlsEnabled ( true | false) "false">
+  <!ATTLIST security
+        sslEnabled ( true | false ) "false"
+        certificate ( generateSelfSigned ) "generateSelfSigned"
+        startTlsEnabled ( true | false ) "false">
+  <!ELEMENT tuning (java?,databaseCache?)>
+    <!ELEMENT java EMPTY>
+    <!ATTLIST java
+        xms NMTOKEN #IMPLIED
+        xmx NMTOKEN #IMPLIED
+        xxNewSize NMTOKEN #IMPLIED
+        xxMaxNewSize NMTOKEN #IMPLIED
+        xxSurvivorRatio NMTOKEN #IMPLIED
+        xxPermSize NMTOKEN #IMPLIED
+        xxMaxPermSize NMTOKEN #IMPLIED
+        xxUseConcMarkSweepGC NMTOKEN #IMPLIED>
+    <!ELEMENT databaseCache EMPTY>
+    <!ATTLIST databaseCache percentage NMTOKEN #REQUIRED>
 
 
 <!-- ========== SUFFIX NODE ========================= -->
