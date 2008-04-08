@@ -1251,6 +1251,123 @@
     </sequence>
     
   </function>    
+
   
+ <function name="modifyEntry">
+    <function-prolog>
+      This function modifies an entry in the Directory Server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+      <function-arg-def name="entryToBeModified" type="required">
+        <function-arg-description>
+          Entry to be modified in the Directory Server in ldif format
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>      
+        </function-arg-def>
+        <function-arg-def name="fileFd" type="required">
+          <function-arg-description>
+            Name of output file descriptor
+          </function-arg-description>
+        </function-arg-def>        
+      </function-map-args>
+    <sequence>
+    
+
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/bin' % (dsPath) 
+          STAFCmd='%s/ldapmodify' % (dsBinPath)
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)      
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)           
+      
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+        
+        if entryToBeModified:
+          STAFCmdParamsList.append('-f "%s"' % entryToBeModified)
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      
+      
+      <call function="'runCommand'">
+        { 'location'  : location,
+          'command'   : STAFCmd,
+          'arguments' : STAFCmdParams,
+          'path'      : dsBinPath,
+          'name'      : 'Modify Entry from ldif file',
+          'expectedRC': expectedRC,
+          'fileFd'    : fileFd
+        }
+      </call>
+    
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>  
   
 </stax>
