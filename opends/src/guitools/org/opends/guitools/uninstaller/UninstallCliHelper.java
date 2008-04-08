@@ -248,6 +248,7 @@ class UninstallCliHelper extends ConsoleApplication {
 
     if (isCancelled && !userData.isForceOnError())
     {
+      LOG.log(Level.INFO, "User cancelled uninstall.");
       userData = null;
     }
 
