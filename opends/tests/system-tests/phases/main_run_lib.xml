@@ -159,7 +159,7 @@
           <if expr="id != 0">
             <call function="'sleep'">
               {
-                'sleepForMilliSeconds'  : '1000',
+                'sleepForMilliSeconds'  : '2000',
                 'silentMode' : 'TRUE',
                 'fileFd' : NO_FILE
               }
@@ -257,7 +257,7 @@
               <if expr="id != 0">
                 <call function="'sleep'">
                   {
-                    'sleepForMilliSeconds'  : '1000',
+                    'sleepForMilliSeconds'  : '2000',
                     'silentMode' : 'TRUE',
                     'fileFd' : NO_FILE
                   }
