@@ -896,14 +896,361 @@
   </function>
 
   
+  <!-- ************************************************************ -->
+ 
+  <!-- Add a New entry-->
+  <function name="addAnEntry">
+    <function-prolog>
+      This function modifies an entry in the Directory Server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="required">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="required">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname" />
+      </function-arg-def>
+      <function-arg-def name="dsInstancePort" type="required">
+         <function-arg-description>
+          Directory server port number
+        </function-arg-description>      
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="DNToAdd" type="required">
+        <function-arg-description>
+          DN to add
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      <function-arg-def name="listAttributes" type="required">
+        <function-arg-description>
+          Attributes to add
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+     <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>      
+    </function-map-args>
+    <sequence>
+      
+      <!-- Local variables -->
+      <script>
+        # build the command
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        STAFCmd=''
+      </script>
+
+      <script>
+        if dsPath:
+          dsBinPath='%s/bin' % dsPath
+          
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)      
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)           
+      </script>
+          
+      <iterate var="anAttributeToAdd" in="listAttributes">
+      <script>
+        STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
+      </script>
+      </iterate>
+      <script>
+        if DNToAdd:
+          STAFCmdParamsList.append('-d "%s"' % DNToAdd)
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        STAFCmd='addAnEntry' 
+      </script>
+            
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'addAnEntry',
+        'fileFd'  : fileFd }
+      </call>
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      <process name="'addAnEntry'">
+        <location>'%s' % location</location>
+        <command>'%s/bin/java' % JAVA_HOME</command>
+        <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/phases/shared/java' % LOCAL_TESTS_DIR]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>      
+      
+     <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checkRC'">
+          { 'returncode' : STAXCode,
+            'result'     : STAXReason,
+            'fileFd'     : fileFd }
+        </call>
+      </if>
+      
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+    
+
   
-  
-  
-  
-  
-  
-  
-  
+   <!-- Modify an attribute -->
+  <function name="modifyAnAttribute">
+    <function-prolog>
+      This function modifies an entry in the Directory Server
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsPath" type="required"> 
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsInstanceHost" type="required">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+    <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+    
+      <function-arg-def name="dsInstancePort" type="required">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>      
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+    
+      <function-arg-def name="dsInstanceDn" type="required">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+    
+      <function-arg-def name="dsInstancePswd" type="required">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+    
+     <function-arg-def name="DNToModify" type="required">
+        <function-arg-description>
+          DN to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def>
+      
+      <function-arg-def name="attributeName" type="optional">
+        <function-arg-description>
+          Attribute to modify
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    
+     <function-arg-def name="newAttributeValue" type="optional">
+        <function-arg-description>
+          New Attribute Value
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      
+     <function-arg-def name="listAttributes" type="optional" default="' '">
+       <function-arg-description>
+         List of attributes name and value to modify. The format is name:value
+       </function-arg-description>
+       <function-arg-property name="type" value="string"/>       
+     </function-arg-def>
+    
+    <function-arg-def name="changetype" type="required">
+        <function-arg-description>
+          Type of modification, can be delete, add, replace
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+   
+    <function-arg-def name="suppressTestStatus" type="optional" default="0">
+        <function-arg-description>
+          Supress the call to checkTestRC
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+    </function-arg-def>
+
+    <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-description>
+        Expected return code value. Default value is 0
+        Wildcard 'noCheck' to not check the RC
+      </function-arg-description>
+      <function-arg-property name="type" value="string"/>
+    </function-arg-def>      
+      <function-arg-def name="fileFd" type="required">
+        <function-arg-description>
+          Name of output file descriptor
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+    
+    <!-- Local variables -->
+      <script>
+ 
+        # build the command
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+        STAFCmd=''
+      </script>   
+
+      
+      <if expr="listAttributes != ' '">
+      <iterate var="anAttributeToModify" in="listAttributes">
+          <script>
+            if anAttributeToModify:
+               anAttributeToModify=anAttributeToModify.replace('"','QUOT')
+               STAFCmdParamsList.append('-l "%s"' % anAttributeToModify)   
+          </script>
+      </iterate>   
+      </if>    
+      <script>
+        if newAttributeValue:
+            newAttributeValue=newAttributeValue.replace('"','QUOT')
+      </script>        
+ 
+      <script>
+        if dsInstanceHost:
+          STAFCmdParamsList.append('-h %s' % dsInstanceHost)
+          
+        if dsInstanceDn:
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
+
+        if dsInstancePswd:
+          STAFCmdParamsList.append('-w %s' % dsInstancePswd)      
+          
+        if dsInstancePort:
+          STAFCmdParamsList.append('-p %s' % dsInstancePort)           
+      
+        if DNToModify:
+          STAFCmdParamsList.append('-d "%s"' % DNToModify)
+
+        if attributeName:
+          STAFCmdParamsList.append('-a "%s"' % attributeName)
+
+        if newAttributeValue:
+          STAFCmdParamsList.append('-v "%s"' % newAttributeValue)      
+
+        if changetype:
+          STAFCmdParamsList.append('-t "%s"' % changetype)
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+        
+        STAFCmd='modifyAnAttribute' 
+      </script>
+      
+      <if expr="suppressTestStatus == '1'">
+        <script>
+          expectedRC = 'noCheck'
+        </script>
+      </if>
+     
+      <call function="'writeStartTagOperation'">
+      { 'tagName' : 'Modify An Attribute value',
+        'fileFd'  : fileFd }
+      </call>
+      
+      <call function="'writeMessage'">
+      { 'fileFd'  : fileFd,
+        'content' : '%s %s' % (STAFCmd, STAFCmdParams)
+      }
+      </call>
+      
+      <process name="'modifyAnAttribute'">
+        <location>'%s' % location</location>
+        <command>'%s/bin/java' % JAVA_HOME</command>
+        <parms>'%s %s' % (STAFCmd,STAFCmdParams)</parms>
+        <envs>
+          ['PATH=/bin:/usr/bin:%s/bin' % dsPath, 'JAVA_HOME=%s' % JAVA_HOME,'CLASSPATH=%s/phases/shared/java' % LOCAL_TESTS_DIR]
+        </envs>
+        <stderr mode="'stdout'"/>
+        <returnstdout/>
+      </process>      
+
+      <script>
+        STAXCode=RC
+        STAXReason=STAXResult
+      </script>
+      <if expr="expectedRC != 'noCheck'">
+        <call function="'checkRC'">
+          { 'returncode' : STAXCode,
+          'result'     : STAXReason,
+          'fileFd'     : fileFd }
+        </call>
+      </if>
+
+      <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      <return>
+        [RC,STAXResult]
+      </return>
+    </sequence>
+    
+  </function>    
   
   
 </stax>
