@@ -65,6 +65,7 @@ import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -654,8 +655,9 @@ public class StopDS
     {
       connection = new LDAPConnection(host.getValue(), port.getIntValue(),
                                       connectionOptions, out, err);
-      connection.connectToHost(bindDN.getValue(), bindPW.getValue(),
-                               nextMessageID);
+      connection.connectToHost(bindDN.getValue(),
+          LDAPConnectionArgumentParser.getPasswordValue(bindPW, bindPWFile),
+          nextMessageID);
     }
     catch (ArgumentException ae)
     {

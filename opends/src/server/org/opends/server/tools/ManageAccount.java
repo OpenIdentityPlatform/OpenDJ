@@ -50,6 +50,7 @@ import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.FileBasedArgument;
 import org.opends.server.util.args.IntegerArgument;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.MultiChoiceArgument;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.SubCommand;
@@ -1243,6 +1244,40 @@ public class ManageAccount
     connectionOptions.setVersionNumber(3);
 
 
+    //  If both a bind password and bind password file were provided, then
+    // return an error.
+    if (bindPW.isPresent() && bindPWFile.isPresent())
+    {
+      Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+              bindPW.getLongIdentifier(),
+              bindPWFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+    }
+
+    // If both a key store password and key store password file were provided,
+    // then return an error.
+    if (keyStorePW.isPresent() && keyStorePWFile.isPresent())
+    {
+      Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+              keyStorePW.getLongIdentifier(),
+              keyStorePWFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+    }
+
+
+    // If both a trust store password and trust store password file were
+    // provided, then return an error.
+    if (trustStorePW.isPresent() && trustStorePWFile.isPresent())
+    {
+      Message message = ERR_PWPSTATE_MUTUALLY_EXCLUSIVE_ARGUMENTS.get(
+              trustStorePW.getLongIdentifier(),
+              trustStorePWFile.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return LDAPResultCode.CLIENT_SIDE_PARAM_ERROR;
+    }
+
     // See if we should use SSL or StartTLS when establishing the connection.
     // If so, then make sure only one of them was specified.
     if (useSSL.isPresent())
@@ -1353,7 +1388,8 @@ public class ManageAccount
     {
       connection = new LDAPConnection(host.getValue(), port.getIntValue(),
                                       connectionOptions, out, err);
-      connection.connectToHost(bindDN.getValue(), bindPW.getValue(),
+      connection.connectToHost(bindDN.getValue(),
+          LDAPConnectionArgumentParser.getPasswordValue(bindPW, bindPWFile),
                                nextMessageID);
     }
     catch (ArgumentException ae)

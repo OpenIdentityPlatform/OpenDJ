@@ -327,7 +327,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
             args.hostNameArg.getValue(),
             args.portArg.getIntValue(),
             args.bindDnArg.getValue(),
-            args.bindPasswordArg.getValue(),
+            getPasswordValue(args.bindPasswordArg, args.bindPasswordFileArg),
             connectionOptions, out, err);
   }
 
@@ -405,6 +405,25 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    */
   public SecureConnectionCliArgs getArguments() {
     return args;
+  }
+
+  /**
+   * Commodity method that retrieves the password value analyzing the contents
+   * of a string argument and of a file based argument.  It assumes that the
+   * arguments have already been parsed and validated.
+   * @param bindPwdArg the string argument.
+   * @param bindPwdFileArg the file based argument.
+   * @return the password value.
+   */
+  public static String getPasswordValue(StringArgument bindPwdArg,
+      FileBasedArgument bindPwdFileArg)
+  {
+    String pwd = bindPwdArg.getValue();
+    if ((pwd == null) && bindPwdFileArg.isPresent())
+    {
+      pwd = bindPwdFileArg.getValue();
+    }
+    return pwd;
   }
 
   private void addLdapConnectionArguments(ArgumentGroup argGroup) {
