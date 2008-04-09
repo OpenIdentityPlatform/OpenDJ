@@ -163,7 +163,7 @@
             <command mode="'shell'">'./build.ksh'</command>
             <parms/>
             <workdir>workingDir</workdir>
-            <envs>['PATH=%s:/bin:/usr/bin' % JAVA_HOME,'COMPILDIR=%s' % compilDir]</envs>
+            <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME,'COMPILDIR=%s' % compilDir]</envs>
             <stderr mode="'stdout'"/>
             <stdout/>
             <returnstdout/>
@@ -211,10 +211,10 @@
           </script>
           <process name="'%s' % titleName">
             <location>client.getHost()</location>
-            <command>'java'</command>
+            <command>'%s/bin/java' % JAVA_HOME</command>
             <parms>cParam </parms>
             <workdir>workingDir</workdir>
-            <envs>['PATH=%s:/bin:/usr/bin' % JAVA_HOME]</envs>
+            <envs>['PATH=%s/bin:/bin:/usr/bin' % JAVA_HOME]</envs>
             <stderr mode="'stdout'"/>
             <stdout>outFile</stdout>
             <returnstdout/>
