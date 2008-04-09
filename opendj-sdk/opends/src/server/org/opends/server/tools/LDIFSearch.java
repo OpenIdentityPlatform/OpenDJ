@@ -212,7 +212,7 @@ public class LDIFSearch
       argParser.addArgument(baseDNString);
 
       scopeString = new MultiChoiceArgument(
-              "scope", 's', "scope", false, false,
+              "scope", 's', "searchScope", false, false,
               true, INFO_SCOPE_PLACEHOLDER.get(), SCOPE_STRING_SUB,
               null, scopeStrings, false,
               INFO_LDIFSEARCH_DESCRIPTION_SCOPE.get());
