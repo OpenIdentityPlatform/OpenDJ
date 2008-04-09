@@ -48,6 +48,7 @@ import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Represents information about the current build that is
@@ -75,15 +76,50 @@ public class BuildInformation implements Comparable {
     args.add("-F"); // full verbose
     ProcessBuilder pb = new ProcessBuilder(args);
     InputStream is = null;
+    OutputStream out = null;
+    final boolean[] done = {false};
     try {
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
-      Process process = pb.start();
+      final Process process = pb.start();
       is = process.getInputStream();
+      out = process.getOutputStream();
+      final OutputStream fOut = out;
+      if (Utils.isWindows())
+      {
+        // In windows if there is an error we wait the user to click on
+        // return to continue.
+        Thread t = new Thread(new Runnable()
+        {
+          public void run()
+          {
+            while (!done[0])
+            {
+              try
+              {
+                Thread.sleep(5000);
+                fOut.write(Constants.LINE_SEPARATOR.getBytes());
+                fOut.flush();
+              }
+              catch (Throwable t)
+              {
+                LOG.log(Level.WARNING, "Error writing to process: "+t, t);
+              }
+            }
+          }
+        });
+        t.start();
+      }
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line = reader.readLine();
       bi.values.put(NAME, line);
+      StringBuilder sb = new StringBuilder();
       while (null != (line = reader.readLine())) {
+        if (sb.length() > 0)
+        {
+          sb.append('\n');
+        }
+        sb.append(line);
         int colonIndex = line.indexOf(':');
         if (-1 != colonIndex) {
           String name = line.substring(0, colonIndex).trim();
@@ -91,14 +127,43 @@ public class BuildInformation implements Comparable {
           bi.values.put(name, value);
         }
       }
+      int resultCode = process.waitFor();
+      if (resultCode != 0)
+      {
+        if (sb.length() == 0)
+        {
+          throw new ApplicationException(
+            ReturnCode.START_ERROR,
+            INFO_ERROR_CREATING_BUILD_INFO.get(), null);
+        }
+        else
+        {
+          throw new ApplicationException(
+              ReturnCode.START_ERROR,
+              INFO_ERROR_CREATING_BUILD_INFO_MSG.get(sb.toString()), null);
+        }
+      }
     } catch (IOException e) {
       throw new ApplicationException(
           ReturnCode.START_ERROR,
           INFO_ERROR_CREATING_BUILD_INFO.get(), e);
+
+    } catch (InterruptedException ie) {
+      throw new ApplicationException(
+          ReturnCode.START_ERROR,
+          INFO_ERROR_CREATING_BUILD_INFO.get(), ie);
     } finally {
+      done[0] = true;
       if (is != null) {
         try {
           is.close();
+        } catch (IOException e) {
+          // ignore;
+        }
+      }
+      if (out != null) {
+        try {
+          out.close();
         } catch (IOException e) {
           // ignore;
         }
