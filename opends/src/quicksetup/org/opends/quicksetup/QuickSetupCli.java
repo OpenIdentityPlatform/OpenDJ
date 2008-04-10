@@ -33,6 +33,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.cli.CLIException;
 import org.opends.messages.Message;
 
 /**
@@ -134,7 +135,14 @@ public class QuickSetupCli {
       System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
               Utils.getCommandLineMaxLineWidth()));
       System.err.println();
-      returnValue = ReturnCode.USER_DATA_ERROR;
+      if (uude.getCause() instanceof CLIException)
+      {
+        returnValue = ReturnCode.USER_INPUT_ERROR;
+      }
+      else
+      {
+        returnValue = ReturnCode.USER_DATA_ERROR;
+      }
     }
     return returnValue;
   }

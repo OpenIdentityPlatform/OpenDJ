@@ -300,6 +300,10 @@ public abstract class Launcher {
     {
       System.exit(ReturnCode.CANCELLED.getReturnCode());
     }
+    else if (returnValue.equals(ReturnCode.USER_INPUT_ERROR))
+    {
+      System.exit(ReturnCode.USER_INPUT_ERROR.getReturnCode());
+    }
     return returnValue.getReturnCode();
   }
 

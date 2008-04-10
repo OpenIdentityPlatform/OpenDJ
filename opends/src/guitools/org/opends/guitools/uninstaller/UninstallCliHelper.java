@@ -274,7 +274,7 @@ class UninstallCliHelper extends ConsoleApplication {
    * otherwise.
    */
   private boolean askWhatToDelete(UninstallUserData userData,
-      Set<String> outsideDbs, Set<String> outsideLogs)
+      Set<String> outsideDbs, Set<String> outsideLogs) throws UserDataException
   {
     boolean cancelled = false;
     final int REMOVE_ALL = 1;
@@ -322,13 +322,8 @@ class UninstallCliHelper extends ConsoleApplication {
     }
     catch (CLIException ce)
     {
-      choice = REMOVE_ALL;
-      cancelled = true;
       LOG.log(Level.WARNING, "Error reading input: "+ce, ce);
-      if (ce.getMessageObject().getDescriptor().equals(ERR_TRIES_LIMIT_REACHED))
-      {
-        println(ce.getMessageObject());
-      }
+      throw new UserDataException(null, ce.getMessageObject(), ce);
     }
 
     if (cancelled)
@@ -389,9 +384,7 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         catch (CLIException ce)
         {
-          println(ce.getMessageObject());
-          println();
-          cancelled = true;
+          throw new UserDataException(null, ce.getMessageObject(), ce);
         }
 
         if (!cancelled)
@@ -529,9 +522,7 @@ class UninstallCliHelper extends ConsoleApplication {
           }
           catch (CLIException ce)
           {
-            println(ce.getMessageObject());
-            println();
-            cancelled = true;
+            throw new UserDataException(null, ce.getMessageObject(), ce);
           }
         }
         else
@@ -589,9 +580,7 @@ class UninstallCliHelper extends ConsoleApplication {
           }
           catch (CLIException ce)
           {
-            println(ce.getMessageObject());
-            println();
-            cancelled = true;
+            throw new UserDataException(null, ce.getMessageObject(), ce);
           }
         }
         else
@@ -640,9 +629,7 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         catch (CLIException ce)
         {
-          println(ce.getMessageObject());
-          println();
-          cancelled = true;
+          throw new UserDataException(null, ce.getMessageObject(), ce);
         }
       }
       else
@@ -658,9 +645,7 @@ class UninstallCliHelper extends ConsoleApplication {
           }
           catch (CLIException ce)
           {
-            println(ce.getMessageObject());
-            println();
-            cancelled = true;
+            throw new UserDataException(null, ce.getMessageObject(), ce);
           }
         }
       }
@@ -733,8 +718,11 @@ class UninstallCliHelper extends ConsoleApplication {
    *  to update the remote servers.
    *  @return <CODE>true</CODE> if the user wants to continue and update the
    *  remote servers.  <CODE>false</CODE> otherwise.
+   *  @throws UserDataException if there is a problem with the information
+   *  provided by the user.
    */
   private boolean askForAuthenticationIfNeeded(UninstallUserData userData)
+  throws UserDataException
   {
     boolean accepted = true;
     String uid = userData.getAdminUID();
@@ -903,9 +891,7 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         catch (CLIException ce)
         {
-          println(ce.getMessageObject());
-          println();
-          accepted = false;
+          throw new UserDataException(null, ce.getMessageObject(), ce);
         }
       }
     }
@@ -1170,18 +1156,19 @@ class UninstallCliHelper extends ConsoleApplication {
         if (forceOnError)
         {
           println(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
-              parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-              ToolConstants.OPTION_LONG_BINDPWD,
-              ToolConstants.OPTION_LONG_BINDPWD_FILE));
+              "--"+parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
+              "--"+ToolConstants.OPTION_LONG_BINDPWD,
+              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE));
         }
         else
         {
           throw new UserDataException(null,
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
+                  "--"+
                   parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-                  ToolConstants.OPTION_LONG_BINDPWD,
-                  ToolConstants.OPTION_LONG_BINDPWD_FILE,
-                  parser.forceOnErrorArg.getLongIdentifier()));
+                  "--"+ToolConstants.OPTION_LONG_BINDPWD,
+                  "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+                  "--"+parser.forceOnErrorArg.getLongIdentifier()));
         }
       }
       else
@@ -1194,8 +1181,7 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         catch (CLIException ce)
         {
-          println(ce.getMessageObject());
-          accepted = false;
+          throw new UserDataException(null, ce.getMessageObject(), ce);
         }
       }
     }
@@ -1303,9 +1289,7 @@ class UninstallCliHelper extends ConsoleApplication {
         }
         catch (CLIException ce)
         {
-          println(ce.getMessageObject());
-          println();
-          returnValue = false;
+          throw new UserDataException(null, ce.getMessageObject(), ce);
         }
       }
       else if (reloadTopologyCache)

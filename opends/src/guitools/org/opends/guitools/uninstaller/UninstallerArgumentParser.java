@@ -166,7 +166,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         'f',
         "forceOnError",
         INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(
-            noPromptArg.getLongIdentifier()));
+            "--"+noPromptArg.getLongIdentifier()));
     args.add(forceOnErrorArg);
     quietArg = new BooleanArgument(
         OPTION_LONG_QUIET,
@@ -377,7 +377,8 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     if (!noPromptArg.isPresent() && forceOnErrorArg.isPresent())
     {
       Message message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
-          forceOnErrorArg.getLongIdentifier(), noPromptArg.getLongIdentifier());
+          "--"+forceOnErrorArg.getLongIdentifier(),
+          "--"+noPromptArg.getLongIdentifier());
       if (buf.length() > 0)
       {
         buf.append(EOL);
