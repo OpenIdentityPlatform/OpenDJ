@@ -481,7 +481,7 @@ public class ReplicationCliMain extends ConsoleApplication
           else
           {
             println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
-                ToolConstants.OPTION_LONG_NO_PROMPT));
+                "--"+ToolConstants.OPTION_LONG_NO_PROMPT));
             println(Message.raw(argParser.getUsage()));
             returnValue = ERROR_USER_DATA;
             subcommandLaunched = false;

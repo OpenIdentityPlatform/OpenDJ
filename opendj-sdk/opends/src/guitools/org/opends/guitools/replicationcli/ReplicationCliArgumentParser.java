@@ -354,8 +354,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       if (getBindPasswordAdmin() == null)
       {
         errors.add(ERR_REPLICATION_NO_ADMINISTRATOR_PASSWORD_PROVIDED.get(
-            secureArgsList.bindPasswordArg.getLongIdentifier(),
-                secureArgsList.bindPasswordFileArg.getLongIdentifier()));
+            "--"+secureArgsList.bindPasswordArg.getLongIdentifier(),
+            "--"+secureArgsList.bindPasswordFileArg.getLongIdentifier()));
       }
     }
 
@@ -591,7 +591,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     useSecondServerAsSchemaSourceArg = new BooleanArgument(
         "usesecondserverasschemasource", null, "useSecondServerAsSchemaSource",
         INFO_DESCRIPTION_ENABLE_REPLICATION_USE_SECOND_AS_SCHEMA_SOURCE.get(
-            noSchemaReplicationArg.getLongIdentifier()));
+            "--"+noSchemaReplicationArg.getLongIdentifier()));
 
     enableReplicationSubCmd = new SubCommand(this,
         ENABLE_REPLICATION_SUBCMD_NAME,
@@ -2152,7 +2152,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     if (quietArg.isPresent())
     {
       Message message = ERR_REPLICATION_STATUS_QUIET.get(
-          STATUS_REPLICATION_SUBCMD_NAME, quietArg.getLongIdentifier());
+          STATUS_REPLICATION_SUBCMD_NAME, "--"+quietArg.getLongIdentifier());
       addMessage(buf, message);
     }
   }

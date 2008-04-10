@@ -106,6 +106,11 @@ public class ReturnCode {
   public static final ReturnCode JAVA_VERSION_INCOMPATIBLE = new ReturnCode(13);
 
   /**
+   * Return code: user provided invalid input.
+   */
+  public static final ReturnCode USER_INPUT_ERROR = new ReturnCode(14);
+
+  /**
    * Return code: Print Version.
    */
   public static final ReturnCode PRINT_VERSION = new ReturnCode(50);
