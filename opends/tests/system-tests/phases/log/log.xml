@@ -602,7 +602,9 @@
     <sequence>
       <if expr="fileFd != NO_FILE">
         <script>
-          fileFd.write('&lt;operation name=\"%s\"&gt;\n' % tagName)
+          date = strftime("%Y%m%d@%H:%M:%S",localtime())
+          str = '&lt;operation name=\"%s\" date=\"%s\"&gt;\n'% (tagName,date)
+          fileFd.write(str)
         </script>
       </if>
     </sequence>
