@@ -172,12 +172,9 @@
               'fileFd'     : NO_FILE
             }
           </call>
-          <script>
-            fullHostName = '%s%s' % (instance.getHost(),DOMAIN[0])
-          </script>
           <call function="'copyFolder'">
             {
-              'remoteHost'    : fullHostName,
+              'remoteHost'    : '%s%s' % (instance.getHost(),DOMAIN[0]),
               'fromDirectory' : '%s/phases/shared/java' % TESTS_DIR,
               'toDirectory'   : '%s/phases/shared/java' % LOCAL_TESTS_DIR,
               'fileFd'        : NO_FILE
@@ -263,13 +260,10 @@
                   }
                 </call>
               </if>
-              <script>
-                fullHostName = '%s%s' % (client.getHost(),DOMAIN[0])
-              </script>
               <!-- Copy shared clients -->
               <call function="'copyFolder'">
               {
-                'remoteHost'    : fullHostName,
+                'remoteHost'    : '%s%s' % (client.getHost(),DOMAIN[0]),
                 'fromDirectory' : '%s/clients' % TESTS_DIR,
                 'toDirectory'   : '%s/clients' % LOCAL_TESTS_DIR,
                 'fileFd'        : NO_FILE
@@ -371,7 +365,7 @@
           {
             'srcFile'    : '%s/cnMonitor.txt' % instance.getLogDir(),
             'destFile'   : '%s/cnMonitor.txt' % instance.getLogDir(),
-            'location'   : instance.getHost(),
+            'location'   : '%s%s' % (instance.getHost(),DOMAIN[0]),
             'remoteHost' : STAXServiceMachine,
             'fileFd'     : NO_FILE
           }
@@ -382,7 +376,7 @@
           {
             'srcFile'    : '%s/config/config.ldif' % instance.getInstallDir(),
             'destFile'   : '%s/config.ldif' % instance.getLogDir(),
-            'location'   : instance.getHost(),
+            'location'   : '%s%s' % (instance.getHost(),DOMAIN[0]),
             'remoteHost' : STAXServiceMachine,
             'fileFd'     : NO_FILE
           }
