@@ -29,7 +29,31 @@
   <!-- ************************************************************ -->
   <!--                    Libs for instance object                  -->
   <!-- ************************************************************ -->
-  
+  <function name="getOpendsInstancesInATopology" scope="local">
+   <function-prolog>
+      'return the list of opends instances in a topology (using same suffix)'
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="suffix" type="required">
+        <function-arg-description>
+          suffix object
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        opendsInstances = []
+        topoInstances   = suffix.getTopology()
+        
+        for topoInstance in topoInstances:
+          cInstance = topoInstance.getInstanceRef()
+          if cInstance.getProduct() == 'opends':
+            opendsInstances.append(cInstance)
+      </script>
+      
+      <return>opendsInstances</return>
+    </sequence>
+  </function>
   
   
   

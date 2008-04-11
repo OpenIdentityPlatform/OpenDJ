@@ -59,36 +59,13 @@
         fileList = STAXGlobal([])
       </script>
       
-      <!-- == Get the list of opends instances in the topology == -->
+      <!--== Get the list of opends instances in the topology == -->
+      <call function="'getOpendsInstancesInATopology'">
+        { 'suffix' : suffix }
+      </call>
       <script>
-        opendsInstances = []
-        msg = ''
-        topoInstances = suffix.getTopology()
-        
-        sys.path.append("%s/phases/parser" % TESTS_DIR )
-        from parser import getRefObjectByName
-        
-        for topoInstance in topoInstances:
-          result = getRefObjectByName(topoInstance.getName(),instances)
-          if result[0] != '':
-            msg = '%s\n%s' % (msg,result[0])
-          currentInstance = result[1]
-          
-          if currentInstance.getProduct() == 'opends':
-            opendsInstances.append(currentInstance)
-          
+        opendsInstances = STAXResult
       </script>
-      <if expr="msg != ''">
-        <sequence>
-          <message>'%s' % msg</message>
-          <call function="'writeMessage'">
-          { 'fileFd'  : LOG_MAIN_FD,
-            'content' : msg
-          }
-          </call>
-          <script>ERR_NUM[0] += 1</script>
-        </sequence>
-      </if>
       
       <!-- == Configure opends == -->
       <call function="'configureOpends'">
