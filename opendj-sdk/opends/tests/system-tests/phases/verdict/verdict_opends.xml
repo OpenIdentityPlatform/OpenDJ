@@ -57,14 +57,11 @@
     
     <sequence>
       <!--== Get the list of opends instances in the topology == -->
+      <call function="'getOpendsInstancesInATopology'">
+        { 'suffix' : suffix }
+      </call>
       <script>
-        opendsInstances = []
-        topoInstances   = suffix.getTopology()
-        
-        for topoInstance in topoInstances:
-          cInstance = topoInstance.getInstanceRef()
-          if cInstance.getProduct() == 'opends':
-            opendsInstances.append(cInstance)
+        opendsInstances = STAXResult
       </script>
       
       
