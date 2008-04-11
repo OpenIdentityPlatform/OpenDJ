@@ -133,10 +133,6 @@
       <client id="3" name="restartDs" host="localhost" start="t50"
                                                         dependencyId="1">
         <serverInstance>I2</serverInstance>
-        <baseDn>dc=com</baseDn>
-        <nbCnx>5</nbCnx>
-        <nbMaxSearch>5</nbMaxSearch>
-        <attribute>sn</attribute>
       </client>
       
       <client id="4" name="modifyLoad" host="localhost" start="t60"
