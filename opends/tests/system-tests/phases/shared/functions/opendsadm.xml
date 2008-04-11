@@ -285,8 +285,8 @@
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
       
-      <!-- define environment variables -->
       <script>
+        # define environment variables
         env = []
         env.append('PATH=/bin:/usr/bin:%s' % dsBinPath)
         env.append('JAVA_HOME=%s' % JAVA_HOME)
@@ -298,10 +298,12 @@
           tuning = instance.getTuning()
           if tuning.getJavaArgs() != NOT_DEFINED:
             env.append('OPENDS_JAVA_ARGS=%s' % tuning.getJavaArgs())
+          name = 'StartDs %s:%s' % (instance.getName(),instance.getLDAPPort())
+        else:
+          name = 'StartDs'
       </script>
       <call function="'runCommand'">
-        { 'name'      : 'StartDs %s:%s' % \
-                        (instance.getName(),instance.getLDAPPort()),
+        { 'name'      : name,
           'location'  : location,
           'command'   : STAFCmd,
           'arguments' : STAFCmdParams,
