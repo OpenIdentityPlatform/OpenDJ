@@ -52,6 +52,82 @@
     
     <sequence>
       <!-- ===== Start instances ===== -->
+      <call function="'startInstances'">
+        {
+          'topoInstances' : topoInstances,
+          'filePrefix'    : filePrefix
+        }
+      </call>
+      
+      
+      <!-- ==== Configure sequentially replication on intances   ==== -->
+      <if expr="len(topoInstances) > 1">
+        <sequence>
+          <call function="'enableReplications'">
+            {
+              'topoInstances' : topoInstances,
+              'filePrefix'    : filePrefix
+            }
+          </call>
+          <call function="'initializeReplications'">
+            {
+              'topoInstances' : topoInstances,
+              'filePrefix'    : filePrefix
+            }
+          </call>
+          <!--== OpenDS Instance tuning  : Replication purge delay ==-->
+          <call function="'tunePurgeDelay'">
+            {
+              'topoInstances' : topoInstances,
+              'filePrefix'    : filePrefix
+            }
+          </call>
+        </sequence>
+      </if>
+      
+      
+      <!--== OpenDS Instance tuning  : DB Cache ==-->
+      <call function="'tuneDBCache'">
+        {
+          'topoInstances' : topoInstances,
+          'filePrefix'    : filePrefix
+        }
+      </call>
+      
+      
+      <!-- == Post operations == -->
+      <call function="'configureOpendsPostamble'">
+        {
+          'topoInstances' : topoInstances,
+          'filePrefix'    : filePrefix
+        }
+      </call>
+      
+      
+    </sequence>
+  </function>
+
+
+  
+  <!-- ************************************************************ -->
+  <function name="startInstances" scope="local">
+    <function-prolog>
+      This function starts all instances.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
       <paralleliterate in="topoInstances" var="instance">
         <sequence>
           <call function="'getLogFileName'">
@@ -71,6 +147,7 @@
             str = '%s port=\"%s\"' % (str, instance.getLDAPPort())
             str = '%s product=\"opends\"&gt;\n' % str
             cFileFd.write(str)
+            
           </script>
           
           <call function="'isAlive'">
@@ -96,16 +173,36 @@
           </if>
           <script>
             cFileFd.close()
-            cFileFd = ''
           </script>
         </sequence>
       </paralleliterate>
-      
-      
-      <!-- ==== Configure sequentially replication on intances     ==== -->
-      <!--      configure replication with topoInstances[0] and each    -->
-      <!--      other instances in the topoInstances list               -->
-      <!--      do not use parrallel run                                -->
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <!-- ==== Configure sequentially replication on intances     ==== -->
+  <!--      configure replication with topoInstances[0] and each    -->
+  <!--      other instances in the topoInstances list               -->
+  <!--      do not use parrallel run                                -->
+  <function name="enableReplications" scope="local">
+    <function-prolog>
+      This function enables replication between servers using dsreplication.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
       <iterate in="topoInstances" var="instance">
         <sequence>
           <script>
@@ -195,99 +292,14 @@
           </if>
           <script>
             cFileFd.close()
-            cFileFd = ''
           </script>
         </sequence>
       </iterate>
-      
-      
-      <!--== Initialize replication (totalUpdate) ==-->
-      <iterate in="topoInstances" var="instance">
-        <sequence>
-          <call function="'getLogFileName'">
-            { 'type'   : 'instance',
-              'object' : instance,
-              'prefix' : filePrefix
-            }
-          </call>
-          <script>
-            logFile = STAXResult
-            # reopen existing files, no need to add in fileList variable
-            # as it has already been added
-            cFileFd = open(logFile,'a')
-          </script>
-          <script>
-            foundInstance = FALSE
-            foundTotalUpdate = FALSE
-            
-            # try to get the instance objectclass 
-            # of the current instance suffix topology
-            result = suffix.getElementFromTopology(instance.getName())
-            foundInstance = result[0]
-            topoElement = result[1]
-            
-            # if the current instance is in the suffix topology, 
-            # then check if need to do a totalupdate
-            if foundInstance == TRUE:
-              if topoElement.getInitRule().lower() == "totalupdate":
-                foundTotalUpdate = TRUE
-                sourceInstanceName = topoElement.getInstanceSourceName()
-                for tmpInstance in topoInstances:
-                  if sourceInstanceName == tmpInstance.getName():
-                    sourceInstance = tmpInstance
-                    break
-          </script>
-          
-          <!--== If sourceInstanceName is defined ==-->
-          <!--== then we have to run totalupdate  ==-->
-          <if expr="foundTotalUpdate == TRUE">
-            <sequence>
-              <message>
-                ' ** Initialize replication between %s and %s (source)' % \
-                (instance.getName(),sourceInstance.getName())
-              </message>
-              <call function="'initializeReplication'">
-              { 
-                'location'           : instance.getHost(),
-                'dsPath'             : instance.getInstallDir(),
-                'dsInstanceHost'     : instance.getHost(),
-                'dsInstancePort'     : instance.getLDAPPort(),
-                'sourceInstanceHost' : sourceInstance.getHost(),
-                'sourceInstancePort' : sourceInstance.getLDAPPort(),
-                'replicationDnList'  : [suffix.getSuffixDn()],
-                'fileFd'             : cFileFd
-              }
-              </call>
-            </sequence>
-          </if>
-          
-          <!-- == Post operations == -->
-          <message>
-            '%s on %s : configuration done' % \
-            (instance.getName(),instance.getHost())
-          </message>
-          
-          <script>
-            cFileFd.write('&lt;/instance&gt;\n')
-            cFileFd.close()
-            cFileFd = ''
-          </script>
-          
-          
-        </sequence>
-      </iterate>
-          
-          
     </sequence>
   </function>
 
 
-
-
-
-
-
-
+  <!-- ************************************************************ -->
   <!-- Enable replication between servers using dsreplication -->
   <function name="enableReplication" scope="local">
     <function-prolog>
@@ -509,13 +521,100 @@
       </return>
     </sequence>
   </function>
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  <!-- ************************************************************ -->
+  <function name="initializeReplications" scope="local">
+    <function-prolog>
+      This function intializes between all servers in the topology
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!--== Initialize replication (totalUpdate) ==-->
+      <iterate in="topoInstances" var="instance">
+        <sequence>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
+          <script>
+            logFile = STAXResult
+            # reopen existing files, no need to add in fileList variable
+            # as it has already been added
+            cFileFd = open(logFile,'a')
+          </script>
+          <script>
+            foundInstance = FALSE
+            foundTotalUpdate = FALSE
+            
+            # try to get the instance objectclass 
+            # of the current instance suffix topology
+            result = suffix.getElementFromTopology(instance.getName())
+            foundInstance = result[0]
+            topoElement = result[1]
+            
+            # if the current instance is in the suffix topology, 
+            # then check if need to do a totalupdate
+            if foundInstance == TRUE:
+              if topoElement.getInitRule().lower() == "totalupdate":
+                foundTotalUpdate = TRUE
+                sourceInstanceName = topoElement.getInstanceSourceName()
+                for tmpInstance in topoInstances:
+                  if sourceInstanceName == tmpInstance.getName():
+                    sourceInstance = tmpInstance
+                    break
+          </script>
+          
+          <!--== If sourceInstanceName is defined ==-->
+          <!--== then we have to run totalupdate  ==-->
+          <if expr="foundTotalUpdate == TRUE">
+            <sequence>
+              <message>
+                ' ** Initialize replication between %s and %s (source)' % \
+                (instance.getName(),sourceInstance.getName())
+              </message>
+              <call function="'initializeReplication'">
+              { 
+                'location'           : instance.getHost(),
+                'dsPath'             : instance.getInstallDir(),
+                'dsInstanceHost'     : instance.getHost(),
+                'dsInstancePort'     : instance.getLDAPPort(),
+                'sourceInstanceHost' : sourceInstance.getHost(),
+                'sourceInstancePort' : sourceInstance.getLDAPPort(),
+                'replicationDnList'  : [suffix.getSuffixDn()],
+                'fileFd'             : cFileFd
+              }
+              </call>
+            </sequence>
+          </if>
+          <script>
+            cFileFd.close()
+            cFileFd = ''
+          </script>
+        </sequence>
+      </iterate>
+    </sequence>
+  </function>
+  
+  
   <!-- Initialize replicated suffix with the contents -->
   <!-- of a source server using dsreplication -->
   <function name="initializeReplication" scope="local">
@@ -588,7 +687,7 @@
         Expected return code value. Default value is 0
         </function-arg-description>
       </function-arg-def>
-
+      
       <function-arg-def name="fileFd" type="required">
         <function-arg-description>
 	      output file descriptor
@@ -683,11 +782,193 @@
       <return>
         STAXReason
       </return>
-
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="tuneDBCache" scope="local">
+    <function-prolog>
+      This function tunes purge delay.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <paralleliterate in="topoInstances" var="instance">
+        <sequence>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
+          <script>
+            logFile = STAXResult
+            # reopen existing files, no need to add in fileList variable
+            # as it has already been added
+            cFileFd = open(logFile,'a')
+            
+            tuning = instance.getTuning()
+          </script>
+          <if expr="tuning.getDatabaseCachePercentage() != NOT_DEFINED">
+            <sequence>
+              <message>
+                ' ** Tune DB Cache for %s' % instance.getName()
+              </message>
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/opendscfg.xml' % (SHARED_FUNC_DIR)"/>
+              <call function="'dsconfig'">
+              {
+                'location'       : instance.getHost(),
+                'dsPath'         : instance.getInstallDir(),
+                'dsInstanceHost' : instance.getHost(),
+                'dsInstancePort' : instance.getLDAPPort(),
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-backend-prop',
+                'objectType'     : 'backend-name',
+                'objectName'     : 'userRoot',
+                'optionsString'  : '--set db-cache-percent:%s' % \
+                                   tuning.getDatabaseCachePercentage(),
+                'fileFd'  : cFileFd
+              }
+              </call>
+            </sequence>
+          </if>
+          <script>
+            cFileFd.close()
+          </script>
+        </sequence>
+      </paralleliterate>
     </sequence>
   </function>
 
 
+  <!-- ************************************************************ -->
+  <function name="tunePurgeDelay" scope="local">
+    <function-prolog>
+      This function tunes purge delay.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <paralleliterate in="topoInstances" var="instance">
+        <sequence>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
+          <script>
+            logFile = STAXResult
+            # reopen existing files, no need to add in fileList variable
+            # as it has already been added
+            cFileFd = open(logFile,'a')
+            
+            tuning = instance.getTuning()
+          </script>
+          <if expr="tuning.getReplicationPurgeDelay() != NOT_DEFINED">
+            <sequence>
+              <message>
+                ' ** Tune Replication Purge delay for %s' % instance.getName()
+              </message>
+              <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                file="'%s/opendscfg.xml' % (SHARED_FUNC_DIR)"/>
+              <call function="'dsconfig'">
+              {
+                'location'       : instance.getHost(),
+                'dsPath'         : instance.getInstallDir(),
+                'dsInstanceHost' : instance.getHost(),
+                'dsInstancePort' : instance.getLDAPPort(),
+                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                'subcommand'     : 'set-replication-server-prop',
+                'objectType'     : 'provider-name',
+                'objectName'     : MultimasterSync,
+                'optionsString'  : '--set "replication-purge-delay:%s"' % \
+                                   tuning.getReplicationPurgeDelay(),
+                'fileFd'  : cFileFd
+              }
+              </call>
+            </sequence>
+          </if>
+          <script>
+            cFileFd.close()
+          </script>
+        </sequence>
+      </paralleliterate>
+    </sequence>
+  </function>
+  
+  
+  <!-- ************************************************************ -->
+  <function name="configureOpendsPostamble" scope="local">
+    <function-prolog>
+      This function closes all log files.
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="topoInstances" type="required">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="filePrefix" type="required">
+        <function-arg-description>
+          prefix for output files
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <paralleliterate in="topoInstances" var="instance">
+        <sequence>
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : filePrefix
+            }
+          </call>
+          <script>
+            logFile = STAXResult
+            # reopen existing files, no need to add in fileList variable
+            # as it has already been added
+            cFileFd = open(logFile,'a')
+            cFileFd.write('&lt;/instance&gt;\n')
+            cFileFd.close()
+          </script>
+          <message>
+            '%s on %s : configuration done' % \
+            (instance.getName(),instance.getHost())
+          </message>
+        </sequence>
+      </paralleliterate>
+    </sequence>
+  </function>
 
 
 

@@ -196,7 +196,7 @@ class OpendsTuning:
   "Describes tuning informations for OpenDS instance"
   def __init__(self,isJava,xms,xmx,xxNewSize,xxMaxNewSize,\
                xxSurvivorRatio,xxPermSize,xxMaxPermSize,xxUseConcMarkSweepGC,\
-               isDataBase,databaseCachePercentage):
+               databaseCachePercentage,replicationPurgeDelay):
     self.isJava                  = isJava
     self.javaArgs                = NOT_DEFINED
     self.xms                     = xms
@@ -207,8 +207,8 @@ class OpendsTuning:
     self.xxPermSize              = xxPermSize
     self.xxMaxPermSize           = xxMaxPermSize
     self.xxUseConcMarkSweepGC    = xxUseConcMarkSweepGC
-    self.isDataBase              = isDataBase
     self.databaseCachePercentage = databaseCachePercentage
+    self.replicationPurgeDelay   = replicationPurgeDelay
     
   def getIsJava(self):
     return self.isJava
@@ -243,12 +243,11 @@ class OpendsTuning:
   def getXxUseConcMarkSweepGC(self):
     return self.xxUseConcMarkSweepGC
     
-  def getIsDataBase(self):
-    return self.isDataBase
-    
   def getDatabaseCachePercentage(self):
     return self.databaseCachePercentage
     
+  def getReplicationPurgeDelay(self):
+    return self.replicationPurgeDelay
 
 #
 # Class for instance 
@@ -473,20 +472,6 @@ class Module:
 # FUNCTIONS
 #
 
-def getRefObjectByName(myName,myList):
-  """This function returns the reference of a object specified 
-     by myName if it exist in myList"""
-  found = FALSE
-  msg = ''
-  for myObject in myList:
-    if myObject.getName() == myName:
-      found = TRUE
-      break
-  if found == FALSE:
-    msg = 'ERROR, getRefObjectByName(): cant find object reference for name %s'%\
-          myName
-  return [msg,myObject]
-
 
 def _getPropValue(myNode):
   "This function get the first node text value of a node"
@@ -668,9 +653,10 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   cXxSurvivorRatio = NOT_DEFINED
   cXxPermSize      = NOT_DEFINED
   cXxMaxPermSize   = NOT_DEFINED
-  cXxUseConcMarkSweepGC = NOT_DEFINED
-  cIsDataBase      = 'false'
-  cDatabaseCachePercentage = NOT_DEFINED
+  cXxUseConcMarkSweepGC       = NOT_DEFINED
+  cDatabaseCachePercentage    = NOT_DEFINED
+  cReplicationPurgeDelay      = NOT_DEFINED
+  cReplicationPurgeDelayUnit  = NOT_DEFINED
   
   #
   # Parsing second level : host,ports,...
@@ -751,11 +737,17 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
                                                         'xxUseConcMarkSweepGC')
               
             elif (thisTuning.getNodeType() == Node.ELEMENT_NODE and
-                thisTuning.getNodeName() == 'databaseCache'):
-              cIsDataBase = 'true'
-              cDatabaseCachePercentage = _getAttributeNode(thisTuning,
-                                                     'percentage')
+                thisTuning.getNodeName() == 'databaseCachePercentage'):
+              cDatabaseCachePercentage = _getPropValue(thisTuning)
               
+            elif (thisTuning.getNodeType() == Node.ELEMENT_NODE and
+                thisTuning.getNodeName() == 'replicationPurgeDelay'):
+              cReplicationPurgeDelayUnit = _getAttributeNode(thisTuning,'unit')
+              if cReplicationPurgeDelayUnit == NOT_DEFINED:
+                msg = '%s\n ERROR: instance %s: unknown unit purge delay'%msg
+              cReplicationPurgeDelay = _getPropValue(thisTuning)
+              cReplicationPurgeDelay = '%s %s' % (cReplicationPurgeDelay,\
+                                                  cReplicationPurgeDelayUnit)
               
       # must be at the end of the if case
       elif (thisSubChild.getNodeType() == Node.TEXT_NODE or
@@ -778,7 +770,8 @@ def parseOpenDs(cId,cName,cProduct,cRole,opendsName,opendsZip,thisChild):
   cOpendsTuning = OpendsTuning(cIsJava,cXms,cXmx,cXxNewSize,cXxMaxNewSize,\
                               cXxSurvivorRatio,cXxPermSize,cXxMaxPermSize,\
                               cXxUseConcMarkSweepGC,\
-                              cIsDataBase,cDatabaseCachePercentage)
+                              cDatabaseCachePercentage,\
+                              cReplicationPurgeDelay)
   
   cInstallDir = '%s/%s/%s' % (cInstallDir,cName,opendsName)
   return [msg,OpendsInstance(cId,cName,cProduct,cRole,cHost,cInstallDir,\

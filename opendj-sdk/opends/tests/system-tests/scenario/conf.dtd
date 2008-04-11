@@ -58,7 +58,7 @@
         sslEnabled ( true | false ) "false"
         certificate ( generateSelfSigned ) "generateSelfSigned"
         startTlsEnabled ( true | false ) "false">
-  <!ELEMENT tuning (java?,databaseCache?)>
+  <!ELEMENT tuning (java?,databaseCachePercentage?,replicationPurgeDelay?)>
     <!ELEMENT java EMPTY>
     <!ATTLIST java
         xms NMTOKEN #IMPLIED
@@ -69,8 +69,9 @@
         xxPermSize NMTOKEN #IMPLIED
         xxMaxPermSize NMTOKEN #IMPLIED
         xxUseConcMarkSweepGC NMTOKEN #IMPLIED>
-    <!ELEMENT databaseCache EMPTY>
-    <!ATTLIST databaseCache percentage NMTOKEN #REQUIRED>
+    <!ELEMENT databaseCachePercentage (#PCDATA)>
+    <!ELEMENT replicationPurgeDelay (#PCDATA)>
+    <!ATTLIST replicationPurgeDelay unit ( s | m | h ) "s">
 
 
 <!-- ========== SUFFIX NODE ========================= -->
