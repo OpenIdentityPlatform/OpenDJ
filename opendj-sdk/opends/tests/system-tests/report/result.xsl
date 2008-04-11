@@ -154,7 +154,7 @@
 <xsl:template match="scenario">
   <b>Scenario name</b> : <xsl:value-of select="normalize-space(@name)"/> <br/>
   <b>Description</b> : <xsl:value-of 
-                            select="normalize-space(local-name(.))"/> <br/>
+                            select="normalize-space(.)"/> <br/>
   <b>Duration</b> : <xsl:value-of 
                             select="normalize-space(@duration)"/> <br/>
   <br/>
@@ -636,8 +636,10 @@
 <!-- ================= Manage operation node ================ -->
 <xsl:template name="displayOperation">
   <xsl:variable name="opName" select="normalize-space(@name)"/>
+  <xsl:variable name="opDate" select="normalize-space(@date)"/>
   <li>
-    <b><xsl:value-of select="$opName" /> </b><br/>
+    <b><xsl:value-of select="$opName"/></b>
+       <i>@ <xsl:value-of select="$opDate"/></i><br/>
     <xsl:call-template name="parseChildPhase" />
   </li>
 </xsl:template>
