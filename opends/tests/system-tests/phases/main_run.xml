@@ -275,6 +275,16 @@
                 ERR_NUM_TOTAL             = ERR_NUM_TOTAL + ERR_NUM[0]
               </script>
             </sequence>
+          <else>
+            <sequence>
+              <message>
+                'ERROR : preConfiguration phase is enabled and file \
+                does not exist on %s : %s' % \
+                (STAXServiceMachine,preConfigurationFile)
+              </message>
+              <script>ERR_NUM_TOTAL += 1 </script>
+            </sequence>
+          </else>
           </if>
         </sequence>
       </if>
@@ -324,6 +334,16 @@
                 ERR_NUM_TOTAL              = ERR_NUM_TOTAL + ERR_NUM[0]
               </script>
             </sequence>
+          <else>
+            <sequence>
+              <message>
+                'ERROR : postConfiguration phase is enabled and file \
+                does not exist on %s : %s' % \
+                (STAXServiceMachine,postConfigurationFile)
+              </message>
+              <script>ERR_NUM_TOTAL += 1 </script>
+            </sequence>
+          </else>
           </if>
         </sequence>
       </if>
