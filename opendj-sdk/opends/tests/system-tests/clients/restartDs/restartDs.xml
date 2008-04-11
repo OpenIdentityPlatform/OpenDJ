@@ -104,6 +104,7 @@
           <call function="'StartDsWithScript'">
             { 'location'  : serverInstance.getHost(),
               'dsPath'    : serverInstance.getInstallDir(),
+              'instance'  : serverInstance,
               'fileFd'    : fileFd
             }
           </call>
