@@ -41,7 +41,7 @@ set SCRIPT_NAME=start-ds
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment-and-test-java
 call "%INSTANCE_ROOT%\lib\_script-util.bat"
-if NOT %errorlevel% == 0 exit /B %errorlevel%
+if NOT %errorlevel% == 0 exit %errorlevel%
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
@@ -112,11 +112,11 @@ goto serverNotStarted
 
 :serverStarted
 echo %SCRIPT%: finished >> %LOG%
-exit /B 0
+exit 0
 
 :serverNotStarted
 echo %SCRIPT%: finished >> %LOG%
-exit /B 1
+exit 1
 
 
 :end
