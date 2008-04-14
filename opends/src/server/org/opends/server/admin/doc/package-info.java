@@ -28,10 +28,9 @@
 
 
 /**
- * Common administration classes.
+ * Administration documentation classes.
  * <p>
- * This package contains the generation of the Configuration Guide
- * common to both the client and server.
+ * This package contains classes used to generate administration documentation.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.PRIVATE)
