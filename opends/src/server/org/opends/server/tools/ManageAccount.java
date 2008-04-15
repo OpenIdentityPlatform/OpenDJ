@@ -1426,7 +1426,6 @@ public class ManageAccount
    */
   private static int processSubcommand(ArrayList<ASN1Element> opElements)
   {
-    int msgID;
     SubCommand subCommand = argParser.getSubCommand();
     if (subCommand == null)
     {
@@ -1455,11 +1454,11 @@ public class ManageAccount
       if ((a != null) && a.isPresent())
       {
         String valueStr = a.getValue();
-        if (valueStr.equalsIgnoreCase("true"))
+        if (isTrueValue(valueStr))
         {
           opElements.add(encode(OP_SET_ACCOUNT_DISABLED_STATE, "true"));
         }
-        else if (valueStr.equalsIgnoreCase("false"))
+        else if (isFalseValue(valueStr))
         {
           opElements.add(encode(OP_SET_ACCOUNT_DISABLED_STATE, "false"));
         }
@@ -1642,11 +1641,11 @@ public class ManageAccount
       if ((a != null) && a.isPresent())
       {
         String valueStr = a.getValue();
-        if (valueStr.equalsIgnoreCase("true"))
+        if (isTrueValue(valueStr))
         {
           opElements.add(encode(OP_SET_PASSWORD_RESET_STATE, "true"));
         }
-        else if (valueStr.equalsIgnoreCase("false"))
+        else if (isFalseValue(valueStr))
         {
           opElements.add(encode(OP_SET_PASSWORD_RESET_STATE, "false"));
         }
@@ -1787,6 +1786,17 @@ public class ManageAccount
         out.println(value);
       }
     }
+  }
+
+  private static boolean isTrueValue(String value)
+  {
+    return INFO_MULTICHOICE_TRUE_VALUE.get().toString().equalsIgnoreCase(value);
+  }
+
+  private static boolean isFalseValue(String value)
+  {
+    return INFO_MULTICHOICE_FALSE_VALUE.get().toString().equalsIgnoreCase(
+        value);
   }
 }
 
