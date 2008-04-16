@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ !
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ !
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2008 Sun Microsystems, Inc.
+ ! -->
+<stax>
+
+  <defaultcall function="verdictOpends"/>
+
+
+
+  <!-- ************************************************************ -->
+  <function name="verdictOpends" scope="local">
+    <function-map-args>
+      <function-arg-def name="workingDir" type="required">
+      </function-arg-def>
+      <function-arg-def name="client" type="required">
+      </function-arg-def>
+      <function-arg-def name="instances" type="required">
+      </function-arg-def>
+      <function-arg-def name="duration" type="required">
+      </function-arg-def>
+      <function-arg-def name="suffix" type="required">
+      </function-arg-def>
+      <function-arg-def name="fileFd" type="required">
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+    
+      <!-- ===================   Comments   =================== -->
+      <!-- client is run under paralleliterate tag              -->
+      <!-- each variables defined are internal                  -->
+      <!-- client should have its own err_num variable in order -->
+      <!-- to inform scheduler if it has pass/fail status       -->
+      <!-- nb of failed is still managed by ERR_NUM[0]          -->
+      <script>
+        errNum   = STAXGlobal(0)
+        fileList = STAXGlobal([])
+      </script>
+      
+      <!--== Get the list of opends instances in the topology == -->
+      <call function="'getOpendsInstancesInATopology'">
+        { 'suffix' : suffix }
+      </call>
+      <script>
+        opendsInstances = STAXResult
+      </script>
+      <paralleliterate in="opendsInstances" var="instance">
+        <sequence>
+          <!-- parallel process, all variables defined        -->
+          <!-- and values set below are local to the sequence -->
+          <call function="'getLogFileName'">
+            { 'type'   : 'instance',
+              'object' : instance,
+              'prefix' : '%s_id%s' % (client.getName(),client.getId())
+            }
+          </call>
+          <script>
+            logFile = STAXResult
+            
+            fileList.append(logFile)
+            
+            cFileFd = open(logFile,'w')
+          </script>
+          <call function="'writeStartTagInstance'">
+          {
+            'instance'  : instance,
+            'fileFd'    : cFileFd
+          }
+          </call>
+          
+          <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+           file="'%s/phases/shared/functions/opendstools.xml' % TESTS_DIR"/>
+          <call function="'verdict4OpendsInstance'">
+          {
+            'instance'  : instance,
+            'instances' : opendsInstances,
+            'suffix'    : suffix,
+            'fileFd'    : cFileFd
+          }
+          </call>
+          <script>
+            errNum += STAXResult
+          </script>
+          
+          <call function="'writeEndTagInstance'">
+            {'fileFd' : cFileFd}
+          </call>
+          <script>
+            cFileFd.close()
+          </script>
+        </sequence>
+      </paralleliterate>
+      
+      <!--==========  Merge files    ==========-->
+      <call function="'mergeFiles'">
+        {
+          'fileList' : fileList,
+          'fileFd'   : fileFd
+        }
+      </call>
+      
+      <return> errNum </return>
+    </sequence>
+  </function>
+  
+  
+  
+</stax>

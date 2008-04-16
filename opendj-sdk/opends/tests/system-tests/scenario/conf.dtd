@@ -117,7 +117,8 @@
     <!ELEMENT client ANY>
     <!ATTLIST client
       id NMTOKEN #IMPLIED
-      name ( searchLoad | modifyLoad | restartDs | sampleSearchLoad) "searchLoad"
+      name ( searchLoad | modifyLoad | restartDs | sampleSearchLoad |
+             verdictOpends) "searchLoad"
       host NMTOKEN #IMPLIED
       start NMTOKEN #IMPLIED
       stop NMTOKEN #IMPLIED
