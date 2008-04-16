@@ -61,9 +61,6 @@
       { 'phaseName' : 'verdict',
         'fileFd'    : LOG_MAIN_FD }
       </call>
-      <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
-      file="'%s/phases/verdict/verdict_opends.xml' % (TESTS_DIR)"/>
-      
       
       
       <!--== Check if previous phases raised some errors ==-->
@@ -110,23 +107,36 @@
                 fileList.append(logFile)
                 
                 cFileFd = open(logFile,'w')
-                # Write start tag
-                str = '&lt;instance name=\"%s\"' % instance.getName()
-                str = '%s host=\"%s\"' % (str, instance.getHost())
-                str = '%s port=\"%s\"' % (str, instance.getLDAPPort())
-                str = '%s product=\"opends\"&gt;\n' % str
-                cFileFd.write(str)
               </script>
+              <call function="'writeStartTagInstance'">
+              {
+                'instance'  : instance,
+                'fileFd'    : cFileFd
+              }
+              </call>
+              
               
               <if expr="instance.getProduct() == 'opends'">
-                <call function="'verdictOpends'">
-                {
-                  'instance'  : instance,
-                  'instances' : topoInstances,
-                  'suffix'    : suffix,
-                  'fileFd'    : cFileFd
-                }
-                </call>
+                <sequence>
+                  <!--== Get the list of opends instances in the topology ==-->
+                  <call function="'getOpendsInstancesInATopology'">
+                    { 'suffix' : suffix }
+                  </call>
+                  <script>
+                    opendsInstances = STAXResult
+                  </script>
+                  <import machine="'%s' % (STAF_LOCAL_HOSTNAME)"
+                   file="'%s/phases/shared/functions/opendstools.xml' % 
+                   TESTS_DIR"/>
+                  <call function="'verdict4OpendsInstance'">
+                  {
+                    'instance'  : instance,
+                    'instances' : opendsInstances,
+                    'suffix'    : suffix,
+                    'fileFd'    : cFileFd
+                  }
+                  </call>
+                </sequence>
               </if>
               
               <!--== Post operations ======-->
@@ -135,10 +145,11 @@
                 (instance.getHost(),instance.getName())
               </message>
               
+              <call function="'writeEndTagInstance'">
+                {'fileFd' : cFileFd}
+              </call>
               <script>
-                cFileFd.write('&lt;/instance&gt;\n')
                 cFileFd.close()
-                cFileFd = ''
               </script>
               
             </sequence>
