@@ -481,24 +481,10 @@
         </xsl:when>
         <!--== instance node ==-->
         <xsl:when test="$nodeName = 'instance'">
-          <xsl:variable name="instanceName" select="normalize-space(@name)"/>
-          <xsl:variable name="instanceHost" select="normalize-space(@host)"/>
-          <xsl:variable name="instancePort" select="normalize-space(@port)"/>
-          <xsl:variable name="instanceProduct" 
-                        select="normalize-space(@product)"/>
-          
-          <li>
-            <b>
-              <xsl:value-of select="$phaseName"/> for instance 
-              <font color="blue"><xsl:value-of select="$instanceName"/></font> 
-              on <xsl:value-of select="$instanceHost"/> :
-              <xsl:value-of select="$instancePort"/>
-              (<xsl:value-of select="$instanceProduct" />)
-            </b><br/>
-            
-            <xsl:call-template name="parseChildPhase" />
-            
-          </li><br/><br/>
+          <xsl:call-template name="displayInstance" >
+            <xsl:with-param name="actionName" select="$phaseName" />
+          </xsl:call-template>
+          <br/>
         </xsl:when>
         <!--== client node ==-->
         <xsl:when test="$nodeName = 'client'">
@@ -541,6 +527,7 @@
 <!-- ================= Manage phase node childs ================ -->
 <xsl:template name="parseChildPhase">
   <!--== Generic sub childs can be a operation/operationResult/... nodes ==-->
+  <xsl:variable name="parentNodeName" select="normalize-space(@name)"/>
   <ul>
     <xsl:for-each select="child::*"> 
       <xsl:variable name="nodeName" select="normalize-space(local-name(.))"/>
@@ -559,6 +546,11 @@
         </xsl:when>
         <xsl:when test="$nodeName = 'client'">
           <xsl:call-template name="displayClient" />
+        </xsl:when>
+        <xsl:when test="$nodeName = 'instance'">
+          <xsl:call-template name="displayInstance" >
+            <xsl:with-param name="actionName" select="$parentNodeName" />
+          </xsl:call-template>
         </xsl:when>
         
         <!--== Nothing to do, just for node recognition ==-->
@@ -586,10 +578,43 @@
 </xsl:template>
 
 
+
+<!-- ================= Manage instance node ================ -->
+<xsl:template name="displayInstance">
+  <xsl:param name="actionName"/>
+
+  <xsl:variable name="instanceName" select="normalize-space(@name)"/>
+  <xsl:variable name="instanceHost" select="normalize-space(@host)"/>
+  <xsl:variable name="instancePort" select="normalize-space(@port)"/>
+  <xsl:variable name="instanceProduct" 
+                select="normalize-space(@product)"/>
+
+  <li>
+    <b>
+      <xsl:value-of select="$actionName"/> for instance 
+      <font color="blue"><xsl:value-of select="$instanceName"/></font> 
+      on <xsl:value-of select="$instanceHost"/> :
+      <xsl:value-of select="$instancePort"/>
+      (<xsl:value-of select="$instanceProduct" />)
+    </b><br/>
+    
+    <xsl:call-template name="parseChildPhase" />
+    
+  </li><br/>
+</xsl:template>
+
 <!-- ================= Manage module node ================ -->
 <xsl:template name="displayModule">
   
-  <li> <b>Module</b> : <xsl:value-of select="normalize-space(@name)"/> <br/>
+  <li> <b>Module</b> : <xsl:value-of select="normalize-space(@name)"/> 
+      <xsl:variable name="moduleStatus" select="normalize-space(@enabled)"/>
+      <xsl:choose>
+        <xsl:when test="$moduleStatus='true'">
+          <i> (enabled)</i>
+        </xsl:when>
+        <xsl:otherwise><i> (disabled)</i></xsl:otherwise>
+      </xsl:choose>
+      <br/>
       <xsl:call-template name="parseChildPhase" />
   </li><br/>
 </xsl:template>
