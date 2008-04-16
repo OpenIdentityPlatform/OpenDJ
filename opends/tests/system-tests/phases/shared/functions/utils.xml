@@ -489,6 +489,7 @@
       </if>
       <!-- ========== -->
       <script>
+        _errNum = 0
         result = 'NOTHING'
         
         if (caseSensitive == TRUE):
@@ -513,44 +514,51 @@
       </script>
       
       <if expr="expect2Find == TRUE">
-        <if expr="(result != 'NOTHING') and (grepRC == 0)">
-          <call function="'checkRC'">
-            { 'returncode' : 0,
-              'result'     : '',
-              'fileFd'     : fileFd }
-          </call>
-        <else>
-          <call function="'checkRC'">
-            { 'returncode' : grepRC,
-              'result'     : result,
-              'fileFd'     : fileFd }
-          </call>
-        </else>
-        </if>
+        <sequence>
+          <if expr="(result != 'NOTHING') and (grepRC == 0)">
+            <call function="'checkRC'">
+              { 'returncode' : 0,
+                'result'     : '',
+                'fileFd'     : fileFd }
+            </call>
+          <else>
+            <call function="'checkRC'">
+              { 'returncode' : grepRC,
+                'result'     : result,
+                'fileFd'     : fileFd }
+            </call>
+          </else>
+          </if>
+          <script> _errNum += STAXResult </script>
+        </sequence>
       
       <!-- == expect2Find == FALSE == -->
       <else>
-        <if expr="(result == '') and (grepRC != 0)">
-          <call function="'checkRC'">
-            { 'returncode' : 0,
-              'result'     : '',
-              'fileFd'     : fileFd }
-          </call>
-        <else>
-          <call function="'checkRC'">
-            { 'returncode' : grepRC,
-              'expected'   : [1],
-              'result'     : result,
-              'fileFd'     : fileFd }
-          </call>
-        </else>
-        </if>
-        
+        <sequence>
+          <if expr="(result == '') and (grepRC != 0)">
+            <call function="'checkRC'">
+              { 'returncode' : 0,
+                'result'     : '',
+                'fileFd'     : fileFd }
+            </call>
+          <else>
+            <call function="'checkRC'">
+              { 'returncode' : grepRC,
+                'expected'   : [1],
+                'result'     : result,
+                'fileFd'     : fileFd }
+            </call>
+          </else>
+          </if>
+        <script> _errNum += STAXResult </script>
+        </sequence>
       </else>
       </if>
       
       <!-- ========== -->
       <call function="'writeEndTagOperation'">{'fileFd'  : fileFd}</call>
+      
+      <return> _errNum </return>
     </sequence>
   </function>
 
